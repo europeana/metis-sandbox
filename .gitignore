@@ -37,8 +37,12 @@ hs_err_pid*
 *.DS_Store
 
 # Maven
+!**/.mvn/wrapper/maven-wrapper.jar
 **/log/
 **/target/
 
 # Truststores
 *.jks
+
+# Tomcat
+**/tomcat/
