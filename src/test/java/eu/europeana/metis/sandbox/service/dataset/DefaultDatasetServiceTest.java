@@ -8,8 +8,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -44,8 +42,7 @@ class DefaultDatasetServiceTest {
 
     var records = List.of("record1");
     var record = Record.builder().datasetId("").datasetName("").country(Country.AUSTRIA)
-        .status(Status.SUCCESS).language(Language.BE)
-        .step(Step.CREATE).content("").recordId("").build();
+        .language(Language.BE).content("").recordId("").build();
     var dataset = new Dataset("1234_name", List.of(record));
 
     when(generatorService.generate("name", Country.AUSTRIA, Language.BE, records))
@@ -75,8 +72,7 @@ class DefaultDatasetServiceTest {
 
     var records = List.of("record1");
     var record = Record.builder().datasetId("").datasetName("").country(Country.AUSTRIA)
-        .status(Status.SUCCESS).language(Language.BE)
-        .step(Step.CREATE).content("").recordId("").build();
+        .language(Language.BE).content("").recordId("").build();
     var dataset = new Dataset("1234_name", List.of(record));
 
     when(generatorService.generate("name", Country.AUSTRIA, Language.BE, records))

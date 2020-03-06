@@ -26,12 +26,13 @@ public class RecordLogEntity {
   @Enumerated(EnumType.STRING)
   private Status result;
 
-  @Column
+  @Column(columnDefinition = "VARCHAR(MAX)")
   private String error;
 
-  public RecordLogEntity(RecordLogEntityKey key, String content, Status result) {
+  public RecordLogEntity(RecordLogEntityKey key, String content, Status result, String error) {
     this.key = key;
     this.content = content;
     this.result = result;
+    this.error = error;
   }
 }

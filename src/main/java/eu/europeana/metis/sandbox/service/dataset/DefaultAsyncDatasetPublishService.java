@@ -3,8 +3,11 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -38,11 +41,12 @@ class DefaultAsyncDatasetPublishService implements AsyncDatasetPublishService {
   }
 
   private void publish(Record record) {
+    Event<Record> recordEvent = new Event<>(record, Step.CREATE);
     try {
-      amqpTemplate.convertAndSend(initialQueue, record);
+      amqpTemplate.convertAndSend(initialQueue, recordEvent);
     } catch (Exception e) {
       log.error("There was an issue publishing the record: {} {}", record.getRecordId(), e.getMessage(), e);
-      throw new ServiceException("There was an issue publishing the record: " + e.getMessage(), e);
+      throw new RecordProcessingException(record.getRecordId(), e);
     }
   }
 }

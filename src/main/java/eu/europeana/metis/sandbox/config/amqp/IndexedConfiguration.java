@@ -21,6 +21,9 @@ class IndexedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.indexed.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public IndexedConfiguration(
@@ -30,7 +33,7 @@ class IndexedConfiguration {
 
   @Bean
   Queue indexedQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

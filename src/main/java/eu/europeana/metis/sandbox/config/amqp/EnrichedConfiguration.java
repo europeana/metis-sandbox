@@ -21,6 +21,9 @@ class EnrichedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.enriched.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public EnrichedConfiguration(
@@ -30,7 +33,7 @@ class EnrichedConfiguration {
 
   @Bean
   Queue enrichedQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

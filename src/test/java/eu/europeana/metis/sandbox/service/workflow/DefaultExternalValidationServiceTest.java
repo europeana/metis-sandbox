@@ -9,20 +9,7 @@ import org.springframework.beans.factory.ObjectFactory;
 
 class DefaultExternalValidationServiceTest {
 
-  @Mock
-  private ObjectFactory<XsltTransformer> orderObjectFactory;
-
-  @Mock
-  private XsltTransformer xsltSorter;
-
-  @InjectMocks
-  private DefaultExternalValidationService service;
-
   @Test
   void validate_expectSuccess() {
-    Record record = Record.builder().
-
-    //service.validate(null);
-
   }
 }

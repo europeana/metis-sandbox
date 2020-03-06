@@ -2,16 +2,15 @@ package eu.europeana.metis.sandbox.service.record;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
@@ -32,27 +31,31 @@ class DefaultRecordLogServiceTest {
 
   @Test
   void logRecord_expectSuccess() {
-    Record record = Record.builder().recordId("").content("").datasetId("").status(Status.SUCCESS)
-        .step(Step.CREATE).language(Language.IT).country(Country.ITALY).datasetName("").build();
+    Record record = Record.builder().recordId("").content("").datasetId("")
+        .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    service.logRecord(record);
+    Event<Record> event = new Event<>(record, Step.CREATE);
+
+    service.logRecordEvent(event);
 
     verify(repository, times(1)).save(any(RecordLogEntity.class));
   }
 
   @Test
   void logRecord_nullRecord_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.logRecord(null));
+    assertThrows(NullPointerException.class, () -> service.logRecordEvent(null));
   }
 
   @Test
   void logRecord_unableToSave_expectFail() {
-    Record record = Record.builder().recordId("").content("").datasetId("").status(Status.SUCCESS)
-        .step(Step.CREATE).language(Language.IT).country(Country.ITALY).datasetName("").build();
+    Record record = Record.builder().recordId("").content("").datasetId("")
+        .language(Language.IT).country(Country.ITALY).datasetName("").build();
+
+    Event<Record> event = new Event<>(record, Step.CREATE);
 
     when(repository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
 
-    assertThrows(ServiceException.class, () -> service.logRecord(record));
+    assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
   }
 }

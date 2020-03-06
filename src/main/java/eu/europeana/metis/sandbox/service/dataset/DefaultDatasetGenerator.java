@@ -42,8 +42,6 @@ class DefaultDatasetGenerator implements DatasetGeneratorService {
             .datasetName(name)
             .country(country)
             .language(language)
-            .status(Status.SUCCESS)
-            .step(Step.CREATE)
             .content(record)
             .build())
         .collect(Collectors.toList());

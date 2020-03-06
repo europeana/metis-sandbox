@@ -21,6 +21,9 @@ class InternallyValidatedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public InternallyValidatedConfiguration(
@@ -30,7 +33,7 @@ class InternallyValidatedConfiguration {
 
   @Bean
   Queue validatedInternalQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

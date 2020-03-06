@@ -9,12 +9,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -47,38 +46,36 @@ class DefaultAsyncDatasetPublishServiceTest {
   void publish_expectSuccess() throws Exception {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
-        .status(Status.SUCCESS).country(Country.ITALY).step(Step.CREATE)
+        .country(Country.ITALY)
         .language(Language.IT).content("").build();
     var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
-        .status(Status.SUCCESS).step(Step.CREATE)
         .country(Country.ITALY).language(Language.IT).content("").build();
 
     Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
 
     service.publish(dataset).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Record.class));
+    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
   }
 
   @Test
   void publish_asyncFail_expectFail() throws Exception {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
-        .status(Status.SUCCESS).country(Country.ITALY).step(Step.CREATE)
+        .country(Country.ITALY)
         .language(Language.IT).content("").build();
     var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
-        .status(Status.SUCCESS).step(Step.CREATE)
         .country(Country.ITALY).language(Language.IT).content("").build();
 
     Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-        .convertAndSend(anyString(), any(Record.class));
+        .convertAndSend(anyString(), any(Event.class));
 
     Exception exception = assertThrows(ExecutionException.class,
         () -> service.publish(dataset).get());
 
-    verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(Record.class));
+    verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(Event.class));
 
     assertThat(exception.getCause(), instanceOf(ServiceException.class));
   }

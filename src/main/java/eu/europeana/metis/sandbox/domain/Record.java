@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.domain;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import lombok.Builder;
@@ -27,14 +25,10 @@ public class Record {
   @NonNull
   private final Language language;
   @NonNull
-  private final Step step;
-  @NonNull
-  private final Status status;
-  @NonNull
   @EqualsAndHashCode.Exclude
   private final String content;
 
-  public static Record from(Record record, String content, Step step) {
+  public static Record from(Record record, String content) {
     return Record.builder()
         .recordId(record.getRecordId())
         .datasetId(record.getDatasetId())
@@ -42,8 +36,6 @@ public class Record {
         .content(content)
         .country(record.getCountry())
         .language(record.getLanguage())
-        .status(record.getStatus())
-        .step(step)
         .build();
   }
 }

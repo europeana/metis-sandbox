@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntityKey;
@@ -21,21 +22,23 @@ class DefaultRecordLogService implements RecordLogService {
   }
 
   @Override
-  public void logRecord(Record record) {
-    requireNonNull(record, "Record must not be null");
+  public void logRecordEvent(Event<Record> recordEvent) {
+    requireNonNull(recordEvent, "Record event must not be null");
+
+    Record record = recordEvent.getBody();
 
     var key = RecordLogEntityKey.builder()
         .id(record.getRecordId())
         .datasetId(record.getDatasetId())
-        .step(record.getStep())
+        .step(recordEvent.getStep())
         .build();
-    var recordLogEntity = new RecordLogEntity(key, record.getContent(), record.getStatus());
+    var recordLogEntity = new RecordLogEntity(key, record.getContent(), recordEvent.getStatus(),
+        recordEvent.getException());
 
     try {
       repository.save(recordLogEntity);
-      //log.info("Saving record {}", record.getRecordId());
     } catch (Exception e) {
-      throw new ServiceException("Error saving record log: " + e.getMessage(), e);
+      throw new ServiceException("Error saving record event log: " + e.getMessage(), e);
     }
   }
 }

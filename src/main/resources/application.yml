@@ -41,6 +41,11 @@ spring:
         concurrency: 5
         max-concurrency: 10
         prefetch: 1
+        retry:
+          enabled: true
+          initial-interval: 1000
+          multiplier: 2
+          max-attempts: 3
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false

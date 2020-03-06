@@ -1,5 +1,9 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +29,21 @@ class CreatedConsumer {
   }
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory")
-  public void applyOrdering(Record input) {
-    Record output = service.validate(input);
+  public void applyOrdering(Event<Record> input) {
+    if (input.getStatus() == Status.FAIL) {
+      return;
+    }
+
+    Event<Record> output;
+    Record record;
+    try {
+      record = service.validate(input.getBody());
+      output = new Event<>(record, Step.VALIDATE_EXTERNAL);
+    } catch (RecordProcessingException ex) {
+      log.error(ex.getMessage(), ex);
+      record = Record.from(input.getBody(), input.getBody().getContent());
+      output = new Event<>(record, Step.VALIDATE_EXTERNAL, ex);
+    }
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

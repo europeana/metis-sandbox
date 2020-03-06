@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +28,11 @@ public class ExternallyValidatedConsumer {
 
   // TODO keep consuming from here
   //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory")
-  public void transform(Record input) {
-    Record output = service.transform(input);
-    amqpTemplate.convertAndSend(routingKey, output);
+  public void transform(Event<Record> input) {
+    if(input.getStatus() == Status.FAIL) {
+      return;
+    }
+    //Record output = service.transform(input);
+    //amqpTemplate.convertAndSend(routingKey, output);
   }
 }

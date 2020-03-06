@@ -21,6 +21,9 @@ public class ExternallyValidatedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.validated.external.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public ExternallyValidatedConfiguration(
@@ -30,7 +33,7 @@ public class ExternallyValidatedConfiguration {
 
   @Bean
   Queue validatedExternalQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean
