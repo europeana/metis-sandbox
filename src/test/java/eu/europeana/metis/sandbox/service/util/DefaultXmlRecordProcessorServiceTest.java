@@ -42,7 +42,7 @@ class DefaultXmlRecordProcessorServiceTest {
 
   @Test
   void getRecordId_expectSuccess() throws Exception {
-    var xmlRecord = utils.readFileToString("zip/valid-record.xml");
+    var xmlRecord = utils.readFileToString("record/valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(saxParserFactory);
 
@@ -58,7 +58,7 @@ class DefaultXmlRecordProcessorServiceTest {
 
   @Test
   void getRecordId_nonRecoverableException_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToString("zip/valid-record.xml");
+    var xmlRecord = utils.readFileToString("record/valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(saxParserFactory);
     when(saxParserFactory.newSAXParser()).thenThrow(new ParserConfigurationException());
@@ -68,7 +68,7 @@ class DefaultXmlRecordProcessorServiceTest {
 
   @Test
   void getRecordId_serviceException_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToString("zip/valid-record.xml");
+    var xmlRecord = utils.readFileToString("record/valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(saxParserFactory);
     when(saxParserFactory.newSAXParser()).thenReturn(saxParser);
@@ -79,7 +79,7 @@ class DefaultXmlRecordProcessorServiceTest {
 
   @Test
   void getRecordId_recordMissingId_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToString("zip/record-missing-id.xml");
+    var xmlRecord = utils.readFileToString("record/record-missing-id.xml");
 
     when(objectFactory.getObject()).thenReturn(saxParserFactory);
 

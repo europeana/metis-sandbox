@@ -30,7 +30,7 @@ class DefaultDatasetGeneratorTest {
     when(xmlRecordProcessorService.getRecordId(anyString())).thenReturn("id");
 
     var dataset = generator
-        .generate("name", Country.ITALY, Language.IT, List.of("record1", "records"));
+        .generate("name", Country.ITALY, Language.IT, List.of("record1", "record"));
 
     assertEquals(2, dataset.getRecords().size());
   }

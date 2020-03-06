@@ -34,12 +34,12 @@ public class Record {
   @EqualsAndHashCode.Exclude
   private final String content;
 
-  public static Record from(Record record, Step step) {
+  public static Record from(Record record, String content, Step step) {
     return Record.builder()
         .recordId(record.getRecordId())
         .datasetId(record.getDatasetId())
         .datasetName(record.getDatasetName())
-        .content(record.getContent())
+        .content(content)
         .country(record.getCountry())
         .language(record.getLanguage())
         .status(record.getStatus())

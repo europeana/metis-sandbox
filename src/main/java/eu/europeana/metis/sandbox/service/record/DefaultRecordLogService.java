@@ -33,7 +33,7 @@ class DefaultRecordLogService implements RecordLogService {
 
     try {
       repository.save(recordLogEntity);
-      log.info("Saving record {}", record.getRecordId());
+      //log.info("Saving record {}", record.getRecordId());
     } catch (Exception e) {
       throw new ServiceException("Error saving record log: " + e.getMessage(), e);
     }

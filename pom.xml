@@ -76,6 +76,12 @@
 			<version>${version.metis}</version>
 		</dependency>
 
+		<dependency>
+		<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-transformation-service</artifactId>
+			<version>${version.metis}</version>
+		</dependency>
+
 		<!-- Persistence -->
 		<dependency>
 			<groupId>com.h2database</groupId>
