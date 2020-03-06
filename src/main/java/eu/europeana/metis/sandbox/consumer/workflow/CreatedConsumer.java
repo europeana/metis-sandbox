@@ -29,7 +29,7 @@ class CreatedConsumer {
   }
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory")
-  public void applyOrdering(Event<Record> input) {
+  public void validateExternal(Event<Record> input) {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
@@ -44,6 +44,7 @@ class CreatedConsumer {
       record = Record.from(input.getBody(), input.getBody().getContent());
       output = new Event<>(record, Step.VALIDATE_EXTERNAL, ex);
     }
+
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

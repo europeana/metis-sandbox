@@ -38,7 +38,7 @@ class DefaultRecordLogServiceTest {
 
     service.logRecordEvent(event);
 
-    verify(repository, times(1)).save(any(RecordLogEntity.class));
+    verify(repository).save(any(RecordLogEntity.class));
   }
 
   @Test
