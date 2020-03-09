@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import static java.util.Objects.requireNonNull;
 
-import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.nio.charset.StandardCharsets;

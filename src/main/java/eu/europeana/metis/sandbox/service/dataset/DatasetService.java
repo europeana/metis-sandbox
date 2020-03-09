@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;

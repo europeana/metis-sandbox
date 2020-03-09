@@ -68,6 +68,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 
 		<!-- Europeana -->
 		<dependency>
@@ -77,8 +81,13 @@
 		</dependency>
 
 		<dependency>
-		<groupId>eu.europeana.metis</groupId>
+			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-transformation-service</artifactId>
+			<version>${version.metis}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-validation-service</artifactId>
 			<version>${version.metis}</version>
 		</dependency>
 

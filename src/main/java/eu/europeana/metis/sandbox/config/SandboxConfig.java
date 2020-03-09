@@ -3,22 +3,28 @@ package eu.europeana.metis.sandbox.config;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
-import java.io.File;
+import eu.europeana.validation.service.ClasspathResourceResolver;
+import eu.europeana.validation.service.PredefinedSchemasGenerator;
+import eu.europeana.validation.service.SchemaProvider;
 import java.io.IOException;
-import java.net.URL;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.xml.sax.SAXException;
 
 @Configuration
+@ComponentScan("eu.europeana.validation.service")
 public class SandboxConfig {
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
@@ -51,8 +57,9 @@ public class SandboxConfig {
   }
 
   private String edmSorterUrl() throws IOException {
-    if(edmSorterUrl == null) {
-      edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL().toString();
+    if (edmSorterUrl == null) {
+      edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL()
+          .toString();
     }
     return edmSorterUrl;
   }
@@ -75,5 +82,22 @@ public class SandboxConfig {
   @Bean
   ZipFileReader zipFileReader() {
     return new ZipFileReader();
+  }
+
+  @Bean
+  ClasspathResourceResolver lsResourceResolver() {
+    return new ClasspathResourceResolver();
+  }
+
+  @Bean
+  SchemaProvider schemaProvider() throws IOException {
+    return new SchemaProvider(PredefinedSchemasGenerator.generate(schemaProperties()));
+  }
+
+  private Properties schemaProperties() throws IOException {
+    PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
+    propertiesFactoryBean.setLocation(new ClassPathResource("predefined-schemas.properties"));
+    propertiesFactoryBean.afterPropertiesSet();
+    return propertiesFactoryBean.getObject();
   }
 }

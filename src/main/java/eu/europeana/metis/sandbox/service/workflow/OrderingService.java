@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
 import eu.europeana.metis.transformation.service.TransformationException;
 
 public interface OrderingService {

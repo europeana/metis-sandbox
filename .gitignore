@@ -16,6 +16,7 @@
 *.nar
 *.ear
 *.zip
+!**/test/resources/zip/dataset-valid.zip
 *.tar.gz
 *.rar
 

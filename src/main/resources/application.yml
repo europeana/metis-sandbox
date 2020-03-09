@@ -66,6 +66,9 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+  validation:
+    executor:
+      pool-size: 10
   rabbitmq:
     exchange:
       name: sandbox
