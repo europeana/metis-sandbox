@@ -36,13 +36,15 @@ class DefaultDatasetService implements DatasetService {
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    var dataset = generatorService.generate(datasetName, country, language, records);
-    var entity = new DatasetEntity(dataset.getDatasetId(), datasetName, records.size());
+    var entity = new DatasetEntity(datasetName, records.size());
+    String id;
     try {
-      datasetRepository.save(entity);
+      id = datasetRepository.save(entity).getDatasetId();
     } catch (Exception e) {
       throw new ServiceException("Error creating the dataset: " + e.getMessage(), e);
     }
+
+    var dataset = generatorService.generate(id, datasetName, country, language, records);
     publishService.publish(dataset);
     return dataset.getDatasetId();
   }

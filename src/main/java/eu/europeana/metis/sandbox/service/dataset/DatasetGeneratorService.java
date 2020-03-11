@@ -10,6 +10,7 @@ public interface DatasetGeneratorService {
   /**
    * Creates a {@link Dataset} instance
    *
+   * @param id       must not be null
    * @param name     must not be null
    * @param country  must not be null
    * @param language must not be null
@@ -18,6 +19,6 @@ public interface DatasetGeneratorService {
    * @throws NullPointerException     if any parameter is null
    * @throws IllegalArgumentException if records list is empty
    */
-  Dataset generate(String name, Country country, Language language,
+  Dataset generate(String id, String name, Country country, Language language,
       List<String> records);
 }

@@ -25,7 +25,7 @@ class DefaultDatasetGenerator implements DatasetGeneratorService {
   }
 
   @Override
-  public Dataset generate(String name, Country country, Language language,
+  public Dataset generate(String id, String name, Country country, Language language,
       List<String> records) {
     requireNonNull(name, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
@@ -33,12 +33,10 @@ class DefaultDatasetGenerator implements DatasetGeneratorService {
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    var datasetId = System.currentTimeMillis() + "_" + name;
-
     var recordObjectList = records.stream()
         .map(record -> Record.builder()
             .recordId(xmlRecordProcessorService.getRecordId(record))
-            .datasetId(datasetId)
+            .datasetId(id)
             .datasetName(name)
             .country(country)
             .language(language)
@@ -48,6 +46,6 @@ class DefaultDatasetGenerator implements DatasetGeneratorService {
             .build())
         .collect(Collectors.toList());
 
-    return new Dataset(datasetId, recordObjectList);
+    return new Dataset(id, recordObjectList);
   }
 }
