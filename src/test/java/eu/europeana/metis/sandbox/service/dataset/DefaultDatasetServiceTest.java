@@ -47,7 +47,10 @@ class DefaultDatasetServiceTest {
         .status(Status.SUCCESS).language(Language.BE)
         .step(Step.CREATE).content("").recordId("").build();
     var dataset = new Dataset("1234_name", List.of(record));
+    var datasetEntity = new DatasetEntity("name", 5);
+    datasetEntity.setDatasetId("1");
 
+    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
     var datasetId = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
@@ -79,8 +82,6 @@ class DefaultDatasetServiceTest {
         .step(Step.CREATE).content("").recordId("").build();
     var dataset = new Dataset("1234_name", List.of(record));
 
-    when(generatorService.generate("1","name", Country.AUSTRIA, Language.BE, records))
-        .thenReturn(dataset);
     when(datasetRepository.save(any(DatasetEntity.class)))
         .thenThrow(new IllegalArgumentException());
     assertThrows(ServiceException.class,
