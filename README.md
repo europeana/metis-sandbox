@@ -8,11 +8,11 @@ Give a client (GLAM or aggregator) an environment to test their dataset before s
 
 ## Run Tests
 
-> ./mvnw clean test
+> mvn clean test
 
 ## Run Application
 
-> ./mvnw clean package spring-boot:run
+> mvn clean package spring-boot:run
 
 ## API
 Composed by 2 endpoints

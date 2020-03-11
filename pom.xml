@@ -38,7 +38,7 @@
 	</distributionManagement>
 
 	<properties>
-		<version.java>13</version.java>
+		<version.java>11</version.java>
 		<version.springfox>2.9.2</version.springfox>
 		<version.metis>1.7.0</version.metis>
 		<version.lombok>1.18.12</version.lombok>

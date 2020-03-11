@@ -1,75 +1,49 @@
 package eu.europeana.metis.sandbox.service.util;
 
-import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import java.io.StringReader;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Service;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.InputSource;
 
 @Service
 class DefaultXmlRecordProcessorService implements XmlRecordProcessorService {
 
-  private final ObjectFactory<SAXParserFactory> objectFactory;
+  private static final String RECORD_ID_EXPRESSION = "//*[namespace-uri()=\"http://www.europeana.eu/schemas/edm/\" and local-name()='ProvidedCHO']/@*[namespace-uri()=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" and local-name()='about']";
 
-  public DefaultXmlRecordProcessorService(ObjectFactory<SAXParserFactory> objectFactory) {
+  private final ObjectFactory<XPathFactory> objectFactory;
+
+  public DefaultXmlRecordProcessorService(
+      ObjectFactory<XPathFactory> objectFactory) {
     this.objectFactory = objectFactory;
   }
 
   @Override
   public String getRecordId(String record) {
-    requireNonNull(record, "Record must not be null");
+    var xpathFactory = getXPathFactory();
+    var xpath = xpathFactory.newXPath();
+    var source = new InputSource(new StringReader(record));
+    String recordId;
 
-    SAXParser parser;
-    SAXParserFactory factory = getSAXParserFactory();
-    var recordHandler = new RecordHandler();
     try {
-      parser = factory.newSAXParser();
-      var stream = new ByteArrayInputStream(record.getBytes());
-      parser.parse(stream, recordHandler);
-    } catch (ParserConfigurationException pce) {
+      recordId = xpath.evaluate(RECORD_ID_EXPRESSION, source);
+    } catch (XPathExpressionException e) {
       throw new NonRecoverableServiceException(
-          "Error while parsing a xml record: " + pce.getMessage(), pce);
-    } catch (SAXException | IOException e) {
-      throw new ServiceException("Error while parsing a xml record: " + e.getMessage(), e);
+          "Error while parsing a xml record: " + e.getMessage(), e);
     }
 
-    if (recordHandler.getRecordId() == null) {
+    if (isEmpty(recordId)) {
       throw new IllegalArgumentException("Provided xml record does not have a valid id");
     }
 
-    return recordHandler.getRecordId();
+    return recordId;
   }
 
-  private SAXParserFactory getSAXParserFactory() {
+  private XPathFactory getXPathFactory() {
     return objectFactory.getObject();
-  }
-
-  private static class RecordHandler extends DefaultHandler {
-
-    private static final String ID_ELEMENT = "edm:ProvidedCHO";
-    private static final String ID_ATTRIBUTE = "rdf:about";
-
-    private String recordId;
-
-    @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes)
-        throws SAXException {
-      if (qName.equalsIgnoreCase(ID_ELEMENT)) {
-        recordId = attributes.getValue(ID_ATTRIBUTE);
-      }
-    }
-
-    public String getRecordId() {
-      return recordId;
-    }
   }
 }

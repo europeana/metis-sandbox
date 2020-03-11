@@ -4,6 +4,7 @@ import eu.europeana.metis.utils.ZipFileReader;
 import java.util.concurrent.Executor;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +29,8 @@ public class SandboxConfig {
 
   @Bean
   @Scope("prototype")
-  SAXParserFactory parserFactory() throws ParserConfigurationException, SAXException {
-    return SAXParserFactory.newInstance();
+  XPathFactory xPathFactory() {
+    return XPathFactory.newDefaultInstance();
   }
 
   @Bean
