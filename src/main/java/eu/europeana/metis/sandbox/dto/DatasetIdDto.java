@@ -10,7 +10,7 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @ToString
 @Getter
-public class DatasetDto {
+public class DatasetIdDto {
 
   @NonNull
   private final String datasetId;

@@ -5,7 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.DatasetDto;
+import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
@@ -30,7 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Api(value = "Dataset Controller")
 public class DatasetController {
 
-  private final static Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
+  private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
   @Value("${sandbox.dataset.max-size}")
   private int maxRecords;
@@ -46,7 +46,7 @@ public class DatasetController {
   @ApiOperation("Process the given dataset")
   @PostMapping(value = "dataset/{name}/process", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetDto processDataset(
+  public DatasetIdDto processDataset(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "NETHERLANDS") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "NL") @RequestParam Language language,
@@ -58,7 +58,7 @@ public class DatasetController {
         "Amount of records can not be more than " + maxRecords);
 
     var datasetId = datasetService.createDataset(datasetName, country, language, records);
-    return new DatasetDto(datasetId);
+    return new DatasetIdDto(datasetId);
   }
 
   @ApiOperation("Get dataset progress information")
