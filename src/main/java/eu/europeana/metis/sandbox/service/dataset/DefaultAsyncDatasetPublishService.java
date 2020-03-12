@@ -8,13 +8,16 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 class DefaultAsyncDatasetPublishService implements AsyncDatasetPublishService {
+
+  private static final Logger log = LoggerFactory
+      .getLogger(DefaultAsyncDatasetPublishService.class);
 
   private AmqpTemplate amqpTemplate;
   private String initialQueue;
@@ -41,7 +44,8 @@ class DefaultAsyncDatasetPublishService implements AsyncDatasetPublishService {
     try {
       amqpTemplate.convertAndSend(initialQueue, record);
     } catch (Exception e) {
-      log.error("There was an issue publishing the record: {} {}", record.getRecordId(), e.getMessage(), e);
+      log.error("There was an issue publishing the record: {} {}", record.getRecordId(),
+          e.getMessage(), e);
       throw new ServiceException("There was an issue publishing the record: " + e.getMessage(), e);
     }
   }

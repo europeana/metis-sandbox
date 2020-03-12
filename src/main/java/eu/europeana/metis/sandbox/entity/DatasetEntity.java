@@ -5,14 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@NoArgsConstructor
-@Getter
-@Setter
 public class DatasetEntity {
 
   @Id
@@ -28,6 +22,33 @@ public class DatasetEntity {
 
   public DatasetEntity(String datasetName, Integer recordsQuantity) {
     this.datasetName = datasetName;
+    this.recordsQuantity = recordsQuantity;
+  }
+
+  public DatasetEntity() {
+  }
+
+  public String getDatasetId() {
+    return this.datasetId;
+  }
+
+  public String getDatasetName() {
+    return this.datasetName;
+  }
+
+  public Integer getRecordsQuantity() {
+    return this.recordsQuantity;
+  }
+
+  public void setDatasetId(String datasetId) {
+    this.datasetId = datasetId;
+  }
+
+  public void setDatasetName(String datasetName) {
+    this.datasetName = datasetName;
+  }
+
+  public void setRecordsQuantity(Integer recordsQuantity) {
     this.recordsQuantity = recordsQuantity;
   }
 }

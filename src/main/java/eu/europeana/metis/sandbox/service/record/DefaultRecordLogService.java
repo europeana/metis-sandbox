@@ -7,12 +7,15 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntityKey;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 class DefaultRecordLogService implements RecordLogService {
+
+  private static final Logger log = LoggerFactory
+      .getLogger(DefaultRecordLogService.class);
 
   private RecordLogRepository repository;
 

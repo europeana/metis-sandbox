@@ -5,8 +5,8 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import lombok.SneakyThrows;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -24,9 +24,8 @@ public class RecordMessageConverter implements MessageConverter {
   private static final String STATUS = "status";
   private static final String STEP = "step";
 
-  private static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name();
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-  @SneakyThrows
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties)
       throws MessageConversionException {
@@ -52,7 +51,6 @@ public class RecordMessageConverter implements MessageConverter {
         .build();
   }
 
-  @SneakyThrows
   @Override
   public Object fromMessage(Message message) throws MessageConversionException {
     MessageProperties properties = message.getMessageProperties();

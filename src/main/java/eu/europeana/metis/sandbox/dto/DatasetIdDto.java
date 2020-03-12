@@ -1,17 +1,28 @@
 package eu.europeana.metis.sandbox.dto;
 
+import static java.util.Objects.requireNonNull;
+
 import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import java.util.StringJoiner;
 
 @ApiModel("Dataset")
-@RequiredArgsConstructor
-@ToString
-@Getter
 public class DatasetIdDto {
 
-  @NonNull
   private final String datasetId;
+
+  public DatasetIdDto(String datasetId) {
+    requireNonNull(datasetId, "Dataset id must not be null");
+    this.datasetId = datasetId;
+  }
+
+  public String getDatasetId() {
+    return this.datasetId;
+  }
+
+  @Override
+  public String toString() {
+    return new StringJoiner(", ", DatasetIdDto.class.getSimpleName() + "[", "]")
+        .add("datasetId='" + datasetId + "'")
+        .toString();
+  }
 }

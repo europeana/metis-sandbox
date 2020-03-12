@@ -2,15 +2,10 @@ package eu.europeana.metis.sandbox.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import java.util.StringJoiner;
 import org.springframework.http.HttpStatus;
 
 @ApiModel("ExceptionModel")
-@RequiredArgsConstructor
-@ToString
-@Getter
 public class ExceptionModelDto {
 
   @ApiModelProperty(allowableValues = "400,404,500")
@@ -21,4 +16,31 @@ public class ExceptionModelDto {
 
   @ApiModelProperty
   private final String message;
+
+  public ExceptionModelDto(int statusCode, HttpStatus status, String message) {
+    this.statusCode = statusCode;
+    this.status = status;
+    this.message = message;
+  }
+
+  public int getStatusCode() {
+    return this.statusCode;
+  }
+
+  public HttpStatus getStatus() {
+    return this.status;
+  }
+
+  public String getMessage() {
+    return this.message;
+  }
+
+  @Override
+  public String toString() {
+    return new StringJoiner(", ", ExceptionModelDto.class.getSimpleName() + "[", "]")
+        .add("statusCode=" + statusCode)
+        .add("status=" + status)
+        .add("message='" + message + "'")
+        .toString();
+  }
 }

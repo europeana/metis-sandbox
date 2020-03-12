@@ -6,14 +6,8 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@NoArgsConstructor
-@Getter
-@Setter
 public class RecordLogEntity {
 
   @EmbeddedId
@@ -33,5 +27,40 @@ public class RecordLogEntity {
     this.key = key;
     this.content = content;
     this.result = result;
+  }
+
+  public RecordLogEntity() {
+  }
+
+  public RecordLogEntityKey getKey() {
+    return this.key;
+  }
+
+  public String getContent() {
+    return this.content;
+  }
+
+  public Status getResult() {
+    return this.result;
+  }
+
+  public String getError() {
+    return this.error;
+  }
+
+  public void setKey(RecordLogEntityKey key) {
+    this.key = key;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public void setResult(Status result) {
+    this.result = result;
+  }
+
+  public void setError(String error) {
+    this.error = error;
   }
 }

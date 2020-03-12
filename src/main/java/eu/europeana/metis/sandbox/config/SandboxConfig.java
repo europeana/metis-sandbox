@@ -2,15 +2,12 @@ package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.metis.utils.ZipFileReader;
 import java.util.concurrent.Executor;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.xml.sax.SAXException;
 
 @Configuration
 public class SandboxConfig {
