@@ -25,9 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     classes = SandboxApplication.class)
 @AutoConfigureMockMvc
-@TestPropertySource(
-    locations = "classpath:application-test.yml")
-@ActiveProfiles(value = "dev")
 class DatasetControllerIT {
 
   @Autowired

@@ -6,10 +6,14 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(name = "record_log")
 public class RecordLogEntity {
 
+  @Id
   @EmbeddedId
   private RecordLogEntityKey key;
 
