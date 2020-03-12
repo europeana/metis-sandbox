@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-class DefaultZipService implements ZipService {
+class ZipServiceImpl implements ZipService {
 
   private ZipFileReader reader;
 
-  public DefaultZipService(ZipFileReader reader) {
+  public ZipServiceImpl(ZipFileReader reader) {
     this.reader = reader;
   }
 

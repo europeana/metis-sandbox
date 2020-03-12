@@ -14,16 +14,16 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultAsyncDatasetPublishService implements AsyncDatasetPublishService {
+class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
   private static final Logger log = LoggerFactory
-      .getLogger(DefaultAsyncDatasetPublishService.class);
+      .getLogger(AsyncDatasetPublishServiceImpl.class);
 
   private AmqpTemplate amqpTemplate;
   private String initialQueue;
   private Executor taskExecutor;
 
-  public DefaultAsyncDatasetPublishService(AmqpTemplate amqpTemplate,
+  public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
       String initialQueue,
       Executor taskExecutor) {
     this.amqpTemplate = amqpTemplate;

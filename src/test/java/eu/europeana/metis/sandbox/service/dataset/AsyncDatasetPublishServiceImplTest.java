@@ -28,7 +28,7 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultAsyncDatasetPublishServiceTest {
+class AsyncDatasetPublishServiceImplTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
@@ -39,7 +39,7 @@ class DefaultAsyncDatasetPublishServiceTest {
 
   @BeforeEach
   void setUp() {
-    service = new DefaultAsyncDatasetPublishService(amqpTemplate,
+    service = new AsyncDatasetPublishServiceImpl(amqpTemplate,
         "initialQueue", taskExecutor);
   }
 

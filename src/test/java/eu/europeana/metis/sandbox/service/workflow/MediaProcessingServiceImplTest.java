@@ -2,9 +2,9 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import org.junit.jupiter.api.Test;
 
-class DefaultNormalizationServiceTest {
+class MediaProcessingServiceImplTest {
 
   @Test
-  void normalize_expectSuccess() {
+  void processMedia_expectSuccess() {
   }
 }

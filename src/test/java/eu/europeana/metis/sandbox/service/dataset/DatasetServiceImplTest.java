@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultDatasetServiceTest {
+class DatasetServiceImplTest {
 
   @Mock
   private DatasetGeneratorService generatorService;
@@ -37,7 +37,7 @@ class DefaultDatasetServiceTest {
   private DatasetRepository datasetRepository;
 
   @InjectMocks
-  private DefaultDatasetService service;
+  private DatasetServiceImpl service;
 
   @Test
   void createDataset_expectSuccess() {

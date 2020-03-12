@@ -5,7 +5,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultExternalValidationService implements ExternalValidationService {
+class ExternalValidationServiceImpl implements ExternalValidationService {
 
   @Override
   public Record validate(Record record) {

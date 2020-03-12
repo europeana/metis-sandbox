@@ -12,13 +12,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultDatasetService implements DatasetService {
+class DatasetServiceImpl implements DatasetService {
 
   private DatasetGeneratorService generatorService;
   private DatasetRepository datasetRepository;
   private AsyncDatasetPublishService publishService;
 
-  public DefaultDatasetService(
+  public DatasetServiceImpl(
       DatasetGeneratorService generatorService,
       DatasetRepository datasetRepository,
       AsyncDatasetPublishService publishService) {

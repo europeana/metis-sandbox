@@ -21,13 +21,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultRecordLogServiceTest {
+class RecordLogServiceImplTest {
 
   @Mock
   private RecordLogRepository repository;
 
   @InjectMocks
-  private DefaultRecordLogService service;
+  private RecordLogServiceImpl service;
 
   @Test
   void logRecord_expectSuccess() {

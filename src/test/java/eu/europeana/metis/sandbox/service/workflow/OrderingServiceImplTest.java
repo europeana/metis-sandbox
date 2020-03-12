@@ -2,9 +2,9 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import org.junit.jupiter.api.Test;
 
-class DefaultInternalValidationServiceTest {
+class OrderingServiceImplTest {
 
   @Test
-  void validate_expectSuccess() {
+  void performOrdering_expectSuccess() {
   }
 }

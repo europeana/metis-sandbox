@@ -16,13 +16,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultDatasetGeneratorTest {
+class DatasetGeneratorServiceImplTest {
 
   @Mock
   private XmlRecordProcessorService xmlRecordProcessorService;
 
   @InjectMocks
-  private DefaultDatasetGenerator generator;
+  private DatasetGeneratorServiceImpl generator;
 
   @Test
   void generate_expectSuccess() {

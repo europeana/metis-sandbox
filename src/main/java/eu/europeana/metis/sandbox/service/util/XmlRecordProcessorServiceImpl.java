@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service;
 import org.xml.sax.InputSource;
 
 @Service
-class DefaultXmlRecordProcessorService implements XmlRecordProcessorService {
+class XmlRecordProcessorServiceImpl implements XmlRecordProcessorService {
 
   private static final String RECORD_ID_EXPRESSION = "//*[namespace-uri()=\"http://www.europeana.eu/schemas/edm/\" and local-name()='ProvidedCHO']/@*[namespace-uri()=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" and local-name()='about']";
 
   private final ObjectFactory<XPathFactory> objectFactory;
 
-  public DefaultXmlRecordProcessorService(
+  public XmlRecordProcessorServiceImpl(
       ObjectFactory<XPathFactory> objectFactory) {
     this.objectFactory = objectFactory;
   }

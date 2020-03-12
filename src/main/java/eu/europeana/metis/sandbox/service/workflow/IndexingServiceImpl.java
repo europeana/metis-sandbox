@@ -4,7 +4,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultIndexingService implements IndexingService {
+class IndexingServiceImpl implements IndexingService {
 
   @Override
   public void index(Record record) {

@@ -4,10 +4,10 @@ import eu.europeana.metis.sandbox.domain.Record;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultTransformationService implements TransformationService {
+class OrderingServiceImpl implements OrderingService {
 
   @Override
-  public Record transform(Record record) {
+  public Record performOrdering(Record record) {
     return record;
   }
 }

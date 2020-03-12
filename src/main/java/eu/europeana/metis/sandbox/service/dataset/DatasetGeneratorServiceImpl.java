@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultDatasetGenerator implements DatasetGeneratorService {
+class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
   private final XmlRecordProcessorService xmlRecordProcessorService;
 
-  public DefaultDatasetGenerator(
+  public DatasetGeneratorServiceImpl(
       XmlRecordProcessorService xmlRecordProcessorService) {
     this.xmlRecordProcessorService = xmlRecordProcessorService;
   }

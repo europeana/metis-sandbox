@@ -18,13 +18,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultZipServiceTest {
+class ZipServiceImplTest {
 
   @Mock
   private ZipFileReader reader;
 
   @InjectMocks
-  private DefaultZipService service;
+  private ZipServiceImpl service;
 
   @Test
   void parse_expectSuccess() throws IOException {

@@ -20,7 +20,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.xml.sax.InputSource;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultXmlRecordProcessorServiceTest {
+class XmlRecordProcessorServiceImplTest {
 
   private final TestUtils utils = new TestUtils();
 
@@ -34,7 +34,7 @@ class DefaultXmlRecordProcessorServiceTest {
   private XPathFactory xPathFactory = XPathFactory.newDefaultInstance();
 
   @InjectMocks
-  private DefaultXmlRecordProcessorService service;
+  private XmlRecordProcessorServiceImpl service;
 
   @Test
   void getRecordId_expectSuccess() throws Exception {

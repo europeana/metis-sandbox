@@ -2,9 +2,9 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import org.junit.jupiter.api.Test;
 
-class DefaultMediaProcessingServiceTest {
+class IndexingServiceImplTest {
 
   @Test
-  void processMedia_expectSuccess() {
+  void index_expectSuccess() {
   }
 }

@@ -4,10 +4,10 @@ import eu.europeana.metis.sandbox.domain.Record;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultInternalValidationService implements InternalValidationService {
+class NormalizationServiceImpl implements NormalizationService {
 
   @Override
-  public void validate(Record record) {
-
+  public Record normalize(Record record) {
+    return record;
   }
 }

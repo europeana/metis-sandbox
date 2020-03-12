@@ -12,14 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultRecordLogService implements RecordLogService {
+class RecordLogServiceImpl implements RecordLogService {
 
   private static final Logger log = LoggerFactory
-      .getLogger(DefaultRecordLogService.class);
+      .getLogger(RecordLogServiceImpl.class);
 
   private RecordLogRepository repository;
 
-  public DefaultRecordLogService(RecordLogRepository repository) {
+  public RecordLogServiceImpl(RecordLogRepository repository) {
     this.repository = repository;
   }
 

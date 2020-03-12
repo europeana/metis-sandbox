@@ -4,7 +4,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import org.springframework.stereotype.Service;
 
 @Service
-class DefaultMediaProcessingService implements MediaProcessingService {
+class MediaProcessingServiceImpl implements MediaProcessingService {
 
   @Override
   public Record processMedia(Record record) {
