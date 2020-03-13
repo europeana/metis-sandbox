@@ -41,6 +41,7 @@
 		<version.java>11</version.java>
 		<version.springfox>2.9.2</version.springfox>
 		<version.metis>1.7.0</version.metis>
+		<version.postgresql>42.2.11</version.postgresql>
 		<version.commons.io>2.6</version.commons.io>
 		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
 		<version.coveralls>4.0.0</version.coveralls>
@@ -85,6 +86,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<version>${version.postgresql}</version>
 		</dependency>
 
 		<!-- Test -->
