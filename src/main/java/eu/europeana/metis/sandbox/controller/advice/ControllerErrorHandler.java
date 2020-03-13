@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ControllerErrorHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(ControllerErrorHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ControllerErrorHandler.class);
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
-    log.error(ex.getMessage(), ex);
+    LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 
@@ -28,7 +28,7 @@ public class ControllerErrorHandler {
   public ResponseEntity<Object> handleIInvalidZipFileException(InvalidZipFileException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
-    log.error(ex.getMessage(), ex);
+    LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 
@@ -36,7 +36,7 @@ public class ControllerErrorHandler {
   public ResponseEntity<Object> handleServiceException(ServiceException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.INTERNAL_SERVER_ERROR.value(),
         HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-    log.error(ex.getMessage(), ex);
+    LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 
@@ -45,7 +45,7 @@ public class ControllerErrorHandler {
       NonRecoverableServiceException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
-    log.error(ex.getMessage(), ex);
+    LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 }

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 class RecordLogServiceImpl implements RecordLogService {
 
-  private static final Logger log = LoggerFactory
+  private static final Logger LOGGER = LoggerFactory
       .getLogger(RecordLogServiceImpl.class);
 
   private RecordLogRepository repository;
@@ -36,7 +36,7 @@ class RecordLogServiceImpl implements RecordLogService {
 
     try {
       repository.save(recordLogEntity);
-      log.info("Saving record {}", record.getRecordId());
+      LOGGER.info("Saving record {}", record.getRecordId());
     } catch (Exception e) {
       throw new ServiceException("Error saving record log: " + e.getMessage(), e);
     }

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
-  private static final Logger log = LoggerFactory
+  private static final Logger LOGGER = LoggerFactory
       .getLogger(AsyncDatasetPublishServiceImpl.class);
 
   private AmqpTemplate amqpTemplate;
@@ -44,7 +44,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     try {
       amqpTemplate.convertAndSend(initialQueue, record);
     } catch (Exception e) {
-      log.error("There was an issue publishing the record: {} {}", record.getRecordId(),
+      LOGGER.error("There was an issue publishing the record: {} {}", record.getRecordId(),
           e.getMessage(), e);
       throw new ServiceException("There was an issue publishing the record: " + e.getMessage(), e);
     }
