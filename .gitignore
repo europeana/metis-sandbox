@@ -16,6 +16,7 @@
 *.nar
 *.ear
 *.zip
+!**/test/resources/zip/dataset-valid.zip
 *.tar.gz
 *.rar
 
@@ -37,8 +38,13 @@ hs_err_pid*
 *.DS_Store
 
 # Maven
+**/.mvn/
+mvnw
 **/log/
 **/target/
 
 # Truststores
 *.jks
+
+# Tomcat
+**/tomcat/

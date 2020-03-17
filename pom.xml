@@ -1,171 +1,221 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>eu.europeana.metis</groupId>
-  <artifactId>metis-sandbox</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.2.4.RELEASE</version>
+		<relativePath/>
+	</parent>
 
-  <!-- Github connection -->
-  <scm>
-    <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
-    <url>https://github.com/europeana/metis-sandbox</url>
-    <tag>HEAD</tag>
-    <developerConnection>scm:git:https://github.com/europeana/metis-sandbox</developerConnection>
-  </scm>
+	<groupId>eu.europeana.metis</groupId>
+	<artifactId>metis-sandbox</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>metis-sandbox</name>
+	<description>Metis sandbox pilot</description>
 
-  <distributionManagement>
-    <repository>
-      <id>artifactory.eanadev.org</id>
-      <name>artifactory.eanadev.org-releases</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
-    </repository>
-    <snapshotRepository>
-      <id>artifactory.eanadev.org</id>
-      <name>artifactory.eanadev.org-snapshots</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement>
+	<!-- Github connection -->
+	<scm>
+		<connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
+		<url>https://github.com/europeana/metis-sandbox</url>
+		<tag>HEAD</tag>
+		<developerConnection>scm:git:https://github.com/europeana/metis-sandbox</developerConnection>
+	</scm>
 
-  <properties>
-    <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
-    <version.coveralls>4.0.0</version.coveralls>
-    <version.surefire.plugin>2.22.1</version.surefire.plugin>
+	<distributionManagement>
+		<repository>
+			<id>artifactory.eanadev.org</id>
+			<name>artifactory.eanadev.org-releases</name>
+			<url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory.eanadev.org</id>
+			<name>artifactory.eanadev.org-snapshots</name>
+			<url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
 
-    <version.slf4j>1.7.25</version.slf4j>
-    <version.log4j>2.9.1</version.log4j>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+	<properties>
+		<version.java>11</version.java>
+		<version.springfox>2.9.2</version.springfox>
+		<version.metis>1.7.0</version.metis>
+		<version.postgresql>42.2.11</version.postgresql>
+		<version.commons.io>2.6</version.commons.io>
+		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+		<version.coveralls>4.0.0</version.coveralls>
+		<version.surefire.plugin>2.22.1</version.surefire.plugin>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${version.slf4j}</version>
-    </dependency>
-    <!-- Binding for Log4J -->
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <version>${version.log4j}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- Log4j API and Core implementation required for binding -->
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-api</artifactId>
-      <version>${version.log4j}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>${version.log4j}</version>
-    </dependency>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
-  </dependencies>
-  <repositories>
+	<dependencies>
+		<!-- Spring boot -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
 
-    <!--Release repositories-->
-    <repository>
-      <id>libs-release-local</id>
-      <name>libs-release-local</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>ext-release-local</id>
-      <name>ext-release-local</name>
-      <url>http://artifactory.eanadev.org/artifactory/ext-release-local</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
+		<!-- Europeana -->
+		<dependency>
+			<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-common</artifactId>
+			<version>${version.metis}</version>
+		</dependency>
 
-    <!--Snapshot repositories-->
-    <repository>
-      <id>ext-snapshots-local</id>
-      <name>ext-snapshot-local</name>
-      <url>http://artifactory.eanadev.org/artifactory/ext-snapshot-local</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>libs-snapshot-local</id>
-      <name>libs-snapshot-local</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>sonatype-snapshots</id>
-      <name>sonatype-snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
+		<!-- Persistence -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 
-    <!--Release and snapshot repositories-->
-    <repository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Maven 2 Repository (mirror)</name>
-      <url>http://artifactory.eanadev.org/artifactory/java.net.m2</url>
-    </repository>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${version.postgresql}</version>
+		</dependency>
 
-  </repositories>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${version.surefire.plugin}</version>
-      </plugin>
-      <plugin>
-        <groupId>org.eluder.coveralls</groupId>
-        <artifactId>coveralls-maven-plugin</artifactId>
-        <version>${version.coveralls}</version>
-      </plugin>
-    </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${version.maven.compiler.plugin}</version>
-          <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <testSource>1.8</testSource>
-            <testTarget>1.8</testTarget>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+		<!-- Test -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.vaadin.external.google</groupId>
+					<artifactId>android-json</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Swagger -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${version.springfox}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${version.springfox}</version>
+		</dependency>
+
+		<!-- Utils -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${version.commons.io}</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+
+		<!--Release repositories-->
+		<repository>
+			<id>libs-release</id>
+			<name>libs-release</name>
+			<url>http://artifactory.eanadev.org/artifactory/libs-release</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<!--Snapshot repositories-->
+		<repository>
+			<id>libs-snapshot</id>
+			<name>libs-snapshots</name>
+			<url>http://artifactory.eanadev.org/artifactory/libs-snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${version.surefire.plugin}</version>
+				<executions>
+					<execution>
+						<id>unit-tests</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<skipTests>false</skipTests>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>integration-tests</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<skipTests>false</skipTests>
+							<includes>
+								<include>**/*IT.*</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.eluder.coveralls</groupId>
+				<artifactId>coveralls-maven-plugin</artifactId>
+				<version>${version.coveralls}</version>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${version.maven.compiler.plugin}</version>
+					<configuration>
+						<source>${version.java}</source>
+						<target>${version.java}</target>
+						<testSource>${version.java}</testSource>
+						<testTarget>${version.java}</testTarget>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
 </project>

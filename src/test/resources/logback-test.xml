@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true">
+
+  <contextName>metis-sandbox</contextName>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <Pattern>%d{yyyy-MMM-dd HH:mm:ss} metis-sandbox %p [%c:%L] [%thread] - %message%xException{150}%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC-CONSOLE" class="ch.qos.logback.classic.AsyncAppender" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </appender>
+
+  <root level="ERROR">
+    <appender-ref ref="ASYNC-CONSOLE"/>
+  </root>
+
+</configuration>

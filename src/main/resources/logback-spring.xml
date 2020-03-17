@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true">
+
+  <contextName>metis-sandbox</contextName>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <Pattern>%d{yyyy-MMM-dd HH:mm:ss} metis-sandbox %highlight(%p) [%blue(%thread)] [%yellow(%logger{36})] - %message%xException{150}%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>tomcat/logs/metis-sandbox.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>tomcat/logs/metis-sandbox.%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+
+    <encoder>
+      <Pattern>%d{yyyy-MMM-dd HH:mm:ss} metis-sandbox %p [%thread] [%logger{36}] - %message%xException{150}%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC-CONSOLE" class="ch.qos.logback.classic.AsyncAppender" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </appender>
+
+  <appender name="ASYNC-FILE" class="ch.qos.logback.classic.AsyncAppender" additivity="false">
+    <appender-ref ref="FILE"/>
+  </appender>
+
+  <springProfile name="dev,default">
+    <logger name="eu.europeana.metis.sandbox" level="INFO"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.hibernate" level="ERROR"/>
+  </springProfile>
+
+  <springProfile name="prod">
+    <logger name="eu.europeana.metis.sandbox" level="INFO"/>
+    <logger name="org.springframework" level="ERROR"/>
+    <logger name="org.springframework.amqp.rabbit.listener" level="INFO"/>
+    <logger name="org.hibernate" level="ERROR"/>
+  </springProfile>
+
+  <root level="ERROR">
+    <springProfile name="dev,default">
+      <appender-ref ref="ASYNC-CONSOLE"/>
+      <appender-ref ref="ASYNC-FILE"/>
+    </springProfile>
+    <springProfile name="prod">
+      <appender-ref ref="ASYNC-FILE"/>
+    </springProfile>
+  </root>
+
+</configuration>
