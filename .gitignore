@@ -16,6 +16,7 @@
 *.nar
 *.ear
 *.zip
+!**/test/resources/zip/dataset-valid.zip
 *.tar.gz
 *.rar
 
@@ -37,7 +38,8 @@ hs_err_pid*
 *.DS_Store
 
 # Maven
-!**/.mvn/wrapper/maven-wrapper.jar
+**/.mvn/
+mvnw
 **/log/
 **/target/
 

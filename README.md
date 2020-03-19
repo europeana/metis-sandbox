@@ -8,11 +8,11 @@ Give a client (GLAM or aggregator) an environment to test their dataset before s
 
 ## Run Tests
 
-> ./mvnw clean test
+> mvn clean test
 
 ## Run Application
 
-> ./mvnw clean package spring-boot:run
+> mvn clean package spring-boot:run
 
 ## API
 Composed by 2 endpoints
@@ -34,8 +34,8 @@ You can check how the endpoints work using Swagger-UI in path
 ## Technologies
 Project is created with:
 
-* Java 13
+* Java 11
 * [Spring Boot](https://spring.io/projects/spring-boot)
-* [Lombok](https://projectlombok.org/)
 * [RabbitMQ](https://www.rabbitmq.com/)
+* [Postgresql](https://www.postgresql.org/)
 * [Spring Fox](https://springfox.github.io/springfox/)

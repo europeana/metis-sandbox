@@ -10,51 +10,41 @@ server:
     context-path: /sandbox
   compression:
     enabled: true
-  tomcat:
-    basedir: ./tomcat
-    accesslog:
-      prefix: access
-      enabled: true
-      pattern: "%a | %{yyyy-MM-dd'T'HH:mm:ss.SSSZ}t | \"%r\" | %s | %D ms | %{Content-Length}i | %B"
 
 spring:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+  datasource:
+    url: jdbc:h2:mem:sandbox
+    driver-class-name: org.h2.Driver
+    username: sandbox
+    password:
+  h2:
+    console:
+      enabled: true
+
   profiles:
     active: dev
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
       - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
-  application:
-    name: *name
   servlet:
     multipart:
       max-file-size: 5MB
   rabbitmq:
-    virtual-host: sandbox-develop
+    virtual-host: sandbox-testing
     host: localhost
     port: 5672
     username: sandbox
     password: sandbox
     listener:
       simple:
-        concurrency: 5
-        max-concurrency: 10
+        concurrency: 1
+        max-concurrency: 1
         prefetch: 1
-        retry:
-          enabled: true
-          initial-interval: 1000
-          multiplier: 2
-          max-attempts: 3
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    open-in-view: false
-  datasource:
-    url: jdbc:postgresql://localhost:5432/sandbox
-    driver-class-name: org.postgresql.Driver
-    username: sandbox
-    password:
-
 sandbox:
   dataset:
     max-size: 1000
@@ -101,14 +91,3 @@ sandbox:
         indexed:
           queue: sandbox.record.indexed
           dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq
-
----
-spring:
-  profiles: prod
-  jpa:
-    database-platform:
-  datasource:
-    url:
-    driver-class-name:
-    username:
-    password:

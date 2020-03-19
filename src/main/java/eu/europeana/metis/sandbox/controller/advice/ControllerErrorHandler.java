@@ -4,15 +4,17 @@ import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-@Slf4j
 public class ControllerErrorHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(ControllerErrorHandler.class);
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
@@ -39,7 +41,8 @@ public class ControllerErrorHandler {
   }
 
   @ExceptionHandler(NonRecoverableServiceException.class)
-  public ResponseEntity<Object> handleNonRecoverableServiceException(NonRecoverableServiceException ex) {
+  public ResponseEntity<Object> handleNonRecoverableServiceException(
+      NonRecoverableServiceException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
     log.error(ex.getMessage(), ex);
