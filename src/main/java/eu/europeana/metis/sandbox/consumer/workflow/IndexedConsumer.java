@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class IndexedConsumer {
 
-  private static final Logger log = LoggerFactory.getLogger(IndexedConsumer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(IndexedConsumer.class);
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.indexed.queue}", containerFactory = "indexedFactory")
   public void close(Record input) {
-    log.info("Record {} is closed", input.getDatasetId());
+    LOGGER.info("Record {} is closed", input.getDatasetId());
   }
 }

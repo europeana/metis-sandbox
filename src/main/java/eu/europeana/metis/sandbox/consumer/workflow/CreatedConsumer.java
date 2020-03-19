@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 class CreatedConsumer {
 
-  private static final Logger log = LoggerFactory.getLogger(CreatedConsumer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CreatedConsumer.class);
 
   private AmqpTemplate amqpTemplate;
   private ExternalValidationService service;
@@ -42,7 +42,7 @@ class CreatedConsumer {
       record = service.validate(input.getBody());
       output = new Event<>(record, Step.VALIDATE_EXTERNAL);
     } catch (RecordProcessingException ex) {
-      log.error(ex.getMessage(), ex);
+      LOGGER.error(ex.getMessage(), ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
       output = new Event<>(record, Step.VALIDATE_EXTERNAL, ex);
     }
