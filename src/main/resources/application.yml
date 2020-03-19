@@ -5,18 +5,6 @@ info:
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
 
-server:
-  servlet:
-    context-path: /sandbox
-  compression:
-    enabled: true
-  tomcat:
-    basedir: ./tomcat
-    accesslog:
-      prefix: access
-      enabled: true
-      pattern: "%a | %{yyyy-MM-dd'T'HH:mm:ss.SSSZ}t | \"%r\" | %s | %D ms | %{Content-Length}i | %B"
-
 spring:
   profiles:
     active: dev
