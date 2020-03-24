@@ -43,7 +43,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   }
 
   private void publish(Record record) {
-    Event<Record> recordEvent = new Event<>(record, Step.CREATE);
+    Event recordEvent = new Event(record, Step.CREATE);
     try {
       amqpTemplate.convertAndSend(initialQueue, recordEvent);
     } catch (Exception e) {

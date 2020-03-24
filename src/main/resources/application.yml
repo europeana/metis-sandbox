@@ -5,11 +5,6 @@ info:
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
 
-logging:
-  file:
-    path:
-    name: metis-sandbox
-
 spring:
   profiles:
     active: dev

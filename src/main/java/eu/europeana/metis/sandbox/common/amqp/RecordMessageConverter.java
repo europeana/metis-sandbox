@@ -34,8 +34,7 @@ public class RecordMessageConverter implements MessageConverter {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
-    @SuppressWarnings("unchecked")
-    Event<Record> recordEvent = (Event<Record>) object;
+    Event recordEvent = (Event) object;
     Record record = recordEvent.getBody();
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
@@ -76,6 +75,6 @@ public class RecordMessageConverter implements MessageConverter {
         .language(Language.valueOf(language))
         .content(content).build();
 
-    return new Event<>(record, Step.valueOf(step), exception);
+    return new Event(record, Step.valueOf(step), exception);
   }
 }

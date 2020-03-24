@@ -20,7 +20,7 @@ class RecordLogServiceImpl implements RecordLogService {
   }
 
   @Override
-  public void logRecordEvent(Event<Record> recordEvent) {
+  public void logRecordEvent(Event recordEvent) {
     requireNonNull(recordEvent, "Record event must not be null");
 
     Record record = recordEvent.getBody();

@@ -6,7 +6,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-public class Event<Record> {
+public class Event {
 
   private final Record body;
   private final Status status;

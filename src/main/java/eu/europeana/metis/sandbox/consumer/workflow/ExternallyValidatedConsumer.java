@@ -26,7 +26,7 @@ public class ExternallyValidatedConsumer {
 
   // TODO keep consuming from here
   //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory")
-  public void transform(Event<Record> input) {
+  public void transform(Event input) {
     if(input.getStatus() == Status.FAIL) {
       return;
     }

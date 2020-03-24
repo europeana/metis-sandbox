@@ -34,7 +34,7 @@ class RecordLogServiceImplTest {
     Record record = Record.builder().recordId("").content("").datasetId("")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    Event<Record> event = new Event<>(record, Step.CREATE);
+    Event event = new Event(record, Step.CREATE);
 
     service.logRecordEvent(event);
 
@@ -51,7 +51,7 @@ class RecordLogServiceImplTest {
     Record record = Record.builder().recordId("").content("").datasetId("")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    Event<Record> event = new Event<>(record, Step.CREATE);
+    Event event = new Event(record, Step.CREATE);
 
     when(repository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));

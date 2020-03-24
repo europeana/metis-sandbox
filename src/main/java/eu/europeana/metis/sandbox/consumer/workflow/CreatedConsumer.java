@@ -31,20 +31,20 @@ class CreatedConsumer {
   }
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory")
-  public void validateExternal(Event<Record> input) {
+  public void validateExternal(Event input) {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
 
-    Event<Record> output;
+    Event output;
     Record record;
     try {
       record = service.validate(input.getBody());
-      output = new Event<>(record, Step.VALIDATE_EXTERNAL);
+      output = new Event(record, Step.VALIDATE_EXTERNAL);
     } catch (RecordProcessingException ex) {
       LOGGER.error(ex.getMessage(), ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
-      output = new Event<>(record, Step.VALIDATE_EXTERNAL, ex);
+      output = new Event(record, Step.VALIDATE_EXTERNAL, ex);
     }
 
     amqpTemplate.convertAndSend(routingKey, output);
