@@ -52,6 +52,17 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.dlq}")
   private String internalValidatedDlq;
 
+  @Value("${sandbox.rabbitmq.queues.record.enriched.queue}")
+  private String enrichedQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.enriched.dlq}")
+  private String enrichedDlq;
+
+  @Value("${sandbox.rabbitmq.queues.record.media.queue}")
+  private String mediaProcessedQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
+  private String mediaProcessedDlq;
 
   @Bean
   TopicExchange exchange() {
@@ -76,16 +87,12 @@ class AmqpConfiguration {
     return new Declarables(
         QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
             createdDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq)
-            .deadLetterRoutingKey(
-                externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq)
-            .deadLetterRoutingKey(
-                internalValidatedDlq).build()
+        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
+        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
+        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
+        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build()
     );
   }
 
@@ -96,31 +103,35 @@ class AmqpConfiguration {
         QueueBuilder.durable(externalValidatedDlq).build(),
         QueueBuilder.durable(transformedDlq).build(),
         QueueBuilder.durable(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedDlq).build()
+        QueueBuilder.durable(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedDlq).build()
     );
   }
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(createdQueue, exchange, externalValidatedQueue, transformedQueue,
-        normalizedQueue, internalValidatedQueue);
+    return getDeclarables(exchange, createdQueue, externalValidatedQueue, transformedQueue,
+        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(createdDlq, exchangeDlq, externalValidatedDlq, transformedDlq,
-        normalizedDlq, internalValidatedDlq);
+    return getDeclarables(exchangeDlq, createdDlq, externalValidatedDlq, transformedDlq,
+        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq);
   }
 
-  private Declarables getDeclarables(String createdDlq, String exchangeDlq,
-      String externalValidatedDlq, String transformedDlq, String normalizedDlq,
-      String internalValidatedDlq) {
+  private Declarables getDeclarables(String exchange, String created,
+      String externalValidated, String transformed, String normalized,
+      String internalValidated, String enriched, String mediaProcessed) {
     return new Declarables(
-        new Binding(createdDlq, DestinationType.QUEUE, exchangeDlq, createdDlq, null),
-        new Binding(externalValidatedDlq, DestinationType.QUEUE, exchangeDlq, externalValidatedDlq, null),
-        new Binding(transformedDlq, DestinationType.QUEUE, exchangeDlq, transformedDlq, null),
-        new Binding(normalizedDlq, DestinationType.QUEUE, exchangeDlq, normalizedDlq, null),
-        new Binding(internalValidatedDlq, DestinationType.QUEUE, exchangeDlq, internalValidatedDlq, null)
+        new Binding(created, DestinationType.QUEUE, exchange, created, null),
+        new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
+        new Binding(transformed, DestinationType.QUEUE, exchange, transformed, null),
+        new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),
+        new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
+        new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
+        new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null)
     );
   }
 }
