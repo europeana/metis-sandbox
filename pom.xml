@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
+		<version>2.2.5.RELEASE</version>
 		<relativePath/>
 	</parent>
 
@@ -15,6 +15,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>metis-sandbox</name>
 	<description>Metis sandbox pilot</description>
+	<packaging>war</packaging>
 
 	<!-- Github connection -->
 	<scm>
@@ -38,10 +39,10 @@
 	</distributionManagement>
 
 	<properties>
-		<version.java>13</version.java>
+		<version.java>11</version.java>
 		<version.springfox>2.9.2</version.springfox>
 		<version.metis>1.7.0</version.metis>
-		<version.lombok>1.18.12</version.lombok>
+		<version.postgresql>42.2.11</version.postgresql>
 		<version.commons.io>2.6</version.commons.io>
 		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
 		<version.coveralls>4.0.0</version.coveralls>
@@ -62,11 +63,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -78,17 +80,36 @@
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-common</artifactId>
 			<version>${version.metis}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j-impl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-transformation-service</artifactId>
 			<version>${version.metis}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j-impl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-validation-service</artifactId>
 			<version>${version.metis}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j-impl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Persistence -->
@@ -96,6 +117,12 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${version.postgresql}</version>
 		</dependency>
 
 		<!-- Test -->
@@ -129,12 +156,6 @@
 
 		<!-- Utils -->
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>${version.lombok}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${version.commons.io}</version>
@@ -145,20 +166,9 @@
 
 		<!--Release repositories-->
 		<repository>
-			<id>libs-release-local</id>
-			<name>libs-release-local</name>
-			<url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>ext-release-local</id>
-			<name>ext-release-local</name>
-			<url>http://artifactory.eanadev.org/artifactory/ext-release-local</url>
+			<id>libs-release</id>
+			<name>libs-release</name>
+			<url>http://artifactory.eanadev.org/artifactory/libs-release</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -169,49 +179,21 @@
 
 		<!--Snapshot repositories-->
 		<repository>
-			<id>ext-snapshots-local</id>
-			<name>ext-snapshot-local</name>
-			<url>http://artifactory.eanadev.org/artifactory/ext-snapshot-local</url>
+			<id>libs-snapshot</id>
+			<name>libs-snapshots</name>
+			<url>http://artifactory.eanadev.org/artifactory/libs-snapshot</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
 			</snapshots>
 		</repository>
-		<repository>
-			<id>libs-snapshot-local</id>
-			<name>libs-snapshot-local</name>
-			<url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>sonatype-snapshots</id>
-			<name>sonatype-snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-
-		<!--Release and snapshot repositories-->
-		<repository>
-			<id>maven2-repository.dev.java.net</id>
-			<name>Java.net Maven 2 Repository (mirror)</name>
-			<url>http://artifactory.eanadev.org/artifactory/java.net.m2</url>
-		</repository>
-
 	</repositories>
 
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -263,10 +245,10 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${version.maven.compiler.plugin}</version>
 					<configuration>
-						<source>13</source>
-						<target>13</target>
-						<testSource>13</testSource>
-						<testTarget>13</testTarget>
+						<source>${version.java}</source>
+						<target>${version.java}</target>
+						<testSource>${version.java}</testSource>
+						<testTarget>${version.java}</testTarget>
 					</configuration>
 				</plugin>
 			</plugins>

@@ -8,34 +8,36 @@ Give a client (GLAM or aggregator) an environment to test their dataset before s
 
 ## Run Tests
 
-> ./mvnw clean test
+> mvn clean test
 
 ## Run Application
 
-> ./mvnw clean package spring-boot:run
+> mvn clean package
+
+That will generate a WAR file that you can deploy to a tomcat instance
 
 ## API
 Composed by 2 endpoints
 
-`POST sandbox/dataset/{name}/process`
+`POST metis-sandbox/dataset/{name}/process`
 
 This endpoint let you provide a name to your dataset and specify a zip file containing xml files, each xml file should represent a record.
 When you call this endpoint it will trigger the process of the dataset and give you back a dataset id to be able to monitor the progress of the process.
 
-`GET sandbox/dataset/{id}`
+`GET metis-sandbox/dataset/{id}`
 
 This endpoint let you provide a dataset id (the one you get from calling the POST endpoint) to get information about the dataset, and the progress of the process.
 
 ### How to use
 You can check how the endpoints work using Swagger-UI in path 
 
-`{your-host}/sandbox/swagger-ui.html#/dataset-controller/processDatasetUsingPOST`
+`{your-host}/metis-sandbox/swagger-ui.html#/dataset-controller/processDatasetUsingPOST`
 
 ## Technologies
 Project is created with:
 
-* Java 13
+* Java 11
 * [Spring Boot](https://spring.io/projects/spring-boot)
-* [Lombok](https://projectlombok.org/)
 * [RabbitMQ](https://www.rabbitmq.com/)
+* [Postgresql](https://www.postgresql.org/)
 * [Spring Fox](https://springfox.github.io/springfox/)

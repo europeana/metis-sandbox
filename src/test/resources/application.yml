@@ -1,0 +1,89 @@
+info:
+  app:
+    title: &name Metis Sandbox
+    description: Sandbox to process Datasets
+    version: 1.0.0
+    repository: https://github.com/europeana/metis-sandbox
+
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+  rabbitmq:
+    virtual-host: sandbox-testing
+    host: localhost
+    port: 5672
+    username: sandbox
+    password: sandbox
+    listener:
+      simple:
+        concurrency: 1
+        max-concurrency: 1
+        prefetch: 1
+
+sandbox:
+  validation:
+    executor:
+      pool-size: 10
+  truststore:
+    path:
+    password:
+  datasource:
+    jdbcUrl: jdbc:h2:mem:sandbox
+    driverClassName: org.h2.Driver
+    username: sandbox
+    password:
+  dataset:
+    max-size: 1000
+    creation:
+      threads:
+        core-pool-size: 5
+        max-pool-size: 5
+        thread-prefix: sandbox-test-
+  rabbitmq:
+    exchange:
+      name: sandbox
+      dlq: ${sandbox.rabbitmq.exchange.name}.dlq
+    queues:
+      record:
+        log:
+          queue: sandbox.record.log
+          dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
+          routing-key: sandbox.record.#
+        created:
+          queue: sandbox.record.created
+          dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
+        ordered:
+          queue: sandbox.record.ordered
+          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
+        validated:
+          external:
+            queue: sandbox.record.validated.external
+            dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
+          internal:
+            queue: sandbox.record.validated.internal
+            dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
+        transformed:
+          queue: sandbox.record.transformed
+          dlq: ${sandbox.rabbitmq.queues.record.transformed.queue}.dlq
+        normalized:
+          queue: sandbox.record.normalized
+          dlq: ${sandbox.rabbitmq.queues.record.normalized.queue}.dlq
+        enriched:
+          queue: sandbox.record.enriched
+          dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
+        media:
+          queue: sandbox.record.media.processed
+          dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
+        indexed:
+          queue: sandbox.record.indexed
+          dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq

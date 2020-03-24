@@ -1,41 +1,59 @@
 package eu.europeana.metis.sandbox.domain;
 
+import static java.util.Objects.requireNonNull;
+
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import lombok.Getter;
-import lombok.NonNull;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-@Getter
-public class Event<T extends Record> {
+public class Event {
 
-  @NonNull
-  private final T body;
-  @NonNull
+  private final Record body;
   private final Status status;
-  @NonNull
   private final Step step;
 
   private final String exception;
 
-  public Event(T body, Step step) {
+  public Event(Record body, Step step) {
+    requireNonNull(body, "Body must not be null");
+    requireNonNull(step, "Step must not be null");
     this.status = Status.SUCCESS;
     this.body = body;
     this.exception = null;
     this.step = step;
   }
 
-  public Event(T body, Step step, Exception exception) {
+  public Event(Record body, Step step, Exception exception) {
+    requireNonNull(body, "Body must not be null");
+    requireNonNull(step, "Step must not be null");
     this.status = exception == null ? Status.SUCCESS : Status.FAIL;
     this.body = body;
     this.exception = exception == null ? null : ExceptionUtils.getStackTrace(exception);
     this.step = step;
   }
 
-  public Event(T body, Step step, String exception) {
+  public Event(Record body, Step step, String exception) {
+    requireNonNull(body, "Body must not be null");
+    requireNonNull(step, "Step must not be null");
     this.status = exception == null ? Status.SUCCESS : Status.FAIL;
     this.body = body;
     this.exception = exception;
     this.step = step;
+  }
+
+  public Record getBody() {
+    return body;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public Step getStep() {
+    return step;
+  }
+
+  public String getException() {
+    return exception;
   }
 }

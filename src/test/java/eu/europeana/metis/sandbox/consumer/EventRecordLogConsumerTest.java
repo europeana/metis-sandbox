@@ -32,7 +32,7 @@ class EventRecordLogConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event<Record> recordEvent = new Event<>(record, Step.CREATE);
+    Event recordEvent = new Event(record, Step.CREATE);
 
     consumer.logRecord(recordEvent);
 
@@ -44,7 +44,7 @@ class EventRecordLogConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event<Record> recordEvent = new Event<>(record, Step.CREATE);
+    Event recordEvent = new Event(record, Step.CREATE);
 
     doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)
         .logRecordEvent(any(Event.class));

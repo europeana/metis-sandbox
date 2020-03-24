@@ -41,7 +41,8 @@ hs_err_pid*
 *.DS_Store
 
 # Maven
-!**/.mvn/wrapper/maven-wrapper.jar
+**/.mvn/
+mvnw
 **/log/
 **/target/
 
@@ -50,3 +51,7 @@ hs_err_pid*
 
 # Tomcat
 **/tomcat/
+**/out/
+
+# Properties
+**/application-*.yml

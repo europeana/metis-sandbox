@@ -4,16 +4,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-@EqualsAndHashCode
-@ToString
 public class Dataset {
 
   private final String datasetId;
 
-  @EqualsAndHashCode.Exclude
   private final List<Record> records;
 
   public Dataset(String datasetId, List<Record> records) {
@@ -29,5 +26,30 @@ public class Dataset {
 
   public List<Record> getRecords() {
     return records;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Dataset dataset = (Dataset) o;
+    return datasetId.equals(dataset.datasetId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(datasetId);
+  }
+
+  @Override
+  public String toString() {
+    return new StringJoiner(", ", Dataset.class.getSimpleName() + "[", "]")
+        .add("datasetId='" + datasetId + "'")
+        .add("records=" + records)
+        .toString();
   }
 }

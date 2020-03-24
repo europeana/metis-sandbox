@@ -6,8 +6,8 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import lombok.SneakyThrows;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -26,17 +26,15 @@ public class RecordMessageConverter implements MessageConverter {
   private static final String STEP = "step";
   private static final String EXCEPTION = "exception";
 
-  private static final String DEFAULT_CHARSET = StandardCharsets.UTF_8.name();
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-  @SneakyThrows
   @Override
-  public Message toMessage(Object object, MessageProperties messageProperties)
-      throws MessageConversionException {
+  public Message toMessage(Object object, MessageProperties messageProperties) {
     if (!(object instanceof Event)) {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
-    Event<Record> recordEvent = (Event<Record>) object;
+    Event recordEvent = (Event) object;
     Record record = recordEvent.getBody();
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
@@ -56,9 +54,8 @@ public class RecordMessageConverter implements MessageConverter {
         .build();
   }
 
-  @SneakyThrows
   @Override
-  public Object fromMessage(Message message) throws MessageConversionException {
+  public Object fromMessage(Message message) {
     MessageProperties properties = message.getMessageProperties();
     String recordId = properties.getHeader(RECORD_ID);
     String datasetId = properties.getHeader(DATASET_ID);
@@ -78,6 +75,6 @@ public class RecordMessageConverter implements MessageConverter {
         .language(Language.valueOf(language))
         .content(content).build();
 
-    return new Event<>(record, Step.valueOf(step), exception);
+    return new Event(record, Step.valueOf(step), exception);
   }
 }

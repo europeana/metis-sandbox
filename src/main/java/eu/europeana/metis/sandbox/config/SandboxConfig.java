@@ -9,9 +9,7 @@ import eu.europeana.validation.service.SchemaProvider;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.Executor;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.xml.sax.SAXException;
 
 @Configuration
 @ComponentScan("eu.europeana.validation.service")
@@ -39,15 +36,18 @@ public class SandboxConfig {
   @Value("${sandbox.dataset.creation.threads.thread-prefix}")
   private String threadPrefix;
 
-  @Autowired
-  private ResourceLoader resourceLoader;
-
   private String edmSorterUrl = null;
+
+  private final ResourceLoader resourceLoader;
+
+  public SandboxConfig(ResourceLoader resourceLoader) {
+    this.resourceLoader = resourceLoader;
+  }
 
   @Bean
   @Scope("prototype")
-  SAXParserFactory parserFactory() throws ParserConfigurationException, SAXException {
-    return SAXParserFactory.newInstance();
+  XPathFactory xPathFactory() {
+    return XPathFactory.newDefaultInstance();
   }
 
   @Bean
@@ -65,7 +65,7 @@ public class SandboxConfig {
   }
 
   @Bean
-  Executor taskExecutor() {
+  Executor asyncDatasetPublishServiceTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);
     executor.setMaxPoolSize(maxPoolSize);

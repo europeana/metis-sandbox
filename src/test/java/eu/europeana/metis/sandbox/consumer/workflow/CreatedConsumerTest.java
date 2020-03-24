@@ -33,7 +33,7 @@ class CreatedConsumerTest {
   private ExternalValidationService service;
 
   @Captor
-  private ArgumentCaptor<Event<Record>> captor;
+  private ArgumentCaptor<Event> captor;
 
   @InjectMocks
   private CreatedConsumer consumer;
@@ -43,7 +43,7 @@ class CreatedConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event<Record> recordEvent = new Event<>(record, Step.CREATE);
+    Event recordEvent = new Event(record, Step.CREATE);
 
     when(service.validate(record)).thenReturn(record);
     consumer.validateExternal(recordEvent);
@@ -57,7 +57,7 @@ class CreatedConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event<Record> recordEvent = new Event<>(record, Step.CREATE, "Failed");
+    Event recordEvent = new Event(record, Step.CREATE, "Failed");
 
     consumer.validateExternal(recordEvent);
 
@@ -70,7 +70,7 @@ class CreatedConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event<Record> recordEvent = new Event<>(record, Step.CREATE);
+    Event recordEvent = new Event(record, Step.CREATE);
 
     when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
