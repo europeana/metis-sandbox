@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -24,14 +23,14 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
   private AmqpTemplate amqpTemplate;
   private String initialQueue;
-  private Executor taskExecutor;
+  private Executor asyncDatasetPublishServiceTaskExecutor;
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
       String initialQueue,
-      Executor taskExecutor) {
+      Executor asyncDatasetPublishServiceTaskExecutor) {
     this.amqpTemplate = amqpTemplate;
     this.initialQueue = initialQueue;
-    this.taskExecutor = taskExecutor;
+    this.asyncDatasetPublishServiceTaskExecutor = asyncDatasetPublishServiceTaskExecutor;
   }
 
   @Override
@@ -40,7 +39,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-        .forEach(this::publish), taskExecutor);
+        .forEach(this::publish), asyncDatasetPublishServiceTaskExecutor);
   }
 
   private void publish(Record record) {
@@ -48,7 +47,8 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     try {
       amqpTemplate.convertAndSend(initialQueue, recordEvent);
     } catch (Exception e) {
-      log.error("There was an issue publishing the record: {} {}", record.getRecordId(), e.getMessage(), e);
+      log.error("There was an issue publishing the record: {} {}", record.getRecordId(),
+          e.getMessage(), e);
       throw new RecordProcessingException(record.getRecordId(), e);
     }
   }

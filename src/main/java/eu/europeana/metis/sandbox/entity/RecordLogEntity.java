@@ -17,14 +17,14 @@ public class RecordLogEntity {
   @EmbeddedId
   private RecordLogEntityKey key;
 
-  @Column(columnDefinition = "VARCHAR(MAX)")
+  @Column
   private String content;
 
   @Column
   @Enumerated(EnumType.STRING)
   private Status result;
 
-  @Column(columnDefinition = "VARCHAR(MAX)")
+  @Column
   private String error;
 
   public RecordLogEntity(RecordLogEntityKey key, String content, Status result, String error) {

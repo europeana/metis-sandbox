@@ -3,12 +3,9 @@ package eu.europeana.metis.sandbox.config;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,10 +28,13 @@ public class SandboxConfig {
   @Value("${sandbox.dataset.creation.threads.thread-prefix}")
   private String threadPrefix;
 
-  @Autowired
-  private ResourceLoader resourceLoader;
+  private final ResourceLoader resourceLoader;
 
   private String edmSorterUrl = null;
+
+  public SandboxConfig(ResourceLoader resourceLoader) {
+    this.resourceLoader = resourceLoader;
+  }
 
   @Bean
   @Scope("prototype")
@@ -49,14 +49,15 @@ public class SandboxConfig {
   }
 
   private String edmSorterUrl() throws IOException {
-    if(edmSorterUrl == null) {
-      edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL().toString();
+    if (edmSorterUrl == null) {
+      edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL()
+          .toString();
     }
     return edmSorterUrl;
   }
 
   @Bean
-  Executor taskExecutor() {
+  Executor asyncDatasetPublishServiceTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);
     executor.setMaxPoolSize(maxPoolSize);

@@ -29,12 +29,12 @@ public class RecordMessageConverter implements MessageConverter {
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override
-  public Message toMessage(Object object, MessageProperties messageProperties)
-      throws MessageConversionException {
+  public Message toMessage(Object object, MessageProperties messageProperties) {
     if (!(object instanceof Event)) {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
+    @SuppressWarnings("unchecked")
     Event<Record> recordEvent = (Event<Record>) object;
     Record record = recordEvent.getBody();
 
@@ -56,7 +56,7 @@ public class RecordMessageConverter implements MessageConverter {
   }
 
   @Override
-  public Object fromMessage(Message message) throws MessageConversionException {
+  public Object fromMessage(Message message) {
     MessageProperties properties = message.getMessageProperties();
     String recordId = properties.getHeader(RECORD_ID);
     String datasetId = properties.getHeader(DATASET_ID);

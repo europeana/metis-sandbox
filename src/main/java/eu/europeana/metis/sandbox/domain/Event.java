@@ -6,15 +6,15 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-public class Event<T extends Record> {
+public class Event<Record> {
 
-  private final T body;
+  private final Record body;
   private final Status status;
   private final Step step;
 
   private final String exception;
 
-  public Event(T body, Step step) {
+  public Event(Record body, Step step) {
     requireNonNull(body, "Body must not be null");
     requireNonNull(step, "Step must not be null");
     this.status = Status.SUCCESS;
@@ -23,7 +23,7 @@ public class Event<T extends Record> {
     this.step = step;
   }
 
-  public Event(T body, Step step, Exception exception) {
+  public Event(Record body, Step step, Exception exception) {
     requireNonNull(body, "Body must not be null");
     requireNonNull(step, "Step must not be null");
     this.status = exception == null ? Status.SUCCESS : Status.FAIL;
@@ -32,7 +32,7 @@ public class Event<T extends Record> {
     this.step = step;
   }
 
-  public Event(T body, Step step, String exception) {
+  public Event(Record body, Step step, String exception) {
     requireNonNull(body, "Body must not be null");
     requireNonNull(step, "Step must not be null");
     this.status = exception == null ? Status.SUCCESS : Status.FAIL;
@@ -41,7 +41,7 @@ public class Event<T extends Record> {
     this.step = step;
   }
 
-  public T getBody() {
+  public Record getBody() {
     return body;
   }
 
