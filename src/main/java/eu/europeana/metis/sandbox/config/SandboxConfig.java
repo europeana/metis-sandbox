@@ -15,6 +15,7 @@ import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -49,13 +50,13 @@ public class SandboxConfig {
   }
 
   @Bean
-  @Scope("prototype")
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   XPathFactory xPathFactory() {
     return XPathFactory.newDefaultInstance();
   }
 
   @Bean
-  @Scope("prototype")
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   XsltTransformer xsltEdmSorter() throws IOException, TransformationException {
     return new XsltTransformer(edmSorterUrl());
   }

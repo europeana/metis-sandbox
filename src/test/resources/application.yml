@@ -42,13 +42,21 @@ sandbox:
     driverClassName: org.h2.Driver
     username: sandbox
     password:
+  truststore:
+    path:
+    password:
+  datasource:
+    jdbcUrl: jdbc:h2:mem:sandbox
+    driverClassName: org.h2.Driver
+    username: sandbox
+    password:
   dataset:
     max-size: 1000
     creation:
       threads:
-        core-pool-size: 5
-        max-pool-size: 5
-        thread-prefix: sandbox-test-
+        core-pool-size: 10
+        max-pool-size: 40
+        thread-prefix: sandbox-
   rabbitmq:
     exchange:
       name: sandbox

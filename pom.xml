@@ -70,10 +70,6 @@
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
 
 		<!-- Europeana -->
 		<dependency>
@@ -89,20 +85,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>eu.europeana.metis</groupId>
+		  <groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-transformation-service</artifactId>
-			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>eu.europeana.metis</groupId>
-			<artifactId>metis-validation-service</artifactId>
 			<version>${version.metis}</version>
 			<exclusions>
 				<exclusion>

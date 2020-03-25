@@ -6,6 +6,7 @@
 
 # Properties
 *.properties
+**/application-*.yml
 
 # BlueJ files
 *.ctxt
@@ -53,5 +54,3 @@ mvnw
 **/tomcat/
 **/out/
 
-# Properties
-**/application-*.yml
