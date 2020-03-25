@@ -42,14 +42,6 @@ sandbox:
     driverClassName: org.h2.Driver
     username: sandbox
     password:
-  truststore:
-    path:
-    password:
-  datasource:
-    jdbcUrl: jdbc:h2:mem:sandbox
-    driverClassName: org.h2.Driver
-    username: sandbox
-    password:
   dataset:
     max-size: 1000
     creation:

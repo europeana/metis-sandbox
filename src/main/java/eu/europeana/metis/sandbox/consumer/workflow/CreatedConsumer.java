@@ -42,7 +42,7 @@ class CreatedConsumer {
       record = service.validate(input.getBody());
       output = new Event(record, Step.VALIDATE_EXTERNAL);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      LOGGER.error("Error validating record", ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
       output = new Event(record, Step.VALIDATE_EXTERNAL, ex);
     }
