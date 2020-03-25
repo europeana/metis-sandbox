@@ -51,4 +51,5 @@ mvnw
 **/out/
 
 # Properties
+**/*.properties
 **/application-*.yml
