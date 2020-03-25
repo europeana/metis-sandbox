@@ -64,6 +64,12 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
   private String mediaProcessedDlq;
 
+  @Value("${sandbox.rabbitmq.queues.record.indexed.queue}")
+  private String indexedQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.indexed.dlq}")
+  private String indexedDlq;
+
   @Bean
   TopicExchange exchange() {
     return new TopicExchange(exchange);
@@ -92,7 +98,8 @@ class AmqpConfiguration {
         QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
         QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build()
+        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
+        QueueBuilder.durable(indexedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(indexedDlq).build()
     );
   }
 
@@ -105,25 +112,26 @@ class AmqpConfiguration {
         QueueBuilder.durable(normalizedDlq).build(),
         QueueBuilder.durable(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedDlq).build()
+        QueueBuilder.durable(mediaProcessedDlq).build(),
+        QueueBuilder.durable(indexedDlq).build()
     );
   }
 
   @Bean
   Declarables bindings() {
     return getDeclarables(exchange, createdQueue, externalValidatedQueue, transformedQueue,
-        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue);
+        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue, indexedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
     return getDeclarables(exchangeDlq, createdDlq, externalValidatedDlq, transformedDlq,
-        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq);
+        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq, indexedDlq);
   }
 
   private Declarables getDeclarables(String exchange, String created,
       String externalValidated, String transformed, String normalized,
-      String internalValidated, String enriched, String mediaProcessed) {
+      String internalValidated, String enriched, String mediaProcessed, String indexed) {
     return new Declarables(
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
         new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
@@ -131,7 +139,8 @@ class AmqpConfiguration {
         new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),
         new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
         new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
-        new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null)
+        new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
+        new Binding(indexed, DestinationType.QUEUE, exchange, indexed, null)
     );
   }
 }
