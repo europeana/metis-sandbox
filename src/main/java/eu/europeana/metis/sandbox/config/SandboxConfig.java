@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
@@ -10,6 +13,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -99,5 +103,16 @@ public class SandboxConfig {
     propertiesFactoryBean.setLocation(new ClassPathResource("predefined-schemas.properties"));
     propertiesFactoryBean.afterPropertiesSet();
     return propertiesFactoryBean.getObject();
+  }
+
+  @Bean
+  MessageConverter messageConverter() {
+    return new RecordMessageConverter(objectMapper());
+  }
+
+  private ObjectMapper objectMapper() {
+    var objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper;
   }
 }

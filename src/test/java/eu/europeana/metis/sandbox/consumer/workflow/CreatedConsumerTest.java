@@ -57,7 +57,7 @@ class CreatedConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE, "Failed");
+    Event recordEvent = new Event(record, Step.CREATE, new Exception("Failed"));
 
     consumer.validateExternal(recordEvent);
 

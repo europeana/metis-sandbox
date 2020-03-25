@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.common.amqp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.LongString;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -14,7 +16,9 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.MessagePropertiesBuilder;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RecordMessageConverter implements MessageConverter {
 
   private static final String RECORD_ID = "recordId";
@@ -28,6 +32,12 @@ public class RecordMessageConverter implements MessageConverter {
 
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
+  private final ObjectMapper objectMapper;
+
+  public RecordMessageConverter(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
+
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
     if (!(object instanceof Event)) {
@@ -36,6 +46,12 @@ public class RecordMessageConverter implements MessageConverter {
 
     Event recordEvent = (Event) object;
     Record record = recordEvent.getBody();
+    String recordException;
+    try {
+      recordException = recordEvent.getException() != null? objectMapper.writeValueAsString(recordEvent.getException()) : null;
+    } catch (JsonProcessingException e) {
+      throw new MessageConversionException("Failed at serialize exception", e);
+    }
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
@@ -46,7 +62,7 @@ public class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(LANGUAGE, record.getLanguage())
         .setHeader(STEP, recordEvent.getStep())
         .setHeader(STATUS, recordEvent.getStatus())
-        .setHeader(EXCEPTION, recordEvent.getException())
+        .setHeader(EXCEPTION, recordException)
         .build();
 
     return MessageBuilder.withBody(record.getContent().getBytes(DEFAULT_CHARSET))
@@ -64,8 +80,13 @@ public class RecordMessageConverter implements MessageConverter {
     String country = properties.getHeader(COUNTRY);
     String step = properties.getHeader(STEP);
     String content = new String(message.getBody(), DEFAULT_CHARSET);
-    LongString exceptionObject = properties.getHeader(EXCEPTION);
-    String exception = exceptionObject == null ? null : exceptionObject.toString();
+    LongString exceptionString = properties.getHeader(EXCEPTION);
+    Exception exception;
+    try {
+      exception = exceptionString == null ? null : objectMapper.readValue(exceptionString.toString(), Exception.class);
+    } catch (JsonProcessingException e) {
+      throw new MessageConversionException("Failed at deserialize exception", e);
+    }
 
     Record record = Record.builder()
         .recordId(recordId)

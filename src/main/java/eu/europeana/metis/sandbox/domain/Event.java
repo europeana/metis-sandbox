@@ -15,12 +15,7 @@ public class Event {
   private final String exception;
 
   public Event(Record body, Step step) {
-    requireNonNull(body, "Body must not be null");
-    requireNonNull(step, "Step must not be null");
-    this.status = Status.SUCCESS;
-    this.body = body;
-    this.exception = null;
-    this.step = step;
+    this(body, step, null);
   }
 
   public Event(Record body, Step step, Exception exception) {
@@ -29,15 +24,6 @@ public class Event {
     this.status = exception == null ? Status.SUCCESS : Status.FAIL;
     this.body = body;
     this.exception = exception == null ? null : ExceptionUtils.getStackTrace(exception);
-    this.step = step;
-  }
-
-  public Event(Record body, Step step, String exception) {
-    requireNonNull(body, "Body must not be null");
-    requireNonNull(step, "Step must not be null");
-    this.status = exception == null ? Status.SUCCESS : Status.FAIL;
-    this.body = body;
-    this.exception = exception;
     this.step = step;
   }
 
