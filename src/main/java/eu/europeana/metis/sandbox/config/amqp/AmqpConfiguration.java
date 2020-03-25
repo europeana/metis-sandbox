@@ -91,8 +91,7 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            createdDlq).build(),
+        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(createdDlq).build(),
         QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
         QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
         QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
@@ -119,17 +118,17 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(exchange, createdQueue, externalValidatedQueue, transformedQueue,
+    return getDeclarables(createdQueue, externalValidatedQueue, transformedQueue,
         normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue, indexedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(exchangeDlq, createdDlq, externalValidatedDlq, transformedDlq,
+    return getDeclarables(createdDlq, externalValidatedDlq, transformedDlq,
         normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq, indexedDlq);
   }
 
-  private Declarables getDeclarables(String exchange, String created,
+  private Declarables getDeclarables(String created,
       String externalValidated, String transformed, String normalized,
       String internalValidated, String enriched, String mediaProcessed, String indexed) {
     return new Declarables(
