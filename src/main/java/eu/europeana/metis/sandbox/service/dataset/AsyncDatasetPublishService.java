@@ -10,7 +10,7 @@ public interface AsyncDatasetPublishService {
    *
    * @param dataset to publish. Must not be null
    * @return {@link CompletableFuture} of the process
-   * @throws NullPointerException if dataset object is null
+   * @throws NullPointerException     if dataset object is null
    * @throws IllegalArgumentException if dataset records are empty
    */
   CompletableFuture<Void> publish(Dataset dataset);

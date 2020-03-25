@@ -21,6 +21,9 @@ class NormalizedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.normalized.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public NormalizedConfiguration(
@@ -30,7 +33,7 @@ class NormalizedConfiguration {
 
   @Bean
   Queue normalizedQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

@@ -21,6 +21,9 @@ class MediaProcessedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public MediaProcessedConfiguration(
@@ -30,7 +33,7 @@ class MediaProcessedConfiguration {
 
   @Bean
   Queue mediaQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

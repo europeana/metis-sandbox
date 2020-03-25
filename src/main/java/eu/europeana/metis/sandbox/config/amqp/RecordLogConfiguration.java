@@ -21,6 +21,9 @@ class RecordLogConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.log.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   @Value("${sandbox.rabbitmq.queues.record.log.routing-key}")
   private String routingKey;
 
@@ -33,7 +36,7 @@ class RecordLogConfiguration {
 
   @Bean
   Queue logQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

@@ -21,6 +21,9 @@ class CreatedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.created.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public CreatedConfiguration(
@@ -30,7 +33,7 @@ class CreatedConfiguration {
 
   @Bean
   Queue createdQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

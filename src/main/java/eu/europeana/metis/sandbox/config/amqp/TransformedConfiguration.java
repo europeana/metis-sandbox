@@ -21,6 +21,9 @@ class TransformedConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.transformed.dlq}")
   private String dlq;
 
+  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  private String exchangeDlq;
+
   private AmqpConfiguration amqpConfiguration;
 
   public TransformedConfiguration(
@@ -30,7 +33,7 @@ class TransformedConfiguration {
 
   @Bean
   Queue transformedQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
   }
 
   @Bean

@@ -1,9 +1,10 @@
 package eu.europeana.metis.sandbox.common.amqp;
 
-import eu.europeana.metis.sandbox.common.Status;
+import com.rabbitmq.client.LongString;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -23,17 +24,18 @@ public class RecordMessageConverter implements MessageConverter {
   private static final String COUNTRY = "country";
   private static final String STATUS = "status";
   private static final String STEP = "step";
+  private static final String EXCEPTION = "exception";
 
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override
-  public Message toMessage(Object object, MessageProperties messageProperties)
-      throws MessageConversionException {
-    if (!(object instanceof Record)) {
+  public Message toMessage(Object object, MessageProperties messageProperties) {
+    if (!(object instanceof Event)) {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
-    Record record = (Record) object;
+    Event recordEvent = (Event) object;
+    Record record = recordEvent.getBody();
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
@@ -42,8 +44,9 @@ public class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(DATASET_NAME, record.getDatasetName())
         .setHeaderIfAbsent(COUNTRY, record.getCountry())
         .setHeaderIfAbsent(LANGUAGE, record.getLanguage())
-        .setHeader(STATUS, record.getStatus())
-        .setHeader(STEP, record.getStep())
+        .setHeader(STEP, recordEvent.getStep())
+        .setHeader(STATUS, recordEvent.getStatus())
+        .setHeader(EXCEPTION, recordEvent.getException())
         .build();
 
     return MessageBuilder.withBody(record.getContent().getBytes(DEFAULT_CHARSET))
@@ -52,25 +55,26 @@ public class RecordMessageConverter implements MessageConverter {
   }
 
   @Override
-  public Object fromMessage(Message message) throws MessageConversionException {
+  public Object fromMessage(Message message) {
     MessageProperties properties = message.getMessageProperties();
     String recordId = properties.getHeader(RECORD_ID);
     String datasetId = properties.getHeader(DATASET_ID);
     String datasetName = properties.getHeader(DATASET_NAME);
     String language = properties.getHeader(LANGUAGE);
     String country = properties.getHeader(COUNTRY);
-    String status = properties.getHeader(STATUS);
     String step = properties.getHeader(STEP);
     String content = new String(message.getBody(), DEFAULT_CHARSET);
+    LongString exceptionObject = properties.getHeader(EXCEPTION);
+    String exception = exceptionObject == null ? null : exceptionObject.toString();
 
-    return Record.builder()
+    Record record = Record.builder()
         .recordId(recordId)
         .datasetId(datasetId)
         .datasetName(datasetName)
         .country(Country.valueOf(country))
         .language(Language.valueOf(language))
-        .status(Status.valueOf(status))
-        .step(Step.valueOf(step))
         .content(content).build();
+
+    return new Event(record, Step.valueOf(step), exception);
   }
 }

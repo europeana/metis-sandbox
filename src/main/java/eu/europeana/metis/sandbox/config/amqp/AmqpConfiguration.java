@@ -13,26 +13,26 @@ import org.springframework.context.annotation.Configuration;
 class AmqpConfiguration {
 
   @Value("${sandbox.rabbitmq.exchange.name}")
-  private String sandboxTopic;
+  private String sandboxExchange;
 
   @Value("${sandbox.rabbitmq.exchange.dlq}")
-  private String sandboxTopicDlq;
+  private String sandboxExchangeDlq;
 
   @Bean
   TopicExchange exchange() {
-    return new TopicExchange(sandboxTopic);
+    return new TopicExchange(sandboxExchange);
   }
 
   @Bean
   TopicExchange dlqExchange() {
-    return new TopicExchange(sandboxTopicDlq);
+    return new TopicExchange(sandboxExchangeDlq);
   }
 
   @Bean
   AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
     var amqpTemplate = new RabbitTemplate(connectionFactory);
     amqpTemplate.setMessageConverter(new RecordMessageConverter());
-    amqpTemplate.setExchange(sandboxTopic);
+    amqpTemplate.setExchange(sandboxExchange);
     return amqpTemplate;
   }
 }

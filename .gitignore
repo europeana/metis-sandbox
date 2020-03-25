@@ -48,3 +48,8 @@ mvnw
 
 # Tomcat
 **/tomcat/
+**/out/
+
+# Properties
+**/*.properties
+**/application-*.yml
