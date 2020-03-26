@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static java.util.Objects.requireNonNull;
+
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -17,6 +19,8 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
 
   @Override
   public Record validate(Record record) {
+    requireNonNull(record, "Record must not be null");
+
     String recordOrdered;
     try {
       recordOrdered = orderingService.performOrdering(record.getContent());

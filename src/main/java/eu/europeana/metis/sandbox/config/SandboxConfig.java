@@ -31,6 +31,7 @@ public class SandboxConfig {
 
   private final ResourceLoader resourceLoader;
 
+  private String defaultXsltUrl = null;
   private String edmSorterUrl = null;
 
   public SandboxConfig(ResourceLoader resourceLoader) {
@@ -55,6 +56,21 @@ public class SandboxConfig {
           .toString();
     }
     return edmSorterUrl;
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  XsltTransformer xsltTransformer(String datasetName, String edmCountry, String edmLanguage)
+      throws IOException, TransformationException {
+    return new XsltTransformer(defaultXsltTransformerUrl(), datasetName, edmCountry, edmLanguage);
+  }
+
+  private String defaultXsltTransformerUrl() throws IOException {
+    if(defaultXsltUrl == null) {
+      defaultXsltUrl = resourceLoader.getResource("classpath:edm/default.xslt.xsl").getURL()
+          .toString();
+    }
+    return defaultXsltUrl;
   }
 
   @Bean

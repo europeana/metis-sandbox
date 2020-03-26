@@ -22,7 +22,8 @@ public class TransformedConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}", containerFactory = "transformedFactory")
+  // TODO keep consuming from here
+  //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}", containerFactory = "transformedFactory")
   public void validateInternal(Record input) {
     service.validate(input);
     amqpTemplate.convertAndSend(routingKey, input);
