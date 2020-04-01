@@ -31,7 +31,7 @@ class RecordLogServiceImpl implements RecordLogService {
         .step(recordEvent.getStep())
         .build();
     var recordLogEntity = new RecordLogEntity(key, record.getContent(), recordEvent.getStatus(),
-        recordEvent.getException());
+        recordEvent.getExceptionStackTrace());
 
     try {
       repository.save(recordLogEntity);

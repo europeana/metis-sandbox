@@ -12,7 +12,7 @@ public class Event {
   private final Status status;
   private final Step step;
 
-  private final String exception;
+  private final Exception exception;
 
   public Event(Record body, Step step) {
     this(body, step, null);
@@ -23,7 +23,7 @@ public class Event {
     requireNonNull(step, "Step must not be null");
     this.status = exception == null ? Status.SUCCESS : Status.FAIL;
     this.body = body;
-    this.exception = exception == null ? null : ExceptionUtils.getStackTrace(exception);
+    this.exception = exception;
     this.step = step;
   }
 
@@ -39,7 +39,11 @@ public class Event {
     return step;
   }
 
-  public String getException() {
+  public Exception getException() {
     return exception;
+  }
+
+  public String getExceptionStackTrace() {
+    return exception == null ? null : ExceptionUtils.getStackTrace(exception);
   }
 }

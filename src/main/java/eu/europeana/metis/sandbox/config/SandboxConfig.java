@@ -16,7 +16,7 @@ import javax.xml.xpath.XPathFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -95,13 +95,13 @@ public class SandboxConfig {
   }
 
   @Bean
-  SchemaProvider schemaProvider() throws IOException {
+  SchemaProvider schemaProvider() {
     return new SchemaProvider(PredefinedSchemasGenerator.generate(schemaProperties()));
   }
 
-  private Properties schemaProperties() throws IOException {
-    PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-    propertiesFactoryBean.setLocation(new ClassPathResource("predefined-schemas.properties"));
+  private Properties schemaProperties() {
+    YamlPropertiesFactoryBean propertiesFactoryBean = new YamlPropertiesFactoryBean();
+    propertiesFactoryBean.setResources(new ClassPathResource("application.yml"));
     propertiesFactoryBean.afterPropertiesSet();
     return propertiesFactoryBean.getObject();
   }

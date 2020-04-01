@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.service.util;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
+import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import java.io.StringReader;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -32,8 +32,7 @@ class XmlRecordProcessorServiceImpl implements XmlRecordProcessorService {
     try {
       recordId = xpath.evaluate(RECORD_ID_EXPRESSION, source);
     } catch (XPathExpressionException e) {
-      throw new NonRecoverableServiceException(
-          "Error while parsing a xml record: " + e.getMessage(), e);
+      throw new RecordParsingException(e);
     }
 
     if (isEmpty(recordId)) {

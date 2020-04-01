@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.TestUtils;
-import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
+import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -53,7 +53,7 @@ class XmlRecordProcessorServiceImplTest {
   }
 
   @Test
-  void getRecordId_nonRecoverableException_expectFail() throws Exception {
+  void getRecordId_recordParsingException_expectFail() throws Exception {
     var xmlRecord = utils.readFileToString("record/valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
@@ -61,7 +61,7 @@ class XmlRecordProcessorServiceImplTest {
     when(xPath.evaluate(any(String.class), any(InputSource.class)))
         .thenThrow(new XPathExpressionException("Fail here"));
 
-    assertThrows(NonRecoverableServiceException.class, () -> service.getRecordId(xmlRecord));
+    assertThrows(RecordParsingException.class, () -> service.getRecordId(xmlRecord));
   }
 
   @Test

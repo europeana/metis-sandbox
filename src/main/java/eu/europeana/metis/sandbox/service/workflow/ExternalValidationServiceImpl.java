@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 class ExternalValidationServiceImpl implements ExternalValidationService {
 
-  private final static String SCHEMA = "EDM-EXTERNAL";
+  private static final String SCHEMA = "EDM-EXTERNAL";
 
   private final OrderingService orderingService;
   private final ValidationExecutionService validator;
