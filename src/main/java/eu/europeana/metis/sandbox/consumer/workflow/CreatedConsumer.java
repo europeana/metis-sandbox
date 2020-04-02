@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ class CreatedConsumer {
     } catch (RecordProcessingException ex) {
       LOGGER.error("Error validating record", ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
-      output = new Event(record, Step.VALIDATE_EXTERNAL, ex);
+      output = new Event(record, Step.VALIDATE_EXTERNAL, new EventError(ex));
     }
 
     amqpTemplate.convertAndSend(routingKey, output);

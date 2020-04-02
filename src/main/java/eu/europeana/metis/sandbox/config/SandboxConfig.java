@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
@@ -108,12 +106,6 @@ public class SandboxConfig {
 
   @Bean
   MessageConverter messageConverter() {
-    return new RecordMessageConverter(objectMapper());
-  }
-
-  private ObjectMapper objectMapper() {
-    var objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper;
+    return new RecordMessageConverter();
   }
 }

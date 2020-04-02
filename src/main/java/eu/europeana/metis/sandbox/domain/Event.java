@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import java.util.Optional;
 
 public class Event {
 
@@ -12,18 +12,18 @@ public class Event {
   private final Status status;
   private final Step step;
 
-  private final Exception exception;
+  private final EventError eventError;
 
   public Event(Record body, Step step) {
     this(body, step, null);
   }
 
-  public Event(Record body, Step step, Exception exception) {
+  public Event(Record body, Step step, EventError eventError) {
     requireNonNull(body, "Body must not be null");
     requireNonNull(step, "Step must not be null");
-    this.status = exception == null ? Status.SUCCESS : Status.FAIL;
+    this.status = eventError == null ? Status.SUCCESS : Status.FAIL;
     this.body = body;
-    this.exception = exception;
+    this.eventError = eventError;
     this.step = step;
   }
 
@@ -39,11 +39,7 @@ public class Event {
     return step;
   }
 
-  public Exception getException() {
-    return exception;
-  }
-
-  public String getExceptionStackTrace() {
-    return exception == null ? null : ExceptionUtils.getStackTrace(exception);
+  public Optional<EventError> getEventError() {
+    return Optional.ofNullable(eventError);
   }
 }
