@@ -8,18 +8,19 @@ import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -76,7 +77,7 @@ public class SandboxConfig {
   }
 
   private String defaultXsltTransformerUrl() throws IOException {
-    if(defaultXsltUrl == null) {
+    if (defaultXsltUrl == null) {
       defaultXsltUrl = resourceLoader.getResource("classpath:edm/default.xslt.xsl").getURL()
           .toString();
     }
@@ -113,15 +114,47 @@ public class SandboxConfig {
     return new SchemaProvider(PredefinedSchemasGenerator.generate(schemaProperties()));
   }
 
-  private Properties schemaProperties() {
-    YamlPropertiesFactoryBean propertiesFactoryBean = new YamlPropertiesFactoryBean();
-    propertiesFactoryBean.setResources(new ClassPathResource("application.yml"));
-    propertiesFactoryBean.afterPropertiesSet();
-    return propertiesFactoryBean.getObject();
-  }
-
   @Bean
   MessageConverter messageConverter() {
     return new RecordMessageConverter();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sandbox.validation")
+  Schema schema() {
+    return new Schema();
+  }
+
+  private Properties schemaProperties() {
+    Schema schema = schema();
+    Map<String, Object> predefinedSchemas = schema.getPredefinedSchemas();
+    Properties schemaProps = new Properties();
+    schemaProps.put(Schema.PREDEFINED_SCHEMAS, String.join(",", predefinedSchemas.keySet()));
+    addSchemaProperties(Schema.PREDEFINED_SCHEMAS, predefinedSchemas, schemaProps);
+    return schemaProps;
+  }
+
+  private void addSchemaProperties(String key, Object value, Properties props) {
+    if (value instanceof String) {
+      props.put(key, value);
+    } else if (value instanceof Map) {
+      var map = ((Map<?, ?>) value);
+      for (Map.Entry<?, ?> entry : map.entrySet()) {
+        addSchemaProperties(key + "." + entry.getKey(), entry.getValue(), props);
+      }
+    } else {
+      throw new IllegalArgumentException("Property value: " + value);
+    }
+  }
+
+  private static class Schema {
+
+    public static final String PREDEFINED_SCHEMAS = "predefinedSchemas";
+
+    private final Map<String, Object> predefinedSchemas = new HashMap<>();
+
+    public Map<String, Object> getPredefinedSchemas() {
+      return this.predefinedSchemas;
+    }
   }
 }

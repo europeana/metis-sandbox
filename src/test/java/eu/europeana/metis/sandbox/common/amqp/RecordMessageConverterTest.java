@@ -4,7 +4,7 @@ import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.COUN
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_NAME;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DEFAULT_CHARSET;
-import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.EXCEPTION;
+import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERROR;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.LANGUAGE;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.RECORD_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STATUS;
@@ -68,7 +68,7 @@ class RecordMessageConverterTest {
         .setHeaderIfAbsent(LANGUAGE, "IT")
         .setHeader(STEP, "TRANSFORM")
         .setHeader(STATUS, "FAIL")
-        .setHeader(EXCEPTION, null)
+        .setHeader(ERROR, null)
         .build();
 
     var message = MessageBuilder.withBody("This is the content".getBytes(StandardCharsets.UTF_8))

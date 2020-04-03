@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class ExternallyValidatedConsumer {
     } catch (RecordProcessingException ex) {
       LOGGER.error(ex.getMessage(), ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
-      output = new Event(record, Step.TRANSFORM, ex);
+      output = new Event(record, Step.TRANSFORM, new EventError(ex));
     }
 
     amqpTemplate.convertAndSend(routingKey, output);

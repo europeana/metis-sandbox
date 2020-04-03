@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ class ExternallyValidatedConsumerTest {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE, "Failed");
+    Event recordEvent = new Event(record, Step.CREATE, new EventError(new Exception("Failed")));
 
     consumer.transform(recordEvent);
 
