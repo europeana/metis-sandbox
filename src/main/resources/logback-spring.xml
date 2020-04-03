@@ -26,7 +26,7 @@
     <logger name="org.hibernate" level="ERROR"/>
   </springProfile>
 
-  <root level="ERROR">
+  <root level="INFO">
     <appender-ref ref="ASYNC-CONSOLE"/>
   </root>
 

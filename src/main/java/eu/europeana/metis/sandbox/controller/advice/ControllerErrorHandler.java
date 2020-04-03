@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.controller.advice;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
-import eu.europeana.metis.sandbox.common.exception.NonRecoverableServiceException;
+import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import org.slf4j.Logger;
@@ -40,9 +40,9 @@ public class ControllerErrorHandler {
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 
-  @ExceptionHandler(NonRecoverableServiceException.class)
+  @ExceptionHandler(RecordParsingException.class)
   public ResponseEntity<Object> handleNonRecoverableServiceException(
-      NonRecoverableServiceException ex) {
+      RecordParsingException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
     LOGGER.error(ex.getMessage(), ex);

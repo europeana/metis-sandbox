@@ -4,10 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SandboxApplicationTests {
+class SandboxApplicationIT {
 
-	@Test
-	void contextLoads() {
-	}
+  /**
+   * This test is ensuring the application context loads with no exceptions
+   */
+  @Test
+  void contextLoads() {
+  }
 
 }

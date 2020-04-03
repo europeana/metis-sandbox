@@ -1,20 +1,23 @@
 package eu.europeana.metis.sandbox.common.amqp;
 
-import com.rabbitmq.client.LongString;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.MessagePropertiesBuilder;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RecordMessageConverter implements MessageConverter {
 
   protected static final String RECORD_ID = "recordId";
@@ -24,7 +27,8 @@ public class RecordMessageConverter implements MessageConverter {
   protected static final String COUNTRY = "country";
   protected static final String STATUS = "status";
   protected static final String STEP = "step";
-  protected static final String EXCEPTION = "exception";
+  protected static final String ERROR = "error";
+  protected static final String STACK_TRACE = "stackTrace";
 
   protected static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
@@ -36,6 +40,7 @@ public class RecordMessageConverter implements MessageConverter {
 
     Event recordEvent = (Event) object;
     Record record = recordEvent.getBody();
+    Optional<EventError> eventError = recordEvent.getEventError();
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
@@ -46,8 +51,12 @@ public class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(LANGUAGE, record.getLanguage())
         .setHeader(STEP, recordEvent.getStep())
         .setHeader(STATUS, recordEvent.getStatus())
-        .setHeader(EXCEPTION, recordEvent.getException())
         .build();
+
+    if (eventError.isPresent()) {
+      properties.setHeader(ERROR, eventError.get().getMessage());
+      properties.setHeader(STACK_TRACE, eventError.get().getStackTrace());
+    }
 
     return MessageBuilder.withBody(record.getContent().getBytes(DEFAULT_CHARSET))
         .andProperties(properties)
@@ -64,8 +73,8 @@ public class RecordMessageConverter implements MessageConverter {
     String country = properties.getHeader(COUNTRY);
     String step = properties.getHeader(STEP);
     String content = new String(message.getBody(), DEFAULT_CHARSET);
-    LongString exceptionObject = properties.getHeader(EXCEPTION);
-    String exception = exceptionObject == null ? null : exceptionObject.toString();
+    String error = properties.getHeader(ERROR);
+    Object stackTrace = properties.getHeader(STACK_TRACE);
 
     Record record = Record.builder()
         .recordId(recordId)
@@ -75,6 +84,11 @@ public class RecordMessageConverter implements MessageConverter {
         .language(Language.valueOf(language))
         .content(content).build();
 
-    return new Event(record, Step.valueOf(step), exception);
+    EventError eventError = null;
+    if (error != null) {
+      eventError = new EventError(error, stackTrace.toString());
+    }
+
+    return new Event(record, Step.valueOf(step), eventError);
   }
 }

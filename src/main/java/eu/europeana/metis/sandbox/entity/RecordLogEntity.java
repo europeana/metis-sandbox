@@ -27,11 +27,15 @@ public class RecordLogEntity {
   @Column
   private String error;
 
-  public RecordLogEntity(RecordLogEntityKey key, String content, Status result, String error) {
+  @Column
+  private String stackTrace;
+
+  public RecordLogEntity(RecordLogEntityKey key, String content, Status result, String error, String stackTrace) {
     this.key = key;
     this.content = content;
     this.result = result;
     this.error = error;
+    this.stackTrace = stackTrace;
   }
 
   public RecordLogEntity() {
@@ -67,5 +71,13 @@ public class RecordLogEntity {
 
   public void setError(String error) {
     this.error = error;
+  }
+
+  public String getStackTrace() {
+    return stackTrace;
+  }
+
+  public void setStackTrace(String stackTrace) {
+    this.stackTrace = stackTrace;
   }
 }

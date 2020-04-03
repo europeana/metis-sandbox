@@ -34,7 +34,7 @@ spring:
         prefetch: 1
         retry:
           enabled: true
-          initial-interval: 1000
+          initial-interval: 1000ms
           multiplier: 2
           max-attempts: 3
   jpa:
@@ -57,6 +57,9 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+  validation:
+    executor:
+      pool-size: 10
   rabbitmq:
     exchange:
       name: sandbox
@@ -95,3 +98,11 @@ sandbox:
         indexed:
           queue: sandbox.record.indexed
           dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq
+
+predefinedSchemas: EDM-INTERNAL,EDM-EXTERNAL
+predefinedSchemas.EDM-INTERNAL.url:
+predefinedSchemas.EDM-INTERNAL.rootLocation:
+predefinedSchemas.EDM-INTERNAL.schematronLocation:
+predefinedSchemas.EDM-EXTERNAL.url:
+predefinedSchemas.EDM-EXTERNAL.rootLocation:
+predefinedSchemas.EDM-EXTERNAL.schematronLocation:

@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.Record;
 
 public interface RecordLogService {
 

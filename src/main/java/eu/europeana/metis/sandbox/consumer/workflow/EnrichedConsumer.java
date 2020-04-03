@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.consumer.workflow;
 
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.MediaProcessingService;
-import org.slf4j.Logger;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
