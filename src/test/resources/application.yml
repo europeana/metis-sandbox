@@ -34,6 +34,15 @@ sandbox:
   validation:
     executor:
       pool-size: 10
+    predefinedSchemas:
+      EDM-INTERNAL:
+        url:
+        rootLocation:
+        schematronLocation:
+      EDM-EXTERNAL:
+        url:
+        rootLocation:
+        schematronLocation:
   truststore:
     path:
     password:

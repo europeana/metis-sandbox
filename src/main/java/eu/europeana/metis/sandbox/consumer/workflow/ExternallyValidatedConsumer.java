@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExternallyValidatedConsumer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CreatedConsumer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExternallyValidatedConsumer.class);
 
   private AmqpTemplate amqpTemplate;
   private TransformationService service;
