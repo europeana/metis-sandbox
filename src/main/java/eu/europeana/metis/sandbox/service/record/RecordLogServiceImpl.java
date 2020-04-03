@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntityKey;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
@@ -23,7 +22,15 @@ class RecordLogServiceImpl implements RecordLogService {
   public void logRecordEvent(Event recordEvent) {
     requireNonNull(recordEvent, "Record event must not be null");
 
-    Record record = recordEvent.getBody();
+    var record = recordEvent.getBody();
+    var eventError = recordEvent.getEventError();
+    String errorMessage = null;
+    String stackTrace = null;
+
+    if (eventError.isPresent()) {
+      errorMessage = eventError.get().getMessage();
+      stackTrace = eventError.get().getStackTrace();
+    }
 
     var key = RecordLogEntityKey.builder()
         .id(record.getRecordId())
@@ -31,7 +38,7 @@ class RecordLogServiceImpl implements RecordLogService {
         .step(recordEvent.getStep())
         .build();
     var recordLogEntity = new RecordLogEntity(key, record.getContent(), recordEvent.getStatus(),
-        recordEvent.getException());
+        errorMessage, stackTrace);
 
     try {
       repository.save(recordLogEntity);

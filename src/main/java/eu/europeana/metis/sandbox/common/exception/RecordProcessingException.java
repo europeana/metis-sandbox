@@ -1,11 +1,16 @@
 package eu.europeana.metis.sandbox.common.exception;
 
-public class RecordProcessingException extends NonRecoverableServiceException {
+public class RecordProcessingException extends ServiceException {
 
-  private String recordId;
+  private final String recordId;
 
   public RecordProcessingException(String recordId, Throwable cause) {
     super("There was an issue while processing record " + recordId, cause);
+    this.recordId = recordId;
+  }
+
+  protected RecordProcessingException(String recordId, String message, Throwable cause) {
+    super(message, cause);
     this.recordId = recordId;
   }
 

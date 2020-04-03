@@ -2,9 +2,7 @@ package eu.europeana.metis.sandbox.consumer.workflow;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
-import org.slf4j.Logger;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

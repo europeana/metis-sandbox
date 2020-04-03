@@ -4,6 +4,10 @@
 # Log file
 *.log
 
+# Properties
+*.properties
+**/application-*.yml
+
 # BlueJ files
 *.ctxt
 
@@ -50,6 +54,3 @@ mvnw
 **/tomcat/
 **/out/
 
-# Properties
-**/*.properties
-**/application-*.yml
