@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
+import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
@@ -107,5 +108,10 @@ public class SandboxConfig {
   @Bean
   MessageConverter messageConverter() {
     return new RecordMessageConverter();
+  }
+
+  @Bean
+  NormalizerFactory normalizerFactory() {
+    return new NormalizerFactory();
   }
 }

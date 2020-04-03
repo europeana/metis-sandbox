@@ -7,6 +7,11 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes enriched events and performs media processing to the contained record
+ * <br/>
+ * Publishes the result in the media processed queue
+ */
 @Component
 public class EnrichedConsumer {
 

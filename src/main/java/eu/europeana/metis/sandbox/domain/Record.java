@@ -26,7 +26,18 @@ public class Record {
     this.content = content;
   }
 
+  /**
+   * Creates a record based on the provided record but replacing the content with the one provided
+   *
+   * @param record  must not be null
+   * @param content must not be null. Xml representation of the record
+   * @return record object
+   * @throws NullPointerException if any parameter is null
+   */
   public static Record from(Record record, String content) {
+    requireNonNull(record);
+    requireNonNull(content);
+
     return Record.builder()
         .recordId(record.getRecordId())
         .datasetId(record.getDatasetId())

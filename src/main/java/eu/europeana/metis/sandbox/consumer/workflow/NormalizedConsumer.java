@@ -7,6 +7,11 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes normalized events and performs enrichment to the contained record
+ * <br/>
+ * Publishes the result in the enriched queue
+ */
 @Component
 public class NormalizedConsumer {
 

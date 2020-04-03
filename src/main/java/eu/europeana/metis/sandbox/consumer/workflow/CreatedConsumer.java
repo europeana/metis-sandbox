@@ -14,6 +14,11 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes created events and performs external validation to the contained record
+ * <br/>
+ * Publishes the result in the externally validated queue
+ */
 @Component
 class CreatedConsumer {
 

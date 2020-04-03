@@ -9,7 +9,7 @@ public class RecordProcessingException extends ServiceException {
     this.recordId = recordId;
   }
 
-  protected RecordProcessingException(String recordId, String message, Throwable cause) {
+  public RecordProcessingException(String message, String recordId, Throwable cause) {
     super(message, cause);
     this.recordId = recordId;
   }

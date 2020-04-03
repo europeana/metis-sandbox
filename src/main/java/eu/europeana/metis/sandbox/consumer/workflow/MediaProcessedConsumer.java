@@ -7,6 +7,11 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes media processed events and performs indexing to the contained record
+ * <br/>
+ * Publishes the result in the indexed queue
+ */
 @Component
 public class MediaProcessedConsumer {
 

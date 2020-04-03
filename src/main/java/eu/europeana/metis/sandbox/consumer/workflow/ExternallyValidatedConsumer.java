@@ -7,6 +7,11 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes externally validated events and performs transformation to the contained record
+ * <br/>
+ * Publishes the result in the transformed queue
+ */
 @Component
 public class ExternallyValidatedConsumer {
 
