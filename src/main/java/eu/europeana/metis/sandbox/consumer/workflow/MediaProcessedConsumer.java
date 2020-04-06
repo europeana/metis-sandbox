@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the indexed queue
  */
 @Component
-public class MediaProcessedConsumer {
+class MediaProcessedConsumer {
 
   private AmqpTemplate amqpTemplate;
   private IndexingService service;

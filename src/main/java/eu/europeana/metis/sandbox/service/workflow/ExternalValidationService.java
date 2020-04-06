@@ -10,7 +10,7 @@ public interface ExternalValidationService {
    * Orders and validates the given record against EDM-EXTERNAL schema
    *
    * @param record must not be null
-   * @return ordered record that is valid against EDM-EXTERNAL schema
+   * @return {@link Record} ordered record that is valid against EDM-EXTERNAL schema
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if records fails at ordering
    * @throws RecordValidationException if records fails at validation

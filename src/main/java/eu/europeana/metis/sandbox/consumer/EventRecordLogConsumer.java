@@ -5,6 +5,11 @@ import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes all events
+ * <br/>
+ * Save events to persistence store
+ */
 @Component
 public class EventRecordLogConsumer {
 

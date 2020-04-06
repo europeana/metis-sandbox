@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the media processed queue
  */
 @Component
-public class EnrichedConsumer {
+class EnrichedConsumer {
 
   private AmqpTemplate amqpTemplate;
   private MediaProcessingService service;

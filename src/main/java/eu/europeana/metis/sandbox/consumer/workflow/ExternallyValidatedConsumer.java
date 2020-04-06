@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the transformed queue
  */
 @Component
-public class ExternallyValidatedConsumer {
+class ExternallyValidatedConsumer {
 
   private AmqpTemplate amqpTemplate;
   private TransformationService service;

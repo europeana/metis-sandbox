@@ -33,7 +33,6 @@ class NormalizationServiceImpl implements NormalizationService {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    // TODO what to do with the NormalizationResult
     if (result.getErrorMessage() != null) {
       throw new RecordProcessingException(result.getErrorMessage(), record.getRecordId(), null);
     }

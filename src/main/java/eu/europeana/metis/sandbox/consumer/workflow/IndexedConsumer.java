@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * Consumes indexed events
  */
 @Component
-public class IndexedConsumer {
+class IndexedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndexedConsumer.class);
 

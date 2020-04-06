@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the enriched queue
  */
 @Component
-public class NormalizedConsumer {
+class NormalizedConsumer {
 
   private AmqpTemplate amqpTemplate;
   private EnrichmentService service;
