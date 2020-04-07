@@ -40,7 +40,8 @@ public class SandboxConfig {
   @Value("${sandbox.dataset.creation.threads.thread-prefix}")
   private String threadPrefix;
 
-  private String defaultXsltUrl = null;
+  private String defaultXsltUrl;
+
   private String edmSorterUrl = null;
 
   private final ResourceLoader resourceLoader;
@@ -72,16 +73,8 @@ public class SandboxConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   XsltTransformer xsltTransformer(String datasetName, String edmCountry, String edmLanguage)
-      throws IOException, TransformationException {
-    return new XsltTransformer(defaultXsltTransformerUrl(), datasetName, edmCountry, edmLanguage);
-  }
-
-  private String defaultXsltTransformerUrl() throws IOException {
-    if (defaultXsltUrl == null) {
-      defaultXsltUrl = resourceLoader.getResource("classpath:edm/default.xslt.xsl").getURL()
-          .toString();
-    }
-    return defaultXsltUrl;
+      throws TransformationException {
+    return new XsltTransformer(defaultXsltUrl, datasetName, edmCountry, edmLanguage);
   }
 
   @Bean
@@ -123,6 +116,14 @@ public class SandboxConfig {
   @ConfigurationProperties(prefix = "sandbox.validation")
   Schema schema() {
     return new Schema();
+  }
+
+  @Value("${sandbox.transformation.xslt-url}")
+  void setDefaultXsltUrl(String defaultXsltUrl) {
+    if (defaultXsltUrl == null || defaultXsltUrl.isEmpty()) {
+      throw new IllegalArgumentException("defaultXsltUrl not provided");
+    }
+    this.defaultXsltUrl = defaultXsltUrl;
   }
 
   private Properties schemaProperties() {

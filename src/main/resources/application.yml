@@ -69,6 +69,8 @@ sandbox:
         url:
         rootLocation:
         schematronLocation:
+  transformation:
+    xslt-url:
   rabbitmq:
     exchange:
       name: sandbox
