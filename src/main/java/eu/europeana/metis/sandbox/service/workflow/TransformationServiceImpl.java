@@ -30,9 +30,9 @@ class TransformationServiceImpl implements TransformationService {
     try {
       var europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContent(), record.getDatasetId());
-      var xsltTransformer = getTransformer(record.getDatasetName(),
+      var transformer = getTransformer(record.getDatasetName(),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
-      recordTransformed = xsltTransformer.transform(record.getContent()
+      recordTransformed = transformer.transform(record.getContent()
           .getBytes(StandardCharsets.UTF_8), europeanaGeneratedIdsMap).toString();
     } catch (TransformationException | EuropeanaIdException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
