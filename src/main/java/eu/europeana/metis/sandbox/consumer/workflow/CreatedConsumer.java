@@ -32,9 +32,7 @@ class CreatedConsumer extends AmqpConsumer {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
-
-    Event output = processEvent(input, Step.VALIDATE_EXTERNAL,
-        () -> service.validate(input.getBody()));
-    amqpTemplate.convertAndSend(routingKey, output);
+    processEvent(input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()),
+        routingKey);
   }
 }

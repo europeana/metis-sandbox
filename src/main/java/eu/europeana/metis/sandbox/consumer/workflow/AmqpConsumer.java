@@ -14,22 +14,23 @@ import org.springframework.amqp.core.AmqpTemplate;
 
 class AmqpConsumer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AmqpConsumer.class);
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   protected AmqpTemplate amqpTemplate;
 
-  protected Event processEvent(Event event, Step step, Supplier<Record> action) {
+  protected void processEvent(Event event, Step step, Supplier<Record> supplier,
+      String routingKey) {
     Event output;
     Record record;
     try {
-      record = action.get();
+      record = supplier.get();
       output = new Event(record, step);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(format("Error processing record %s on step %s ", ex.getRecordId(), step), ex);
+      logger.error(format("Error processing record %s on step %s ", ex.getRecordId(), step), ex);
       record = Record.from(event.getBody(), event.getBody().getContent());
       output = new Event(record, step, new EventError(ex));
     }
 
-    return output;
+    amqpTemplate.convertAndSend(routingKey, output);
   }
 }

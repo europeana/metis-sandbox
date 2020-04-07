@@ -32,8 +32,6 @@ class InternallyValidatedConsumer extends AmqpConsumer {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
-
-    Event output = processEvent(input, Step.NORMALIZE, () -> service.normalize(input.getBody()));
-    amqpTemplate.convertAndSend(routingKey, output);
+    processEvent(input, Step.NORMALIZE, () -> service.normalize(input.getBody()), routingKey);
   }
 }
