@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.NormalizationService;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -23,8 +25,8 @@ public class InternallyValidatedConsumer {
   }
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory")
-  public void normalize(Record input) {
-    Record output = service.normalize(input);
+  public void normalize(Event input) {
+    Event output = new Event(input.getBody(), Step.NORMALIZE);
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

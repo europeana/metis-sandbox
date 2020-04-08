@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
+import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
@@ -39,6 +40,12 @@ public class SandboxConfig {
 
   @Value("${sandbox.dataset.creation.threads.thread-prefix}")
   private String threadPrefix;
+
+  @Value("${sandbox.enrichment.dereference-url}")
+  private String dereferenceServiceUrl;
+
+  @Value("${sandbox.enrichment.enrichment-url}")
+  private String enrichmentServiceUrl;
 
   private String defaultXsltUrl;
 
@@ -110,6 +117,11 @@ public class SandboxConfig {
   @Bean
   MessageConverter messageConverter() {
     return new RecordMessageConverter();
+  }
+
+  @Bean
+  EnrichmentWorker enrichmentWorker() {
+    return new EnrichmentWorker(dereferenceServiceUrl, enrichmentServiceUrl);
   }
 
   @Bean

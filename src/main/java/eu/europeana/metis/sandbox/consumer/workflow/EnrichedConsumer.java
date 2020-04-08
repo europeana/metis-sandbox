@@ -22,7 +22,7 @@ public class EnrichedConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.enriched.queue}", containerFactory = "enrichedFactory")
+  //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.enriched.queue}", containerFactory = "enrichedFactory")
   public void processMedia(Record input) {
     Record output = service.processMedia(input);
     amqpTemplate.convertAndSend(routingKey, output);
