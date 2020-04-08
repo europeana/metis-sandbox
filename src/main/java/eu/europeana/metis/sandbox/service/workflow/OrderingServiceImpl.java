@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 class OrderingServiceImpl implements OrderingService {
 
-  private ObjectFactory<XsltTransformer> orderObjectFactory;
+  private ObjectFactory<XsltTransformer> xsltEdmSorter;
 
   public OrderingServiceImpl(
-      ObjectFactory<XsltTransformer> orderObjectFactory) {
-    this.orderObjectFactory = orderObjectFactory;
+      ObjectFactory<XsltTransformer> xsltEdmSorter) {
+    this.xsltEdmSorter = xsltEdmSorter;
   }
 
   @Override
@@ -27,6 +27,6 @@ class OrderingServiceImpl implements OrderingService {
   }
 
   private XsltTransformer getEdmSorter() {
-    return orderObjectFactory.getObject();
+    return xsltEdmSorter.getObject();
   }
 }

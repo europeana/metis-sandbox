@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
+import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,59 +25,59 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class CreatedConsumerTest {
+class ExternallyValidatedConsumerTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
 
   @Mock
-  private ExternalValidationService service;
+  private TransformationService service;
 
   @Captor
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private CreatedConsumer consumer;
+  private ExternallyValidatedConsumer consumer;
 
   @Test
-  void validateExternal_expectSuccess() {
+  void transform_expectSuccess() {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
     Event recordEvent = new Event(record, Step.CREATE);
 
-    when(service.validate(record)).thenReturn(record);
-    consumer.validateExternal(recordEvent);
+    when(service.transform(record)).thenReturn(record);
+    consumer.transform(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).transform(record);
     verify(amqpTemplate).convertAndSend(any(), any(Event.class));
   }
 
   @Test
-  void validateExternal_inputMessageWithFailStatus_expectNoInteractions() {
+  void transform_inputMessageWithFailStatus_expectNoInteractions() {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
     Event recordEvent = new Event(record, Step.CREATE, new EventError(new Exception("Failed")));
 
-    consumer.validateExternal(recordEvent);
+    consumer.transform(recordEvent);
 
-    verify(service, never()).validate(record);
+    verify(service, never()).transform(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
   @Test
-  void validateExternal_serviceThrowException_expectFailStatus() {
+  void transform_serviceThrowException_expectFailStatus() {
     Record record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
     Event recordEvent = new Event(record, Step.CREATE);
 
-    when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.transform(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.validateExternal(recordEvent);
+    consumer.transform(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).transform(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

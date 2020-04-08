@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.metis.utils.CustomTruststoreAppender;
+import eu.europeana.metis.utils.CustomTruststoreAppender.TrustStoreConfigurationException;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.core.net.ssl.TrustStoreConfigurationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -26,7 +26,8 @@ public class DataSourceConfig {
     return DataSourceBuilder.create().build();
   }
 
-  private void appendCustomTrustStore() throws TrustStoreConfigurationException {
+  private void appendCustomTrustStore()
+      throws TrustStoreConfigurationException {
     if (StringUtils.isNotEmpty(trustStorePath) && StringUtils.isNotEmpty(trustStorePassword)) {
       CustomTruststoreAppender.appendCustomTrustoreToDefault(trustStorePath, trustStorePassword);
     }

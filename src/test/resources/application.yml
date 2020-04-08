@@ -34,6 +34,17 @@ sandbox:
   validation:
     executor:
       pool-size: 10
+    predefinedSchemas:
+      EDM-INTERNAL:
+        url:
+        rootLocation:
+        schematronLocation:
+      EDM-EXTERNAL:
+        url:
+        rootLocation:
+        schematronLocation:
+  transformation:
+    xslt-url: test.xsl
   truststore:
     path:
     password:
@@ -46,9 +57,9 @@ sandbox:
     max-size: 1000
     creation:
       threads:
-        core-pool-size: 10
-        max-pool-size: 40
-        thread-prefix: sandbox-
+        core-pool-size: 5
+        max-pool-size: 5
+        thread-prefix: sandbox-test-
   rabbitmq:
     exchange:
       name: sandbox

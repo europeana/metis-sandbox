@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -17,8 +18,8 @@ public interface DatasetService {
    * @return the dataset id
    * @throws NullPointerException     if any input is null
    * @throws IllegalArgumentException if records list is empty
-   * @throws ServiceException if any unhandled exception happens, exception will contain original exception
-   * @throws NonRecoverableServiceException if any unhandled non recoverable exception happens, exception will contain original exception
+   * @throws ServiceException         if any unhandled exception happens, exception will contain original exception
+   * @throws RecordParsingException   if fails to parse a record from the records list
    */
   String createDataset(String datasetName, Country country, Language language,
       List<String> records);
