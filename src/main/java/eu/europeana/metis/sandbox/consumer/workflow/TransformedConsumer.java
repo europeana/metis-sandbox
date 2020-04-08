@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.consumer.workflow;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,8 @@ public class TransformedConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}", containerFactory = "transformedFactory")
+  // TODO keep consuming from here
+  //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}", containerFactory = "transformedFactory")
   public void validateInternal(Record input) {
     service.validate(input);
     amqpTemplate.convertAndSend(routingKey, input);

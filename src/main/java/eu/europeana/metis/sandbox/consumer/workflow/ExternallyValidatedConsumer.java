@@ -1,14 +1,23 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
 import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.EventError;
+import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ExternallyValidatedConsumer {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExternallyValidatedConsumer.class);
 
   private AmqpTemplate amqpTemplate;
   private TransformationService service;
@@ -22,13 +31,23 @@ public class ExternallyValidatedConsumer {
     this.service = service;
   }
 
-  // TODO keep consuming from here
-  //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory")
   public void transform(Event input) {
-    if(input.getStatus() == Status.FAIL) {
+    if (input.getStatus() == Status.FAIL) {
       return;
     }
-    //Record output = service.transform(input);
-    //amqpTemplate.convertAndSend(routingKey, output);
+
+    Event output;
+    Record record;
+    try {
+      record = service.transform(input.getBody());
+      output = new Event(record, Step.TRANSFORM);
+    } catch (RecordProcessingException ex) {
+      LOGGER.error(ex.getMessage(), ex);
+      record = Record.from(input.getBody(), input.getBody().getContent());
+      output = new Event(record, Step.TRANSFORM, new EventError(ex));
+    }
+
+    amqpTemplate.convertAndSend(routingKey, output);
   }
 }
