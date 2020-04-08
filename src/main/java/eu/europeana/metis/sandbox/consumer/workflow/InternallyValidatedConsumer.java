@@ -22,7 +22,7 @@ public class InternallyValidatedConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory")
+  //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory")
   public void normalize(Record input) {
     Record output = service.normalize(input);
     amqpTemplate.convertAndSend(routingKey, output);

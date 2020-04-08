@@ -8,6 +8,6 @@ class IndexingServiceImpl implements IndexingService {
 
   @Override
   public void index(Record record) {
-
+    // Not yet implemented
   }
 }
