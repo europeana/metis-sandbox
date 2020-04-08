@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 class InternalValidationServiceImpl implements InternalValidationService {
 
-  private final static String SCHEMA = "EDM-INTERNAL";
+  private static final String SCHEMA = "EDM-INTERNAL";
 
   private final ValidationExecutionService validator;
 
