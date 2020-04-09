@@ -17,7 +17,7 @@ create table record_log
     step varchar(30) not null,
     content VARCHAR(MAX),
     error VARCHAR(MAX),
-    stackTrace VARCHAR(MAX),
+    stack_trace VARCHAR(MAX),
     result varchar(30),
     primary key (dataset_id, id, step)
 )

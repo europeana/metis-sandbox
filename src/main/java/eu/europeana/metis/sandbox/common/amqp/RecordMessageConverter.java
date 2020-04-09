@@ -20,17 +20,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class RecordMessageConverter implements MessageConverter {
 
-  private static final String RECORD_ID = "recordId";
-  private static final String DATASET_ID = "datasetId";
-  private static final String DATASET_NAME = "datasetName";
-  private static final String LANGUAGE = "language";
-  private static final String COUNTRY = "country";
-  private static final String STATUS = "status";
-  private static final String STEP = "step";
-  private static final String ERROR = "error";
-  private static final String STACK_TRACE = "stackTrace";
+  protected static final String RECORD_ID = "recordId";
+  protected static final String DATASET_ID = "datasetId";
+  protected static final String DATASET_NAME = "datasetName";
+  protected static final String LANGUAGE = "language";
+  protected static final String COUNTRY = "country";
+  protected static final String STATUS = "status";
+  protected static final String STEP = "step";
+  protected static final String ERROR = "error";
+  protected static final String STACK_TRACE = "stackTrace";
 
-  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+  protected static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {

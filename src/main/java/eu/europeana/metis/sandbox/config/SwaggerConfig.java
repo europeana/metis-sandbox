@@ -22,6 +22,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfig {
 
+  private static final String EXCEPTION_MODEL = "ExceptionModel";
+
   @Value("${info.app.title}")
   private String title;
 
@@ -65,12 +67,12 @@ public class SwaggerConfig {
     return List.of(new ResponseMessageBuilder()
             .code(500)
             .message("500 Internal Error")
-            .responseModel(new ModelRef("ExceptionModel"))
+            .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build(),
         new ResponseMessageBuilder()
             .code(400)
             .message("400 Bad Request")
-            .responseModel(new ModelRef("ExceptionModel"))
+            .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build());
   }
 
@@ -78,17 +80,17 @@ public class SwaggerConfig {
     return List.of(new ResponseMessageBuilder()
             .code(500)
             .message("500 Internal Error")
-            .responseModel(new ModelRef("ExceptionModel"))
+            .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build(),
         new ResponseMessageBuilder()
             .code(404)
             .message("404 Not Found")
-            .responseModel(new ModelRef("ExceptionModel"))
+            .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build(),
         new ResponseMessageBuilder()
             .code(400)
             .message("400 Bad Request")
-            .responseModel(new ModelRef("ExceptionModel"))
+            .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build());
   }
 }

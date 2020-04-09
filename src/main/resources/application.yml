@@ -60,6 +60,17 @@ sandbox:
   validation:
     executor:
       pool-size: 10
+    predefinedSchemas:
+      EDM-INTERNAL:
+        url:
+        rootLocation:
+        schematronLocation:
+      EDM-EXTERNAL:
+        url:
+        rootLocation:
+        schematronLocation:
+  transformation:
+    xslt-url:
   rabbitmq:
     exchange:
       name: sandbox
@@ -98,11 +109,3 @@ sandbox:
         indexed:
           queue: sandbox.record.indexed
           dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq
-
-predefinedSchemas: EDM-INTERNAL,EDM-EXTERNAL
-predefinedSchemas.EDM-INTERNAL.url:
-predefinedSchemas.EDM-INTERNAL.rootLocation:
-predefinedSchemas.EDM-INTERNAL.schematronLocation:
-predefinedSchemas.EDM-EXTERNAL.url:
-predefinedSchemas.EDM-EXTERNAL.rootLocation:
-predefinedSchemas.EDM-EXTERNAL.schematronLocation:
