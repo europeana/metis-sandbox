@@ -85,11 +85,11 @@ public class Record {
       return false;
     }
     Record record = (Record) o;
-    return recordId.equals(record.recordId) &&
+    return country == record.country &&
+        language == record.language &&
+        recordId.equals(record.recordId) &&
         datasetId.equals(record.datasetId) &&
-        datasetName.equals(record.datasetName) &&
-        country == record.country &&
-        language == record.language;
+        datasetName.equals(record.datasetName);
   }
 
   @Override

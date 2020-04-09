@@ -12,6 +12,8 @@ import javax.persistence.Enumerated;
 @Embeddable
 public class RecordLogEntityKey implements Serializable {
 
+  private static final long serialVersionUID = 3529639946601863995L;
+
   private String id;
 
   private String datasetId;

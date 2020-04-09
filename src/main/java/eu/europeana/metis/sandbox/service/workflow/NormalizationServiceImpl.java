@@ -34,7 +34,7 @@ class NormalizationServiceImpl implements NormalizationService {
     }
 
     if (result.getErrorMessage() != null) {
-      throw new RecordProcessingException(result.getErrorMessage(), record.getRecordId(), null);
+      throw new RecordProcessingException(record.getRecordId(), new Throwable(result.getErrorMessage()));
     }
 
     return Record.from(record, result.getNormalizedRecordInEdmXml());

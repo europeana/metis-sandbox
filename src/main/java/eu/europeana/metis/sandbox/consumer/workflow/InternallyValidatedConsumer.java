@@ -2,8 +2,13 @@ package eu.europeana.metis.sandbox.consumer.workflow;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.EventError;
+import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.NormalizationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,8 +19,11 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the normalized queue
  */
 @Component
-class InternallyValidatedConsumer extends AmqpConsumer {
+class InternallyValidatedConsumer {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(InternallyValidatedConsumer.class);
+
+  private AmqpTemplate amqpTemplate;
   private NormalizationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.normalized.queue}")
@@ -32,6 +40,18 @@ class InternallyValidatedConsumer extends AmqpConsumer {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
-    processEvent(input, Step.NORMALIZE, () -> service.normalize(input.getBody()), routingKey);
+
+    Event output;
+    Record record;
+    try {
+      record = service.normalize(input.getBody());
+      output = new Event(record, Step.NORMALIZE);
+    } catch (RecordProcessingException ex) {
+      LOGGER.error(ex.getMessage(), ex);
+      record = Record.from(input.getBody(), input.getBody().getContent());
+      output = new Event(record, Step.NORMALIZE, new EventError(ex));
+    }
+
+    amqpTemplate.convertAndSend(routingKey, output);
   }
 }

@@ -143,7 +143,7 @@ public class SandboxConfig {
 
   private void addSchemaProperties(String key, Object value, Properties props) {
     if (value instanceof String) {
-      props.put(key, value);
+      props.setProperty(key, (String) value);
     } else if (value instanceof Map) {
       var map = ((Map<?, ?>) value);
       for (Map.Entry<?, ?> entry : map.entrySet()) {

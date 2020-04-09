@@ -4,17 +4,17 @@ import static java.lang.String.format;
 
 public class RecordProcessingException extends ServiceException {
 
-  private static final String MESSAGE = "There was an issue while processing record %s. Message: %s";
+  private static final long serialVersionUID = -3104290194914814439L;
 
   private final String recordId;
 
   public RecordProcessingException(String recordId, Throwable cause) {
-    super(format(MESSAGE, recordId, cause.getMessage()), cause);
+    super(format("Record: %s. Message: %s ", recordId, cause.getMessage()), cause);
     this.recordId = recordId;
   }
 
-  public RecordProcessingException(String message, String recordId, Throwable cause) {
-    super(format(MESSAGE, recordId, message), cause);
+  protected RecordProcessingException(String message, String recordId, Throwable cause) {
+    super(message, cause);
     this.recordId = recordId;
   }
 

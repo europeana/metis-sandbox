@@ -36,9 +36,8 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
 
     var validationResult = validator.singleValidation(SCHEMA, null, null, recordOrdered);
     if (!validationResult.isSuccess()) {
-      throw new RecordValidationException(validationResult.getRecordId(),
-          validationResult.getNodeId(),
-          validationResult.getMessage());
+      throw new RecordValidationException(validationResult.getMessage(),
+          validationResult.getRecordId(), validationResult.getNodeId());
     }
 
     return Record.from(record, recordOrdered);

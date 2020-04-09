@@ -15,8 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes externally validated events and performs transformation to the contained record
- * <br/>
+ * Consumes externally validated events and performs transformation to the contained record <br/>
  * Publishes the result in the transformed queue
  */
 @Component
