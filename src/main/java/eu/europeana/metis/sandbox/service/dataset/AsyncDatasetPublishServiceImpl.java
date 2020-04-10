@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -12,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Service;
 
@@ -46,10 +46,9 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     Event recordEvent = new Event(record, Step.CREATE);
     try {
       amqpTemplate.convertAndSend(initialQueue, recordEvent);
-    } catch (Exception e) {
+    } catch (AmqpException e) {
       log.error("There was an issue publishing the record: {} {}", record.getRecordId(),
           e.getMessage(), e);
-      throw new RecordProcessingException(record.getRecordId(), e);
     }
   }
 }

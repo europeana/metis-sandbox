@@ -19,12 +19,4 @@ public enum Language {
     return value;
   }
 
-  public static Language convert(String value) {
-    for (Language inst : values()) {
-      if (inst.xmlValue().equals(value)) {
-        return inst;
-      }
-    }
-    return null;
-  }
 }

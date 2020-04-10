@@ -42,7 +42,7 @@ class RecordLogServiceImpl implements RecordLogService {
 
     try {
       repository.save(recordLogEntity);
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       throw new ServiceException("Error saving record event log: " + e.getMessage(), e);
     }
   }

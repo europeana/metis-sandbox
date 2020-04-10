@@ -32,12 +32,4 @@ public enum Country {
     return value;
   }
 
-  public static Country convert(String value) {
-    for (Country inst : values()) {
-      if (inst.xmlValue().equals(value)) {
-        return inst;
-      }
-    }
-    return null;
-  }
 }
