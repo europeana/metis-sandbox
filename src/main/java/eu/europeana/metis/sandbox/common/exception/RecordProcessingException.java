@@ -20,9 +20,9 @@ public class RecordProcessingException extends ServiceException {
   /**
    * Constructor intended to be used by exceptions inheriting from this one. <br />
    * Gives the ability to provide a custom message
-   * @param message
-   * @param recordId
-   * @param cause
+   * @param message of what failed
+   * @param recordId that failed
+   * @param cause stack of failure
    */
   protected RecordProcessingException(String message, String recordId, Throwable cause) {
     super(message, cause);

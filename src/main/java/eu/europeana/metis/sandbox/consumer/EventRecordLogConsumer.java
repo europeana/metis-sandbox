@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventRecordLogConsumer {
 
-  private RecordLogService recordLogService;
+  private final RecordLogService recordLogService;
 
   public EventRecordLogConsumer(RecordLogService recordLogService) {
     this.recordLogService = recordLogService;

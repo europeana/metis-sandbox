@@ -24,8 +24,8 @@ class TransformedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransformedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private InternalValidationService service;
+  private final AmqpTemplate amqpTemplate;
+  private final InternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
   private String routingKey;

@@ -26,7 +26,7 @@ import org.springframework.beans.factory.ObjectProvider;
 @ExtendWith(MockitoExtension.class)
 class TransformationServiceImplTest {
 
-  private TestUtils testUtils = new TestUtils();
+  private final TestUtils testUtils = new TestUtils();
 
   @Mock
   private ObjectProvider<XsltTransformer> objectProvider;

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 class EnrichedConsumer {
 
-  private AmqpTemplate amqpTemplate;
-  private MediaProcessingService service;
+  private final AmqpTemplate amqpTemplate;
+  private final MediaProcessingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.media.queue}")
   private String routingKey;

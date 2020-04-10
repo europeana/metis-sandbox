@@ -23,8 +23,8 @@ class CreatedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreatedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private ExternalValidationService service;
+  private final AmqpTemplate amqpTemplate;
+  private final ExternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.external.queue}")
   private String routingKey;

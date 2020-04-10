@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 @Service
 class DatasetServiceImpl implements DatasetService {
 
-  private DatasetGeneratorService generatorService;
-  private DatasetRepository datasetRepository;
-  private AsyncDatasetPublishService publishService;
+  private final DatasetGeneratorService generatorService;
+  private final DatasetRepository datasetRepository;
+  private final AsyncDatasetPublishService publishService;
 
   public DatasetServiceImpl(
       DatasetGeneratorService generatorService,

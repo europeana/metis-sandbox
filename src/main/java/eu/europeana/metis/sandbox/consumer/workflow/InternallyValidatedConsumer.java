@@ -23,8 +23,8 @@ class InternallyValidatedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InternallyValidatedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private NormalizationService service;
+  private final AmqpTemplate amqpTemplate;
+  private final NormalizationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.normalized.queue}")
   private String routingKey;

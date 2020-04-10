@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 class NormalizedConsumer {
 
-  private AmqpTemplate amqpTemplate;
-  private EnrichmentService service;
+  private final AmqpTemplate amqpTemplate;
+  private final EnrichmentService service;
 
   @Value("${sandbox.rabbitmq.queues.record.enriched.queue}")
   private String routingKey;

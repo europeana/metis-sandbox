@@ -29,7 +29,7 @@ class RecordLogConfiguration {
 
   private final MessageConverter messageConverter;
 
-  private AmqpConfiguration amqpConfiguration;
+  private final AmqpConfiguration amqpConfiguration;
 
   public RecordLogConfiguration(
       MessageConverter messageConverter,

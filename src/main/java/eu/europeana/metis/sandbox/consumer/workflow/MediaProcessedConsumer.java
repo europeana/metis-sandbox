@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 class MediaProcessedConsumer {
 
-  private AmqpTemplate amqpTemplate;
-  private IndexingService service;
+  private final AmqpTemplate amqpTemplate;
+  private final IndexingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.indexed.queue}")
   private String routingKey;
