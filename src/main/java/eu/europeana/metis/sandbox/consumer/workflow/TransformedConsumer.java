@@ -48,7 +48,7 @@ class TransformedConsumer {
       record = service.validate(input.getBody());
       output = new Event(record, Step.VALIDATE_INTERNAL);
     } catch (RecordProcessingException ex) {
-      LOGGER.error("Error validating record", ex);
+      LOGGER.error(ex.getMessage(), ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
       output = new Event(record, Step.VALIDATE_INTERNAL, new EventError(ex));
     }
