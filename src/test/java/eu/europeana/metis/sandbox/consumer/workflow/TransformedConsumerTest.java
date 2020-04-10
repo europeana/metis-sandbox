@@ -50,7 +50,9 @@ class TransformedConsumerTest {
     consumer.validateInternal(recordEvent);
 
     verify(service).validate(record);
-    verify(amqpTemplate).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate).convertAndSend(any(), captor.capture());
+
+    assertEquals(Step.VALIDATE_INTERNAL, captor.getValue().getStep());
   }
 
   @Test

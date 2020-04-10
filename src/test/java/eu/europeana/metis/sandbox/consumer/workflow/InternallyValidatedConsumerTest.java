@@ -50,7 +50,9 @@ class InternallyValidatedConsumerTest {
     consumer.normalize(recordEvent);
 
     verify(service).normalize(record);
-    verify(amqpTemplate).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate).convertAndSend(any(), captor.capture());
+
+    assertEquals(Step.NORMALIZE, captor.getValue().getStep());
   }
 
   @Test

@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class SandboxApplicationIT {
 
   /**
-   * This test is ensuring the application loads with no exceptions
+   * This test is ensuring the application context loads with no exceptions
    */
   @Test
   void contextLoads() {
