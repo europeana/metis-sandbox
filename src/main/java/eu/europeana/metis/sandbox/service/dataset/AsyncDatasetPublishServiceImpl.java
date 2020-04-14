@@ -47,8 +47,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     try {
       amqpTemplate.convertAndSend(initialQueue, recordEvent);
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} {}", record.getRecordId(),
-          e.getMessage(), e);
+      LOGGER.error("There was an issue publishing the record: {} ", record.getRecordId(), e);
     }
   }
 }
