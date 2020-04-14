@@ -32,7 +32,7 @@ class AsyncDatasetPublishServiceImplTest {
   @Mock
   private AmqpTemplate amqpTemplate;
 
-  private Executor taskExecutor = Runnable::run;
+  private final Executor taskExecutor = Runnable::run;
 
   private AsyncDatasetPublishService service;
 
@@ -59,7 +59,7 @@ class AsyncDatasetPublishServiceImplTest {
   }
 
   @Test
-  void publish_asyncFail_expectFail() throws Exception {
+  void publish_asyncFail_expectFail() {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
         .country(Country.ITALY)

@@ -14,13 +14,18 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes transformed events and performs internal validation to the contained record
+ * <br/>
+ * Publishes the result in the internally validated queue
+ */
 @Component
-public class TransformedConsumer {
+class TransformedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TransformedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private InternalValidationService service;
+  private final AmqpTemplate amqpTemplate;
+  private final InternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
   private String routingKey;
@@ -43,7 +48,7 @@ public class TransformedConsumer {
       record = service.validate(input.getBody());
       output = new Event(record, Step.VALIDATE_INTERNAL);
     } catch (RecordProcessingException ex) {
-      LOGGER.error("Error validating record", ex);
+      LOGGER.error(ex.getMessage(), ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
       output = new Event(record, Step.VALIDATE_INTERNAL, new EventError(ex));
     }

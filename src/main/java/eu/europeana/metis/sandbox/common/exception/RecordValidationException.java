@@ -1,14 +1,20 @@
 package eu.europeana.metis.sandbox.common.exception;
 
+import static java.lang.String.format;
+
+/**
+ * Represents an exception thrown while validating a record <br />
+ * Contains the record id and the node id
+ */
 public class RecordValidationException extends RecordProcessingException {
+
+  private static final long serialVersionUID = -3148276453701960919L;
 
   private final String nodeId;
 
-  public RecordValidationException(String recordId, String nodeId, String message) {
-    super(recordId,
-        String.format("There was an issue while validating record %s in node %s. Message %s",
-            recordId,
-            nodeId, message), null);
+  public RecordValidationException(String message, String recordId, String nodeId) {
+    super(format("Record: %s Node: %s Message: %s ",
+        recordId, nodeId, message), recordId, null);
     this.nodeId = nodeId;
   }
 

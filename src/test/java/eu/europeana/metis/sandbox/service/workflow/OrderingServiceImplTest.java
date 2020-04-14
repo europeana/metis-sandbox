@@ -22,7 +22,7 @@ import org.springframework.beans.factory.ObjectFactory;
 @ExtendWith(MockitoExtension.class)
 class OrderingServiceImplTest {
 
-  private TestUtils testUtils = new TestUtils();
+  private final TestUtils testUtils = new TestUtils();
 
   @Mock
   private ObjectFactory<XsltTransformer> orderObjectFactory;

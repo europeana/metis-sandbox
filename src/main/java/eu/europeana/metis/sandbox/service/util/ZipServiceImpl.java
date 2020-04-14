@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 class ZipServiceImpl implements ZipService {
 
-  private ZipFileReader reader;
+  private final ZipFileReader reader;
 
   public ZipServiceImpl(ZipFileReader reader) {
     this.reader = reader;

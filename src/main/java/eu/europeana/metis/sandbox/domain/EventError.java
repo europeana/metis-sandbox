@@ -4,6 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+/**
+ * Contains info about an error of processing an event
+ */
 public class EventError {
 
   private final String message;

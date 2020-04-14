@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
+import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
@@ -113,6 +114,11 @@ public class SandboxConfig {
   }
 
   @Bean
+  NormalizerFactory normalizerFactory() {
+    return new NormalizerFactory();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sandbox.validation")
   Schema schema() {
     return new Schema();
@@ -137,7 +143,7 @@ public class SandboxConfig {
 
   private void addSchemaProperties(String key, Object value, Properties props) {
     if (value instanceof String) {
-      props.put(key, value);
+      props.setProperty(key, (String) value);
     } else if (value instanceof Map) {
       var map = ((Map<?, ?>) value);
       for (Map.Entry<?, ?> entry : map.entrySet()) {

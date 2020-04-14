@@ -50,7 +50,9 @@ class ExternallyValidatedConsumerTest {
     consumer.transform(recordEvent);
 
     verify(service).transform(record);
-    verify(amqpTemplate).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate).convertAndSend(any(), captor.capture());
+
+    assertEquals(Step.TRANSFORM, captor.getValue().getStep());
   }
 
   @Test

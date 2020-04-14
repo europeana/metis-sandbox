@@ -14,13 +14,17 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes externally validated events and performs transformation to the contained record <br/>
+ * Publishes the result in the transformed queue
+ */
 @Component
-public class ExternallyValidatedConsumer {
+class ExternallyValidatedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternallyValidatedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private TransformationService service;
+  private final AmqpTemplate amqpTemplate;
+  private final TransformationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.transformed.queue}")
   private String routingKey;
