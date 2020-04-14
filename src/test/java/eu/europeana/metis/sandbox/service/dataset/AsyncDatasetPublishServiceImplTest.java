@@ -75,7 +75,6 @@ class AsyncDatasetPublishServiceImplTest {
     service.publish(dataset).get();
 
     verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
-
   }
 
   @Test
