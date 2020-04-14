@@ -59,7 +59,7 @@ class AsyncDatasetPublishServiceImplTest {
   }
 
   @Test
-  void publish_asyncFail_expectFail() {
+  void publish_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
         .country(Country.ITALY)
@@ -72,12 +72,10 @@ class AsyncDatasetPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(Event.class));
 
-    Exception exception = assertThrows(ExecutionException.class,
-        () -> service.publish(dataset).get());
+    service.publish(dataset).get();
 
-    verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(Event.class));
+    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
 
-    assertThat(exception.getCause(), instanceOf(ServiceException.class));
   }
 
   @Test
