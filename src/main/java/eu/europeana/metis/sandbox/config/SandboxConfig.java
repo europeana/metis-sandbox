@@ -26,7 +26,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @ComponentScan("eu.europeana.validation.service")
-public class SandboxConfig {
+class SandboxConfig {
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String initialQueue;

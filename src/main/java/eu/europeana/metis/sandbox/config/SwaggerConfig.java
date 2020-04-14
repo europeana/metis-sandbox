@@ -21,7 +21,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {
+class SwaggerConfig {
 
   private static final String EXCEPTION_MODEL = "ExceptionModel";
 
