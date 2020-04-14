@@ -9,7 +9,7 @@ public interface TransformationService {
    * Transform the given record using the default xslt
    *
    * @param record must not be null
-   * @return record transformed
+   * @return {@link Record} transformed
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if records fails at transformation
    */

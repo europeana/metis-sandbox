@@ -59,7 +59,7 @@ class ExternalValidationServiceImplTest {
         .datasetName("").datasetId("").build();
 
     when(orderingService.performOrdering(""))
-        .thenThrow(new RecordProcessingException("1", new Exception()));
+        .thenThrow(new TransformationException(new Exception("issue")));
 
     assertThrows(RecordProcessingException.class, () -> service.validate(record));
 

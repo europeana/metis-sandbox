@@ -31,7 +31,7 @@ class XmlRecordProcessorServiceImplTest {
   private XPath xPath;
 
   @Spy
-  private XPathFactory xPathFactory = XPathFactory.newDefaultInstance();
+  private final XPathFactory xPathFactory = XPathFactory.newDefaultInstance();
 
   @InjectMocks
   private XmlRecordProcessorServiceImpl service;

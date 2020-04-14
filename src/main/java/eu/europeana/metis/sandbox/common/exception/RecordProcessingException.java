@@ -1,15 +1,30 @@
 package eu.europeana.metis.sandbox.common.exception;
 
+import static java.lang.String.format;
+
+/**
+ * Represents an exception thrown while processing a record <br />
+ * Contains the record id
+ */
 public class RecordProcessingException extends ServiceException {
+
+  private static final long serialVersionUID = -3104290194914814439L;
 
   private final String recordId;
 
   public RecordProcessingException(String recordId, Throwable cause) {
-    super("There was an issue while processing record " + recordId, cause);
+    super(format("Record: %s Message: %s ", recordId, cause.getMessage()), cause);
     this.recordId = recordId;
   }
 
-  protected RecordProcessingException(String recordId, String message, Throwable cause) {
+  /**
+   * Constructor intended to be used by exceptions inheriting from this one. <br />
+   * Gives the ability to provide a custom message
+   * @param message of what failed
+   * @param recordId that failed
+   * @param cause stack of failure
+   */
+  protected RecordProcessingException(String message, String recordId, Throwable cause) {
     super(message, cause);
     this.recordId = recordId;
   }

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 class RecordLogServiceImpl implements RecordLogService {
 
-  private RecordLogRepository repository;
+  private final RecordLogRepository repository;
 
   public RecordLogServiceImpl(RecordLogRepository repository) {
     this.repository = repository;

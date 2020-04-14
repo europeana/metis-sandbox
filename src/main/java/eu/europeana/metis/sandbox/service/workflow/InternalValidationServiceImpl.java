@@ -26,9 +26,8 @@ class InternalValidationServiceImpl implements InternalValidationService {
     var content = record.getContent();
     var validationResult = validator.singleValidation(SCHEMA, null, null, content);
     if (!validationResult.isSuccess()) {
-      throw new RecordValidationException(validationResult.getRecordId(),
-          validationResult.getNodeId(),
-          validationResult.getMessage());
+      throw new RecordValidationException(validationResult.getMessage(),
+          validationResult.getRecordId(), validationResult.getNodeId());
     }
 
     return Record.from(record, content);

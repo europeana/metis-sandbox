@@ -6,6 +6,9 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import java.util.Optional;
 
+/**
+ * Event that contains a record and its processing details
+ */
 public class Event {
 
   private final Record body;

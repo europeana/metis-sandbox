@@ -35,8 +35,8 @@ public class DatasetController {
   @Value("${sandbox.dataset.max-size}")
   private int maxRecords;
 
-  private ZipService zipService;
-  private DatasetService datasetService;
+  private final ZipService zipService;
+  private final DatasetService datasetService;
 
   public DatasetController(ZipService zipService, DatasetService datasetService) {
     this.zipService = zipService;

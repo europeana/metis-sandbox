@@ -14,13 +14,17 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes created events and performs external validation to the contained record <br/> Publishes
+ * the result in the externally validated queue
+ */
 @Component
 class CreatedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreatedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private ExternalValidationService service;
+  private final AmqpTemplate amqpTemplate;
+  private final ExternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.external.queue}")
   private String routingKey;
@@ -43,7 +47,7 @@ class CreatedConsumer {
       record = service.validate(input.getBody());
       output = new Event(record, Step.VALIDATE_EXTERNAL);
     } catch (RecordProcessingException ex) {
-      LOGGER.error("Error validating record", ex);
+      LOGGER.error(ex.getMessage(), ex);
       record = Record.from(input.getBody(), input.getBody().getContent());
       output = new Event(record, Step.VALIDATE_EXTERNAL, new EventError(ex));
     }

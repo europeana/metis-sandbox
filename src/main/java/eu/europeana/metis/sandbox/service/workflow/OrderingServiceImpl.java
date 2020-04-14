@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 class OrderingServiceImpl implements OrderingService {
 
-  private ObjectFactory<XsltTransformer> xsltEdmSorter;
+  private final ObjectFactory<XsltTransformer> xsltEdmSorter;
 
   public OrderingServiceImpl(
       ObjectFactory<XsltTransformer> xsltEdmSorter) {

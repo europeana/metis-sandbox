@@ -21,9 +21,9 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private static final Logger log = LoggerFactory
       .getLogger(AsyncDatasetPublishServiceImpl.class);
 
-  private AmqpTemplate amqpTemplate;
-  private String initialQueue;
-  private Executor asyncDatasetPublishServiceTaskExecutor;
+  private final AmqpTemplate amqpTemplate;
+  private final String initialQueue;
+  private final Executor asyncDatasetPublishServiceTaskExecutor;
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
       String initialQueue,

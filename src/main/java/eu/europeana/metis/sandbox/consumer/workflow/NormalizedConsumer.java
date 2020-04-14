@@ -14,13 +14,17 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes normalized events and performs enrichment to the contained record <br/> Publishes the
+ * result in the enriched queue
+ */
 @Component
-public class NormalizedConsumer {
+class NormalizedConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NormalizedConsumer.class);
 
-  private AmqpTemplate amqpTemplate;
-  private EnrichmentService service;
+  private final AmqpTemplate amqpTemplate;
+  private final EnrichmentService service;
 
   @Value("${sandbox.rabbitmq.queues.record.enriched.queue}")
   private String routingKey;

@@ -7,11 +7,16 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Consumes enriched events and performs media processing to the contained record
+ * <br/>
+ * Publishes the result in the media processed queue
+ */
 @Component
-public class EnrichedConsumer {
+class EnrichedConsumer {
 
-  private AmqpTemplate amqpTemplate;
-  private MediaProcessingService service;
+  private final AmqpTemplate amqpTemplate;
+  private final MediaProcessingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.media.queue}")
   private String routingKey;
