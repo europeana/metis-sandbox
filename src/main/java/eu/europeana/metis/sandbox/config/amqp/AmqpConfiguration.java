@@ -160,16 +160,16 @@ class AmqpConfiguration {
     return getDeclarables(dlqs);
   }
 
-  private Declarables getDeclarables(Queues queues) {
+  private Declarables getDeclarables(Queues qs) {
     return new Declarables(
-        new Binding(queues.created, DestinationType.QUEUE, exchange, queues.created, null),
-        new Binding(queues.externalValidated, DestinationType.QUEUE, exchange, queues.externalValidated, null),
-        new Binding(queues.transformed, DestinationType.QUEUE, exchange, queues.transformed, null),
-        new Binding(queues.normalized, DestinationType.QUEUE, exchange, queues.normalized, null),
-        new Binding(queues.internalValidated, DestinationType.QUEUE, exchange, queues.internalValidated, null),
-        new Binding(queues.enriched, DestinationType.QUEUE, exchange, queues.enriched, null),
-        new Binding(queues.mediaProcessed, DestinationType.QUEUE, exchange, queues.mediaProcessed, null),
-        new Binding(queues.indexed, DestinationType.QUEUE, exchange, queues.indexed, null)
+        new Binding(qs.created, DestinationType.QUEUE, exchange, qs.created, null),
+        new Binding(qs.externalValidated, DestinationType.QUEUE, exchange, qs.externalValidated, null),
+        new Binding(qs.transformed, DestinationType.QUEUE, exchange, qs.transformed, null),
+        new Binding(qs.normalized, DestinationType.QUEUE, exchange, qs.normalized, null),
+        new Binding(qs.internalValidated, DestinationType.QUEUE, exchange, qs.internalValidated, null),
+        new Binding(qs.enriched, DestinationType.QUEUE, exchange, qs.enriched, null),
+        new Binding(qs.mediaProcessed, DestinationType.QUEUE, exchange, qs.mediaProcessed, null),
+        new Binding(qs.indexed, DestinationType.QUEUE, exchange, qs.indexed, null)
     );
   }
 

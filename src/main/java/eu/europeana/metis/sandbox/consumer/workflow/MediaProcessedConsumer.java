@@ -28,8 +28,6 @@ class MediaProcessedConsumer {
     this.service = service;
   }
 
-
-  // TODO keep consuming from here
   // @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
   public void index(Event input) {
     service.index(input.getBody());
