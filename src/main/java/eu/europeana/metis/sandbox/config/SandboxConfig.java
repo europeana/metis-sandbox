@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
-import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
@@ -15,7 +14,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
-import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -50,7 +48,7 @@ public class SandboxConfig {
 
   private String defaultXsltUrl;
 
-  private String edmSorterUrl = null;
+  private String edmSorterUrl;
 
   private final ResourceLoader resourceLoader;
 
@@ -73,7 +71,7 @@ public class SandboxConfig {
   private String edmSorterUrl() throws IOException {
     if (edmSorterUrl == null) {
       edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL()
-          .toString();
+          .toExternalForm();
     }
     return edmSorterUrl;
   }
@@ -113,11 +111,6 @@ public class SandboxConfig {
   @Bean
   SchemaProvider schemaProvider() {
     return new SchemaProvider(PredefinedSchemasGenerator.generate(schemaProperties()));
-  }
-
-  @Bean
-  MessageConverter messageConverter() {
-    return new RecordMessageConverter();
   }
 
   @Bean

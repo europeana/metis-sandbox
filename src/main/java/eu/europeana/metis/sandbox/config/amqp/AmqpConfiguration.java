@@ -19,11 +19,6 @@ class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
 
-  public AmqpConfiguration(
-      MessageConverter messageConverter) {
-    this.messageConverter = messageConverter;
-  }
-
   @Value("${sandbox.rabbitmq.exchange.name}")
   private String exchange;
 
@@ -80,6 +75,11 @@ class AmqpConfiguration {
 
   private Queues queues;
   private Queues dlqs;
+
+  public AmqpConfiguration(
+      MessageConverter messageConverter) {
+    this.messageConverter = messageConverter;
+  }
 
   @PostConstruct
   public void setUp() {
