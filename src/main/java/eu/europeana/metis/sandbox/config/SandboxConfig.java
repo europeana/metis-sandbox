@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.config;
 
+import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
+import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
@@ -116,6 +118,16 @@ public class SandboxConfig {
   @Bean
   NormalizerFactory normalizerFactory() {
     return new NormalizerFactory();
+  }
+
+  @Bean
+  RdfConverterFactory rdfConverterFactory() {
+    return new RdfConverterFactory();
+  }
+
+  @Bean
+  MediaProcessorFactory mediaProcessorFactory() {
+    return new MediaProcessorFactory();
   }
 
   @Bean

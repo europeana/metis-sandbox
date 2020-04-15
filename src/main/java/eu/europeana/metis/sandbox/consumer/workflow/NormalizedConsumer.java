@@ -1,9 +1,11 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.EnrichmentService;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,10 +28,9 @@ class NormalizedConsumer {
     this.service = service;
   }
 
-  // TODO continue here
-  //@RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}", containerFactory = "normalizedFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}", containerFactory = "normalizedFactory")
   public void enrich(Event input) {
     Record output = service.enrich(input.getBody());
-    amqpTemplate.convertAndSend(routingKey, input);
+    amqpTemplate.convertAndSend(routingKey, new Event(output, Step.ENRICH));
   }
 }

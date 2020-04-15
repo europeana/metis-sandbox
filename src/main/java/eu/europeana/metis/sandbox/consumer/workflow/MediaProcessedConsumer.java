@@ -27,7 +27,8 @@ class MediaProcessedConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
+  // TODO continue here
+  // @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
   public void index(Record input) {
     service.index(input);
     amqpTemplate.convertAndSend(routingKey, input);
