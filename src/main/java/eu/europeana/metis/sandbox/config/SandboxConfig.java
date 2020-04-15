@@ -71,7 +71,7 @@ class SandboxConfig {
   private String edmSorterUrl() throws IOException {
     if (edmSorterUrl == null) {
       edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL()
-          .toExternalForm();
+          .toString();
     }
     return edmSorterUrl;
   }
