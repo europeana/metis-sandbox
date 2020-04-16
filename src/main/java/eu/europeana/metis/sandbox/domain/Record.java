@@ -9,6 +9,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * Immutable object that represents a record
+ */
 public class Record {
 
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;

@@ -1,8 +1,8 @@
 package eu.europeana.metis.sandbox.config;
 
+import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
-import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.ZipFileReader;
@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
-import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,7 +28,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @ComponentScan("eu.europeana.validation.service")
-public class SandboxConfig {
+class SandboxConfig {
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String initialQueue;
@@ -43,9 +42,15 @@ public class SandboxConfig {
   @Value("${sandbox.dataset.creation.threads.thread-prefix}")
   private String threadPrefix;
 
+  @Value("${sandbox.enrichment.dereference-url}")
+  private String dereferenceServiceUrl;
+
+  @Value("${sandbox.enrichment.enrichment-url}")
+  private String enrichmentServiceUrl;
+
   private String defaultXsltUrl;
 
-  private String edmSorterUrl = null;
+  private String edmSorterUrl;
 
   private final ResourceLoader resourceLoader;
 
@@ -111,13 +116,13 @@ public class SandboxConfig {
   }
 
   @Bean
-  MessageConverter messageConverter() {
-    return new RecordMessageConverter();
+  NormalizerFactory normalizerFactory() {
+    return new NormalizerFactory();
   }
 
   @Bean
-  NormalizerFactory normalizerFactory() {
-    return new NormalizerFactory();
+  EnrichmentWorker enrichmentWorker() {
+    return new EnrichmentWorker(dereferenceServiceUrl, enrichmentServiceUrl);
   }
 
   @Bean

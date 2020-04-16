@@ -71,6 +71,9 @@ sandbox:
         schematronLocation:
   transformation:
     xslt-url:
+  enrichment:
+    dereference-url:
+    enrichment-url:
   rabbitmq:
     exchange:
       name: sandbox

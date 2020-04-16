@@ -17,10 +17,23 @@ public class Event {
 
   private final EventError eventError;
 
+  /**
+   * Creates an event based on the one provided, using the provided {@link Step}
+   * @param body must not be null
+   * @param step must not be null
+   * @throws NullPointerException if any parameter is null
+   */
   public Event(Record body, Step step) {
     this(body, step, null);
   }
 
+  /**
+   * Creates an event based on the one provided, using the provided {@link Step}
+   * @param body must not be null
+   * @param step must not be null
+   * @param eventError could be null
+   * @throws NullPointerException if body or step are null
+   */
   public Event(Record body, Step step, EventError eventError) {
     requireNonNull(body, "Body must not be null");
     requireNonNull(step, "Step must not be null");

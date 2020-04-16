@@ -45,6 +45,9 @@ sandbox:
         schematronLocation:
   transformation:
     xslt-url: test.xsl
+  enrichment:
+    dereference-url: http://metis-test
+    enrichment-url: http://metis-test
   truststore:
     path:
     password:

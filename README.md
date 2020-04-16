@@ -34,7 +34,7 @@ You can check how the endpoints work using Swagger-UI in path
 `{your-host}/metis-sandbox/swagger-ui.html#/dataset-controller/processDatasetUsingPOST`
 
 ## Technologies
-Project is created with:
+Project created with:
 
 * Java 11
 * [Spring Boot](https://spring.io/projects/spring-boot)
