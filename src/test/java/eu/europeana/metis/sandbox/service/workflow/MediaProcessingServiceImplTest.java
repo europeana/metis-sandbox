@@ -5,6 +5,8 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
+import eu.europeana.metis.mediaprocessing.RdfDeserializer;
+import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -25,6 +27,12 @@ class MediaProcessingServiceImplTest {
   @Mock
   private MediaProcessorFactory processorFactory;
 
+  @Mock
+  private RdfDeserializer deserializer;
+
+  @Mock
+  private RdfSerializer serializer;
+
   @InjectMocks
   private MediaProcessingServiceImpl service;
 
@@ -41,6 +49,11 @@ class MediaProcessingServiceImplTest {
     when(converterFactory.createRdfDeserializer()).thenThrow(new RdfConverterException("failed", new Exception()));
 
     assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
+  }
+
+  @Test
+  void processMedia_getRdfResourceEntries_expectFail() {
+
   }
 
   @Test

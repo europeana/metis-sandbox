@@ -8,7 +8,6 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +31,7 @@ class TransformationServiceImpl implements TransformationService {
           .constructEuropeanaId(record.getContent(), record.getDatasetId());
       var transformer = getTransformer(record.getDatasetName(),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
-      recordTransformed = transformer.transform(record.getContent()
-          .getBytes(StandardCharsets.UTF_8), europeanaGeneratedIdsMap).toString();
+      recordTransformed = transformer.transform(record.getContentBytes(), europeanaGeneratedIdsMap).toString();
     } catch (TransformationException | EuropeanaIdException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

@@ -29,7 +29,7 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
     requireNonNull(record, "Record must not be null");
     String recordOrdered;
     try {
-      recordOrdered = orderingService.performOrdering(record.getContent());
+      recordOrdered = orderingService.performOrdering(record.getContentBytes());
     } catch (TransformationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

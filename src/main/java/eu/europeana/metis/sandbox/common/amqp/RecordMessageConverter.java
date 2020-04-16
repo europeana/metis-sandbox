@@ -6,8 +6,6 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
@@ -29,8 +27,6 @@ public class RecordMessageConverter implements MessageConverter {
   protected static final String STEP = "step";
   protected static final String ERROR = "error";
   protected static final String STACK_TRACE = "stackTrace";
-
-  protected static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
@@ -58,13 +54,14 @@ public class RecordMessageConverter implements MessageConverter {
       properties.setHeader(STACK_TRACE, eventError.get().getStackTrace());
     }
 
-    return MessageBuilder.withBody(record.getContent().getBytes(DEFAULT_CHARSET))
+    return MessageBuilder.withBody(record.getContentBytes())
         .andProperties(properties)
         .build();
   }
 
   @Override
   public Object fromMessage(Message message) {
+    byte[] content = message.getBody();
     MessageProperties properties = message.getMessageProperties();
     String recordId = properties.getHeader(RECORD_ID);
     String datasetId = properties.getHeader(DATASET_ID);
@@ -72,7 +69,6 @@ public class RecordMessageConverter implements MessageConverter {
     String language = properties.getHeader(LANGUAGE);
     String country = properties.getHeader(COUNTRY);
     String step = properties.getHeader(STEP);
-    String content = new String(message.getBody(), DEFAULT_CHARSET);
     String error = properties.getHeader(ERROR);
     Object stackTrace = properties.getHeader(STACK_TRACE);
 

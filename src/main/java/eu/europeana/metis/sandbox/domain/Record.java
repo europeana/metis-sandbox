@@ -4,10 +4,14 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 public class Record {
+
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   private final String recordId;
   private final String datasetId;
@@ -48,6 +52,18 @@ public class Record {
         .build();
   }
 
+  /**
+   * Creates a record based on the provided record but replacing the content with the one provided
+   *
+   * @param record  must not be null
+   * @param content must not be null. Xml representation of the record
+   * @return record object
+   * @throws NullPointerException if any parameter is null
+   */
+  public static Record from(Record record, byte[] content) {
+    return Record.from(record, new String(content, DEFAULT_CHARSET));
+  }
+
   public static RecordBuilder builder() {
     return new RecordBuilder();
   }
@@ -74,6 +90,10 @@ public class Record {
 
   public String getContent() {
     return this.content;
+  }
+
+  public byte[] getContentBytes() {
+    return this.content.getBytes(DEFAULT_CHARSET);
   }
 
   @Override
@@ -145,6 +165,11 @@ public class Record {
 
     public RecordBuilder content(String content) {
       this.content = content;
+      return this;
+    }
+
+    public RecordBuilder content(byte[] content) {
+      this.content = new String(content, DEFAULT_CHARSET);
       return this;
     }
 

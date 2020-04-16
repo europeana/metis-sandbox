@@ -19,8 +19,6 @@ import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -28,8 +26,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 class MediaProcessingServiceImpl implements MediaProcessingService {
-
-  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   private final RdfConverterFactory converterFactory;
   private final MediaProcessorFactory processorFactory;
@@ -54,7 +50,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    var inputRdf = record.getContent().getBytes(DEFAULT_CHARSET);
+    var inputRdf = record.getContentBytes();
 
     // Get resource entries
     var resourceEntries = getRdfResourceEntries(record, inputRdf,
@@ -71,7 +67,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
 
     byte[] outputRdf = getOutputRdf(record, rdfSerializer, rdfForEnrichment);
 
-    return Record.from(record, new String(outputRdf, DEFAULT_CHARSET));
+    return Record.from(record, outputRdf);
   }
 
   private List<RdfResourceEntry> getRdfResourceEntries(Record record, byte[] content,

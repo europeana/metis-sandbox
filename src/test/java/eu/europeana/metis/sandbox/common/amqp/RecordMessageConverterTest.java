@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.common.amqp;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.COUNTRY;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_NAME;
-import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DEFAULT_CHARSET;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERROR;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.LANGUAGE;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.RECORD_ID;
@@ -42,7 +41,7 @@ class RecordMessageConverterTest {
         .datasetId("").datasetName("").recordId("").build();
     var event = new Event(record, Step.TRANSFORM);
 
-    var result = MessageBuilder.withBody(record.getContent().getBytes(DEFAULT_CHARSET))
+    var result = MessageBuilder.withBody(record.getContentBytes())
         .build();
 
     var message = converter.toMessage(event, MessagePropertiesBuilder.newInstance().build());

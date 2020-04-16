@@ -43,7 +43,7 @@ class ExternalValidationServiceImplTest {
     validationResult.setSuccess(true);
     validationResult.setRecordId("1");
 
-    when(orderingService.performOrdering("")).thenReturn("");
+    when(orderingService.performOrdering("".getBytes())).thenReturn("");
     when(validationExecutionService.singleValidation(SCHEMA, null, null, ""))
         .thenReturn(validationResult);
 
@@ -58,7 +58,7 @@ class ExternalValidationServiceImplTest {
         .content("").language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
-    when(orderingService.performOrdering(""))
+    when(orderingService.performOrdering("".getBytes()))
         .thenThrow(new TransformationException(new Exception("issue")));
 
     assertThrows(RecordProcessingException.class, () -> service.validate(record));
@@ -76,7 +76,7 @@ class ExternalValidationServiceImplTest {
     validationResult.setSuccess(false);
     validationResult.setRecordId("1");
 
-    when(orderingService.performOrdering("")).thenReturn("");
+    when(orderingService.performOrdering("".getBytes())).thenReturn("");
     when(validationExecutionService.singleValidation(SCHEMA, null, null, ""))
         .thenReturn(validationResult);
 
