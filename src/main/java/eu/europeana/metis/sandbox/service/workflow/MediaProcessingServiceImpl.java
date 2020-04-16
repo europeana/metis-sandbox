@@ -15,13 +15,16 @@ import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
+import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.service.util.ThumbnailService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,12 +32,15 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
 
   private final RdfConverterFactory converterFactory;
   private final MediaProcessorFactory processorFactory;
+  private final ThumbnailService thumbnailService;
 
   public MediaProcessingServiceImpl(
       RdfConverterFactory converterFactory,
-      MediaProcessorFactory processorFactory) {
+      MediaProcessorFactory processorFactory,
+      ThumbnailService thumbnailService) {
     this.converterFactory = converterFactory;
     this.processorFactory = processorFactory;
+    this.thumbnailService = thumbnailService;
   }
 
   @Override
@@ -53,17 +59,17 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     var inputRdf = record.getContentBytes();
 
     // Get resource entries
-    var resourceEntries = getRdfResourceEntries(record, inputRdf,
-        rdfDeserializer);
+    var resourceEntries = getRdfResourceEntries(record, inputRdf, rdfDeserializer);
 
-    // Perform metadata extraction
-    var results = getResourceExtractionResults(record, resourceEntries);
+    // Perform media processing
+    var resourceExtractionResults = getResourceExtractionResults(record, resourceEntries);
 
     // Process thumbnails
-    processThumbnails(record, results);
+    thumbnailService.storeThumbnails(getThumbnails(resourceExtractionResults));
 
     // Add result to RDF
-    var rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer, results);
+    var metadataList = getResourceMetadata(resourceExtractionResults);
+    var rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer, metadataList);
 
     byte[] outputRdf = getOutputRdf(record, rdfSerializer, rdfForEnrichment);
 
@@ -99,31 +105,15 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   }
 
   private EnrichedRdf getEnrichedRdf(Record record, byte[] content,
-      RdfDeserializer rdfDeserializer, List<ResourceExtractionResult> results) {
+      RdfDeserializer rdfDeserializer, List<ResourceMetadata> metadataList) {
     EnrichedRdf rdfForEnrichment;
     try {
       rdfForEnrichment = rdfDeserializer.getRdfForResourceEnriching(content);
     } catch (RdfDeserializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
-    results.stream().map(ResourceExtractionResult::getMetadata).filter(Objects::nonNull)
-        .forEach(rdfForEnrichment::enrichResource);
+    metadataList.forEach(rdfForEnrichment::enrichResource);
     return rdfForEnrichment;
-  }
-
-  private void processThumbnails(Record record, List<ResourceExtractionResult> results) {
-    for (ResourceExtractionResult result : results) {
-      if (result.getThumbnails() != null) {
-        for (Thumbnail thumbnail : result.getThumbnails()) {
-          // TODO save thumbnail
-          try {
-            thumbnail.close();
-          } catch (IOException e) {
-            throw new RecordProcessingException(record.getRecordId(), e);
-          }
-        }
-      }
-    }
   }
 
   private byte[] getOutputRdf(Record record, RdfSerializer rdfSerializer,
@@ -135,5 +125,20 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
     return outputRdf;
+  }
+
+  private List<Thumbnail> getThumbnails(List<ResourceExtractionResult> resources) {
+    return resources.stream()
+        .filter(x -> x.getThumbnails() == null)
+        .flatMap(x -> x.getThumbnails().stream())
+        .collect(Collectors.toList());
+  }
+
+  private List<ResourceMetadata> getResourceMetadata(
+      List<ResourceExtractionResult> resources) {
+    return resources.stream()
+        .map(ResourceExtractionResult::getMetadata)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }
