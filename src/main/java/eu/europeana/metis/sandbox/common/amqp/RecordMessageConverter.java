@@ -18,7 +18,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RecordMessageConverter implements MessageConverter {
+class RecordMessageConverter implements MessageConverter {
 
   protected static final String RECORD_ID = "recordId";
   protected static final String DATASET_ID = "datasetId";

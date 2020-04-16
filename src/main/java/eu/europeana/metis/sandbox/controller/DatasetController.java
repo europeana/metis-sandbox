@@ -28,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/")
 @Api(value = "Dataset Controller")
-public class DatasetController {
+class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 

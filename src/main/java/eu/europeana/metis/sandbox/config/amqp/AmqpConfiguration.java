@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
+import javax.annotation.PostConstruct;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
@@ -17,11 +18,6 @@ import org.springframework.context.annotation.Configuration;
 class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
-
-  public AmqpConfiguration(
-      MessageConverter messageConverter) {
-    this.messageConverter = messageConverter;
-  }
 
   @Value("${sandbox.rabbitmq.exchange.name}")
   private String exchange;
@@ -77,6 +73,37 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.indexed.dlq}")
   private String indexedDlq;
 
+  private Queues queues;
+  private Queues dlqs;
+
+  public AmqpConfiguration(
+      MessageConverter messageConverter) {
+    this.messageConverter = messageConverter;
+  }
+
+  @PostConstruct
+  public void setUp() {
+    queues = new Queues()
+        .setCreated(createdQueue)
+        .setExternalValidated(externalValidatedQueue)
+        .setTransformed(transformedQueue)
+        .setInternalValidated(internalValidatedQueue)
+        .setNormalized(normalizedQueue)
+        .setEnriched(enrichedQueue)
+        .setMediaProcessed(mediaProcessedQueue)
+        .setIndexed(indexedQueue);
+
+    dlqs = new Queues()
+        .setCreated(createdDlq)
+        .setExternalValidated(externalValidatedDlq)
+        .setTransformed(transformedDlq)
+        .setInternalValidated(internalValidatedDlq)
+        .setNormalized(normalizedDlq)
+        .setEnriched(enrichedDlq)
+        .setMediaProcessed(mediaProcessedDlq)
+        .setIndexed(indexedDlq);
+  }
+
   @Bean
   TopicExchange exchange() {
     return new TopicExchange(exchange);
@@ -98,55 +125,106 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(createdDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(indexedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(indexedDlq).build()
+        QueueBuilder.durable(queues.created).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.created).build(),
+        QueueBuilder.durable(queues.externalValidated).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.externalValidated).build(),
+        QueueBuilder.durable(queues.transformed).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.transformed).build(),
+        QueueBuilder.durable(queues.normalized).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.normalized).build(),
+        QueueBuilder.durable(queues.internalValidated).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.internalValidated).build(),
+        QueueBuilder.durable(queues.enriched).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.enriched).build(),
+        QueueBuilder.durable(queues.mediaProcessed).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.mediaProcessed).build(),
+        QueueBuilder.durable(queues.indexed).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.indexed).build()
     );
   }
 
   @Bean
   Declarables deadQueues() {
     return new Declarables(
-        QueueBuilder.durable(createdDlq).build(),
-        QueueBuilder.durable(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedDlq).build(),
-        QueueBuilder.durable(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(indexedDlq).build()
+        QueueBuilder.durable(dlqs.created).build(),
+        QueueBuilder.durable(dlqs.externalValidated).build(),
+        QueueBuilder.durable(dlqs.transformed).build(),
+        QueueBuilder.durable(dlqs.normalized).build(),
+        QueueBuilder.durable(dlqs.internalValidated).build(),
+        QueueBuilder.durable(dlqs.enriched).build(),
+        QueueBuilder.durable(dlqs.mediaProcessed).build(),
+        QueueBuilder.durable(dlqs.indexed).build()
     );
   }
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(createdQueue, externalValidatedQueue, transformedQueue,
-        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue, indexedQueue);
+    return getDeclarables(queues);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(createdDlq, externalValidatedDlq, transformedDlq,
-        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq, indexedDlq);
+    return getDeclarables(dlqs);
   }
 
-  private Declarables getDeclarables(String created,
-      String externalValidated, String transformed, String normalized,
-      String internalValidated, String enriched, String mediaProcessed, String indexed) {
+  private Declarables getDeclarables(Queues qs) {
     return new Declarables(
-        new Binding(created, DestinationType.QUEUE, exchange, created, null),
-        new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
-        new Binding(transformed, DestinationType.QUEUE, exchange, transformed, null),
-        new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),
-        new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
-        new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
-        new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
-        new Binding(indexed, DestinationType.QUEUE, exchange, indexed, null)
+        new Binding(qs.created, DestinationType.QUEUE, exchange, qs.created, null),
+        new Binding(qs.externalValidated, DestinationType.QUEUE, exchange, qs.externalValidated, null),
+        new Binding(qs.transformed, DestinationType.QUEUE, exchange, qs.transformed, null),
+        new Binding(qs.normalized, DestinationType.QUEUE, exchange, qs.normalized, null),
+        new Binding(qs.internalValidated, DestinationType.QUEUE, exchange, qs.internalValidated, null),
+        new Binding(qs.enriched, DestinationType.QUEUE, exchange, qs.enriched, null),
+        new Binding(qs.mediaProcessed, DestinationType.QUEUE, exchange, qs.mediaProcessed, null),
+        new Binding(qs.indexed, DestinationType.QUEUE, exchange, qs.indexed, null)
     );
+  }
+
+  private static class Queues {
+    private String created;
+    private String externalValidated;
+    private String transformed;
+    private String internalValidated;
+    private String normalized;
+    private String enriched;
+    private String mediaProcessed;
+    private String indexed;
+
+    public Queues() {
+      //empty constructor
+    }
+
+    public Queues setCreated(String created) {
+      this.created = created;
+      return this;
+    }
+
+    public Queues setExternalValidated(String externalValidated) {
+      this.externalValidated = externalValidated;
+      return this;
+    }
+
+    public Queues setTransformed(String transformed) {
+      this.transformed = transformed;
+      return this;
+    }
+
+    public Queues setInternalValidated(String internallyValidated) {
+      this.internalValidated = internallyValidated;
+      return this;
+    }
+
+    public Queues setNormalized(String normalized) {
+      this.normalized = normalized;
+      return this;
+    }
+
+    public Queues setEnriched(String enriched) {
+      this.enriched = enriched;
+      return this;
+    }
+
+    public Queues setMediaProcessed(String mediaProcessed) {
+      this.mediaProcessed = mediaProcessed;
+      return this;
+    }
+
+    public Queues setIndexed(String indexed) {
+      this.indexed = indexed;
+      return this;
+    }
   }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -20,7 +21,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {
+class SwaggerConfig {
 
   private static final String EXCEPTION_MODEL = "ExceptionModel";
 
@@ -48,7 +49,7 @@ public class SwaggerConfig {
         .build()
         .apiInfo(apiInfo())
         .useDefaultResponseMessages(false)
-        .additionalModels(typeResolver.resolve (ExceptionModelDto.class))
+        .additionalModels(typeResolver.resolve(ExceptionModelDto.class))
         .globalResponseMessage(RequestMethod.POST,
             postExceptionModelList())
         .globalResponseMessage(RequestMethod.GET,
@@ -65,12 +66,12 @@ public class SwaggerConfig {
 
   private List<ResponseMessage> postExceptionModelList() {
     return List.of(new ResponseMessageBuilder()
-            .code(500)
+            .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("500 Internal Error")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build(),
         new ResponseMessageBuilder()
-            .code(400)
+            .code(HttpStatus.BAD_REQUEST.value())
             .message("400 Bad Request")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build());
@@ -78,17 +79,17 @@ public class SwaggerConfig {
 
   private List<ResponseMessage> getExceptionModelList() {
     return List.of(new ResponseMessageBuilder()
-            .code(500)
+            .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("500 Internal Error")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build(),
         new ResponseMessageBuilder()
-            .code(404)
+            .code(HttpStatus.NOT_FOUND.value())
             .message("404 Not Found")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build(),
         new ResponseMessageBuilder()
-            .code(400)
+            .code(HttpStatus.BAD_REQUEST.value())
             .message("400 Bad Request")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build());

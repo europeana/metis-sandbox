@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * Save events to persistence store
  */
 @Component
-public class EventRecordLogConsumer {
+class EventRecordLogConsumer {
 
   private final RecordLogService recordLogService;
 

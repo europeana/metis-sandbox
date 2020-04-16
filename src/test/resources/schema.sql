@@ -19,5 +19,6 @@ create table record_log
     error VARCHAR(MAX),
     stack_trace VARCHAR(MAX),
     result varchar(30),
+    created_date timestamp with time zone default now(),
     primary key (dataset_id, id, step)
 )

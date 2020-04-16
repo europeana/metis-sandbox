@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -27,9 +28,9 @@ class MediaProcessedConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
-  public void index(Record input) {
-    service.index(input);
+  // @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
+  public void index(Event input) {
+    service.index(input.getBody());
     amqpTemplate.convertAndSend(routingKey, input);
   }
 }

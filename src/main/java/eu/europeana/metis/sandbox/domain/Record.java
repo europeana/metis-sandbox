@@ -7,6 +7,9 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * Immutable object that represents a record
+ */
 public class Record {
 
   private final String recordId;

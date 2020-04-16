@@ -7,12 +7,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * Immutable object that represents a dataset
+ */
 public class Dataset {
 
   private final String datasetId;
 
   private final List<Record> records;
 
+  /**
+   * Constructor
+   * @param datasetId must not be null
+   * @param records must not be null
+   * @throws NullPointerException if any parameter is null
+   */
   public Dataset(String datasetId, List<Record> records) {
     requireNonNull(datasetId, "DatasetId must not be null");
     requireNonNull(records, "records must not be null");
