@@ -110,7 +110,7 @@ class MediaProcessingServiceImplTest {
   }
 
   @Test
-  void processMedia_converterFactoryException_expectFail() throws RdfConverterException {
+  void processMedia_createRdfDeserializer_expectFail() throws RdfConverterException {
     var record = Record.builder().recordId("1")
         .content("").language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
@@ -121,6 +121,41 @@ class MediaProcessingServiceImplTest {
     assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
 
     verify(converterFactory).createRdfDeserializer();
+    verifyNoMoreInteractions(converterFactory);
+  }
+
+  @Test
+  void processMedia_createRdfSerializer_expectFail()
+      throws RdfConverterException, RdfDeserializationException, MediaProcessorException,
+      MediaExtractionException {
+    var content = "this is the content";
+    var record = Record.builder().recordId("1")
+        .content(content).language(Language.IT).country(Country.ITALY)
+        .datasetName("").datasetId("").build();
+
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var resourceEntries = List.of(entry1, entry2);
+    var extraction1 = mock(ResourceExtractionResult.class);
+    var extraction2 = mock(ResourceExtractionResult.class);
+    var thumbnail = mock(Thumbnail.class);
+    var metadata = mock(ResourceMetadata.class);
+
+    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
+    when(converterFactory.createRdfSerializer()).thenThrow(new RdfConverterException("", new Exception()));
+    when(deserializer.getResourceEntriesForMediaExtraction(content.getBytes()))
+        .thenReturn(resourceEntries);
+    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
+    when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
+    when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
+    when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
+    when(deserializer.getRdfForResourceEnriching(content.getBytes())).thenReturn(enrichedRdf);
+    when(extraction1.getMetadata()).thenReturn(metadata);
+    when(extraction2.getMetadata()).thenReturn(metadata);
+
+    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
+
+    verify(converterFactory).createRdfSerializer();
     verifyNoMoreInteractions(converterFactory);
   }
 

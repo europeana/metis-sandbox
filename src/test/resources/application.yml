@@ -59,9 +59,9 @@ sandbox:
   s3:
     access-key:
     secret-key:
-    endpoint:
-    signing-region:
-    thumbnails-bucket:
+    endpoint: some-uri
+    signing-region: eu
+    thumbnails-bucket: bucket
   dataset:
     max-size: 1000
     creation:
