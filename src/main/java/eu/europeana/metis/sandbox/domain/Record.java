@@ -27,7 +27,7 @@ public class Record {
   private final Country country;
   private final Language language;
   private final byte[] content;
-  private final String contentString;
+  private String contentString;
 
   private Record(String recordId, String datasetId, String datasetName,
       Country country, Language language, byte[] content) {
@@ -37,7 +37,6 @@ public class Record {
     this.country = country;
     this.language = language;
     this.content = content;
-    this.contentString = new String(content, DEFAULT_CHARSET);
   }
 
   /**
@@ -112,6 +111,9 @@ public class Record {
   }
 
   public String getContentString() {
+    if(contentString == null) {
+      contentString = new String(content, DEFAULT_CHARSET);
+    }
     return contentString;
   }
 
