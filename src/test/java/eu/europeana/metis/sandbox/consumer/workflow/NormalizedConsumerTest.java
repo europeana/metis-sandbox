@@ -42,7 +42,8 @@ class NormalizedConsumerTest {
   @Test
   void enrich_expectSuccess() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.NORMALIZE);
 
@@ -58,7 +59,8 @@ class NormalizedConsumerTest {
   @Test
   void enrich_inputMessageWithFailStatus_expectNoInteractions() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.NORMALIZE, new EventError(new Exception("Failed")));
 
@@ -71,7 +73,8 @@ class NormalizedConsumerTest {
   @Test
   void enrich_serviceThrowException_expectFailStatus() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.NORMALIZE);
 

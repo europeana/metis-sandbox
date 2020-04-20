@@ -22,5 +22,5 @@ public interface DatasetService {
    * @throws RecordParsingException   if fails to parse a record from the records list
    */
   String createDataset(String datasetName, Country country, Language language,
-      List<String> records);
+      List<byte[]> records);
 }

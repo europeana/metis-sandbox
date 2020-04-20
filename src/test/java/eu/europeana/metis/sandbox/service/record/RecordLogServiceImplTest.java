@@ -30,7 +30,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_expectSuccess() {
-    Record record = Record.builder().recordId("").content("").datasetId("")
+    Record record = Record.builder().recordId("").content("".getBytes()).datasetId("")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     Event event = new Event(record, Step.CREATE);
@@ -47,7 +47,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSave_expectFail() {
-    Record record = Record.builder().recordId("").content("").datasetId("")
+    Record record = Record.builder().recordId("").content("".getBytes()).datasetId("")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     Event event = new Event(record, Step.CREATE);

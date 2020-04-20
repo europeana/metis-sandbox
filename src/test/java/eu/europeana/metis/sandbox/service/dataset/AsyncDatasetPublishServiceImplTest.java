@@ -44,9 +44,9 @@ class AsyncDatasetPublishServiceImplTest {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
         .country(Country.ITALY)
-        .language(Language.IT).content("").build();
+        .language(Language.IT).content("".getBytes()).build();
     var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
-        .country(Country.ITALY).language(Language.IT).content("").build();
+        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
 
@@ -60,9 +60,9 @@ class AsyncDatasetPublishServiceImplTest {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
         .country(Country.ITALY)
-        .language(Language.IT).content("").build();
+        .language(Language.IT).content("".getBytes()).build();
     var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
-        .country(Country.ITALY).language(Language.IT).content("").build();
+        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
 

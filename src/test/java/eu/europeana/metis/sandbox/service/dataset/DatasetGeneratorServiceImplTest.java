@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -27,10 +27,11 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generate_expectSuccess() {
 
-    when(xmlRecordProcessorService.getRecordId(anyString())).thenReturn("id");
+    when(xmlRecordProcessorService.getRecordId(any(byte[].class))).thenReturn("id");
 
     var dataset = generator
-        .generate("1","name", Country.ITALY, Language.IT, List.of("record1", "records"));
+        .generate("1", "name", Country.ITALY, Language.IT,
+            List.of("record1".getBytes(), "records".getBytes()));
 
     assertEquals(2, dataset.getRecords().size());
   }
@@ -38,6 +39,6 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generate_emptyRecords_expectFail() {
     assertThrows(IllegalArgumentException.class, () -> generator
-        .generate("1","name", Country.ITALY, Language.IT, List.of()));
+        .generate("1", "name", Country.ITALY, Language.IT, List.of()));
   }
 }

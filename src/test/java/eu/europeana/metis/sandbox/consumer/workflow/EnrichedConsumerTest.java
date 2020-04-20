@@ -40,7 +40,8 @@ class EnrichedConsumerTest {
   @Test
   void processMedia_expectSuccess() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.ENRICH);
 
@@ -56,11 +57,13 @@ class EnrichedConsumerTest {
   @Test
   void processMedia_serviceThrowException_expectFailStatus() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.ENRICH);
 
-    when(service.processMedia(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.processMedia(record))
+        .thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.processMedia(recordEvent);
 

@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.util;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.ObjectFactory;
@@ -23,10 +23,10 @@ class XmlRecordProcessorServiceImpl implements XmlRecordProcessorService {
   }
 
   @Override
-  public String getRecordId(String record) {
+  public String getRecordId(byte[] record) {
     var xpathFactory = getXPathFactory();
     var xpath = xpathFactory.newXPath();
-    var source = new InputSource(new StringReader(record));
+    var source = new InputSource(new ByteArrayInputStream(record));
     String recordId;
 
     try {

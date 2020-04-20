@@ -42,7 +42,8 @@ class ExternallyValidatedConsumerTest {
   @Test
   void transform_expectSuccess() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.CREATE);
 
@@ -58,7 +59,8 @@ class ExternallyValidatedConsumerTest {
   @Test
   void transform_inputMessageWithFailStatus_expectNoInteractions() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.CREATE, new EventError(new Exception("Failed")));
 
@@ -71,7 +73,8 @@ class ExternallyValidatedConsumerTest {
   @Test
   void transform_serviceThrowException_expectFailStatus() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.CREATE);
 

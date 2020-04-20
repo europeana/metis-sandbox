@@ -28,7 +28,7 @@ class NormalizationServiceImpl implements NormalizationService {
     NormalizationResult result;
     try {
       normalizer = normalizerFactory.getNormalizer();
-      result = normalizer.normalize(record.getContent());
+      result = normalizer.normalize(record.getContentString());
     } catch (NormalizationConfigurationException | NormalizationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

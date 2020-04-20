@@ -10,6 +10,7 @@ import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STAT
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STEP;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -36,17 +37,17 @@ class RecordMessageConverterTest {
 
   @Test
   void toMessage_expectSuccess() {
-    var record = Record.builder().content("This is the content").country(Country.ITALY)
+    var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
         .language(Language.IT)
         .datasetId("").datasetName("").recordId("").build();
     var event = new Event(record, Step.TRANSFORM);
 
-    var result = MessageBuilder.withBody(record.getContentBytes())
+    var result = MessageBuilder.withBody(record.getContent())
         .build();
 
     var message = converter.toMessage(event, MessagePropertiesBuilder.newInstance().build());
 
-    assertEquals(new String(result.getBody()), new String(message.getBody()));
+    assertArrayEquals(result.getBody(), message.getBody());
   }
 
   @Test
@@ -77,6 +78,6 @@ class RecordMessageConverterTest {
     Object result = converter.fromMessage(message);
 
     assertThat(result, instanceOf(Event.class));
-    assertEquals("This is the content", ((Event)result).getBody().getContent());
+    assertEquals("This is the content", ((Event) result).getBody().getContentString());
   }
 }

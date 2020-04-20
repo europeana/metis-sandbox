@@ -25,7 +25,7 @@ class EnrichmentServiceImpl implements EnrichmentService {
 
     String result;
     try {
-      result = enrichmentWorker.process(record.getContent());
+      result = enrichmentWorker.process(record.getContentString());
     } catch (DereferenceOrEnrichException | JiBXException | UnsupportedEncodingException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

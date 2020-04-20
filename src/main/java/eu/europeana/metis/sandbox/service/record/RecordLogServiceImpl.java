@@ -37,7 +37,7 @@ class RecordLogServiceImpl implements RecordLogService {
         .datasetId(record.getDatasetId())
         .step(recordEvent.getStep())
         .build();
-    var recordLogEntity = new RecordLogEntity(key, record.getContent(), recordEvent.getStatus(),
+    var recordLogEntity = new RecordLogEntity(key, record.getContentString(), recordEvent.getStatus(),
         errorMessage, stackTrace);
 
     try {

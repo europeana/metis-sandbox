@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -21,10 +22,10 @@ public class Record {
   private final String datasetName;
   private final Country country;
   private final Language language;
-  private final String content;
+  private final byte[] content;
 
   private Record(String recordId, String datasetId, String datasetName,
-      Country country, Language language, String content) {
+      Country country, Language language, byte[] content) {
     this.recordId = recordId;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
@@ -42,17 +43,7 @@ public class Record {
    * @throws NullPointerException if any parameter is null
    */
   public static Record from(Record record, String content) {
-    requireNonNull(record);
-    requireNonNull(content);
-
-    return Record.builder()
-        .recordId(record.getRecordId())
-        .datasetId(record.getDatasetId())
-        .datasetName(record.getDatasetName())
-        .content(content)
-        .country(record.getCountry())
-        .language(record.getLanguage())
-        .build();
+    return from(record, content.getBytes(DEFAULT_CHARSET));
   }
 
   /**
@@ -64,7 +55,17 @@ public class Record {
    * @throws NullPointerException if any parameter is null
    */
   public static Record from(Record record, byte[] content) {
-    return Record.from(record, new String(content, DEFAULT_CHARSET));
+    requireNonNull(record);
+    requireNonNull(content);
+
+    return Record.builder()
+        .recordId(record.getRecordId())
+        .datasetId(record.getDatasetId())
+        .datasetName(record.getDatasetName())
+        .content(content)
+        .country(record.getCountry())
+        .language(record.getLanguage())
+        .build();
   }
 
   public static RecordBuilder builder() {
@@ -91,12 +92,12 @@ public class Record {
     return this.language;
   }
 
-  public String getContent() {
+  public byte[] getContent() {
     return this.content;
   }
 
-  public byte[] getContentBytes() {
-    return this.content.getBytes(DEFAULT_CHARSET);
+  public String getContentString() {
+    return new String(content, DEFAULT_CHARSET);
   }
 
   @Override
@@ -128,7 +129,7 @@ public class Record {
         .add("datasetName='" + datasetName + "'")
         .add("country=" + country)
         .add("language=" + language)
-        .add("content='" + content + "'")
+        .add("content='" + Arrays.toString(content) + "'")
         .toString();
   }
 
@@ -139,7 +140,7 @@ public class Record {
     private String datasetName;
     private Country country;
     private Language language;
-    private String content;
+    private byte[] content;
 
     public RecordBuilder recordId(String recordId) {
       this.recordId = recordId;
@@ -166,13 +167,8 @@ public class Record {
       return this;
     }
 
-    public RecordBuilder content(String content) {
-      this.content = content;
-      return this;
-    }
-
     public RecordBuilder content(byte[] content) {
-      this.content = new String(content, DEFAULT_CHARSET);
+      this.content = content;
       return this;
     }
 

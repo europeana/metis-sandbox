@@ -44,7 +44,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    var records = List.of("record1", "record2");
+    var records = List.of("record1".getBytes(), "record2".getBytes());
 
     when(zipService.parse(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn("12345");
@@ -92,7 +92,7 @@ class DatasetControllerTest {
   @Test
   void processDataset_recordsQtyExceeded_expectFail() throws Exception {
 
-    var records = IntStream.range(0, 1000).boxed().map(Object::toString).collect(
+    var records = IntStream.range(0, 1000).boxed().map(Object::toString).map(String::getBytes).collect(
         Collectors.toList());
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
@@ -112,7 +112,7 @@ class DatasetControllerTest {
   @Test
   void processDataset_datasetServiceFails_expectFail() throws Exception {
 
-    var records = List.of("record1", "record2");
+    var records = List.of("record1".getBytes(), "record2".getBytes());
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());

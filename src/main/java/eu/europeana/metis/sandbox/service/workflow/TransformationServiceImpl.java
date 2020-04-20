@@ -28,10 +28,10 @@ class TransformationServiceImpl implements TransformationService {
     String recordTransformed;
     try {
       var europeanaGeneratedIdsMap = new EuropeanaIdCreator()
-          .constructEuropeanaId(record.getContent(), record.getDatasetId());
+          .constructEuropeanaId(record.getContentString(), record.getDatasetId());
       var transformer = getTransformer(record.getDatasetName(),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
-      recordTransformed = transformer.transform(record.getContentBytes(), europeanaGeneratedIdsMap).toString();
+      recordTransformed = transformer.transform(record.getContent(), europeanaGeneratedIdsMap).toString();
     } catch (TransformationException | EuropeanaIdException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

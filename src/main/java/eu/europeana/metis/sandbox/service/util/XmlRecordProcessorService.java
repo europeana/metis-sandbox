@@ -15,5 +15,5 @@ public interface XmlRecordProcessorService {
    * @throws IllegalArgumentException if record does not contain a valid id
    * @throws RecordParsingException   if fails parsing the record
    */
-  String getRecordId(String record);
+  String getRecordId(byte[] record);
 }

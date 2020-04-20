@@ -42,7 +42,8 @@ class TransformedConsumerTest {
   @Test
   void validateInternal_expectSuccess() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.VALIDATE_INTERNAL);
 
@@ -58,7 +59,8 @@ class TransformedConsumerTest {
   @Test
   void validateInternal_inputMessageWithFailStatus_expectNoInteractions() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.VALIDATE_INTERNAL,
         new EventError(new Exception("Failed")));
@@ -72,7 +74,8 @@ class TransformedConsumerTest {
   @Test
   void validateInternal_serviceThrowException_expectFailStatus() {
     Record record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
+        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .content("".getBytes())
         .recordId("").build();
     Event recordEvent = new Event(record, Step.VALIDATE_INTERNAL);
 

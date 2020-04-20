@@ -39,7 +39,7 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_expectSuccess() throws IOException, TransformationException {
-    var input = testUtils.readFileToString("record/transform/record-input.xml");
+    var input = testUtils.readFileToBytes("record/transform/record-input.xml");
     var expected = testUtils.readFileToString("record/transform/record-expected.xml");
 
     Record record = Record.builder()
@@ -56,7 +56,7 @@ class TransformationServiceImplTest {
 
     Record result = service.transform(record);
 
-    assertEquals(expected, result.getContent());
+    assertEquals(expected, result.getContentString());
   }
 
   @Test
@@ -66,7 +66,7 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_invalidXml_expectFail() throws IOException, TransformationException {
-    var input = testUtils.readFileToString("record/bad-order/record-input.xml");
+    var input = testUtils.readFileToBytes("record/bad-order/record-input.xml");
 
     Record record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
@@ -77,7 +77,8 @@ class TransformationServiceImplTest {
     when(xsltTransformer.transform(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
         .thenThrow(new TransformationException(new Exception("Failing here")));
 
-    RecordProcessingException exception = assertThrows(RecordProcessingException.class, () -> service.transform(record));
+    RecordProcessingException exception = assertThrows(RecordProcessingException.class,
+        () -> service.transform(record));
     assertEquals("1", exception.getRecordId());
   }
 }

@@ -54,7 +54,7 @@ class RecordMessageConverter implements MessageConverter {
       properties.setHeader(STACK_TRACE, eventError.get().getStackTrace());
     }
 
-    return MessageBuilder.withBody(record.getContentBytes())
+    return MessageBuilder.withBody(record.getContent())
         .andProperties(properties)
         .build();
   }

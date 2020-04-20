@@ -6,6 +6,8 @@ info:
     repository: https://github.com/europeana/metis-sandbox
 
 spring:
+  profiles:
+    active: test
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:

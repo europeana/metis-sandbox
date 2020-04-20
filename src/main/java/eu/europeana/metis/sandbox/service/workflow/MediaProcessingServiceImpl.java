@@ -49,7 +49,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   public Record processMedia(Record record) {
     requireNonNull(record, "Record must not be null");
 
-    var inputRdf = record.getContentBytes();
+    var inputRdf = record.getContent();
     var rdfDeserializer = getRdfDeserializer(record);
 
     // Get resource entries

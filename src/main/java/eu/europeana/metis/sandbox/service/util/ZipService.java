@@ -7,14 +7,14 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ZipService {
 
   /**
-   * Parse the given file {@link MultipartFile} to a list of strings, one string per file in the zip
+   * Parse the given file {@link MultipartFile} to a list of byte[], one string per file in the zip
    * <br/> If file is empty then an empty List will be returned
    *
    * @param file zip file containing one or more files
-   * @return List of strings
+   * @return List of byte[]
    * @throws InvalidZipFileException  if file is not valid
    * @throws IllegalArgumentException if file does not contain any records
    */
-  List<String> parse(MultipartFile file);
+  List<byte[]> parse(MultipartFile file);
 
 }

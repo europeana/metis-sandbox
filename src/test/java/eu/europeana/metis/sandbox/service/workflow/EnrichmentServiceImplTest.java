@@ -33,13 +33,13 @@ class EnrichmentServiceImplTest {
     var content = "This is the content";
     var newContent = "This is new content";
     var record = Record.builder().recordId("1")
-        .content(content).language(Language.IT).country(Country.ITALY)
+        .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     when(enrichmentWorker.process(content)).thenReturn(newContent);
     var result = service.enrich(record);
 
-    assertEquals(newContent, result.getContent());
+    assertEquals(newContent, result.getContentString());
   }
 
   @Test
@@ -47,9 +47,10 @@ class EnrichmentServiceImplTest {
       throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
     var content = "This is the content";
     var record = Record.builder().recordId("1")
-        .content(content).language(Language.IT).country(Country.ITALY)
+        .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
-    when(enrichmentWorker.process(content)).thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
+    when(enrichmentWorker.process(content))
+        .thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
     assertThrows(RecordProcessingException.class, () -> service.enrich(record));
   }
 
@@ -58,7 +59,7 @@ class EnrichmentServiceImplTest {
       throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
     var content = "This is the content";
     var record = Record.builder().recordId("1")
-        .content(content).language(Language.IT).country(Country.ITALY)
+        .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
     when(enrichmentWorker.process(content)).thenThrow(new UnsupportedEncodingException());
     assertThrows(RecordProcessingException.class, () -> service.enrich(record));
@@ -69,7 +70,7 @@ class EnrichmentServiceImplTest {
       throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
     var content = "This is the content";
     var record = Record.builder().recordId("1")
-        .content(content).language(Language.IT).country(Country.ITALY)
+        .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
     when(enrichmentWorker.process(content)).thenThrow(new JiBXException("Failed"));
     assertThrows(RecordProcessingException.class, () -> service.enrich(record));

@@ -23,7 +23,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   public Record validate(Record record) {
     requireNonNull(record, "Record must not be null");
 
-    var content = record.getContent();
+    var content = record.getContentString();
     var validationResult = validator.singleValidation(SCHEMA, null, null, content);
     if (!validationResult.isSuccess()) {
       throw new RecordValidationException(validationResult.getMessage(),
