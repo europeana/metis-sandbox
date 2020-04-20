@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
-import javax.annotation.PostConstruct;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
@@ -73,35 +72,9 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.indexed.dlq}")
   private String indexedDlq;
 
-  private Queues queues;
-  private Queues dlqs;
-
   public AmqpConfiguration(
       MessageConverter messageConverter) {
     this.messageConverter = messageConverter;
-  }
-
-  @PostConstruct
-  public void setUp() {
-    queues = new Queues()
-        .setCreated(createdQueue)
-        .setExternalValidated(externalValidatedQueue)
-        .setTransformed(transformedQueue)
-        .setInternalValidated(internalValidatedQueue)
-        .setNormalized(normalizedQueue)
-        .setEnriched(enrichedQueue)
-        .setMediaProcessed(mediaProcessedQueue)
-        .setIndexed(indexedQueue);
-
-    dlqs = new Queues()
-        .setCreated(createdDlq)
-        .setExternalValidated(externalValidatedDlq)
-        .setTransformed(transformedDlq)
-        .setInternalValidated(internalValidatedDlq)
-        .setNormalized(normalizedDlq)
-        .setEnriched(enrichedDlq)
-        .setMediaProcessed(mediaProcessedDlq)
-        .setIndexed(indexedDlq);
   }
 
   @Bean
@@ -125,38 +98,56 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(queues.created).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.created).build(),
-        QueueBuilder.durable(queues.externalValidated).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.externalValidated).build(),
-        QueueBuilder.durable(queues.transformed).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.transformed).build(),
-        QueueBuilder.durable(queues.normalized).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.normalized).build(),
-        QueueBuilder.durable(queues.internalValidated).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.internalValidated).build(),
-        QueueBuilder.durable(queues.enriched).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.enriched).build(),
-        QueueBuilder.durable(queues.mediaProcessed).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.mediaProcessed).build(),
-        QueueBuilder.durable(queues.indexed).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlqs.indexed).build()
+        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(createdDlq).build(),
+        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
+        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
+        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
+        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
+        QueueBuilder.durable(indexedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(indexedDlq).build()
     );
   }
 
   @Bean
   Declarables deadQueues() {
     return new Declarables(
-        QueueBuilder.durable(dlqs.created).build(),
-        QueueBuilder.durable(dlqs.externalValidated).build(),
-        QueueBuilder.durable(dlqs.transformed).build(),
-        QueueBuilder.durable(dlqs.normalized).build(),
-        QueueBuilder.durable(dlqs.internalValidated).build(),
-        QueueBuilder.durable(dlqs.enriched).build(),
-        QueueBuilder.durable(dlqs.mediaProcessed).build(),
-        QueueBuilder.durable(dlqs.indexed).build()
+        QueueBuilder.durable(createdDlq).build(),
+        QueueBuilder.durable(externalValidatedDlq).build(),
+        QueueBuilder.durable(transformedDlq).build(),
+        QueueBuilder.durable(normalizedDlq).build(),
+        QueueBuilder.durable(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedDlq).build(),
+        QueueBuilder.durable(indexedDlq).build()
     );
   }
 
   @Bean
   Declarables bindings() {
+    var queues = new Queues()
+        .setCreated(createdQueue)
+        .setExternalValidated(externalValidatedQueue)
+        .setTransformed(transformedQueue)
+        .setInternalValidated(internalValidatedQueue)
+        .setNormalized(normalizedQueue)
+        .setEnriched(enrichedQueue)
+        .setMediaProcessed(mediaProcessedQueue)
+        .setIndexed(indexedQueue);
     return getDeclarables(queues);
   }
 
   @Bean
   Declarables dlqBindings() {
+    var dlqs = new Queues()
+        .setCreated(createdDlq)
+        .setExternalValidated(externalValidatedDlq)
+        .setTransformed(transformedDlq)
+        .setInternalValidated(internalValidatedDlq)
+        .setNormalized(normalizedDlq)
+        .setEnriched(enrichedDlq)
+        .setMediaProcessed(mediaProcessedDlq)
+        .setIndexed(indexedDlq);
     return getDeclarables(dlqs);
   }
 
