@@ -11,7 +11,11 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * Immutable object that represents a record
+ * Object that represents a record.
+ * <br /><br />
+ * Stores the record content as a byte[], do not
+ * override the byte[] contents after object construction, we are not making a copy of it because it
+ * is expensive and Record object is expected to be use as a non mutable object.
  */
 public class Record {
 
@@ -95,6 +99,14 @@ public class Record {
     return this.language;
   }
 
+  /**
+   * Content of the record
+   *
+   * @implNote Overwriting this field contents after construction will cause problems.
+   * <br />
+   * We are not making a copy of it because it
+   * is expensive and Record object is expected to be use as a non mutable object
+   */
   public byte[] getContent() {
     return this.content;
   }
