@@ -43,6 +43,7 @@ public class Record {
    * @throws NullPointerException if any parameter is null
    */
   public static Record from(Record record, String content) {
+    requireNonNull(content);
     return from(record, content.getBytes(DEFAULT_CHARSET));
   }
 
