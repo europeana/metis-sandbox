@@ -102,7 +102,7 @@ public class Record {
   /**
    * Content of the record
    *
-   * @implNote Overwriting this field contents after construction will cause problems.
+   * @implNote Overwriting this field contents after construction could cause problems.
    * <br />
    * We are not making a copy of it because it
    * is expensive and Record object is expected to be use as a non mutable object
