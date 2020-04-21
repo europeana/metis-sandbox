@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.common.locale;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Country {
   ALBANIA("Albania"), ANDORRA("Andorra"), ARMENIA("Armenia"), AUSTRIA(
       "Austria"), AZERBAIJAN("Azerbaijan"), AUSTRALIA("Australia"), BELARUS(
@@ -28,6 +30,7 @@ public enum Country {
     this.value = value;
   }
 
+  @JsonValue
   public String xmlValue() {
     return value;
   }

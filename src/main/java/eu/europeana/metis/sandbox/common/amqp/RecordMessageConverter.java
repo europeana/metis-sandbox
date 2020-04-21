@@ -73,7 +73,7 @@ class RecordMessageConverter implements MessageConverter {
     String country = properties.getHeader(COUNTRY);
     String step = properties.getHeader(STEP);
     String content = new String(message.getBody(), DEFAULT_CHARSET);
-    String error = properties.getHeader(ERROR);
+    Object error = properties.getHeader(ERROR);
     Object stackTrace = properties.getHeader(STACK_TRACE);
 
     Record record = Record.builder()
@@ -86,7 +86,7 @@ class RecordMessageConverter implements MessageConverter {
 
     EventError eventError = null;
     if (error != null) {
-      eventError = new EventError(error, stackTrace.toString());
+      eventError = new EventError(error.toString(), stackTrace.toString());
     }
 
     return new Event(record, Step.valueOf(step), eventError);
