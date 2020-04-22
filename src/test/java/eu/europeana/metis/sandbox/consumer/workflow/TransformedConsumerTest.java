@@ -61,7 +61,7 @@ class TransformedConsumerTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("")
         .recordId("").build();
     Event recordEvent = new Event(record, Step.VALIDATE_INTERNAL,
-        new EventError(new Exception("Failed")));
+        new EventError(new RecordProcessingException("1", new Exception())));
 
     consumer.validateInternal(recordEvent);
 

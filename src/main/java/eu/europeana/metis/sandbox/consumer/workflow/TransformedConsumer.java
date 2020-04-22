@@ -48,9 +48,8 @@ class TransformedConsumer {
       record = service.validate(input.getBody());
       output = new Event(record, Step.VALIDATE_INTERNAL);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
-      record = Record.from(input.getBody(), input.getBody().getContent());
-      output = new Event(record, Step.VALIDATE_INTERNAL, new EventError(ex));
+      LOGGER.error("Exception while performing internal validation step", ex);
+      output = new Event(input.getBody(), Step.VALIDATE_INTERNAL, new EventError(ex));
     }
 
     amqpTemplate.convertAndSend(routingKey, output);

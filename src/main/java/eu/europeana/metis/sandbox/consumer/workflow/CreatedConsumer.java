@@ -47,9 +47,8 @@ class CreatedConsumer {
       record = service.validate(input.getBody());
       output = new Event(record, Step.VALIDATE_EXTERNAL);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
-      record = Record.from(input.getBody(), input.getBody().getContent());
-      output = new Event(record, Step.VALIDATE_EXTERNAL, new EventError(ex));
+      LOGGER.error("Exception while performing external validation step", ex);
+      output = new Event(input.getBody(), Step.VALIDATE_EXTERNAL, new EventError(ex));
     }
 
     amqpTemplate.convertAndSend(routingKey, output);

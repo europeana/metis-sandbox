@@ -47,9 +47,8 @@ class ExternallyValidatedConsumer {
       record = service.transform(input.getBody());
       output = new Event(record, Step.TRANSFORM);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
-      record = Record.from(input.getBody(), input.getBody().getContent());
-      output = new Event(record, Step.TRANSFORM, new EventError(ex));
+      LOGGER.error("Exception while performing transformation step", ex);
+      output = new Event(input.getBody(), Step.TRANSFORM, new EventError(ex));
     }
 
     amqpTemplate.convertAndSend(routingKey, output);

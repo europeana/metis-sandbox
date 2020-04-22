@@ -14,7 +14,7 @@ public class RecordValidationException extends RecordProcessingException {
 
   public RecordValidationException(String message, String recordId, String nodeId) {
     super(format("Record: %s Node: %s Message: %s ",
-        recordId, nodeId, message), recordId, null);
+        recordId, nodeId, message), recordId, message, null);
     this.nodeId = nodeId;
   }
 

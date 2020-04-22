@@ -3,19 +3,16 @@ package eu.europeana.metis.sandbox.controller;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -40,10 +37,14 @@ class DatasetController {
 
   private final ZipService zipService;
   private final DatasetService datasetService;
+  private final DatasetReportService reportService;
 
-  public DatasetController(ZipService zipService, DatasetService datasetService) {
+  public DatasetController(ZipService zipService,
+      DatasetService datasetService,
+      DatasetReportService reportService) {
     this.zipService = zipService;
     this.datasetService = datasetService;
+    this.reportService = reportService;
   }
 
   @ApiOperation("Process the given dataset")
@@ -68,10 +69,6 @@ class DatasetController {
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
   public DatasetInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-    var error1 = new ErrorInfoDto("record failed with some exception", List.of("1","2"));
-    var error2 = new ErrorInfoDto("record failed with some exception", List.of("3", "4"));
-    var report1 = new ReportByStepDto(Step.VALIDATE_EXTERNAL, List.of(error1, error2));
-    var report2 = new ReportByStepDto(Step.ENRICH, List.of(error1, error2));
-    return new DatasetInfoDto("Will come in the future", List.of(report1, report2));
+    return reportService.getReport(datasetId);
   }
 }

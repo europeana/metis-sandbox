@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
 import java.util.List;
@@ -37,6 +38,9 @@ class DatasetControllerTest {
 
   @MockBean
   private DatasetService datasetService;
+
+  @MockBean
+  private DatasetReportService datasetReportService;
 
   @Test
   void processDataset_expectSuccess() throws Exception {
