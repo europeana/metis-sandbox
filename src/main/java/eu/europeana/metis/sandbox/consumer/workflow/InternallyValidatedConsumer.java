@@ -47,7 +47,7 @@ class InternallyValidatedConsumer {
       record = service.normalize(input.getBody());
       output = new Event(record, Step.NORMALIZE);
     } catch (RecordProcessingException ex) {
-      LOGGER.error("Exception while performing normalization step", ex);
+      LOGGER.error("Exception while performing normalization step. ", ex);
       output = new Event(input.getBody(), Step.NORMALIZE, new EventError(ex));
     }
 

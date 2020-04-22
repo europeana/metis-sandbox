@@ -47,7 +47,7 @@ class ExternallyValidatedConsumer {
       record = service.transform(input.getBody());
       output = new Event(record, Step.TRANSFORM);
     } catch (RecordProcessingException ex) {
-      LOGGER.error("Exception while performing transformation step", ex);
+      LOGGER.error("Exception while performing transformation step. ", ex);
       output = new Event(input.getBody(), Step.TRANSFORM, new EventError(ex));
     }
 

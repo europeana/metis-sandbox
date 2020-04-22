@@ -47,7 +47,7 @@ class NormalizedConsumer {
       record = service.enrich(input.getBody());
       output = new Event(record, Step.ENRICH);
     } catch (RecordProcessingException ex) {
-      LOGGER.error("Exception while performing enrichment step", ex);
+      LOGGER.error("Exception while performing enrichment step. ", ex);
       output = new Event(input.getBody(), Step.ENRICH, new EventError(ex));
     }
 
