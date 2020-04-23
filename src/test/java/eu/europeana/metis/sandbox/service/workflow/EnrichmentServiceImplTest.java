@@ -39,7 +39,7 @@ class EnrichmentServiceImplTest {
     when(enrichmentWorker.process(content)).thenReturn(newContent);
     var result = service.enrich(record);
 
-    assertEquals(newContent, result.getContentString());
+    assertEquals(newContent, result.getRecord().getContentString());
   }
 
   @Test

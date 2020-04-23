@@ -12,8 +12,8 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,13 +41,13 @@ class ExternallyValidatedConsumerTest {
 
   @Test
   void transform_expectSuccess() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.transform(record)).thenReturn(record);
+    when(service.transform(record)).thenReturn(new RecordInfo(record));
     consumer.transform(recordEvent);
 
     verify(service).transform(record);
@@ -58,11 +58,11 @@ class ExternallyValidatedConsumerTest {
 
   @Test
   void transform_inputMessageWithFailStatus_expectNoInteractions() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE, new EventError(new Exception("Failed")));
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
     consumer.transform(recordEvent);
 
@@ -72,11 +72,11 @@ class ExternallyValidatedConsumerTest {
 
   @Test
   void transform_serviceThrowException_expectFailStatus() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.transform(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

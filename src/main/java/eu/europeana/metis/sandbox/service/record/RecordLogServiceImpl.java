@@ -23,14 +23,10 @@ class RecordLogServiceImpl implements RecordLogService {
     requireNonNull(recordEvent, "Record event must not be null");
 
     var record = recordEvent.getBody();
-    var eventError = recordEvent.getEventError();
+    // TODO store errors
+    var eventError = recordEvent.getRecordErrors();
     String errorMessage = null;
     String stackTrace = null;
-
-    if (eventError.isPresent()) {
-      errorMessage = eventError.get().getMessage();
-      stackTrace = eventError.get().getStackTrace();
-    }
 
     var key = RecordLogEntityKey.builder()
         .id(record.getRecordId())

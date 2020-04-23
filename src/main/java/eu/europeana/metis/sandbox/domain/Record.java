@@ -110,6 +110,13 @@ public class Record {
     return this.content;
   }
 
+
+  /**
+   * In the future the content will only be available through byte array
+   * For now we still need it since but after https://europeana.atlassian.net/browse/MET-2680
+   * is done we can remove this method
+   */
+  @Deprecated
   public String getContentString() {
     if(contentString == null) {
       contentString = new String(content, DEFAULT_CHARSET);

@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.MediaProcessingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,9 +44,9 @@ class EnrichedConsumerTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.ENRICH);
+    Event recordEvent = new Event(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
 
-    when(service.processMedia(record)).thenReturn(record);
+    when(service.processMedia(record)).thenReturn(new RecordInfo(record));
     consumer.processMedia(recordEvent);
 
     verify(service).processMedia(record);
@@ -60,7 +61,7 @@ class EnrichedConsumerTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.ENRICH);
+    Event recordEvent = new Event(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record))
         .thenThrow(new RecordProcessingException("1", new Exception()));

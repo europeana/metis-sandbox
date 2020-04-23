@@ -4,7 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Event that contains a record and its processing details
@@ -12,39 +13,34 @@ import java.util.Optional;
 public class Event {
 
   private final Record body;
+  private final List<RecordError> recordErrors;
   private final Status status;
   private final Step step;
 
-  private final EventError eventError;
-
   /**
    * Creates an event based on the one provided, using the provided {@link Step}
-   * @param body must not be null
-   * @param step must not be null
+   *
+   * @param recordInfo must not be null
+   * @param step       must not be null
+   * @param status     must not be null
    * @throws NullPointerException if any parameter is null
    */
-  public Event(Record body, Step step) {
-    this(body, step, null);
-  }
-
-  /**
-   * Creates an event based on the one provided, using the provided {@link Step}
-   * @param body must not be null
-   * @param step must not be null
-   * @param eventError could be null
-   * @throws NullPointerException if body or step are null
-   */
-  public Event(Record body, Step step, EventError eventError) {
-    requireNonNull(body, "Body must not be null");
+  public Event(RecordInfo recordInfo, Step step, Status status) {
+    requireNonNull(recordInfo, "Record info must not be null");
     requireNonNull(step, "Step must not be null");
-    this.status = eventError == null ? Status.SUCCESS : Status.FAIL;
-    this.body = body;
-    this.eventError = eventError;
+    requireNonNull(status, "Status must not be null");
+    this.status = status;
+    this.body = recordInfo.getRecord();
+    this.recordErrors = Collections.unmodifiableList(recordInfo.getErrors());
     this.step = step;
   }
 
   public Record getBody() {
     return body;
+  }
+
+  public List<RecordError> getRecordErrors() {
+    return recordErrors;
   }
 
   public Status getStatus() {
@@ -53,9 +49,5 @@ public class Event {
 
   public Step getStep() {
     return step;
-  }
-
-  public Optional<EventError> getEventError() {
-    return Optional.ofNullable(eventError);
   }
 }

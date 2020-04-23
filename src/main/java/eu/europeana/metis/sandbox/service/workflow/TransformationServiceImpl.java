@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -22,7 +23,7 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   @Override
-  public Record transform(Record record) {
+  public RecordInfo transform(Record record) {
     requireNonNull(record, "Record must not be null");
 
     String recordTransformed;
@@ -31,12 +32,13 @@ class TransformationServiceImpl implements TransformationService {
           .constructEuropeanaId(record.getContentString(), record.getDatasetId());
       var transformer = getTransformer(record.getDatasetName(),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
-      recordTransformed = transformer.transform(record.getContent(), europeanaGeneratedIdsMap).toString();
+      recordTransformed = transformer.transform(record.getContent(), europeanaGeneratedIdsMap)
+          .toString();
     } catch (TransformationException | EuropeanaIdException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    return Record.from(record, recordTransformed);
+    return new RecordInfo(Record.from(record, recordTransformed));
   }
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,

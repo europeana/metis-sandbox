@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -15,18 +16,16 @@ import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
-import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordError;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,7 +45,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   }
 
   @Override
-  public Record processMedia(Record record) {
+  public RecordInfo processMedia(Record record) {
     requireNonNull(record, "Record must not be null");
 
     var inputRdf = record.getContent();
@@ -55,93 +54,76 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     // Get resource entries
     var resourceEntries = getRdfResourceEntries(record, inputRdf, rdfDeserializer);
 
-    // Perform media processing
-    var resourceExtractionResults = getResourceExtractionResults(record, resourceEntries);
+    var rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer);
 
-    // Store thumbnails
-    try {
-      thumbnailStoreService.store(getThumbnails(resourceExtractionResults));
-    } catch (ThumbnailStoringException e) {
+    List<RecordError> recordErrors = new LinkedList<>();
+    try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
+      for (RdfResourceEntry entry : resourceEntries) {
+        processResourceEntry(rdfForEnrichment, extractor, entry, recordErrors);
+      }
+    } catch (MediaProcessorException | IOException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
-
-    // Add result to RDF
-    var metadataList = getResourceMetadata(resourceExtractionResults);
-    var rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer, metadataList);
 
     // Get output rdf bytes
     var rdfSerializer = getRdfSerializer(record);
     byte[] outputRdf = getOutputRdf(record, rdfSerializer, rdfForEnrichment);
 
-    return Record.from(record, outputRdf);
+    return new RecordInfo(Record.from(record, outputRdf), recordErrors);
+  }
+
+  private void processResourceEntry(EnrichedRdf rdfForEnrichment, MediaExtractor extractor,
+      RdfResourceEntry entry, List<RecordError> recordErrors) {
+    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) {
+      if (nonNull(extraction)) {
+        // Store thumbnails
+        storeThumbnails(extraction.getThumbnails(), recordErrors);
+        // Add result to RDF
+        rdfForEnrichment.enrichResource(extraction.getMetadata());
+      }
+    } catch (MediaExtractionException | IOException e) {
+      // collect warn
+      recordErrors.add(new RecordError(e));
+    }
+  }
+
+  private void storeThumbnails(List<Thumbnail> thumbnails, List<RecordError> recordErrors) {
+    if (nonNull(thumbnails)) {
+      try {
+        thumbnailStoreService.store(thumbnails);
+      } catch (ThumbnailStoringException e) {
+        // collect warn
+        recordErrors.add(new RecordError(e));
+      }
+    }
+  }
+
+  private EnrichedRdf getEnrichedRdf(Record record, byte[] inputRdf,
+      RdfDeserializer rdfDeserializer) {
+    try {
+      return rdfDeserializer.getRdfForResourceEnriching(inputRdf);
+    } catch (RdfDeserializationException e) {
+      throw new RecordProcessingException(record.getRecordId(), e);
+    }
   }
 
   private List<RdfResourceEntry> getRdfResourceEntries(Record record, byte[] content,
       RdfDeserializer rdfDeserializer) {
-    List<RdfResourceEntry> resourceEntries;
     try {
-      resourceEntries = rdfDeserializer
+      return rdfDeserializer
           .getResourceEntriesForMediaExtraction(content);
     } catch (RdfDeserializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
-    return resourceEntries;
-  }
-
-  private List<ResourceExtractionResult> getResourceExtractionResults(Record record,
-      List<RdfResourceEntry> resourceEntries) {
-    List<ResourceExtractionResult> results = new ArrayList<>();
-    try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
-      for (RdfResourceEntry entry : resourceEntries) {
-        var extraction = extractor.performMediaExtraction(entry);
-        if (extraction != null) {
-          results.add(extraction);
-        }
-      }
-    } catch (IOException | MediaProcessorException | MediaExtractionException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
-    }
-    return results;
-  }
-
-  private EnrichedRdf getEnrichedRdf(Record record, byte[] content,
-      RdfDeserializer rdfDeserializer, List<ResourceMetadata> metadataList) {
-    EnrichedRdf rdfForEnrichment;
-    try {
-      rdfForEnrichment = rdfDeserializer.getRdfForResourceEnriching(content);
-    } catch (RdfDeserializationException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
-    }
-    metadataList.forEach(rdfForEnrichment::enrichResource);
-    return rdfForEnrichment;
   }
 
   private byte[] getOutputRdf(Record record, RdfSerializer rdfSerializer,
       EnrichedRdf rdfForEnrichment) {
-    byte[] outputRdf;
     try {
-      outputRdf = rdfSerializer.serialize(rdfForEnrichment);
+      return rdfSerializer.serialize(rdfForEnrichment);
     } catch (RdfSerializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
-    return outputRdf;
-  }
-
-  private List<Thumbnail> getThumbnails(List<ResourceExtractionResult> resources) {
-    return resources.stream()
-        .map(ResourceExtractionResult::getThumbnails)
-        .filter(Objects::nonNull)
-        .flatMap(Collection::stream)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private List<ResourceMetadata> getResourceMetadata(
-      List<ResourceExtractionResult> resources) {
-    return resources.stream()
-        .map(ResourceExtractionResult::getMetadata)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
   }
 
   private RdfDeserializer getRdfDeserializer(Record record) {

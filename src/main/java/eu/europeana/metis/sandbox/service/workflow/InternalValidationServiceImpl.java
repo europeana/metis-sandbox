@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.validation.service.ValidationExecutionService;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   }
 
   @Override
-  public Record validate(Record record) {
+  public RecordInfo validate(Record record) {
     requireNonNull(record, "Record must not be null");
 
     var content = record.getContentString();
@@ -30,6 +31,6 @@ class InternalValidationServiceImpl implements InternalValidationService {
           validationResult.getRecordId(), validationResult.getNodeId());
     }
 
-    return Record.from(record, content);
+    return new RecordInfo(Record.from(record, content));
   }
 }

@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
@@ -21,7 +22,7 @@ class NormalizationServiceImpl implements NormalizationService {
   }
 
   @Override
-  public Record normalize(Record record) {
+  public RecordInfo normalize(Record record) {
     requireNonNull(record, "Record must not be null");
 
     Normalizer normalizer;
@@ -34,9 +35,10 @@ class NormalizationServiceImpl implements NormalizationService {
     }
 
     if (result.getErrorMessage() != null) {
-      throw new RecordProcessingException(record.getRecordId(), new Throwable(result.getErrorMessage()));
+      throw new RecordProcessingException(record.getRecordId(),
+          new Throwable(result.getErrorMessage()));
     }
 
-    return Record.from(record, result.getNormalizedRecordInEdmXml());
+    return new RecordInfo(Record.from(record, result.getNormalizedRecordInEdmXml()));
   }
 }

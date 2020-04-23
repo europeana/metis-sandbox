@@ -12,8 +12,8 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.EnrichmentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,13 +41,13 @@ class NormalizedConsumerTest {
 
   @Test
   void enrich_expectSuccess() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.NORMALIZE);
+    var recordEvent = new Event(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS);
 
-    when(service.enrich(record)).thenReturn(record);
+    when(service.enrich(record)).thenReturn(new RecordInfo(record));
     consumer.enrich(recordEvent);
 
     verify(service).enrich(record);
@@ -58,11 +58,11 @@ class NormalizedConsumerTest {
 
   @Test
   void enrich_inputMessageWithFailStatus_expectNoInteractions() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.NORMALIZE, new EventError(new Exception("Failed")));
+    var recordEvent = new Event(new RecordInfo(record), Step.NORMALIZE, Status.FAIL);
 
     consumer.enrich(recordEvent);
 
@@ -72,11 +72,11 @@ class NormalizedConsumerTest {
 
   @Test
   void enrich_serviceThrowException_expectFailStatus() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.NORMALIZE);
+    var recordEvent = new Event(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS);
 
     when(service.enrich(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

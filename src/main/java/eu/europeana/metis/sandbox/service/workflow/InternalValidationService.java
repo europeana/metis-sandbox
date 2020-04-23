@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 
 public interface InternalValidationService {
 
@@ -9,9 +10,9 @@ public interface InternalValidationService {
    * Validates the given record against EDM-INTERNAL schema
    *
    * @param record must not be null
-   * @return {@link Record} that is valid against EDM-INTERNAL schema
+   * return {@link RecordInfo} containing record that is valid against EDM-INTERNAL schema
    * @throws NullPointerException      if record is null
    * @throws RecordValidationException if records fails at validation
    */
-  Record validate(Record record);
+  RecordInfo validate(Record record);
 }

@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
+import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,11 +31,11 @@ class EventRecordLogConsumerTest {
 
   @Test
   void logRecord_expectSuccess() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     consumer.logRecord(recordEvent);
 
@@ -42,11 +44,11 @@ class EventRecordLogConsumerTest {
 
   @Test
   void logRecord_logError_expectFail() {
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    Event recordEvent = new Event(record, Step.CREATE);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)
         .logRecordEvent(any(Event.class));

@@ -1,12 +1,17 @@
 package eu.europeana.metis.sandbox.common.amqp;
 
+import static java.util.Objects.nonNull;
+
+import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.EventError;
 import eu.europeana.metis.sandbox.domain.Record;
-import java.util.Optional;
+import eu.europeana.metis.sandbox.domain.RecordError;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -18,6 +23,8 @@ import org.springframework.stereotype.Component;
 @Component
 class RecordMessageConverter implements MessageConverter {
 
+  protected static final int LEFT = 0;
+  protected static final int RIGHT = 1;
   protected static final String RECORD_ID = "recordId";
   protected static final String DATASET_ID = "datasetId";
   protected static final String DATASET_NAME = "datasetName";
@@ -26,7 +33,7 @@ class RecordMessageConverter implements MessageConverter {
   protected static final String STATUS = "status";
   protected static final String STEP = "step";
   protected static final String ERROR = "error";
-  protected static final String STACK_TRACE = "stackTrace";
+  protected static final String ERRORS = "errors";
 
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
@@ -36,7 +43,7 @@ class RecordMessageConverter implements MessageConverter {
 
     Event recordEvent = (Event) object;
     Record record = recordEvent.getBody();
-    Optional<EventError> eventError = recordEvent.getEventError();
+    List<RecordError> errors = recordEvent.getRecordErrors();
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
@@ -49,9 +56,11 @@ class RecordMessageConverter implements MessageConverter {
         .setHeader(STATUS, recordEvent.getStatus())
         .build();
 
-    if (eventError.isPresent()) {
-      properties.setHeader(ERROR, eventError.get().getMessage());
-      properties.setHeader(STACK_TRACE, eventError.get().getStackTrace());
+    if (!errors.isEmpty()) {
+      List<List<String>> errorsHeader = errors.stream().map(
+          x -> List.of(x.getMessage(), x.getStackTrace())
+      ).collect(Collectors.toList());
+      properties.setHeader(ERRORS, errorsHeader);
     }
 
     return MessageBuilder.withBody(record.getContent())
@@ -69,8 +78,8 @@ class RecordMessageConverter implements MessageConverter {
     String language = properties.getHeader(LANGUAGE);
     String country = properties.getHeader(COUNTRY);
     String step = properties.getHeader(STEP);
-    String error = properties.getHeader(ERROR);
-    Object stackTrace = properties.getHeader(STACK_TRACE);
+    String status = properties.getHeader(STATUS);
+    List<List<Object>> errors = properties.getHeader(ERRORS);
 
     Record record = Record.builder()
         .recordId(recordId)
@@ -80,11 +89,16 @@ class RecordMessageConverter implements MessageConverter {
         .language(Language.valueOf(language))
         .content(content).build();
 
-    EventError eventError = null;
-    if (error != null) {
-      eventError = new EventError(error, stackTrace.toString());
+    List<RecordError> recordErrors = List.of();
+
+    if (nonNull(errors)) {
+      recordErrors = errors.stream()
+          .map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString()))
+          .collect(Collectors.toList());
     }
 
-    return new Event(record, Step.valueOf(step), eventError);
+    RecordInfo recordInfo = new RecordInfo(record, recordErrors);
+
+    return new Event(recordInfo, Step.valueOf(step), Status.valueOf(status));
   }
 }

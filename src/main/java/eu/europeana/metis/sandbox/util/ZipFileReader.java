@@ -71,7 +71,7 @@ public class ZipFileReader {
     }
   }
 
-  boolean reject(ZipEntry zipEntry) {
+  private boolean reject(ZipEntry zipEntry) {
     return zipEntry.isDirectory() || zipEntry.getName().startsWith(MAC_TEMP_FOLDER)
         || zipEntry.getName().endsWith(MAC_TEMP_FILE);
   }

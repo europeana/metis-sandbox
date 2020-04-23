@@ -14,11 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +42,7 @@ class RecordMessageConverterTest {
     var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
         .language(Language.IT)
         .datasetId("").datasetName("").recordId("").build();
-    var event = new Event(record, Step.TRANSFORM);
+    var event = new Event(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS);
 
     var result = MessageBuilder.withBody(record.getContent())
         .build();

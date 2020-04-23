@@ -48,7 +48,7 @@ class NormalizationServiceImplTest {
 
     var result = service.normalize(record);
 
-    assertEquals("success", result.getContentString());
+    assertEquals("success", result.getRecord().getContentString());
   }
 
   @Test

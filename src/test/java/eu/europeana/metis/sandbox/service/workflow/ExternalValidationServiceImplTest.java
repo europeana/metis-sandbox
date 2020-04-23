@@ -49,7 +49,7 @@ class ExternalValidationServiceImplTest {
 
     var result = service.validate(record);
 
-    assertEquals(record, result);
+    assertEquals(record, result.getRecord());
   }
 
   @Test

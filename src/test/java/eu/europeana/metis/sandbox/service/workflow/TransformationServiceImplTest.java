@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
@@ -42,7 +43,7 @@ class TransformationServiceImplTest {
     var input = testUtils.readFileToBytes("record/transform/record-input.xml");
     var expected = testUtils.readFileToString("record/transform/record-expected.xml");
 
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
         .recordId("").build();
 
@@ -54,9 +55,9 @@ class TransformationServiceImplTest {
     when(xsltTransformer.transform(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
         .thenReturn(writer);
 
-    Record result = service.transform(record);
+    var result = service.transform(record);
 
-    assertEquals(expected, result.getContentString());
+    assertEquals(expected, result.getRecord().getContentString());
   }
 
   @Test
@@ -68,7 +69,7 @@ class TransformationServiceImplTest {
   void transform_invalidXml_expectFail() throws IOException, TransformationException {
     var input = testUtils.readFileToBytes("record/bad-order/record-input.xml");
 
-    Record record = Record.builder()
+    var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
         .recordId("1").build();
 
