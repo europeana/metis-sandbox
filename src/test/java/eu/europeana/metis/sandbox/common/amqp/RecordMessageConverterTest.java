@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.common.amqp;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.COUNTRY;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_NAME;
-import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERROR;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERRORS;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.LANGUAGE;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.RECORD_ID;
@@ -61,7 +60,8 @@ class RecordMessageConverterTest {
         .language(Language.IT)
         .datasetId("").datasetName("").recordId("").build();
     var recordError = new RecordError(new Exception("failed here"));
-    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM, Status.SUCCESS);
+    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
+        Status.SUCCESS);
 
     var result = MessageBuilder.withBody(record.getContent())
         .build();
@@ -89,7 +89,7 @@ class RecordMessageConverterTest {
         .setHeaderIfAbsent(LANGUAGE, "IT")
         .setHeader(STEP, "TRANSFORM")
         .setHeader(STATUS, "FAIL")
-        .setHeader(ERROR, null)
+        .setHeader(ERRORS, null)
         .build();
 
     var message = MessageBuilder.withBody("This is the content".getBytes(StandardCharsets.UTF_8))
@@ -114,7 +114,7 @@ class RecordMessageConverterTest {
         .setHeaderIfAbsent(LANGUAGE, "IT")
         .setHeader(STEP, "TRANSFORM")
         .setHeader(STATUS, "FAIL")
-        .setHeader(ERRORS, List.of(List.of("failed","stack of failure")))
+        .setHeader(ERRORS, List.of(List.of("failed", "stack of failure")))
         .build();
 
     var message = MessageBuilder.withBody("This is the content".getBytes(StandardCharsets.UTF_8))

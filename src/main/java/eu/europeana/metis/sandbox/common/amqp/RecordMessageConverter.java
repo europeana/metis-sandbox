@@ -32,7 +32,6 @@ class RecordMessageConverter implements MessageConverter {
   protected static final String COUNTRY = "country";
   protected static final String STATUS = "status";
   protected static final String STEP = "step";
-  protected static final String ERROR = "error";
   protected static final String ERRORS = "errors";
 
   @Override
