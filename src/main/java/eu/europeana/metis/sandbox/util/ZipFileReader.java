@@ -16,8 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class provides the functionality of reading zip files.
  * <br /><br />
- * TODO search ZipFileReader class in project metis-common and add a method that also returns
- *   records as List<byte[]> then replace this class with that one
+ * TODO MET-2680
  */
 public class ZipFileReader {
 

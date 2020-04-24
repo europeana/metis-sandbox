@@ -26,10 +26,14 @@ import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class MediaProcessingServiceImpl implements MediaProcessingService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MediaProcessingServiceImpl.class);
 
   private final RdfConverterFactory converterFactory;
   private final MediaProcessorFactory processorFactory;
@@ -59,7 +63,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     List<RecordError> recordErrors = new LinkedList<>();
     try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
       for (RdfResourceEntry entry : resourceEntries) {
-        processResourceEntry(rdfForEnrichment, extractor, entry, recordErrors);
+        processResourceEntry(record, rdfForEnrichment, extractor, entry, recordErrors);
       }
     } catch (MediaProcessorException | IOException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
@@ -72,26 +76,30 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     return new RecordInfo(Record.from(record, outputRdf), recordErrors);
   }
 
-  private void processResourceEntry(EnrichedRdf rdfForEnrichment, MediaExtractor extractor,
+  private void processResourceEntry(Record record, EnrichedRdf rdfForEnrichment,
+      MediaExtractor extractor,
       RdfResourceEntry entry, List<RecordError> recordErrors) {
     try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) {
       if (nonNull(extraction)) {
         // Store thumbnails
-        storeThumbnails(extraction.getThumbnails(), recordErrors);
+        storeThumbnails(record, extraction.getThumbnails(), recordErrors);
         // Add result to RDF
         rdfForEnrichment.enrichResource(extraction.getMetadata());
       }
     } catch (MediaExtractionException | IOException e) {
+      LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
       // collect warn
       recordErrors.add(new RecordError(e));
     }
   }
 
-  private void storeThumbnails(List<Thumbnail> thumbnails, List<RecordError> recordErrors) {
+  private void storeThumbnails(Record record, List<Thumbnail> thumbnails,
+      List<RecordError> recordErrors) {
     if (nonNull(thumbnails)) {
       try {
         thumbnailStoreService.store(thumbnails);
       } catch (ThumbnailStoringException e) {
+        LOGGER.warn("Error while storing thumbnail for record {}. ", record.getRecordId(), e);
         // collect warn
         recordErrors.add(new RecordError(e));
       }
