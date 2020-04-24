@@ -45,7 +45,7 @@ class ExternallyValidatedConsumer {
     Event output;
     try {
       var record = service.transform(input.getBody());
-      var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.FAIL_NON_STOP;
+      var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new Event(record, Step.TRANSFORM, status);
     } catch (RecordProcessingException ex) {
       LOGGER.error(ex.getMessage(), ex);

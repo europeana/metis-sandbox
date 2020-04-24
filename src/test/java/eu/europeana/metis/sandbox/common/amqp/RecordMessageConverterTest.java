@@ -4,6 +4,7 @@ import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.COUN
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_NAME;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERROR;
+import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERRORS;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.LANGUAGE;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.RECORD_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STATUS;
@@ -20,8 +21,10 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,6 +46,22 @@ class RecordMessageConverterTest {
         .language(Language.IT)
         .datasetId("").datasetName("").recordId("").build();
     var event = new Event(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS);
+
+    var result = MessageBuilder.withBody(record.getContent())
+        .build();
+
+    var message = converter.toMessage(event, MessagePropertiesBuilder.newInstance().build());
+
+    assertArrayEquals(result.getBody(), message.getBody());
+  }
+
+  @Test
+  void toMessage_recordWithErrors_expectSuccess() {
+    var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
+        .language(Language.IT)
+        .datasetId("").datasetName("").recordId("").build();
+    var recordError = new RecordError(new Exception("failed here"));
+    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM, Status.SUCCESS);
 
     var result = MessageBuilder.withBody(record.getContent())
         .build();
@@ -81,5 +100,31 @@ class RecordMessageConverterTest {
 
     assertThat(result, instanceOf(Event.class));
     assertEquals("This is the content", ((Event) result).getBody().getContentString());
+  }
+
+  @Test
+  void fromMessage_recordWithErrors_expectSuccess() {
+
+    MessageProperties properties = MessagePropertiesBuilder.newInstance()
+        .setContentType(MessageProperties.CONTENT_TYPE_XML)
+        .setHeaderIfAbsent(RECORD_ID, "")
+        .setHeaderIfAbsent(DATASET_ID, "")
+        .setHeaderIfAbsent(DATASET_NAME, "")
+        .setHeaderIfAbsent(COUNTRY, "ITALY")
+        .setHeaderIfAbsent(LANGUAGE, "IT")
+        .setHeader(STEP, "TRANSFORM")
+        .setHeader(STATUS, "FAIL")
+        .setHeader(ERRORS, List.of(List.of("failed","stack of failure")))
+        .build();
+
+    var message = MessageBuilder.withBody("This is the content".getBytes(StandardCharsets.UTF_8))
+        .andProperties(properties)
+        .build();
+
+    Object result = converter.fromMessage(message);
+
+    assertThat(result, instanceOf(Event.class));
+    assertEquals("This is the content", ((Event) result).getBody().getContentString());
+    assertEquals("failed", ((Event) result).getRecordErrors().get(0).getMessage());
   }
 }

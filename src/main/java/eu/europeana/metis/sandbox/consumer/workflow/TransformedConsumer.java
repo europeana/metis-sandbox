@@ -45,7 +45,7 @@ class TransformedConsumer {
     Event output;
     try {
       var record = service.validate(input.getBody());
-      var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.FAIL_NON_STOP;
+      var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new Event(record, Step.VALIDATE_INTERNAL, status);
     } catch (RecordProcessingException ex) {
       LOGGER.error(ex.getMessage(), ex);

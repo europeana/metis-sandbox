@@ -17,9 +17,9 @@ import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.domain.Bucket;
 import java.io.IOException;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,11 +29,12 @@ class ThumbnailStoreServiceImplTest {
   @Mock
   private AmazonS3 s3client;
 
-  @Mock
-  private Bucket bucket;
-
-  @InjectMocks
   private ThumbnailStoreServiceImpl service;
+
+  @BeforeEach
+  public void setup() {
+    service = new ThumbnailStoreServiceImpl(s3client, new Bucket("bucket"));
+  }
 
   @Test
   void store_expectSuccess() {
@@ -44,7 +45,6 @@ class ThumbnailStoreServiceImplTest {
     when(thumbnail1.getTargetName()).thenReturn("image1");
     when(thumbnail2.getMimeType()).thenReturn("image/jpg");
     when(thumbnail2.getTargetName()).thenReturn("image2");
-    when(bucket.getName()).thenReturn("bucket");
 
     service.store(List.of(thumbnail1, thumbnail2));
 
@@ -58,7 +58,6 @@ class ThumbnailStoreServiceImplTest {
 
     when(thumbnail1.getMimeType()).thenReturn("image/jpg");
     when(thumbnail1.getTargetName()).thenReturn("image1");
-    when(bucket.getName()).thenReturn("bucket");
 
     when(s3client.putObject(any(PutObjectRequest.class))).thenThrow(new SdkClientException(""));
 
@@ -78,7 +77,6 @@ class ThumbnailStoreServiceImplTest {
     when(thumbnail1.getTargetName()).thenReturn("image1");
     doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnail1)
         .close();
-    when(bucket.getName()).thenReturn("bucket");
 
     when(s3client.putObject(any(PutObjectRequest.class))).thenThrow(new SdkClientException(""));
 

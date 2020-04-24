@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
+import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
@@ -128,5 +129,26 @@ class DatasetControllerTest {
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed")));
+  }
+
+  @Test
+  void processDataset_datasetServiceInvalidRecod_expectFail() throws Exception {
+
+    var records = List.of("record1".getBytes(), "record2".getBytes());
+
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        "<test></test>".getBytes());
+
+    when(zipService.parse(dataset)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+        .file(dataset)
+        .param("country", ITALY.name())
+        .param("language", IT.name()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("Error while parsing a xml record. ")));
   }
 }
