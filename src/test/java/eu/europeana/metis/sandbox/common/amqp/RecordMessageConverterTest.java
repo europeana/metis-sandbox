@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
@@ -59,7 +60,7 @@ class RecordMessageConverterTest {
     var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
         .language(Language.IT)
         .datasetId("").datasetName("").recordId("").build();
-    var recordError = new RecordError(new Exception("failed here"));
+    var recordError = new RecordError(new RecordProcessingException("23", new Exception("failed here")));
     var event = new Event(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
         Status.SUCCESS);
 

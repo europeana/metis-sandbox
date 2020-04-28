@@ -36,7 +36,7 @@ public class Record {
     this.datasetName = datasetName;
     this.country = country;
     this.language = language;
-    this.content = content;
+    this.content = content; //NOSONAR
   }
 
   /**
@@ -107,7 +107,7 @@ public class Record {
    * is expensive and Record object is expected to be use as a non mutable object
    */
   public byte[] getContent() {
-    return this.content;
+    return this.content; //NOSONAR
   }
 
 
@@ -193,7 +193,7 @@ public class Record {
     }
 
     public RecordBuilder content(byte[] content) {
-      this.content = content;
+      this.content = content; //NOSONAR
       return this;
     }
 

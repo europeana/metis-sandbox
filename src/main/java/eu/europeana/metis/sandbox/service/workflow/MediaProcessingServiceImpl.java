@@ -89,7 +89,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     } catch (MediaExtractionException | IOException e) {
       LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
       // collect warn
-      recordErrors.add(new RecordError(e));
+      recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
     }
   }
 
@@ -101,7 +101,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       } catch (ThumbnailStoringException e) {
         LOGGER.warn("Error while storing thumbnail for record {}. ", record.getRecordId(), e);
         // collect warn
-        recordErrors.add(new RecordError(e));
+        recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
       }
     }
   }
