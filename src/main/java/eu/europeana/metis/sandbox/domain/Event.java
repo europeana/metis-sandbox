@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,8 +11,7 @@ import java.util.List;
  */
 public class Event {
 
-  private final Record body;
-  private final List<RecordError> recordErrors;
+  private final RecordInfo recordInfo;
   private final Status status;
   private final Step step;
 
@@ -30,17 +28,16 @@ public class Event {
     requireNonNull(step, "Step must not be null");
     requireNonNull(status, "Status must not be null");
     this.status = status;
-    this.body = recordInfo.getRecord();
-    this.recordErrors = Collections.unmodifiableList(recordInfo.getErrors());
+    this.recordInfo = recordInfo;
     this.step = step;
   }
 
   public Record getBody() {
-    return body;
+    return recordInfo.getRecord();
   }
 
   public List<RecordError> getRecordErrors() {
-    return recordErrors;
+    return recordInfo.getErrors();
   }
 
   public Status getStatus() {

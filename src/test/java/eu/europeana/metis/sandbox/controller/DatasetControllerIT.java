@@ -50,7 +50,7 @@ class DatasetControllerIT {
 
   @Test
   public void retrieveDataset_expectStatus_ok() throws Exception {
-    mvc.perform(get("/dataset/{id}", "my-data-set"))
+    mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isOk());
   }
 

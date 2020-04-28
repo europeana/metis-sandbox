@@ -13,8 +13,8 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.entity.RecordLogEntity;
-import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,13 +22,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RecordLogServiceImplTest {
+class RecordStoreServiceImplTest {
 
   @Mock
-  private RecordLogRepository repository;
+  private RecordRepository repository;
 
   @InjectMocks
-  private RecordLogServiceImpl service;
+  private RecordStoreServiceImpl service;
 
   @Test
   void logRecord_expectSuccess() {
@@ -37,14 +37,14 @@ class RecordLogServiceImplTest {
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    service.logRecordEvent(event);
+    service.storeRecordEvent(event);
 
-    verify(repository).save(any(RecordLogEntity.class));
+    verify(repository).save(any(RecordEntity.class));
   }
 
   @Test
   void logRecord_nullRecord_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.logRecordEvent(null));
+    assertThrows(NullPointerException.class, () -> service.storeRecordEvent(null));
   }
 
   @Test
@@ -54,9 +54,9 @@ class RecordLogServiceImplTest {
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(repository.save(any(RecordLogEntity.class)))
+    when(repository.save(any(RecordEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
 
-    assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
+    assertThrows(ServiceException.class, () -> service.storeRecordEvent(event));
   }
 }

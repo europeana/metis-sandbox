@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
 
-public interface RecordLogService {
+public interface RecordStoreService {
 
   /**
    * Persist the record event to keep it as a log
@@ -12,5 +12,5 @@ public interface RecordLogService {
    * @throws NullPointerException if event record is null
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
-  void logRecordEvent(Event recordEvent);
+  void storeRecordEvent(Event recordEvent);
 }

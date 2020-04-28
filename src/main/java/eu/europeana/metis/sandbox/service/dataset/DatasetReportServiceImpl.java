@@ -8,8 +8,8 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
-import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.projection.DatasetReportView;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,29 +19,29 @@ import org.springframework.stereotype.Service;
 @Service
 class DatasetReportServiceImpl implements DatasetReportService {
 
-  private final RecordLogRepository repository;
+  private final RecordRepository repository;
 
   public DatasetReportServiceImpl(
-      RecordLogRepository repository) {
+      RecordRepository repository) {
     this.repository = repository;
   }
 
   @Override
   public DatasetInfoDto getReport(String datasetId) {
-    List<DatasetReportView> report;
+    List<RecordEntity> report;
 
     try {
       report = repository
-          .getByKeyDatasetIdAndResult(datasetId, Status.FAIL);
+          .getByDatasetIdAndStatus(datasetId, Status.FAIL);
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
     }
 
-    Map<Step, Map<String, List<DatasetReportView>>> reportGroup = report
+    Map<Step, Map<String, List<RecordEntity>>> reportGroup = report
         .stream()
-        .collect(groupingBy(x -> x.getKey().getStep(),
-            groupingBy(DatasetReportView::getError)));
+        .collect(groupingBy(RecordEntity::getStep,
+            groupingBy(x -> x.getRecordErrors().get(0).getMessage())));
 
     List<ReportByStepDto> reportList = new LinkedList<>();
 
@@ -51,11 +51,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private void addToReportList(List<ReportByStepDto> reportList, Step step,
-      Map<String, List<DatasetReportView>> errorsMap) {
+      Map<String, List<RecordEntity>> errorsMap) {
     List<ErrorInfoDto> errorInfoDtoList = new LinkedList<>();
 
     errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
-        new ErrorInfoDto(error, recordList.stream().map(record -> record.getKey().getId())
+        new ErrorInfoDto(error, recordList.stream().map(RecordEntity::getRecordId)
             .collect(Collectors.toList()))));
     reportList.add(new ReportByStepDto(step, errorInfoDtoList));
   }
