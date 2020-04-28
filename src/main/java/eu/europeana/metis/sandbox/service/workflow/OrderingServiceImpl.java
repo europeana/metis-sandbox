@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +18,10 @@ class OrderingServiceImpl implements OrderingService {
   }
 
   @Override
-  public String performOrdering(String record) throws TransformationException {
+  public String performOrdering(byte[] record) throws TransformationException {
     requireNonNull(record, "Record must not be null");
     return getEdmSorter()
-        .transform(record.getBytes(StandardCharsets.UTF_8), null)
+        .transform(record, null)
         .toString();
   }
 

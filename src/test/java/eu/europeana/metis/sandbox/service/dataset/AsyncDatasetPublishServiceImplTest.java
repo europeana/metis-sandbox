@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -9,7 +7,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
@@ -47,9 +44,9 @@ class AsyncDatasetPublishServiceImplTest {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
         .country(Country.ITALY)
-        .language(Language.IT).content("").build();
+        .language(Language.IT).content("".getBytes()).build();
     var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
-        .country(Country.ITALY).language(Language.IT).content("").build();
+        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
 
@@ -63,9 +60,9 @@ class AsyncDatasetPublishServiceImplTest {
 
     var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
         .country(Country.ITALY)
-        .language(Language.IT).content("").build();
+        .language(Language.IT).content("".getBytes()).build();
     var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
-        .country(Country.ITALY).language(Language.IT).content("").build();
+        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
 

@@ -6,6 +6,7 @@ import eu.europeana.enrichment.rest.client.DereferenceOrEnrichException;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.io.UnsupportedEncodingException;
 import org.jibx.runtime.JiBXException;
 import org.springframework.stereotype.Service;
@@ -20,16 +21,16 @@ class EnrichmentServiceImpl implements EnrichmentService {
   }
 
   @Override
-  public Record enrich(Record record) {
+  public RecordInfo enrich(Record record) {
     requireNonNull(record, "Record must not be null");
 
     String result;
     try {
-      result = enrichmentWorker.process(record.getContent());
+      result = enrichmentWorker.process(record.getContentString());
     } catch (DereferenceOrEnrichException | JiBXException | UnsupportedEncodingException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    return Record.from(record, result);
+    return new RecordInfo(Record.from(record, result));
   }
 }

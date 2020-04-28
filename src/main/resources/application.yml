@@ -50,6 +50,12 @@ sandbox:
     driverClassName: org.postgresql.Driver
     username: sandbox
     password:
+  s3:
+    access-key:
+    secret-key:
+    endpoint:
+    signing-region:
+    thumbnails-bucket:
   dataset:
     max-size: 1000
     creation:

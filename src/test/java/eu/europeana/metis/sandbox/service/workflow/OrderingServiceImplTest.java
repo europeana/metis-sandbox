@@ -45,7 +45,7 @@ class OrderingServiceImplTest {
     when(xsltSorter.transform(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
         .thenReturn(writer);
 
-    String result = service.performOrdering(input);
+    String result = service.performOrdering(input.getBytes());
 
     assertEquals(expected, result);
   }
@@ -63,6 +63,6 @@ class OrderingServiceImplTest {
     when(xsltSorter.transform(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
         .thenThrow(new TransformationException(new Exception("Failing here")));
 
-    assertThrows(TransformationException.class, () -> service.performOrdering(input));
+    assertThrows(TransformationException.class, () -> service.performOrdering(input.getBytes()));
   }
 }

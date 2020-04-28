@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
-import eu.europeana.metis.utils.ZipFileReader;
+import eu.europeana.metis.sandbox.util.ZipFileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -29,7 +29,7 @@ class ZipServiceImplTest {
   @Test
   void parse_expectSuccess() throws IOException {
     var file = new MockMultipartFile("file", new byte[]{});
-    var records = List.of("record1", "record2");
+    var records = List.of("record1".getBytes(), "record2".getBytes());
 
     when(reader.getRecordsFromZipFile(any(InputStream.class))).thenReturn(records);
 

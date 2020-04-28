@@ -29,7 +29,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public String createDataset(String datasetName, Country country, Language language,
-      List<String> records) {
+      List<byte[]> records) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");

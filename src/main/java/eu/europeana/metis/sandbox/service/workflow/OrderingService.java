@@ -12,5 +12,5 @@ public interface OrderingService {
    * @throws NullPointerException    if xml is null
    * @throws TransformationException if ordering fails
    */
-  String performOrdering(String xml) throws TransformationException;
+  String performOrdering(byte[] xml) throws TransformationException;
 }
