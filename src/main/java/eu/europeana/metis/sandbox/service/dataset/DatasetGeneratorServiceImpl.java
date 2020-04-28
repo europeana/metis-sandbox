@@ -24,7 +24,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
   @Override
   public Dataset generate(String id, String name, Country country, Language language,
-      List<String> records) {
+      List<byte[]> records) {
     requireNonNull(name, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");

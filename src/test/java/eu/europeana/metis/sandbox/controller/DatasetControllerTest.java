@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
+import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -48,7 +49,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    var records = List.of("record1", "record2");
+    var records = List.of("record1".getBytes(), "record2".getBytes());
 
     when(zipService.parse(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn("12345");
@@ -96,7 +97,7 @@ class DatasetControllerTest {
   @Test
   void processDataset_recordsQtyExceeded_expectFail() throws Exception {
 
-    var records = IntStream.range(0, 1000).boxed().map(Object::toString).collect(
+    var records = IntStream.range(0, 1000).boxed().map(Object::toString).map(String::getBytes).collect(
         Collectors.toList());
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
@@ -116,7 +117,7 @@ class DatasetControllerTest {
   @Test
   void processDataset_datasetServiceFails_expectFail() throws Exception {
 
-    var records = List.of("record1", "record2");
+    var records = List.of("record1".getBytes(), "record2".getBytes());
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
@@ -132,5 +133,26 @@ class DatasetControllerTest {
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed")));
+  }
+
+  @Test
+  void processDataset_datasetServiceInvalidRecod_expectFail() throws Exception {
+
+    var records = List.of("record1".getBytes(), "record2".getBytes());
+
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        "<test></test>".getBytes());
+
+    when(zipService.parse(dataset)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+        .file(dataset)
+        .param("country", ITALY.name())
+        .param("language", IT.name()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("Error while parsing a xml record. ")));
   }
 }

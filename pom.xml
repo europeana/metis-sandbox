@@ -43,6 +43,7 @@
 		<version.springfox>2.9.2</version.springfox>
 		<version.metis>1.8.0</version.metis>
 		<version.postgresql>42.2.11</version.postgresql>
+		<version.aws.s3>1.11.762</version.aws.s3>
 		<version.commons.io>2.6</version.commons.io>
 		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
 		<version.coveralls>4.0.0</version.coveralls>
@@ -132,6 +133,18 @@
 			</exclusions>
 		</dependency>
 
+		<dependency>
+			<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-media-service</artifactId>
+			<version>${version.metis}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j-impl</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 		<!-- Persistence -->
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -143,6 +156,12 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>${version.postgresql}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>${version.aws.s3}</version>
 		</dependency>
 
 		<!-- Test -->

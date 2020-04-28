@@ -6,22 +6,22 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
- * Contains info about an error of processing an event
+ * Contains info about an error of processing an record
  */
-public class EventError {
+public class RecordError {
 
   private final String message;
   private final String stackTrace;
 
-  public EventError(RecordProcessingException exception) {
+  public RecordError(RecordProcessingException exception) {
     requireNonNull(exception, "Exception must not be null");
     this.message = exception.getReportMessage();
     this.stackTrace = ExceptionUtils.getStackTrace(exception);
   }
 
-  public EventError(String message, String stackTrace) {
+  public RecordError(String message, String stackTrace) {
     requireNonNull(message, "Message must not be null");
-    requireNonNull(stackTrace, "StackTrace must not be null");
+    requireNonNull(stackTrace, "Stack trace must not be null");
     this.message = message;
     this.stackTrace = stackTrace;
   }

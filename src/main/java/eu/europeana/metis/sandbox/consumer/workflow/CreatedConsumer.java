@@ -4,9 +4,10 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.EventError;
-import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordError;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -42,13 +43,15 @@ class CreatedConsumer {
     }
 
     Event output;
-    Record record;
     try {
-      record = service.validate(input.getBody());
-      output = new Event(record, Step.VALIDATE_EXTERNAL);
+      var record = service.validate(input.getBody());
+      var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
+      output = new Event(record, Step.VALIDATE_EXTERNAL, status);
     } catch (RecordProcessingException ex) {
       LOGGER.error("Exception while performing external validation step. ", ex);
-      output = new Event(input.getBody(), Step.VALIDATE_EXTERNAL, new EventError(ex));
+      var recordError = new RecordError(ex);
+      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)),
+          Step.VALIDATE_EXTERNAL, Status.FAIL);
     }
 
     amqpTemplate.convertAndSend(routingKey, output);

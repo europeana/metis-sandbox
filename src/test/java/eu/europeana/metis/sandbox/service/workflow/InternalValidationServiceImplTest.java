@@ -30,7 +30,7 @@ class InternalValidationServiceImplTest {
   @Test
   void validate_expectSuccess() {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     var validationResult = new ValidationResult();
@@ -42,13 +42,13 @@ class InternalValidationServiceImplTest {
 
     var result = service.validate(record);
 
-    assertEquals(record, result);
+    assertEquals(record, result.getRecord());
   }
 
   @Test
   void validate_validationError_expectFail() {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     var validationResult = new ValidationResult();

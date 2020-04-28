@@ -22,5 +22,5 @@ public interface DatasetGeneratorService {
    * @throws RecordParsingException   if fails extracting a record id
    */
   Dataset generate(String id, String name, Country country, Language language,
-      List<String> records);
+      List<byte[]> records);
 }

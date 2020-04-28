@@ -38,7 +38,7 @@ class NormalizationServiceImplTest {
   @Test
   void normalize_expectSuccess() throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     var normalizationResult = NormalizationResult.createInstanceForSuccess("success", new NormalizationReport());
@@ -48,14 +48,14 @@ class NormalizationServiceImplTest {
 
     var result = service.normalize(record);
 
-    assertEquals("success", result.getContent());
+    assertEquals("success", result.getRecord().getContentString());
   }
 
   @Test
   void normalize_normalizationConfigException_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     when(normalizerFactory.getNormalizer()).thenThrow(new NormalizationConfigurationException("issue", new Exception()));
@@ -69,7 +69,7 @@ class NormalizationServiceImplTest {
   void normalize_normalizationException_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     when(normalizerFactory.getNormalizer()).thenReturn(normalizer);
@@ -82,7 +82,7 @@ class NormalizationServiceImplTest {
   void normalize_resultWithErrorMessage_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     var normalizationResult = NormalizationResult.createInstanceForError("error", "fail");

@@ -38,7 +38,7 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_expectSuccess() throws Exception {
-    var xmlRecord = utils.readFileToString("record/valid-record.xml");
+    var xmlRecord = utils.readFileToBytes("record/valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
@@ -54,7 +54,7 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_recordParsingException_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToString("record/valid-record.xml");
+    var xmlRecord = utils.readFileToBytes("record/valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
     when(xPathFactory.newXPath()).thenReturn(xPath);
@@ -66,7 +66,7 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_recordMissingId_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToString("record/record-missing-id.xml");
+    var xmlRecord = utils.readFileToBytes("record/record-missing-id.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 

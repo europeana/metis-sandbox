@@ -36,29 +36,29 @@ class ExternalValidationServiceImplTest {
   @Test
   void validate_expectSuccess() throws TransformationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(true);
     validationResult.setRecordId("1");
 
-    when(orderingService.performOrdering("")).thenReturn("");
+    when(orderingService.performOrdering("".getBytes())).thenReturn("");
     when(validationExecutionService.singleValidation(SCHEMA, null, null, ""))
         .thenReturn(validationResult);
 
     var result = service.validate(record);
 
-    assertEquals(record, result);
+    assertEquals(record, result.getRecord());
   }
 
   @Test
   void validate_orderingError_expectFail() throws TransformationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
-    when(orderingService.performOrdering(""))
+    when(orderingService.performOrdering("".getBytes()))
         .thenThrow(new TransformationException(new Exception("issue")));
 
     assertThrows(RecordProcessingException.class, () -> service.validate(record));
@@ -69,14 +69,14 @@ class ExternalValidationServiceImplTest {
   @Test
   void validate_validationError_expectFail() throws TransformationException {
     var record = Record.builder().recordId("1")
-        .content("").language(Language.IT).country(Country.ITALY)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(false);
     validationResult.setRecordId("1");
 
-    when(orderingService.performOrdering("")).thenReturn("");
+    when(orderingService.performOrdering("".getBytes())).thenReturn("");
     when(validationExecutionService.singleValidation(SCHEMA, null, null, ""))
         .thenReturn(validationResult);
 

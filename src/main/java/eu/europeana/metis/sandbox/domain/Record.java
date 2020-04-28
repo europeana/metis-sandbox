@@ -4,23 +4,33 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * Immutable object that represents a record
+ * Object that represents a record.
+ * <br /><br />
+ * Stores the record content as a byte[], do not
+ * override the byte[] contents after object construction, we are not making a copy of it because it
+ * is expensive and Record object is expected to be use as a non mutable object.
  */
 public class Record {
+
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   private final String recordId;
   private final String datasetId;
   private final String datasetName;
   private final Country country;
   private final Language language;
-  private final String content;
+  private final byte[] content;
+  private String contentString;
 
   private Record(String recordId, String datasetId, String datasetName,
-      Country country, Language language, String content) {
+      Country country, Language language, byte[] content) {
     this.recordId = recordId;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
@@ -38,6 +48,19 @@ public class Record {
    * @throws NullPointerException if any parameter is null
    */
   public static Record from(Record record, String content) {
+    requireNonNull(content);
+    return from(record, content.getBytes(DEFAULT_CHARSET));
+  }
+
+  /**
+   * Creates a record based on the provided record but replacing the content with the one provided
+   *
+   * @param record  must not be null
+   * @param content must not be null. Xml representation of the record
+   * @return record object
+   * @throws NullPointerException if any parameter is null
+   */
+  public static Record from(Record record, byte[] content) {
     requireNonNull(record);
     requireNonNull(content);
 
@@ -75,8 +98,31 @@ public class Record {
     return this.language;
   }
 
-  public String getContent() {
+  /**
+   * Content of the record
+   *
+   * @implNote Overwriting this field contents after construction could cause problems.
+   * <br />
+   * We are not making a copy of it because it
+   * is expensive and Record object is expected to be use as a non mutable object
+   */
+  public byte[] getContent() {
     return this.content;
+  }
+
+
+  /**
+   * In the future the content will only be available through byte array
+   * For now we still need it since but after https://europeana.atlassian.net/browse/MET-2680
+   * is done we can remove this method
+   * @deprecated
+   */
+  @Deprecated(forRemoval = true)
+  public String getContentString() {
+    if(contentString == null) {
+      contentString = new String(content, DEFAULT_CHARSET);
+    }
+    return contentString;
   }
 
   @Override
@@ -108,7 +154,7 @@ public class Record {
         .add("datasetName='" + datasetName + "'")
         .add("country=" + country)
         .add("language=" + language)
-        .add("content='" + content + "'")
+        .add("content='" + Arrays.toString(content) + "'")
         .toString();
   }
 
@@ -119,7 +165,7 @@ public class Record {
     private String datasetName;
     private Country country;
     private Language language;
-    private String content;
+    private byte[] content;
 
     public RecordBuilder recordId(String recordId) {
       this.recordId = recordId;
@@ -146,7 +192,7 @@ public class Record {
       return this;
     }
 
-    public RecordBuilder content(String content) {
+    public RecordBuilder content(byte[] content) {
       this.content = content;
       return this;
     }

@@ -40,9 +40,9 @@ class DatasetServiceImplTest {
   @Test
   void createDataset_expectSuccess() {
 
-    var records = List.of("record1");
+    var records = List.of("record1".getBytes());
     var record = Record.builder().datasetId("").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("").recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234_name", List.of(record));
     var datasetEntity = new DatasetEntity("name", 5);
     datasetEntity.setDatasetId("1");
@@ -73,9 +73,9 @@ class DatasetServiceImplTest {
   @Test
   void createDataset_saveFail_expectSuccess() {
 
-    var records = List.of("record1");
+    var records = List.of("record1".getBytes());
     var record = Record.builder().datasetId("").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("").recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234_name", List.of(record));
 
     when(datasetRepository.save(any(DatasetEntity.class)))

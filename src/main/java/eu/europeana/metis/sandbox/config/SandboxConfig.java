@@ -1,9 +1,11 @@
 package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
+import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
+import eu.europeana.metis.sandbox.util.ZipFileReader;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import eu.europeana.metis.utils.ZipFileReader;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
@@ -121,6 +123,16 @@ class SandboxConfig {
   @Bean
   EnrichmentWorker enrichmentWorker() {
     return new EnrichmentWorker(dereferenceServiceUrl, enrichmentServiceUrl);
+  }
+
+  @Bean
+  RdfConverterFactory rdfConverterFactory() {
+    return new RdfConverterFactory();
+  }
+
+  @Bean
+  MediaProcessorFactory mediaProcessorFactory() {
+    return new MediaProcessorFactory();
   }
 
   @Bean
