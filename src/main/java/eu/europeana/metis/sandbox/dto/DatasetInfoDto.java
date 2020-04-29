@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
 import io.swagger.annotations.ApiModel;
 import java.util.List;
@@ -8,19 +9,21 @@ import java.util.List;
 public class DatasetInfoDto {
 
   private String progress;
-  private List<ReportByStepDto> report;
 
-  public DatasetInfoDto(String progress, List<ReportByStepDto> report) {
+  @JsonProperty("errors-report")
+  private List<ReportByStepDto> errorsReport;
+
+  public DatasetInfoDto(String progress, List<ReportByStepDto> errorsReport) {
     this.progress = progress;
-    this.report = report;
+    this.errorsReport = errorsReport;
   }
 
-  public List<ReportByStepDto> getReport() {
-    return report;
+  public List<ReportByStepDto> getErrorsReport() {
+    return errorsReport;
   }
 
-  public void setReport(List<ReportByStepDto> report) {
-    this.report = report;
+  public void setErrorsReport(List<ReportByStepDto> errorsReport) {
+    this.errorsReport = errorsReport;
   }
 
   public String getProgress() {

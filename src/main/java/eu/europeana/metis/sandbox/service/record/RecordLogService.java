@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
 
-public interface RecordStoreService {
+public interface RecordLogService {
 
   /**
    * Persist the record event to keep it as a log

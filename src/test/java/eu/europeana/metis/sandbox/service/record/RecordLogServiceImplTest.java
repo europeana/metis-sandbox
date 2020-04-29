@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,13 +22,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RecordStoreServiceImplTest {
+class RecordLogServiceImplTest {
 
   @Mock
-  private RecordRepository repository;
+  private RecordLogRepository repository;
 
   @InjectMocks
-  private RecordStoreServiceImpl service;
+  private RecordLogServiceImpl service;
 
   @Test
   void logRecord_expectSuccess() {

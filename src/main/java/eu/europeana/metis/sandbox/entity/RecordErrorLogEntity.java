@@ -2,13 +2,12 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import java.util.Objects;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -19,23 +18,26 @@ public class RecordErrorLogEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  private RecordLogEntity record;
+  private String recordId;
 
   private String datasetId;
 
+  @Enumerated(EnumType.STRING)
   private Step step;
 
+  @Enumerated(EnumType.STRING)
   private Status status;
 
   private String message;
 
   private String stackTrace;
 
-  public RecordErrorLogEntity(RecordLogEntity record, Step step, String message,
-      String stackTrace) {
-    this.record = record;
+  public RecordErrorLogEntity(String recordId, String datasetId,
+      Step step, Status status, String message, String stackTrace) {
+    this.recordId = recordId;
+    this.datasetId = datasetId;
     this.step = step;
+    this.status = status;
     this.message = message;
     this.stackTrace = stackTrace;
   }
@@ -52,12 +54,20 @@ public class RecordErrorLogEntity {
     this.id = id;
   }
 
-  public RecordLogEntity getRecord() {
-    return record;
+  public String getRecordId() {
+    return recordId;
   }
 
-  public void setRecord(RecordLogEntity recordId) {
-    this.record = recordId;
+  public void setRecordId(String recordId) {
+    this.recordId = recordId;
+  }
+
+  public String getDatasetId() {
+    return datasetId;
+  }
+
+  public void setDatasetId(String datasetId) {
+    this.datasetId = datasetId;
   }
 
   public Step getStep() {
@@ -66,6 +76,14 @@ public class RecordErrorLogEntity {
 
   public void setStep(Step step) {
     this.step = step;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
   }
 
   public String getMessage() {
@@ -82,26 +100,5 @@ public class RecordErrorLogEntity {
 
   public void setStackTrace(String stackTrace) {
     this.stackTrace = stackTrace;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    RecordErrorLogEntity that = (RecordErrorLogEntity) o;
-    return Objects.equals(id, that.id) &&
-        record.equals(that.record) &&
-        step == that.step &&
-        message.equals(that.message) &&
-        stackTrace.equals(that.stackTrace);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, record, step, message, stackTrace);
   }
 }

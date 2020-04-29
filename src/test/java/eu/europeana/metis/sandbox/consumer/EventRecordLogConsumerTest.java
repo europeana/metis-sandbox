@@ -13,7 +13,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.service.record.RecordStoreService;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class EventRecordLogConsumerTest {
 
   @Mock
-  private RecordStoreService recordStoreService;
+  private RecordLogService recordLogService;
 
   @InjectMocks
   private EventRecordLogConsumer consumer;
@@ -39,7 +39,7 @@ class EventRecordLogConsumerTest {
 
     consumer.logRecord(recordEvent);
 
-    verify(recordStoreService).storeRecordEvent(any(Event.class));
+    verify(recordLogService).storeRecordEvent(any(Event.class));
   }
 
   @Test
@@ -50,10 +50,10 @@ class EventRecordLogConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    doThrow(new RecordProcessingException("1", new Exception())).when(recordStoreService)
+    doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)
         .storeRecordEvent(any(Event.class));
     assertThrows(RecordProcessingException.class, () -> consumer.logRecord(recordEvent));
 
-    verify(recordStoreService).storeRecordEvent(any(Event.class));
+    verify(recordLogService).storeRecordEvent(any(Event.class));
   }
 }
