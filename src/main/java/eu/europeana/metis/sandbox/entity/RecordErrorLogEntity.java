@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.entity;
 
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
 import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,27 +12,35 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "record_error")
-public class RecordErrorEntity {
+@Table(name = "record_error_log")
+public class RecordErrorLogEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  private RecordEntity record;
+  private RecordLogEntity record;
+
+  private String datasetId;
+
+  private Step step;
+
+  private Status status;
 
   private String message;
 
   private String stackTrace;
 
-  public RecordErrorEntity(RecordEntity record, String message, String stackTrace) {
+  public RecordErrorLogEntity(RecordLogEntity record, Step step, String message,
+      String stackTrace) {
     this.record = record;
+    this.step = step;
     this.message = message;
     this.stackTrace = stackTrace;
   }
 
-  public RecordErrorEntity() {
+  public RecordErrorLogEntity() {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
@@ -42,12 +52,20 @@ public class RecordErrorEntity {
     this.id = id;
   }
 
-  public RecordEntity getRecord() {
+  public RecordLogEntity getRecord() {
     return record;
   }
 
-  public void setRecord(RecordEntity recordId) {
+  public void setRecord(RecordLogEntity recordId) {
     this.record = recordId;
+  }
+
+  public Step getStep() {
+    return step;
+  }
+
+  public void setStep(Step step) {
+    this.step = step;
   }
 
   public String getMessage() {
@@ -74,12 +92,16 @@ public class RecordErrorEntity {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    RecordErrorEntity that = (RecordErrorEntity) o;
-    return id.equals(that.id);
+    RecordErrorLogEntity that = (RecordErrorLogEntity) o;
+    return Objects.equals(id, that.id) &&
+        record.equals(that.record) &&
+        step == that.step &&
+        message.equals(that.message) &&
+        stackTrace.equals(that.stackTrace);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id);
+    return Objects.hash(id, record, step, message, stackTrace);
   }
 }

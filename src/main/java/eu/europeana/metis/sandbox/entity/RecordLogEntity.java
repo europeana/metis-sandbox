@@ -2,7 +2,9 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -13,8 +15,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "record")
-public class RecordEntity {
+@Table(name = "record_log")
+public class RecordLogEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +34,10 @@ public class RecordEntity {
 
   private String content;
 
-  @OneToMany(mappedBy = "record")
-  private List<RecordErrorEntity> recordErrors;
+  @OneToMany(mappedBy = "record", cascade = CascadeType.ALL)
+  private List<RecordErrorLogEntity> recordErrors = new ArrayList<>();
 
-  public RecordEntity(String recordId, String datasetId, Step step,
+  public RecordLogEntity(String recordId, String datasetId, Step step,
       Status status, String content) {
     this.recordId = recordId;
     this.datasetId = datasetId;
@@ -44,7 +46,7 @@ public class RecordEntity {
     this.status = status;
   }
 
-  public RecordEntity() {
+  public RecordLogEntity() {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
@@ -96,12 +98,22 @@ public class RecordEntity {
     this.status = result;
   }
 
-  public List<RecordErrorEntity> getRecordErrors() {
+  public List<RecordErrorLogEntity> getRecordErrors() {
     return recordErrors;
   }
 
   public void setRecordErrors(
-      List<RecordErrorEntity> recordErrors) {
+      List<RecordErrorLogEntity> recordErrors) {
     this.recordErrors = recordErrors;
+  }
+
+  public void addRecordError(RecordErrorLogEntity recordErrorLogEntity) {
+    recordErrors.add(recordErrorLogEntity);
+    recordErrorLogEntity.setRecord(this);
+  }
+
+  public void removeRecordError(RecordErrorLogEntity recordErrorLogEntity) {
+    recordErrors.remove(recordErrorLogEntity);
+    recordErrorLogEntity.setRecord(null);
   }
 }

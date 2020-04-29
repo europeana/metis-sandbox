@@ -13,7 +13,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +39,7 @@ class RecordStoreServiceImplTest {
 
     service.storeRecordEvent(event);
 
-    verify(repository).save(any(RecordEntity.class));
+    verify(repository).save(any(RecordLogEntity.class));
   }
 
   @Test
@@ -54,7 +54,7 @@ class RecordStoreServiceImplTest {
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(repository.save(any(RecordEntity.class)))
+    when(repository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
 
     assertThrows(ServiceException.class, () -> service.storeRecordEvent(event));

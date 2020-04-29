@@ -8,13 +8,15 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
+import eu.europeana.metis.sandbox.repository.projection.DatasetReportView;
+import eu.europeana.metis.sandbox.repository.projection.RecordView;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class DatasetReportServiceImpl implements DatasetReportService {
@@ -27,21 +29,28 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public DatasetInfoDto getReport(String datasetId) {
-    List<RecordEntity> report;
+    List<DatasetReportView> report;
 
     try {
       report = repository
-          .getByDatasetIdAndStatus(datasetId, Status.FAIL);
+          .getByDatasetIdAndStatusNot(datasetId, Status.SUCCESS);
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
     }
 
-    Map<Step, Map<String, List<RecordEntity>>> reportGroup = report
+    List<RecordView> records = new LinkedList<>();
+
+    report.forEach(record -> record.getRecordErrors().forEach(error ->
+        records.add(new RecordView(record.getId(), record.getRecordId(), record.getDatasetId(),
+            record.getStep(), error.getMessage()))));
+
+    Map<Step, Map<String, List<RecordView>>> reportGroup = records
         .stream()
-        .collect(groupingBy(RecordEntity::getStep,
-            groupingBy(x -> x.getRecordErrors().get(0).getMessage())));
+        .collect(groupingBy(RecordView::getStep,
+            groupingBy(RecordView::getErrorMessage)));
 
     List<ReportByStepDto> reportList = new LinkedList<>();
 
@@ -51,11 +60,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private void addToReportList(List<ReportByStepDto> reportList, Step step,
-      Map<String, List<RecordEntity>> errorsMap) {
+      Map<String, List<RecordView>> errorsMap) {
     List<ErrorInfoDto> errorInfoDtoList = new LinkedList<>();
 
     errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
-        new ErrorInfoDto(error, recordList.stream().map(RecordEntity::getRecordId)
+        new ErrorInfoDto(error, recordList.stream().map(RecordView::getRecordId)
             .collect(Collectors.toList()))));
     reportList.add(new ReportByStepDto(step, errorInfoDtoList));
   }
