@@ -24,7 +24,7 @@ public class RecordInfo {
   }
 
   /**
-   * Constructor, store errors as an non modifiable list
+   * Constructor, store errors as a non modifiable list
    *
    * @param record must not be null
    * @param errors must not be null

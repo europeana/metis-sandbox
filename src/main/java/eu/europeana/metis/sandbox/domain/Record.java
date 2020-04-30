@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -34,7 +35,7 @@ public class Record {
     this.datasetName = datasetName;
     this.country = country;
     this.language = language;
-    this.content = content; //NOSONAR
+    this.content = Arrays.copyOf(content, content.length);
   }
 
   /**
