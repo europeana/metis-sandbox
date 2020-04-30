@@ -35,7 +35,7 @@ public class Record {
     this.datasetName = datasetName;
     this.country = country;
     this.language = language;
-    this.content = Arrays.copyOf(content, content.length);
+    this.content = content; //NOSONAR
   }
 
   /**
@@ -180,7 +180,7 @@ public class Record {
     }
 
     public RecordBuilder content(byte[] content) {
-      this.content = content; //NOSONAR
+      this.content = Arrays.copyOf(content, content.length);
       return this;
     }
 
