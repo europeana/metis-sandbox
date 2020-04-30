@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.record;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +15,7 @@ import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
+import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +27,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RecordLogServiceImplTest {
 
   @Mock
-  private RecordLogRepository repository;
+  private RecordLogRepository recordLogRepository;
+
+  @Mock
+  RecordErrorLogRepository errorLogRepository;
 
   @InjectMocks
   private RecordLogServiceImpl service;
@@ -37,26 +42,40 @@ class RecordLogServiceImplTest {
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    service.storeRecordEvent(event);
+    service.logRecordEvent(event);
 
-    verify(repository).save(any(RecordLogEntity.class));
+    verify(recordLogRepository).save(any(RecordLogEntity.class));
+    verify(errorLogRepository).saveAll(anyList());
   }
 
   @Test
   void logRecord_nullRecord_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.storeRecordEvent(null));
+    assertThrows(NullPointerException.class, () -> service.logRecordEvent(null));
   }
 
   @Test
-  void logRecord_unableToSave_expectFail() {
+  void logRecord_unableToSaveRecord_expectFail() {
     var record = Record.builder().recordId("").content("".getBytes()).datasetId("")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(repository.save(any(RecordLogEntity.class)))
+    when(recordLogRepository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
 
-    assertThrows(ServiceException.class, () -> service.storeRecordEvent(event));
+    assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
+  }
+
+  @Test
+  void logRecord_unableToSaveRecordErrors_expectFail() {
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId("")
+        .language(Language.IT).country(Country.ITALY).datasetName("").build();
+
+    var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+
+    when(errorLogRepository.saveAll(anyList()))
+        .thenThrow(new RuntimeException("Exception saving"));
+
+    assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
   }
 }

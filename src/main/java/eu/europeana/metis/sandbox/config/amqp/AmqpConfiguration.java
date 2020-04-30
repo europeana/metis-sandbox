@@ -125,97 +125,28 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    var queues = new Queues()
-        .setCreated(createdQueue)
-        .setExternalValidated(externalValidatedQueue)
-        .setTransformed(transformedQueue)
-        .setInternalValidated(internalValidatedQueue)
-        .setNormalized(normalizedQueue)
-        .setEnriched(enrichedQueue)
-        .setMediaProcessed(mediaProcessedQueue)
-        .setIndexed(indexedQueue);
-    return getDeclarables(queues);
+    return getDeclarables(createdQueue, externalValidatedQueue, transformedQueue,
+        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue, indexedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    var dlqs = new Queues()
-        .setCreated(createdDlq)
-        .setExternalValidated(externalValidatedDlq)
-        .setTransformed(transformedDlq)
-        .setInternalValidated(internalValidatedDlq)
-        .setNormalized(normalizedDlq)
-        .setEnriched(enrichedDlq)
-        .setMediaProcessed(mediaProcessedDlq)
-        .setIndexed(indexedDlq);
-    return getDeclarables(dlqs);
+    return getDeclarables(createdDlq, externalValidatedDlq, transformedDlq,
+        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq, indexedDlq);
   }
 
-  private Declarables getDeclarables(Queues qs) {
+  private Declarables getDeclarables(String created, //NOSONAR
+      String externalValidated, String transformed, String normalized,
+      String internalValidated, String enriched, String mediaProcessed, String indexed) {
     return new Declarables(
-        new Binding(qs.created, DestinationType.QUEUE, exchange, qs.created, null),
-        new Binding(qs.externalValidated, DestinationType.QUEUE, exchange, qs.externalValidated, null),
-        new Binding(qs.transformed, DestinationType.QUEUE, exchange, qs.transformed, null),
-        new Binding(qs.normalized, DestinationType.QUEUE, exchange, qs.normalized, null),
-        new Binding(qs.internalValidated, DestinationType.QUEUE, exchange, qs.internalValidated, null),
-        new Binding(qs.enriched, DestinationType.QUEUE, exchange, qs.enriched, null),
-        new Binding(qs.mediaProcessed, DestinationType.QUEUE, exchange, qs.mediaProcessed, null),
-        new Binding(qs.indexed, DestinationType.QUEUE, exchange, qs.indexed, null)
+        new Binding(created, DestinationType.QUEUE, exchange, created, null),
+        new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
+        new Binding(transformed, DestinationType.QUEUE, exchange, transformed, null),
+        new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),
+        new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
+        new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
+        new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
+        new Binding(indexed, DestinationType.QUEUE, exchange, indexed, null)
     );
-  }
-
-  private static class Queues {
-    private String created;
-    private String externalValidated;
-    private String transformed;
-    private String internalValidated;
-    private String normalized;
-    private String enriched;
-    private String mediaProcessed;
-    private String indexed;
-
-    public Queues() {
-      //empty constructor
-    }
-
-    public Queues setCreated(String created) {
-      this.created = created;
-      return this;
-    }
-
-    public Queues setExternalValidated(String externalValidated) {
-      this.externalValidated = externalValidated;
-      return this;
-    }
-
-    public Queues setTransformed(String transformed) {
-      this.transformed = transformed;
-      return this;
-    }
-
-    public Queues setInternalValidated(String internallyValidated) {
-      this.internalValidated = internallyValidated;
-      return this;
-    }
-
-    public Queues setNormalized(String normalized) {
-      this.normalized = normalized;
-      return this;
-    }
-
-    public Queues setEnriched(String enriched) {
-      this.enriched = enriched;
-      return this;
-    }
-
-    public Queues setMediaProcessed(String mediaProcessed) {
-      this.mediaProcessed = mediaProcessed;
-      return this;
-    }
-
-    public Queues setIndexed(String indexed) {
-      this.indexed = indexed;
-      return this;
-    }
   }
 }

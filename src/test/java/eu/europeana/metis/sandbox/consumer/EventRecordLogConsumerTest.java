@@ -39,7 +39,7 @@ class EventRecordLogConsumerTest {
 
     consumer.logRecord(recordEvent);
 
-    verify(recordLogService).storeRecordEvent(any(Event.class));
+    verify(recordLogService).logRecordEvent(any(Event.class));
   }
 
   @Test
@@ -51,9 +51,9 @@ class EventRecordLogConsumerTest {
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)
-        .storeRecordEvent(any(Event.class));
+        .logRecordEvent(any(Event.class));
     assertThrows(RecordProcessingException.class, () -> consumer.logRecord(recordEvent));
 
-    verify(recordLogService).storeRecordEvent(any(Event.class));
+    verify(recordLogService).logRecordEvent(any(Event.class));
   }
 }

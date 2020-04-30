@@ -12,5 +12,5 @@ public interface RecordLogService {
    * @throws NullPointerException if event record is null
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
-  void storeRecordEvent(Event recordEvent);
+  void logRecordEvent(Event recordEvent);
 }

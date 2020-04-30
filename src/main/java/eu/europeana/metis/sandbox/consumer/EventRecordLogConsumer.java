@@ -21,6 +21,6 @@ class EventRecordLogConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.log.queue}", containerFactory = "recordLogFactory")
   public void logRecord(Event input) {
-    recordLogService.storeRecordEvent(input);
+    recordLogService.logRecordEvent(input);
   }
 }

@@ -24,7 +24,7 @@ public class RecordProcessingException extends ServiceException {
    * Gives the ability to provide a custom message
    * @param message of what failed
    * @param recordId that failed
-   * @param reportMessage message for report
+   * @param reportMessage message for reporting purposes
    * @param cause of the exception
    */
   protected RecordProcessingException(String message, String recordId, String reportMessage, Throwable cause) {
