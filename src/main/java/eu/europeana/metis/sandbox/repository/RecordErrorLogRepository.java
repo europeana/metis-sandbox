@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEntity, Long> {
 
-  List<ErrorLogView> getByDatasetId(String datasetId);
+  List<ErrorLogView> getByDatasetId(Integer datasetId);
 }

@@ -30,7 +30,7 @@ class DatasetGeneratorServiceImplTest {
     when(xmlRecordProcessorService.getRecordId(any(byte[].class))).thenReturn("id");
 
     var dataset = generator
-        .generate("1", "name", Country.ITALY, Language.IT,
+        .generate(1, "name", Country.ITALY, Language.IT,
             List.of("record1".getBytes(), "records".getBytes()));
 
     assertEquals(2, dataset.getRecords().size());
@@ -39,6 +39,6 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generate_emptyRecords_expectFail() {
     assertThrows(IllegalArgumentException.class, () -> generator
-        .generate("1", "name", Country.ITALY, Language.IT, List.of()));
+        .generate(1, "name", Country.ITALY, Language.IT, List.of()));
   }
 }

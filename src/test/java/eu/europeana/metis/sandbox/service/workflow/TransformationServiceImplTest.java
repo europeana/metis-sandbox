@@ -43,7 +43,7 @@ class TransformationServiceImplTest {
     var expected = testUtils.readFileToString("record/transform/record-expected.xml");
 
     var record = Record.builder()
-        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
+        .datasetId(1).datasetName("").country(Country.ITALY).language(Language.IT).content(input)
         .recordId("").build();
 
     StringWriter writer = new StringWriter();
@@ -69,7 +69,7 @@ class TransformationServiceImplTest {
     var input = testUtils.readFileToBytes("record/bad-order/record-input.xml");
 
     var record = Record.builder()
-        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
+        .datasetId(1).datasetName("").country(Country.ITALY).language(Language.IT).content(input)
         .recordId("1").build();
 
     when(objectProvider.getObject(anyString(), anyString(), anyString()))

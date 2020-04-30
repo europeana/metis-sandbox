@@ -9,7 +9,7 @@ public interface ErrorLogView {
 
   String getRecordId();
 
-  String getDatasetId();
+  Integer getDatasetId();
 
   Step getStep();
 

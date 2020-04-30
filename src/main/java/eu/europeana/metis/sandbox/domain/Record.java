@@ -6,9 +6,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * Object that represents a record.
@@ -22,14 +20,14 @@ public class Record {
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   private final String recordId;
-  private final String datasetId;
+  private final Integer datasetId;
   private final String datasetName;
   private final Country country;
   private final Language language;
   private final byte[] content;
   private String contentString;
 
-  private Record(String recordId, String datasetId, String datasetName,
+  private Record(String recordId, Integer datasetId, String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
     this.datasetId = datasetId;
@@ -82,7 +80,7 @@ public class Record {
     return this.recordId;
   }
 
-  public String getDatasetId() {
+  public Integer getDatasetId() {
     return this.datasetId;
   }
 
@@ -101,10 +99,9 @@ public class Record {
   /**
    * Content of the record
    *
-   * @implNote Overwriting this field contents after construction could cause problems.
-   * <br />
-   * We are not making a copy of it because it
-   * is expensive and Record object is expected to be use as a non mutable object
+   * @implNote Overwriting this field contents after construction could cause problems. <br /> We
+   * are not making a copy of it because it is expensive and Record object is expected to be use as
+   * a non mutable object
    */
   public byte[] getContent() {
     return this.content; //NOSONAR
@@ -112,14 +109,15 @@ public class Record {
 
 
   /**
-   * In the future the content will only be available through byte array
-   * For now we still need it since but after https://europeana.atlassian.net/browse/MET-2680
-   * is done we can remove this method
+   * In the future the content will only be available through byte array For now we still need it
+   * since but after https://europeana.atlassian.net/browse/MET-2680 is done we can remove this
+   * method
+   *
    * @deprecated
    */
   @Deprecated(forRemoval = true)
   public String getContentString() {
-    if(contentString == null) {
+    if (contentString == null) {
       contentString = new String(content, DEFAULT_CHARSET);
     }
     return contentString;
@@ -146,22 +144,10 @@ public class Record {
     return Objects.hash(recordId, datasetId, datasetName, country, language);
   }
 
-  @Override
-  public String toString() {
-    return new StringJoiner(", ", Record.class.getSimpleName() + "[", "]")
-        .add("recordId='" + recordId + "'")
-        .add("datasetId='" + datasetId + "'")
-        .add("datasetName='" + datasetName + "'")
-        .add("country=" + country)
-        .add("language=" + language)
-        .add("content='" + Arrays.toString(content) + "'")
-        .toString();
-  }
-
   public static class RecordBuilder {
 
     private String recordId;
-    private String datasetId;
+    private Integer datasetId;
     private String datasetName;
     private Country country;
     private Language language;
@@ -172,7 +158,7 @@ public class Record {
       return this;
     }
 
-    public RecordBuilder datasetId(String datasetId) {
+    public RecordBuilder datasetId(Integer datasetId) {
       this.datasetId = datasetId;
       return this;
     }

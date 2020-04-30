@@ -13,10 +13,12 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,10 +39,12 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_expectSuccess() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId("")
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId(1)
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
+    var recordError = new RecordError("message", "stack");
 
-    var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.CREATE,
+        Status.SUCCESS);
 
     service.logRecordEvent(event);
 
@@ -55,7 +59,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSaveRecord_expectFail() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId("")
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId(1)
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
@@ -68,7 +72,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSaveRecordErrors_expectFail() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId("")
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId(1)
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);

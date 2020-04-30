@@ -37,7 +37,7 @@ class ExternalValidationServiceImplTest {
   void validate_expectSuccess() throws TransformationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(true);
@@ -56,7 +56,7 @@ class ExternalValidationServiceImplTest {
   void validate_orderingError_expectFail() throws TransformationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     when(orderingService.performOrdering("".getBytes()))
         .thenThrow(new TransformationException(new Exception("issue")));
@@ -70,7 +70,7 @@ class ExternalValidationServiceImplTest {
   void validate_validationError_expectFail() throws TransformationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(false);

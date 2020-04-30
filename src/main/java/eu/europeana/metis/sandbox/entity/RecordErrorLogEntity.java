@@ -20,7 +20,7 @@ public class RecordErrorLogEntity {
 
   private String recordId;
 
-  private String datasetId;
+  private Integer datasetId;
 
   @Enumerated(EnumType.STRING)
   private Step step;
@@ -32,7 +32,7 @@ public class RecordErrorLogEntity {
 
   private String stackTrace;
 
-  public RecordErrorLogEntity(String recordId, String datasetId,
+  public RecordErrorLogEntity(String recordId, Integer datasetId,
       Step step, Status status, String message, String stackTrace) {
     this.recordId = recordId;
     this.datasetId = datasetId;
@@ -62,11 +62,11 @@ public class RecordErrorLogEntity {
     this.recordId = recordId;
   }
 
-  public String getDatasetId() {
+  public Integer getDatasetId() {
     return datasetId;
   }
 
-  public void setDatasetId(String datasetId) {
+  public void setDatasetId(Integer datasetId) {
     this.datasetId = datasetId;
   }
 

@@ -20,7 +20,7 @@ public class RecordLogEntity {
 
   private String recordId;
 
-  private String datasetId;
+  private Integer datasetId;
 
   @Enumerated(EnumType.STRING)
   private Step step;
@@ -30,7 +30,7 @@ public class RecordLogEntity {
 
   private String content;
 
-  public RecordLogEntity(String recordId, String datasetId,
+  public RecordLogEntity(String recordId, Integer datasetId,
       Step step, Status status, String content) {
     this.recordId = recordId;
     this.datasetId = datasetId;
@@ -59,11 +59,11 @@ public class RecordLogEntity {
     this.recordId = recordId;
   }
 
-  public String getDatasetId() {
+  public Integer getDatasetId() {
     return datasetId;
   }
 
-  public void setDatasetId(String datasetId) {
+  public void setDatasetId(Integer datasetId) {
     this.datasetId = datasetId;
   }
 

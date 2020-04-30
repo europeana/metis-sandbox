@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.core.convert.converter.Converter;
 
-public class StringToCountryConverter implements Converter<String, Country> {
+class StringToCountryConverter implements Converter<String, Country> {
 
   private static final Map<String, Country> MAP = Stream
       .of(Country.values())

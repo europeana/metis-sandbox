@@ -42,13 +42,13 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publish_expectSuccess() throws Exception {
 
-    var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
+    var record1 = Record.builder().datasetId(1).datasetName("").recordId("1")
         .country(Country.ITALY)
         .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
+    var record2 = Record.builder().datasetId(1).datasetName("").recordId("2")
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
-    Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
+    Dataset dataset = new Dataset(1234, List.of(record1, record2));
 
     service.publish(dataset).get();
 
@@ -58,13 +58,13 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publish_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
-    var record1 = Record.builder().datasetId("").datasetName("").recordId("1")
+    var record1 = Record.builder().datasetId(1).datasetName("").recordId("1")
         .country(Country.ITALY)
         .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("").datasetName("").recordId("2")
+    var record2 = Record.builder().datasetId(1).datasetName("").recordId("2")
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
-    Dataset dataset = new Dataset("1234_name", List.of(record1, record2));
+    Dataset dataset = new Dataset(1234, List.of(record1, record2));
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(Event.class));
@@ -81,7 +81,7 @@ class AsyncDatasetPublishServiceImplTest {
 
   @Test
   void publish_emptyRecords_expectFail() {
-    Dataset dataset = new Dataset("1234_name", List.of());
+    Dataset dataset = new Dataset(1234, List.of());
     assertThrows(IllegalArgumentException.class, () -> service.publish(dataset));
   }
 }

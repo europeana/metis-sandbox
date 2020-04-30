@@ -68,7 +68,7 @@ class DatasetController {
   @ApiOperation("Get dataset progress information")
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
   public DatasetInfoDto retrieveDataset(
-      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") Integer datasetId) {
     return reportService.getReport(datasetId);
   }
 }

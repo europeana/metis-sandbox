@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.core.convert.converter.Converter;
 
-public class StringToLanguageConverter implements Converter<String, Language> {
+class StringToLanguageConverter implements Converter<String, Language> {
 
   private static final Map<String, Language> MAP = Stream
       .of(Language.values())

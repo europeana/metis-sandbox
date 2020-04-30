@@ -32,7 +32,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   @Override
   @Transactional(readOnly = true)
-  public DatasetInfoDto getReport(String datasetId) {
+  public DatasetInfoDto getReport(Integer datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 
     List<ErrorLogView> report;
@@ -46,7 +46,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
     if (!report.isEmpty()) {
       Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> reportGroup = report
           .stream()
-          .sorted(Comparator.comparing(ErrorLogView::getStep))
+          .sorted(Comparator.comparing(ErrorLogView::getStep)
+              .thenComparing(ErrorLogView::getRecordId))
           .collect(groupingBy(ErrorLogView::getStep, LinkedHashMap::new,
               groupingBy(ErrorLogView::getStatus,
                   groupingBy(ErrorLogView::getMessage))));
@@ -66,7 +67,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     statusMap.forEach((status, errorsMap) ->
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
-            new ErrorInfoDto(error, status, recordList.stream().map(ErrorLogView::getRecordId)
+            new ErrorInfoDto(error, status, recordList.stream()
+                .map(ErrorLogView::getRecordId)
+                .sorted(String::compareTo)
                 .collect(Collectors.toList())))));
     reportList.add(new ReportByStepDto(step, errorInfoDtoList));
   }

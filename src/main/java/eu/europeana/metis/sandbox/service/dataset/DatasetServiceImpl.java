@@ -28,7 +28,7 @@ class DatasetServiceImpl implements DatasetService {
   }
 
   @Override
-  public String createDataset(String datasetName, Country country, Language language,
+  public Integer createDataset(String datasetName, Country country, Language language,
       List<byte[]> records) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
@@ -37,7 +37,7 @@ class DatasetServiceImpl implements DatasetService {
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
     var entity = new DatasetEntity(datasetName, records.size());
-    String id;
+    Integer id;
     try {
       id = datasetRepository.save(entity).getDatasetId();
     } catch (Exception e) {

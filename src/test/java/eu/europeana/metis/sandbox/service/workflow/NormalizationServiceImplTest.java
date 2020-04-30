@@ -39,7 +39,7 @@ class NormalizationServiceImplTest {
   void normalize_expectSuccess() throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     var normalizationResult = NormalizationResult.createInstanceForSuccess("success", new NormalizationReport());
 
@@ -56,7 +56,7 @@ class NormalizationServiceImplTest {
       throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     when(normalizerFactory.getNormalizer()).thenThrow(new NormalizationConfigurationException("issue", new Exception()));
 
@@ -70,7 +70,7 @@ class NormalizationServiceImplTest {
       throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     when(normalizerFactory.getNormalizer()).thenReturn(normalizer);
     when(normalizer.normalize(anyString())).thenThrow(new NormalizationException("issue", new Exception()));
@@ -83,7 +83,7 @@ class NormalizationServiceImplTest {
       throws NormalizationConfigurationException, NormalizationException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId(1).build();
 
     var normalizationResult = NormalizationResult.createInstanceForError("error", "fail");
 

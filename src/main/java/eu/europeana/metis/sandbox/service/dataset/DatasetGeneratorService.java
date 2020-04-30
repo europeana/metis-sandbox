@@ -21,6 +21,6 @@ public interface DatasetGeneratorService {
    * @throws IllegalArgumentException if records list is empty
    * @throws RecordParsingException   if fails extracting a record id
    */
-  Dataset generate(String id, String name, Country country, Language language,
+  Dataset generate(Integer id, String name, Country country, Language language,
       List<byte[]> records);
 }
