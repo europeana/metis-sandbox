@@ -180,6 +180,7 @@ public class Record {
     }
 
     public RecordBuilder content(byte[] content) {
+      requireNonNull(content, "Content must not be null");
       this.content = Arrays.copyOf(content, content.length);
       return this;
     }
@@ -190,7 +191,6 @@ public class Record {
       requireNonNull(datasetName, "Dataset name id must not be null");
       requireNonNull(country, "Country must not be null");
       requireNonNull(language, "Language must not be null");
-      requireNonNull(content, "Content must not be null");
       return new Record(recordId, datasetId, datasetName, country, language, content);
     }
   }
