@@ -3,30 +3,11 @@ package eu.europeana.metis.sandbox.entity;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "record_error_log")
-public class RecordErrorLogEntity {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
-  private String recordId;
-
-  private Integer datasetId;
-
-  @Enumerated(EnumType.STRING)
-  private Step step;
-
-  @Enumerated(EnumType.STRING)
-  private Status status;
+public class RecordErrorLogEntity extends RecordEntity {
 
   private String message;
 
@@ -44,46 +25,6 @@ public class RecordErrorLogEntity {
 
   public RecordErrorLogEntity() {
     // provide explicit no-args constructor as it is required for Hibernate
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getRecordId() {
-    return recordId;
-  }
-
-  public void setRecordId(String recordId) {
-    this.recordId = recordId;
-  }
-
-  public Integer getDatasetId() {
-    return datasetId;
-  }
-
-  public void setDatasetId(Integer datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  public Step getStep() {
-    return step;
-  }
-
-  public void setStep(Step step) {
-    this.step = step;
-  }
-
-  public Status getStatus() {
-    return status;
-  }
-
-  public void setStatus(Status status) {
-    this.status = status;
   }
 
   public String getMessage() {
