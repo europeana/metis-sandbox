@@ -1,13 +1,46 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static java.util.Objects.requireNonNull;
+
+import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.exception.IndexingException;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
+import java.io.IOException;
+import java.util.Date;
+import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class IndexingServiceImpl implements IndexingService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(IndexingServiceImpl.class);
+
+  private final Indexer indexer;
+
+  public IndexingServiceImpl(
+      Indexer indexer) {
+    this.indexer = indexer;
+  }
+
   @Override
-  public void index(Record record) {
-    // Not yet implemented
+  public RecordInfo index(Record record) {
+    requireNonNull(record, "Record must not be null");
+    try {
+      indexer.index(record.getContentString(), new Date(), false, null, false);
+    } catch (IndexingException ex) {
+      throw new RecordProcessingException(record.getRecordId(), ex);
+    }
+
+    return new RecordInfo(record);
+  }
+
+  @PreDestroy
+  public void destroy() throws IOException {
+    LOGGER.info("Close indexer");
+    indexer.close();
   }
 }

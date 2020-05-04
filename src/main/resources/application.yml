@@ -80,6 +80,24 @@ sandbox:
   enrichment:
     dereference-url:
     enrichment-url:
+  indexing:
+    mongo:
+      db:
+      hosts:
+      ports:
+      authentication-db:
+      username:
+      password:
+      ssl-enable:
+    solr:
+      hosts:
+      zookeeper:
+        hosts:
+        ports:
+        chroot:
+        default:
+          collection:
+        timeout:
   rabbitmq:
     exchange:
       name: sandbox
