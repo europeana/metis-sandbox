@@ -8,7 +8,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * Object that represents a record.
@@ -29,6 +28,9 @@ public class Record {
   private final byte[] content;
   private String contentString;
 
+  //Suppress: Mutable members should not be stored or returned directly
+  //byte[] coming from RecordBuilder is already a copy of the original byte[]
+  @SuppressWarnings("squid:S2384")
   private Record(String recordId, String datasetId, String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
@@ -101,25 +103,27 @@ public class Record {
   /**
    * Content of the record
    *
-   * @implNote Overwriting this field contents after construction could cause problems.
-   * <br />
-   * We are not making a copy of it because it
-   * is expensive and Record object is expected to be use as a non mutable object
+   * @implNote Overwriting this field contents after construction could cause problems. <br /> We
+   * are not making a copy of it because it is expensive and Record object is expected to be use as
+   * a non mutable object
    */
+  //Suppress: Mutable members should not be stored or returned directly
+  @SuppressWarnings("squid:S2384")
   public byte[] getContent() {
     return this.content;
   }
 
 
   /**
-   * In the future the content will only be available through byte array
-   * For now we still need it since but after https://europeana.atlassian.net/browse/MET-2680
-   * is done we can remove this method
+   * In the future the content will only be available through byte array For now we still need it
+   * since but after https://europeana.atlassian.net/browse/MET-2680 is done we can remove this
+   * method
+   *
    * @deprecated
    */
   @Deprecated(forRemoval = true)
   public String getContentString() {
-    if(contentString == null) {
+    if (contentString == null) {
       contentString = new String(content, DEFAULT_CHARSET);
     }
     return contentString;
@@ -144,18 +148,6 @@ public class Record {
   @Override
   public int hashCode() {
     return Objects.hash(recordId, datasetId, datasetName, country, language);
-  }
-
-  @Override
-  public String toString() {
-    return new StringJoiner(", ", Record.class.getSimpleName() + "[", "]")
-        .add("recordId='" + recordId + "'")
-        .add("datasetId='" + datasetId + "'")
-        .add("datasetName='" + datasetName + "'")
-        .add("country=" + country)
-        .add("language=" + language)
-        .add("content='" + Arrays.toString(content) + "'")
-        .toString();
   }
 
   public static class RecordBuilder {
@@ -193,7 +185,8 @@ public class Record {
     }
 
     public RecordBuilder content(byte[] content) {
-      this.content = content;
+      requireNonNull(content, "Content must not be null");
+      this.content = Arrays.copyOf(content, content.length);
       return this;
     }
 
@@ -203,7 +196,6 @@ public class Record {
       requireNonNull(datasetName, "Dataset name id must not be null");
       requireNonNull(country, "Country must not be null");
       requireNonNull(language, "Language must not be null");
-      requireNonNull(content, "Content must not be null");
       return new Record(recordId, datasetId, datasetName, country, language, content);
     }
   }

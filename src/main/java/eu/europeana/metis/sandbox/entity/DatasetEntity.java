@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.entity;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,13 +12,10 @@ public class DatasetEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column
   private String datasetId;
 
-  @Column
   private String datasetName;
 
-  @Column
   private Integer recordsQuantity;
 
   public DatasetEntity(String datasetName, Integer recordsQuantity) {
@@ -28,6 +24,7 @@ public class DatasetEntity {
   }
 
   public DatasetEntity() {
+    // provide explicit no-args constructor as it is required for Hibernate
   }
 
   public String getDatasetId() {

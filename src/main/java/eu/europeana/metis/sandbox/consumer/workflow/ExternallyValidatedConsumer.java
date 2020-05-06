@@ -48,7 +48,7 @@ class ExternallyValidatedConsumer {
       var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new Event(record, Step.TRANSFORM, status);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      LOGGER.error("Exception while performing transformation step. ", ex);
       var recordError = new RecordError(ex);
       output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), Step.TRANSFORM,
           Status.FAIL);

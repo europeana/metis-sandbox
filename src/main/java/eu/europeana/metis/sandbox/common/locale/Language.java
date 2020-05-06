@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.common.locale;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Language {
   AR("ar"), AZ("az"), BE("be"), BG("bg"), BS("bs"), CA("ca"), CS("cs"), CY(
       "cy"), DA("da"), DE("de"), EL("el"), EN("en"), ES("es"), ET("et"), EU(
@@ -15,6 +17,7 @@ public enum Language {
     this.value = value;
   }
 
+  @JsonValue
   public String xmlValue() {
     return value;
   }

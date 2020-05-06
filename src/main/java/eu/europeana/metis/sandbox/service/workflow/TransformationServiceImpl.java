@@ -29,7 +29,7 @@ class TransformationServiceImpl implements TransformationService {
     String recordTransformed;
     try {
       var europeanaGeneratedIdsMap = new EuropeanaIdCreator()
-          .constructEuropeanaId(record.getContentString(), record.getDatasetId());
+          .constructEuropeanaId(record.getContentString(), record.getDatasetId().toString());
       var transformer = getTransformer(record.getDatasetName(),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
       recordTransformed = transformer.transform(record.getContent(), europeanaGeneratedIdsMap)

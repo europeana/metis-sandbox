@@ -32,7 +32,7 @@ class EventRecordLogConsumerTest {
   @Test
   void logRecord_expectSuccess() {
     var record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
@@ -45,7 +45,7 @@ class EventRecordLogConsumerTest {
   @Test
   void logRecord_logError_expectFail() {
     var record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);

@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.util.StringJoiner;
 import org.springframework.http.HttpStatus;
 
 @ApiModel("ExceptionModel")
@@ -33,14 +32,5 @@ public class ExceptionModelDto {
 
   public String getMessage() {
     return this.message;
-  }
-
-  @Override
-  public String toString() {
-    return new StringJoiner(", ", ExceptionModelDto.class.getSimpleName() + "[", "]")
-        .add("statusCode=" + statusCode)
-        .add("status=" + status)
-        .add("message='" + message + "'")
-        .toString();
   }
 }

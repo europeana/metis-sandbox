@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.dto;
 import static java.util.Objects.requireNonNull;
 
 import io.swagger.annotations.ApiModel;
-import java.util.StringJoiner;
 
 @ApiModel("Dataset")
 public class DatasetIdDto {
@@ -17,12 +16,5 @@ public class DatasetIdDto {
 
   public String getDatasetId() {
     return this.datasetId;
-  }
-
-  @Override
-  public String toString() {
-    return new StringJoiner(", ", DatasetIdDto.class.getSimpleName() + "[", "]")
-        .add("datasetId='" + datasetId + "'")
-        .toString();
   }
 }

@@ -7,12 +7,12 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -37,10 +37,14 @@ class DatasetController {
 
   private final ZipService zipService;
   private final DatasetService datasetService;
+  private final DatasetReportService reportService;
 
-  public DatasetController(ZipService zipService, DatasetService datasetService) {
+  public DatasetController(ZipService zipService,
+      DatasetService datasetService,
+      DatasetReportService reportService) {
     this.zipService = zipService;
     this.datasetService = datasetService;
+    this.reportService = reportService;
   }
 
   @ApiOperation("Process the given dataset")
@@ -48,8 +52,8 @@ class DatasetController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto processDataset(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
-      @ApiParam(value = "country of the dataset", required = true, defaultValue = "NETHERLANDS") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "NL") @RequestParam Language language,
+      @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
       @ApiParam(value = "dataset records in a zip file", required = true) @RequestParam MultipartFile dataset) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
@@ -57,7 +61,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    var datasetId = datasetService.createDataset(datasetName, country, language, records);
+    String datasetId = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetId);
   }
 
@@ -65,6 +69,6 @@ class DatasetController {
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
   public DatasetInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-    return new DatasetInfoDto(20, 10, 5, 5, List.of("record1", "record2"));
+    return reportService.getReport(datasetId);
   }
 }

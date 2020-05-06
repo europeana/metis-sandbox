@@ -48,7 +48,7 @@ class TransformedConsumer {
       var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new Event(record, Step.VALIDATE_INTERNAL, status);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      LOGGER.error("Exception while performing internal validation step. ", ex);
       var recordError = new RecordError(ex);
       output = new Event(new RecordInfo(input.getBody(), List.of(recordError)),
           Step.VALIDATE_INTERNAL, Status.FAIL);
