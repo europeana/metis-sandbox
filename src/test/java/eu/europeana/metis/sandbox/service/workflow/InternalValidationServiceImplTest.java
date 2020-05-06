@@ -31,7 +31,7 @@ class InternalValidationServiceImplTest {
   void validate_expectSuccess() {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId("1").build();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(true);
@@ -49,7 +49,7 @@ class InternalValidationServiceImplTest {
   void validate_validationError_expectFail() {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
+        .datasetName("").datasetId("1").build();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(false);

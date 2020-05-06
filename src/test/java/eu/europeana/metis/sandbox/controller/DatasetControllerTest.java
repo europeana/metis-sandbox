@@ -5,13 +5,20 @@ import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
 import java.util.List;
@@ -38,6 +45,9 @@ class DatasetControllerTest {
 
   @MockBean
   private DatasetService datasetService;
+
+  @MockBean
+  private DatasetReportService datasetReportService;
 
   @Test
   void processDataset_expectSuccess() throws Exception {
@@ -93,8 +103,9 @@ class DatasetControllerTest {
   @Test
   void processDataset_recordsQtyExceeded_expectFail() throws Exception {
 
-    var records = IntStream.range(0, 1000).boxed().map(Object::toString).map(String::getBytes).collect(
-        Collectors.toList());
+    var records = IntStream.range(0, 1000).boxed().map(Object::toString).map(String::getBytes)
+        .collect(
+            Collectors.toList());
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
@@ -132,7 +143,7 @@ class DatasetControllerTest {
   }
 
   @Test
-  void processDataset_datasetServiceInvalidRecod_expectFail() throws Exception {
+  void processDataset_datasetServiceInvalidRecord_expectFail() throws Exception {
 
     var records = List.of("record1".getBytes(), "record2".getBytes());
 
@@ -150,5 +161,33 @@ class DatasetControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Error while parsing a xml record. ")));
+  }
+
+  @Test
+  public void retrieveDataset_expectSuccess() throws Exception {
+    var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
+    var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
+    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1","2"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3","4"));
+    var errors = List.of(error1, error2);
+    var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
+    var report = new DatasetInfoDto("TBD", List.of(reportByStep));
+    when(datasetReportService.getReport("1")).thenReturn(report);
+
+    mvc.perform(get("/dataset/{id}", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.errors-report[0].step",
+        is("external validation")));
+  }
+
+  @Test
+  public void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
+
+    when(datasetReportService.getReport("1")).thenThrow(new ServiceException("Failed", new Exception()));
+
+    mvc.perform(get("/dataset/{id}", "1"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.message",
+            is("Failed")));
   }
 }

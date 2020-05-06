@@ -11,6 +11,8 @@ import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.domain.Bucket;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,8 +31,11 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
   @Override
   public void store(List<Thumbnail> thumbnails) {
     requireNonNull(thumbnails, "Thumbnails must not be null");
+    var notNullThumbnails = thumbnails.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
 
-    for (Thumbnail thumbnail : thumbnails) {
+    for (Thumbnail thumbnail : notNullThumbnails) {
       try (thumbnail) {
         store(thumbnail);
       } catch (IOException | SdkClientException e) {
@@ -40,11 +45,11 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
   }
 
   private void store(Thumbnail thumbnail) throws IOException {
-    ObjectMetadata metadata = new ObjectMetadata();
+    var metadata = new ObjectMetadata();
     metadata.setContentLength(thumbnail.getContentSize());
     metadata.setContentType(thumbnail.getMimeType());
 
-    PutObjectRequest request = new PutObjectRequest(
+    var request = new PutObjectRequest(
         thumbnailsBucket.getName(), thumbnail.getTargetName(),
         thumbnail.getContentStream(), metadata);
 

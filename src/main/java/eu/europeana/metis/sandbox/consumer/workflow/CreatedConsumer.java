@@ -48,7 +48,7 @@ class CreatedConsumer {
       var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new Event(record, Step.VALIDATE_EXTERNAL, status);
     } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      LOGGER.error("Exception while performing external validation step. ", ex);
       var recordError = new RecordError(ex);
       output = new Event(new RecordInfo(input.getBody(), List.of(recordError)),
           Step.VALIDATE_EXTERNAL, Status.FAIL);
