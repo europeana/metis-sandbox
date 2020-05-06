@@ -48,29 +48,29 @@ class DatasetReportServiceImplTest {
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
     var errorView4 = new ErrorLogViewImpl(1L, "4", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
-    when(errorLogRepository.getByDatasetId(1))
+    when(errorLogRepository.getByDatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
 
-    var result = service.getReport(1);
+    var result = service.getReport("1");
 
     assertReportEquals(report, result);
   }
 
   @Test
   void getReport_emptyReport_expectSuccess() {
-    when(errorLogRepository.getByDatasetId(1)).thenReturn(List.of());
+    when(errorLogRepository.getByDatasetId("1")).thenReturn(List.of());
 
-    var result = service.getReport(1);
+    var result = service.getReport("1");
 
     assertTrue(result.getErrorsReport().isEmpty());
   }
 
   @Test
   void getReport_failToRetrieveData_expectFail() {
-    when(errorLogRepository.getByDatasetId(1))
+    when(errorLogRepository.getByDatasetId("1"))
         .thenThrow(new ServiceException("failed", new Exception()));
 
-    assertThrows(ServiceException.class, () -> service.getReport(1));
+    assertThrows(ServiceException.class, () -> service.getReport("1"));
   }
 
   @Test

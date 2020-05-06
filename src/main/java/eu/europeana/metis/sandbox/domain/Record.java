@@ -21,7 +21,7 @@ public class Record {
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   private final String recordId;
-  private final Integer datasetId;
+  private final String datasetId;
   private final String datasetName;
   private final Country country;
   private final Language language;
@@ -31,7 +31,7 @@ public class Record {
   //Suppress: Mutable members should not be stored or returned directly
   //byte[] coming from RecordBuilder is already a copy of the original byte[]
   @SuppressWarnings("squid:S2384")
-  private Record(String recordId, Integer datasetId, String datasetName,
+  private Record(String recordId, String datasetId, String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
     this.datasetId = datasetId;
@@ -84,7 +84,7 @@ public class Record {
     return this.recordId;
   }
 
-  public Integer getDatasetId() {
+  public String getDatasetId() {
     return this.datasetId;
   }
 
@@ -153,7 +153,7 @@ public class Record {
   public static class RecordBuilder {
 
     private String recordId;
-    private Integer datasetId;
+    private String datasetId;
     private String datasetName;
     private Country country;
     private Language language;
@@ -164,7 +164,7 @@ public class Record {
       return this;
     }
 
-    public RecordBuilder datasetId(Integer datasetId) {
+    public RecordBuilder datasetId(String datasetId) {
       this.datasetId = datasetId;
       return this;
     }

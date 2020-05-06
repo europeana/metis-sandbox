@@ -21,6 +21,6 @@ public interface DatasetService {
    * @throws ServiceException         if any unhandled exception happens, exception will contain original exception
    * @throws RecordParsingException   if fails to parse a record from the records list
    */
-  Integer createDataset(String datasetName, Country country, Language language,
+  String createDataset(String datasetName, Country country, Language language,
       List<byte[]> records);
 }

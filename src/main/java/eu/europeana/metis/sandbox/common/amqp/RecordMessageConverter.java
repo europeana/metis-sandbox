@@ -72,7 +72,7 @@ class RecordMessageConverter implements MessageConverter {
     byte[] content = message.getBody();
     MessageProperties properties = message.getMessageProperties();
     String recordId = properties.getHeader(RECORD_ID);
-    Integer datasetId = properties.getHeader(DATASET_ID);
+    String datasetId = properties.getHeader(DATASET_ID);
     String datasetName = properties.getHeader(DATASET_NAME);
     String language = properties.getHeader(LANGUAGE);
     String country = properties.getHeader(COUNTRY);

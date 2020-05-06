@@ -39,7 +39,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_expectSuccess() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId(1)
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
@@ -59,7 +59,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSaveRecord_expectFail() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId(1)
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
@@ -72,7 +72,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSaveRecordErrors_expectFail() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId(1)
+    var record = Record.builder().recordId("").content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);

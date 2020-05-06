@@ -18,7 +18,7 @@ class RecordEntity {
 
   protected String recordId;
 
-  protected Integer datasetId;
+  protected String datasetId;
 
   @Enumerated(EnumType.STRING)
   protected Step step;
@@ -42,11 +42,11 @@ class RecordEntity {
     this.recordId = recordId;
   }
 
-  public Integer getDatasetId() {
+  public String getDatasetId() {
     return datasetId;
   }
 
-  public void setDatasetId(Integer datasetId) {
+  public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
   }
 

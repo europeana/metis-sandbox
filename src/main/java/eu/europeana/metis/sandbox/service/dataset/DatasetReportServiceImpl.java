@@ -32,7 +32,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   @Override
   @Transactional(readOnly = true)
-  public DatasetInfoDto getReport(Integer datasetId) {
+  public DatasetInfoDto getReport(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 
     List<ErrorLogView> report;

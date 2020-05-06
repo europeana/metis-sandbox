@@ -11,7 +11,7 @@ public class RecordLogEntity extends RecordEntity {
 
   private String content;
 
-  public RecordLogEntity(String recordId, Integer datasetId,
+  public RecordLogEntity(String recordId, String datasetId,
       Step step, Status status, String content) {
     this.recordId = recordId;
     this.datasetId = datasetId;

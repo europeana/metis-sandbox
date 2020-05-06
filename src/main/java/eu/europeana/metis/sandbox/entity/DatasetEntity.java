@@ -12,7 +12,7 @@ public class DatasetEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer datasetId;
+  private String datasetId;
 
   private String datasetName;
 
@@ -27,7 +27,7 @@ public class DatasetEntity {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
-  public Integer getDatasetId() {
+  public String getDatasetId() {
     return this.datasetId;
   }
 
@@ -39,7 +39,7 @@ public class DatasetEntity {
     return this.recordsQuantity;
   }
 
-  public void setDatasetId(Integer datasetId) {
+  public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
   }
 

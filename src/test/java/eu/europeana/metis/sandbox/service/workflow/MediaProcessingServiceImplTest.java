@@ -77,7 +77,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -116,7 +116,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_createRdfDeserializer_expectFail() throws RdfConverterException {
     var record = Record.builder().recordId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     when(converterFactory.createRdfDeserializer())
         .thenThrow(new RdfConverterException("failed", new Exception()));
@@ -134,7 +134,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -169,7 +169,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(deserializer.getResourceEntriesForMediaExtraction(content))
@@ -186,7 +186,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -209,7 +209,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -249,7 +249,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -279,7 +279,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -325,7 +325,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -349,7 +349,7 @@ class MediaProcessingServiceImplTest {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId(1).build();
+        .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));

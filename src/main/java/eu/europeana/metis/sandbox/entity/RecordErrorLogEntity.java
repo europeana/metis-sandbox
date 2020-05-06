@@ -13,7 +13,7 @@ public class RecordErrorLogEntity extends RecordEntity {
 
   private String stackTrace;
 
-  public RecordErrorLogEntity(String recordId, Integer datasetId,
+  public RecordErrorLogEntity(String recordId, String datasetId,
       Step step, Status status, String message, String stackTrace) {
     this.recordId = recordId;
     this.datasetId = datasetId;

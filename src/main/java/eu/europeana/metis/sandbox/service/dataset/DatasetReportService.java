@@ -13,5 +13,5 @@ public interface DatasetReportService {
    * @throws NullPointerException if datasetId is null
    * @throws ServiceException if an error happens getting the report
    */
-  DatasetInfoDto getReport(Integer datasetId);
+  DatasetInfoDto getReport(String datasetId);
 }

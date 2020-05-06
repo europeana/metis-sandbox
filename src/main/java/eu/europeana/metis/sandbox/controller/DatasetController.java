@@ -61,14 +61,14 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    var datasetId = datasetService.createDataset(datasetName, country, language, records);
+    String datasetId = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetId);
   }
 
   @ApiOperation("Get dataset progress information")
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
   public DatasetInfoDto retrieveDataset(
-      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") Integer datasetId) {
+      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
   }
 }

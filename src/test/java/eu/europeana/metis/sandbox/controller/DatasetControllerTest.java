@@ -58,14 +58,14 @@ class DatasetControllerTest {
     var records = List.of("record1".getBytes(), "record2".getBytes());
 
     when(zipService.parse(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(12345);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
         .param("language", IT.name()))
         .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.datasetId", is(12345)));
+        .andExpect(jsonPath("$.datasetId", is("12345")));
   }
 
   @Test
@@ -172,7 +172,7 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
     var report = new DatasetInfoDto("TBD", List.of(reportByStep));
-    when(datasetReportService.getReport(1)).thenReturn(report);
+    when(datasetReportService.getReport("1")).thenReturn(report);
 
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isOk())
@@ -183,7 +183,7 @@ class DatasetControllerTest {
   @Test
   public void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
 
-    when(datasetReportService.getReport(1)).thenThrow(new ServiceException("Failed", new Exception()));
+    when(datasetReportService.getReport("1")).thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isInternalServerError())

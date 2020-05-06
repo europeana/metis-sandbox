@@ -7,14 +7,14 @@ import io.swagger.annotations.ApiModel;
 @ApiModel("Dataset")
 public class DatasetIdDto {
 
-  private final Integer datasetId;
+  private final String datasetId;
 
-  public DatasetIdDto(Integer datasetId) {
+  public DatasetIdDto(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
     this.datasetId = datasetId;
   }
 
-  public Integer getDatasetId() {
+  public String getDatasetId() {
     return this.datasetId;
   }
 }
