@@ -135,7 +135,10 @@ class AmqpConfiguration {
         normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq, indexedDlq);
   }
 
-  private Declarables getDeclarables(String created, //NOSONAR
+  //Suppress: Methods should not have too many parameters warning
+  //We are okay with this method to ease configuration
+  @SuppressWarnings("squid:S107")
+  private Declarables getDeclarables(String created,
       String externalValidated, String transformed, String normalized,
       String internalValidated, String enriched, String mediaProcessed, String indexed) {
     return new Declarables(

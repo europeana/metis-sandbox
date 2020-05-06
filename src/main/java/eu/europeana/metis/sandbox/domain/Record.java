@@ -28,6 +28,9 @@ public class Record {
   private final byte[] content;
   private String contentString;
 
+  //Suppress: Mutable members should not be stored or returned directly
+  //byte[] coming from RecordBuilder is already a copy of the original byte[]
+  @SuppressWarnings("squid:S2384")
   private Record(String recordId, Integer datasetId, String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
@@ -35,7 +38,7 @@ public class Record {
     this.datasetName = datasetName;
     this.country = country;
     this.language = language;
-    this.content = content; //NOSONAR
+    this.content = content;
   }
 
   /**
@@ -104,8 +107,10 @@ public class Record {
    * are not making a copy of it because it is expensive and Record object is expected to be use as
    * a non mutable object
    */
+  //Suppress: Mutable members should not be stored or returned directly
+  @SuppressWarnings("squid:S2384")
   public byte[] getContent() {
-    return this.content; //NOSONAR
+    return this.content;
   }
 
 
