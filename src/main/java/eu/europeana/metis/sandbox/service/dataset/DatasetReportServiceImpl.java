@@ -2,31 +2,47 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
+import eu.europeana.metis.sandbox.dto.report.StepInfoDto;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
+import eu.europeana.metis.sandbox.repository.projection.RecordLogView;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class DatasetReportServiceImpl implements DatasetReportService {
 
+  private final DatasetRepository datasetRepository;
+  private final RecordLogRepository recordLogRepository;
   private final RecordErrorLogRepository errorLogRepository;
 
   public DatasetReportServiceImpl(
+      DatasetRepository datasetRepository,
+      RecordLogRepository recordLogRepository,
       RecordErrorLogRepository errorLogRepository) {
+    this.datasetRepository = datasetRepository;
+    this.recordLogRepository = recordLogRepository;
     this.errorLogRepository = errorLogRepository;
   }
 
@@ -35,16 +51,44 @@ class DatasetReportServiceImpl implements DatasetReportService {
   public DatasetInfoDto getReport(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 
-    List<ErrorLogView> report;
+    DatasetEntity dataset = getDatasetEntity(datasetId);
+
+    List<RecordLogView> recordsLog;
+    List<ErrorLogView> errorsLog;
     try {
-      report = errorLogRepository.getByDatasetId(datasetId);
+      recordsLog = recordLogRepository.getByDatasetId(datasetId).stream()
+          .filter(this::hasFinishedOrFailed)
+          .collect(toList());
+      errorsLog = errorLogRepository.getByDatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
     }
 
-    if (!report.isEmpty()) {
-      Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> reportGroup = report
+    Integer processedRecords = recordsLog.stream()
+        .map(e -> 1)
+        .reduce(0, Integer::sum);
+
+    ProgressInfoDto progressInfo;
+    if (!recordsLog.isEmpty()) {
+      Map<Step, Map<Status, Integer>> processedByStepRecords = recordsLog.stream()
+          .collect(groupingBy(RecordLogView::getStep,
+              groupingBy(RecordLogView::getStatus, reducing(0, e -> 1, Integer::sum))));
+      List<StepInfoDto> stepsInfo = new LinkedList<>();
+      processedByStepRecords.forEach((step, statusMap) -> {
+        stepsInfo
+            .add(new StepInfoDto(step, statusMap.get(Status.SUCCESS), statusMap.get(Status.FAIL)));
+      });
+      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), processedRecords,
+          new ProgressByStepDto(stepsInfo));
+    } else {
+      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), processedRecords,
+          new ProgressByStepDto(List.of()));
+    }
+
+    List<ReportByStepDto> reportList = new LinkedList<>();
+    if (!errorsLog.isEmpty()) {
+      Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> reportGroup = errorsLog
           .stream()
           .sorted(Comparator.comparing(ErrorLogView::getStep)
               .thenComparing(ErrorLogView::getRecordId))
@@ -52,13 +96,27 @@ class DatasetReportServiceImpl implements DatasetReportService {
               groupingBy(ErrorLogView::getStatus,
                   groupingBy(ErrorLogView::getMessage))));
 
-      List<ReportByStepDto> reportList = new LinkedList<>();
-
       reportGroup.forEach((step, statusMap) -> addToReportList(reportList, step, statusMap));
-      return new DatasetInfoDto("TBD", reportList);
     }
 
-    return new DatasetInfoDto("TBD", List.of());
+    return new DatasetInfoDto(progressInfo, reportList);
+  }
+
+  private boolean hasFinishedOrFailed(RecordLogView record) {
+    return record.getStep() == Step.INDEX || record.getStatus() == Status.FAIL;
+  }
+
+  private DatasetEntity getDatasetEntity(String datasetId) {
+    Optional<DatasetEntity> optionalDataset;
+
+    try {
+      optionalDataset = datasetRepository.findById(datasetId);
+    } catch (RuntimeException exception) {
+      throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
+          exception);
+    }
+
+    return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
   private void addToReportList(List<ReportByStepDto> reportList, Step step,
@@ -70,7 +128,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
             new ErrorInfoDto(error, status, recordList.stream()
                 .map(ErrorLogView::getRecordId)
                 .sorted(String::compareTo)
-                .collect(Collectors.toList())))));
+                .collect(toList())))));
     reportList.add(new ReportByStepDto(step, errorInfoDtoList));
   }
 }

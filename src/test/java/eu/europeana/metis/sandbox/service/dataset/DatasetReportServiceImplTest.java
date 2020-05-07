@@ -38,7 +38,7 @@ class DatasetReportServiceImplTest {
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
     var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
-    var report = new DatasetInfoDto("TBD", List.of(reportByStep));
+    var report = new DatasetInfoDto(null, List.of(reportByStep));
 
     var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");

@@ -171,7 +171,7 @@ class DatasetControllerTest {
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3","4"));
     var errors = List.of(error1, error2);
     var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
-    var report = new DatasetInfoDto("TBD", List.of(reportByStep));
+    var report = new DatasetInfoDto(null, List.of(reportByStep));
     when(datasetReportService.getReport("1")).thenReturn(report);
 
     mvc.perform(get("/dataset/{id}", "1"))
