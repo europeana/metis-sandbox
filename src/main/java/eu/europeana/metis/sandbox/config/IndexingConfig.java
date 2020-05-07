@@ -2,13 +2,18 @@ package eu.europeana.metis.sandbox.config;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
+import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.exception.SetupRelatedIndexingException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,28 +64,78 @@ class IndexingConfig {
   Indexer indexer()
       throws URISyntaxException, SetupRelatedIndexingException, IndexerRelatedIndexingException {
     // Create the indexing settings
-    var settings = new IndexingSettings();
+//    var settings = new IndexingSettings();
+//
+//    // Set the Mongo properties
+//    settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
+//        mongoAuthenticationDb, mongoUsername, mongoPassword, mongoEnableSSL);
+//    settings.setMongoDatabaseName(mongoDb);
+//
+//    // Set Solr properties
+//    for (String host : solrHosts) {
+//      settings.addSolrHost(new URI(host));
+//    }
+//
+//    // Set Zookeeper properties
+//    settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
+//    if (isNotBlank(zookeeperChroot)) {
+//      settings.setZookeeperChroot(zookeeperChroot);
+//    }
+//    if (isNotBlank(zookeeperDefaultCollection)) {
+//      settings.setZookeeperDefaultCollection(zookeeperDefaultCollection);
+//    }
+//    settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
+//
+//    return new IndexerFactory(settings).getIndexer();
+    return new Indexer() {
+      @Override
+      public void indexRdf(RDF record, Date recordDate, boolean preserveUpdateAndCreateTimesFromRdf,
+          List<String> datasetIdsForRedirection, boolean performRedirects)
+          throws IndexingException {
 
-    // Set the Mongo properties
-    settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
-        mongoAuthenticationDb, mongoUsername, mongoPassword, mongoEnableSSL);
-    settings.setMongoDatabaseName(mongoDb);
+      }
 
-    // Set Solr properties
-    for (String host : solrHosts) {
-      settings.addSolrHost(new URI(host));
-    }
+      @Override
+      public void indexRdfs(List<RDF> records, Date recordDate,
+          boolean preserveUpdateAndCreateTimesFromRdf, List<String> datasetIdsForRedirection,
+          boolean performRedirects) throws IndexingException {
 
-    // Set Zookeeper properties
-    settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
-    if (isNotBlank(zookeeperChroot)) {
-      settings.setZookeeperChroot(zookeeperChroot);
-    }
-    if (isNotBlank(zookeeperDefaultCollection)) {
-      settings.setZookeeperDefaultCollection(zookeeperDefaultCollection);
-    }
-    settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
+      }
 
-    return new IndexerFactory(settings).getIndexer();
+      @Override
+      public void index(String record, Date recordDate, boolean preserveUpdateAndCreateTimesFromRdf,
+          List<String> datasetIdsForRedirection, boolean performRedirects)
+          throws IndexingException {
+
+      }
+
+      @Override
+      public void index(List<String> records, Date recordDate,
+          boolean preserveUpdateAndCreateTimesFromRdf, List<String> datasetIdsForRedirection,
+          boolean performRedirects) throws IndexingException {
+
+      }
+
+      @Override
+      public void triggerFlushOfPendingChanges(boolean blockUntilComplete)
+          throws IndexingException {
+
+      }
+
+      @Override
+      public boolean remove(String rdfAbout) throws IndexingException {
+        return false;
+      }
+
+      @Override
+      public int removeAll(String datasetId, Date maxRecordDate) throws IndexingException {
+        return 0;
+      }
+
+      @Override
+      public void close() throws IOException {
+
+      }
+    };
   }
 }

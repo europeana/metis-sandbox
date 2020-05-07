@@ -2,14 +2,8 @@ package eu.europeana.metis.sandbox.consumer.workflow;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Event;
-import eu.europeana.metis.sandbox.domain.RecordError;
-import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +14,8 @@ import org.springframework.stereotype.Component;
  * result in the indexed queue
  */
 @Component
-class MediaProcessedConsumer {
+class MediaProcessedConsumer extends StepConsumer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MediaProcessedConsumer.class);
-
-  private final AmqpTemplate amqpTemplate;
   private final IndexingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.indexed.queue}")
@@ -32,7 +23,7 @@ class MediaProcessedConsumer {
 
   public MediaProcessedConsumer(AmqpTemplate amqpTemplate,
       IndexingService service) {
-    this.amqpTemplate = amqpTemplate;
+    super(amqpTemplate);
     this.service = service;
   }
 
@@ -42,18 +33,6 @@ class MediaProcessedConsumer {
       return;
     }
 
-    Event output;
-    try {
-      var record = service.index(input.getBody());
-      var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
-      output = new Event(record, Step.INDEX, status);
-    } catch (RecordProcessingException ex) {
-      LOGGER.error(ex.getMessage(), ex);
-      var recordError = new RecordError(ex);
-      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), Step.INDEX,
-          Status.FAIL);
-    }
-
-    amqpTemplate.convertAndSend(routingKey, output);
+    consume(routingKey, input, Step.INDEX, () -> service.index(input.getBody()));
   }
 }

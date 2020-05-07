@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
-import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,7 +15,7 @@ class IndexedConsumer {
   private static final Logger LOGGER = LoggerFactory.getLogger(IndexedConsumer.class);
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.indexed.queue}", containerFactory = "indexedFactory")
-  public void close(Record input) {
-    LOGGER.info("Record {} is closed", input.getDatasetId());
+  public void close(Event input) {
+    LOGGER.info("Record {} is closed", input.getBody().getRecordId());
   }
 }
