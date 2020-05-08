@@ -21,8 +21,8 @@ public class ErrorInfoDto {
   public ErrorInfoDto(String errorMessage, Status status,
       List<String> recordIds) {
     requireNonNull(errorMessage, "Error message must not be null");
-    requireNonNull(recordIds, "Record ids must not be null");
     requireNonNull(status, "Status must not be null");
+    requireNonNull(recordIds, "Record ids must not be null");
     this.recordIds = recordIds;
     this.status = status;
     this.errorMessage = errorMessage;

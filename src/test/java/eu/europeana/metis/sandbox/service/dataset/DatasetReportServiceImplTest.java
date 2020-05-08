@@ -11,7 +11,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
+import eu.europeana.metis.sandbox.dto.report.StepErrorsDto;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
 import java.util.List;
@@ -37,7 +37,7 @@ class DatasetReportServiceImplTest {
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
-    var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
+    var reportByStep = new StepErrorsDto(Step.VALIDATE_EXTERNAL, errors);
     var report = new DatasetInfoDto(null, List.of(reportByStep));
 
     var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,

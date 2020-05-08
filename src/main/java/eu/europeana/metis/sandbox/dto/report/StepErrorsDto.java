@@ -1,17 +1,21 @@
 package eu.europeana.metis.sandbox.dto.report;
 
+import static java.util.Objects.requireNonNull;
+
 import eu.europeana.metis.sandbox.common.Step;
 import io.swagger.annotations.ApiModel;
 import java.util.List;
 
-@ApiModel("Report")
-public class ReportByStepDto {
+@ApiModel("StepErrors")
+public class StepErrorsDto {
 
   private Step step;
 
   private List<ErrorInfoDto> errors;
 
-  public ReportByStepDto(Step step, List<ErrorInfoDto> errors) {
+  public StepErrorsDto(Step step, List<ErrorInfoDto> errors) {
+    requireNonNull(step, "Step must not be null");
+    requireNonNull(errors, "Errors must not be null");
     this.step = step;
     this.errors = errors;
   }

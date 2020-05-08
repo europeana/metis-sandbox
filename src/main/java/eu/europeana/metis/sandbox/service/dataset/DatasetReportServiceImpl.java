@@ -13,8 +13,7 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
-import eu.europeana.metis.sandbox.dto.report.StepInfoDto;
+import eu.europeana.metis.sandbox.dto.report.StepErrorsDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
@@ -56,42 +55,43 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<RecordLogView> recordsLog;
     List<ErrorLogView> errorsLog;
     try {
-      recordsLog = recordLogRepository.getByDatasetId(datasetId).stream()
-          .filter(this::hasFinishedOrFailed)
-          .collect(toList());
+      recordsLog = recordLogRepository.getByDatasetId(datasetId);
       errorsLog = errorLogRepository.getByDatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
     }
 
-    Integer processedRecords = recordsLog.stream()
+    Integer completedRecords = recordsLog.stream()
+        .filter(this::hasFinishedOrFailed)
         .map(e -> 1)
         .reduce(0, Integer::sum);
 
     ProgressInfoDto progressInfo;
     if (!recordsLog.isEmpty()) {
       Map<Step, Map<Status, Integer>> processedByStepRecords = recordsLog.stream()
-          .collect(groupingBy(RecordLogView::getStep,
+          .sorted(Comparator.comparingInt(recordLogView -> recordLogView.getStep().precedence()))
+          .collect(groupingBy(RecordLogView::getStep, LinkedHashMap::new,
               groupingBy(RecordLogView::getStatus, reducing(0, e -> 1, Integer::sum))));
-      List<StepInfoDto> stepsInfo = new LinkedList<>();
+      List<ProgressByStepDto> stepsInfo = new LinkedList<>();
       processedByStepRecords.forEach((step, statusMap) -> {
         stepsInfo
-            .add(new StepInfoDto(step, statusMap.get(Status.SUCCESS), statusMap.get(Status.FAIL)));
+            .add(new ProgressByStepDto(step,
+                statusMap.getOrDefault(Status.SUCCESS, 0),
+                statusMap.getOrDefault(Status.FAIL, 0),
+                statusMap.getOrDefault(Status.WARN, 0)));
       });
-      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), processedRecords,
-          new ProgressByStepDto(stepsInfo));
+      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), completedRecords, stepsInfo);
     } else {
-      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), processedRecords,
-          new ProgressByStepDto(List.of()));
+      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), completedRecords, List.of());
     }
 
-    List<ReportByStepDto> reportList = new LinkedList<>();
+    List<StepErrorsDto> reportList = new LinkedList<>();
     if (!errorsLog.isEmpty()) {
       Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> reportGroup = errorsLog
           .stream()
-          .sorted(Comparator.comparing(ErrorLogView::getStep)
-              .thenComparing(ErrorLogView::getRecordId))
+          .sorted(Comparator.comparingInt((ErrorLogView e) -> e.getStep().precedence())
+          .thenComparing(ErrorLogView::getRecordId))
           .collect(groupingBy(ErrorLogView::getStep, LinkedHashMap::new,
               groupingBy(ErrorLogView::getStatus,
                   groupingBy(ErrorLogView::getMessage))));
@@ -110,7 +110,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     Optional<DatasetEntity> optionalDataset;
 
     try {
-      optionalDataset = datasetRepository.findById(datasetId);
+      optionalDataset = datasetRepository.findById(Integer.valueOf(datasetId));
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
@@ -119,7 +119,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
-  private void addToReportList(List<ReportByStepDto> reportList, Step step,
+  private void addToReportList(List<StepErrorsDto> reportList, Step step,
       Map<Status, Map<String, List<ErrorLogView>>> statusMap) {
     List<ErrorInfoDto> errorInfoDtoList = new LinkedList<>();
 
@@ -129,6 +129,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
                 .map(ErrorLogView::getRecordId)
                 .sorted(String::compareTo)
                 .collect(toList())))));
-    reportList.add(new ReportByStepDto(step, errorInfoDtoList));
+    reportList.add(new StepErrorsDto(step, errorInfoDtoList));
   }
 }

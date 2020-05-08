@@ -17,7 +17,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
+import eu.europeana.metis.sandbox.dto.report.StepErrorsDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
@@ -170,7 +170,7 @@ class DatasetControllerTest {
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1","2"));
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3","4"));
     var errors = List.of(error1, error2);
-    var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
+    var reportByStep = new StepErrorsDto(Step.VALIDATE_EXTERNAL, errors);
     var report = new DatasetInfoDto(null, List.of(reportByStep));
     when(datasetReportService.getReport("1")).thenReturn(report);
 
