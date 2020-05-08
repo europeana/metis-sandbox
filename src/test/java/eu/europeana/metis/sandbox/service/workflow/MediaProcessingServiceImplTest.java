@@ -9,7 +9,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -268,8 +268,8 @@ class MediaProcessingServiceImplTest {
 
     assertArrayEquals(content, result.getRecord().getContent());
 
-    verifyNoInteractions(thumbnailStoreService);
-    verifyNoInteractions(enrichedRdf);
+    verifyZeroInteractions(thumbnailStoreService);
+    verifyZeroInteractions(enrichedRdf);
   }
 
   @Test

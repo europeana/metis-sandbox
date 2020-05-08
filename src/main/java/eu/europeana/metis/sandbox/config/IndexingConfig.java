@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import eu.europeana.indexing.Indexer;
@@ -72,7 +73,9 @@ class IndexingConfig {
     }
 
     // Set Zookeeper properties
-    settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
+    if(isNotEmpty(zookeeperHosts) && isNotEmpty(zookeeperPorts)) {
+      settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
+    }
     if (isNotBlank(zookeeperChroot)) {
       settings.setZookeeperChroot(zookeeperChroot);
     }
@@ -81,6 +84,8 @@ class IndexingConfig {
     }
     settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
 
-    return new IndexerFactory(settings).getIndexer();
+    IndexerFactory factory = new IndexerFactory(settings);
+    Indexer indexer = factory.getIndexer();
+    return indexer;
   }
 }
