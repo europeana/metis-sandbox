@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.config;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -33,7 +36,7 @@ class IndexingConfig {
   private String mongoPassword;
 
   @Value("${sandbox.indexing.mongo.ssl-enable}")
-  private boolean mongoEnableSSL;
+  private Boolean mongoEnableSSL;
 
   @Value("${sandbox.indexing.mongo.db}")
   private String mongoDb;
@@ -54,13 +57,21 @@ class IndexingConfig {
   private String zookeeperDefaultCollection;
 
   @Value("${sandbox.indexing.solr.zookeeper.timeout}")
-  private int zookeeperTimeoutInSecs;
+  private Integer zookeeperTimeoutInSecs;
 
   @Bean
   Indexer indexer()
       throws URISyntaxException, SetupRelatedIndexingException, IndexerRelatedIndexingException {
-    // Create the indexing settings
+    checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
+    checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
+    checkArgument(isNotEmpty(mongoPorts), "Mongo ports must be provided ");
+    checkArgument(isNotEmpty(solrHosts), "Solr hosts must be provided ");
+
     var settings = new IndexingSettings();
+
+    if (isNull(mongoEnableSSL)) {
+      mongoEnableSSL = Boolean.FALSE;
+    }
 
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
@@ -73,7 +84,7 @@ class IndexingConfig {
     }
 
     // Set Zookeeper properties
-    if(isNotEmpty(zookeeperHosts) && isNotEmpty(zookeeperPorts)) {
+    if (isNotEmpty(zookeeperHosts) && isNotEmpty(zookeeperPorts)) {
       settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
     }
     if (isNotBlank(zookeeperChroot)) {
@@ -82,10 +93,11 @@ class IndexingConfig {
     if (isNotBlank(zookeeperDefaultCollection)) {
       settings.setZookeeperDefaultCollection(zookeeperDefaultCollection);
     }
-    settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
+    if (nonNull(zookeeperTimeoutInSecs)) {
+      settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
+    }
 
     IndexerFactory factory = new IndexerFactory(settings);
-    Indexer indexer = factory.getIndexer();
-    return indexer;
+    return factory.getIndexer();
   }
 }

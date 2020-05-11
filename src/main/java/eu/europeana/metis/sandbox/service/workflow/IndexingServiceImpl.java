@@ -10,14 +10,10 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.io.IOException;
 import java.util.Date;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class IndexingServiceImpl implements IndexingService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndexingServiceImpl.class);
 
   private final Indexer indexer;
 
@@ -40,7 +36,6 @@ class IndexingServiceImpl implements IndexingService {
 
   @PreDestroy
   public void destroy() throws IOException {
-    LOGGER.info("Close indexer");
     indexer.close();
   }
 }
