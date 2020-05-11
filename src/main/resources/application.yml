@@ -99,6 +99,8 @@ sandbox:
           collection:
         timeout:
   rabbitmq:
+    routing-key:
+      closed: sandbox.record.closed
     exchange:
       name: sandbox
       dlq: ${sandbox.rabbitmq.exchange.name}.dlq

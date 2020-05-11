@@ -97,7 +97,6 @@ class IndexingConfig {
       settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
     }
 
-    IndexerFactory factory = new IndexerFactory(settings);
-    return factory.getIndexer();
+    return new IndexerFactory(settings).getIndexer();
   }
 }

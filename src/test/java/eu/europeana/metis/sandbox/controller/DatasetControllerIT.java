@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.TestUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +24,10 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class DatasetControllerIT {
 
+  private final TestUtils testUtils = new TestUtils();
+
   @Autowired
   private MockMvc mvc;
-
-  TestUtils testUtils;
-
-  @BeforeEach
-  void setUp() {
-    testUtils = new TestUtils();
-  }
 
   @Test
   public void processDataset_expectStatus_accepted() throws Exception {

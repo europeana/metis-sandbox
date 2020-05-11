@@ -17,6 +17,7 @@ spring:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
       - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
   servlet:
     multipart:
       max-file-size: 5MB
@@ -50,6 +51,24 @@ sandbox:
   enrichment:
     dereference-url: http://metis-test
     enrichment-url: http://metis-test
+  indexing:
+    mongo:
+      db: metis-sandbox-test
+      hosts: localhost
+      ports: 27017
+      authentication-db:
+      username:
+      password:
+      ssl-enable:
+    solr:
+      hosts: http://metis-test:8888/solr/metis_sandbox_test
+      zookeeper:
+        hosts:
+        ports:
+        chroot:
+        default:
+          collection:
+        timeout:
   truststore:
     path:
     password:
@@ -72,6 +91,8 @@ sandbox:
         max-pool-size: 5
         thread-prefix: sandbox-test-
   rabbitmq:
+    routing-key:
+      closed: sandbox.record.closed
     exchange:
       name: sandbox
       dlq: ${sandbox.rabbitmq.exchange.name}.dlq
