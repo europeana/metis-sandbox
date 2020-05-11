@@ -56,19 +56,8 @@ sandbox:
       db: metis-sandbox-test
       hosts: localhost
       ports: 27017
-      authentication-db:
-      username:
-      password:
-      ssl-enable:
     solr:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
-      zookeeper:
-        hosts:
-        ports:
-        chroot:
-        default:
-          collection:
-        timeout:
   truststore:
     path:
     password:

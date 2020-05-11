@@ -26,16 +26,16 @@ class IndexingConfig {
   @Value("${sandbox.indexing.mongo.ports}")
   private int[] mongoPorts;
 
-  @Value("${sandbox.indexing.mongo.authentication-db}")
+  @Value("${sandbox.indexing.mongo.authentication-db:#{null}}")
   private String mongoAuthenticationDb;
 
-  @Value("${sandbox.indexing.mongo.username}")
+  @Value("${sandbox.indexing.mongo.username:#{null}}")
   private String mongoUsername;
 
-  @Value("${sandbox.indexing.mongo.password}")
+  @Value("${sandbox.indexing.mongo.password:#{null}}")
   private String mongoPassword;
 
-  @Value("${sandbox.indexing.mongo.ssl-enable}")
+  @Value("${sandbox.indexing.mongo.ssl-enable:#{null}}")
   private Boolean mongoEnableSSL;
 
   @Value("${sandbox.indexing.mongo.db}")
@@ -44,19 +44,19 @@ class IndexingConfig {
   @Value("${sandbox.indexing.solr.hosts}")
   private String[] solrHosts;
 
-  @Value("${sandbox.indexing.solr.zookeeper.hosts}")
+  @Value("${sandbox.indexing.solr.zookeeper.hosts:#{null}}")
   private String[] zookeeperHosts;
 
-  @Value("${sandbox.indexing.solr.zookeeper.ports}")
+  @Value("${sandbox.indexing.solr.zookeeper.ports:#{null}}")
   private int[] zookeeperPorts;
 
-  @Value("${sandbox.indexing.solr.zookeeper.chroot}")
+  @Value("${sandbox.indexing.solr.zookeeper.chroot:#{null}}")
   private String zookeeperChroot;
 
-  @Value("${sandbox.indexing.solr.zookeeper.default.collection}")
+  @Value("${sandbox.indexing.solr.zookeeper.default.collection:#{null}}")
   private String zookeeperDefaultCollection;
 
-  @Value("${sandbox.indexing.solr.zookeeper.timeout}")
+  @Value("${sandbox.indexing.solr.zookeeper.timeout:#{null}}")
   private Integer zookeeperTimeoutInSecs;
 
   @Bean
