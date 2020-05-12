@@ -13,7 +13,6 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
@@ -59,39 +58,34 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<RecordLogView> recordsLog;
     List<ErrorLogView> errorsLog;
     try {
-      recordsLog = recordLogRepository.getByDatasetId(datasetId).stream()
-          .filter(x -> x.getStep() != Step.FINISH)
-          .collect(toList());
+      recordsLog = recordLogRepository.getByDatasetId(datasetId);
       errorsLog = errorLogRepository.getByDatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
     }
 
-    ProgressInfoDto progressInfo;
-    if (!recordsLog.isEmpty()) {
-      // get qty of records completely processed
-      Integer completedRecords = getCompletedRecords(recordsLog);
-
-      // get records processed by step
-      Map<Step, Map<Status, Integer>> recordsProcessedByStep = getRecordsProcessedByStep(
-          recordsLog);
-
-      // get errors by step
-      Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(
-          errorsLog);
-
-      // collect steps processing information
-      List<ProgressByStepDto> stepsInfo = new LinkedList<>();
-      recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
-          recordErrorsByStep));
-
-      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), completedRecords, stepsInfo);
-    } else {
-      progressInfo = new ProgressInfoDto(dataset.getRecordsQuantity(), 0, List.of());
+    if (recordsLog.isEmpty()) {
+      return new DatasetInfoDto(dataset.getRecordsQuantity(), 0, List.of());
     }
 
-    return new DatasetInfoDto(progressInfo);
+    // get qty of records completely processed
+    Integer completedRecords = getCompletedRecords(recordsLog);
+
+    // get records processed by step
+    Map<Step, Map<Status, Integer>> recordsProcessedByStep = getRecordsProcessedByStep(
+        recordsLog);
+
+    // get errors by step
+    Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(
+        errorsLog);
+
+    // collect steps processing information
+    List<ProgressByStepDto> stepsInfo = new LinkedList<>();
+    recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
+        recordErrorsByStep));
+
+    return new DatasetInfoDto(dataset.getRecordsQuantity(), completedRecords, stepsInfo);
   }
 
   private DatasetEntity getDataset(String datasetId) {
@@ -117,6 +111,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private Map<Step, Map<Status, Integer>> getRecordsProcessedByStep(
       List<RecordLogView> recordsLog) {
     return recordsLog.stream()
+        .filter(x -> x.getStep() != Step.FINISH)
         .sorted(Comparator.comparingInt(recordLogView -> recordLogView.getStep().precedence()))
         .collect(groupingBy(RecordLogView::getStep, LinkedHashMap::new,
             groupingBy(RecordLogView::getStatus, reducing(0, e -> 1, Integer::sum))));
