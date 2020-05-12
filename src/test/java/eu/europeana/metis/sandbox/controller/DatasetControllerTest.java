@@ -17,7 +17,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.StepErrorsDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
@@ -163,27 +163,31 @@ class DatasetControllerTest {
             is("Error while parsing a xml record. ")));
   }
 
-//  @Test
-//  public void retrieveDataset_expectSuccess() throws Exception {
-//    var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
-//    var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-//    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1","2"));
-//    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3","4"));
-//    var errors = List.of(error1, error2);
-//    var reportByStep = new StepErrorsDto(Step.VALIDATE_EXTERNAL, errors);
-//    var report = new DatasetInfoDto(null, List.of(reportByStep));
-//    when(datasetReportService.getReport("1")).thenReturn(report);
-//
-//    mvc.perform(get("/dataset/{id}", "1"))
-//        .andExpect(status().isOk())
-//        .andExpect(jsonPath("$.errors-report[0].step",
-//        is("external validation")));
-//  }
+  @Test
+  public void retrieveDataset_expectSuccess() throws Exception {
+    var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
+    var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
+    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
+    var errors = List.of(error1, error2);
+    var createProgress = new ProgressByStepDto(Step.CREATE, 10, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
+    var report = new DatasetInfoDto(10, 10, List.of(createProgress, externalProgress));
+    when(datasetReportService.getReport("1")).thenReturn(report);
+
+    mvc.perform(get("/dataset/{id}", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status",
+            is("completed")))
+        .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
+            is(message1)));
+  }
 
   @Test
   public void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
 
-    when(datasetReportService.getReport("1")).thenThrow(new ServiceException("Failed", new Exception()));
+    when(datasetReportService.getReport("1"))
+        .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isInternalServerError())

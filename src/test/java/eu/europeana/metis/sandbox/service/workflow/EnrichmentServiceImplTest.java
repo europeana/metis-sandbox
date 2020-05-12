@@ -51,7 +51,10 @@ class EnrichmentServiceImplTest {
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(content))
         .thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
-    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+    var recordInfo = service.enrich(record);
+
+    assertEquals("1", recordInfo.getRecord().getRecordId());
+    assertEquals(1, recordInfo.getErrors().size());
   }
 
   @Test
@@ -62,7 +65,10 @@ class EnrichmentServiceImplTest {
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(content)).thenThrow(new UnsupportedEncodingException());
-    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+
+    var recordInfo = service.enrich(record);
+    assertEquals("1", recordInfo.getRecord().getRecordId());
+    assertEquals(1, recordInfo.getErrors().size());
   }
 
   @Test
@@ -73,8 +79,10 @@ class EnrichmentServiceImplTest {
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(content)).thenThrow(new JiBXException("Failed"));
-    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
-  }
+
+    var recordInfo = service.enrich(record);
+    assertEquals("1", recordInfo.getRecord().getRecordId());
+    assertEquals(1, recordInfo.getErrors().size());  }
 
   @Test
   void enrich_inputNull_expectFail() {
