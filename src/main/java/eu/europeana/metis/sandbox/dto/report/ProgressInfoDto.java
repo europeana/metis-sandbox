@@ -12,7 +12,7 @@ import java.util.List;
 public class ProgressInfoDto {
 
   private enum Status {
-    FINISHED("finished"),
+    COMPLETED("completed"),
     IN_PROGRESS("in progress");
 
     private final String value;
@@ -43,7 +43,7 @@ public class ProgressInfoDto {
     requireNonNull(totalRecords, "Total records must not be null");
     requireNonNull(processedRecords, "Processed records must not be null");
     requireNonNull(progressByStep, "Progress by step must not be null");
-    this.status = totalRecords.equals(processedRecords) ? Status.FINISHED : Status.IN_PROGRESS;
+    this.status = totalRecords.equals(processedRecords) ? Status.COMPLETED : Status.IN_PROGRESS;
     this.totalRecords = totalRecords;
     this.processedRecords = processedRecords;
     this.progressByStep = Collections.unmodifiableList(progressByStep);
