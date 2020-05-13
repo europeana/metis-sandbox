@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -63,7 +63,7 @@ class ExternalValidationServiceImplTest {
 
     assertThrows(RecordProcessingException.class, () -> service.validate(record));
 
-    verifyNoInteractions(validationExecutionService);
+    verifyZeroInteractions(validationExecutionService);
   }
 
   @Test

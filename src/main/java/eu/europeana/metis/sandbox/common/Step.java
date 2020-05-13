@@ -11,7 +11,7 @@ public enum Step {
   ENRICH("enrichment", 5),
   MEDIA_PROCESS("media processing", 6),
   INDEX("indexing", 7),
-  FINISH("finish", 8);
+  CLOSE("close", 8);
 
   private final String value;
   private final int precedence;
