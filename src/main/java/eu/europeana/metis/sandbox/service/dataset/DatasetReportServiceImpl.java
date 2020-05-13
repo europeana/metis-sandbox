@@ -103,7 +103,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private Integer getCompletedRecords(List<RecordLogView> recordsLog) {
     return recordsLog.stream()
-        .filter(record -> record.getStep() == Step.FINISH || record.getStatus() == Status.FAIL)
+        .filter(record -> record.getStep() == Step.CLOSE || record.getStatus() == Status.FAIL)
         .map(e -> 1)
         .reduce(0, Integer::sum);
   }
@@ -111,7 +111,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private Map<Step, Map<Status, Integer>> getRecordsProcessedByStep(
       List<RecordLogView> recordsLog) {
     return recordsLog.stream()
-        .filter(x -> x.getStep() != Step.FINISH)
+        .filter(x -> x.getStep() != Step.CLOSE)
         .sorted(Comparator.comparingInt(recordLogView -> recordLogView.getStep().precedence()))
         .collect(groupingBy(RecordLogView::getStep, LinkedHashMap::new,
             groupingBy(RecordLogView::getStatus, reducing(0, e -> 1, Integer::sum))));
