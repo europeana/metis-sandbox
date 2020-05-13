@@ -80,7 +80,27 @@ sandbox:
   enrichment:
     dereference-url:
     enrichment-url:
+  indexing:
+    mongo:
+      db:
+      hosts:
+      ports:
+      authentication-db:
+      username:
+      password:
+      ssl-enable:
+    solr:
+      hosts:
+      zookeeper:
+        hosts:
+        ports:
+        chroot:
+        default:
+          collection:
+        timeout:
   rabbitmq:
+    routing-key:
+      closed: sandbox.record.closed
     exchange:
       name: sandbox
       dlq: ${sandbox.rabbitmq.exchange.name}.dlq
