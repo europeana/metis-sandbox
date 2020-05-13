@@ -3,14 +3,14 @@ package eu.europeana.metis.sandbox.common;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Step {
-  CREATE("create", 0),
-  VALIDATE_EXTERNAL("external validation", 1),
+  CREATE("import", 0),
+  VALIDATE_EXTERNAL("validate (edm external)", 1),
   TRANSFORM("transform", 2),
-  VALIDATE_INTERNAL("internal validation", 3),
-  NORMALIZE("normalization", 4),
-  ENRICH("enrichment", 5),
-  MEDIA_PROCESS("media processing", 6),
-  INDEX("indexing", 7),
+  VALIDATE_INTERNAL("validate (edm internal)", 3),
+  NORMALIZE("normalise", 4),
+  ENRICH("enrich", 5),
+  MEDIA_PROCESS("process media", 6),
+  INDEX("preview", 7),
   CLOSE("close", 8);
 
   private final String value;
