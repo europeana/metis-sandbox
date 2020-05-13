@@ -39,7 +39,7 @@ class DatasetServiceImpl implements DatasetService {
     var entity = new DatasetEntity(datasetName, records.size());
     String id;
     try {
-      id = String.valueOf(datasetRepository.save(entity).getDatasetId());
+      id = datasetRepository.save(entity).getDatasetId();
     } catch (Exception e) {
       throw new ServiceException("Error creating the dataset: " + e.getMessage(), e);
     }

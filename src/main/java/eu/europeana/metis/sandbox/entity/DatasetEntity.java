@@ -27,8 +27,8 @@ public class DatasetEntity {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
-  public Integer getDatasetId() {
-    return this.datasetId;
+  public String getDatasetId() {
+    return String.valueOf(this.datasetId);
   }
 
   public String getDatasetName() {
@@ -39,8 +39,8 @@ public class DatasetEntity {
     return this.recordsQuantity;
   }
 
-  public void setDatasetId(Integer datasetId) {
-    this.datasetId = datasetId;
+  public void setDatasetId(String datasetId) {
+    this.datasetId = Integer.valueOf(datasetId);
   }
 
   public void setDatasetName(String datasetName) {
