@@ -30,7 +30,7 @@ class TransformationServiceImpl implements TransformationService {
     try {
       var europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentString(), record.getDatasetId());
-      var transformer = getTransformer(record.getDatasetName(),
+      var transformer = getTransformer(getXmlDatasetName(record),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
       recordTransformed = transformer.transform(record.getContent(), europeanaGeneratedIdsMap)
           .toString();
@@ -44,5 +44,9 @@ class TransformationServiceImpl implements TransformationService {
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
       String edmLanguage) {
     return xsltTransformer.getObject(datasetName, edmCountry, edmLanguage);
+  }
+
+  private String getXmlDatasetName(Record record) {
+    return String.join("_", record.getDatasetId(), record.getDatasetName());
   }
 }
