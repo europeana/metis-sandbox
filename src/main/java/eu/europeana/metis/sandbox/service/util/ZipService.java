@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +16,6 @@ public interface ZipService {
    * @throws InvalidZipFileException  if file is not valid
    * @throws IllegalArgumentException if file does not contain any records
    */
-  List<byte[]> parse(MultipartFile file);
+  List<ByteArrayInputStream> parse(MultipartFile file);
 
 }

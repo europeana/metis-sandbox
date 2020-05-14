@@ -8,6 +8,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.validation.service.ValidationExecutionService;
+import java.io.ByteArrayInputStream;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,14 +29,15 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
   @Override
   public RecordInfo validate(Record record) {
     requireNonNull(record, "Record must not be null");
-    String recordOrdered;
+    byte[] recordOrdered;
     try {
       recordOrdered = orderingService.performOrdering(record.getContent());
     } catch (TransformationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    var validationResult = validator.singleValidation(SCHEMA, null, null, recordOrdered);
+    var validationResult = validator
+        .singleValidation(SCHEMA, null, null, new ByteArrayInputStream(recordOrdered));
     if (!validationResult.isSuccess()) {
       throw new RecordValidationException(validationResult.getMessage(),
           validationResult.getRecordId(), validationResult.getNodeId());

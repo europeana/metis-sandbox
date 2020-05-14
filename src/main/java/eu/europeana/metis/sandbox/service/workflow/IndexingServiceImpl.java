@@ -26,7 +26,7 @@ class IndexingServiceImpl implements IndexingService {
   public RecordInfo index(Record record) {
     requireNonNull(record, "Record must not be null");
     try {
-      indexer.index(record.getContentString(), new Date(), false, null, false);
+      indexer.index(record.getContentInputStream(), new Date(), false, null, false);
     } catch (IndexingException ex) {
       throw new RecordProcessingException(record.getRecordId(), ex);
     }

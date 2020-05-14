@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -16,6 +15,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +39,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     service.index(record);
-    verify(indexer).index(anyString(), any(Date.class), anyBoolean(), eq(null), anyBoolean());
+    verify(indexer).index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
   }
 
   @Test
@@ -49,7 +49,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
-        .when(indexer).index(anyString(), any(Date.class), anyBoolean(), eq(null), anyBoolean());
+        .when(indexer).index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
     assertThrows(RecordProcessingException.class, () -> service.index(record));
   }
 

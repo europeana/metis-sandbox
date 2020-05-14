@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 public interface DatasetGeneratorService {
@@ -22,5 +23,5 @@ public interface DatasetGeneratorService {
    * @throws RecordParsingException   if fails extracting a record id
    */
   Dataset generate(String id, String name, Country country, Language language,
-      List<byte[]> records);
+      List<ByteArrayInputStream> records);
 }

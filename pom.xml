@@ -41,7 +41,7 @@
 	<properties>
 		<version.java>11</version.java>
 		<version.springfox>2.9.2</version.springfox>
-		<version.metis>1.8.0</version.metis>
+		<version.metis>1.9.0-SNAPSHOT</version.metis>
 		<version.europeana>2.9.3-SNAPSHOT</version.europeana>
 		<version.postgresql>42.2.11</version.postgresql>
 		<version.aws.s3>1.11.762</version.aws.s3>
@@ -78,12 +78,6 @@
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-common</artifactId>
 			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -102,60 +96,30 @@
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-validation-service</artifactId>
 			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-normalization</artifactId>
 			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-enrichment-client</artifactId>
 			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-media-service</artifactId>
 			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-indexing</artifactId>
 			<version>${version.metis}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>

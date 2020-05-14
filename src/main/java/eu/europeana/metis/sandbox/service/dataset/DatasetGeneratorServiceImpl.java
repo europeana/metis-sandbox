@@ -8,6 +8,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
   @Override
   public Dataset generate(String id, String name, Country country, Language language,
-      List<byte[]> records) {
+      List<ByteArrayInputStream> records) {
     requireNonNull(name, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
@@ -32,6 +33,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
     var recordObjectList = records.stream()
+        .map(ByteArrayInputStream::readAllBytes)
         .map(record -> Record.builder()
             .recordId(xmlRecordProcessorService.getRecordId(record))
             .datasetId(id)

@@ -75,7 +75,7 @@ class IndexingConfig {
 
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
-        mongoAuthenticationDb, mongoUsername, mongoPassword, mongoEnableSSL);
+        mongoAuthenticationDb, mongoUsername, mongoPassword, mongoEnableSSL, null);
     settings.setMongoDatabaseName(mongoDb);
 
     // Set Solr properties

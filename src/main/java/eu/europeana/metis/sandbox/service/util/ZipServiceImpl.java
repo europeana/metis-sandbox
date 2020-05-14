@@ -1,7 +1,8 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
-import eu.europeana.metis.sandbox.util.ZipFileReader;
+import eu.europeana.metis.utils.ZipFileReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,10 @@ class ZipServiceImpl implements ZipService {
   }
 
   @Override
-  public List<byte[]> parse(MultipartFile file) {
-    List<byte[]> records;
+  public List<ByteArrayInputStream> parse(MultipartFile file) {
+    List<ByteArrayInputStream> records;
     try {
-      records = zipFileReader.getRecordsFromZipFile(file.getInputStream());
+      records = zipFileReader.getContentFromZipFile(file.getInputStream());
     } catch (IOException ex) {
       throw new InvalidZipFileException(ex);
     }

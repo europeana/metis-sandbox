@@ -8,6 +8,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public String createDataset(String datasetName, Country country, Language language,
-      List<byte[]> records) {
+      List<ByteArrayInputStream> records) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");

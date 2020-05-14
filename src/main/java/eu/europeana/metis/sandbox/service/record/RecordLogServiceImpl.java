@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,7 @@ class RecordLogServiceImpl implements RecordLogService {
     var recordErrors = recordEvent.getRecordErrors();
 
     var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getDatasetId(),
-        recordEvent.getStep(), recordEvent.getStatus(), record.getContentString());
+        recordEvent.getStep(), recordEvent.getStatus(), new String(record.getContent(), StandardCharsets.UTF_8));
     var recordErrorLogEntities = recordErrors.stream()
         .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getDatasetId(),
             recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),

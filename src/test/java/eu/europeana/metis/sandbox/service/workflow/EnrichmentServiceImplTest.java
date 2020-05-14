@@ -1,7 +1,8 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.enrichment.rest.client.DereferenceOrEnrichException;
@@ -10,6 +11,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import org.jibx.runtime.JiBXException;
 import org.junit.jupiter.api.Test;
@@ -31,15 +33,15 @@ class EnrichmentServiceImplTest {
   void enrich_expectSuccess()
       throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
     var content = "This is the content";
-    var newContent = "This is new content";
+    var newContent = "This is new content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
-    when(enrichmentWorker.process(content)).thenReturn(newContent);
+    when(enrichmentWorker.process(any(InputStream.class))).thenReturn(newContent);
     var result = service.enrich(record);
 
-    assertEquals(newContent, result.getRecord().getContentString());
+    assertArrayEquals(newContent, result.getRecord().getContent());
   }
 
   @Test
@@ -49,19 +51,8 @@ class EnrichmentServiceImplTest {
     var record = Record.builder().recordId("1")
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
-    when(enrichmentWorker.process(content))
+    when(enrichmentWorker.process(any(InputStream.class)))
         .thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
-    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
-  }
-
-  @Test
-  void enrich_withUnsupportedEncodingException_expectFail()
-      throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
-    var content = "This is the content";
-    var record = Record.builder().recordId("1")
-        .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
-    when(enrichmentWorker.process(content)).thenThrow(new UnsupportedEncodingException());
     assertThrows(RecordProcessingException.class, () -> service.enrich(record));
   }
 
@@ -72,7 +63,7 @@ class EnrichmentServiceImplTest {
     var record = Record.builder().recordId("1")
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
-    when(enrichmentWorker.process(content)).thenThrow(new JiBXException("Failed"));
+    when(enrichmentWorker.process(any(InputStream.class))).thenThrow(new JiBXException("Failed"));
     assertThrows(RecordProcessingException.class, () -> service.enrich(record));
   }
 
