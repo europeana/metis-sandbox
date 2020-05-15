@@ -21,17 +21,6 @@ spring:
   servlet:
     multipart:
       max-file-size: 5MB
-  rabbitmq:
-    virtual-host: sandbox-testing
-    host: localhost
-    port: 5672
-    username: sandbox
-    password: sandbox
-    listener:
-      simple:
-        concurrency: 1
-        max-concurrency: 1
-        prefetch: 1
 
 sandbox:
   validation:
@@ -51,13 +40,6 @@ sandbox:
   enrichment:
     dereference-url: http://metis-test
     enrichment-url: http://metis-test
-  indexing:
-    mongo:
-      db: metis-sandbox-test
-      hosts: localhost
-      ports: 27017
-    solr:
-      hosts: http://metis-test:8888/solr/metis_sandbox_test
   truststore:
     path:
     password:

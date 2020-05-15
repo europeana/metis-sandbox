@@ -7,7 +7,7 @@ info:
 
 spring:
   profiles:
-    active: dev
+    active: default
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
