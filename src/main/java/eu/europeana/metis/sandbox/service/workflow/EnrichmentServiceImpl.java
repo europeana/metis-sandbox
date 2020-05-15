@@ -7,7 +7,6 @@ import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import org.jibx.runtime.JiBXException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +25,7 @@ class EnrichmentServiceImpl implements EnrichmentService {
     byte[] result;
     try {
       result = enrichmentWorker.process(record.getContentInputStream());
-    } catch (DereferenceOrEnrichException | JiBXException e) {
+    } catch (DereferenceOrEnrichException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
