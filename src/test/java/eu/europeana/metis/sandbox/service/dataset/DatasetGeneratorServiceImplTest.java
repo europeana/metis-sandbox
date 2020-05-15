@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +32,8 @@ class DatasetGeneratorServiceImplTest {
 
     var dataset = generator
         .generate("1", "name", Country.ITALY, Language.IT,
-            List.of("record1".getBytes(), "records".getBytes()));
+            List.of(new ByteArrayInputStream("record1".getBytes()),
+                new ByteArrayInputStream("records".getBytes())));
 
     assertEquals(2, dataset.getRecords().size());
   }

@@ -2,7 +2,10 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -13,6 +16,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
+import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,8 +47,8 @@ class ExternalValidationServiceImplTest {
     validationResult.setSuccess(true);
     validationResult.setRecordId("1");
 
-    when(orderingService.performOrdering("".getBytes())).thenReturn("");
-    when(validationExecutionService.singleValidation(SCHEMA, null, null, ""))
+    when(orderingService.performOrdering("".getBytes())).thenReturn("".getBytes());
+    when(validationExecutionService.singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
     var result = service.validate(record);
@@ -63,7 +67,7 @@ class ExternalValidationServiceImplTest {
 
     assertThrows(RecordProcessingException.class, () -> service.validate(record));
 
-    verifyZeroInteractions(validationExecutionService);
+    verifyNoInteractions(validationExecutionService);
   }
 
   @Test
@@ -76,8 +80,8 @@ class ExternalValidationServiceImplTest {
     validationResult.setSuccess(false);
     validationResult.setRecordId("1");
 
-    when(orderingService.performOrdering("".getBytes())).thenReturn("");
-    when(validationExecutionService.singleValidation(SCHEMA, null, null, ""))
+    when(orderingService.performOrdering("".getBytes())).thenReturn("".getBytes());
+    when(validationExecutionService.singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
     assertThrows(RecordValidationException.class, () -> service.validate(record));

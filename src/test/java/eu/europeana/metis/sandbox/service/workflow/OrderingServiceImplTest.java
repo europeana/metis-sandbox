@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -11,7 +11,6 @@ import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.IOException;
-import java.io.StringWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,16 +37,13 @@ class OrderingServiceImplTest {
     var input = testUtils.readFileToString("record/bad-order/record-input.xml");
     var expected = testUtils.readFileToString("record/bad-order/record-expected.xml");
 
-    StringWriter writer = new StringWriter();
-    writer.write(expected);
-
     when(orderObjectFactory.getObject()).thenReturn(xsltSorter);
-    when(xsltSorter.transform(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
-        .thenReturn(writer);
+    when(xsltSorter.transformToBytes(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
+        .thenReturn(expected.getBytes());
 
-    String result = service.performOrdering(input.getBytes());
+    byte[] result = service.performOrdering(input.getBytes());
 
-    assertEquals(expected, result);
+    assertArrayEquals(expected.getBytes(), result);
   }
 
   @Test
@@ -60,7 +56,7 @@ class OrderingServiceImplTest {
     var input = testUtils.readFileToString("record/bad-order/record-input.xml");
 
     when(orderObjectFactory.getObject()).thenReturn(xsltSorter);
-    when(xsltSorter.transform(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
+    when(xsltSorter.transformToBytes(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
         .thenThrow(new TransformationException(new Exception("Failing here")));
 
     assertThrows(TransformationException.class, () -> service.performOrdering(input.getBytes()));

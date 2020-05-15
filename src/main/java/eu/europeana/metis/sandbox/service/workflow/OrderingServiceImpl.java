@@ -18,11 +18,10 @@ class OrderingServiceImpl implements OrderingService {
   }
 
   @Override
-  public String performOrdering(byte[] record) throws TransformationException {
+  public byte[] performOrdering(byte[] record) throws TransformationException {
     requireNonNull(record, "Record must not be null");
     return getEdmSorter()
-        .transform(record, null)
-        .toString();
+        .transformToBytes(record, null);
   }
 
   private XsltTransformer getEdmSorter() {

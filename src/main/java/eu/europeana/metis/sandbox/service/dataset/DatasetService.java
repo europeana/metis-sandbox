@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 public interface DatasetService {
@@ -18,9 +19,10 @@ public interface DatasetService {
    * @return the dataset id
    * @throws NullPointerException     if any input is null
    * @throws IllegalArgumentException if records list is empty
-   * @throws ServiceException         if any unhandled exception happens, exception will contain original exception
+   * @throws ServiceException         if any unhandled exception happens, exception will contain
+   *                                  original exception
    * @throws RecordParsingException   if fails to parse a record from the records list
    */
   String createDataset(String datasetName, Country country, Language language,
-      List<byte[]> records);
+      List<ByteArrayInputStream> records);
 }
