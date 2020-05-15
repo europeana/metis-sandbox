@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
-import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
