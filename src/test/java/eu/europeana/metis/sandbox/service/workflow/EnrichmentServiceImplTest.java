@@ -12,8 +12,6 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import org.jibx.runtime.JiBXException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +29,7 @@ class EnrichmentServiceImplTest {
 
   @Test
   void enrich_expectSuccess()
-      throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
+      throws DereferenceOrEnrichException {
     var content = "This is the content";
     var newContent = "This is new content".getBytes();
     var record = Record.builder().recordId("1")
@@ -46,24 +44,13 @@ class EnrichmentServiceImplTest {
 
   @Test
   void enrich_withDereferenceException_expectFail()
-      throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
+      throws DereferenceOrEnrichException {
     var content = "This is the content";
     var record = Record.builder().recordId("1")
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(any(InputStream.class)))
         .thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
-    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
-  }
-
-  @Test
-  void enrich_withJiBXException_expectFail()
-      throws DereferenceOrEnrichException, UnsupportedEncodingException, JiBXException {
-    var content = "This is the content";
-    var record = Record.builder().recordId("1")
-        .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
-    when(enrichmentWorker.process(any(InputStream.class))).thenThrow(new JiBXException("Failed"));
     assertThrows(RecordProcessingException.class, () -> service.enrich(record));
   }
 

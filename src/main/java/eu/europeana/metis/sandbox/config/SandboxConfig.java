@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import eu.europeana.enrichment.rest.client.EnrichmentWorkerBuilder;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -122,7 +123,10 @@ class SandboxConfig {
 
   @Bean
   EnrichmentWorker enrichmentWorker() {
-    return new EnrichmentWorker(dereferenceServiceUrl, enrichmentServiceUrl);
+    return new EnrichmentWorkerBuilder()
+        .setDereferenceUrl(dereferenceServiceUrl)
+        .setEnrichmentUrl(enrichmentServiceUrl)
+        .build();
   }
 
   @Bean
