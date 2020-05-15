@@ -26,14 +26,14 @@ class TransformationServiceImpl implements TransformationService {
   public RecordInfo transform(Record record) {
     requireNonNull(record, "Record must not be null");
 
-    String recordTransformed;
+    byte[] recordTransformed;
     try {
       var europeanaGeneratedIdsMap = new EuropeanaIdCreator()
-          .constructEuropeanaId(record.getContentString(), record.getDatasetId());
+          .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
       var transformer = getTransformer(getXmlDatasetName(record),
           record.getCountry().xmlValue(), record.getLanguage().xmlValue());
-      recordTransformed = transformer.transform(record.getContent(), europeanaGeneratedIdsMap)
-          .toString();
+      recordTransformed = transformer
+          .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
     } catch (TransformationException | EuropeanaIdException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

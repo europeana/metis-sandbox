@@ -7,7 +7,6 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
-import eu.europeana.normalization.model.NormalizationResult;
 import eu.europeana.normalization.util.NormalizationConfigurationException;
 import eu.europeana.normalization.util.NormalizationException;
 import org.springframework.stereotype.Service;
@@ -26,19 +25,14 @@ class NormalizationServiceImpl implements NormalizationService {
     requireNonNull(record, "Record must not be null");
 
     Normalizer normalizer;
-    NormalizationResult result;
+    byte[] result;
     try {
       normalizer = normalizerFactory.getNormalizer();
-      result = normalizer.normalize(record.getContentString());
+      result = normalizer.normalize(record.getContentInputStream());
     } catch (NormalizationConfigurationException | NormalizationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    if (result.getErrorMessage() != null) {
-      throw new RecordProcessingException(record.getRecordId(),
-          new Throwable(result.getErrorMessage()));
-    }
-
-    return new RecordInfo(Record.from(record, result.getNormalizedRecordInEdmXml()));
+    return new RecordInfo(Record.from(record, result));
   }
 }

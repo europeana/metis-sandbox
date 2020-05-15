@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,7 +16,6 @@ import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.IOException;
-import java.io.StringWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,17 +46,14 @@ class TransformationServiceImplTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
         .recordId("").build();
 
-    StringWriter writer = new StringWriter();
-    writer.write(expected);
-
     when(objectProvider.getObject(anyString(), anyString(), anyString()))
         .thenReturn(xsltTransformer);
-    when(xsltTransformer.transform(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
-        .thenReturn(writer);
+    when(xsltTransformer.transformToBytes(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
+        .thenReturn(expected.getBytes());
 
     var result = service.transform(record);
 
-    assertEquals(expected, result.getRecord().getContentString());
+    assertArrayEquals(expected.getBytes(), result.getRecord().getContent());
   }
 
   @Test
@@ -74,7 +71,7 @@ class TransformationServiceImplTest {
 
     when(objectProvider.getObject(anyString(), anyString(), anyString()))
         .thenReturn(xsltTransformer);
-    when(xsltTransformer.transform(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
+    when(xsltTransformer.transformToBytes(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
         .thenThrow(new TransformationException(new Exception("Failing here")));
 
     RecordProcessingException exception = assertThrows(RecordProcessingException.class,

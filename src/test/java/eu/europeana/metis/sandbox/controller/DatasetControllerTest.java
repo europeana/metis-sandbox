@@ -21,6 +21,7 @@ import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -55,7 +56,8 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    var records = List.of("record1".getBytes(), "record2".getBytes());
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
 
     when(zipService.parse(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn("12345");
@@ -103,9 +105,12 @@ class DatasetControllerTest {
   @Test
   void processDataset_recordsQtyExceeded_expectFail() throws Exception {
 
-    var records = IntStream.range(0, 1000).boxed().map(Object::toString).map(String::getBytes)
-        .collect(
-            Collectors.toList());
+    var records = IntStream.range(0, 1000)
+        .boxed()
+        .map(Object::toString)
+        .map(String::getBytes)
+        .map(ByteArrayInputStream::new)
+        .collect(Collectors.toList());
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
@@ -124,7 +129,8 @@ class DatasetControllerTest {
   @Test
   void processDataset_datasetServiceFails_expectFail() throws Exception {
 
-    var records = List.of("record1".getBytes(), "record2".getBytes());
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
@@ -145,7 +151,8 @@ class DatasetControllerTest {
   @Test
   void processDataset_datasetServiceInvalidRecord_expectFail() throws Exception {
 
-    var records = List.of("record1".getBytes(), "record2".getBytes());
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
@@ -167,8 +174,8 @@ class DatasetControllerTest {
   public void retrieveDataset_expectSuccess() throws Exception {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1","2"));
-    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3","4"));
+    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
     var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
     var report = new DatasetInfoDto("TBD", List.of(reportByStep));
@@ -177,13 +184,14 @@ class DatasetControllerTest {
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errors-report[0].step",
-        is("external validation")));
+            is("external validation")));
   }
 
   @Test
   public void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
 
-    when(datasetReportService.getReport("1")).thenThrow(new ServiceException("Failed", new Exception()));
+    when(datasetReportService.getReport("1"))
+        .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isInternalServerError())
