@@ -15,6 +15,7 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ class DatasetServiceImplTest {
   @Test
   void createDataset_expectSuccess() {
 
-    var records = List.of("record1".getBytes());
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234", List.of(record));
@@ -73,7 +74,7 @@ class DatasetServiceImplTest {
   @Test
   void createDataset_saveFail_expectSuccess() {
 
-    var records = List.of("record1".getBytes());
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234", List.of(record));

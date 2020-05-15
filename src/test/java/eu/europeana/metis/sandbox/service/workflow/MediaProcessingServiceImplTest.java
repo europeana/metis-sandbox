@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -102,7 +100,7 @@ class MediaProcessingServiceImplTest {
 
     var result = service.processMedia(record);
 
-    assertEquals("This is new content", result.getRecord().getContentString());
+    assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
 
     verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class));
     verify(extraction1, times(1)).getThumbnails();
@@ -232,7 +230,7 @@ class MediaProcessingServiceImplTest {
 
     var result = service.processMedia(record);
 
-    assertEquals("This is new content", result.getRecord().getContentString());
+    assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
     assertFalse(result.getErrors().isEmpty());
 
     verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class));
@@ -268,8 +266,8 @@ class MediaProcessingServiceImplTest {
 
     assertArrayEquals(content, result.getRecord().getContent());
 
-    verifyZeroInteractions(thumbnailStoreService);
-    verifyZeroInteractions(enrichedRdf);
+    verifyNoMoreInteractions(thumbnailStoreService);
+    verifyNoMoreInteractions(enrichedRdf);
   }
 
   @Test
@@ -307,7 +305,7 @@ class MediaProcessingServiceImplTest {
 
     var result = service.processMedia(record);
 
-    assertEquals("This is new content", result.getRecord().getContentString());
+    assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
     assertFalse(result.getErrors().isEmpty());
 
     verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class));

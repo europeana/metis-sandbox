@@ -4,8 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -18,15 +18,12 @@ import java.util.Objects;
  */
 public class Record {
 
-  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-
   private final String recordId;
   private final String datasetId;
   private final String datasetName;
   private final Country country;
   private final Language language;
   private final byte[] content;
-  private String contentString;
 
   //Suppress: Mutable members should not be stored or returned directly
   //byte[] coming from RecordBuilder is already a copy of the original byte[]
@@ -39,19 +36,6 @@ public class Record {
     this.country = country;
     this.language = language;
     this.content = content;
-  }
-
-  /**
-   * Creates a record based on the provided record but replacing the content with the one provided
-   *
-   * @param record  must not be null
-   * @param content must not be null. Xml representation of the record
-   * @return record object
-   * @throws NullPointerException if any parameter is null
-   */
-  public static Record from(Record record, String content) {
-    requireNonNull(content);
-    return from(record, content.getBytes(DEFAULT_CHARSET));
   }
 
   /**
@@ -113,20 +97,13 @@ public class Record {
     return this.content;
   }
 
-
   /**
-   * In the future the content will only be available through byte array For now we still need it
-   * since but after https://europeana.atlassian.net/browse/MET-2680 is done we can remove this
-   * method
+   * Content of the record
    *
-   * @deprecated
+   * @return InputStream containing the record
    */
-  @Deprecated(forRemoval = true)
-  public String getContentString() {
-    if (contentString == null) {
-      contentString = new String(content, DEFAULT_CHARSET);
-    }
-    return contentString;
+  public InputStream getContentInputStream() {
+    return new ByteArrayInputStream(content);
   }
 
   @Override

@@ -8,10 +8,8 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
-import org.jibx.runtime.JiBXException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,11 +26,11 @@ class EnrichmentServiceImpl implements EnrichmentService {
     requireNonNull(record, "Record must not be null");
 
     List<RecordError> recordErrors = new LinkedList<>();
-    String result;
+    byte[] result;
     try {
-      result = enrichmentWorker.process(record.getContentString());
-    } catch (DereferenceOrEnrichException | JiBXException | UnsupportedEncodingException e) {
-      result = record.getContentString();
+      result = enrichmentWorker.process(record.getContentInputStream());
+    } catch (DereferenceOrEnrichException e) {
+      result = record.getContent();
       recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
     }
 

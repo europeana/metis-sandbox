@@ -100,7 +100,7 @@ class RecordMessageConverterTest {
     Object result = converter.fromMessage(message);
 
     assertThat(result, instanceOf(Event.class));
-    assertEquals("This is the content", ((Event) result).getBody().getContentString());
+    assertArrayEquals("This is the content".getBytes(), ((Event) result).getBody().getContent());
   }
 
   @Test
@@ -125,7 +125,7 @@ class RecordMessageConverterTest {
     Object result = converter.fromMessage(message);
 
     assertThat(result, instanceOf(Event.class));
-    assertEquals("This is the content", ((Event) result).getBody().getContentString());
+    assertArrayEquals("This is the content".getBytes(), ((Event) result).getBody().getContent());
     assertEquals("failed", ((Event) result).getRecordErrors().get(0).getMessage());
   }
 }
