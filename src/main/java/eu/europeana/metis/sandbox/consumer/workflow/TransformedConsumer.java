@@ -29,10 +29,6 @@ class TransformedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}", containerFactory = "transformedFactory")
   public void validateInternal(Event input) {
-    if (input.getStatus() == Status.FAIL) {
-      return;
-    }
-
     consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getBody()));
   }
 }

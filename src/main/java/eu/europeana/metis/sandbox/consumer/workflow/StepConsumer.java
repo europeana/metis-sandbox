@@ -23,6 +23,9 @@ class StepConsumer {
 
   public void consume(String routingKey, Event input, Step step,
       Supplier<RecordInfo> recordInfoSupplier) {
+    if (input.getStatus() == Status.FAIL) {
+      return;
+    }
 
     Event output;
     try {

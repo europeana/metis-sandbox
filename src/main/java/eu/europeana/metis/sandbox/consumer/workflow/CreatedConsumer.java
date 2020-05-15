@@ -29,10 +29,6 @@ class CreatedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory")
   public void validateExternal(Event input) {
-    if (input.getStatus() == Status.FAIL) {
-      return;
-    }
-
     consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()));
   }
 }

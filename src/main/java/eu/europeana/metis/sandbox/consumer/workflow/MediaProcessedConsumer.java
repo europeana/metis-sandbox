@@ -10,8 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes media processed events and performs indexing to the contained record <br/> Publishes the
- * result in the indexed queue
+ * Consumes media processed events and performs indexing to the contained record
+ * <br/>
+ * Publishes the result in the indexed queue
  */
 @Component
 class MediaProcessedConsumer extends StepConsumer {
@@ -29,10 +30,6 @@ class MediaProcessedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
   public void index(Event input) {
-    if (input.getStatus() == Status.FAIL) {
-      return;
-    }
-
     consume(routingKey, input, Step.INDEX, () -> service.index(input.getBody()));
   }
 }

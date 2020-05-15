@@ -29,10 +29,6 @@ class NormalizedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}", containerFactory = "normalizedFactory")
   public void enrich(Event input) {
-    if (input.getStatus() == Status.FAIL) {
-      return;
-    }
-
     consume(routingKey, input, Step.ENRICH, () -> service.enrich(input.getBody()));
   }
 }

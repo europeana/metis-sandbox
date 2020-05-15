@@ -29,10 +29,6 @@ class InternallyValidatedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory")
   public void normalize(Event input) {
-    if (input.getStatus() == Status.FAIL) {
-      return;
-    }
-
     consume(routingKey, input, Step.NORMALIZE, () -> service.normalize(input.getBody()));
   }
 }
