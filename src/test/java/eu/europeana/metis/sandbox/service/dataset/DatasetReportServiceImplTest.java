@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -19,6 +20,7 @@ import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +42,11 @@ class DatasetReportServiceImplTest {
   @InjectMocks
   private DatasetReportServiceImpl service;
 
+  @BeforeEach
+  void setup() {
+    setField(service, "portalUrl", "https://metis-sandbox/portal/search?q=edm_datasetName:");
+  }
+
   @Test
   void getReportWithErrors_expectSuccess() {
     var dataset = new DatasetEntity("dataset", 5);
@@ -50,9 +57,10 @@ class DatasetReportServiceImplTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
-    var report = new DatasetInfoDto(5, 4L, List.of(createProgress, externalProgress));
+    var report = new DatasetInfoDto("Generates after process is completed", 5, 4L,
+        List.of(createProgress, externalProgress));
 
-    var recordViewCreate1 = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
     var recordViewExternal2 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 4);
     var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
@@ -66,7 +74,7 @@ class DatasetReportServiceImplTest {
 
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
-        List.of(recordViewCreate1, recordViewExternal1, recordViewExternal2));
+        List.of(recordViewCreate, recordViewExternal1, recordViewExternal2));
     when(errorLogRepository.getByDatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
 
@@ -80,14 +88,40 @@ class DatasetReportServiceImplTest {
     var dataset = new DatasetEntity("dataset", 5);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
-    var report = new DatasetInfoDto(5, 0L, List.of(createProgress, externalProgress));
+    var report = new DatasetInfoDto("Generates after process is completed", 5, 0L,
+        List.of(createProgress, externalProgress));
 
-    var recordViewCreate1 = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
-    var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
+    var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
 
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
-        List.of(recordViewCreate1, recordViewExternal1));
+        List.of(recordViewCreate, recordViewExternal));
+    when(errorLogRepository.getByDatasetId("1"))
+        .thenReturn(List.of());
+
+    var result = service.getReport("1");
+
+    assertReportEquals(report, result);
+  }
+
+  @Test
+  void getReportCompleted_expectSuccess() {
+    var dataset = new DatasetEntity("dataset", 5);
+    var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
+
+    var report = new DatasetInfoDto(
+        "https://metis-sandbox/portal/search?q=edm_datasetName:null_dataset*", 5, 5L,
+        List.of(createProgress, externalProgress));
+
+    var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
+    var recordViewClose = new StepStatistic(Step.CLOSE, Status.SUCCESS, 5);
+
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(
+        List.of(recordViewCreate, recordViewExternal, recordViewClose));
     when(errorLogRepository.getByDatasetId("1"))
         .thenReturn(List.of());
 
@@ -98,10 +132,13 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
-    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 0)));
+    var datasetEntity = new DatasetEntity("test", 0);
+    datasetEntity.setDatasetId("1");
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
-    var expected = new DatasetInfoDto(0, 0L, List.of());
+    var expected = new DatasetInfoDto(
+        "https://metis-sandbox/portal/search?q=edm_datasetName:1_test*", 0, 0L, List.of());
     var report = service.getReport("1");
     assertReportEquals(expected, report);
   }
@@ -128,6 +165,7 @@ class DatasetReportServiceImplTest {
   }
 
   private void assertReportEquals(DatasetInfoDto expected, DatasetInfoDto actual) {
+    assertEquals(expected.getPortalUrl(), actual.getPortalUrl());
     assertEquals(expected.getProcessedRecords(), actual.getProcessedRecords());
     assertEquals(expected.getTotalRecords(), actual.getTotalRecords());
     assertEquals(expected.getStatus(), actual.getStatus());

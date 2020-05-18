@@ -19,12 +19,15 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,12 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
   private static final int FIRST = 0;
+  private static final String PORTAL_MSG = "Generates after process is completed";
+  private static final String SEPARATOR = "_";
+  private static final String SUFFIX = "*";
+
+  @Value("${sandbox.portal.url}")
+  private String portalUrl;
 
   private final DatasetRepository datasetRepository;
   private final RecordLogRepository recordLogRepository;
@@ -66,11 +75,12 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     if (stepStatistics.isEmpty()) {
-      return new DatasetInfoDto(dataset.getRecordsQuantity(), 0L, List.of());
+      return new DatasetInfoDto(getPortalUrl(dataset, 0L), dataset.getRecordsQuantity(), 0L,
+          List.of());
     }
 
     // get qty of records completely processed
-    Long completedRecords = getCompletedRecords(stepStatistics);
+    long completedRecords = getCompletedRecords(stepStatistics);
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(
@@ -85,7 +95,18 @@ class DatasetReportServiceImpl implements DatasetReportService {
     recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
         recordErrorsByStep));
 
-    return new DatasetInfoDto(dataset.getRecordsQuantity(), completedRecords, stepsInfo);
+    return new DatasetInfoDto(getPortalUrl(dataset, completedRecords),
+        dataset.getRecordsQuantity(), completedRecords,
+        stepsInfo);
+  }
+
+  private String getPortalUrl(DatasetEntity dataset, long completedRecords) {
+    long recordsQty = dataset.getRecordsQuantity();
+    if (recordsQty != completedRecords) {
+      return PORTAL_MSG;
+    }
+    var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
+    return portalUrl + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
   }
 
   private DatasetEntity getDataset(String datasetId) {
@@ -101,7 +122,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
-  private Long getCompletedRecords(List<StepStatistic> stepStatistics) {
+  private long getCompletedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
         .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
         .mapToLong(StepStatistic::getCount)
