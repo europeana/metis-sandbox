@@ -14,11 +14,11 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
-import eu.europeana.metis.sandbox.repository.projection.RecordLogView;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -55,26 +55,26 @@ class DatasetReportServiceImpl implements DatasetReportService {
     DatasetEntity dataset = getDataset(datasetId);
 
     // pull records and errors data for the dataset
-    List<RecordLogView> recordsLog;
+    List<StepStatistic> stepStatistics;
     List<ErrorLogView> errorsLog;
     try {
-      recordsLog = recordLogRepository.getByDatasetId(datasetId);
+      stepStatistics = recordLogRepository.getStepStatistics(datasetId);
       errorsLog = errorLogRepository.getByDatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
           exception);
     }
 
-    if (recordsLog.isEmpty()) {
-      return new DatasetInfoDto(dataset.getRecordsQuantity(), 0, List.of());
+    if (stepStatistics.isEmpty()) {
+      return new DatasetInfoDto(dataset.getRecordsQuantity(), 0L, List.of());
     }
 
     // get qty of records completely processed
-    Integer completedRecords = getCompletedRecords(recordsLog);
+    Long completedRecords = getCompletedRecords(stepStatistics);
 
     // get records processed by step
-    Map<Step, Map<Status, Integer>> recordsProcessedByStep = getRecordsProcessedByStep(
-        recordsLog);
+    Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(
+        stepStatistics);
 
     // get errors by step
     Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(
@@ -101,20 +101,21 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
-  private Integer getCompletedRecords(List<RecordLogView> recordsLog) {
-    return recordsLog.stream()
-        .filter(record -> record.getStep() == Step.CLOSE || record.getStatus() == Status.FAIL)
-        .map(e -> 1)
-        .reduce(0, Integer::sum);
+  private Long getCompletedRecords(List<StepStatistic> stepStatistics) {
+    return stepStatistics.stream()
+        .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
+        .mapToLong(StepStatistic::getCount)
+        .sum();
   }
 
-  private Map<Step, Map<Status, Integer>> getRecordsProcessedByStep(
-      List<RecordLogView> recordsLog) {
-    return recordsLog.stream()
+  private Map<Step, Map<Status, Long>> getStatisticsByStep(
+      List<StepStatistic> stepStatistics) {
+    return stepStatistics.stream()
         .filter(x -> x.getStep() != Step.CLOSE)
-        .sorted(Comparator.comparingInt(recordLogView -> recordLogView.getStep().precedence()))
-        .collect(groupingBy(RecordLogView::getStep, LinkedHashMap::new,
-            groupingBy(RecordLogView::getStatus, reducing(0, e -> 1, Integer::sum))));
+        .sorted(Comparator.comparingInt(stepStatistic -> stepStatistic.getStep().precedence()))
+        .collect(groupingBy(StepStatistic::getStep, LinkedHashMap::new,
+            groupingBy(StepStatistic::getStatus,
+                reducing(0L, StepStatistic::getCount, Long::sum))));
   }
 
   private Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> getRecordErrorsByStep(
@@ -132,15 +133,15 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private void addStepInfo(List<ProgressByStepDto> stepsInfo,
-      Map<Status, Integer> statusMap,
+      Map<Status, Long> statusMap,
       Step step,
       Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep
   ) {
     stepsInfo
         .add(new ProgressByStepDto(step,
-            statusMap.getOrDefault(Status.SUCCESS, 0),
-            statusMap.getOrDefault(Status.FAIL, 0),
-            statusMap.getOrDefault(Status.WARN, 0),
+            statusMap.getOrDefault(Status.SUCCESS, 0L),
+            statusMap.getOrDefault(Status.FAIL, 0L),
+            statusMap.getOrDefault(Status.WARN, 0L),
             addStepErrors(recordErrorsByStep.get(step))));
   }
 

@@ -31,21 +31,22 @@ public class DatasetInfoDto {
   private final Status status;
 
   @JsonProperty("total-records")
-  private final Integer totalRecords;
+  private final Long totalRecords;
 
   @JsonProperty("processed-records")
-  private final Integer processedRecords;
+  private final Long processedRecords;
 
   @JsonProperty("progress-by-step")
   private final List<ProgressByStepDto> progressByStep;
 
   public DatasetInfoDto(Integer totalRecords,
-      Integer processedRecords, List<ProgressByStepDto> progressByStep) {
+      Long processedRecords, List<ProgressByStepDto> progressByStep) {
     requireNonNull(totalRecords, "Total records must not be null");
     requireNonNull(processedRecords, "Processed records must not be null");
     requireNonNull(progressByStep, "Progress by step must not be null");
-    this.status = totalRecords.equals(processedRecords) ? Status.COMPLETED : Status.IN_PROGRESS;
-    this.totalRecords = totalRecords;
+    this.totalRecords = Long.valueOf(totalRecords);
+    this.status =
+        this.totalRecords.equals(processedRecords) ? Status.COMPLETED : Status.IN_PROGRESS;
     this.processedRecords = processedRecords;
     this.progressByStep = Collections.unmodifiableList(progressByStep);
   }
@@ -54,11 +55,11 @@ public class DatasetInfoDto {
     return status;
   }
 
-  public Integer getTotalRecords() {
+  public Long getTotalRecords() {
     return totalRecords;
   }
 
-  public Integer getProcessedRecords() {
+  public Long getProcessedRecords() {
     return processedRecords;
   }
 

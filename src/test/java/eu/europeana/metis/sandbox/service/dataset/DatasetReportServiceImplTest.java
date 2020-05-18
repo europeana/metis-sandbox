@@ -12,11 +12,11 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
-import eu.europeana.metis.sandbox.repository.projection.RecordLogView;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -50,18 +50,11 @@ class DatasetReportServiceImplTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
-    var report = new DatasetInfoDto(5, 4, List.of(createProgress, externalProgress));
+    var report = new DatasetInfoDto(5, 4L, List.of(createProgress, externalProgress));
 
-    var recordViewCreate1 = new RecordLogViewImpl("1", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal1 = new RecordLogViewImpl("1", Step.VALIDATE_EXTERNAL, Status.FAIL);
-    var recordViewCreate2 = new RecordLogViewImpl("2", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal2 = new RecordLogViewImpl("2", Step.VALIDATE_EXTERNAL, Status.FAIL);
-    var recordViewCreate3 = new RecordLogViewImpl("3", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal3 = new RecordLogViewImpl("3", Step.VALIDATE_EXTERNAL, Status.FAIL);
-    var recordViewCreate4 = new RecordLogViewImpl("4", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal4 = new RecordLogViewImpl("4", Step.VALIDATE_EXTERNAL, Status.FAIL);
-    var recordViewCreate5 = new RecordLogViewImpl("5", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal5 = new RecordLogViewImpl("5", Step.VALIDATE_EXTERNAL, Status.SUCCESS);
+    var recordViewCreate1 = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
+    var recordViewExternal2 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 4);
     var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
     var errorView2 = new ErrorLogViewImpl(1L, "2", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
@@ -72,10 +65,8 @@ class DatasetReportServiceImplTest {
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
 
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
-    when(recordLogRepository.getByDatasetId("1")).thenReturn(
-        List.of(recordViewCreate1, recordViewCreate2, recordViewCreate3, recordViewCreate4,
-            recordViewCreate5, recordViewExternal1, recordViewExternal2, recordViewExternal3,
-            recordViewExternal4, recordViewExternal5));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(
+        List.of(recordViewCreate1, recordViewExternal1, recordViewExternal2));
     when(errorLogRepository.getByDatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
 
@@ -89,24 +80,14 @@ class DatasetReportServiceImplTest {
     var dataset = new DatasetEntity("dataset", 5);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
-    var report = new DatasetInfoDto(5, 0, List.of(createProgress, externalProgress));
+    var report = new DatasetInfoDto(5, 0L, List.of(createProgress, externalProgress));
 
-    var recordViewCreate1 = new RecordLogViewImpl("1", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal1 = new RecordLogViewImpl("1", Step.VALIDATE_EXTERNAL, Status.SUCCESS);
-    var recordViewCreate2 = new RecordLogViewImpl("2", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal2 = new RecordLogViewImpl("2", Step.VALIDATE_EXTERNAL, Status.SUCCESS);
-    var recordViewCreate3 = new RecordLogViewImpl("3", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal3 = new RecordLogViewImpl("3", Step.VALIDATE_EXTERNAL, Status.SUCCESS);
-    var recordViewCreate4 = new RecordLogViewImpl("4", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal4 = new RecordLogViewImpl("4", Step.VALIDATE_EXTERNAL, Status.SUCCESS);
-    var recordViewCreate5 = new RecordLogViewImpl("5", Step.CREATE, Status.SUCCESS);
-    var recordViewExternal5 = new RecordLogViewImpl("5", Step.VALIDATE_EXTERNAL, Status.SUCCESS);
+    var recordViewCreate1 = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
 
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
-    when(recordLogRepository.getByDatasetId("1")).thenReturn(
-        List.of(recordViewCreate1, recordViewCreate2, recordViewCreate3, recordViewCreate4,
-            recordViewCreate5, recordViewExternal1, recordViewExternal2, recordViewExternal3,
-            recordViewExternal4, recordViewExternal5));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(
+        List.of(recordViewCreate1, recordViewExternal1));
     when(errorLogRepository.getByDatasetId("1"))
         .thenReturn(List.of());
 
@@ -118,9 +99,9 @@ class DatasetReportServiceImplTest {
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 0)));
-    when(recordLogRepository.getByDatasetId("1")).thenReturn(List.of());
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
-    var expected = new DatasetInfoDto(0, 0, List.of());
+    var expected = new DatasetInfoDto(0, 0L, List.of());
     var report = service.getReport("1");
     assertReportEquals(expected, report);
   }
@@ -136,7 +117,7 @@ class DatasetReportServiceImplTest {
   @Test
   void getReport_failToRetrieveRecords_expectFail() {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5)));
-    when(recordLogRepository.getByDatasetId("1")).thenThrow(new RuntimeException("exception"));
+    when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));
   }
@@ -177,34 +158,6 @@ class DatasetReportServiceImplTest {
         var recordIdsActual = errorsByStepActual.get(i).getRecordIds();
         assertLinesMatch(recordIdsExpected, recordIdsActual);
       }
-    }
-  }
-
-  private static class RecordLogViewImpl implements RecordLogView {
-
-    private final String recordId;
-    private final Step step;
-    private final Status status;
-
-    public RecordLogViewImpl(String recordId, Step step, Status status) {
-      this.recordId = recordId;
-      this.step = step;
-      this.status = status;
-    }
-
-    @Override
-    public String getRecordId() {
-      return recordId;
-    }
-
-    @Override
-    public Step getStep() {
-      return step;
-    }
-
-    @Override
-    public Status getStatus() {
-      return status;
     }
   }
 

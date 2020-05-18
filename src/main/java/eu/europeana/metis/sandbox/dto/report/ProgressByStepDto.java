@@ -13,15 +13,15 @@ import java.util.List;
 public class ProgressByStepDto {
 
   private final Step step;
-  private final int total;
-  private final int success;
-  private final int fail;
-  private final int warn;
+  private final long total;
+  private final long success;
+  private final long fail;
+  private final long warn;
 
   @JsonInclude(Include.NON_EMPTY)
   private final List<ErrorInfoDto> errors;
 
-  public ProgressByStepDto(Step step, int success, int fail, int warn,
+  public ProgressByStepDto(Step step, long success, long fail, long warn,
       List<ErrorInfoDto> errors) {
     requireNonNull(step, "Step must not be null");
     this.step = step;
@@ -36,19 +36,19 @@ public class ProgressByStepDto {
     return step;
   }
 
-  public int getTotal() {
+  public long getTotal() {
     return total;
   }
 
-  public int getSuccess() {
+  public long getSuccess() {
     return success;
   }
 
-  public int getFail() {
+  public long getFail() {
     return fail;
   }
 
-  public int getWarn() {
+  public long getWarn() {
     return warn;
   }
 
