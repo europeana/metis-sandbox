@@ -12,7 +12,7 @@ public class DatasetEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private String datasetId;
+  private Integer datasetId;
 
   private String datasetName;
 
@@ -28,7 +28,7 @@ public class DatasetEntity {
   }
 
   public String getDatasetId() {
-    return this.datasetId;
+    return String.valueOf(this.datasetId);
   }
 
   public String getDatasetName() {
@@ -40,7 +40,7 @@ public class DatasetEntity {
   }
 
   public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
+    this.datasetId = Integer.valueOf(datasetId);
   }
 
   public void setDatasetName(String datasetName) {

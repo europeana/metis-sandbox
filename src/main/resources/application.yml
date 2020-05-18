@@ -13,6 +13,7 @@ spring:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
       - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
   application:
     name: *name
   servlet:

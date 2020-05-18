@@ -3,24 +3,30 @@ package eu.europeana.metis.sandbox.common;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Step {
-  CREATE("create"),
-  VALIDATE_EXTERNAL("external validation"),
-  TRANSFORM("transform"),
-  VALIDATE_INTERNAL("internal validation"),
-  NORMALIZE("normalization"),
-  ENRICH("enrichment"),
-  MEDIA_PROCESS("media processing"),
-  INDEX("indexing"),
-  CLOSE("close");
+  CREATE("import", 0),
+  VALIDATE_EXTERNAL("validate (edm external)", 1),
+  TRANSFORM("transform", 2),
+  VALIDATE_INTERNAL("validate (edm internal)", 3),
+  NORMALIZE("normalise", 4),
+  ENRICH("enrich", 5),
+  MEDIA_PROCESS("process media", 6),
+  INDEX("preview", 7),
+  CLOSE("close", 8);
 
   private final String value;
+  private final int precedence;
 
-  Step(String value) {
+  Step(String value, int precedence) {
     this.value = value;
+    this.precedence = precedence;
   }
 
   @JsonValue
   public String value() {
     return value;
+  }
+
+  public int precedence() {
+    return precedence;
   }
 }

@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.controller.advice;
 
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -43,6 +44,15 @@ class ControllerErrorHandler {
   @ExceptionHandler(RecordParsingException.class)
   public ResponseEntity<Object> handleNonRecoverableServiceException(
       RecordParsingException ex) {
+    var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+        HttpStatus.BAD_REQUEST, ex.getMessage());
+    LOGGER.error(ex.getMessage(), ex);
+    return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
+  }
+
+  @ExceptionHandler(InvalidDatasetException.class)
+  public ResponseEntity<Object> handleInvalidDatasetException(
+      InvalidDatasetException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
     LOGGER.error(ex.getMessage(), ex);

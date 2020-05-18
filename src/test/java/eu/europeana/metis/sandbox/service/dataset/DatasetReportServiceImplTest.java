@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.Status;
@@ -11,10 +10,15 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ReportByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.StepStatistic;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,21 +29,32 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DatasetReportServiceImplTest {
 
   @Mock
+  private DatasetRepository datasetRepository;
+
+  @Mock
+  private RecordLogRepository recordLogRepository;
+
+  @Mock
   private RecordErrorLogRepository errorLogRepository;
 
   @InjectMocks
   private DatasetReportServiceImpl service;
 
   @Test
-  void getReport_expectSuccess() {
+  void getReportWithErrors_expectSuccess() {
+    var dataset = new DatasetEntity("dataset", 5);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
-    var reportByStep = new ReportByStepDto(Step.VALIDATE_EXTERNAL, errors);
-    var report = new DatasetInfoDto("TBD", List.of(reportByStep));
+    var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
+    var report = new DatasetInfoDto(5, 4L, List.of(createProgress, externalProgress));
 
+    var recordViewCreate1 = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
+    var recordViewExternal2 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 4);
     var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
     var errorView2 = new ErrorLogViewImpl(1L, "2", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
@@ -48,6 +63,10 @@ class DatasetReportServiceImplTest {
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
     var errorView4 = new ErrorLogViewImpl(1L, "4", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
+
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(
+        List.of(recordViewCreate1, recordViewExternal1, recordViewExternal2));
     when(errorLogRepository.getByDatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
 
@@ -57,18 +76,48 @@ class DatasetReportServiceImplTest {
   }
 
   @Test
-  void getReport_emptyReport_expectSuccess() {
-    when(errorLogRepository.getByDatasetId("1")).thenReturn(List.of());
+  void getReportWithoutErrors_expectSuccess() {
+    var dataset = new DatasetEntity("dataset", 5);
+    var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
+    var report = new DatasetInfoDto(5, 0L, List.of(createProgress, externalProgress));
+
+    var recordViewCreate1 = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
+
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(
+        List.of(recordViewCreate1, recordViewExternal1));
+    when(errorLogRepository.getByDatasetId("1"))
+        .thenReturn(List.of());
 
     var result = service.getReport("1");
 
-    assertTrue(result.getErrorsReport().isEmpty());
+    assertReportEquals(report, result);
   }
 
   @Test
-  void getReport_failToRetrieveData_expectFail() {
-    when(errorLogRepository.getByDatasetId("1"))
+  void getReport_retrieveEmptyDataset_expectSuccess() {
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 0)));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
+
+    var expected = new DatasetInfoDto(0, 0L, List.of());
+    var report = service.getReport("1");
+    assertReportEquals(expected, report);
+  }
+
+  @Test
+  void getReport_failToRetrieveDataset_expectFail() {
+    when(datasetRepository.findById(1))
         .thenThrow(new ServiceException("failed", new Exception()));
+
+    assertThrows(ServiceException.class, () -> service.getReport("1"));
+  }
+
+  @Test
+  void getReport_failToRetrieveRecords_expectFail() {
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5)));
+    when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));
   }
@@ -79,16 +128,32 @@ class DatasetReportServiceImplTest {
   }
 
   private void assertReportEquals(DatasetInfoDto expected, DatasetInfoDto actual) {
-    var errorsReportFromExpected = expected.getErrorsReport();
-    var errorsReportFromActual = actual.getErrorsReport();
-    assertEquals(errorsReportFromExpected.size(), errorsReportFromActual.size());
-    for (int i = 0; i < errorsReportFromExpected.size(); i++) {
-      assertEquals(errorsReportFromExpected.get(i).getStep(),
-          errorsReportFromActual.get(i).getStep());
-      var errorsByStepExpected = errorsReportFromExpected.get(i).getErrors();
-      var errorsByStepActual = errorsReportFromActual.get(i).getErrors();
+    assertEquals(expected.getProcessedRecords(), actual.getProcessedRecords());
+    assertEquals(expected.getTotalRecords(), actual.getTotalRecords());
+    assertEquals(expected.getStatus(), actual.getStatus());
+
+    var progressByStepExpected = expected.getProgressByStep();
+    var progressByStepActual = actual.getProgressByStep();
+    assertEquals(progressByStepExpected.size(), progressByStepActual.size());
+
+    for (int i = 0; i < progressByStepExpected.size(); i++) {
+      assertEquals(progressByStepExpected.get(i).getStep(), progressByStepActual.get(i).getStep());
+      assertEquals(progressByStepExpected.get(i).getSuccess(),
+          progressByStepActual.get(i).getSuccess());
+      assertEquals(progressByStepExpected.get(i).getFail(), progressByStepActual.get(i).getFail());
+      assertEquals(progressByStepExpected.get(i).getWarn(), progressByStepActual.get(i).getWarn());
+      assertEquals(progressByStepExpected.get(i).getTotal(),
+          progressByStepActual.get(i).getTotal());
+
+      var errorsByStepExpected = progressByStepExpected.get(i).getErrors();
+      var errorsByStepActual = progressByStepActual.get(i).getErrors();
       assertEquals(errorsByStepExpected.size(), errorsByStepActual.size());
+
       for (int j = 0; j < errorsByStepExpected.size(); j++) {
+        assertEquals(errorsByStepExpected.get(i).getErrorMessage(),
+            errorsByStepActual.get(i).getErrorMessage());
+        assertEquals(errorsByStepExpected.get(i).getType(), errorsByStepActual.get(i).getType());
+
         var recordIdsExpected = errorsByStepExpected.get(i).getRecordIds();
         var recordIdsActual = errorsByStepActual.get(i).getRecordIds();
         assertLinesMatch(recordIdsExpected, recordIdsActual);

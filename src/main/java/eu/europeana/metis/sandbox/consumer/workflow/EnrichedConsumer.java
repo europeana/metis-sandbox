@@ -38,6 +38,10 @@ class EnrichedConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.enriched.queue}", containerFactory = "enrichedFactory")
   public void processMedia(Event input) {
+    if (input.getStatus() == Status.FAIL) {
+      return;
+    }
+
     Event output;
     try {
       var record = service.processMedia(input.getBody());
