@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Profile;
 public class TestConfig {
 
   @Bean
-  @Primary
   ConnectionFactory connectionFactory() {
     return new CachingConnectionFactory(new MockConnectionFactory());
   }
@@ -35,7 +34,6 @@ public class TestConfig {
   }
 
   @Bean
-  @Primary
   Indexer indexer() {
     return new IndexerImpl();
   }
