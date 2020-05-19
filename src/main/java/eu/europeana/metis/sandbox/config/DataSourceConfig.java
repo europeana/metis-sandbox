@@ -10,6 +10,10 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures the datasource, ensures that the custom trust store is appended before creating the
+ * datasource
+ */
 @Configuration
 class DataSourceConfig {
 

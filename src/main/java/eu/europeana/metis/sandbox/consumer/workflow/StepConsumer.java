@@ -12,6 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 
+/**
+ * Parent class for all consumer steps, generalizes the consumers action
+ */
 class StepConsumer {
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());

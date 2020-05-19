@@ -2,6 +2,9 @@ package eu.europeana.metis.sandbox.common.locale;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+/**
+ * Enum to represent languages available to add to a dataset process
+ */
 public enum Language {
   AR("ar"), AZ("az"), BE("be"), BG("bg"), BS("bs"), CA("ca"), CS("cs"), CY(
       "cy"), DA("da"), DE("de"), EL("el"), EN("en"), ES("es"), ET("et"), EU(

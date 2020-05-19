@@ -20,6 +20,9 @@ import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.stereotype.Component;
 
+/**
+ * Implementation of {@link MessageConverter} that can work with {@link Event}
+ */
 @Component
 class RecordMessageConverter implements MessageConverter {
 
@@ -34,6 +37,14 @@ class RecordMessageConverter implements MessageConverter {
   protected static final String STEP = "step";
   protected static final String ERRORS = "errors";
 
+  /**
+   * Convert an Event to a Message.
+   *
+   * @param object            the object to convert
+   * @param messageProperties The message properties.
+   * @return the Message
+   * @throws MessageConversionException in case object is not of type Event
+   */
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
     if (!(object instanceof Event)) {
@@ -67,6 +78,12 @@ class RecordMessageConverter implements MessageConverter {
         .build();
   }
 
+  /**
+   * Convert from a Message to an Event.
+   *
+   * @param message the message to convert
+   * @return the converted Event
+   */
   @Override
   public Object fromMessage(Message message) {
     byte[] content = message.getBody();

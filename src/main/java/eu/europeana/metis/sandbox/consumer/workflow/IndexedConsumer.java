@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes indexed events
+ * Consumes indexed events <br/>
+ * Publishes the result using the closed routing key
  */
 @Component
 class IndexedConsumer {
