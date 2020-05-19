@@ -7,7 +7,7 @@ info:
 
 spring:
   profiles:
-    active: dev
+    active: default
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
@@ -81,7 +81,25 @@ sandbox:
   enrichment:
     dereference-url:
     enrichment-url:
-  indexing:
+  preview:
+    mongo:
+      db:
+      hosts:
+      ports:
+      authentication-db:
+      username:
+      password:
+      ssl-enable:
+    solr:
+      hosts:
+      zookeeper:
+        hosts:
+        ports:
+        chroot:
+        default:
+          collection:
+        timeout:
+  publish:
     mongo:
       db:
       hosts:
@@ -138,9 +156,9 @@ sandbox:
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
-        indexed:
-          queue: sandbox.record.indexed
-          dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq
+        previewed:
+          queue: sandbox.record.previewed
+          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
         published:
           queue: sandbox.record.published
-          dlq: ${sandbox.record.published}.dlq
+          dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq

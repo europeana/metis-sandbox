@@ -67,7 +67,14 @@ class WorkflowListenerConfig {
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory indexedFactory(
+  SimpleRabbitListenerContainerFactory previewedFactory(
+      SimpleRabbitListenerContainerFactoryConfigurer configurer,
+      ConnectionFactory connectionFactory) {
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+  }
+
+  @Bean
+  SimpleRabbitListenerContainerFactory publishedFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);

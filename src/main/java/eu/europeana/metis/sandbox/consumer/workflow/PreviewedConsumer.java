@@ -17,41 +17,41 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes media processed events and performs indexing to the contained record <br/> Publishes the
- * result in the previewed queue
+ * Consumes events in preview and publish them
  */
 @Component
-class MediaProcessedConsumer {
+class PreviewedConsumer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MediaProcessedConsumer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PreviewedConsumer.class);
 
   private final AmqpTemplate amqpTemplate;
+
   private final IndexingService service;
 
-  @Value("${sandbox.rabbitmq.queues.record.previewed.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.published.queue}")
   private String routingKey;
 
-  public MediaProcessedConsumer(AmqpTemplate amqpTemplate,
+  public PreviewedConsumer(AmqpTemplate amqpTemplate,
       IndexingService service) {
     this.amqpTemplate = amqpTemplate;
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
-  public void index(Event input) {
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}", containerFactory = "previewedFactory")
+  public void publish(Event input) {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
 
     Event output;
     try {
-      var record = service.index(input.getBody(), Index.PREVIEW);
+      var record = service.index(input.getBody(), Index.PUBLISH);
       var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
-      output = new Event(record, Step.INDEX, status);
+      output = new Event(record, Step.PUBLISH, status);
     } catch (RecordProcessingException ex) {
       LOGGER.error(ex.getMessage(), ex);
       var recordError = new RecordError(ex);
-      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), Step.INDEX,
+      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), Step.PUBLISH,
           Status.FAIL);
     }
 

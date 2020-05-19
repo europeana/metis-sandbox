@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
+import eu.europeana.metis.sandbox.common.Index;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -15,16 +16,21 @@ import org.springframework.stereotype.Service;
 @Service
 class IndexingServiceImpl implements IndexingService {
 
-  private final Indexer indexer;
+  private final Indexer previewIndexer;
+  private final Indexer publishIndexer;
 
   public IndexingServiceImpl(
-      Indexer indexer) {
-    this.indexer = indexer;
+      Indexer previewIndexer, Indexer publishIndexer) {
+    this.previewIndexer = previewIndexer;
+    this.publishIndexer = publishIndexer;
   }
 
   @Override
-  public RecordInfo index(Record record) {
+  public RecordInfo index(Record record, Index index) {
     requireNonNull(record, "Record must not be null");
+    requireNonNull(index, "Index must not be null");
+
+    Indexer indexer = Index.PREVIEW == index ? previewIndexer : publishIndexer;
     try {
       indexer.index(record.getContentInputStream(), new Date(), false, null, false);
     } catch (IndexingException ex) {
@@ -36,6 +42,7 @@ class IndexingServiceImpl implements IndexingService {
 
   @PreDestroy
   public void destroy() throws IOException {
-    indexer.close();
+    previewIndexer.close();
+    publishIndexer.close();
   }
 }
