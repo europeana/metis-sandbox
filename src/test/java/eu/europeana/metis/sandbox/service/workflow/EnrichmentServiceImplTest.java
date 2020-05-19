@@ -1,13 +1,13 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.enrichment.rest.client.DereferenceOrEnrichException;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
-import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -51,7 +51,10 @@ class EnrichmentServiceImplTest {
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(any(InputStream.class)))
         .thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
-    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+    var recordInfo = service.enrich(record);
+
+    assertEquals("1", recordInfo.getRecord().getRecordId());
+    assertEquals(1, recordInfo.getErrors().size());
   }
 
   @Test

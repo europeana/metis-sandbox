@@ -11,21 +11,21 @@ import java.util.List;
 @ApiModel("ErrorInfo")
 public class ErrorInfoDto {
 
-  @JsonProperty("error-message")
+  @JsonProperty("message")
   private final String errorMessage;
 
-  private final Status status;
+  private final Status type;
 
   @JsonProperty("records")
   private final List<String> recordIds;
 
-  public ErrorInfoDto(String errorMessage, Status status,
+  public ErrorInfoDto(String errorMessage, Status type,
       List<String> recordIds) {
     requireNonNull(errorMessage, "Error message must not be null");
+    requireNonNull(type, "Type must not be null");
     requireNonNull(recordIds, "Record ids must not be null");
-    requireNonNull(status, "Status must not be null");
     this.recordIds = Collections.unmodifiableList(recordIds);
-    this.status = status;
+    this.type = type;
     this.errorMessage = errorMessage;
   }
 
@@ -33,8 +33,8 @@ public class ErrorInfoDto {
     return recordIds;
   }
 
-  public Status getStatus() {
-    return status;
+  public Status getType() {
+    return type;
   }
 
   public String getErrorMessage() {
