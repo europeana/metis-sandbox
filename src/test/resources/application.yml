@@ -119,3 +119,6 @@ sandbox:
         indexed:
           queue: sandbox.record.indexed
           dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq
+        published:
+          queue: sandbox.record.published
+          dlq: ${sandbox.record.published}.dlq
