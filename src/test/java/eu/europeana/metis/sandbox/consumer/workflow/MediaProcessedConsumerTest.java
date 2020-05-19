@@ -6,7 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.Index;
+import eu.europeana.metis.sandbox.common.IndexEnv;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -48,13 +48,13 @@ class MediaProcessedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, Index.PREVIEW)).thenReturn(new RecordInfo(record));
+    when(service.index(record, IndexEnv.PREVIEW)).thenReturn(new RecordInfo(record));
     consumer.index(recordEvent);
 
-    verify(service).index(record, Index.PREVIEW);
+    verify(service).index(record, IndexEnv.PREVIEW);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.INDEX, captor.getValue().getStep());
+    assertEquals(Step.PREVIEW, captor.getValue().getStep());
   }
 
   @Test
@@ -67,7 +67,7 @@ class MediaProcessedConsumerTest {
 
     consumer.index(recordEvent);
 
-    verify(service, never()).index(record, Index.PREVIEW);
+    verify(service, never()).index(record, IndexEnv.PREVIEW);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
@@ -79,11 +79,11 @@ class MediaProcessedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, Index.PREVIEW)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.index(record, IndexEnv.PREVIEW)).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.index(recordEvent);
 
-    verify(service).index(record, Index.PREVIEW);
+    verify(service).index(record, IndexEnv.PREVIEW);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

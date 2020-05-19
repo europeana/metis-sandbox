@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.metis.sandbox.common.Index;
+import eu.europeana.metis.sandbox.common.IndexEnv;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -26,11 +26,11 @@ class IndexingServiceImpl implements IndexingService {
   }
 
   @Override
-  public RecordInfo index(Record record, Index index) {
+  public RecordInfo index(Record record, IndexEnv indexEnv) {
     requireNonNull(record, "Record must not be null");
-    requireNonNull(index, "Index must not be null");
+    requireNonNull(indexEnv, "Index must not be null");
 
-    Indexer indexer = Index.PREVIEW == index ? previewIndexer : publishIndexer;
+    Indexer indexer = IndexEnv.PREVIEW == indexEnv ? previewIndexer : publishIndexer;
     try {
       indexer.index(record.getContentInputStream(), new Date(), false, null, false);
     } catch (IndexingException ex) {

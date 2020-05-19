@@ -137,8 +137,7 @@ class IndexingConfig {
 
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
-        mongoAuthenticationDb, mongoUsername, mongoPassword,
-        enableSSL, null);
+        mongoAuthenticationDb, mongoUsername, mongoPassword, enableSSL, null);
     settings.setMongoDatabaseName(mongoDb);
 
     // Set Solr properties
@@ -148,7 +147,7 @@ class IndexingConfig {
 
     // Set Zookeeper properties
     if (isNotEmpty(zookeeperHosts) && isNotEmpty(zookeeperPorts)) {
-      settings.getSolrProperties().setZookeeperHosts(zookeeperPublishHosts, zookeeperPublishPorts);
+      settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
     }
     if (isNotBlank(zookeeperChroot)) {
       settings.setZookeeperChroot(zookeeperChroot);
@@ -162,5 +161,4 @@ class IndexingConfig {
 
     return new IndexerFactory(settings).getIndexer();
   }
-
 }

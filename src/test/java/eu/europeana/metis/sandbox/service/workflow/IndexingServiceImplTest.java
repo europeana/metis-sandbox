@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.metis.sandbox.common.Index;
+import eu.europeana.metis.sandbox.common.IndexEnv;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -46,7 +46,7 @@ class IndexingServiceImplTest {
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
-    service.index(record, Index.PREVIEW);
+    service.index(record, IndexEnv.PREVIEW);
     verify(previewIndexer)
         .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
   }
@@ -60,7 +60,7 @@ class IndexingServiceImplTest {
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(previewIndexer)
         .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
-    assertThrows(RecordProcessingException.class, () -> service.index(record, Index.PREVIEW));
+    assertThrows(RecordProcessingException.class, () -> service.index(record, IndexEnv.PREVIEW));
   }
 
   @Test
@@ -69,7 +69,7 @@ class IndexingServiceImplTest {
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
-    service.index(record, Index.PUBLISH);
+    service.index(record, IndexEnv.PUBLISH);
     verify(publishIndexer)
         .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
   }
@@ -83,12 +83,12 @@ class IndexingServiceImplTest {
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(publishIndexer)
         .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
-    assertThrows(RecordProcessingException.class, () -> service.index(record, Index.PUBLISH));
+    assertThrows(RecordProcessingException.class, () -> service.index(record, IndexEnv.PUBLISH));
   }
 
   @Test
   void index_inputNull_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.index(null, Index.PUBLISH));
+    assertThrows(NullPointerException.class, () -> service.index(null, IndexEnv.PUBLISH));
   }
 
   @Test

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
-import eu.europeana.metis.sandbox.common.Index;
+import eu.europeana.metis.sandbox.common.IndexEnv;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -45,13 +45,13 @@ class MediaProcessedConsumer {
 
     Event output;
     try {
-      var record = service.index(input.getBody(), Index.PREVIEW);
+      var record = service.index(input.getBody(), IndexEnv.PREVIEW);
       var status = record.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
-      output = new Event(record, Step.INDEX, status);
+      output = new Event(record, Step.PREVIEW, status);
     } catch (RecordProcessingException ex) {
       LOGGER.error(ex.getMessage(), ex);
       var recordError = new RecordError(ex);
-      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), Step.INDEX,
+      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), Step.PREVIEW,
           Status.FAIL);
     }
 

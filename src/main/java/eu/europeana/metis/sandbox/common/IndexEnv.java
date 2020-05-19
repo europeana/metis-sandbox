@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.common;
 
-public enum Index {
+public enum IndexEnv {
   PREVIEW,
   PUBLISH
 }

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.Index;
+import eu.europeana.metis.sandbox.common.IndexEnv;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -48,10 +48,10 @@ class PreviewedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, Index.PUBLISH)).thenReturn(new RecordInfo(record));
+    when(service.index(record, IndexEnv.PUBLISH)).thenReturn(new RecordInfo(record));
     consumer.publish(recordEvent);
 
-    verify(service).index(record, Index.PUBLISH);
+    verify(service).index(record, IndexEnv.PUBLISH);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.PUBLISH, captor.getValue().getStep());
@@ -67,7 +67,7 @@ class PreviewedConsumerTest {
 
     consumer.publish(recordEvent);
 
-    verify(service, never()).index(record, Index.PUBLISH);
+    verify(service, never()).index(record, IndexEnv.PUBLISH);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
@@ -79,12 +79,12 @@ class PreviewedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, Index.PUBLISH))
+    when(service.index(record, IndexEnv.PUBLISH))
         .thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.publish(recordEvent);
 
-    verify(service).index(record, Index.PUBLISH);
+    verify(service).index(record, IndexEnv.PUBLISH);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());
