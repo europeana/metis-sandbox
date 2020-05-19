@@ -58,6 +58,8 @@ sandbox:
       ports: 27017
     solr:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
+  portal:
+    url: http://metis-test
   truststore:
     path:
     password:

@@ -99,6 +99,8 @@ sandbox:
         default:
           collection:
         timeout:
+  portal:
+    url:
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed

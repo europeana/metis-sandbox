@@ -179,7 +179,7 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var report = new DatasetInfoDto(10, 10L, List.of(createProgress, externalProgress));
+    var report = new DatasetInfoDto("https://metis-sandbox", 10, 10L, List.of(createProgress, externalProgress));
     when(datasetReportService.getReport("1")).thenReturn(report);
 
     mvc.perform(get("/dataset/{id}", "1"))
