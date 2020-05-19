@@ -57,7 +57,8 @@ class DatasetReportServiceImplTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
-    var report = new DatasetInfoDto("Generates after process is completed", 5, 4L,
+    var report = new DatasetInfoDto(
+        "A review URL will be generated when the dataset has finished processing", 5, 4L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -88,7 +89,8 @@ class DatasetReportServiceImplTest {
     var dataset = new DatasetEntity("dataset", 5);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
-    var report = new DatasetInfoDto("Generates after process is completed", 5, 0L,
+    var report = new DatasetInfoDto(
+        "A review URL will be generated when the dataset has finished processing", 5, 0L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -131,6 +133,45 @@ class DatasetReportServiceImplTest {
   }
 
   @Test
+  void getReportCompletedAllErrors_expectSuccess() {
+    var dataset = new DatasetEntity("dataset", 5);
+    var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
+    var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
+    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4", "5"));
+    var errors = List.of(error1, error2);
+    var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
+
+    var report = new DatasetInfoDto(
+        "All dataset records failed to be processed", 5, 5L,
+        List.of(createProgress, externalProgress));
+
+    var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+    var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
+    var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+        "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
+    var errorView2 = new ErrorLogViewImpl(1L, "2", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+        "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
+    var errorView3 = new ErrorLogViewImpl(1L, "3", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+        "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
+    var errorView4 = new ErrorLogViewImpl(1L, "4", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+        "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
+    var errorView5 = new ErrorLogViewImpl(1L, "5", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+        "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
+
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+    when(recordLogRepository.getStepStatistics("1")).thenReturn(
+        List.of(recordViewCreate, recordViewExternal));
+    when(errorLogRepository.getByDatasetId("1"))
+        .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4, errorView5));
+
+    var result = service.getReport("1");
+
+    assertReportEquals(report, result);
+  }
+
+  @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
     var datasetEntity = new DatasetEntity("test", 0);
     datasetEntity.setDatasetId("1");
@@ -138,7 +179,7 @@ class DatasetReportServiceImplTest {
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
     var expected = new DatasetInfoDto(
-        "https://metis-sandbox/portal/search?q=edm_datasetName:1_test*", 0, 0L, List.of());
+        "Dataset is empty", 0, 0L, List.of());
     var report = service.getReport("1");
     assertReportEquals(expected, report);
   }

@@ -35,7 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
   private static final int FIRST = 0;
-  private static final String PORTAL_MSG = "Generates after process is completed";
+  private static final String EMPTY_DATASET = "Dataset is empty";
+  private static final String PROCESSING_MSG = "A review URL will be generated when the dataset has finished processing";
+  private static final String FINISH_ALL_ERRORS = "All dataset records failed to be processed";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
@@ -75,12 +77,15 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     if (stepStatistics.isEmpty()) {
-      return new DatasetInfoDto(getPortalUrl(dataset, 0L), dataset.getRecordsQuantity(), 0L,
+      return new DatasetInfoDto(getPortalUrl(dataset, 0L, 0L), dataset.getRecordsQuantity(), 0L,
           List.of());
     }
 
     // get qty of records completely processed
     long completedRecords = getCompletedRecords(stepStatistics);
+
+    // get qty of records that failed
+    long failedRecords = getFailedRecords(stepStatistics);
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(
@@ -95,15 +100,21 @@ class DatasetReportServiceImpl implements DatasetReportService {
     recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
         recordErrorsByStep));
 
-    return new DatasetInfoDto(getPortalUrl(dataset, completedRecords),
+    return new DatasetInfoDto(getPortalUrl(dataset, completedRecords, failedRecords),
         dataset.getRecordsQuantity(), completedRecords,
         stepsInfo);
   }
 
-  private String getPortalUrl(DatasetEntity dataset, long completedRecords) {
+  private String getPortalUrl(DatasetEntity dataset, long completedRecords, long failedRecords) {
     long recordsQty = dataset.getRecordsQuantity();
+    if (recordsQty == 0) {
+      return EMPTY_DATASET;
+    }
     if (recordsQty != completedRecords) {
-      return PORTAL_MSG;
+      return PROCESSING_MSG;
+    }
+    if (completedRecords == failedRecords) {
+      return FINISH_ALL_ERRORS;
     }
     var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
     return portalUrl + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
@@ -125,6 +136,13 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private long getCompletedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
         .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
+        .mapToLong(StepStatistic::getCount)
+        .sum();
+  }
+
+  private long getFailedRecords(List<StepStatistic> stepStatistics) {
+    return stepStatistics.stream()
+        .filter(current -> current.getStatus() == Status.FAIL)
         .mapToLong(StepStatistic::getCount)
         .sum();
   }
