@@ -40,6 +40,15 @@ sandbox:
   enrichment:
     dereference-url: http://metis-test
     enrichment-url: http://metis-test
+  indexing:
+    mongo:
+      db: metis-sandbox-test
+      hosts: localhost
+      ports: 27017
+    solr:
+      hosts: http://metis-test:8888/solr/metis_sandbox_test
+  portal:
+    url: http://metis-test
   truststore:
     path:
     password:

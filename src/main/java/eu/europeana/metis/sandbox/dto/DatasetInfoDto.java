@@ -28,38 +28,44 @@ public class DatasetInfoDto {
     }
   }
 
+  private final String portalUrl;
+
   private final Status status;
 
   @JsonProperty("total-records")
-  private final Long totalRecords;
+  private final long totalRecords;
 
   @JsonProperty("processed-records")
-  private final Long processedRecords;
+  private final long processedRecords;
 
   @JsonProperty("progress-by-step")
   private final List<ProgressByStepDto> progressByStep;
 
-  public DatasetInfoDto(Integer totalRecords,
-      Long processedRecords, List<ProgressByStepDto> progressByStep) {
-    requireNonNull(totalRecords, "Total records must not be null");
-    requireNonNull(processedRecords, "Processed records must not be null");
+  public DatasetInfoDto(String portalUrl, int totalRecords,
+      long processedRecords, List<ProgressByStepDto> progressByStep) {
+    requireNonNull(portalUrl, "Portal url must not be null");
     requireNonNull(progressByStep, "Progress by step must not be null");
-    this.totalRecords = Long.valueOf(totalRecords);
-    this.status =
-        this.totalRecords.equals(processedRecords) ? Status.COMPLETED : Status.IN_PROGRESS;
+    this.totalRecords = totalRecords;
     this.processedRecords = processedRecords;
+    this.status =
+        this.totalRecords == this.processedRecords ? Status.COMPLETED : Status.IN_PROGRESS;
     this.progressByStep = Collections.unmodifiableList(progressByStep);
+    this.portalUrl = portalUrl;
+  }
+
+  public String getPortalUrl() {
+    return portalUrl;
   }
 
   public Status getStatus() {
     return status;
   }
 
-  public Long getTotalRecords() {
+  public long getTotalRecords() {
     return totalRecords;
   }
 
-  public Long getProcessedRecords() {
+  public long getProcessedRecords() {
     return processedRecords;
   }
 
