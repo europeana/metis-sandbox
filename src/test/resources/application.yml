@@ -75,6 +75,7 @@ sandbox:
     signing-region: eu
     thumbnails-bucket: bucket
   dataset:
+    days-to-preserve: 7
     max-size: 1000
     creation:
       threads:

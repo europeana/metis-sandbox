@@ -1,16 +1,23 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
+import eu.europeana.metis.sandbox.common.exception.DatasetRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.service.dataset.projection.DatasetIdView;
 import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class DatasetServiceImpl implements DatasetService {
@@ -48,5 +55,34 @@ class DatasetServiceImpl implements DatasetService {
     var dataset = generatorService.generate(id, datasetName, country, language, records);
     publishService.publish(dataset);
     return dataset.getDatasetId();
+  }
+
+  @Override
+  public List<String> getDatasetIdsBefore(int days) {
+    LocalDateTime date = LocalDateTime.now()
+        .truncatedTo(ChronoUnit.DAYS)
+        .minusDays(days);
+
+    try {
+      return datasetRepository.getByCreatedDateBefore(date).stream()
+          .map(DatasetIdView::getDatasetId)
+          .map(Object::toString)
+          .collect(toList());
+    } catch (RuntimeException e) {
+      throw new ServiceException(
+          format("Error getting datasets older than %s days. %s ", days, e.getMessage()), e);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void removeByDatasetIds(List<String> datasetIds) {
+    try {
+      datasetRepository.deleteByDatasetIdIn(datasetIds.stream()
+          .map(Integer::valueOf)
+          .collect(toList()));
+    } catch (RuntimeException e) {
+      throw new DatasetRemoveException(datasetIds, e);
+    }
   }
 }

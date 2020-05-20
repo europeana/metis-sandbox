@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.entity;
 
+import java.time.LocalDateTime;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,6 +19,9 @@ public class DatasetEntity {
   private String datasetName;
 
   private Integer recordsQuantity;
+
+  @Column(insertable = false, updatable = false)
+  private LocalDateTime createdDate;
 
   public DatasetEntity(String datasetName, Integer recordsQuantity) {
     this.datasetName = datasetName;
@@ -49,5 +54,17 @@ public class DatasetEntity {
 
   public void setRecordsQuantity(Integer recordsQuantity) {
     this.recordsQuantity = recordsQuantity;
+  }
+
+  public void setDatasetId(Integer datasetId) {
+    this.datasetId = datasetId;
+  }
+
+  public LocalDateTime getCreatedDate() {
+    return createdDate;
+  }
+
+  public void setCreatedDate(LocalDateTime createdDate) {
+    this.createdDate = createdDate;
   }
 }

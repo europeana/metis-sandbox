@@ -25,4 +25,24 @@ public interface DatasetService {
    */
   String createDataset(String datasetName, Country country, Language language,
       List<ByteArrayInputStream> records);
+
+  /**
+   * Get dataset ids older than the specified days
+   *
+   * @param days to ignore
+   * @return dataset ids
+   * @throws ServiceException if any unhandled exception happens, exception will contain original
+   *                          exception
+   */
+  List<String> getDatasetIdsBefore(int days);
+
+  /**
+   * Remove matching dataset ids
+   *
+   * @param datasetIds must not be null
+   * @throws NullPointerException if dataset id list is null
+   * @throws ServiceException     if any unhandled exception happens, exception will contain
+   *                              original exception
+   */
+  void removeByDatasetIds(List<String> datasetIds);
 }

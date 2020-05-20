@@ -33,7 +33,7 @@ class ThumbnailStoreServiceImplTest {
 
   @BeforeEach
   public void setup() {
-    service = new ThumbnailStoreServiceImpl(s3client, new Bucket("bucket"));
+    service = new ThumbnailStoreServiceImpl(s3client, new Bucket("bucket"), thumbnailRepository);
   }
 
   @Test
