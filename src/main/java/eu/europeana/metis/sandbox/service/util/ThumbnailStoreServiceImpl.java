@@ -28,7 +28,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
-class ThumbnailServiceImpl implements ThumbnailService {
+class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
 
   private static final int BATCH_SIZE = 1000;
 
@@ -38,7 +38,7 @@ class ThumbnailServiceImpl implements ThumbnailService {
 
   private final ThumbnailRepository thumbnailRepository;
 
-  public ThumbnailServiceImpl(AmazonS3 s3client,
+  public ThumbnailStoreServiceImpl(AmazonS3 s3client,
       Bucket thumbnailsBucket,
       ThumbnailRepository thumbnailRepository) {
     this.s3client = s3client;
@@ -135,9 +135,7 @@ class ThumbnailServiceImpl implements ThumbnailService {
           .collect(toList());
       throw new ThumbnailRemoveException(errors, e);
     } catch (SdkClientException e) {
-      throw new ThumbnailRemoveException(list.stream()
-          .map(KeyVersion::getKey)
-          .collect(toList()), e);
+      throw new ThumbnailRemoveException(e);
     }
   }
 }

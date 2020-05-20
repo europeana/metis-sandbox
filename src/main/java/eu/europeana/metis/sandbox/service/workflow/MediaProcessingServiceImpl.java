@@ -22,7 +22,7 @@ import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.service.util.ThumbnailService;
+import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,15 +37,15 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
 
   private final RdfConverterFactory converterFactory;
   private final MediaProcessorFactory processorFactory;
-  private final ThumbnailService thumbnailService;
+  private final ThumbnailStoreService thumbnailStoreService;
 
   public MediaProcessingServiceImpl(
       RdfConverterFactory converterFactory,
       MediaProcessorFactory processorFactory,
-      ThumbnailService thumbnailService) {
+      ThumbnailStoreService thumbnailStoreService) {
     this.converterFactory = converterFactory;
     this.processorFactory = processorFactory;
-    this.thumbnailService = thumbnailService;
+    this.thumbnailStoreService = thumbnailStoreService;
   }
 
   @Override
@@ -97,7 +97,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       List<RecordError> recordErrors) {
     if (nonNull(thumbnails)) {
       try {
-        thumbnailService.store(thumbnails, record.getDatasetId());
+        thumbnailStoreService.store(thumbnails, record.getDatasetId());
       } catch (ThumbnailStoringException e) {
         LOGGER.warn("Error while storing thumbnail for record {}. ", record.getRecordId(), e);
         // collect warn

@@ -7,7 +7,7 @@ public class ThumbnailStoringException extends ServiceException {
   private final String targetName;
 
   public ThumbnailStoringException(String targetName, Throwable cause) {
-    super("Issue processing thumbnail " + targetName, cause);
+    super("Issue processing thumbnail: " + targetName, cause);
     this.targetName = targetName;
   }
 

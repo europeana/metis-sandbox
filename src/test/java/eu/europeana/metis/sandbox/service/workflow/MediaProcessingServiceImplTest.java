@@ -32,7 +32,7 @@ import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.service.util.ThumbnailService;
+import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +52,7 @@ class MediaProcessingServiceImplTest {
   private MediaProcessorFactory processorFactory;
 
   @Mock
-  private ThumbnailService thumbnailService;
+  private ThumbnailStoreService thumbnailStoreService;
 
   @Mock
   private RdfDeserializer deserializer;
@@ -266,7 +266,7 @@ class MediaProcessingServiceImplTest {
 
     assertArrayEquals(content, result.getRecord().getContent());
 
-    verifyNoMoreInteractions(thumbnailService);
+    verifyNoMoreInteractions(thumbnailStoreService);
     verifyNoMoreInteractions(enrichedRdf);
   }
 
@@ -295,7 +295,7 @@ class MediaProcessingServiceImplTest {
     when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
     when(extraction2.getThumbnails()).thenReturn(List.of(thumbnail));
-    doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnailService)
+    doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnailStoreService)
         .store(List.of(thumbnail));
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());

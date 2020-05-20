@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
-import eu.europeana.metis.sandbox.service.util.ThumbnailService;
+import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -12,17 +12,17 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final DatasetService datasetService;
   private final RecordLogService recordLogService;
   private final IndexingService indexingService;
-  private final ThumbnailService thumbnailService;
+  private final ThumbnailStoreService thumbnailStoreService;
 
   DatasetRemoverServiceImpl(
       DatasetService datasetService,
       RecordLogService recordLogService,
       IndexingService indexingService,
-      ThumbnailService thumbnailService) {
+      ThumbnailStoreService thumbnailStoreService) {
     this.datasetService = datasetService;
     this.recordLogService = recordLogService;
     this.indexingService = indexingService;
-    this.thumbnailService = thumbnailService;
+    this.thumbnailStoreService = thumbnailStoreService;
   }
 
   @Override
@@ -31,7 +31,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
     List<String> datasets = datasetService.getDatasetIdsBefore(days);
 
     // remove thumbnails (s3)
-    thumbnailService.remove(datasets);
+    thumbnailStoreService.remove(datasets);
 
     // remove from mongo and solr
     indexingService.remove(datasets);
