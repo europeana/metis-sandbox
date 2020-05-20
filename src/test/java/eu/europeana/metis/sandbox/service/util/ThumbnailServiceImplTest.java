@@ -24,16 +24,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ThumbnailStoreServiceImplTest {
+class ThumbnailServiceImplTest {
 
   @Mock
   private AmazonS3 s3client;
 
-  private ThumbnailStoreServiceImpl service;
+  private ThumbnailServiceImpl service;
 
   @BeforeEach
   public void setup() {
-    service = new ThumbnailStoreServiceImpl(s3client, new Bucket("bucket"), thumbnailRepository);
+    service = new ThumbnailServiceImpl(s3client, new Bucket("bucket"), thumbnailRepository);
   }
 
   @Test

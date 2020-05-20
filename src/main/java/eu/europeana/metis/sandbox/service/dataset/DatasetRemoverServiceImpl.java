@@ -1,24 +1,28 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.metis.sandbox.common.exception.DatasetRemoveException;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.util.ThumbnailService;
+import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
 class DatasetRemoverServiceImpl implements DatasetRemoverService {
 
-  private Indexer indexer;
   private final DatasetService datasetService;
   private final RecordLogService recordLogService;
+  private final IndexingService indexingService;
+  private final ThumbnailService thumbnailService;
 
   DatasetRemoverServiceImpl(
       DatasetService datasetService,
-      RecordLogService recordLogService) {
+      RecordLogService recordLogService,
+      IndexingService indexingService,
+      ThumbnailService thumbnailService) {
     this.datasetService = datasetService;
     this.recordLogService = recordLogService;
+    this.indexingService = indexingService;
+    this.thumbnailService = thumbnailService;
   }
 
   @Override
@@ -27,15 +31,10 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
     List<String> datasets = datasetService.getDatasetIdsBefore(days);
 
     // remove thumbnails (s3)
+    thumbnailService.remove(datasets);
 
     // remove from mongo and solr
-    datasets.forEach(dataset -> {
-      try {
-        indexer.removeAll(dataset, null);
-      } catch (IndexingException e) {
-        throw new DatasetRemoveException(dataset, e);
-      }
-    });
+    indexingService.remove(datasets);
 
     // remove from sandbox
     recordLogService.removeByDatasetIds(datasets);

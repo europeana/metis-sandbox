@@ -5,7 +5,7 @@ import eu.europeana.metis.sandbox.common.exception.ThumbnailRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import java.util.List;
 
-public interface ThumbnailStoreService {
+public interface ThumbnailService {
 
   /**
    * Store the given thumbnail list, every thumbnail is closed at the end of this process

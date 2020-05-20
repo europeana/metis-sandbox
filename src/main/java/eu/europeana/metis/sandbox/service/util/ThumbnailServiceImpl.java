@@ -28,7 +28,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
-class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
+class ThumbnailServiceImpl implements ThumbnailService {
 
   private static final int BATCH_SIZE = 1000;
 
@@ -38,7 +38,7 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
 
   private final ThumbnailRepository thumbnailRepository;
 
-  public ThumbnailStoreServiceImpl(AmazonS3 s3client,
+  public ThumbnailServiceImpl(AmazonS3 s3client,
       Bucket thumbnailsBucket,
       ThumbnailRepository thumbnailRepository) {
     this.s3client = s3client;
