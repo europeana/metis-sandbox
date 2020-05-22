@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -31,18 +32,16 @@ public interface DatasetService {
    *
    * @param days to ignore
    * @return dataset ids
-   * @throws ServiceException if any unhandled exception happens, exception will contain original
-   *                          exception
+   * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
   List<String> getDatasetIdsBefore(int days);
 
   /**
-   * Remove matching dataset ids
+   * Remove matching dataset id
    *
-   * @param datasetIds must not be null
-   * @throws NullPointerException if dataset id list is null
-   * @throws ServiceException     if any unhandled exception happens, exception will contain
-   *                              original exception
+   * @param datasetId must not be null
+   * @throws NullPointerException if dataset id is null
+   * @throws DatasetIndexRemoveException if removing dataset fails
    */
-  void removeByDatasetIds(List<String> datasetIds);
+  void remove(String datasetId);
 }

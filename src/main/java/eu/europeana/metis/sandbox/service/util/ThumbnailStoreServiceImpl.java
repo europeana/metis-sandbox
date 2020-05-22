@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -71,18 +70,18 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
           .map(x -> new ThumbnailEntity(x.getTargetName(), datasetId))
           .collect(toList()));
     } catch (RuntimeException e) {
-      throw new ServiceException(format("Error saving thumbnail entities %s for dataset %s ",
+      throw new ServiceException(format("Error saving thumbnail entities: [%s] for dataset: [%s]. ",
           notNullThumbnails.stream().map(Thumbnail::getTargetName).collect(joining(",")),
           datasetId), e);
     }
   }
 
   @Override
-  public void remove(List<String> datasetIds) {
-    requireNonNull(datasetIds, "Dataset ids must not be null");
+  public void remove(String datasetId) {
+    requireNonNull(datasetId, "Dataset id must not be null");
 
-    // get thumbnails that belong to given datasets
-    var thumbnailEntities = getThumbnailEntities(datasetIds);
+    // get thumbnails that belong to given dataset
+    var thumbnailEntities = getThumbnailEntities(datasetId);
 
     // create objects for s3 batch deletes
     var thumbnailKeys = thumbnailEntities.stream()
@@ -95,10 +94,10 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
 
     // remove thumbnail info in the DB
     try {
-      thumbnailRepository.deleteByDatasetIdIn(datasetIds);
+      thumbnailRepository.deleteByDatasetId(datasetId);
     } catch (RuntimeException e) {
-      throw new ServiceException("Error deleting thumbnail entities for datasets " +
-          join(",", datasetIds), e);
+      throw new ServiceException(
+          format("Error deleting thumbnail entities for dataset: [%s]. ", datasetId), e);
     }
   }
 
@@ -114,12 +113,12 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
     s3client.putObject(request);
   }
 
-  private List<ThumbnailEntity> getThumbnailEntities(List<String> datasetIds) {
+  private List<ThumbnailEntity> getThumbnailEntities(String datasetId) {
     try {
-      return thumbnailRepository.findByDatasetIdIn(datasetIds);
+      return thumbnailRepository.findByDatasetId(datasetId);
     } catch (RuntimeException e) {
-      throw new ServiceException("Error getting thumbnails for datasets " +
-          join(",", datasetIds), e);
+      throw new ServiceException(format("Error getting thumbnails for dataset [%s]. ", datasetId),
+          e);
     }
   }
 

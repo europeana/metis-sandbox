@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
@@ -72,7 +73,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       stepStatistics = recordLogRepository.getStepStatistics(datasetId);
       errorsLog = errorLogRepository.getByDatasetId(datasetId);
     } catch (RuntimeException exception) {
-      throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
+      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
     }
 
@@ -126,7 +127,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     try {
       optionalDataset = datasetRepository.findById(Integer.valueOf(datasetId));
     } catch (RuntimeException exception) {
-      throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
+      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
     }
 

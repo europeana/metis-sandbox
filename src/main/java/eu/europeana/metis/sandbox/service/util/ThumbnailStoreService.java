@@ -19,12 +19,12 @@ public interface ThumbnailStoreService {
   void store(List<Thumbnail> thumbnails, String datasetId);
 
   /**
-   * Remove the thumbnails that belong to datasets in the provided list
+   * Remove the thumbnails that belong to specified dataset
    *
-   * @param datasetIds must not be null
+   * @param datasetId must not be null
    * @throws NullPointerException if thumbnail list is null
    * @throws ThumbnailRemoveException if there is any issue deleting a thumbnail
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
-  void remove(List<String> datasetIds);
+  void remove(String datasetId);
 }

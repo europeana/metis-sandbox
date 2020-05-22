@@ -17,5 +17,5 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
       "    rle.step, rle.status")
   List<StepStatistic> getStepStatistics(String datasetId);
 
-  void deleteByDatasetIdIn(List<String> datasetId);
+  void deleteByDatasetId(String datasetId);
 }

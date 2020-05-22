@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import eu.europeana.metis.sandbox.common.exception.DatasetRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
@@ -11,7 +11,6 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +35,8 @@ class RecordLogServiceImpl implements RecordLogService {
     var recordErrors = recordEvent.getRecordErrors();
 
     var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getDatasetId(),
-        recordEvent.getStep(), recordEvent.getStatus(), new String(record.getContent(), StandardCharsets.UTF_8));
+        recordEvent.getStep(), recordEvent.getStatus(),
+        new String(record.getContent(), StandardCharsets.UTF_8));
     var recordErrorLogEntities = recordErrors.stream()
         .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getDatasetId(),
             recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
@@ -47,18 +47,20 @@ class RecordLogServiceImpl implements RecordLogService {
       recordLogRepository.save(recordLogEntity);
       errorLogRepository.saveAll(recordErrorLogEntities);
     } catch (RuntimeException e) {
-      throw new ServiceException("Error saving record event log: " + e.getMessage(), e);
+      throw new ServiceException(
+          format("Error saving record log for record: [%s]. ", record.getRecordId()), e);
     }
   }
 
   @Override
   @Transactional
-  public void removeByDatasetIds(List<String> datasetIds) {
+  public void remove(String datasetId) {
     try {
-      errorLogRepository.deleteByDatasetIdIn(datasetIds);
-      recordLogRepository.deleteByDatasetIdIn(datasetIds);
+      errorLogRepository.deleteByDatasetId(datasetId);
+      recordLogRepository.deleteByDatasetId(datasetId);
     } catch (RuntimeException e) {
-      throw new DatasetRemoveException(datasetIds, e);
+      throw new ServiceException(
+          format("Error removing records for dataset id: [%s]. ", datasetId), e);
     }
   }
 }

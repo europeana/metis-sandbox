@@ -1,13 +1,18 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class DatasetRemoverServiceImpl implements DatasetRemoverService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverServiceImpl.class);
 
   private final DatasetService datasetService;
   private final RecordLogService recordLogService;
@@ -30,14 +35,18 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
     // get old dataset ids
     List<String> datasets = datasetService.getDatasetIdsBefore(days);
 
-    // remove thumbnails (s3)
-    thumbnailStoreService.remove(datasets);
-
-    // remove from mongo and solr
-    indexingService.remove(datasets);
-
-    // remove from sandbox
-    recordLogService.removeByDatasetIds(datasets);
-    datasetService.removeByDatasetIds(datasets);
+    datasets.forEach(dataset -> {
+      try {
+        // remove thumbnails (s3)
+        thumbnailStoreService.remove(dataset);
+        // remove from mongo and solr
+        indexingService.remove(dataset);
+        // remove from sandbox
+        recordLogService.remove(dataset);
+        datasetService.remove(dataset);
+      } catch (ServiceException e) {
+        LOGGER.error("Failed to remove dataset {} ", dataset, e);
+      }
+    });
   }
 }

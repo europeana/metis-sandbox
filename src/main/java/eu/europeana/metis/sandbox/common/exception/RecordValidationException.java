@@ -11,7 +11,7 @@ public class RecordValidationException extends RecordProcessingException {
   private static final long serialVersionUID = -3148276453701960919L;
 
   public RecordValidationException(String message, String recordId, String nodeId) {
-    super(format("Record: %s Node: %s Message: %s ",
+    super(format("Record: [%s] Node: [%s] Message: [%s] ",
         recordId, nodeId, message), recordId, message, null);
   }
 }

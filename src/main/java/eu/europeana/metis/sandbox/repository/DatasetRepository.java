@@ -10,5 +10,5 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
 
   List<DatasetIdView> getByCreatedDateBefore(LocalDateTime date);
 
-  void deleteByDatasetIdIn(List<Integer> datasetId);
+  void deleteByDatasetId(Integer datasetId);
 }

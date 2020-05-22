@@ -10,11 +10,11 @@ public class ThumbnailRemoveException extends ServiceException {
   private static final long serialVersionUID = -3507180122567870480L;
 
   public ThumbnailRemoveException(List<String> thumbnailIds, Throwable cause) {
-    super(format("Error removing thumbnails: %s. %s ", join(",", thumbnailIds), cause.getMessage()),
+    super(format("Error removing thumbnails: [%s]. ", join(",", thumbnailIds)),
         cause);
   }
 
   public ThumbnailRemoveException(Throwable cause) {
-    super("Error removing thumbnails " + cause.getMessage(), cause);
+    super("Error removing thumbnails. ", cause);
   }
 }

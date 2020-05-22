@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ThumbnailRepository extends JpaRepository<ThumbnailEntity, Long> {
 
-  List<ThumbnailEntity> findByDatasetIdIn(List<String> datasetIds);
+  List<ThumbnailEntity> findByDatasetId(String datasetId);
 
-  void deleteByDatasetIdIn(List<String> datasetIds);
+  void deleteByDatasetId(String datasetId);
 }

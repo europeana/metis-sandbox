@@ -9,5 +9,5 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
 
   List<ErrorLogView> getByDatasetId(String datasetId);
 
-  void deleteByDatasetIdIn(List<String> datasetId);
+  void deleteByDatasetId(String datasetId);
 }

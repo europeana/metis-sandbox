@@ -5,7 +5,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import eu.europeana.metis.sandbox.common.exception.DatasetRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -49,7 +48,7 @@ class DatasetServiceImpl implements DatasetService {
     try {
       id = datasetRepository.save(entity).getDatasetId();
     } catch (Exception e) {
-      throw new ServiceException("Error creating the dataset: " + e.getMessage(), e);
+      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
     }
 
     var dataset = generatorService.generate(id, datasetName, country, language, records);
@@ -69,20 +68,17 @@ class DatasetServiceImpl implements DatasetService {
           .map(Object::toString)
           .collect(toList());
     } catch (RuntimeException e) {
-      throw new ServiceException(
-          format("Error getting datasets older than %s days. %s ", days, e.getMessage()), e);
+      throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }
   }
 
   @Override
   @Transactional
-  public void removeByDatasetIds(List<String> datasetIds) {
+  public void remove(String datasetId) {
     try {
-      datasetRepository.deleteByDatasetIdIn(datasetIds.stream()
-          .map(Integer::valueOf)
-          .collect(toList()));
+      datasetRepository.deleteByDatasetId(Integer.valueOf(datasetId));
     } catch (RuntimeException e) {
-      throw new DatasetRemoveException(datasetIds, e);
+      throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
     }
   }
 }

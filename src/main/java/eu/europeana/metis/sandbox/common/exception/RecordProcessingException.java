@@ -14,7 +14,7 @@ public class RecordProcessingException extends ServiceException {
   private final String reportMessage;
 
   public RecordProcessingException(String recordId, Throwable cause) {
-    super(format("Record: %s Message: %s ", recordId, cause.getMessage()), cause);
+    super(format("Record: [%s] Message: [%s] ", recordId, cause.getMessage()), cause);
     this.recordId = recordId;
     this.reportMessage = cause.getMessage();
   }
