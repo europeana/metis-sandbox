@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
+import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;

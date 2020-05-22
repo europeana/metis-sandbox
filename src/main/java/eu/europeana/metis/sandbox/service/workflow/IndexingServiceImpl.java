@@ -4,8 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
+import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
