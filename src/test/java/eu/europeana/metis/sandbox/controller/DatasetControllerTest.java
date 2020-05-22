@@ -99,7 +99,7 @@ class DatasetControllerTest {
         .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
-            is("File provided is not valid zip")));
+            is("File provided is not valid zip. ")));
   }
 
   @Test
@@ -145,7 +145,7 @@ class DatasetControllerTest {
         .param("language", IT.name()))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
-            is("Failed")));
+            is("Failed Please retry, if problem persists contact provider.")));
   }
 
   @Test
@@ -199,6 +199,6 @@ class DatasetControllerTest {
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
-            is("Failed")));
+            is("Failed Please retry, if problem persists contact provider.")));
   }
 }

@@ -10,16 +10,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-class DatasetRemoverServiceImpl implements DatasetRemoverService {
+class DatasetRemoveServiceImpl implements DatasetRemoverService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoveServiceImpl.class);
 
   private final DatasetService datasetService;
   private final RecordLogService recordLogService;
   private final IndexingService indexingService;
   private final ThumbnailStoreService thumbnailStoreService;
 
-  DatasetRemoverServiceImpl(
+  DatasetRemoveServiceImpl(
       DatasetService datasetService,
       RecordLogService recordLogService,
       IndexingService indexingService,

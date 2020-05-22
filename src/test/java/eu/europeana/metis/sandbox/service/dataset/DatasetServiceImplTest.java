@@ -87,4 +87,14 @@ class DatasetServiceImplTest {
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);
   }
+
+  @Test
+  void remove_expectSuccess() {
+
+  }
+
+  @Test
+  void getDatasetIdsBefore_expectSuccess() {
+
+  }
 }

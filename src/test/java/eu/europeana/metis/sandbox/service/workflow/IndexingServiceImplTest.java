@@ -59,6 +59,11 @@ class IndexingServiceImplTest {
   }
 
   @Test
+  void remove_expectSuccess() {
+
+  }
+
+  @Test
   void destroy_expectSuccess() throws IOException {
     service.destroy();
     verify(indexer).close();

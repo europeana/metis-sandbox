@@ -82,4 +82,9 @@ class RecordLogServiceImplTest {
 
     assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
   }
+
+  @Test
+  void remove_expectSuccess() {
+
+  }
 }
