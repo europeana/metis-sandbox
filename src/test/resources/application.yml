@@ -51,7 +51,14 @@ sandbox:
   enrichment:
     dereference-url: http://metis-test
     enrichment-url: http://metis-test
-  indexing:
+  preview:
+    mongo:
+      db: metis-sandbox-test
+      hosts: localhost
+      ports: 27017
+    solr:
+      hosts: http://metis-test:8888/solr/metis_sandbox_test
+  publish:
     mongo:
       db: metis-sandbox-test
       hosts: localhost
@@ -59,7 +66,10 @@ sandbox:
     solr:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
   portal:
-    url: http://metis-test
+    preview:
+      url: http://metis-test
+    publish:
+      url: http://metis-test
   truststore:
     path:
     password:
@@ -118,6 +128,9 @@ sandbox:
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
-        indexed:
-          queue: sandbox.record.indexed
-          dlq: ${sandbox.rabbitmq.queues.record.indexed.queue}.dlq
+        previewed:
+          queue: sandbox.record.previewed
+          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
+        published:
+          queue: sandbox.record.published
+          dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
