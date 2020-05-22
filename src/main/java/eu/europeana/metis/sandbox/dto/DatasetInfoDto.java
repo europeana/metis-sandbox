@@ -28,7 +28,11 @@ public class DatasetInfoDto {
     }
   }
 
-  private final String portalUrl;
+  @JsonProperty("portal-preview")
+  private final String portalPreviewUrl;
+
+  @JsonProperty("portal-publish")
+  private final String portalPublishUrl;
 
   private final Status status;
 
@@ -41,20 +45,27 @@ public class DatasetInfoDto {
   @JsonProperty("progress-by-step")
   private final List<ProgressByStepDto> progressByStep;
 
-  public DatasetInfoDto(String portalUrl, int totalRecords,
+  public DatasetInfoDto(String portalPreviewUrl, String portalPublishUrl,
+      int totalRecords,
       long processedRecords, List<ProgressByStepDto> progressByStep) {
-    requireNonNull(portalUrl, "Portal url must not be null");
+    requireNonNull(portalPreviewUrl, "Preview portal url must not be null");
+    requireNonNull(portalPublishUrl, "Publish portal url must not be null");
     requireNonNull(progressByStep, "Progress by step must not be null");
     this.totalRecords = totalRecords;
     this.processedRecords = processedRecords;
     this.status =
         this.totalRecords == this.processedRecords ? Status.COMPLETED : Status.IN_PROGRESS;
     this.progressByStep = Collections.unmodifiableList(progressByStep);
-    this.portalUrl = portalUrl;
+    this.portalPreviewUrl = portalPreviewUrl;
+    this.portalPublishUrl = portalPublishUrl;
   }
 
-  public String getPortalUrl() {
-    return portalUrl;
+  public String getPortalPreviewUrl() {
+    return portalPreviewUrl;
+  }
+
+  public String getPortalPublishUrl() {
+    return portalPublishUrl;
   }
 
   public Status getStatus() {

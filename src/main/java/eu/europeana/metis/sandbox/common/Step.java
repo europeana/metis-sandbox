@@ -10,8 +10,9 @@ public enum Step {
   NORMALIZE("normalise", 4),
   ENRICH("enrich", 5),
   MEDIA_PROCESS("process media", 6),
-  INDEX("preview", 7),
-  CLOSE("close", 8);
+  PREVIEW("preview", 7),
+  PUBLISH("publish", 8),
+  CLOSE("close", 9);
 
   private final String value;
   private final int precedence;

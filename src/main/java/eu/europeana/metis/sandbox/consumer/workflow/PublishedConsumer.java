@@ -10,21 +10,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes indexed events
+ * Consumes published events to close them
  */
 @Component
-class IndexedConsumer {
+class PublishedConsumer {
 
   private final AmqpTemplate amqpTemplate;
 
   @Value("${sandbox.rabbitmq.routing-key.closed}")
   private String routingKey;
 
-  public IndexedConsumer(AmqpTemplate amqpTemplate) {
+  public PublishedConsumer(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.indexed.queue}", containerFactory = "indexedFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.published.queue}", containerFactory = "publishedFactory")
   public void close(Event input) {
     if (input.getStatus() == Status.FAIL) {
       return;
