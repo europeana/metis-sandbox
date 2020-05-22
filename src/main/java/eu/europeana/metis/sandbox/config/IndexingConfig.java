@@ -133,11 +133,10 @@ class IndexingConfig {
 
     var settings = new IndexingSettings();
 
-    boolean enableSSL = !isNull(mongoEnableSSL) && mongoEnableSSL;
-
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
-        mongoAuthenticationDb, mongoUsername, mongoPassword, enableSSL, null);
+        mongoAuthenticationDb, mongoUsername, mongoPassword, Boolean.TRUE.equals(mongoEnableSSL),
+        null);
     settings.setMongoDatabaseName(mongoDb);
 
     // Set Solr properties
