@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * Schedule to delete old datasets
+ */
 @Component
 class DatasetRemoverSchedule {
 
@@ -24,11 +27,14 @@ class DatasetRemoverSchedule {
     this.service = service;
   }
 
+  /**
+   * Task to execute every day at 00:00:00am
+   */
   //At 00:00:00am every day
-  //@Scheduled(cron = "0 0 0 ? * * *")
+  //TODO activate this: @Scheduled(cron = "0 0 0 ? * * *")
   @Scheduled(cron = "0 * * ? * *")
   void remove() {
-    if(cleanupEnable) {
+    if (cleanupEnable) {
       LOGGER.info("Start daily dataset clean up");
       service.remove(daysToPreserve);
       LOGGER.info("Finish daily dataset clean up");

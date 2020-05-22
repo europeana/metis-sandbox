@@ -171,7 +171,7 @@ class DatasetControllerTest {
   }
 
   @Test
-  public void retrieveDataset_expectSuccess() throws Exception {
+  void retrieveDataset_expectSuccess() throws Exception {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -194,7 +194,7 @@ class DatasetControllerTest {
   }
 
   @Test
-  public void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
+  void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
 
     when(datasetReportService.getReport("1"))
         .thenThrow(new ServiceException("Failed", new Exception()));
