@@ -45,7 +45,6 @@
 		<version.europeana>2.9.3-SNAPSHOT</version.europeana>
 		<version.postgresql>42.2.11</version.postgresql>
 		<version.aws.s3>1.11.762</version.aws.s3>
-		<version.commons.io>2.6</version.commons.io>
 		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
 		<version.coveralls>4.0.0</version.coveralls>
 		<version.surefire.plugin>2.22.1</version.surefire.plugin>
@@ -179,12 +178,6 @@
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>${version.springfox}</version>
 		</dependency>
-
-		<!-- Utils -->
-<!--		<dependency>-->
-<!--			<groupId>commons-io</groupId>-->
-<!--			<artifactId>commons-io</artifactId>-->
-<!--		</dependency>-->
 	</dependencies>
 
 	<repositories>
