@@ -118,7 +118,10 @@ sandbox:
           collection:
         timeout:
   portal:
-    url:
+    preview:
+      url:
+    publish:
+      url:
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed
