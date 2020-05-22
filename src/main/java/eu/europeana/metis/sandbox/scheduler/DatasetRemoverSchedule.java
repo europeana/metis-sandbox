@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.schedule;
+package eu.europeana.metis.sandbox.scheduler;
 
 import eu.europeana.metis.sandbox.service.dataset.DatasetRemoverService;
 import org.slf4j.Logger;
@@ -12,7 +12,10 @@ class DatasetRemoverSchedule {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverSchedule.class);
 
-  @Value("${sandbox.dataset.days-to-preserve}")
+  @Value("${sandbox.dataset.clean.enable}")
+  private boolean cleanupEnable;
+
+  @Value("${sandbox.dataset.clean.days-to-preserve}")
   private int daysToPreserve;
 
   private final DatasetRemoverService service;
@@ -22,10 +25,15 @@ class DatasetRemoverSchedule {
   }
 
   //At 00:00:00am every day
-  @Scheduled(cron = "0 0 0 ? * * *")
+  //@Scheduled(cron = "0 0 0 ? * * *")
+  @Scheduled(cron = "0 * * ? * *")
   void remove() {
-    LOGGER.info("Starting daily dataset clean up");
-    service.remove(daysToPreserve);
-    LOGGER.info("Finish daily dataset clean up");
+    if(cleanupEnable) {
+      LOGGER.info("Start daily dataset clean up");
+      service.remove(daysToPreserve);
+      LOGGER.info("Finish daily dataset clean up");
+    } else {
+      LOGGER.info("Clean up is not enabled");
+    }
   }
 }

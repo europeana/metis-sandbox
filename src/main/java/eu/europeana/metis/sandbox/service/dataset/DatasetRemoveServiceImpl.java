@@ -35,13 +35,18 @@ class DatasetRemoveServiceImpl implements DatasetRemoverService {
     // get old dataset ids
     List<String> datasets = datasetService.getDatasetIdsBefore(days);
 
+    LOGGER.info("Datasets to remove {} ", datasets);
+
     datasets.forEach(dataset -> {
       try {
         // remove thumbnails (s3)
+        LOGGER.debug("Remove thumbnails for dataset id: [{}]", dataset);
         thumbnailStoreService.remove(dataset);
         // remove from mongo and solr
+        LOGGER.debug("Remove index for dataset id: [{}]", dataset);
         indexingService.remove(dataset);
         // remove from sandbox
+        LOGGER.debug("Remove record logs for dataset id: [{}]", dataset);
         recordLogService.remove(dataset);
         datasetService.remove(dataset);
       } catch (ServiceException e) {

@@ -7,7 +7,7 @@ info:
 
 spring:
   profiles:
-    active: dev
+    active: default
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
@@ -58,7 +58,9 @@ sandbox:
     signing-region:
     thumbnails-bucket:
   dataset:
-    days-to-preserve: 7
+    clean:
+      enable: false
+      days-to-preserve: 7
     max-size: 1000
     creation:
       threads:

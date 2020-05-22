@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
@@ -67,7 +68,7 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
     // store thumbnail info in DB to keep track of bucket contents
     try {
       thumbnailRepository.saveAll(notNullThumbnails.stream()
-          .map(x -> new ThumbnailEntity(x.getTargetName(), datasetId))
+          .map(x -> new ThumbnailEntity(datasetId, x.getTargetName()))
           .collect(toList()));
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error saving thumbnail entities: [%s] for dataset: [%s]. ",
@@ -77,6 +78,7 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
   }
 
   @Override
+  @Transactional
   public void remove(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 
