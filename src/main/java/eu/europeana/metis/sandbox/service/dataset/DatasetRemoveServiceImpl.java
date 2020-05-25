@@ -50,7 +50,7 @@ class DatasetRemoveServiceImpl implements DatasetRemoverService {
         recordLogService.remove(dataset);
         datasetService.remove(dataset);
       } catch (ServiceException e) {
-        LOGGER.error("Failed to remove dataset {} ", dataset, e);
+        LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
       }
     });
   }
