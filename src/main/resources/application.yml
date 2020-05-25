@@ -59,8 +59,7 @@ sandbox:
     thumbnails-bucket:
   dataset:
     clean:
-      enable: true
-      frequency: 0 0 0 ? * * * # At 00:00:00am every day
+      frequency: 0 0 0 * * ? # At 00:00:00am every day
       days-to-preserve: 7
     max-size: 1000
     creation:

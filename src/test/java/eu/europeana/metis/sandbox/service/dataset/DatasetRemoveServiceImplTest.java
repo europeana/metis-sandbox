@@ -37,7 +37,7 @@ class DatasetRemoveServiceImplTest {
 
   @Test
   void remove_expectSuccess() {
-    when(datasetService.getDatasetIdsBefore(7)).thenReturn(List.of("1", "2", "3", "4"));
+    when(datasetService.getDatasetIdsCreatedBefore(7)).thenReturn(List.of("1", "2", "3", "4"));
 
     service.remove(7);
 
@@ -49,7 +49,7 @@ class DatasetRemoveServiceImplTest {
 
   @Test
   void remove_failToRemoveFirstDataset_expectSuccess() {
-    when(datasetService.getDatasetIdsBefore(7)).thenReturn(List.of("1", "2", "3", "4"));
+    when(datasetService.getDatasetIdsCreatedBefore(7)).thenReturn(List.of("1", "2", "3", "4"));
     doThrow(new ServiceException("1", new Exception())).when(thumbnailStoreService).remove("1");
 
     service.remove(7);
@@ -62,7 +62,7 @@ class DatasetRemoveServiceImplTest {
 
   @Test
   void remove_failToRemoveLastDataset_expectSuccess() {
-    when(datasetService.getDatasetIdsBefore(7)).thenReturn(List.of("1", "2", "3", "4"));
+    when(datasetService.getDatasetIdsCreatedBefore(7)).thenReturn(List.of("1", "2", "3", "4"));
     doThrow(new ServiceException("4", new Exception())).when(thumbnailStoreService).remove("1");
 
     service.remove(7);

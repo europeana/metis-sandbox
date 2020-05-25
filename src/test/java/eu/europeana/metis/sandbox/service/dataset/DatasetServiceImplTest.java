@@ -113,7 +113,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.getByCreatedDateBefore(any(LocalDateTime.class)))
         .thenReturn(List.of(id1, id2, id3, id4));
 
-    var result = service.getDatasetIdsBefore(7);
+    var result = service.getDatasetIdsCreatedBefore(7);
 
     assertEquals(List.of("1", "2", "3", "4"), result);
   }
@@ -123,7 +123,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.getByCreatedDateBefore(any(LocalDateTime.class)))
         .thenThrow(new RuntimeException("Issue"));
 
-    assertThrows(ServiceException.class, () -> service.getDatasetIdsBefore(7));
+    assertThrows(ServiceException.class, () -> service.getDatasetIdsCreatedBefore(7));
   }
 
   private static class DatasetIdViewImpl implements DatasetIdView {

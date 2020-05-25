@@ -15,9 +15,6 @@ class DatasetRemoverSchedule {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverSchedule.class);
 
-  @Value("${sandbox.dataset.clean.enable}")
-  private boolean cleanupEnable;
-
   @Value("${sandbox.dataset.clean.days-to-preserve:7}")
   private int daysToPreserve;
 
@@ -28,16 +25,14 @@ class DatasetRemoverSchedule {
   }
 
   /**
-   * Task to execute on specified frequency or daily if not frequency is specified
+   * Task to execute on specified frequency. Executes daily if frequency is not specified
+   *
+   * @see Scheduled
    */
-  @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 ? * * *}")
+  @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 * * ?}")
   void remove() {
-    if (cleanupEnable) {
-      LOGGER.info("Start daily dataset clean up for last {} days", daysToPreserve);
-      service.remove(daysToPreserve);
-      LOGGER.info("Finish daily dataset clean up");
-    } else {
-      LOGGER.info("Clean up is not enabled");
-    }
+    LOGGER.info("Start daily dataset clean up for last {} days", daysToPreserve);
+    service.remove(daysToPreserve);
+    LOGGER.info("Finish daily dataset clean up");
   }
 }

@@ -27,13 +27,13 @@ public interface DatasetService {
       List<ByteArrayInputStream> records);
 
   /**
-   * Get dataset ids older than the specified days
+   * Get dataset ids created before than the specified days
    *
    * @param days to ignore
    * @return dataset ids
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
-  List<String> getDatasetIdsBefore(int days);
+  List<String> getDatasetIdsCreatedBefore(int days);
 
   /**
    * Remove matching dataset id

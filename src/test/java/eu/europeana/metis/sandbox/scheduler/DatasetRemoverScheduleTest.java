@@ -31,21 +31,12 @@ class DatasetRemoverScheduleTest {
 
   @Test
   void remove_expectSuccess() {
-    setField(datasetRemoverSchedule, "cleanupEnable", true);
     datasetRemoverSchedule.remove();
     verify(datasetRemoverService).remove(7);
   }
 
   @Test
-  void remove_scheduleDisable_expectSuccess() {
-    setField(datasetRemoverSchedule, "cleanupEnable", false);
-    datasetRemoverSchedule.remove();
-    verifyNoInteractions(datasetRemoverService);
-  }
-
-  @Test
   void remove_failToRemove_expectFail() {
-    setField(datasetRemoverSchedule, "cleanupEnable", true);
     doThrow(new ServiceException("", new Exception())).when(datasetRemoverService).remove(7);
     assertThrows(ServiceException.class, () -> datasetRemoverSchedule.remove());
   }

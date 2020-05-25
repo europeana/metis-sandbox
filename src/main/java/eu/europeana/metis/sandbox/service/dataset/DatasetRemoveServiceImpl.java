@@ -33,7 +33,7 @@ class DatasetRemoveServiceImpl implements DatasetRemoverService {
   @Override
   public void remove(int days) {
     // get old dataset ids
-    List<String> datasets = datasetService.getDatasetIdsBefore(days);
+    List<String> datasets = datasetService.getDatasetIdsCreatedBefore(days);
 
     LOGGER.info("Datasets to remove {} ", datasets);
 

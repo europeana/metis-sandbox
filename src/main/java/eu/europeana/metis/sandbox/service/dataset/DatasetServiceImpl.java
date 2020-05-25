@@ -57,7 +57,7 @@ class DatasetServiceImpl implements DatasetService {
   }
 
   @Override
-  public List<String> getDatasetIdsBefore(int days) {
+  public List<String> getDatasetIdsCreatedBefore(int days) {
     LocalDateTime date = LocalDateTime.now()
         .truncatedTo(ChronoUnit.DAYS)
         .minusDays(days);
