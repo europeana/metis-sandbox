@@ -18,7 +18,7 @@ class DatasetRemoverSchedule {
   @Value("${sandbox.dataset.clean.enable}")
   private boolean cleanupEnable;
 
-  @Value("${sandbox.dataset.clean.days-to-preserve}")
+  @Value("${sandbox.dataset.clean.days-to-preserve:7}")
   private int daysToPreserve;
 
   private final DatasetRemoverService service;
@@ -28,14 +28,12 @@ class DatasetRemoverSchedule {
   }
 
   /**
-   * Task to execute every day at 00:00:00am
+   * Task to execute on specified frequency or daily if not frequency is specified
    */
-  //At 00:00:00am every day
-  //TODO activate this: @Scheduled(cron = "0 0 0 ? * * *")
-  @Scheduled(cron = "0 * * ? * *")
+  @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 ? * * *}")
   void remove() {
     if (cleanupEnable) {
-      LOGGER.info("Start daily dataset clean up");
+      LOGGER.info("Start daily dataset clean up for last {} days", daysToPreserve);
       service.remove(daysToPreserve);
       LOGGER.info("Finish daily dataset clean up");
     } else {
