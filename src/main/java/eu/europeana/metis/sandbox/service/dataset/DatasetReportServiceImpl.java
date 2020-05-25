@@ -41,8 +41,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
-  @Value("${sandbox.portal.url}")
-  private String portalUrl;
+  @Value("${sandbox.portal.preview.url}")
+  private String portalPreviewUrl;
+
+  @Value("${sandbox.portal.publish.url}")
+  private String portalPublishUrl;
 
   private final DatasetRepository datasetRepository;
   private final RecordLogRepository recordLogRepository;
@@ -77,8 +80,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     if (stepStatistics.isEmpty()) {
-      return new DatasetInfoDto(getPortalUrl(dataset, 0L, 0L), dataset.getRecordsQuantity(), 0L,
-          List.of());
+      return new DatasetInfoDto(getPreviewPortalUrl(dataset, 0L, 0L),
+          getPublishPortalUrl(dataset, 0L, 0L),
+          dataset.getRecordsQuantity(), 0L, List.of());
     }
 
     // get qty of records completely processed
@@ -100,12 +104,25 @@ class DatasetReportServiceImpl implements DatasetReportService {
     recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
         recordErrorsByStep));
 
-    return new DatasetInfoDto(getPortalUrl(dataset, completedRecords, failedRecords),
+    return new DatasetInfoDto(
+        getPreviewPortalUrl(dataset, completedRecords, failedRecords),
+        getPublishPortalUrl(dataset, completedRecords, failedRecords),
         dataset.getRecordsQuantity(), completedRecords,
         stepsInfo);
   }
 
-  private String getPortalUrl(DatasetEntity dataset, long completedRecords, long failedRecords) {
+  private String getPreviewPortalUrl(DatasetEntity dataset, long completedRecords,
+      long failedRecords) {
+    return getPortalUrl(portalPreviewUrl, dataset, completedRecords, failedRecords);
+  }
+
+  private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,
+      long failedRecords) {
+    return getPortalUrl(portalPublishUrl, dataset, completedRecords, failedRecords);
+  }
+
+  private String getPortalUrl(String portal, DatasetEntity dataset, long completedRecords,
+      long failedRecords) {
     long recordsQty = dataset.getRecordsQuantity();
     if (recordsQty == 0) {
       return EMPTY_DATASET;
@@ -117,7 +134,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       return FINISH_ALL_ERRORS;
     }
     var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
-    return portalUrl + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
+    return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
   }
 
   private DatasetEntity getDataset(String datasetId) {

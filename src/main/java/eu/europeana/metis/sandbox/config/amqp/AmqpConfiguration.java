@@ -72,11 +72,17 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
   private String mediaProcessedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.indexed.queue}")
-  private String indexedQueue;
+  @Value("${sandbox.rabbitmq.queues.record.previewed.queue}")
+  private String previewedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.indexed.dlq}")
-  private String indexedDlq;
+  @Value("${sandbox.rabbitmq.queues.record.previewed.dlq}")
+  private String previewedDlq;
+
+  @Value("${sandbox.rabbitmq.queues.record.published.queue}")
+  private String publishedQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.published.dlq}")
+  private String publishedDlq;
 
   public AmqpConfiguration(
       MessageConverter messageConverter) {
@@ -111,7 +117,9 @@ class AmqpConfiguration {
         QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
         QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(indexedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(indexedDlq).build()
+        QueueBuilder.durable(previewedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
+            previewedDlq).build(),
+        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(publishedDlq).build()
     );
   }
 
@@ -125,20 +133,23 @@ class AmqpConfiguration {
         QueueBuilder.durable(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedDlq).build(),
         QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(indexedDlq).build()
+        QueueBuilder.durable(previewedDlq).build(),
+        QueueBuilder.durable(publishedDlq).build()
     );
   }
 
   @Bean
   Declarables bindings() {
     return getDeclarables(createdQueue, externalValidatedQueue, transformedQueue,
-        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue, indexedQueue);
+        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue,
+        previewedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
     return getDeclarables(createdDlq, externalValidatedDlq, transformedDlq,
-        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq, indexedDlq);
+        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq,
+        previewedDlq, publishedDlq);
   }
 
   //Suppress: Methods should not have too many parameters warning
@@ -146,7 +157,8 @@ class AmqpConfiguration {
   @SuppressWarnings("squid:S107")
   private Declarables getDeclarables(String created,
       String externalValidated, String transformed, String normalized,
-      String internalValidated, String enriched, String mediaProcessed, String indexed) {
+      String internalValidated, String enriched, String mediaProcessed,
+      String previewed, String published) {
     return new Declarables(
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
         new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
@@ -155,7 +167,8 @@ class AmqpConfiguration {
         new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
         new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
         new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
-        new Binding(indexed, DestinationType.QUEUE, exchange, indexed, null)
+        new Binding(previewed, DestinationType.QUEUE, exchange, previewed, null),
+        new Binding(published, DestinationType.QUEUE, exchange, published, null)
     );
   }
 }

@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.consumer.workflow;
 
+import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
@@ -12,13 +13,15 @@ import org.springframework.stereotype.Component;
  * Consumes media processed events and performs indexing to the contained record
  * <br/>
  * Publishes the result in the indexed queue
+ * Consumes media processed events and performs indexing to the contained record <br/> Publishes the
+ * result in the previewed queue
  */
 @Component
 class MediaProcessedConsumer extends StepConsumer {
 
   private final IndexingService service;
 
-  @Value("${sandbox.rabbitmq.queues.record.indexed.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.previewed.queue}")
   private String routingKey;
 
   public MediaProcessedConsumer(AmqpTemplate amqpTemplate,
@@ -29,6 +32,7 @@ class MediaProcessedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
   public void index(Event input) {
-    consume(routingKey, input, Step.INDEX, () -> service.index(input.getBody()));
+    consume(routingKey, input, Step.PREVIEW,
+        () -> service.index(input.getBody(), IndexEnvironment.PREVIEW));
   }
 }

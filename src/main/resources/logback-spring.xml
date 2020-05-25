@@ -13,18 +13,11 @@
     <appender-ref ref="CONSOLE"/>
   </appender>
 
-  <springProfile name="dev,default">
-    <logger name="eu.europeana.metis.sandbox" level="INFO"/>
-    <logger name="org.springframework" level="INFO"/>
-    <logger name="org.hibernate" level="ERROR"/>
-  </springProfile>
-
-  <springProfile name="prod">
-    <logger name="eu.europeana.metis.sandbox" level="INFO"/>
-    <logger name="org.springframework" level="ERROR"/>
-    <logger name="org.springframework.amqp.rabbit.listener" level="INFO"/>
-    <logger name="org.hibernate" level="ERROR"/>
-  </springProfile>
+  <logger name="eu.europeana" level="WARN"/>
+  <logger name="eu.europeana.metis.sandbox" level="INFO"/>
+  <logger name="org.springframework" level="ERROR"/>
+  <logger name="org.hibernate" level="ERROR"/>
+  <logger name="org.mongodb.driver.connection" level="ERROR"/>
 
   <root level="INFO">
     <appender-ref ref="ASYNC-CONSOLE"/>

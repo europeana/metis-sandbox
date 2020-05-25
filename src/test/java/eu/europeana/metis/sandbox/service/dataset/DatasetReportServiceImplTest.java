@@ -44,7 +44,10 @@ class DatasetReportServiceImplTest {
 
   @BeforeEach
   void setup() {
-    setField(service, "portalUrl", "https://metis-sandbox/portal/search?q=edm_datasetName:");
+    setField(service, "portalPreviewUrl",
+        "https://metis-sandbox/portal/preview/search?q=edm_datasetName:");
+    setField(service, "portalPublishUrl",
+        "https://metis-sandbox/portal/publish/search?q=edm_datasetName:");
   }
 
   @Test
@@ -58,7 +61,9 @@ class DatasetReportServiceImplTest {
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
     var report = new DatasetInfoDto(
-        "A review URL will be generated when the dataset has finished processing", 5, 4L,
+        "A review URL will be generated when the dataset has finished processing",
+        "A review URL will be generated when the dataset has finished processing",
+        5, 4L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -90,7 +95,9 @@ class DatasetReportServiceImplTest {
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
     var report = new DatasetInfoDto(
-        "A review URL will be generated when the dataset has finished processing", 5, 0L,
+        "A review URL will be generated when the dataset has finished processing",
+        "A review URL will be generated when the dataset has finished processing",
+        5, 0L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -114,7 +121,8 @@ class DatasetReportServiceImplTest {
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
 
     var report = new DatasetInfoDto(
-        "https://metis-sandbox/portal/search?q=edm_datasetName:null_dataset*", 5, 5L,
+        "https://metis-sandbox/portal/preview/search?q=edm_datasetName:null_dataset*",
+        "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5, 5L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -144,7 +152,8 @@ class DatasetReportServiceImplTest {
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
     var report = new DatasetInfoDto(
-        "All dataset records failed to be processed", 5, 5L,
+        "All dataset records failed to be processed",
+        "A review URL will be generated when the dataset has finished processing", 5, 5L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -179,6 +188,7 @@ class DatasetReportServiceImplTest {
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
     var expected = new DatasetInfoDto(
+        "Dataset is empty",
         "Dataset is empty", 0, 0L, List.of());
     var report = service.getReport("1");
     assertReportEquals(expected, report);
@@ -206,7 +216,7 @@ class DatasetReportServiceImplTest {
   }
 
   private void assertReportEquals(DatasetInfoDto expected, DatasetInfoDto actual) {
-    assertEquals(expected.getPortalUrl(), actual.getPortalUrl());
+    assertEquals(expected.getPortalPreviewUrl(), actual.getPortalPreviewUrl());
     assertEquals(expected.getProcessedRecords(), actual.getProcessedRecords());
     assertEquals(expected.getTotalRecords(), actual.getTotalRecords());
     assertEquals(expected.getStatus(), actual.getStatus());
