@@ -26,6 +26,8 @@ class DatasetRemoverSchedule {
 
   /**
    * Task to execute on specified frequency. Executes daily if frequency is not specified
+   * <br />
+   * To disable schedule use "-" cron value
    *
    * @see Scheduled
    */
