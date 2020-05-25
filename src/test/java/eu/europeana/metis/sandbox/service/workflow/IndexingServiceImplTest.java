@@ -6,11 +6,13 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
+import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -60,7 +62,8 @@ class IndexingServiceImplTest {
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(previewIndexer)
         .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
-    assertThrows(RecordProcessingException.class, () -> service.index(record, IndexEnvironment.PREVIEW));
+    assertThrows(RecordProcessingException.class,
+        () -> service.index(record, IndexEnvironment.PREVIEW));
   }
 
   @Test
@@ -83,7 +86,8 @@ class IndexingServiceImplTest {
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(publishIndexer)
         .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
-    assertThrows(RecordProcessingException.class, () -> service.index(record, IndexEnvironment.PUBLISH));
+    assertThrows(RecordProcessingException.class,
+        () -> service.index(record, IndexEnvironment.PUBLISH));
   }
 
   @Test
@@ -92,8 +96,23 @@ class IndexingServiceImplTest {
   }
 
   @Test
-  void remove_expectSuccess() {
+  void remove_expectSuccess() throws IndexingException {
+    service.remove("1");
 
+    verify(previewIndexer).removeAll("1", null);
+    verify(publishIndexer).removeAll("1", null);
+  }
+
+  @Test
+  void remove_indexingException_expectFail() throws IndexingException {
+    when(publishIndexer.removeAll("1", null))
+        .thenThrow(new IndexerRelatedIndexingException("failed"));
+    assertThrows(DatasetIndexRemoveException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_inputNull_expectFail() {
+    assertThrows(NullPointerException.class, () -> service.remove(null));
   }
 
   @Test

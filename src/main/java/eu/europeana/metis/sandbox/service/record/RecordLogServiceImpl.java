@@ -55,6 +55,7 @@ class RecordLogServiceImpl implements RecordLogService {
   @Override
   @Transactional
   public void remove(String datasetId) {
+    requireNonNull(datasetId, "Dataset id must not be null");
     try {
       errorLogRepository.deleteByDatasetId(datasetId);
       recordLogRepository.deleteByDatasetId(datasetId);

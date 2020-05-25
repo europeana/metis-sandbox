@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,6 +86,20 @@ class RecordLogServiceImplTest {
 
   @Test
   void remove_expectSuccess() {
+    service.remove("1");
+    verify(errorLogRepository).deleteByDatasetId("1");
+    verify(recordLogRepository).deleteByDatasetId("1");
+  }
 
+  @Test
+  void remove_errorOnDelete_expectFail() {
+    doThrow(new ServiceException("Failed", new Exception())).when(recordLogRepository)
+        .deleteByDatasetId("1");
+    assertThrows(ServiceException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_nullInput_expectFail() {
+    assertThrows(NullPointerException.class, () -> service.remove(null));
   }
 }
