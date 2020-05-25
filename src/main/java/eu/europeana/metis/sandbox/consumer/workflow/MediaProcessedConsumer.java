@@ -31,7 +31,7 @@ class MediaProcessedConsumer extends StepConsumer {
   }
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory")
-  public void index(Event input) {
+  public void preview(Event input) {
     consume(routingKey, input, Step.PREVIEW,
         () -> service.index(input.getBody(), IndexEnvironment.PREVIEW));
   }

@@ -197,7 +197,7 @@ class DatasetReportServiceImplTest {
   @Test
   void getReport_failToRetrieveDataset_expectFail() {
     when(datasetRepository.findById(1))
-        .thenThrow(new ServiceException("failed", new Exception()));
+        .thenThrow(new RuntimeException("failed", new Exception()));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));
   }

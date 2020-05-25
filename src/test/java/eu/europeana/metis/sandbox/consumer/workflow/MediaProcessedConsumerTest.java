@@ -49,7 +49,7 @@ class MediaProcessedConsumerTest {
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.index(record, IndexEnvironment.PREVIEW)).thenReturn(new RecordInfo(record));
-    consumer.index(recordEvent);
+    consumer.preview(recordEvent);
 
     verify(service).index(record, IndexEnvironment.PREVIEW);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
@@ -65,7 +65,7 @@ class MediaProcessedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
-    consumer.index(recordEvent);
+    consumer.preview(recordEvent);
 
     verify(service, never()).index(record, IndexEnvironment.PREVIEW);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
@@ -81,7 +81,7 @@ class MediaProcessedConsumerTest {
 
     when(service.index(record, IndexEnvironment.PREVIEW)).thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.index(recordEvent);
+    consumer.preview(recordEvent);
 
     verify(service).index(record, IndexEnvironment.PREVIEW);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());

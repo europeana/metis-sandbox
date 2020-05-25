@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -191,6 +192,18 @@ class DatasetControllerTest {
             is("https://metis-sandbox")))
         .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
             is(message1)));
+  }
+
+  @Test
+  void retrieveDataset_datasetInvalidDatasetId_expectFail() throws Exception {
+
+    when(datasetReportService.getReport("1"))
+        .thenThrow(new InvalidDatasetException("1"));
+
+    mvc.perform(get("/dataset/{id}", "1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("Provided dataset id: [1] is not valid. ")));
   }
 
   @Test

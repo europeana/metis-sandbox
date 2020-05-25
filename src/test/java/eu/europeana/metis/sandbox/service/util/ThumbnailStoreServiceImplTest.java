@@ -13,11 +13,15 @@ import static org.mockito.Mockito.when;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.MultiObjectDeleteException;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.ThumbnailRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.domain.Bucket;
+import eu.europeana.metis.sandbox.entity.ThumbnailEntity;
 import eu.europeana.metis.sandbox.repository.ThumbnailRepository;
 import java.io.IOException;
 import java.util.List;
@@ -107,7 +111,8 @@ class ThumbnailStoreServiceImplTest {
     when(thumbnail2.getMimeType()).thenReturn("image/jpg");
     when(thumbnail2.getTargetName()).thenReturn("image2");
 
-    when(thumbnailRepository.saveAll(anyList())).thenThrow(new ServiceException("Fail", new Exception()));
+    when(thumbnailRepository.saveAll(anyList()))
+        .thenThrow(new RuntimeException("Fail", new Exception()));
 
     assertThrows(ServiceException.class,
         () -> service.store(List.of(thumbnail1, thumbnail2), "1"));
@@ -128,6 +133,69 @@ class ThumbnailStoreServiceImplTest {
 
   @Test
   void remove_expectSuccess() {
+    var thumb1 = new ThumbnailEntity("1", "t1");
+    var thumb2 = new ThumbnailEntity("1", "t2");
+    var thumb3 = new ThumbnailEntity("1", "t3");
+    var thumb4 = new ThumbnailEntity("1", "t4");
+    var thumb5 = new ThumbnailEntity("1", "t5");
+    when(thumbnailRepository.findByDatasetId("1"))
+        .thenReturn(List.of(thumb1, thumb2, thumb3, thumb4, thumb5));
 
+    service.remove("1");
+
+    verify(s3client).deleteObjects(any(DeleteObjectsRequest.class));
+    verify(thumbnailRepository).deleteByDatasetId("1");
+  }
+
+  @Test
+  void remove_failToGetThumbnailsByDatasetId_expectFail() {
+    when(thumbnailRepository.findByDatasetId("1"))
+        .thenThrow(new RuntimeException("Failed", new Exception()));
+    assertThrows(ServiceException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_failToDeleteFromS3_expectFail() {
+    var thumbs = getThumbnailList();
+    when(thumbnailRepository.findByDatasetId("1"))
+        .thenReturn(thumbs);
+    when(s3client.deleteObjects(any(DeleteObjectsRequest.class)))
+        .thenThrow(new MultiObjectDeleteException(List.of(), List.of()));
+
+    assertThrows(ThumbnailRemoveException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_s3_SdkClientException_expectFail() {
+    var thumbs = getThumbnailList();
+    when(thumbnailRepository.findByDatasetId("1"))
+        .thenReturn(thumbs);
+    when(s3client.deleteObjects(any(DeleteObjectsRequest.class)))
+        .thenThrow(new SdkClientException("Failed"));
+
+    assertThrows(ThumbnailRemoveException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_failToDeleteFromLocalRecord_expectFail() {
+    var thumbs = getThumbnailList();
+    when(thumbnailRepository.findByDatasetId("1"))
+        .thenReturn(thumbs);
+    doThrow(new RuntimeException("Failed")).when(thumbnailRepository).deleteByDatasetId("1");
+    assertThrows(ServiceException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_nullDatasetId_expectFail() {
+    assertThrows(NullPointerException.class, () -> service.remove(null));
+  }
+
+  private List<ThumbnailEntity> getThumbnailList() {
+    var thumb1 = new ThumbnailEntity("1", "t1");
+    var thumb2 = new ThumbnailEntity("1", "t2");
+    var thumb3 = new ThumbnailEntity("1", "t3");
+    var thumb4 = new ThumbnailEntity("1", "t4");
+    var thumb5 = new ThumbnailEntity("1", "t5");
+    return List.of(thumb1, thumb2, thumb3, thumb4, thumb5);
   }
 }
