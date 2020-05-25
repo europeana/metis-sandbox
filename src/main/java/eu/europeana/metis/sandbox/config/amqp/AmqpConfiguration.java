@@ -13,6 +13,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Config for amqp, contains exchange, queues and dead letter queues definitions
+ * as well as their bindings.
+ * <br /><br />
+ * If there is a need to add a new queue in the future here is the place to do it
+ */
 @Configuration
 class AmqpConfiguration {
 

@@ -6,9 +6,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class SandboxApplicationIT {
 
-  /**
-   * This test is ensuring the application context loads with no exceptions
-   */
+  // Suppress: Tests should include assertions
+  // This test is ensuring the application context loads with no exceptions
+  @SuppressWarnings("squid:S2699")
   @Test
   void contextLoads() {
   }

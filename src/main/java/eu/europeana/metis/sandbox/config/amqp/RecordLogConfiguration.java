@@ -12,6 +12,10 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Config for record log. This binds an exchange with a queue using a routing key that listens for
+ * all messages traveling through the message broker
+ */
 @Configuration
 class RecordLogConfiguration {
 
@@ -40,7 +44,8 @@ class RecordLogConfiguration {
 
   @Bean
   Queue logQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq).build();
+    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq)
+        .build();
   }
 
   @Bean

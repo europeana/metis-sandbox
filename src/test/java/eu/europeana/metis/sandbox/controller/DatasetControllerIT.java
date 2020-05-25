@@ -9,15 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     classes = SandboxApplication.class)
@@ -37,8 +34,8 @@ class DatasetControllerIT {
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+        .param("country", ITALY.xmlValue())
+        .param("language", IT.xmlValue()))
         .andExpect(status().isAccepted());
   }
 
