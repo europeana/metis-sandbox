@@ -9,8 +9,8 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -46,7 +46,7 @@ class DatasetServiceImpl implements DatasetService {
     var entity = new DatasetEntity(datasetName, records.size());
     String id;
     try {
-      id = datasetRepository.save(entity).getDatasetId();
+      id = String.valueOf(datasetRepository.save(entity).getDatasetId());
     } catch (Exception e) {
       throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
     }

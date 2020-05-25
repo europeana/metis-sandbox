@@ -35,32 +35,28 @@ public class DatasetEntity {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
-  public String getDatasetId() {
-    return String.valueOf(this.datasetId);
+  public Integer getDatasetId() {
+    return datasetId;
+  }
+
+  public void setDatasetId(Integer datasetId) {
+    this.datasetId = datasetId;
   }
 
   public String getDatasetName() {
-    return this.datasetName;
-  }
-
-  public Integer getRecordsQuantity() {
-    return this.recordsQuantity;
-  }
-
-  public void setDatasetId(String datasetId) {
-    this.datasetId = Integer.valueOf(datasetId);
+    return datasetName;
   }
 
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
   }
 
-  public void setRecordsQuantity(Integer recordsQuantity) {
-    this.recordsQuantity = recordsQuantity;
+  public Integer getRecordsQuantity() {
+    return recordsQuantity;
   }
 
-  public void setDatasetId(Integer datasetId) {
-    this.datasetId = datasetId;
+  public void setRecordsQuantity(Integer recordsQuantity) {
+    this.recordsQuantity = recordsQuantity;
   }
 
   public LocalDateTime getCreatedDate() {

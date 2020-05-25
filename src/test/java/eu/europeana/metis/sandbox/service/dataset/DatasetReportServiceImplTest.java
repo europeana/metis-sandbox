@@ -183,7 +183,7 @@ class DatasetReportServiceImplTest {
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
     var datasetEntity = new DatasetEntity("test", 0);
-    datasetEntity.setDatasetId("1");
+    datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 

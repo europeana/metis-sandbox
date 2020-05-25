@@ -49,7 +49,7 @@ class DatasetServiceImplTest {
         .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234", List.of(record));
     var datasetEntity = new DatasetEntity("name", 5);
-    datasetEntity.setDatasetId("1");
+    datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
