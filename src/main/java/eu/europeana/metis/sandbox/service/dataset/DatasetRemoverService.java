@@ -11,6 +11,9 @@ public interface DatasetRemoverService {
    *
    * @param days before to preserve data
    * @throws ServiceException if there is an issue looking for datasets to delete
+   *
+   * @implNote if there are errors deleting a specific dataset, it will be logged as an error
+   * and process will continue, there will be no exceptions thrown
    */
   void remove(int days);
 }

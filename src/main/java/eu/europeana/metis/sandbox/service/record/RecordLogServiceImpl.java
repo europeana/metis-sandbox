@@ -35,8 +35,7 @@ class RecordLogServiceImpl implements RecordLogService {
     var recordErrors = recordEvent.getRecordErrors();
 
     var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getDatasetId(),
-        recordEvent.getStep(), recordEvent.getStatus(),
-        new String(record.getContent(), StandardCharsets.UTF_8));
+        recordEvent.getStep(), recordEvent.getStatus(), new String(record.getContent(), StandardCharsets.UTF_8));
     var recordErrorLogEntities = recordErrors.stream()
         .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getDatasetId(),
             recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
