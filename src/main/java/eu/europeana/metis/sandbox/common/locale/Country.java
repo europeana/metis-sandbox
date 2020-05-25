@@ -2,6 +2,9 @@ package eu.europeana.metis.sandbox.common.locale;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+/**
+ * Enum to represent countries available to add to a dataset process
+ */
 public enum Country {
   ALBANIA("Albania"), ANDORRA("Andorra"), ARMENIA("Armenia"), AUSTRIA(
       "Austria"), AZERBAIJAN("Azerbaijan"), AUSTRALIA("Australia"), BELARUS(

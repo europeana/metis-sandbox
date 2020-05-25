@@ -21,17 +21,6 @@ spring:
   servlet:
     multipart:
       max-file-size: 5MB
-  rabbitmq:
-    virtual-host: sandbox-testing
-    host: localhost
-    port: 5672
-    username: sandbox
-    password: sandbox
-    listener:
-      simple:
-        concurrency: 1
-        max-concurrency: 1
-        prefetch: 1
 
 sandbox:
   validation:

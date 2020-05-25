@@ -7,6 +7,12 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Config for workflow listeners. Every listener has a {@link SimpleRabbitListenerContainerFactory}.
+ * <br /><br />
+ * If changes like increasing consumers for a listener are needed, here is the place to do it, by using the
+ * SimpleRabbitListenerContainerFactory
+ */
 @Configuration
 class WorkflowListenerConfig {
 
