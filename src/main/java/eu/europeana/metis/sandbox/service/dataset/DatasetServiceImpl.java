@@ -10,7 +10,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.service.dataset.projection.DatasetIdView;
+import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -76,7 +76,7 @@ class DatasetServiceImpl implements DatasetService {
   @Transactional
   public void remove(String datasetId) {
     try {
-      datasetRepository.deleteByDatasetId(Integer.valueOf(datasetId));
+      datasetRepository.deleteById(Integer.valueOf(datasetId));
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
     }

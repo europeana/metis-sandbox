@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.dataset.projection;
+package eu.europeana.metis.sandbox.entity.projection;
 
 public interface DatasetIdView {
 

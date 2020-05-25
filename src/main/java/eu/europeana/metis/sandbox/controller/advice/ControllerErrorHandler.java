@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+/**
+ * Handles controller exceptions to report correct http status code to client
+ */
 @ControllerAdvice
 class ControllerErrorHandler {
 

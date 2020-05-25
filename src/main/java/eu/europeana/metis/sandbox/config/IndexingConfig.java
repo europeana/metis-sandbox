@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+/**
+ * Config to define preview and publish indexers
+ */
 @Profile("default")
 @Configuration
 class IndexingConfig {

@@ -1,14 +1,16 @@
-package eu.europeana.metis.sandbox.dto;
+package eu.europeana.metis.sandbox.dto.report;
 
 import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Base of the dataset report
+ */
 @ApiModel("DatasetInfo")
 public class DatasetInfoDto {
 

@@ -8,6 +8,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Entity to map dataset table
+ */
 @Entity
 @Table(name = "dataset")
 public class DatasetEntity {

@@ -16,7 +16,7 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.service.dataset.projection.DatasetIdView;
+import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -94,12 +94,12 @@ class DatasetServiceImplTest {
   @Test
   void remove_expectSuccess() {
     service.remove("1");
-    verify(datasetRepository).deleteByDatasetId(1);
+    verify(datasetRepository).deleteById(1);
   }
 
   @Test
   void remove_fail() {
-    doThrow(new RuntimeException("", new Exception())).when(datasetRepository).deleteByDatasetId(1);
+    doThrow(new RuntimeException("", new Exception())).when(datasetRepository).deleteById(1);
     assertThrows(ServiceException.class, () -> service.remove("1"));
   }
 

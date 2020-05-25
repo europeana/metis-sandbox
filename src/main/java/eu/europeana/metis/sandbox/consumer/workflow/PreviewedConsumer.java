@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes events in preview and publish them
+ * Consumes previewed events and publish
+ * <br />
+ * Publishes the result in the published queue
  */
 @Component
 class PreviewedConsumer extends StepConsumer {

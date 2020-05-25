@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
  * Consumes media processed events and performs indexing to the contained record
  * <br/>
  * Publishes the result in the indexed queue
- * Consumes media processed events and performs indexing to the contained record <br/> Publishes the
- * result in the previewed queue
  */
 @Component
 class MediaProcessedConsumer extends StepConsumer {

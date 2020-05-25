@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.repository.projection;
+package eu.europeana.metis.sandbox.entity.projection;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
