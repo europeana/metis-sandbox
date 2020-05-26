@@ -2,19 +2,36 @@ package eu.europeana.metis.sandbox.dto;
 
 import static java.util.Objects.requireNonNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.domain.Dataset;
 import io.swagger.annotations.ApiModel;
 
 @ApiModel("Dataset")
 public class DatasetIdDto {
 
+  @JsonProperty(value = "dataset-id")
   private final String datasetId;
+  @JsonProperty(value = "records-to-process")
+  private final int recordsToProcess;
+  @JsonProperty(value = "duplicate-records")
+  private final int duplicateRecords;
 
-  public DatasetIdDto(String datasetId) {
-    requireNonNull(datasetId, "Dataset id must not be null");
-    this.datasetId = datasetId;
+  public DatasetIdDto(Dataset dataset) {
+    requireNonNull(dataset, "Dataset id must not be null");
+    this.recordsToProcess = dataset.getRecords().size();
+    this.duplicateRecords = dataset.getDuplicates();
+    this.datasetId = dataset.getDatasetId();
   }
 
   public String getDatasetId() {
     return this.datasetId;
+  }
+
+  public int getRecordsToProcess() {
+    return recordsToProcess;
+  }
+
+  public int getDuplicateRecords() {
+    return duplicateRecords;
   }
 }

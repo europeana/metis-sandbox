@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toSet;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -10,7 +11,6 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,6 +32,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
+    var totalRecords = records.size();
     var recordObjectList = records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(record -> Record.builder()
@@ -42,8 +43,8 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
             .language(language)
             .content(record)
             .build())
-        .collect(Collectors.toList());
+        .collect(toSet());
 
-    return new Dataset(id, recordObjectList);
+    return new Dataset(id, recordObjectList, totalRecords - recordObjectList.size());
   }
 }

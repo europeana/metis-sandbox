@@ -26,7 +26,8 @@ class InternallyValidatedConsumer extends StepConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.validated.internal.auto-start:true}")
   public void normalize(Event input) {
     consume(routingKey, input, Step.NORMALIZE, () -> service.normalize(input.getBody()));
   }

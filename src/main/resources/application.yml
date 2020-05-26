@@ -134,34 +134,45 @@ sandbox:
           queue: sandbox.record.log
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
           routing-key: sandbox.record.#
+          auto-start: true
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
+          auto-start: false
         ordered:
           queue: sandbox.record.ordered
           dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
+          auto-start: false
         validated:
           external:
             queue: sandbox.record.validated.external
             dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
+            auto-start: false
           internal:
             queue: sandbox.record.validated.internal
             dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
+            auto-start: false
         transformed:
           queue: sandbox.record.transformed
           dlq: ${sandbox.rabbitmq.queues.record.transformed.queue}.dlq
+          auto-start: false
         normalized:
           queue: sandbox.record.normalized
           dlq: ${sandbox.rabbitmq.queues.record.normalized.queue}.dlq
+          auto-start: false
         enriched:
           queue: sandbox.record.enriched
           dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
+          auto-start: false
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
+          auto-start: false
         previewed:
           queue: sandbox.record.previewed
           dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
+          auto-start: false
         published:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
+          auto-start: false
