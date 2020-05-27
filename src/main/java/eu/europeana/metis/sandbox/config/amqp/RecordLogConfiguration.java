@@ -31,6 +31,12 @@ class RecordLogConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.log.routing-key}")
   private String routingKey;
 
+  @Value("${sandbox.rabbitmq.queues.record.log.consumers}")
+  private int consumers;
+
+  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers}")
+  private int maxConsumers;
+
   private final MessageConverter messageConverter;
 
   private final AmqpConfiguration amqpConfiguration;
@@ -71,6 +77,8 @@ class RecordLogConfiguration {
     var factory = new SimpleRabbitListenerContainerFactory();
     configurer.configure(factory, connectionFactory);
     factory.setMessageConverter(messageConverter);
+    factory.setConcurrentConsumers(consumers);
+    factory.setMaxConcurrentConsumers(maxConsumers);
     return factory;
   }
 }
