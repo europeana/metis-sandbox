@@ -22,14 +22,15 @@ public class RecordError {
    */
   public RecordError(RecordProcessingException exception) {
     requireNonNull(exception, "Exception must not be null");
-    this.message = Optional.ofNullable(exception.getReportMessage()).orElse("No message");
+    this.message = Optional.ofNullable(exception.getReportMessage())
+        .orElse("No message. Report to service provider");
     this.stackTrace = ExceptionUtils.getStackTrace(exception);
   }
 
   /**
    * Constructor
    *
-   * @param message must not be null
+   * @param message    must not be null
    * @param stackTrace must not be null
    */
   public RecordError(String message, String stackTrace) {
