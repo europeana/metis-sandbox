@@ -7,6 +7,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.transformation.service.TransformationException;
+import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
 import java.io.ByteArrayInputStream;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,14 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    var validationResult = validator
-        .singleValidation(SCHEMA, null, null, new ByteArrayInputStream(recordOrdered));
+    ValidationResult validationResult;
+    try {
+      validationResult = validator
+          .singleValidation(SCHEMA, null, null, new ByteArrayInputStream(recordOrdered));
+    } catch (RuntimeException e) {
+      throw new RecordProcessingException(record.getRecordId(), e);
+    }
+
     if (!validationResult.isSuccess()) {
       throw new RecordValidationException(validationResult.getMessage(),
           validationResult.getRecordId(), validationResult.getNodeId());
