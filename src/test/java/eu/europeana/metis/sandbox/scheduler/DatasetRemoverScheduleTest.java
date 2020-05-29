@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.scheduler;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
