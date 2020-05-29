@@ -12,11 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Dataset;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -103,7 +104,7 @@ class DatasetControllerTest {
         .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
-            is("File provided is not valid zip")));
+            is("File provided is not valid zip. ")));
   }
 
   @Test
@@ -149,7 +150,7 @@ class DatasetControllerTest {
         .param("language", IT.name()))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
-            is("Failed")));
+            is("Failed Please retry, if problem persists contact provider.")));
   }
 
   @Test
@@ -175,7 +176,7 @@ class DatasetControllerTest {
   }
 
   @Test
-  public void retrieveDataset_expectSuccess() throws Exception {
+  void retrieveDataset_expectSuccess() throws Exception {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -198,7 +199,19 @@ class DatasetControllerTest {
   }
 
   @Test
-  public void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
+  void retrieveDataset_datasetInvalidDatasetId_expectFail() throws Exception {
+
+    when(datasetReportService.getReport("1"))
+        .thenThrow(new InvalidDatasetException("1"));
+
+    mvc.perform(get("/dataset/{id}", "1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("Provided dataset id: [1] is not valid. ")));
+  }
+
+  @Test
+  void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
 
     when(datasetReportService.getReport("1"))
         .thenThrow(new ServiceException("Failed", new Exception()));
@@ -206,6 +219,6 @@ class DatasetControllerTest {
     mvc.perform(get("/dataset/{id}", "1"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
-            is("Failed")));
+            is("Failed Please retry, if problem persists contact provider.")));
   }
 }

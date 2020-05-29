@@ -4,6 +4,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Represent exception model to display when there are errors in an http request
+ */
 @ApiModel("ExceptionModel")
 public class ExceptionModelDto {
 

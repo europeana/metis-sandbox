@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
  * Consumes media processed events and performs indexing to the contained record
  * <br/>
  * Publishes the result in the indexed queue
- * Consumes media processed events and performs indexing to the contained record <br/> Publishes the
- * result in the previewed queue
  */
 @Component
 class MediaProcessedConsumer extends StepConsumer {
@@ -32,7 +30,7 @@ class MediaProcessedConsumer extends StepConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.media.auto-start:true}")
-  public void index(Event input) {
+  public void preview(Event input) {
     consume(routingKey, input, Step.PREVIEW,
         () -> service.index(input.getBody(), IndexEnvironment.PREVIEW));
   }

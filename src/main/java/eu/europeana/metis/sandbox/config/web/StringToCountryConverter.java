@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.core.convert.converter.Converter;
 
+/**
+ * Converter to map country string value to enum
+ */
 class StringToCountryConverter implements Converter<String, Country> {
 
   private static final Map<String, Country> MAP = Stream

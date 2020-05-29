@@ -296,7 +296,7 @@ class MediaProcessingServiceImplTest {
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
     when(extraction2.getThumbnails()).thenReturn(List.of(thumbnail));
     doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnailStoreService)
-        .store(List.of(thumbnail));
+        .store(List.of(thumbnail), "1");
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
     when(extraction1.getMetadata()).thenReturn(metadata);

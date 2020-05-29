@@ -8,6 +8,9 @@ import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Represent errors in the dataset report
+ */
 @ApiModel("ErrorInfo")
 public class ErrorInfoDto {
 

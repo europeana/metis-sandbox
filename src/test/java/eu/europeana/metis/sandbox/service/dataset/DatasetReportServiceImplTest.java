@@ -9,15 +9,15 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
+import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,7 +153,7 @@ class DatasetReportServiceImplTest {
 
     var report = new DatasetInfoDto(
         "All dataset records failed to be processed",
-        "A review URL will be generated when the dataset has finished processing", 5, 5L,
+        "All dataset records failed to be processed", 5, 5L,
         List.of(createProgress, externalProgress));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -183,7 +183,7 @@ class DatasetReportServiceImplTest {
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
     var datasetEntity = new DatasetEntity("test", 0);
-    datasetEntity.setDatasetId("1");
+    datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
@@ -197,7 +197,7 @@ class DatasetReportServiceImplTest {
   @Test
   void getReport_failToRetrieveDataset_expectFail() {
     when(datasetRepository.findById(1))
-        .thenThrow(new ServiceException("failed", new Exception()));
+        .thenThrow(new RuntimeException("failed", new Exception()));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));
   }
@@ -217,6 +217,7 @@ class DatasetReportServiceImplTest {
 
   private void assertReportEquals(DatasetInfoDto expected, DatasetInfoDto actual) {
     assertEquals(expected.getPortalPreviewUrl(), actual.getPortalPreviewUrl());
+    assertEquals(expected.getPortalPublishUrl(), actual.getPortalPublishUrl());
     assertEquals(expected.getProcessedRecords(), actual.getProcessedRecords());
     assertEquals(expected.getTotalRecords(), actual.getTotalRecords());
     assertEquals(expected.getStatus(), actual.getStatus());

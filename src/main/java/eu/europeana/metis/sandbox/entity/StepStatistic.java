@@ -2,7 +2,11 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 
+/**
+ * POJO used by {@link RecordLogRepository} in method getStepStatistics, to map query results
+ */
 public class StepStatistic {
 
   private final Step step;

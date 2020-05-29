@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
@@ -45,7 +46,21 @@ class RecordLogServiceImpl implements RecordLogService {
       recordLogRepository.save(recordLogEntity);
       errorLogRepository.saveAll(recordErrorLogEntities);
     } catch (RuntimeException e) {
-      throw new ServiceException("Error saving record event log: " + e.getMessage(), e);
+      throw new ServiceException(
+          format("Error saving record log for record: [%s]. ", record.getRecordId()), e);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void remove(String datasetId) {
+    requireNonNull(datasetId, "Dataset id must not be null");
+    try {
+      errorLogRepository.deleteByDatasetId(datasetId);
+      recordLogRepository.deleteByDatasetId(datasetId);
+    } catch (RuntimeException e) {
+      throw new ServiceException(
+          format("Error removing records for dataset id: [%s]. ", datasetId), e);
     }
   }
 }

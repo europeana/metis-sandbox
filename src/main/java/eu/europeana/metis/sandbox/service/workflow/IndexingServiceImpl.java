@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
+import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -38,6 +39,18 @@ class IndexingServiceImpl implements IndexingService {
     }
 
     return new RecordInfo(record);
+  }
+
+  @Override
+  public void remove(String datasetId) {
+    requireNonNull(datasetId, "Dataset id must not be null");
+
+    try {
+      previewIndexer.removeAll(datasetId, null);
+      publishIndexer.removeAll(datasetId, null);
+    } catch (IndexingException e) {
+      throw new DatasetIndexRemoveException(datasetId, e);
+    }
   }
 
   @PreDestroy

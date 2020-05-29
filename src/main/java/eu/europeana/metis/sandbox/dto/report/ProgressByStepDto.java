@@ -9,6 +9,9 @@ import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Represent each step progress in the dataset report
+ */
 @ApiModel("ProgressByStep")
 public class ProgressByStepDto {
 

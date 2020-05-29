@@ -97,7 +97,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       List<RecordError> recordErrors) {
     if (nonNull(thumbnails)) {
       try {
-        thumbnailStoreService.store(thumbnails);
+        thumbnailStoreService.store(thumbnails, record.getDatasetId());
       } catch (ThumbnailStoringException e) {
         LOGGER.warn("Error while storing thumbnail for record {}. ", record.getRecordId(), e);
         // collect warn

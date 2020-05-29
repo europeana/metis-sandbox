@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.controller.advice;
 
+import static java.lang.String.format;
+
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
@@ -12,10 +14,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+/**
+ * Handles controller exceptions to report correct http status code to client
+ */
 @ControllerAdvice
 class ControllerErrorHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ControllerErrorHandler.class);
+
+  private static final String RETRY_MSG = "%s Please retry, if problem persists contact provider.";
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
@@ -35,8 +42,9 @@ class ControllerErrorHandler {
 
   @ExceptionHandler(ServiceException.class)
   public ResponseEntity<Object> handleServiceException(ServiceException ex) {
+    var message = format(RETRY_MSG, ex.getMessage());
     var exceptionModel = new ExceptionModelDto(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-        HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        HttpStatus.INTERNAL_SERVER_ERROR, message);
     LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }

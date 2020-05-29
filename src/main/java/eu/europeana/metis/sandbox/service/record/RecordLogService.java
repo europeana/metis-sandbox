@@ -13,4 +13,13 @@ public interface RecordLogService {
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
   void logRecordEvent(Event recordEvent);
+
+  /**
+   * Remove records matching the provided dataset id
+   *
+   * @param datasetId must not be null
+   * @throws NullPointerException if dataset id is null
+   * @throws ServiceException if there is an issue removing the dataset
+   */
+  void remove(String datasetId);
 }

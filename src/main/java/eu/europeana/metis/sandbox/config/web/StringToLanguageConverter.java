@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.core.convert.converter.Converter;
 
+/**
+ * Converter to map language string value to enum
+ */
 class StringToLanguageConverter implements Converter<String, Language> {
 
   private static final Map<String, Language> MAP = Stream

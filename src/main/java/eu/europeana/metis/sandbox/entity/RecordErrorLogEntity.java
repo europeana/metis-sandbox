@@ -5,6 +5,9 @@ import eu.europeana.metis.sandbox.common.Step;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+/**
+ * Entity to map to record_error_log table
+ */
 @Entity
 @Table(name = "record_error_log")
 public class RecordErrorLogEntity extends RecordEntity {

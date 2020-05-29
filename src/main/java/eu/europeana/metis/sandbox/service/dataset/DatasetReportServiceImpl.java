@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
@@ -10,15 +11,15 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
+import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.projection.ErrorLogView;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
@@ -75,7 +76,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       stepStatistics = recordLogRepository.getStepStatistics(datasetId);
       errorsLog = errorLogRepository.getByDatasetId(datasetId);
     } catch (RuntimeException exception) {
-      throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
+      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
     }
 
@@ -143,7 +144,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     try {
       optionalDataset = datasetRepository.findById(Integer.valueOf(datasetId));
     } catch (RuntimeException exception) {
-      throw new ServiceException("Failed getting report. Message: " + exception.getMessage(),
+      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
     }
 

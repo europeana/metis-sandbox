@@ -74,6 +74,9 @@ sandbox:
     signing-region: eu
     thumbnails-bucket: bucket
   dataset:
+    clean:
+      frequency: "-" # Indicates a disabled cron
+      days-to-preserve: 7
     max-size: 1000
     creation:
       threads:
