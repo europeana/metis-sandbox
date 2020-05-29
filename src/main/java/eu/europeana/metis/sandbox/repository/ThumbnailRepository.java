@@ -13,6 +13,7 @@ public interface ThumbnailRepository extends JpaRepository<ThumbnailEntity, Long
    *
    * @param datasetId must not be null
    * @return list of thumbnails
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
    */
   List<ThumbnailEntity> findByDatasetId(String datasetId);
 

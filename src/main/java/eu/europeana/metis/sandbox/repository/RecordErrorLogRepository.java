@@ -15,6 +15,8 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    * @param datasetId must not be null
    * @return list of errors
    * @see ErrorLogView
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<ErrorLogView> getByDatasetId(String datasetId);
 

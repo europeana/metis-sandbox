@@ -14,6 +14,8 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param date must not be null
    * @return list of dataset ids
    * @see DatasetIdView
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<DatasetIdView> getByCreatedDateBefore(LocalDateTime date);
 }
