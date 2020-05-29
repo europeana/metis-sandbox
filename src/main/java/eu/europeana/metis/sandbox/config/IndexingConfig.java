@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;

@@ -26,7 +26,8 @@ class PreviewedConsumer extends StepConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}", containerFactory = "previewedFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}", containerFactory = "previewedFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.previewed.auto-start:true}")
   public void publish(Event input) {
     consume(routingKey, input, Step.PUBLISH,
         () -> service.index(input.getBody(), IndexEnvironment.PUBLISH));

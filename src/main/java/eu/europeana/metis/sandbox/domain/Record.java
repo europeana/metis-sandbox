@@ -115,16 +115,14 @@ public class Record {
       return false;
     }
     Record record = (Record) o;
-    return country == record.country &&
-        language == record.language &&
+    return
         recordId.equals(record.recordId) &&
-        datasetId.equals(record.datasetId) &&
-        datasetName.equals(record.datasetName);
+            datasetId.equals(record.datasetId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(recordId, datasetId, datasetName, country, language);
+    return Objects.hash(recordId, datasetId);
   }
 
   public static class RecordBuilder {
