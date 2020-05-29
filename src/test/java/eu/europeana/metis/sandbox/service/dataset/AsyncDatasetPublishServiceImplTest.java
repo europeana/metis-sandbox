@@ -12,7 +12,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +48,7 @@ class AsyncDatasetPublishServiceImplTest {
     var record2 = Record.builder().datasetId("1").datasetName("").recordId("2")
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
-    Dataset dataset = new Dataset("1234", List.of(record1, record2));
+    Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     service.publish(dataset).get();
 
@@ -64,7 +64,7 @@ class AsyncDatasetPublishServiceImplTest {
     var record2 = Record.builder().datasetId("1").datasetName("").recordId("2")
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
-    Dataset dataset = new Dataset("1234", List.of(record1, record2));
+    Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(Event.class));
@@ -81,7 +81,7 @@ class AsyncDatasetPublishServiceImplTest {
 
   @Test
   void publish_emptyRecords_expectFail() {
-    Dataset dataset = new Dataset("1234", List.of());
+    Dataset dataset = new Dataset("1234", Set.of(), 0);
     assertThrows(IllegalArgumentException.class, () -> service.publish(dataset));
   }
 }

@@ -10,7 +10,9 @@ import java.util.List;
 public interface DatasetGeneratorService {
 
   /**
-   * Creates a {@link Dataset} instance
+   * Creates a {@link Dataset} instance.
+   * <br />
+   * Filters out duplicate records
    *
    * @param id       must not be null
    * @param name     must not be null

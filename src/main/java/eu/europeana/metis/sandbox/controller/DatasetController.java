@@ -61,8 +61,8 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String datasetId = datasetService.createDataset(datasetName, country, language, records);
-    return new DatasetIdDto(datasetId);
+    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    return new DatasetIdDto(datasetObject);
   }
 
   @ApiOperation("Get dataset progress information")

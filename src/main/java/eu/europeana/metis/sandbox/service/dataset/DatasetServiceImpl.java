@@ -8,6 +8,7 @@ import static java.util.stream.Collectors.toList;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -34,8 +35,9 @@ class DatasetServiceImpl implements DatasetService {
     this.publishService = publishService;
   }
 
+  @Transactional
   @Override
-  public String createDataset(String datasetName, Country country, Language language,
+  public Dataset createDataset(String datasetName, Country country, Language language,
       List<ByteArrayInputStream> records) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
@@ -44,16 +46,29 @@ class DatasetServiceImpl implements DatasetService {
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
     var entity = new DatasetEntity(datasetName, records.size());
-    String id;
     try {
-      id = String.valueOf(datasetRepository.save(entity).getDatasetId());
+      entity = datasetRepository.save(entity);
     } catch (Exception e) {
       throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
     }
 
-    var dataset = generatorService.generate(id, datasetName, country, language, records);
+    var datasetId = String.valueOf(entity.getDatasetId());
+    var dataset = generatorService
+        .generate(datasetId, datasetName, country, language, records);
+
+    // if there are duplicate records in the original list
+    if (dataset.getRecords().size() < records.size()) {
+      // adjust records qty to be equal to non duplicate records
+      entity.setRecordsQuantity(dataset.getRecords().size());
+      try {
+        datasetRepository.save(entity);
+      } catch (Exception e) {
+        throw new ServiceException("Error updating the dataset: " + e.getMessage(), e);
+      }
+    }
+
     publishService.publish(dataset);
-    return dataset.getDatasetId();
+    return dataset;
   }
 
   @Override

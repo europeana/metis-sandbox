@@ -16,6 +16,7 @@ import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -24,6 +25,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
 import java.io.ByteArrayInputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
@@ -60,15 +62,17 @@ class DatasetControllerTest {
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
 
+    var datasetObject = new Dataset("12345", Set.of(), 0);
+
     when(zipService.parse(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn("12345");
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
         .param("language", IT.name()))
         .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.datasetId", is("12345")));
+        .andExpect(jsonPath("$.dataset-id", is("12345")));
   }
 
   @Test

@@ -20,6 +20,7 @@ import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -47,19 +48,41 @@ class DatasetServiceImplTest {
     var records = List.of(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
-    var dataset = new Dataset("1234", List.of(record));
+    var dataset = new Dataset("1234", Set.of(record), 0);
     var datasetEntity = new DatasetEntity("name", 5);
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    String datasetId = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
 
-    assertEquals("1234", datasetId);
+    assertEquals("1234", result.getDatasetId());
+  }
+
+  @Test
+  void createDataset_withDuplicateRecords_expectSuccess() {
+
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+    var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
+        .language(Language.BE).content("".getBytes()).recordId("").build();
+    var dataset = new Dataset("1234", Set.of(record), 0);
+    var datasetEntity = new DatasetEntity("name", 1);
+    datasetEntity.setDatasetId(1);
+
+    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
+    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+        .thenReturn(dataset);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
+
+    verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
+    verify(publishService, times(1)).publish(dataset);
+
+    assertEquals("1234", result.getDatasetId());
   }
 
   @Test
@@ -75,12 +98,12 @@ class DatasetServiceImplTest {
   }
 
   @Test
-  void createDataset_saveFail_expectSuccess() {
+  void createDataset_saveFail_expectFail() {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
-    var dataset = new Dataset("1234", List.of(record));
+    var dataset = new Dataset("1234", Set.of(record), 0);
 
     when(datasetRepository.save(any(DatasetEntity.class)))
         .thenThrow(new IllegalArgumentException());
@@ -88,6 +111,30 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
+    verify(publishService, never()).publish(dataset);
+  }
+
+  @Test
+  void createDataset_withDuplicateRecords_updateFail_expectFail() {
+
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+    var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
+        .language(Language.BE).content("".getBytes()).recordId("").build();
+    var dataset = new Dataset("1234", Set.of(record), 0);
+    var datasetEntity = new DatasetEntity("name", 1);
+    datasetEntity.setDatasetId(1);
+
+    when(datasetRepository.save(any(DatasetEntity.class)))
+        .thenReturn(datasetEntity)
+        .thenThrow(new RuntimeException("Failed"));
+    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+        .thenReturn(dataset);
+
+    assertThrows(ServiceException.class,
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records));
+
+    verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);
   }
 

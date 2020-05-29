@@ -24,7 +24,8 @@ class PublishedConsumer {
     this.amqpTemplate = amqpTemplate;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.published.queue}", containerFactory = "publishedFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.published.queue}", containerFactory = "publishedFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.published.auto-start:true}")
   public void close(Event input) {
     if (input.getStatus() == Status.FAIL) {
       return;

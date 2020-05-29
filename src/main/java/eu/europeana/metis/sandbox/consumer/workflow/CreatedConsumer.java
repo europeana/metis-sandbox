@@ -26,7 +26,8 @@ class CreatedConsumer extends StepConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory")
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.created.auto-start:true}")
   public void validateExternal(Event input) {
     consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()));
   }

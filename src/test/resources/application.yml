@@ -95,6 +95,8 @@ sandbox:
           queue: sandbox.record.log
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
           routing-key: sandbox.record.#
+          consumers: 20
+          max-consumers: 40
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq

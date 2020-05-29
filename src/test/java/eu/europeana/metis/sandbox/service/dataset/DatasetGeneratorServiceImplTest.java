@@ -28,7 +28,9 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generate_expectSuccess() {
 
-    when(xmlRecordProcessorService.getRecordId(any(byte[].class))).thenReturn("id");
+    when(xmlRecordProcessorService.getRecordId(any(byte[].class)))
+        .thenReturn("1")
+        .thenReturn("2");
 
     var dataset = generator
         .generate("1", "name", Country.ITALY, Language.IT,
@@ -36,6 +38,20 @@ class DatasetGeneratorServiceImplTest {
                 new ByteArrayInputStream("records".getBytes())));
 
     assertEquals(2, dataset.getRecords().size());
+  }
+
+  @Test
+  void generateWithDuplicateRecord_expectSuccess() {
+
+    when(xmlRecordProcessorService.getRecordId(any(byte[].class)))
+        .thenReturn("1");
+
+    var dataset = generator
+        .generate("1", "name", Country.ITALY, Language.IT,
+            List.of(new ByteArrayInputStream("record1".getBytes()),
+                new ByteArrayInputStream("records".getBytes())));
+
+    assertEquals(1, dataset.getRecords().size());
   }
 
   @Test
