@@ -63,7 +63,7 @@ class DatasetServiceImpl implements DatasetService {
       try {
         datasetRepository.save(entity);
       } catch (Exception e) {
-        throw new ServiceException("Error updating the dataset: " + e.getMessage(), e);
+        throw new ServiceException(format("Error updating dataset: [%s]. ", datasetName), e);
       }
     }
 
