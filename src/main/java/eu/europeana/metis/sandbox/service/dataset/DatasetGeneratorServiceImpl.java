@@ -45,6 +45,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
             .build())
         .collect(toSet());
 
+    // recordObjectList will remove duplicate records based on Record equals
     return new Dataset(id, recordObjectList, totalRecords - recordObjectList.size());
   }
 }
