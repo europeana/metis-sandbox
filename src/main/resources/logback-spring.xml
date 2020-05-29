@@ -15,7 +15,7 @@
 
   <logger name="eu.europeana" level="WARN"/>
   <logger name="eu.europeana.metis.sandbox" level="INFO"/>
-  <logger name="org.springframework" level="ERROR"/>
+  <logger name="org.springframework" level="WARN"/>
   <logger name="org.hibernate" level="ERROR"/>
   <logger name="org.mongodb.driver.connection" level="ERROR"/>
 

@@ -101,6 +101,12 @@
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-enrichment-client</artifactId>
 			<version>${version.metis}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>eu.europeana.corelib</groupId>
+					<artifactId>corelib-lookup</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

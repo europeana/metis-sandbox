@@ -140,14 +140,14 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(createdQueue, externalValidatedQueue, transformedQueue,
+    return getDeclarables(exchange, createdQueue, externalValidatedQueue, transformedQueue,
         normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue,
         previewedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(createdDlq, externalValidatedDlq, transformedDlq,
+    return getDeclarables(exchangeDlq, createdDlq, externalValidatedDlq, transformedDlq,
         normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq,
         previewedDlq, publishedDlq);
   }
@@ -155,7 +155,7 @@ class AmqpConfiguration {
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Declarables getDeclarables(String created,
+  private Declarables getDeclarables(String exchange, String created,
       String externalValidated, String transformed, String normalized,
       String internalValidated, String enriched, String mediaProcessed,
       String previewed, String published) {

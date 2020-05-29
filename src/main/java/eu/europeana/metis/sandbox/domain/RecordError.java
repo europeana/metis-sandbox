@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.domain;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
+import java.util.Optional;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
@@ -21,14 +22,15 @@ public class RecordError {
    */
   public RecordError(RecordProcessingException exception) {
     requireNonNull(exception, "Exception must not be null");
-    this.message = exception.getReportMessage();
+    this.message = Optional.ofNullable(exception.getReportMessage())
+        .orElse("No message. Report to service provider");
     this.stackTrace = ExceptionUtils.getStackTrace(exception);
   }
 
   /**
    * Constructor
    *
-   * @param message must not be null
+   * @param message    must not be null
    * @param stackTrace must not be null
    */
   public RecordError(String message, String stackTrace) {
