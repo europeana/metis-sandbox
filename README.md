@@ -44,3 +44,9 @@ Project created with:
 * [Postgresql](https://www.postgresql.org/)
 * [AWS S3](https://aws.amazon.com/s3/)
 * [Spring Fox](https://springfox.github.io/springfox/)
+
+# Funding
+
+The first version of the Metis Sandbox was developed in 2020 as an MVP for the Common Culture Generic 
+Services project, originally proposed as a Feedback Loop pilot. The Feedback Loop software was 
+financed by Deutsche Digitale Bibliothek - Kultur und Wissen online (German Digital Library).
