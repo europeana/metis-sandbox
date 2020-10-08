@@ -68,20 +68,22 @@ class SwaggerConfig {
   }
 
   private List<ResponseMessage> postExceptionModelList() {
-    return List.of(new ResponseMessageBuilder()
+    return List.of(
+/*        new ResponseMessageBuilder()
             .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("500 Internal Error")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
-            .build(),
+            .build(), */
         new ResponseMessageBuilder()
             .code(HttpStatus.BAD_REQUEST.value())
-            .message("400 Bad Request")
+            .message("400 Bad Request (or any other 4xx or 5xx status code)")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build());
   }
 
   private List<ResponseMessage> getExceptionModelList() {
-    return List.of(new ResponseMessageBuilder()
+    return List.of(
+/*        new ResponseMessageBuilder()
             .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("500 Internal Error")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
@@ -90,10 +92,10 @@ class SwaggerConfig {
             .code(HttpStatus.NOT_FOUND.value())
             .message("404 Not Found")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
-            .build(),
+            .build(), */
         new ResponseMessageBuilder()
             .code(HttpStatus.BAD_REQUEST.value())
-            .message("400 Bad Request")
+            .message("400 Bad Request (or any other 4xx or 5xx status code)")
             .responseModel(new ModelRef(EXCEPTION_MODEL))
             .build());
   }
