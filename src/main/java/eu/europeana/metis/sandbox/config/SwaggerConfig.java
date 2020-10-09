@@ -12,7 +12,6 @@ import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
-import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.ResponseMessage;
 import springfox.documentation.spi.DocumentationType;
@@ -26,7 +25,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 class SwaggerConfig {
 
-  private static final String EXCEPTION_MODEL = "ExceptionModel";
+  private static final String MESSAGE_FOR_400_CODE = ""
+          + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+          + "400 Bad Request</span>"
+          + " (or any other 4xx or 5xx status code)"
+          + " - The response body will contain object of type"
+          + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+          + ExceptionModelDto.SWAGGER_MODEL_NAME + "</span>.";
 
   @Value("${info.app.title}")
   private String title;
@@ -52,6 +57,7 @@ class SwaggerConfig {
         .build()
         .apiInfo(apiInfo())
         .useDefaultResponseMessages(false)
+        .directModelSubstitute(Object.class, Void.class)
         .additionalModels(typeResolver.resolve(ExceptionModelDto.class))
         .globalResponseMessage(RequestMethod.POST,
             postExceptionModelList())
@@ -72,12 +78,12 @@ class SwaggerConfig {
 /*        new ResponseMessageBuilder()
             .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("500 Internal Error")
-            .responseModel(new ModelRef(EXCEPTION_MODEL))
+            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build(), */
         new ResponseMessageBuilder()
             .code(HttpStatus.BAD_REQUEST.value())
-            .message("400 Bad Request (or any other 4xx or 5xx status code)")
-            .responseModel(new ModelRef(EXCEPTION_MODEL))
+            .message(MESSAGE_FOR_400_CODE)
+//            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build());
   }
 
@@ -86,17 +92,17 @@ class SwaggerConfig {
 /*        new ResponseMessageBuilder()
             .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .message("500 Internal Error")
-            .responseModel(new ModelRef(EXCEPTION_MODEL))
+            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build(),
         new ResponseMessageBuilder()
             .code(HttpStatus.NOT_FOUND.value())
             .message("404 Not Found")
-            .responseModel(new ModelRef(EXCEPTION_MODEL))
+            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build(), */
         new ResponseMessageBuilder()
             .code(HttpStatus.BAD_REQUEST.value())
-            .message("400 Bad Request (or any other 4xx or 5xx status code)")
-            .responseModel(new ModelRef(EXCEPTION_MODEL))
+            .message(MESSAGE_FOR_400_CODE)
+//            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build());
   }
 }
