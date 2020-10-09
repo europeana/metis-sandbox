@@ -13,7 +13,9 @@ import java.util.List;
  */
 @ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
 public class DatasetInfoDto {
+
   public static final String SWAGGER_MODEL_NAME = "DatasetInfo";
+
   private enum Status {
     COMPLETED("completed"),
     IN_PROGRESS("in progress");

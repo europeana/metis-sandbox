@@ -28,8 +28,8 @@ class SwaggerConfig {
   private static final String MESSAGE_FOR_400_CODE = ""
           + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + "400 Bad Request</span>"
-          + " (or any other 4xx or 5xx status code)"
-          + " - The response body will contain object of type"
+          + " (or any other 4xx or 5xx error status code)"
+          + " - The response body will contain an object of type"
           + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + ExceptionModelDto.SWAGGER_MODEL_NAME + "</span>.";
 
@@ -57,6 +57,7 @@ class SwaggerConfig {
         .build()
         .apiInfo(apiInfo())
         .useDefaultResponseMessages(false)
+        // The line allows swagger annotations to set Object.class to suppress the result type.
         .directModelSubstitute(Object.class, Void.class)
         .additionalModels(typeResolver.resolve(ExceptionModelDto.class))
         .globalResponseMessage(RequestMethod.POST,
@@ -75,34 +76,17 @@ class SwaggerConfig {
 
   private List<ResponseMessage> postExceptionModelList() {
     return List.of(
-/*        new ResponseMessageBuilder()
-            .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .message("500 Internal Error")
-            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
-            .build(), */
         new ResponseMessageBuilder()
             .code(HttpStatus.BAD_REQUEST.value())
             .message(MESSAGE_FOR_400_CODE)
-//            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build());
   }
 
   private List<ResponseMessage> getExceptionModelList() {
     return List.of(
-/*        new ResponseMessageBuilder()
-            .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .message("500 Internal Error")
-            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
-            .build(),
-        new ResponseMessageBuilder()
-            .code(HttpStatus.NOT_FOUND.value())
-            .message("404 Not Found")
-            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
-            .build(), */
         new ResponseMessageBuilder()
             .code(HttpStatus.BAD_REQUEST.value())
             .message(MESSAGE_FOR_400_CODE)
-//            .responseModel(new ModelRef(ExceptionModelDto.SWAGGER_MODEL_NAME))
             .build());
   }
 }

@@ -35,14 +35,14 @@ class DatasetController {
   private static final String MESSAGE_FOR_PROCESS_DATASET = ""
           + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + "202 Accepted</span>"
-          + " - The response body will contain object of type"
+          + " - The response body will contain an object of type"
           + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + DatasetIdDto.SWAGGER_MODEL_NAME + "</span>.";
 
   private static final String MESSAGE_FOR_RETRIEVE_DATASET = ""
           + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + "200 OK</span>"
-          + " - The response body will contain object of type"
+          + " - The response body will contain an object of type"
           + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + DatasetInfoDto.SWAGGER_MODEL_NAME + "</span>.";
 
