@@ -6,8 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import io.swagger.annotations.ApiModel;
 
-@ApiModel("Dataset")
+@ApiModel(DatasetIdDto.SWAGGER_MODEL_NAME)
 public class DatasetIdDto {
+
+  public static final String SWAGGER_MODEL_NAME = "Dataset";
 
   @JsonProperty(value = "dataset-id")
   private final String datasetId;

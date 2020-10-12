@@ -13,6 +13,8 @@ import eu.europeana.metis.sandbox.service.util.ZipService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,20 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/")
 @Api(value = "Dataset Controller")
 class DatasetController {
+
+  private static final String MESSAGE_FOR_PROCESS_DATASET = ""
+          + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+          + "202 Accepted</span>"
+          + " - The response body will contain an object of type"
+          + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+          + DatasetIdDto.SWAGGER_MODEL_NAME + "</span>.";
+
+  private static final String MESSAGE_FOR_RETRIEVE_DATASET = ""
+          + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+          + "200 OK</span>"
+          + " - The response body will contain an object of type"
+          + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+          + DatasetInfoDto.SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
@@ -48,6 +64,9 @@ class DatasetController {
   }
 
   @ApiOperation("Process the given dataset")
+  @ApiResponses({
+          @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+  })
   @PostMapping(value = "dataset/{name}/process", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto processDataset(
@@ -66,6 +85,9 @@ class DatasetController {
   }
 
   @ApiOperation("Get dataset progress information")
+  @ApiResponses({
+          @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
+  })
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
   public DatasetInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {

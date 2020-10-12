@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatus;
 /**
  * Represent exception model to display when there are errors in an http request
  */
-@ApiModel("ExceptionModel")
+@ApiModel(ExceptionModelDto.SWAGGER_MODEL_NAME)
 public class ExceptionModelDto {
+
+  public static final String SWAGGER_MODEL_NAME = "ExceptionModel";
 
   @ApiModelProperty(allowableValues = "400,404,500")
   private final int statusCode;
