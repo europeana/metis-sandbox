@@ -32,7 +32,6 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
