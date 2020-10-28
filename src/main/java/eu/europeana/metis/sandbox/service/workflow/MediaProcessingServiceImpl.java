@@ -10,7 +10,6 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
-import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
@@ -53,7 +52,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     requireNonNull(record, "Record must not be null");
 
     var inputRdf = record.getContent();
-    var rdfDeserializer = getRdfDeserializer(record);
+    var rdfDeserializer = converterFactory.createRdfDeserializer();
 
     // Get resource entries
     var resourceEntries = getRdfResourceEntries(record, inputRdf, rdfDeserializer);
@@ -70,7 +69,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     }
 
     // Get output rdf bytes
-    var rdfSerializer = getRdfSerializer(record);
+    var rdfSerializer = converterFactory.createRdfSerializer();
     byte[] outputRdf = getOutputRdf(record, rdfSerializer, rdfForEnrichment);
 
     return new RecordInfo(Record.from(record, outputRdf), recordErrors);
@@ -118,8 +117,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   private List<RdfResourceEntry> getRdfResourceEntries(Record record, byte[] content,
       RdfDeserializer rdfDeserializer) {
     try {
-      return rdfDeserializer
-          .getResourceEntriesForMediaExtraction(content);
+      return rdfDeserializer.getResourceEntriesForMediaExtraction(content);
     } catch (RdfDeserializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
@@ -130,22 +128,6 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     try {
       return rdfSerializer.serialize(rdfForEnrichment);
     } catch (RdfSerializationException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
-    }
-  }
-
-  private RdfDeserializer getRdfDeserializer(Record record) {
-    try {
-      return converterFactory.createRdfDeserializer();
-    } catch (RdfConverterException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
-    }
-  }
-
-  private RdfSerializer getRdfSerializer(Record record) {
-    try {
-      return converterFactory.createRdfSerializer();
-    } catch (RdfConverterException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
   }
