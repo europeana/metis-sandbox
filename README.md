@@ -4,9 +4,9 @@
 Give a client (GLAM or aggregator) an environment to test their dataset before sending it to Europeana
 
 ## Dependencies
-- [RabbitMQ](https://www.rabbitmq.com/) server available (check spring.rabbitmq in application.yml for config example)
-- Storage like [H2](https://www.h2database.com/html/main.html) or [PostgreSQL](https://www.google.com/search?q=posgresql&rlz=1C5CHFA_enCR881NL888&oq=posgresql&aqs=chrome..69i57j69i59j0l6.1535j0j7&sourceid=chrome&ie=UTF-8) (check sandbox.datasource in application.yml for config example)
-- S3 bucket available (check sandbox.s3 in application.yml for config example)
+- [RabbitMQ](https://www.rabbitmq.com/) server available (check spring.rabbitmq in sample.application.yml for config example)
+- Storage like [H2](https://www.h2database.com/html/main.html) or [PostgreSQL](https://www.google.com/search?q=posgresql&rlz=1C5CHFA_enCR881NL888&oq=posgresql&aqs=chrome..69i57j69i59j0l6.1535j0j7&sourceid=chrome&ie=UTF-8) (check sandbox.datasource in sample.application.yml for config example)
+- S3 bucket available (check sandbox.s3 in sample.application.yml for config example)
 
 ## Run Tests
 
