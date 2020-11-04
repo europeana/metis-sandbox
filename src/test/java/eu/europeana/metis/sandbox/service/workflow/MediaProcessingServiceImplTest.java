@@ -18,7 +18,6 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
-import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
@@ -33,7 +32,6 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -70,7 +68,7 @@ class MediaProcessingServiceImplTest {
   private MediaProcessingServiceImpl service;
 
   @Test
-  void processMedia_expectSuccess() throws RdfConverterException, RdfDeserializationException,
+  void processMedia_expectSuccess() throws RdfDeserializationException,
       MediaProcessorException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
@@ -111,59 +109,7 @@ class MediaProcessingServiceImplTest {
   }
 
   @Test
-  void processMedia_createRdfDeserializer_expectFail() throws RdfConverterException {
-    var record = Record.builder().recordId("1")
-        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
-
-    when(converterFactory.createRdfDeserializer())
-        .thenThrow(new RdfConverterException("failed", new Exception()));
-
-    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
-
-    verify(converterFactory).createRdfDeserializer();
-    verifyNoMoreInteractions(converterFactory);
-  }
-
-  @Test
-  void processMedia_createRdfSerializer_expectFail()
-      throws RdfConverterException, MediaProcessorException,
-      MediaExtractionException, RdfDeserializationException {
-    var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
-
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var resourceEntries = List.of(entry1, entry2);
-    var extraction1 = mock(ResourceExtractionResult.class);
-    var extraction2 = mock(ResourceExtractionResult.class);
-    var thumbnail = mock(Thumbnail.class);
-    var metadata = mock(ResourceMetadata.class);
-
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(converterFactory.createRdfSerializer())
-        .thenThrow(new RdfConverterException("", new Exception()));
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
-    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
-    when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
-    when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
-    when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
-    when(extraction1.getMetadata()).thenReturn(metadata);
-    when(extraction2.getMetadata()).thenReturn(metadata);
-
-    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
-
-    verify(converterFactory).createRdfSerializer();
-    verifyNoMoreInteractions(converterFactory);
-  }
-
-  @Test
-  void processMedia_getRdfResourceEntries_expectFail()
-      throws RdfConverterException, RdfDeserializationException {
+  void processMedia_getRdfResourceEntries_expectFail() throws RdfDeserializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
@@ -180,7 +126,7 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getResourceExtractionResults_MediaProcessorException_expectFail()
-      throws RdfConverterException, RdfDeserializationException, MediaProcessorException {
+      throws RdfDeserializationException, MediaProcessorException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
@@ -202,8 +148,8 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getResourceExtractionResults_MediaExtractionException_expectSuccess()
-      throws RdfConverterException, RdfDeserializationException, MediaProcessorException,
-      MediaExtractionException, IOException, RdfSerializationException {
+      throws RdfDeserializationException, MediaProcessorException,
+      MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
@@ -242,7 +188,7 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getResourceExtractionResults_returnNull_expectSuccess()
-      throws RdfConverterException, RdfDeserializationException, MediaProcessorException,
+      throws RdfDeserializationException, MediaProcessorException,
       MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
@@ -272,7 +218,7 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_storeThumbnails_expectSuccess()
-      throws RdfConverterException, RdfDeserializationException, MediaProcessorException,
+      throws RdfDeserializationException, MediaProcessorException,
       MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
@@ -318,8 +264,7 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getEnrichedRdf_RdfDeserializationException_expectFail()
-      throws RdfConverterException, RdfDeserializationException, MediaProcessorException,
-      MediaExtractionException {
+      throws RdfDeserializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
@@ -342,8 +287,8 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getOutputRdf_RdfSerializationException_expectFail()
-      throws RdfConverterException, RdfDeserializationException,
-      MediaProcessorException, MediaExtractionException, RdfSerializationException {
+          throws RdfDeserializationException, MediaProcessorException, MediaExtractionException,
+          RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
