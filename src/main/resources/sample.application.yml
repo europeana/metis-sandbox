@@ -43,6 +43,8 @@ spring:
     open-in-view: false
 
 sandbox:
+  cors:
+    mapping: '*'
   truststore:
     path:
     password:
