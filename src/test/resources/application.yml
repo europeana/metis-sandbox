@@ -23,6 +23,8 @@ spring:
       max-file-size: 5MB
 
 sandbox:
+  cors:
+    mapping: '*'
   validation:
     executor:
       pool-size: 10
