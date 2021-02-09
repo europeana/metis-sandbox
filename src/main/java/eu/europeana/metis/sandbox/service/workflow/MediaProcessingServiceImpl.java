@@ -78,7 +78,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   private void processResourceEntry(Record record, EnrichedRdf rdfForEnrichment,
       MediaExtractor extractor,
       RdfResourceEntry entry, List<RecordError> recordErrors) {
-    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) {
+    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) { //TODO: Deprecated
       if (nonNull(extraction)) {
         // Store thumbnails
         storeThumbnails(record, extraction.getThumbnails(), recordErrors);
@@ -117,7 +117,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   private List<RdfResourceEntry> getRdfResourceEntries(Record record, byte[] content,
       RdfDeserializer rdfDeserializer) {
     try {
-      return rdfDeserializer.getResourceEntriesForMediaExtraction(content);
+      return rdfDeserializer.getResourceEntriesForMediaExtraction(content); //TODO: Deprecated
     } catch (RdfDeserializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }

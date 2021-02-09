@@ -1,7 +1,17 @@
 package eu.europeana.metis.sandbox.config;
 
+import eu.europeana.enrichment.api.internal.EntityResolver;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
-import eu.europeana.enrichment.rest.client.EnrichmentWorkerBuilder;
+import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
+import eu.europeana.enrichment.rest.client.dereference.DereferenceClient;
+import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
+import eu.europeana.enrichment.rest.client.dereference.DereferencerImpl;
+import eu.europeana.enrichment.rest.client.enrichment.Enricher;
+import eu.europeana.enrichment.rest.client.enrichment.EnricherImpl;
+import eu.europeana.enrichment.rest.client.enrichment.MetisRecordParser;
+import eu.europeana.enrichment.rest.client.enrichment.RemoteEntityResolver;
+import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
+import eu.europeana.enrichment.utils.EntityMergeEngine;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -12,6 +22,8 @@ import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -27,6 +39,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableScheduling
@@ -124,11 +137,21 @@ class SandboxConfig {
   }
 
   @Bean
-  EnrichmentWorker enrichmentWorker() {
-    return new EnrichmentWorkerBuilder()
-        .setDereferenceUrl(dereferenceServiceUrl)
-        .setEnrichmentUrl(enrichmentServiceUrl)
-        .build();
+  EnrichmentWorker enrichmentWorker() throws EnrichmentException {
+
+    DereferenceClient dereferenceClient = new DereferenceClient(new RestTemplate(), dereferenceServiceUrl);
+    EntityResolver entityResolver;
+
+    try {
+      entityResolver = new RemoteEntityResolver(new URL(enrichmentServiceUrl), 10, new RestTemplate()); //TODO: Config batch size
+    } catch (MalformedURLException e) {
+        throw new EnrichmentException("There was trouble setting up the enrichmentServiceUrl", e);
+    }
+
+    Dereferencer dereferencer = new DereferencerImpl(new EntityMergeEngine(), entityResolver, dereferenceClient);
+    Enricher enricher = new EnricherImpl(new MetisRecordParser(), entityResolver, new EntityMergeEngine());
+    return new EnrichmentWorkerImpl(dereferencer, enricher);
+
   }
 
   @Bean

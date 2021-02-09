@@ -2,12 +2,14 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import static java.util.Objects.requireNonNull;
 
-import eu.europeana.enrichment.rest.client.DereferenceOrEnrichException;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
+import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.schema.convert.SerializationException;
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,7 @@ class EnrichmentServiceImpl implements EnrichmentService {
     byte[] result;
     try {
       result = enrichmentWorker.process(record.getContentInputStream());
-    } catch (DereferenceOrEnrichException e) {
+    } catch (EnrichmentException|DereferenceException|SerializationException e) {
       result = record.getContent();
       recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
     }
