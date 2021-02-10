@@ -23,6 +23,7 @@ import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   private void processResourceEntry(Record record, EnrichedRdf rdfForEnrichment,
       MediaExtractor extractor,
       RdfResourceEntry entry, List<RecordError> recordErrors) {
-    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) { //TODO: Deprecated
+    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry, false)) { //TODO: False by default?
       if (nonNull(extraction)) {
         // Store thumbnails
         storeThumbnails(record, extraction.getThumbnails(), recordErrors);
@@ -117,7 +118,14 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   private List<RdfResourceEntry> getRdfResourceEntries(Record record, byte[] content,
       RdfDeserializer rdfDeserializer) {
     try {
-      return rdfDeserializer.getResourceEntriesForMediaExtraction(content); //TODO: Deprecated
+      final List<RdfResourceEntry> result = new ArrayList<>(
+          rdfDeserializer.getRemainingResourcesForMediaExtraction(content));
+      final RdfResourceEntry mainThumbnailResource =
+          rdfDeserializer.getMainThumbnailResourceForMediaExtraction(content);
+      if (mainThumbnailResource != null) {
+        result.add(mainThumbnailResource);
+      }
+      return result;
     } catch (RdfDeserializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
