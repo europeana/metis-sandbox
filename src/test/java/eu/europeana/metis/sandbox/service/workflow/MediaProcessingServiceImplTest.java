@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -91,8 +90,8 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(entry1, false)).thenReturn(extraction1);
-    when(extractor.performMediaExtraction(entry2, false)).thenReturn(extraction2);
+    when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
+    when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
@@ -103,7 +102,7 @@ class MediaProcessingServiceImplTest {
 
     assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
 
-    verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
+    verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class));
     verify(extraction1, times(1)).getThumbnails();
     verify(extraction2, times(1)).getThumbnails();
     verify(deserializer).getRdfForResourceEnriching(content);
@@ -173,8 +172,8 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(entry1, false)).thenThrow(new MediaExtractionException(""));
-    when(extractor.performMediaExtraction(entry2, false)).thenReturn(extraction);
+    when(extractor.performMediaExtraction(entry1)).thenThrow(new MediaExtractionException(""));
+    when(extractor.performMediaExtraction(entry2)).thenReturn(extraction);
     when(extraction.getThumbnails()).thenReturn(List.of(thumbnail));
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
@@ -186,7 +185,7 @@ class MediaProcessingServiceImplTest {
     assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
     assertFalse(result.getErrors().isEmpty());
 
-    verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
+    verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class));
     verify(extraction, times(1)).getThumbnails();
     verify(deserializer).getRdfForResourceEnriching(content);
     verify(enrichedRdf, times(1)).enrichResource(any(ResourceMetadata.class));
@@ -213,7 +212,7 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(null);
+    when(extractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(null);
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn(content);
 
@@ -248,8 +247,8 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(entry1, false)).thenReturn(extraction1);
-    when(extractor.performMediaExtraction(entry2, false)).thenReturn(extraction2);
+    when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
+    when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
     when(extraction2.getThumbnails()).thenReturn(List.of(thumbnail));
     doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnailStoreService)
@@ -265,7 +264,7 @@ class MediaProcessingServiceImplTest {
     assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
     assertFalse(result.getErrors().isEmpty());
 
-    verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
+    verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class));
     verify(extraction1, times(1)).getThumbnails();
     verify(extraction2, times(1)).getThumbnails();
     verify(deserializer).getRdfForResourceEnriching(content);
@@ -321,8 +320,8 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(entry1, false)).thenReturn(extraction1);
-    when(extractor.performMediaExtraction(entry2, false)).thenReturn(extraction2);
+    when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
+    when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf))

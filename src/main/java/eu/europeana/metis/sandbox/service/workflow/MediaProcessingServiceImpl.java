@@ -79,7 +79,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
   private void processResourceEntry(Record record, EnrichedRdf rdfForEnrichment,
       MediaExtractor extractor,
       RdfResourceEntry entry, List<RecordError> recordErrors) {
-    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry, false)) { //TODO: False by default?
+    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) {
       if (nonNull(extraction)) {
         // Store thumbnails
         storeThumbnails(record, extraction.getThumbnails(), recordErrors);
