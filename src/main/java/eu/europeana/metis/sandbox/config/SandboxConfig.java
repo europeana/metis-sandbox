@@ -6,10 +6,14 @@ import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.DereferenceClient;
 import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerImpl;
+import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
 import eu.europeana.enrichment.rest.client.enrichment.Enricher;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherImpl;
+import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
+import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider.EntityResolverCreator;
 import eu.europeana.enrichment.rest.client.enrichment.MetisRecordParser;
 import eu.europeana.enrichment.rest.client.enrichment.RemoteEntityResolver;
+import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.enrichment.utils.EntityMergeEngine;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -137,20 +141,14 @@ class SandboxConfig {
   }
 
   @Bean
-  EnrichmentWorker enrichmentWorker() throws EnrichmentException {
+  EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
 
-    DereferenceClient dereferenceClient = new DereferenceClient(new RestTemplate(), dereferenceServiceUrl);
-    EntityResolver entityResolver;
-
-    try {
-      entityResolver = new RemoteEntityResolver(new URL(enrichmentServiceUrl), 10, new RestTemplate()); //TODO: Config batch size
-    } catch (MalformedURLException e) {
-        throw new EnrichmentException("There was trouble setting up the enrichmentServiceUrl", e);
-    }
-
-    Dereferencer dereferencer = new DereferencerImpl(new EntityMergeEngine(), entityResolver, dereferenceClient);
-    Enricher enricher = new EnricherImpl(new MetisRecordParser(), entityResolver, new EntityMergeEngine());
-    return new EnrichmentWorkerImpl(dereferencer, enricher);
+    DereferencerProvider dereferencerProvider = new DereferencerProvider();
+    dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
+    dereferencerProvider.setEnrichmentUrl(enrichmentServiceUrl);
+    EnricherProvider enricherProvider = new EnricherProvider();
+    enricherProvider.setEnrichmentUrl(enrichmentServiceUrl);
+    return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
 
   }
 
