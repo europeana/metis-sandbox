@@ -1,21 +1,11 @@
 package eu.europeana.metis.sandbox.config;
 
-import eu.europeana.enrichment.api.internal.EntityResolver;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
-import eu.europeana.enrichment.rest.client.dereference.DereferenceClient;
-import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
-import eu.europeana.enrichment.rest.client.dereference.DereferencerImpl;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
-import eu.europeana.enrichment.rest.client.enrichment.Enricher;
-import eu.europeana.enrichment.rest.client.enrichment.EnricherImpl;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
-import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider.EntityResolverCreator;
-import eu.europeana.enrichment.rest.client.enrichment.MetisRecordParser;
-import eu.europeana.enrichment.rest.client.enrichment.RemoteEntityResolver;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
-import eu.europeana.enrichment.utils.EntityMergeEngine;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -26,8 +16,6 @@ import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -43,7 +31,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableScheduling
