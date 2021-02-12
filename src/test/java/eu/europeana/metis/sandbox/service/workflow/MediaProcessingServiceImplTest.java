@@ -85,8 +85,10 @@ class MediaProcessingServiceImplTest {
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(converterFactory.createRdfSerializer()).thenReturn(serializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
     when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
@@ -116,12 +118,12 @@ class MediaProcessingServiceImplTest {
         .datasetName("").datasetId("1").build();
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenThrow(new RdfDeserializationException("failed", new Exception()));
 
     assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
 
-    verify(deserializer).getResourceEntriesForMediaExtraction(content);
+    verify(deserializer).getRemainingResourcesForMediaExtraction(content);
   }
 
   @Test
@@ -137,8 +139,10 @@ class MediaProcessingServiceImplTest {
     var resourceEntries = List.of(entry1, entry2);
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenThrow(new MediaProcessorException(""));
 
     assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
@@ -163,8 +167,10 @@ class MediaProcessingServiceImplTest {
     var metadata = mock(ResourceMetadata.class);
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1)).thenThrow(new MediaExtractionException(""));
     when(extractor.performMediaExtraction(entry2)).thenReturn(extraction);
@@ -201,8 +207,10 @@ class MediaProcessingServiceImplTest {
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(converterFactory.createRdfSerializer()).thenReturn(serializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(null);
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
@@ -234,8 +242,10 @@ class MediaProcessingServiceImplTest {
     var metadata = mock(ResourceMetadata.class);
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
     when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);
@@ -275,8 +285,10 @@ class MediaProcessingServiceImplTest {
     var resourceEntries = List.of(entry1, entry2);
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(deserializer.getRdfForResourceEnriching(content))
         .thenThrow(new RdfDeserializationException("", new Exception()));
 
@@ -303,8 +315,10 @@ class MediaProcessingServiceImplTest {
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(converterFactory.createRdfSerializer()).thenReturn(serializer);
-    when(deserializer.getResourceEntriesForMediaExtraction(content))
-        .thenReturn(resourceEntries);
+    when(deserializer.getRemainingResourcesForMediaExtraction(content))
+        .thenReturn(List.of(resourceEntries.get(0)));
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
+        .thenReturn(resourceEntries.get(1));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1)).thenReturn(extraction1);
     when(extractor.performMediaExtraction(entry2)).thenReturn(extraction2);

@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.enrichment.rest.client.DereferenceOrEnrichException;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
+import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.schema.convert.SerializationException;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +31,7 @@ class EnrichmentServiceImplTest {
 
   @Test
   void enrich_expectSuccess()
-      throws DereferenceOrEnrichException {
+      throws EnrichmentException, DereferenceException, SerializationException {
     var content = "This is the content";
     var newContent = "This is new content".getBytes();
     var record = Record.builder().recordId("1")
@@ -44,13 +46,13 @@ class EnrichmentServiceImplTest {
 
   @Test
   void enrich_withDereferenceException_expectFail()
-      throws DereferenceOrEnrichException {
+      throws EnrichmentException, DereferenceException, SerializationException {
     var content = "This is the content";
     var record = Record.builder().recordId("1")
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(any(InputStream.class)))
-        .thenThrow(new DereferenceOrEnrichException("Failed", new Exception()));
+        .thenThrow(new EnrichmentException("Failed", new Exception()));
     var recordInfo = service.enrich(record);
 
     assertEquals("1", recordInfo.getRecord().getRecordId());
