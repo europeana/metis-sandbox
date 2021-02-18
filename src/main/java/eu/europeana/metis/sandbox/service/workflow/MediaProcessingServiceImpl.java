@@ -55,10 +55,25 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     var inputRdf = record.getContent();
     var rdfDeserializer = converterFactory.createRdfDeserializer();
 
+    try(MediaExtractor extractor = processorFactory.createMediaExtractor()) {
+      // Get main thumbnail
+      RdfResourceEntry mainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(inputRdf);
+      ResourceExtractionResult extractedThumbnail = extractor.performMediaExtraction(mainThumbnail, false);
+      boolean hasThumbnail = !extractedThumbnail.getThumbnails().isEmpty();
+      // Get resource entries
+      List<RdfResourceEntry> remainingResources = rdfDeserializer.getRemainingResourcesForMediaExtraction(inputRdf);
+
+      //TODO: Finish
+
+    } catch (RdfDeserializationException | MediaProcessorException | IOException | MediaExtractionException e) {
+      throw new RecordProcessingException(record.getRecordId(), e);
+    }
+
     // Get resource entries
     var resourceEntries = getRdfResourceEntries(record, inputRdf, rdfDeserializer);
 
     var rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer);
+
 
     List<RecordError> recordErrors = new LinkedList<>();
     try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
