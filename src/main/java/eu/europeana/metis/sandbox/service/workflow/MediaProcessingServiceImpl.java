@@ -55,32 +55,30 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     var inputRdf = record.getContent();
     var rdfDeserializer = converterFactory.createRdfDeserializer();
 
+    List<RecordError> recordErrors = new LinkedList<>();
+    EnrichedRdf rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer);
+
     try(MediaExtractor extractor = processorFactory.createMediaExtractor()) {
       // Get main thumbnail
       RdfResourceEntry mainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(inputRdf);
       ResourceExtractionResult extractedThumbnail = extractor.performMediaExtraction(mainThumbnail, false);
       boolean hasThumbnail = !extractedThumbnail.getThumbnails().isEmpty();
+
+      // Store thumbnails (if any)
+      if(hasThumbnail) {
+        storeThumbnails(record, extractedThumbnail.getThumbnails(), recordErrors);
+      }
+
       // Get resource entries
       List<RdfResourceEntry> remainingResources = rdfDeserializer.getRemainingResourcesForMediaExtraction(inputRdf);
-
-      //TODO: Finish
+      for(RdfResourceEntry entry : remainingResources){
+        ResourceExtractionResult extraction = extractor.performMediaExtraction(entry, hasThumbnail);
+        // Add result to RDF
+        rdfForEnrichment.enrichResource(extraction.getMetadata());
+      }
 
     } catch (RdfDeserializationException | MediaProcessorException | IOException | MediaExtractionException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
-    }
-
-    // Get resource entries
-    var resourceEntries = getRdfResourceEntries(record, inputRdf, rdfDeserializer);
-
-    var rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer);
-
-
-    List<RecordError> recordErrors = new LinkedList<>();
-    try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
-      for (RdfResourceEntry entry : resourceEntries) {
-        processResourceEntry(record, rdfForEnrichment, extractor, entry, recordErrors);
-      }
-    } catch (MediaProcessorException | IOException e) {
+      LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
