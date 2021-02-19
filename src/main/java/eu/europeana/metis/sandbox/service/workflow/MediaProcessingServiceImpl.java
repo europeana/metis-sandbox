@@ -23,7 +23,6 @@ import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -58,26 +57,16 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     List<RecordError> recordErrors = new LinkedList<>();
     EnrichedRdf rdfForEnrichment = getEnrichedRdf(record, inputRdf, rdfDeserializer);
 
-    try(MediaExtractor extractor = processorFactory.createMediaExtractor()) {
+    try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
       // Get main thumbnail
-      RdfResourceEntry mainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(inputRdf);
-      ResourceExtractionResult extractedThumbnail = extractor.performMediaExtraction(mainThumbnail, false);
-      boolean hasThumbnail = !extractedThumbnail.getThumbnails().isEmpty();
-
-      // Store thumbnails (if any)
-      if(hasThumbnail) {
-        storeThumbnails(record, extractedThumbnail.getThumbnails(), recordErrors);
-      }
+      boolean hasThumbnail = processMainThumbnailResource(rdfDeserializer, inputRdf, extractor,
+          record, recordErrors);
 
       // Get resource entries
-      List<RdfResourceEntry> remainingResources = rdfDeserializer.getRemainingResourcesForMediaExtraction(inputRdf);
-      for(RdfResourceEntry entry : remainingResources){
-        ResourceExtractionResult extraction = extractor.performMediaExtraction(entry, hasThumbnail);
-        // Add result to RDF
-        rdfForEnrichment.enrichResource(extraction.getMetadata());
-      }
+      processResourceEntry(record, rdfForEnrichment, extractor, inputRdf, hasThumbnail,
+          rdfDeserializer, recordErrors);
 
-    } catch (RdfDeserializationException | MediaProcessorException | IOException | MediaExtractionException e) {
+    } catch (MediaProcessorException | IOException e) {
       LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
       throw new RecordProcessingException(record.getRecordId(), e);
     }
@@ -89,17 +78,51 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     return new RecordInfo(Record.from(record, outputRdf), recordErrors);
   }
 
+  /**
+   * Processes the resource to get the main thumbnail
+   *
+   * @return True if the resource had a main thumbnail, therefore the method is successful; False
+   * otherwise.
+   */
+  private boolean processMainThumbnailResource(RdfDeserializer rdfDeserializer, byte[] inputRdf,
+      MediaExtractor extractor, Record record, List<RecordError> recordErrors) {
+
+    ResourceExtractionResult extractedThumbnail = null;
+    try {
+      RdfResourceEntry mainThumbnail = rdfDeserializer
+          .getMainThumbnailResourceForMediaExtraction(inputRdf);
+      extractedThumbnail = extractor.performMediaExtraction(mainThumbnail, false);
+    } catch (RdfDeserializationException | MediaExtractionException e) {
+      LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
+      recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
+    }
+
+    boolean hasThumbnail =
+        extractedThumbnail != null && !extractedThumbnail.getThumbnails().isEmpty();
+
+    // Store thumbnails (if any)
+    if (hasThumbnail) {
+      storeThumbnails(record, extractedThumbnail.getThumbnails(), recordErrors);
+    }
+
+    return hasThumbnail;
+  }
+
   private void processResourceEntry(Record record, EnrichedRdf rdfForEnrichment,
-      MediaExtractor extractor,
-      RdfResourceEntry entry, List<RecordError> recordErrors) {
-    try (ResourceExtractionResult extraction = extractor.performMediaExtraction(entry)) {
-      if (nonNull(extraction)) {
-        // Store thumbnails
-        storeThumbnails(record, extraction.getThumbnails(), recordErrors);
+      MediaExtractor extractor, byte[] inputRdf, boolean hasThumbnail,
+      RdfDeserializer rdfDeserializer, List<RecordError> recordErrors) {
+
+    try {
+      List<RdfResourceEntry> remainingResources = rdfDeserializer
+          .getRemainingResourcesForMediaExtraction(inputRdf);
+      for (RdfResourceEntry entry : remainingResources) {
+        ResourceExtractionResult extraction = extractor.performMediaExtraction(entry, hasThumbnail);
         // Add result to RDF
-        rdfForEnrichment.enrichResource(extraction.getMetadata());
+        if (extraction != null) {
+          rdfForEnrichment.enrichResource(extraction.getMetadata());
+        }
       }
-    } catch (MediaExtractionException | IOException e) {
+    } catch (MediaExtractionException | RdfDeserializationException e) {
       LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
       // collect warn
       recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
@@ -123,22 +146,6 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       RdfDeserializer rdfDeserializer) {
     try {
       return rdfDeserializer.getRdfForResourceEnriching(inputRdf);
-    } catch (RdfDeserializationException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
-    }
-  }
-
-  private List<RdfResourceEntry> getRdfResourceEntries(Record record, byte[] content,
-      RdfDeserializer rdfDeserializer) {
-    try {
-      final List<RdfResourceEntry> result = new ArrayList<>(
-          rdfDeserializer.getRemainingResourcesForMediaExtraction(content));
-      final RdfResourceEntry mainThumbnailResource =
-          rdfDeserializer.getMainThumbnailResourceForMediaExtraction(content);
-      if (mainThumbnailResource != null) {
-        result.add(mainThumbnailResource);
-      }
-      return result;
     } catch (RdfDeserializationException e) {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
