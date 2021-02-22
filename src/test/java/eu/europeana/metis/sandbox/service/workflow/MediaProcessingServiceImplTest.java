@@ -151,7 +151,6 @@ class MediaProcessingServiceImplTest {
         .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
@@ -185,14 +184,13 @@ class MediaProcessingServiceImplTest {
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var resourceEntries = List.of(entry1, entry2);
 
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(converterFactory.createRdfSerializer()).thenReturn(serializer);
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
-        .thenReturn(List.of(resourceEntries.get(0)));
+        .thenReturn(List.of(entry2));
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
-        .thenReturn(resourceEntries.get(1));
+        .thenReturn(entry1);
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(null);
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
