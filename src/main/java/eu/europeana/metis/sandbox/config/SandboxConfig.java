@@ -55,9 +55,12 @@ class SandboxConfig {
   @Value("${sandbox.enrichment.enrichment-url}")
   private String enrichmentServiceUrl;
 
-  private String defaultXsltUrl;
-
+  //TODO: 04-03-2021 We should remove this configuration once
+  //TODO: XsltTransformation in metis is fixed
+  @Value("${sandbox.url.edm-sorted-url}")
   private String edmSorterUrl;
+
+  private String defaultXsltUrl;
 
   private final ResourceLoader resourceLoader;
 
@@ -74,7 +77,7 @@ class SandboxConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   XsltTransformer xsltEdmSorter() throws IOException, TransformationException {
-    return new XsltTransformer(edmSorterUrl());
+    return new XsltTransformer(edmSorterUrl);
   }
 
   private String edmSorterUrl() throws IOException {
