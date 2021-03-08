@@ -103,7 +103,8 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       // If successful then store data
       if(successful){
         rdfForEnrichment.enrichResource(extraction.getMetadata());
-        if(!extraction.getThumbnails().isEmpty()) {
+        List<Thumbnail> thumbnails = extraction.getThumbnails();
+        if(thumbnails != null && !thumbnails.isEmpty()) {
           storeThumbnails(record, extraction.getThumbnails(), recordErrors);
         }
       }
