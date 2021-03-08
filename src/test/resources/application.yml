@@ -25,6 +25,8 @@ spring:
 sandbox:
   cors:
     mapping: '*'
+  url:
+    edm-sorted-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
   validation:
     executor:
       pool-size: 10
