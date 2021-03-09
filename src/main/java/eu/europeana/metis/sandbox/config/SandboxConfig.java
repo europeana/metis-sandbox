@@ -15,7 +15,6 @@ import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -28,7 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -56,17 +54,11 @@ class SandboxConfig {
   private String enrichmentServiceUrl;
 
   //TODO: 04-03-2021 We should remove this configuration once
-  //TODO: XsltTransformation in metis is fixed
+  //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
   @Value("${sandbox.url.edm-sorted-url}")
   private String edmSorterUrl;
 
   private String defaultXsltUrl;
-
-  private final ResourceLoader resourceLoader;
-
-  public SandboxConfig(ResourceLoader resourceLoader) {
-    this.resourceLoader = resourceLoader;
-  }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -76,16 +68,8 @@ class SandboxConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  XsltTransformer xsltEdmSorter() throws IOException, TransformationException {
+  XsltTransformer xsltEdmSorter() throws TransformationException {
     return new XsltTransformer(edmSorterUrl);
-  }
-
-  private String edmSorterUrl() throws IOException {
-    if (edmSorterUrl == null) {
-      edmSorterUrl = resourceLoader.getResource("classpath:edm/edm.xsd.sorter.xsl").getURL()
-          .toString();
-    }
-    return edmSorterUrl;
   }
 
   @Bean
