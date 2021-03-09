@@ -69,9 +69,8 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
-  url:
-    edm-sorted-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
   validation:
+    edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
     executor:
       pool-size: 10
     predefinedSchemas:
