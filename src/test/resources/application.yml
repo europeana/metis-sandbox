@@ -25,6 +25,8 @@ spring:
 sandbox:
   cors:
     mapping: '*'
+  url:
+    edm-sorted-url:
   validation:
     executor:
       pool-size: 10

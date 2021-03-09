@@ -25,6 +25,7 @@ import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -103,7 +104,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       // If successful then store data
       if(successful){
         rdfForEnrichment.enrichResource(extraction.getMetadata());
-        if(!extraction.getThumbnails().isEmpty()) {
+        if(!CollectionUtils.isEmpty(extraction.getThumbnails())) {
           storeThumbnails(record, extraction.getThumbnails(), recordErrors);
         }
       }
