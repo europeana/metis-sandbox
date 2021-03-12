@@ -43,7 +43,6 @@ spring:
     open-in-view: false
 
 sandbox:
-  application-name: metis-sandbox-application
   cors:
     mapping: '*'
   truststore:
@@ -90,6 +89,7 @@ sandbox:
     enrichment-url:
   preview:
     mongo:
+      application-name:
       db:
       hosts:
       ports:
@@ -108,6 +108,7 @@ sandbox:
         timeout:
   publish:
     mongo:
+      application-name:
       db:
       hosts:
       ports:
