@@ -43,6 +43,7 @@ spring:
     open-in-view: false
 
 sandbox:
+  application-name: metis-sandbox-application
   cors:
     mapping: '*'
   truststore:

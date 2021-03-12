@@ -102,6 +102,9 @@ class IndexingConfig {
   @Value("${sandbox.publish.solr.zookeeper.timeout:#{null}}")
   private Integer zookeeperPublishTimeoutInSecs;
 
+  @Value("${sandbox.application-name}")
+  private String mongoApplicationName;
+
   @Bean
   Indexer previewIndexer()
       throws URISyntaxException, SetupRelatedIndexingException, IndexerRelatedIndexingException {
@@ -140,7 +143,7 @@ class IndexingConfig {
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
         mongoAuthenticationDb, mongoUsername, mongoPassword, Boolean.TRUE.equals(mongoEnableSSL),
-        null);
+        null, mongoApplicationName);
     settings.setMongoDatabaseName(mongoDb);
 
     // Set Solr properties
