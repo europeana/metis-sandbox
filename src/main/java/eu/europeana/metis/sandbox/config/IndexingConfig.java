@@ -45,6 +45,9 @@ class IndexingConfig {
   @Value("${sandbox.preview.mongo.db}")
   private String mongoPreviewDb;
 
+  @Value("${sandbox.preview.mongo.application-name:#{null}")
+  private String mongoPreviewApplicationName;
+
   @Value("${sandbox.preview.solr.hosts}")
   private String[] solrPreviewHosts;
 
@@ -84,6 +87,9 @@ class IndexingConfig {
   @Value("${sandbox.publish.mongo.db}")
   private String mongoPublishDb;
 
+  @Value("${sandbox.publish.mongo.application-name:#{null}}")
+  private String mongoPublishApplicationName;
+
   @Value("${sandbox.publish.solr.hosts}")
   private String[] solrPublishHosts;
 
@@ -109,7 +115,7 @@ class IndexingConfig {
         mongoPreviewAuthenticationDb,
         mongoPreviewUsername, mongoPreviewPassword, mongoPreviewEnableSSL, solrPreviewHosts,
         zookeeperPreviewHosts, zookeeperPreviewPorts, zookeeperPreviewChroot,
-        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs);
+        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs, mongoPreviewApplicationName);
   }
 
   @Bean
@@ -119,7 +125,7 @@ class IndexingConfig {
         mongoPublishAuthenticationDb,
         mongoPublishUsername, mongoPublishPassword, mongoPublishEnableSSL, solrPublishHosts,
         zookeeperPublishHosts, zookeeperPublishPorts, zookeeperPublishChroot,
-        zookeeperPublishDefaultCollection, zookeeperPublishTimeoutInSecs);
+        zookeeperPublishDefaultCollection, zookeeperPublishTimeoutInSecs, mongoPublishApplicationName);
   }
 
   //Suppress: Methods should not have too many parameters warning
@@ -128,7 +134,8 @@ class IndexingConfig {
   private Indexer getIndexer(String[] mongoHosts, int[] mongoPorts, String mongoDb,
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
       Boolean mongoEnableSSL, String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts,
-      String zookeeperChroot, String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs)
+      String zookeeperChroot, String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs,
+      String applicationName)
       throws SetupRelatedIndexingException, URISyntaxException, IndexerRelatedIndexingException {
     checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
     checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
@@ -140,7 +147,7 @@ class IndexingConfig {
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
         mongoAuthenticationDb, mongoUsername, mongoPassword, Boolean.TRUE.equals(mongoEnableSSL),
-        null);
+        null, applicationName);
     settings.setMongoDatabaseName(mongoDb);
 
     // Set Solr properties
