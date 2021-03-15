@@ -45,7 +45,7 @@ class IndexingConfig {
   @Value("${sandbox.preview.mongo.db}")
   private String mongoPreviewDb;
 
-  @Value("${sandbox.preview.mongo.application-name}")
+  @Value("${sandbox.preview.mongo.application-name:#{null}")
   private String mongoPreviewApplicationName;
 
   @Value("${sandbox.preview.solr.hosts}")
@@ -87,7 +87,7 @@ class IndexingConfig {
   @Value("${sandbox.publish.mongo.db}")
   private String mongoPublishDb;
 
-  @Value("${sandbox.publish.mongo.application-name}")
+  @Value("${sandbox.publish.mongo.application-name:#{null}}")
   private String mongoPublishApplicationName;
 
   @Value("${sandbox.publish.solr.hosts}")
