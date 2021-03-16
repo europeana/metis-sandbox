@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.controller;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
@@ -15,7 +16,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,6 +59,7 @@ class DatasetController {
   private final ZipService zipService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
+  private DatasetController test;
 
   public DatasetController(ZipService zipService,
       DatasetService datasetService,
@@ -92,5 +98,71 @@ class DatasetController {
   public DatasetInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
+  }
+
+
+  /**
+   * Get all available countries that can be used.
+   * <p>The list is retrieved based on an internal enum</p>
+   *
+   * @return The list of countries available
+   */
+  @ApiOperation("Get data of all available countries")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
+  })
+  @GetMapping(value = "dataset/countries", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public List<CountryModel> getAllCountries() {
+    return Arrays.stream(eu.europeana.metis.core.common.Country.values()).map(CountryModel::new).collect(
+        Collectors.toList());
+  }
+
+  /**
+   * Get all available languages that can be used.
+   * <p>The list is retrieved based on an internal enum</p>
+   *
+   * @return The list of countries that are available
+   */
+  @ApiOperation("Get data of all available languages")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
+  })
+  @GetMapping(value = "dataset/languages", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public List<LanguageModel> getDatasetsLanguages(){
+    return eu.europeana.metis.core.common.Language.getLanguageListSortedByName().stream().map(LanguageModel::new)
+        .collect(Collectors.toList());
+  }
+
+  private static class CountryModel {
+
+    @JsonProperty("enum")
+    private final String enumName;
+    @JsonProperty
+    private final String name;
+    @JsonProperty
+    private final String isoCode;
+
+    CountryModel(eu.europeana.metis.core.common.Country country) {
+      this.enumName = country.name();
+      this.name = country.getName();
+      this.isoCode = country.getIsoCode();
+    }
+  }
+
+  private static class LanguageModel {
+
+    @JsonProperty("enum")
+    private final String enumName;
+    @JsonProperty
+    private final String name;
+
+    LanguageModel(eu.europeana.metis.core.common.Language language) {
+      this.enumName = language.name();
+      this.name = language.getName();
+    }
   }
 }

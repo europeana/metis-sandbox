@@ -127,6 +127,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-core-common</artifactId>
+			<version>${version.metis}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
 			<artifactId>corelib-web</artifactId>
 			<version>${version.europeana}</version>
