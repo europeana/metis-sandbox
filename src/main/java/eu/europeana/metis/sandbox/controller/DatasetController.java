@@ -115,8 +115,7 @@ class DatasetController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<CountryModel> getAllCountries() {
-    return Arrays.stream(eu.europeana.metis.core.common.Country.values()).map(CountryModel::new).collect(
-        Collectors.toList());
+    return Arrays.stream(Country.values()).map(CountryModel::new).collect(Collectors.toList());
   }
 
   /**
@@ -133,36 +132,33 @@ class DatasetController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<LanguageModel> getDatasetsLanguages(){
-    return eu.europeana.metis.core.common.Language.getLanguageListSortedByName().stream().map(LanguageModel::new)
+    return Language.getLanguageListSortedByName().stream().map(LanguageModel::new)
         .collect(Collectors.toList());
   }
 
   private static class CountryModel {
 
-    @JsonProperty("enum")
-    private final String enumName;
-    @JsonProperty
+    @JsonProperty("name")
     private final String name;
-    @JsonProperty
-    private final String isoCode;
+    @JsonProperty("xmlValue")
+    private final String xmlValue;
 
-    CountryModel(eu.europeana.metis.core.common.Country country) {
-      this.enumName = country.name();
-      this.name = country.getName();
-      this.isoCode = country.getIsoCode();
+    CountryModel(Country country) {
+      this.name = country.name();
+      this.xmlValue = country.xmlValue();
     }
   }
 
   private static class LanguageModel {
 
-    @JsonProperty("enum")
-    private final String enumName;
-    @JsonProperty
+    @JsonProperty("name")
     private final String name;
+    @JsonProperty("xmlValue")
+    private final String xmlValue;
 
-    LanguageModel(eu.europeana.metis.core.common.Language language) {
-      this.enumName = language.name();
-      this.name = language.getName();
+    LanguageModel(Language language) {
+      this.name = language.name();
+      this.xmlValue = language.xmlValue();
     }
   }
 }
