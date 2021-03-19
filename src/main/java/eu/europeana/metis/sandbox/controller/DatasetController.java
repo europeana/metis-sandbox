@@ -121,7 +121,7 @@ class DatasetController {
    * Get all available languages that can be used.
    * <p>The list is retrieved based on an internal enum</p>
    *
-   * @return The list of countries that are available
+   * @return The list of languages that are available
    */
   @ApiOperation("Get data of all available languages")
   @ApiResponses({
@@ -130,7 +130,7 @@ class DatasetController {
   @GetMapping(value = "dataset/languages", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public List<LanguageView> getDatasetsLanguages(){
+  public List<LanguageView> getAllLanguages(){
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
         .collect(Collectors.toList());
   }
