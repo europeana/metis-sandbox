@@ -59,7 +59,6 @@ class DatasetController {
   private final ZipService zipService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
-  private DatasetController test;
 
   public DatasetController(ZipService zipService,
       DatasetService datasetService,
@@ -114,8 +113,8 @@ class DatasetController {
   @GetMapping(value = "dataset/countries", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public List<CountryModel> getAllCountries() {
-    return Arrays.stream(Country.values()).map(CountryModel::new).collect(Collectors.toList());
+  public List<CountryView> getAllCountries() {
+    return Arrays.stream(Country.values()).map(CountryView::new).collect(Collectors.toList());
   }
 
   /**
@@ -131,32 +130,32 @@ class DatasetController {
   @GetMapping(value = "dataset/languages", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public List<LanguageModel> getDatasetsLanguages(){
-    return Language.getLanguageListSortedByName().stream().map(LanguageModel::new)
+  public List<LanguageView> getDatasetsLanguages(){
+    return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
         .collect(Collectors.toList());
   }
 
-  private static class CountryModel {
+  private static class CountryView {
 
     @JsonProperty("name")
     private final String name;
     @JsonProperty("xmlValue")
     private final String xmlValue;
 
-    CountryModel(Country country) {
+    CountryView(Country country) {
       this.name = country.name();
       this.xmlValue = country.xmlValue();
     }
   }
 
-  private static class LanguageModel {
+  private static class LanguageView {
 
     @JsonProperty("name")
     private final String name;
     @JsonProperty("xmlValue")
     private final String xmlValue;
 
-    LanguageModel(Language language) {
+    LanguageView(Language language) {
       this.name = language.name();
       this.xmlValue = language.xmlValue();
     }
