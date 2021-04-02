@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
@@ -11,8 +12,8 @@ import java.util.List;
 /**
  * Base of the dataset report
  */
-@ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
-public class DatasetInfoDto {
+@ApiModel(ProgressInfoDto.SWAGGER_MODEL_NAME)
+public class ProgressInfoDto {
 
   public static final String SWAGGER_MODEL_NAME = "DatasetInfo";
 
@@ -49,12 +50,16 @@ public class DatasetInfoDto {
   @JsonProperty("progress-by-step")
   private final List<ProgressByStepDto> progressByStep;
 
-  public DatasetInfoDto(String portalPreviewUrl, String portalPublishUrl,
+  @JsonProperty("dataset-info")
+  private final DatasetInfoDto datasetInfoDto;
+
+  public ProgressInfoDto(String portalPreviewUrl, String portalPublishUrl,
       int totalRecords,
-      long processedRecords, List<ProgressByStepDto> progressByStep) {
+      long processedRecords, List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
     requireNonNull(portalPreviewUrl, "Preview portal url must not be null");
     requireNonNull(portalPublishUrl, "Publish portal url must not be null");
     requireNonNull(progressByStep, "Progress by step must not be null");
+    requireNonNull(datasetInfoDto, "Dataset info must not be null");
     this.totalRecords = totalRecords;
     this.processedRecords = processedRecords;
     this.status =
@@ -62,6 +67,7 @@ public class DatasetInfoDto {
     this.progressByStep = Collections.unmodifiableList(progressByStep);
     this.portalPreviewUrl = portalPreviewUrl;
     this.portalPublishUrl = portalPublishUrl;
+    this.datasetInfoDto = datasetInfoDto;
   }
 
   public String getPortalPreviewUrl() {
@@ -86,5 +92,9 @@ public class DatasetInfoDto {
 
   public List<ProgressByStepDto> getProgressByStep() {
     return progressByStep;
+  }
+
+  public DatasetInfoDto getDatasetInfoDto() {
+    return datasetInfoDto;
   }
 }

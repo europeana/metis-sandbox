@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
-import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
@@ -49,7 +49,7 @@ class DatasetController {
           + "200 OK</span>"
           + " - The response body will contain an object of type"
           + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + DatasetInfoDto.SWAGGER_MODEL_NAME + "</span>.";
+          + ProgressInfoDto.SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
@@ -94,7 +94,7 @@ class DatasetController {
           @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
   })
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
-  public DatasetInfoDto retrieveDataset(
+  public ProgressInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
   }
