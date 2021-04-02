@@ -9,6 +9,8 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -52,7 +54,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -91,7 +93,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithoutErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
     var report = new DatasetInfoDto(
@@ -116,7 +118,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportCompleted_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
 
@@ -142,7 +144,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportCompletedAllErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -182,7 +184,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
-    var datasetEntity = new DatasetEntity("test", 0);
+    var datasetEntity = new DatasetEntity("test", 0, Language.valueOf(""), Country.valueOf(""));
     datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
@@ -204,7 +206,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_failToRetrieveRecords_expectFail() {
-    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5)));
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5, Language.NL, Country.NETHERLANDS)));
     when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));

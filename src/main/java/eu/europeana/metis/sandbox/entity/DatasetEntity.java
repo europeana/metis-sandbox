@@ -33,9 +33,11 @@ public class DatasetEntity {
   private Country country;
   // TODO: Create new global variables -> name; language; country; creationDate
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity) {
+  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
+    this.language = language;
+    this.country = country;
   }
 
   public DatasetEntity() {
