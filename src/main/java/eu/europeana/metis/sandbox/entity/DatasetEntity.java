@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.entity;
 
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,6 +27,11 @@ public class DatasetEntity {
 
   @Column(insertable = false, updatable = false)
   private LocalDateTime createdDate;
+
+  private Language language;
+
+  private Country country;
+  // TODO: Create new global variables -> name; language; country; creationDate
 
   public DatasetEntity(String datasetName, Integer recordsQuantity) {
     this.datasetName = datasetName;
@@ -66,4 +73,21 @@ public class DatasetEntity {
   public void setCreatedDate(LocalDateTime createdDate) {
     this.createdDate = createdDate;
   }
+
+  public Language getLanguage() {
+    return language;
+  }
+
+  public void setLanguage(Language language) {
+    this.language = language;
+  }
+
+  public Country getCountry() {
+    return country;
+  }
+
+  public void setCountry(Country country) {
+    this.country = country;
+  }
+
 }
