@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static eu.europeana.metis.sandbox.common.locale.Language.NL;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
@@ -189,7 +188,7 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.now(), Language.NL, Country.NETHERLANDS);
+    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL, Country.NETHERLANDS);
     var report = new ProgressInfoDto("https://metis-sandbox", "https://metis-sandbox",
         10, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
     when(datasetReportService.getReport("1")).thenReturn(report);
@@ -202,7 +201,11 @@ class DatasetControllerTest {
             is("https://metis-sandbox")))
         .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
             is(message1)))
-    .andExpect(jsonPath("$.datase-info", is(datasetInfoDto)));
+        .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
+        .andExpect(jsonPath("$.dataset-info.dataset-name", is("Test")))
+        .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
+        .andExpect(jsonPath("$.dataset-info.language", is("nl")))
+        .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")));
   }
 
   @Test
