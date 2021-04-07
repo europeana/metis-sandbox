@@ -28,16 +28,15 @@ public class DatasetEntity {
   @Column(insertable = false, updatable = false)
   private LocalDateTime createdDate;
 
-  private Language language;
+  private String language;
 
-  private Country country;
-  // TODO: Create new global variables -> name; language; country; creationDate
+  private String country;
 
   public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
-    this.language = language;
-    this.country = country;
+    this.language = language.xmlValue();
+    this.country = country.xmlValue();
   }
 
   public DatasetEntity() {
@@ -76,19 +75,19 @@ public class DatasetEntity {
     this.createdDate = createdDate;
   }
 
-  public Language getLanguage() {
+  public String getLanguage() {
     return language;
   }
 
-  public void setLanguage(Language language) {
+  public void setLanguage(String language) {
     this.language = language;
   }
 
-  public Country getCountry() {
+  public String getCountry() {
     return country;
   }
 
-  public void setCountry(Country country) {
+  public void setCountry(String country) {
     this.country = country;
   }
 
