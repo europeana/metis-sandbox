@@ -2,14 +2,11 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
@@ -20,7 +17,6 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,8 +46,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     service.index(record, IndexEnvironment.PREVIEW);
-    verify(previewIndexer)
-        .index(any(InputStream.class), any(IndexingProperties.class));
+    verify(previewIndexer).index(any(InputStream.class), any());
   }
 
   @Test
@@ -61,8 +56,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
-        .when(previewIndexer)
-        .index(any(InputStream.class), any(IndexingProperties.class));
+        .when(previewIndexer).index(any(InputStream.class), any());
     assertThrows(RecordProcessingException.class,
         () -> service.index(record, IndexEnvironment.PREVIEW));
   }
@@ -74,8 +68,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     service.index(record, IndexEnvironment.PUBLISH);
-    verify(publishIndexer)
-        .index(any(InputStream.class), any(IndexingProperties.class));
+    verify(publishIndexer).index(any(InputStream.class), any());
   }
 
   @Test
@@ -85,8 +78,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
-        .when(publishIndexer)
-        .index(any(InputStream.class), any(IndexingProperties.class));
+        .when(publishIndexer).index(any(InputStream.class), any());
     assertThrows(RecordProcessingException.class,
         () -> service.index(record, IndexEnvironment.PUBLISH));
   }
