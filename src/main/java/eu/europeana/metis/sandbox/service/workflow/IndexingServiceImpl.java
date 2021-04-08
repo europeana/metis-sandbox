@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.io.IOException;
 import java.util.Date;
+import eu.europeana.indexing.IndexingProperties;
 import javax.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,8 @@ class IndexingServiceImpl implements IndexingService {
 
     Indexer indexer = IndexEnvironment.PREVIEW == indexEnvironment ? previewIndexer : publishIndexer;
     try {
-      indexer.index(record.getContentInputStream(), new Date(), false, null, false);
+      indexer.index(record.getContentInputStream(), new IndexingProperties(new Date(), false,
+          null, false, false));
     } catch (IndexingException ex) {
       throw new RecordProcessingException(record.getRecordId(), ex);
     }

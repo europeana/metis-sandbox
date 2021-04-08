@@ -23,6 +23,15 @@ public enum Language {
     this.value = value;
   }
 
+  public static Language getEnum(String input){
+    for(Language language :  getLanguageListSortedByName()){
+      if(language.value.equalsIgnoreCase(input)){
+        return language;
+      }
+    }
+    throw new IllegalArgumentException("There is no such enum " + input);
+  }
+
   @JsonValue
   public String xmlValue() {
     return value;

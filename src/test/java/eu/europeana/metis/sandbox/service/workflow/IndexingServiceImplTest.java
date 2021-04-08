@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
@@ -50,7 +51,7 @@ class IndexingServiceImplTest {
 
     service.index(record, IndexEnvironment.PREVIEW);
     verify(previewIndexer)
-        .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
+        .index(any(InputStream.class), any(IndexingProperties.class));
   }
 
   @Test
@@ -61,7 +62,7 @@ class IndexingServiceImplTest {
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(previewIndexer)
-        .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
+        .index(any(InputStream.class), any(IndexingProperties.class));
     assertThrows(RecordProcessingException.class,
         () -> service.index(record, IndexEnvironment.PREVIEW));
   }
@@ -74,7 +75,7 @@ class IndexingServiceImplTest {
 
     service.index(record, IndexEnvironment.PUBLISH);
     verify(publishIndexer)
-        .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
+        .index(any(InputStream.class), any(IndexingProperties.class));
   }
 
   @Test
@@ -85,7 +86,7 @@ class IndexingServiceImplTest {
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(publishIndexer)
-        .index(any(InputStream.class), any(Date.class), anyBoolean(), eq(null), anyBoolean());
+        .index(any(InputStream.class), any(IndexingProperties.class));
     assertThrows(RecordProcessingException.class,
         () -> service.index(record, IndexEnvironment.PUBLISH));
   }

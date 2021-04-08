@@ -69,7 +69,7 @@ class DatasetReportServiceImplTest {
         "A review URL will be generated when the dataset has finished processing",
         5, 4L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
@@ -96,7 +96,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithoutErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5, null, null);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
     var report = new ProgressInfoDto(
@@ -130,7 +130,7 @@ class DatasetReportServiceImplTest {
         "https://metis-sandbox/portal/preview/search?q=edm_datasetName:null_dataset*",
         "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5, 5L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
@@ -162,7 +162,7 @@ class DatasetReportServiceImplTest {
         "All dataset records failed to be processed",
         "All dataset records failed to be processed", 5, 5L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
@@ -190,7 +190,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
-    var datasetEntity = new DatasetEntity("test", 0, null, null);
+    var datasetEntity = new DatasetEntity("test", 0, Language.NL, Country.NETHERLANDS);
     datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
