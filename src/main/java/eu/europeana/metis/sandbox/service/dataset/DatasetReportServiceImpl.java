@@ -74,7 +74,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     //Create DatasetInfoDto from DatasetEntity
     DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-        Language.getEnum(dataset.getLanguage()), Country.getEnum(dataset.getCountry()));
+        dataset.getLanguage(), dataset.getCountry());
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;

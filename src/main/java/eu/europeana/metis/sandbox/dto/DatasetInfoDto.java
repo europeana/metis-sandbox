@@ -5,12 +5,13 @@ import static java.util.Objects.requireNonNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import io.swagger.annotations.ApiModel;
 import java.time.LocalDateTime;
 
-@ApiModel(ProgressInfoDto.SWAGGER_MODEL_NAME)
+@ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
 public class DatasetInfoDto {
+
+  public static final String SWAGGER_MODEL_NAME = "DatasetInfo";
 
   @JsonProperty("dataset-id")
   private final String datasetId;

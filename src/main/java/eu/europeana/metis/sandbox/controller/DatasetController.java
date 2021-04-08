@@ -49,7 +49,7 @@ class DatasetController {
           + "200 OK</span>"
           + " - The response body will contain an object of type"
           + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + ProgressInfoDto.SWAGGER_MODEL_NAME + "</span>.";
+          + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 

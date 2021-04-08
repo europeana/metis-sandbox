@@ -12,10 +12,10 @@ import java.util.List;
 /**
  * Base of the dataset report
  */
-@ApiModel(ProgressInfoDto.SWAGGER_MODEL_NAME)
+@ApiModel(ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME)
 public class ProgressInfoDto {
 
-  public static final String SWAGGER_MODEL_NAME = "DatasetInfo";
+  public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
 
   private enum Status {
     COMPLETED("completed"),

@@ -33,15 +33,6 @@ public enum Country {
     this.value = value;
   }
 
-  public static Country getEnum(String input){
-    for(Country country :  Country.values()){
-      if(country.value.equalsIgnoreCase(input)){
-        return country;
-      }
-    }
-    throw new IllegalArgumentException("There is no such enum " + input);
-  }
-
   @JsonValue
   public String xmlValue() {
     return value;
