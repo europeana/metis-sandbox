@@ -7,6 +7,10 @@ import java.util.List;
 
 /**
  * Enum to represent languages available to add to a dataset process
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * This enum class is used as a database key and should NOT be changed *
+ * without taking the existing database into account!                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 public enum Language {
   AR("ar"), AZ("az"), BE("be"), BG("bg"), BS("bs"), CA("ca"), CS("cs"), CY(
