@@ -1,8 +1,12 @@
 package eu.europeana.metis.sandbox.entity;
 
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -26,9 +30,17 @@ public class DatasetEntity {
   @Column(insertable = false, updatable = false)
   private LocalDateTime createdDate;
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity) {
+  @Enumerated(EnumType.STRING)
+  private Language language;
+
+  @Enumerated(EnumType.STRING)
+  private Country country;
+
+  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
+    this.language = language;
+    this.country = country;
   }
 
   public DatasetEntity() {
@@ -66,4 +78,21 @@ public class DatasetEntity {
   public void setCreatedDate(LocalDateTime createdDate) {
     this.createdDate = createdDate;
   }
+
+  public Language getLanguage() {
+    return language;
+  }
+
+  public void setLanguage(Language language) {
+    this.language = language;
+  }
+
+  public Country getCountry() {
+    return country;
+  }
+
+  public void setCountry(Country country) {
+    this.country = country;
+  }
+
 }

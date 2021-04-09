@@ -11,7 +11,8 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -63,11 +64,15 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   @Override
   @Transactional(readOnly = true)
-  public DatasetInfoDto getReport(String datasetId) {
+  public ProgressInfoDto getReport(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 
     // search for dataset
     DatasetEntity dataset = getDataset(datasetId);
+
+    //Create DatasetInfoDto from DatasetEntity
+    DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
+        dataset.getLanguage(), dataset.getCountry());
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;
@@ -81,9 +86,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     if (stepStatistics.isEmpty()) {
-      return new DatasetInfoDto(getPreviewPortalUrl(dataset, 0L, 0L),
+      return new ProgressInfoDto(getPreviewPortalUrl(dataset, 0L, 0L),
           getPublishPortalUrl(dataset, 0L, 0L),
-          dataset.getRecordsQuantity(), 0L, List.of());
+          dataset.getRecordsQuantity(), 0L, List.of(),
+          datasetInfoDto);
     }
 
     // get qty of records completely processed
@@ -105,11 +111,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
     recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
         recordErrorsByStep));
 
-    return new DatasetInfoDto(
+    return new ProgressInfoDto(
         getPreviewPortalUrl(dataset, completedRecords, failedRecords),
         getPublishPortalUrl(dataset, completedRecords, failedRecords),
         dataset.getRecordsQuantity(), completedRecords,
-        stepsInfo);
+        stepsInfo, datasetInfoDto);
   }
 
   private String getPreviewPortalUrl(DatasetEntity dataset, long completedRecords,

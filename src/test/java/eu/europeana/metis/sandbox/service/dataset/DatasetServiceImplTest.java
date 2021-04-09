@@ -49,7 +49,7 @@ class DatasetServiceImplTest {
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234", Set.of(record), 0);
-    var datasetEntity = new DatasetEntity("name", 5);
+    var datasetEntity = new DatasetEntity("name", 5, Language.NL, Country.NETHERLANDS);
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
@@ -71,7 +71,7 @@ class DatasetServiceImplTest {
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234", Set.of(record), 0);
-    var datasetEntity = new DatasetEntity("name", 1);
+    var datasetEntity = new DatasetEntity("name", 1, Language.NL, Country.NETHERLANDS);
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
@@ -122,7 +122,7 @@ class DatasetServiceImplTest {
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
         .language(Language.BE).content("".getBytes()).recordId("").build();
     var dataset = new Dataset("1234", Set.of(record), 0);
-    var datasetEntity = new DatasetEntity("name", 1);
+    var datasetEntity = new DatasetEntity("name", 1, Language.NL, Country.NETHERLANDS);
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class)))

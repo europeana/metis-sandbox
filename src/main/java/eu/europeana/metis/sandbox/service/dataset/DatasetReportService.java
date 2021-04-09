@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 
 public interface DatasetReportService {
 
@@ -15,5 +15,5 @@ public interface DatasetReportService {
    * @throws ServiceException if an error happens getting the report
    * @throws InvalidDatasetException if dataset id is not valid
    */
-  DatasetInfoDto getReport(String datasetId);
+  ProgressInfoDto getReport(String datasetId);
 }

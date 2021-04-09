@@ -9,7 +9,10 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -18,6 +21,7 @@ import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +56,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -60,11 +64,12 @@ class DatasetReportServiceImplTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
-    var report = new DatasetInfoDto(
+    var report = new ProgressInfoDto(
         "A review URL will be generated when the dataset has finished processing",
         "A review URL will be generated when the dataset has finished processing",
         5, 4L,
-        List.of(createProgress, externalProgress));
+        List.of(createProgress, externalProgress),
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
@@ -91,14 +96,15 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithoutErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
-    var report = new DatasetInfoDto(
+    var report = new ProgressInfoDto(
         "A review URL will be generated when the dataset has finished processing",
         "A review URL will be generated when the dataset has finished processing",
         5, 0L,
-        List.of(createProgress, externalProgress));
+        List.of(createProgress, externalProgress),
+        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
@@ -116,14 +122,15 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportCompleted_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
 
-    var report = new DatasetInfoDto(
+    var report = new ProgressInfoDto(
         "https://metis-sandbox/portal/preview/search?q=edm_datasetName:null_dataset*",
         "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5, 5L,
-        List.of(createProgress, externalProgress));
+        List.of(createProgress, externalProgress),
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
@@ -142,7 +149,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportCompletedAllErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -151,10 +158,11 @@ class DatasetReportServiceImplTest {
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
-    var report = new DatasetInfoDto(
+    var report = new ProgressInfoDto(
         "All dataset records failed to be processed",
         "All dataset records failed to be processed", 5, 5L,
-        List.of(createProgress, externalProgress));
+        List.of(createProgress, externalProgress),
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
@@ -182,14 +190,15 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
-    var datasetEntity = new DatasetEntity("test", 0);
+    var datasetEntity = new DatasetEntity("test", 0, Language.NL, Country.NETHERLANDS);
     datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
-    var expected = new DatasetInfoDto(
+    var expected = new ProgressInfoDto(
         "Dataset is empty",
-        "Dataset is empty", 0, 0L, List.of());
+        "Dataset is empty", 0, 0L, List.of(),
+        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
     var report = service.getReport("1");
     assertReportEquals(expected, report);
   }
@@ -204,7 +213,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_failToRetrieveRecords_expectFail() {
-    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5)));
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5, Language.NL, Country.NETHERLANDS)));
     when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));
@@ -215,7 +224,7 @@ class DatasetReportServiceImplTest {
     assertThrows(NullPointerException.class, () -> service.getReport(null));
   }
 
-  private void assertReportEquals(DatasetInfoDto expected, DatasetInfoDto actual) {
+  private void assertReportEquals(ProgressInfoDto expected, ProgressInfoDto actual) {
     assertEquals(expected.getPortalPreviewUrl(), actual.getPortalPreviewUrl());
     assertEquals(expected.getPortalPublishUrl(), actual.getPortalPublishUrl());
     assertEquals(expected.getProcessedRecords(), actual.getProcessedRecords());

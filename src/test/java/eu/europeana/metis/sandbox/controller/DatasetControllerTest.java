@@ -16,14 +16,18 @@ import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
-import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
 import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -184,8 +188,9 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var report = new DatasetInfoDto("https://metis-sandbox", "https://metis-sandbox",
-        10, 10L, List.of(createProgress, externalProgress));
+    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL, Country.NETHERLANDS);
+    var report = new ProgressInfoDto("https://metis-sandbox", "https://metis-sandbox",
+        10, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
     when(datasetReportService.getReport("1")).thenReturn(report);
 
     mvc.perform(get("/dataset/{id}", "1"))
@@ -195,7 +200,12 @@ class DatasetControllerTest {
         .andExpect(jsonPath("$.portal-preview",
             is("https://metis-sandbox")))
         .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
-            is(message1)));
+            is(message1)))
+        .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
+        .andExpect(jsonPath("$.dataset-info.dataset-name", is("Test")))
+        .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
+        .andExpect(jsonPath("$.dataset-info.language", is("nl")))
+        .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")));
   }
 
   @Test
