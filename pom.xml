@@ -40,7 +40,7 @@
 	<properties>
 		<version.java>11</version.java>
 		<version.springfox>2.9.2</version.springfox>
-		<version.metis>4-SNAPSHOT</version.metis>
+		<version.metis>5-SNAPSHOT</version.metis>
 		<version.europeana>2.12.2-SNAPSHOT</version.europeana>
 		<version.postgresql>42.2.11</version.postgresql>
 		<version.aws.s3>1.11.762</version.aws.s3>
