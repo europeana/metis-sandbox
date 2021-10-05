@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import java.io.File;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
@@ -30,7 +31,7 @@ class DatasetControllerIT {
   public void processDataset_expectStatus_accepted() throws Exception {
 
     MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        testUtils.readFileToBytes("zip/dataset-valid.zip"));
+        testUtils.readFileToBytes("zip"+File.separator+"dataset-valid.zip"));
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
