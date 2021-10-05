@@ -15,6 +15,8 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+
+import java.io.File;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,8 +41,8 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_expectSuccess() throws IOException, TransformationException {
-    var input = testUtils.readFileToBytes("record/transform/record-input.xml");
-    var expected = testUtils.readFileToString("record/transform/record-expected.xml");
+    var input = testUtils.readFileToBytes("record"+ File.separator+"transform"+File.separator+"record-input.xml");
+    var expected = testUtils.readFileToString("record"+File.separator+"transform"+File.separator+"record-expected.xml");
 
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
@@ -63,7 +65,7 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_invalidXml_expectFail() throws IOException, TransformationException {
-    var input = testUtils.readFileToBytes("record/bad-order/record-input.xml");
+    var input = testUtils.readFileToBytes("record"+File.separator+"bad-order"+File.separator+"record-input.xml");
 
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
