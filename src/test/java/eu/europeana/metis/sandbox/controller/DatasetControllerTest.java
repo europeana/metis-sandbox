@@ -74,7 +74,8 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name()))
+        .param("language", IT.name())
+            .param("URL", ""))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
   }
@@ -88,7 +89,8 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/process", "my-data=set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name()))
+        .param("language", IT.name())
+            .param("URL", ""))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("dataset name can only include letters, numbers, _ or - characters")));
@@ -103,12 +105,13 @@ class DatasetControllerTest {
     when(zipService.parse(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("File provided is not valid zip. ")));
+                    .file(dataset)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("URL", ""))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message",
+                    is("File provided is not valid zip. ")));
   }
 
   @Test
@@ -129,7 +132,8 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name()))
+        .param("language", IT.name())
+            .param("URL", ""))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             containsString("Amount of records can not be more than")));
@@ -151,7 +155,8 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name()))
+        .param("language", IT.name())
+                    .param("URL", ""))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
@@ -173,7 +178,8 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name()))
+        .param("language", IT.name())
+            .param("URL", ""))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Error while parsing a xml record. ")));

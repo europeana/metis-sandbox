@@ -1,8 +1,5 @@
 package eu.europeana.metis.sandbox.controller;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -11,26 +8,21 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("/")
@@ -78,10 +70,16 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
-      @ApiParam(value = "dataset records in a zip file", required = true) @RequestParam MultipartFile dataset) {
+      @ApiParam(value = "dataset records uploaded in a zip file", required = false) @RequestParam MultipartFile dataset,
+      @ApiParam(value = "dataset records URL to download in a zip file", required = false) @RequestParam String URL) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    var records = zipService.parse(dataset);
+    List<ByteArrayInputStream> records = new ArrayList<>();
+    if (dataset != null && !dataset.isEmpty()) {
+      records = zipService.parse(dataset);
+    } else if (!URL.isEmpty()){
+      records = zipService.parse(URL);
+    }
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
@@ -99,8 +97,6 @@ class DatasetController {
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
   }
-
-
   /**
    * Get all available countries that can be used.
    * <p>The list is retrieved based on an internal enum</p>
