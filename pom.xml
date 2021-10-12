@@ -92,6 +92,12 @@
 
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-harvesting</artifactId>
+			<version>${version.metis}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-validation-service</artifactId>
 			<version>${version.metis}</version>
 		</dependency>

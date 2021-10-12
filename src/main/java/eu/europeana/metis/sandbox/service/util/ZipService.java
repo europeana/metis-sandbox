@@ -1,9 +1,10 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface ZipService {
 
@@ -18,4 +19,5 @@ public interface ZipService {
    */
   List<ByteArrayInputStream> parse(MultipartFile file);
 
+  List<ByteArrayInputStream> parse(String URL);
 }
