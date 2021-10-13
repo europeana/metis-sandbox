@@ -18,6 +18,4 @@ public interface ZipService {
    * @throws IllegalArgumentException if file does not contain any records
    */
   List<ByteArrayInputStream> parse(MultipartFile file);
-
-  List<ByteArrayInputStream> parse(String URL);
 }

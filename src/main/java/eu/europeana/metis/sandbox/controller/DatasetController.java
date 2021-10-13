@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.util.ZipService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -48,14 +48,14 @@ class DatasetController {
   @Value("${sandbox.dataset.max-size}")
   private int maxRecords;
 
-  private final ZipService zipService;
+  private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
 
-  public DatasetController(ZipService zipService,
+  public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService) {
-    this.zipService = zipService;
+    this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
   }
@@ -76,9 +76,9 @@ class DatasetController {
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = new ArrayList<>();
     if (dataset != null && !dataset.isEmpty()) {
-      records = zipService.parse(dataset);
+      records = harvestService.harvest(dataset);
     } else if (!URL.isEmpty()){
-      records = zipService.parse(URL);
+      records = harvestService.harvest(URL);
     }
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);

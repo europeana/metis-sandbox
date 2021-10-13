@@ -45,42 +45,4 @@ class ZipServiceImpl implements ZipService {
 
     return records;
   }
-
-  @Override
-  public List<ByteArrayInputStream> parse(String URL) {
-
-    String tmpFolder = System.getProperty("java.io.tmpdir");
-    HttpHarvester harvester = new HttpHarvesterImpl();
-    List<ByteArrayInputStream> records = new ArrayList<>();
-
-    try {
-      Path filePath = downloadFile(URL, Path.of(tmpFolder));
-
-      harvester.harvestRecords(new FileInputStream(filePath.toFile()), CompressedFileExtension.ZIP, entry -> {
-        final byte[] content = entry.getEntryContent().readAllBytes();
-        records.add(new ByteArrayInputStream(content));
-      });
-
-    } catch (IOException | HarvesterException e) {
-      throw new IllegalArgumentException(e);
-    }
-    return records;
-  }
-
-  private Path downloadFile(String archiveUrlString, Path downloadDirectory) throws IOException {
-    final Path directory = Files.createDirectories(downloadDirectory);
-    final Path file = directory.resolve(FilenameUtils.getName(archiveUrlString));
-    final URL archiveUrl = new URL(archiveUrlString);
-    if (!SUPPORTED_PROTOCOLS.contains(archiveUrl.getProtocol())) {
-      throw new IOException("This functionality does not support this protocol ("
-              + archiveUrl.getProtocol() + ").");
-    }
-    // Note: we allow any download URL for http harvesting. This is the functionality we support.
-    @SuppressWarnings("findsecbugs:URLCONNECTION_SSRF_FD") final URLConnection conn = archiveUrl.openConnection();
-    try (final InputStream inputStream = conn.getInputStream();
-         final OutputStream outputStream = Files.newOutputStream(file)) {
-      IOUtils.copyLarge(inputStream, outputStream);
-    }
-    return file;
-  }
 }

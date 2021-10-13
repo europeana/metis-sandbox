@@ -25,7 +25,8 @@ import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.util.ZipService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -48,8 +50,14 @@ class DatasetControllerTest {
   @Autowired
   private MockMvc mvc;
 
+  @Autowired
+  private ResourceLoader resourceLoader;
+
+//  @MockBean
+//  private ZipService zipService;
+
   @MockBean
-  private ZipService zipService;
+  private HarvestService harvestService;
 
   @MockBean
   private DatasetService datasetService;
@@ -58,26 +66,26 @@ class DatasetControllerTest {
   private DatasetReportService datasetReportService;
 
   @Test
-  void processDataset_expectSuccess() throws Exception {
+  void processDatasetFromURL_expectSuccess() throws Exception {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        "<test></test>".getBytes());
+            "<test></test>".getBytes());
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
-        new ByteArrayInputStream("record2".getBytes()));
+            new ByteArrayInputStream("record2".getBytes()));
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name())
-            .param("URL", ""))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+                    .file(dataset)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("URL", ""))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.dataset-id", is("12345")));
   }
 
   @Test
@@ -102,7 +110,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
+    when(harvestService.harvest(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
                     .file(dataset)
@@ -127,7 +135,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
 
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
@@ -148,7 +156,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
@@ -171,7 +179,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new RecordParsingException(new Exception()));
 
