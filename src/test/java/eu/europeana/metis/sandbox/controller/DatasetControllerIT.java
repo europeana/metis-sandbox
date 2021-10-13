@@ -36,7 +36,8 @@ class DatasetControllerIT {
     mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
         .file(dataset)
         .param("country", ITALY.xmlValue())
-        .param("language", IT.xmlValue()))
+        .param("language", IT.xmlValue())
+                    .param("URL", ""))
         .andExpect(status().isAccepted());
   }
 
