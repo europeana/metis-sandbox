@@ -4,25 +4,21 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpHarvesterImpl;
+import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+
 
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
-    private static final Set<String> SUPPORTED_PROTOCOLS = Set.of("http", "https", "file");
+//    private static final Set<String> SUPPORTED_PROTOCOLS = Set.of("http", "https", "file");
 
     @Override
     public List<ByteArrayInputStream> harvest(MultipartFile file) {
@@ -46,40 +42,17 @@ public class HarvestServiceImpl implements HarvestService {
     }
 
     @Override
-    public List<ByteArrayInputStream> harvest(String URL) {
+    public HttpRecordIterator harvest(String URL) {
 
         String tmpFolder = System.getProperty("java.io.tmpdir");
         HttpHarvester harvester = new HttpHarvesterImpl();
-        List<ByteArrayInputStream> records = new ArrayList<>();
-
+        HttpRecordIterator iterator;
         try {
-            Path filePath = downloadFile(URL, Path.of(tmpFolder));
-            harvester.harvestRecords(new FileInputStream(filePath.toFile()), CompressedFileExtension.ZIP, entry -> {
-                final byte[] content = entry.getEntryContent().readAllBytes();
-                records.add(new ByteArrayInputStream(content));
-            });
-
-        } catch (IOException | HarvesterException e) {
+            iterator = harvester.harvestRecords(URL, tmpFolder);
+        } catch (HarvesterException e) {
             throw new IllegalArgumentException(e);
         }
-        return records;
-    }
-
-    public Path downloadFile(String archiveUrlString, Path downloadDirectory) throws IOException {
-        final Path directory = Files.createDirectories(downloadDirectory);
-        final Path file = directory.resolve(FilenameUtils.getName(archiveUrlString));
-        final URL archiveUrl = new URL(archiveUrlString);
-        if (!SUPPORTED_PROTOCOLS.contains(archiveUrl.getProtocol())) {
-            throw new IOException("This functionality does not support this protocol ("
-                    + archiveUrl.getProtocol() + ").");
-        }
-        // Note: we allow any download URL for http harvesting. This is the functionality we support.
-        @SuppressWarnings("findsecbugs:URLCONNECTION_SSRF_FD") final URLConnection conn = archiveUrl.openConnection();
-        try (final InputStream inputStream = conn.getInputStream();
-             final OutputStream outputStream = Files.newOutputStream(file)) {
-            IOUtils.copyLarge(inputStream, outputStream);
-        }
-        return file;
+        return iterator;
     }
 
 }
