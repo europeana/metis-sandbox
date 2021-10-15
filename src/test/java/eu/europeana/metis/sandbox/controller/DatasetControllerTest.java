@@ -1,15 +1,5 @@
 package eu.europeana.metis.sandbox.controller;
 
-import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
-import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -20,12 +10,20 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
@@ -33,15 +31,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
+
+import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
+import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(DatasetController.class)
@@ -49,12 +48,6 @@ class DatasetControllerTest {
 
   @Autowired
   private MockMvc mvc;
-
-  @Autowired
-  private ResourceLoader resourceLoader;
-
-//  @MockBean
-//  private ZipService zipService;
 
   @MockBean
   private HarvestService harvestService;
@@ -66,7 +59,7 @@ class DatasetControllerTest {
   private DatasetReportService datasetReportService;
 
   @Test
-  void processDatasetFromURL_expectSuccess() throws Exception {
+  void processDataset_expectSuccess() throws Exception {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
             "<test></test>".getBytes());
@@ -79,11 +72,10 @@ class DatasetControllerTest {
     when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
                     .file(dataset)
                     .param("country", ITALY.name())
-                    .param("language", IT.name())
-                    .param("URL", ""))
+                    .param("language", IT.name()))
             .andExpect(status().isAccepted())
             .andExpect(jsonPath("$.dataset-id", is("12345")));
   }
@@ -94,11 +86,10 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data=set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data=set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name())
-            .param("URL", ""))
+        .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("dataset name can only include letters, numbers, _ or - characters")));
@@ -112,11 +103,10 @@ class DatasetControllerTest {
 
     when(harvestService.harvest(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
                     .file(dataset)
                     .param("country", ITALY.name())
-                    .param("language", IT.name())
-                    .param("URL", ""))
+                    .param("language", IT.name()))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message",
                     is("File provided is not valid zip. ")));
@@ -137,11 +127,10 @@ class DatasetControllerTest {
 
     when(harvestService.harvest(dataset)).thenReturn(records);
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name())
-            .param("URL", ""))
+        .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             containsString("Amount of records can not be more than")));
@@ -160,11 +149,10 @@ class DatasetControllerTest {
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name())
-                    .param("URL", ""))
+        .param("language", IT.name()))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
@@ -183,11 +171,10 @@ class DatasetControllerTest {
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new RecordParsingException(new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
         .file(dataset)
         .param("country", ITALY.name())
-        .param("language", IT.name())
-            .param("URL", ""))
+        .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Error while parsing a xml record. ")));

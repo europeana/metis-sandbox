@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpHarvesterImpl;
@@ -11,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +21,6 @@ import java.util.List;
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
-//    private static final Set<String> SUPPORTED_PROTOCOLS = Set.of("http", "https", "file");
 
     @Override
     public List<ByteArrayInputStream> harvest(MultipartFile file) {
@@ -42,17 +44,25 @@ public class HarvestServiceImpl implements HarvestService {
     }
 
     @Override
-    public HttpRecordIterator harvest(String URL) {
+    public List<ByteArrayInputStream> harvest(String URL) {
 
         String tmpFolder = System.getProperty("java.io.tmpdir");
+        List<ByteArrayInputStream> records = new ArrayList<>();
         HttpHarvester harvester = new HttpHarvesterImpl();
-        HttpRecordIterator iterator;
         try {
-            iterator = harvester.harvestRecords(URL, tmpFolder);
+            HttpRecordIterator iterator = harvester.harvestRecords(URL, tmpFolder);
+            iterator.forEach(path -> {
+                try (InputStream content = Files.newInputStream(path)) {
+                    records.add(new ByteArrayInputStream(content.readAllBytes()));
+                    return ReportingIteration.IterationResult.CONTINUE;
+                } catch (IOException | RuntimeException e) {
+                    return ReportingIteration.IterationResult.TERMINATE;
+                }
+            });
         } catch (HarvesterException e) {
             throw new IllegalArgumentException(e);
         }
-        return iterator;
+        return records;
     }
 
 }

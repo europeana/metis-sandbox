@@ -33,7 +33,7 @@ class DatasetControllerIT {
     MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         testUtils.readFileToBytes("zip"+File.separator+"dataset-valid.zip"));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
+    mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
         .file(dataset)
         .param("country", ITALY.xmlValue())
         .param("language", IT.xmlValue())
