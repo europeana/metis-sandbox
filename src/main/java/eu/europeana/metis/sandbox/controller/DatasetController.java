@@ -1,6 +1,8 @@
 package eu.europeana.metis.sandbox.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
@@ -9,6 +11,8 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +33,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Api(value = "Dataset Controller")
 class DatasetController {
 
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetController.class);
   private static final String MESSAGE_FOR_PROCESS_DATASET = ""
           + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
           + "202 Accepted</span>"
@@ -66,25 +72,45 @@ class DatasetController {
   })
   @PostMapping(value = "dataset/{name}/process", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDto processDataset(
+  public DatasetIdDto harvestDatasetFromFile(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
-      @ApiParam(value = "dataset records uploaded in a zip file", required = false) @RequestParam MultipartFile dataset,
-      @ApiParam(value = "dataset records URL to download in a zip file", required = false) @RequestParam String URL) {
+      @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = new ArrayList<>();
-    if (dataset != null && !dataset.isEmpty()) {
-      records = harvestService.harvest(dataset);
-    } else if (!URL.isEmpty()){
-      records = harvestService.harvest(URL);
-    }
+
+    List<ByteArrayInputStream> records = harvestService.harvest(dataset);
+
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
+  }
+
+  @ApiOperation("Process the given dataset")
+  @ApiResponses({
+          @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+  })
+  @PostMapping(value = "dataset/{name}/process", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void harvestDatasetFromURL(
+          @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+          @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
+          @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+          @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url) {
+    checkArgument(namePattern.matcher(datasetName).matches(),
+            "dataset name can only include letters, numbers, _ or - characters");
+    try {
+      HttpRecordIterator iterator = harvestService.harvest(url);
+      checkArgument(iterator.getExpectedRecordCount() < maxRecords,
+              "Amount of records can not be more than " + maxRecords);
+    } catch (HarvesterException e) {
+      LOGGER.warn(e.getMessage(), e);
+    }
+//    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+//    return new DatasetIdDto(datasetObject);
   }
 
   @ApiOperation("Get dataset progress information")
