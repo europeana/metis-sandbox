@@ -41,27 +41,6 @@ class DatasetControllerIT {
                 .andExpect(status().isAccepted());
     }
 
-//    @Test
-//    public void processDatasetFromURL_expectStatus_accepted() throws Exception {
-//
-//        String url = "src"+File.separator+"zip" + File.separator + "dataset-valid.zip";
-//        String fpath = String.format("src%1$stest%1$sresources%1$szip%1$sdataset-valid.zip", File.separator);
-//
-//        File file = ResourceUtils.getFile("classpath:zip"+File.separator + "dataset-valid.zip");
-//        System.out.println(""+ ResourceUtils.getURL(url).toString());
-//        System.out.println(""+ ResourceUtils.getFile(url));
-//        System.out.println(""+ ResourceUtils.getFile(url).getPath());
-//        System.out.println(""+fpath);
-//
-//        assertTrue(new File(fpath).exists());
-//        assertTrue(file.exists());
-//
-//        mvc.perform(multipart("/dataset/{name}/processURL", "my-data-set")
-//                        .param("country", ITALY.xmlValue())
-//                        .param("language", IT.xmlValue())
-//                        .param("url", fpath))
-//                .andExpect(status().isAccepted());
-//    }
 
     @Test
     public void retrieveDataset_expectStatus_ok() throws Exception {
