@@ -13,20 +13,24 @@ import java.util.List;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 public enum Language {
-  AR("ar"), AZ("az"), BE("be"), BG("bg"), BS("bs"), CA("ca"), CS("cs"), CY(
-      "cy"), DA("da"), DE("de"), EL("el"), EN("en"), ES("es"), ET("et"), EU(
-      "eu"), FI("fi"), FR("fr"), GA("ga"), GD("gd"), GL("gl"), HE("he"), HI(
-      "hi"), HR("hr"), HU("hu"), HY("hy"), IE("ie"), IS("is"), IT("it"), JA(
-      "ja"), KA("ka"), KO("ko"), LT("lt"), LV("lv"), MK("mk"), MT("mt"), MUL(
-      "mul"), NL("nl"), NO("no"), PL("pl"), PT("pt"), RO("ro"), RU("ru"), SK(
-      "sk"), SL("sl"), SQ("sq"), SR("sr"), SV("sv"), TR("tr"), UK("uk"), YI(
-      "yi"), ZH("zh");
+  AR("Arabic"), AZ("Azerbaijani"), BE("Belarusian"), BG("Bulgarian"), BS(
+      "Bosnian"), CA("Catalan"), CS("Czech"), CY("Welsh"), DA("Danish"), DE(
+      "German"), EL("Greek"), EN("English"), ES("Spanish"), ET("Estonian"), EU(
+      "Basque"), FI("Finnish"), FR("French"), GA("Irish"), GD("Gaelic (Scottish)"), GL(
+      "Galician"), HE("Hebrew"), HI("Hindi"), HR("Croatian (hrvatski jezik)"), HU(
+      "Hungarian"), HY("Armenian"), IE("Interlingue"), IS("Icelandic"), IT(
+      "Italian"), JA("Japanese"), KA("Georgian"), KO("Korean"), LT("Lithuanian"), LV(
+      "Latvian (Lettish)"), MK("Macedonian"), MT("Maltese"), MUL("Multilingual Content"), NL(
+      "Dutch"), NO("Norwegian"), PL("Polish"), PT("Portuguese"), RO("Romanian"), RU(
+      "Russian"), SK("Slovak"), SL("Slovenian"), SQ("Albanian"), SR("Serbian"), SV(
+      "Swedish"), TR("Turkish"), UK("Ukrainian"), YI("Yiddish"), ZH("Chinese");
   private final String value;
 
   Language(String value) {
     this.value = value;
   }
 
+  // The xmlValue of the language is used for the UI, NOT for the database
   @JsonValue
   public String xmlValue() {
     return value;

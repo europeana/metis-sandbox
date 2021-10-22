@@ -12,7 +12,7 @@ class StringToLanguageConverterTest {
 
   @Test
   void convert_expectSuccess() {
-    Language language = converter.convert("ar");
+    Language language = converter.convert("Arabic");
     assertEquals(Language.AR, language);
   }
 

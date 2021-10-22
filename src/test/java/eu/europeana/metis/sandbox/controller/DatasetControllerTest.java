@@ -204,7 +204,7 @@ class DatasetControllerTest {
         .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
         .andExpect(jsonPath("$.dataset-info.dataset-name", is("Test")))
         .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
-        .andExpect(jsonPath("$.dataset-info.language", is("nl")))
+        .andExpect(jsonPath("$.dataset-info.language", is("Dutch")))
         .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")));
   }
 
