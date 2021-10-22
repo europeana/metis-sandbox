@@ -30,6 +30,7 @@ public enum Language {
     this.value = value;
   }
 
+  // The xmlValue of the language is used for the UI, NOT for the database
   @JsonValue
   public String xmlValue() {
     return value;
