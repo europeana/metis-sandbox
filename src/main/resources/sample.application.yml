@@ -89,6 +89,7 @@ sandbox:
     enrichment-url:
   preview:
     mongo:
+      application-name:
       db:
       hosts:
       ports:
@@ -107,6 +108,7 @@ sandbox:
         timeout:
   publish:
     mongo:
+      application-name:
       db:
       hosts:
       ports:

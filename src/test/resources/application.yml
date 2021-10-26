@@ -45,6 +45,7 @@ sandbox:
     enrichment-url: http://metis-test
   preview:
     mongo:
+      application-name: metis-sandbox-application-preview-test
       db: metis-sandbox-test
       hosts: localhost
       ports: 27017
@@ -52,6 +53,7 @@ sandbox:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
   publish:
     mongo:
+      application-name: metis-sandbox-application-publish-test
       db: metis-sandbox-test
       hosts: localhost
       ports: 27017

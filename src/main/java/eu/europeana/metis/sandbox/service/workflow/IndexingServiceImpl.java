@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
@@ -33,7 +34,8 @@ class IndexingServiceImpl implements IndexingService {
 
     Indexer indexer = IndexEnvironment.PREVIEW == indexEnvironment ? previewIndexer : publishIndexer;
     try {
-      indexer.index(record.getContentInputStream(), new Date(), false, null, false);
+      indexer.index(record.getContentInputStream(),
+              new IndexingProperties(new Date(), false, null, false, true));
     } catch (IndexingException ex) {
       throw new RecordProcessingException(record.getRecordId(), ex);
     }

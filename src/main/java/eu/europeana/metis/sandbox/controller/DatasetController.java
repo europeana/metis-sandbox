@@ -3,10 +3,11 @@ package eu.europeana.metis.sandbox.controller;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
-import eu.europeana.metis.sandbox.dto.report.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.util.ZipService;
@@ -15,7 +16,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,7 +49,7 @@ class DatasetController {
           + "200 OK</span>"
           + " - The response body will contain an object of type"
           + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + DatasetInfoDto.SWAGGER_MODEL_NAME + "</span>.";
+          + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
@@ -80,6 +85,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
+    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
@@ -89,8 +95,70 @@ class DatasetController {
           @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
   })
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
-  public DatasetInfoDto retrieveDataset(
+  public ProgressInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
+  }
+
+
+  /**
+   * Get all available countries that can be used.
+   * <p>The list is retrieved based on an internal enum</p>
+   *
+   * @return The list of countries available
+   */
+  @ApiOperation("Get data of all available countries")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
+  })
+  @GetMapping(value = "dataset/countries", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public List<CountryView> getAllCountries() {
+    return Arrays.stream(Country.values()).map(CountryView::new).collect(Collectors.toList());
+  }
+
+  /**
+   * Get all available languages that can be used.
+   * <p>The list is retrieved based on an internal enum</p>
+   *
+   * @return The list of languages that are available
+   */
+  @ApiOperation("Get data of all available languages")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
+  })
+  @GetMapping(value = "dataset/languages", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public List<LanguageView> getAllLanguages(){
+    return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
+        .collect(Collectors.toList());
+  }
+
+  private static class CountryView {
+
+    @JsonProperty("name")
+    private final String name;
+    @JsonProperty("xmlValue")
+    private final String xmlValue;
+
+    CountryView(Country country) {
+      this.name = country.name();
+      this.xmlValue = country.xmlValue();
+    }
+  }
+
+  private static class LanguageView {
+
+    @JsonProperty("name")
+    private final String name;
+    @JsonProperty("xmlValue")
+    private final String xmlValue;
+
+    LanguageView(Language language) {
+      this.name = language.name();
+      this.xmlValue = language.xmlValue();
+    }
   }
 }

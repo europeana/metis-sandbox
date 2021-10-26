@@ -45,7 +45,7 @@ class DatasetServiceImpl implements DatasetService {
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    var entity = new DatasetEntity(datasetName, records.size());
+    var entity = new DatasetEntity(datasetName, records.size(), language, country);
     try {
       entity = datasetRepository.save(entity);
     } catch (Exception e) {

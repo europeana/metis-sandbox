@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Enum to represent countries available to add to a dataset process
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * This enum class is used as a database key and should NOT be changed *
+ * without taking the existing database into account!                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 public enum Country {
   ALBANIA("Albania"), ANDORRA("Andorra"), ARMENIA("Armenia"), AUSTRIA(
