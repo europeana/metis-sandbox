@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.harvesting.HarvesterException;
-import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,7 +26,6 @@ public interface HarvestService {
    * @param url URL for zip file containing one or more records
    * @return List of byte[]
    * @throws ServiceException  if file is not valid
-   * @throws IllegalArgumentException if error harvesting from URL, if records are empty
    */
   List<ByteArrayInputStream> harvest(String url) throws ServiceException;
 }
