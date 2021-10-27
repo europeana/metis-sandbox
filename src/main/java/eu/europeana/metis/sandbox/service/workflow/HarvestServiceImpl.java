@@ -43,8 +43,7 @@ public class HarvestServiceImpl implements HarvestService {
   public List<ByteArrayInputStream> harvest(String url) {
 
     List<ByteArrayInputStream> records;
-    try {
-      FileInputStream fis = new FileInputStream(url);
+    try(FileInputStream fis = new FileInputStream(url)) {
       records = harvest(fis);
     } catch (IOException e) {
       throw new ServiceException(e.getMessage(), e);
