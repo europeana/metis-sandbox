@@ -27,8 +27,6 @@ import java.util.List;
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
-
   @Override
   public List<ByteArrayInputStream> harvest(MultipartFile file)  {
 
@@ -49,7 +47,6 @@ public class HarvestServiceImpl implements HarvestService {
       FileInputStream fis = new FileInputStream(url);
       records = harvest(fis);
     } catch (IOException e) {
-      LOGGER.warn(e.getMessage(),e);
       throw new ServiceException(e.getMessage(), e);
     }
     return records;
@@ -66,7 +63,6 @@ public class HarvestServiceImpl implements HarvestService {
       });
 
     } catch (HarvesterException e) {
-      LOGGER.warn(e.getMessage(),e);
       throw new ServiceException(e.getMessage(), e);
     }
 
