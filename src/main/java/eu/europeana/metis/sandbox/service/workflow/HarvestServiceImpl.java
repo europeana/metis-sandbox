@@ -34,7 +34,7 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       records = harvest(file.getInputStream());
     } catch (IOException e) {
-      throw new ServiceException(e.getMessage(), e);
+      throw new ServiceException("Error harvesting records from file "+file.getName(), e);
     }
     return records;
   }
@@ -46,7 +46,7 @@ public class HarvestServiceImpl implements HarvestService {
     try(FileInputStream fis = new FileInputStream(url)) {
       records = harvest(fis);
     } catch (IOException e) {
-      throw new ServiceException(e.getMessage(), e);
+      throw new ServiceException("Error harvesting records from "+url, e);
     }
     return records;
   }
@@ -62,7 +62,7 @@ public class HarvestServiceImpl implements HarvestService {
       });
 
     } catch (HarvesterException e) {
-      throw new ServiceException(e.getMessage(), e);
+      throw new ServiceException("Error harvesting records ", e);
     }
 
     if (records.isEmpty()) {
