@@ -127,8 +127,7 @@ class DatasetController {
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
-      @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "incremental processing") @RequestParam Boolean incremental) {
+      @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = harvestService.harvestOaiPmh(url,setspec,metadataformat);
