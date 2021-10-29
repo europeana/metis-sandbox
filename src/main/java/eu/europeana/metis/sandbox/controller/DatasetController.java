@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -8,20 +11,28 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
-import io.swagger.annotations.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
+import eu.europeana.metis.sandbox.service.workflow.HarvestServiceOaiPmh;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/")
@@ -44,19 +55,23 @@ class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
+
+
   @Value("${sandbox.dataset.max-size}")
   private int maxRecords;
 
   private final HarvestService harvestService;
+  private final HarvestServiceOaiPmh harvestServiceOaiPmh;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
 
-  public DatasetController(HarvestService harvestService,
+  public DatasetController(HarvestService harvestService, HarvestServiceOaiPmh harvestServiceOaiPmh,
       DatasetService datasetService,
       DatasetReportService reportService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
+    this.harvestServiceOaiPmh = harvestServiceOaiPmh;
   }
 
   @ApiOperation("Process the given dataset")
@@ -96,6 +111,29 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = harvestService.harvest(url);
+
+    checkArgument(records.size() < maxRecords,
+        "Amount of records can not be more than " + maxRecords);
+    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    return new DatasetIdDto(datasetObject);
+  }
+
+  @ApiOperation("Process the given dataset")
+  @ApiResponses({
+      @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+  })
+  @PostMapping(value = "dataset/{name}/processOaiPmh", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public DatasetIdDto harvestDatasetOaiPmh(
+      @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+      @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
+      @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
+      @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
+    checkArgument(namePattern.matcher(datasetName).matches(),
+        "dataset name can only include letters, numbers, _ or - characters");
+    List<ByteArrayInputStream> records = harvestServiceOaiPmh.harvestOaiPmh(url,setspec,metadataformat);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
