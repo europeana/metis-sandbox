@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestServiceOaiPmh;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -60,22 +61,24 @@ class DatasetController {
   private int maxRecords;
 
   private final HarvestService harvestService;
+  private final HarvestServiceOaiPmh harvestServiceOaiPmh;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
 
-  public DatasetController(HarvestService harvestService,
+  public DatasetController(HarvestService harvestService, HarvestServiceOaiPmh harvestServiceOaiPmh,
       DatasetService datasetService,
       DatasetReportService reportService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
+    this.harvestServiceOaiPmh = harvestServiceOaiPmh;
   }
 
-  @ApiOperation("Process the given dataset by HTTP providing a file")
+  @ApiOperation("Process the given dataset")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/harvestByFile", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/processFile", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetFromFile(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
@@ -94,11 +97,11 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
-  @ApiOperation("Process the given dataset by HTTP providing an URL")
+  @ApiOperation("Process the given dataset")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/processURL", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
@@ -115,11 +118,11 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
-  @ApiOperation("Process the given dataset using OAI-PMH")
+  @ApiOperation("Process the given dataset")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/processOaiPmh", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetOaiPmh(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
@@ -127,11 +130,10 @@ class DatasetController {
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
-      @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "incremental processing") @RequestParam Boolean incremental) {
+      @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestOaiPmh(url,setspec,metadataformat);
+    List<ByteArrayInputStream> records = harvestServiceOaiPmh.harvestOaiPmh(url,setspec,metadataformat);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
