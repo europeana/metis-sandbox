@@ -71,11 +71,11 @@ class DatasetController {
     this.reportService = reportService;
   }
 
-  @ApiOperation("Process the given dataset")
+  @ApiOperation("Process the given dataset by HTTP providing a file")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/processFile", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/harvestByFile", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetFromFile(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
@@ -94,11 +94,11 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
-  @ApiOperation("Process the given dataset")
+  @ApiOperation("Process the given dataset by HTTP providing an URL")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/processURL", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
