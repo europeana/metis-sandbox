@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.zip.ZipException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -28,7 +29,7 @@ import java.util.List;
 public class HarvestServiceImpl implements HarvestService {
 
   @Override
-  public List<ByteArrayInputStream> harvest(MultipartFile file)  {
+  public List<ByteArrayInputStream> harvest(MultipartFile file) throws ServiceException {
 
     List<ByteArrayInputStream> records;
     try {
@@ -40,8 +41,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvest(String url) {
-
+  public List<ByteArrayInputStream> harvest(String url) throws ServiceException {
     List<ByteArrayInputStream> records;
     try(FileInputStream fis = new FileInputStream(url)) {
       records = harvest(fis);
@@ -51,7 +51,7 @@ public class HarvestServiceImpl implements HarvestService {
     return records;
   }
 
-  private List<ByteArrayInputStream> harvest(InputStream is){
+  private List<ByteArrayInputStream> harvest(InputStream is) throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     HttpHarvester harvester = new HttpHarvesterImpl();
