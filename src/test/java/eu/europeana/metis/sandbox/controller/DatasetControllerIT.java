@@ -22,48 +22,47 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        classes = SandboxApplication.class)
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    classes = SandboxApplication.class)
 @AutoConfigureMockMvc
 class DatasetControllerIT {
 
-    private final TestUtils testUtils = new TestUtils();
+  private final TestUtils testUtils = new TestUtils();
 
-    @Autowired
-    private MockMvc mvc;
+  @Autowired
+  private MockMvc mvc;
 
-    @Test
-    public void processDatasetFromFile_expectStatus_accepted() throws Exception {
+  @Test
+  public void processDatasetFromFile_expectStatus_accepted() throws Exception {
 
-        MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-                testUtils.readFileToBytes("zip" + File.separator + "dataset-valid.zip"));
+    MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        testUtils.readFileToBytes("zip" + File.separator + "dataset-valid.zip"));
 
-        mvc.perform(multipart("/dataset/{name}/processFile", "my-data-set")
-                        .file(dataset)
-                        .param("country", ITALY.xmlValue())
-                        .param("language", IT.xmlValue()))
-                .andExpect(status().isAccepted());
-    }
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .param("country", ITALY.xmlValue())
+            .param("language", IT.xmlValue()))
+        .andExpect(status().isAccepted());
+  }
 
-    @Test
-    public void processDatasetFromUrl_expectStatus_accepted() throws Exception {
+  @Test
+  public void processDatasetFromUrl_expectStatus_accepted() throws Exception {
 
-        Path datasetPath = Paths.get("src","test","resources","zip","dataset-valid.zip");
-        assertTrue(Files.exists(datasetPath));
+    Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+    assertTrue(Files.exists(datasetPath));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.xmlValue())
+            .param("language", IT.xmlValue())
+            .param("url", datasetPath.toString()))
+        .andExpect(status().isAccepted());
+  }
 
 
-        mvc.perform(multipart("/dataset/{name}/processURL", "my-data-set")
-                .param("country", ITALY.xmlValue())
-                .param("language", IT.xmlValue())
-                .param("url",datasetPath.toString()))
-            .andExpect(status().isAccepted());
-    }
-
-
-    @Test
-    public void retrieveDataset_expectStatus_ok() throws Exception {
-        mvc.perform(get("/dataset/{id}", "1"))
-                .andExpect(status().isOk());
-    }
+  @Test
+  public void retrieveDataset_expectStatus_ok() throws Exception {
+    mvc.perform(get("/dataset/{id}", "1"))
+        .andExpect(status().isOk());
+  }
 
 }
