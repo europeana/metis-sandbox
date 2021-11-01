@@ -21,7 +21,6 @@ import org.zeroturnaround.zip.ZipException;
 @ExtendWith(MockitoExtension.class)
 public class HarvestServiceImplTest {
 
-
   private final ZipFileReader zipfilereader = new ZipFileReader();
 
   @InjectMocks
@@ -30,12 +29,12 @@ public class HarvestServiceImplTest {
   @Test
   void harvestService_expectSuccess() throws IOException {
 
-    Path dsPath = Paths.get("src","test","resources","zip","dataset-valid.zip");
-    assertTrue(Files.exists(dsPath));
+    Path dataSetPath = Paths.get("src","test","resources","zip","dataset-valid.zip");
+    assertTrue(Files.exists(dataSetPath));
 
-    var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dsPath));
+    var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dataSetPath));
 
-    var records = harvestService.harvest(dsPath.toString());
+    var records = harvestService.harvest(dataSetPath.toString());
     // In spite records being the same size, they are not in the same order.
     // So comparing with assertArrayEquals() will output a failed assertion
     // assertArrayEquals(expectedRecords.toArray(),records.toArray());
@@ -45,19 +44,19 @@ public class HarvestServiceImplTest {
   @Test
   void harvestService_expectFailWithServiceException() {
 
-    Path dsPath = Paths.get("src","test","resources","zip","non-existing-file.zip");
-    assertFalse(Files.exists(dsPath));
+    Path dataSetPath = Paths.get("src","test","resources","zip","non-existing-file.zip");
+    assertFalse(Files.exists(dataSetPath));
 
-    assertThrows(ServiceException.class, () -> harvestService.harvest(dsPath.toString()));
+    assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
   }
 
   @Test
   void harvestService_expectFailWithZipException() {
 
-    Path dsPath = Paths.get("src","test","resources","zip","corrupt_file.zip");
-    assertTrue(Files.exists(dsPath));
+    Path dataSetPath = Paths.get("src","test","resources","zip","corrupt_file.zip");
+    assertTrue(Files.exists(dataSetPath));
 
-    assertThrows(ZipException.class, () -> harvestService.harvest(dsPath.toString()));
+    assertThrows(ZipException.class, () -> harvestService.harvest(dataSetPath.toString()));
   }
 
 }
