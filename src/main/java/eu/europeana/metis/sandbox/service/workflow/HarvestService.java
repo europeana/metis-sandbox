@@ -28,4 +28,7 @@ public interface HarvestService {
    * @throws ServiceException  if file is not valid
    */
   List<ByteArrayInputStream> harvest(String url) throws ServiceException;
+
+  List<ByteArrayInputStream> harvestOaiPmh(String endpoint, String setSpec, String prefix);
+
 }
