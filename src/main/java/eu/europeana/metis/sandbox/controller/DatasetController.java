@@ -115,11 +115,11 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
-  @ApiOperation("Process the given dataset")
+  @ApiOperation("Process the given dataset using OAI-PMH")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/processOaiPmh", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetOaiPmh(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
