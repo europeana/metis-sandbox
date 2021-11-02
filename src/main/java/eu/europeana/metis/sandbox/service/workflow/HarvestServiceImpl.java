@@ -50,7 +50,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvest(String url) {
+  public List<ByteArrayInputStream> harvest(String url) throws ServiceException {
 
     Path tempDir = null;
     List<ByteArrayInputStream> records = new ArrayList<>();
@@ -99,7 +99,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Override
   public List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix,
-      Boolean incremental) {
+      Boolean incremental) throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     List<Pair<String, Exception>> exceptions = new ArrayList<>(1);

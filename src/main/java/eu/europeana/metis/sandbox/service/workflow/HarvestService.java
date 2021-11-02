@@ -39,6 +39,6 @@ public interface HarvestService {
    * @throws ServiceException if file is not valid, error reading file, if records are empty
    */
   List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix,
-      Boolean incremental);
+      Boolean incremental) throws ServiceException;
 
 }
