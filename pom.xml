@@ -142,6 +142,7 @@
 			</exclusions>
 		</dependency>
 
+		<!-- TODO 02-11-2021: Once metis version is updated (with the commons-lang library update), we should remove the dependency below -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
