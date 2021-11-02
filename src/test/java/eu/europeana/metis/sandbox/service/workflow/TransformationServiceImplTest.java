@@ -41,8 +41,10 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_expectSuccess() throws IOException, TransformationException {
-    var input = testUtils.readFileToBytes("record"+ File.separator+"transform"+File.separator+"record-input.xml");
-    var expected = testUtils.readFileToString("record"+File.separator+"transform"+File.separator+"record-expected.xml");
+    var input = testUtils.readFileToBytes(
+        "record" + File.separator + "transform" + File.separator + "record-input.xml");
+    var expected = testUtils.readFileToString(
+        "record" + File.separator + "transform" + File.separator + "record-expected.xml");
 
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
@@ -65,7 +67,8 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_invalidXml_expectFail() throws IOException, TransformationException {
-    var input = testUtils.readFileToBytes("record"+File.separator+"bad-order"+File.separator+"record-input.xml");
+    var input = testUtils.readFileToBytes(
+        "record" + File.separator + "bad-order" + File.separator + "record-input.xml");
 
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)

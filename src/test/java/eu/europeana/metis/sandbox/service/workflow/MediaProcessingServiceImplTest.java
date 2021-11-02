@@ -159,7 +159,8 @@ class MediaProcessingServiceImplTest {
     when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
-    when(extractor.performMediaExtraction(entry1, false)).thenThrow(new MediaExtractionException(""));
+    when(extractor.performMediaExtraction(entry1, false)).thenThrow(
+        new MediaExtractionException(""));
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content)).thenReturn(entry1);
 
@@ -196,7 +197,8 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
     when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(extractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(null);
+    when(extractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(
+        null);
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn(content);
 
@@ -273,8 +275,8 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getOutputRdf_RdfSerializationException_expectFail()
-          throws RdfDeserializationException, MediaProcessorException, MediaExtractionException,
-          RdfSerializationException {
+      throws RdfDeserializationException, MediaProcessorException, MediaExtractionException,
+      RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId("1")
         .content(content).language(Language.IT).country(Country.ITALY)
