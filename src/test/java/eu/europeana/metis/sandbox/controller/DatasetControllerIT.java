@@ -54,7 +54,7 @@ class DatasetControllerIT {
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
-            .param("url", datasetPath.toString()))
+            .param("url", datasetPath.toUri().toString()))
         .andExpect(status().isAccepted());
   }
 

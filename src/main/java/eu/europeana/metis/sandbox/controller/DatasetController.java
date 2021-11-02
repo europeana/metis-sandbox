@@ -53,15 +53,11 @@ class DatasetController {
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
-
-
-
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
-
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
+  @Value("${sandbox.dataset.max-size}")
+  private int maxRecords;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
@@ -128,10 +124,11 @@ class DatasetController {
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "incremental processing") @RequestParam Boolean incremental) {
+      @ApiParam(value = "incremental processing", defaultValue = "false") @RequestParam Boolean incremental) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestOaiPmh(url,setspec,metadataformat);
+    List<ByteArrayInputStream> records = harvestService.harvest(url, setspec, metadataformat,
+        incremental);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);

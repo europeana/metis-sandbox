@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.utils.ZipFileReader;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.zeroturnaround.zip.ZipException;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +35,8 @@ public class HarvestServiceImplTest {
 
     var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dataSetPath));
 
-    var records = harvestService.harvest(dataSetPath.toString());
+    var records = harvestService.harvest(dataSetPath.toUri().toString());
+
     // In spite records being the same size, they are not in the same order.
     // So comparing with assertArrayEquals() will output a failed assertion
     // assertArrayEquals(expectedRecords.toArray(),records.toArray());
@@ -64,7 +63,7 @@ public class HarvestServiceImplTest {
   }
 
   @Test
-  void harvestService_expectFailWithServiceException() {
+  void harvestService_expectFailNonExistingFile() {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "non-existing-file.zip");
     assertFalse(Files.exists(dataSetPath));
@@ -73,12 +72,12 @@ public class HarvestServiceImplTest {
   }
 
   @Test
-  void harvestService_expectFailWithZipException() {
+  void harvestService_expectFailCorruptFile() {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "corrupt_file.zip");
     assertTrue(Files.exists(dataSetPath));
 
-    assertThrows(ZipException.class, () -> harvestService.harvest(dataSetPath.toString()));
+    assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
   }
 
 }
