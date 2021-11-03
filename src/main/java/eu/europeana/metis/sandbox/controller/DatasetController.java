@@ -136,6 +136,9 @@ class DatasetController {
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
+
+    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
+
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
