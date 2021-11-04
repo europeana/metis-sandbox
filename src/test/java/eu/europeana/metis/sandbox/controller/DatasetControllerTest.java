@@ -1,17 +1,8 @@
 package eu.europeana.metis.sandbox.controller;
 
-import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
-import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
@@ -20,18 +11,12 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.util.ZipService;
-import java.io.ByteArrayInputStream;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +26,25 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
+import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(DatasetController.class)
 class DatasetControllerTest {
@@ -49,7 +53,7 @@ class DatasetControllerTest {
   private MockMvc mvc;
 
   @MockBean
-  private ZipService zipService;
+  private HarvestService harvestService;
 
   @MockBean
   private DatasetService datasetService;
@@ -57,8 +61,10 @@ class DatasetControllerTest {
   @MockBean
   private DatasetReportService datasetReportService;
 
+  private final TestUtils testUtils = new TestUtils();
+
   @Test
-  void processDataset_expectSuccess() throws Exception {
+  void processDatasetFromFile_expectSuccess() throws Exception {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
@@ -68,51 +74,102 @@ class DatasetControllerTest {
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
   }
 
   @Test
-  void processDataset_invalidName_expectFail() throws Exception {
+  void processDatasetFromURL_expectSuccess() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+
+    var records = List.of(new ByteArrayInputStream(testUtils.readFileToBytes(url)));
+
+    var datasetObject = new Dataset("12345", Set.of(), 0);
+
+    when(harvestService.harvest(url)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.dataset-id", is("12345")));
+  }
+
+  @Test
+  void processDatasetFromFile_invalidName_expectFail() throws Exception {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data=set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data=set")
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("dataset name can only include letters, numbers, _ or - characters")));
   }
 
   @Test
-  void processDataset_zipServiceFails_expectFail() throws Exception {
+  void processDatasetFromURL_invalidName_expectFail() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data=set")
+            .param("name", "invalidDatasetName")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("dataset name can only include letters, numbers, _ or - characters")));
+  }
+
+  @Test
+  void processDatasetFromFile_harvestServiceFails_expectFail() throws Exception {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
+    when(harvestService.harvest(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("File provided is not valid zip. ")));
   }
 
   @Test
-  void processDataset_recordsQtyExceeded_expectFail() throws Exception {
+  void processDatasetFromURL_harvestServiceFails_expectFail() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+
+    when(harvestService.harvest(url)).thenThrow(new IllegalArgumentException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(result -> assertTrue(
+            result.getResolvedException() instanceof IllegalArgumentException));
+  }
+
+  @Test
+  void processDatasetFromFile_recordsQtyExceeded_expectFail() throws Exception {
 
     var records = IntStream.range(0, 1000)
         .boxed()
@@ -124,19 +181,42 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             containsString("Amount of records can not be more than")));
   }
 
   @Test
-  void processDataset_datasetServiceFails_expectFail() throws Exception {
+  void processDatasetFromURL_recordsQtyExceeded_expectFail() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+
+    var records = IntStream.range(0, 1000)
+        .boxed()
+        .map(Object::toString)
+        .map(String::getBytes)
+        .map(ByteArrayInputStream::new)
+        .collect(Collectors.toList());
+
+    when(harvestService.harvest(url)).thenReturn(records);
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            containsString("Amount of records can not be more than")));
+  }
+
+  @Test
+  void processDatasetFromFile_datasetServiceFails_expectFail() throws Exception {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
@@ -144,21 +224,41 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
   }
 
   @Test
-  void processDataset_datasetServiceInvalidRecord_expectFail() throws Exception {
+  void processDatasetFromURL_datasetServiceFails_expectFail() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    when(harvestService.harvest(url)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+        .thenThrow(new ServiceException("Failed", new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.message",
+            is("Failed Please retry, if problem persists contact provider.")));
+  }
+
+  @Test
+  void processDatasetFromFile_datasetServiceInvalidRecord_expectFail() throws Exception {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
@@ -166,14 +266,34 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(zipService.parse(dataset)).thenReturn(records);
+    when(harvestService.harvest(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new RecordParsingException(new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/process", "my-data-set")
-        .file(dataset)
-        .param("country", ITALY.name())
-        .param("language", IT.name()))
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("Error while parsing a xml record. ")));
+  }
+
+  @Test
+  void processDatasetFromURL_datasetServiceInvalidRecord_expectFail() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    when(harvestService.harvest(url)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Error while parsing a xml record. ")));
@@ -188,7 +308,8 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL, Country.NETHERLANDS);
+    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
+        Country.NETHERLANDS);
     var report = new ProgressInfoDto("https://metis-sandbox", "https://metis-sandbox",
         10, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
     when(datasetReportService.getReport("1")).thenReturn(report);
