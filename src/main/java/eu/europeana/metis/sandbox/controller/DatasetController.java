@@ -53,11 +53,14 @@ class DatasetController {
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
+
+  @Value("${sandbox.dataset.max-size}")
+  private int maxRecords;
+
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
+
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
@@ -86,7 +89,6 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
@@ -134,7 +136,6 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
