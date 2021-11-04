@@ -122,7 +122,7 @@ class DatasetController {
   public DatasetIdDto harvestDatasetOaiPmh(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
@@ -135,7 +135,6 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
