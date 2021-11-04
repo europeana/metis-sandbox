@@ -113,6 +113,33 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
+  @ApiOperation("Process the given dataset using OAI-PMH")
+  @ApiResponses({
+      @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+  })
+  @PostMapping(value = "dataset/{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public DatasetIdDto harvestDatasetOaiPmh(
+      @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+      @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
+      @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
+      @ApiParam(value = "metadata format") @RequestParam String metadataformat,
+      @ApiParam(value = "incremental processing", defaultValue = "false") @RequestParam Boolean incremental) {
+    checkArgument(namePattern.matcher(datasetName).matches(),
+        "dataset name can only include letters, numbers, _ or - characters");
+    List<ByteArrayInputStream> records = harvestService.harvest(url, setspec, metadataformat,
+        incremental);
+
+    checkArgument(records.size() < maxRecords,
+        "Amount of records can not be more than " + maxRecords);
+
+    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
+    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    return new DatasetIdDto(datasetObject);
+  }
+
   @ApiOperation("Get dataset progress information")
   @ApiResponses({
       @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)

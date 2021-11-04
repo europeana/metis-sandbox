@@ -5,6 +5,9 @@ import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
+import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -87,6 +90,42 @@ public class HarvestServiceImpl implements HarvestService {
           throw new ServiceException("Could not delete temporary folder ", e);
         }
       }
+    }
+    if (records.isEmpty()) {
+      throw new ServiceException("Error records are empty", null);
+    }
+    return records;
+  }
+
+  @Override
+  public List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix,
+      Boolean incremental) throws ServiceException {
+
+    List<ByteArrayInputStream> records = new ArrayList<>();
+    List<Pair<String, Exception>> exceptions = new ArrayList<>(1);
+
+    try {
+      OaiRecordHeaderIterator recordHeaderIterator = HarvesterFactory.createOaiHarvester()
+          .harvestRecordHeaders(new OaiHarvest(endpoint, prefix, setSpec));
+
+      recordHeaderIterator.forEach(r -> {
+        OaiRepository oaiRepo = new OaiRepository(endpoint, prefix);
+        try {
+          var rec = HarvesterFactory.createOaiHarvester()
+              .harvestRecord(oaiRepo, r.getOaiIdentifier());
+          records.add(new ByteArrayInputStream(rec.getRecord().readAllBytes()));
+        } catch (HarvesterException | IOException e) {
+          exceptions.add(new ImmutablePair<>(r.getOaiIdentifier(), e));
+          return ReportingIteration.IterationResult.TERMINATE;
+        }
+        return ReportingIteration.IterationResult.CONTINUE;
+      });
+      if (!exceptions.isEmpty()) {
+        throw new ServiceException("Error processing " + exceptions.get(0).getKey(),
+            exceptions.get(0).getValue());
+      }
+    } catch (HarvesterException e) {
+      throw new ServiceException("Error harvesting records ", e);
     }
     if (records.isEmpty()) {
       throw new ServiceException("Error records are empty ", null);
