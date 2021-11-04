@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -21,11 +20,9 @@ import org.springframework.mock.web.MockMultipartFile;
 @ExtendWith(MockitoExtension.class)
 public class HarvestServiceImplTest {
 
+  private static final ZipFileReader zipfilereader = new ZipFileReader();
 
-  private final ZipFileReader zipfilereader = new ZipFileReader();
-
-  @InjectMocks
-  private HarvestServiceImpl harvestService;
+  private static final HarvestServiceImpl harvestService = new HarvestServiceImpl();
 
   @Test
   void harvestServiceFromURL_expectSuccess() throws IOException {
@@ -66,6 +63,7 @@ public class HarvestServiceImplTest {
   void harvestService_expectFailNonExistingFile() {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "non-existing-file.zip");
+
     assertFalse(Files.exists(dataSetPath));
 
     assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
@@ -75,6 +73,7 @@ public class HarvestServiceImplTest {
   void harvestService_expectFailCorruptFile() {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "corrupt_file.zip");
+
     assertTrue(Files.exists(dataSetPath));
 
     assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
