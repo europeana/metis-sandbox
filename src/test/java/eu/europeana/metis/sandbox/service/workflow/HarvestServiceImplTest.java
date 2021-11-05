@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,8 +35,14 @@ public class HarvestServiceImplTest {
     assertTrue(Files.exists(dataSetPath));
 
     var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
     var records = harvestService.harvest(dataSetPath.toUri().toString());
+    Set<Integer> recordsLengths = new HashSet<>();
+    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertEquals(expectedRecordsLengths,recordsLengths);
 
     assertEquals(expectedRecords.size(), records.size());
   }
@@ -50,8 +58,14 @@ public class HarvestServiceImplTest {
         Files.newInputStream(dataSetPath));
 
     var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
     var records = harvestService.harvest(datasetFile);
+    Set<Integer> recordsLengths = new HashSet<>();
+    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertEquals(expectedRecordsLengths,recordsLengths);
 
     assertEquals(expectedRecords.size(), records.size());
   }
