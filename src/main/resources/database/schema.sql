@@ -15,7 +15,7 @@ create table if not exists dataset (
    dataset_name varchar(255) not null,
    records_quantity integer not null,
    created_date timestamp with time zone default now(),
-   country varchar(25) not null,
+   country varchar(35) not null,
    language varchar(3) not null,
    Primary Key (dataset_id)
 );
