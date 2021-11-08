@@ -1,26 +1,28 @@
 package eu.europeana.metis.sandbox.common;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 public class TestUtils {
 
   public String readFileToString(String file) throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    var path = classLoader.getResource(file);
-    if (path == null) {
+    InputStream inputStream = classLoader.getResourceAsStream(file);
+    if (inputStream == null) {
       throw new IOException("Failed reading file " + file);
     }
-    return Files.readString(Paths.get(path.getPath()));
+    return new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
   }
 
   public byte[] readFileToBytes(String file) throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    var path = classLoader.getResource(file);
-    if (path == null) {
+    InputStream inputStream = classLoader.getResourceAsStream(file);
+    if (inputStream == null) {
       throw new IOException("Failed reading file " + file);
     }
-    return Files.readAllBytes(Paths.get(path.getPath()));
+    return inputStream.readAllBytes();
   }
 }

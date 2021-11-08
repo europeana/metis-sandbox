@@ -19,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectFactory;
 import org.xml.sax.InputSource;
 
+import java.io.File;
+
 @ExtendWith(MockitoExtension.class)
 class XmlRecordProcessorServiceImplTest {
 
@@ -38,7 +40,8 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_expectSuccess() throws Exception {
-    var xmlRecord = utils.readFileToBytes("record/valid-record.xml");
+
+    var xmlRecord = utils.readFileToBytes("record"+File.separator+"valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
@@ -54,7 +57,7 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_recordParsingException_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToBytes("record/valid-record.xml");
+    var xmlRecord = utils.readFileToBytes("record"+File.separator+"valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
     when(xPathFactory.newXPath()).thenReturn(xPath);
@@ -66,7 +69,7 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_recordMissingId_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToBytes("record/record-missing-id.xml");
+    var xmlRecord = utils.readFileToBytes("record"+File.separator+"record-missing-id.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 

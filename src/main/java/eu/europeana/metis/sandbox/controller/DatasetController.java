@@ -10,12 +10,13 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.util.ZipService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -38,50 +39,52 @@ import org.springframework.web.multipart.MultipartFile;
 class DatasetController {
 
   private static final String MESSAGE_FOR_PROCESS_DATASET = ""
-          + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + "202 Accepted</span>"
-          + " - The response body will contain an object of type"
-          + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + DatasetIdDto.SWAGGER_MODEL_NAME + "</span>.";
+      + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+      + "202 Accepted</span>"
+      + " - The response body will contain an object of type"
+      + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+      + DatasetIdDto.SWAGGER_MODEL_NAME + "</span>.";
 
   private static final String MESSAGE_FOR_RETRIEVE_DATASET = ""
-          + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + "200 OK</span>"
-          + " - The response body will contain an object of type"
-          + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
-          + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
+      + "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+      + "200 OK</span>"
+      + " - The response body will contain an object of type"
+      + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
+      + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
   @Value("${sandbox.dataset.max-size}")
   private int maxRecords;
 
-  private final ZipService zipService;
+  private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
 
-  public DatasetController(ZipService zipService,
+  public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService) {
-    this.zipService = zipService;
+    this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
   }
 
-  @ApiOperation("Process the given dataset")
+  @ApiOperation("Process the given dataset by HTTP providing a file")
   @ApiResponses({
-          @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+      @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/process", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "dataset/{name}/harvestByFile", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDto processDataset(
+  public DatasetIdDto harvestDatasetFromFile(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
-      @ApiParam(value = "dataset records in a zip file", required = true) @RequestParam MultipartFile dataset) {
+      @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    var records = zipService.parse(dataset);
+
+    List<ByteArrayInputStream> records = harvestService.harvest(dataset);
+
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
@@ -90,16 +93,36 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
+  @ApiOperation("Process the given dataset by HTTP providing an URL")
+  @ApiResponses({
+      @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+  })
+  @PostMapping(value = "dataset/{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public DatasetIdDto harvestDatasetFromURL(
+      @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+      @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url) {
+    checkArgument(namePattern.matcher(datasetName).matches(),
+        "dataset name can only include letters, numbers, _ or - characters");
+    List<ByteArrayInputStream> records = harvestService.harvest(url);
+
+    checkArgument(records.size() < maxRecords,
+        "Amount of records can not be more than " + maxRecords);
+    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    return new DatasetIdDto(datasetObject);
+  }
+
   @ApiOperation("Get dataset progress information")
   @ApiResponses({
-          @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
+      @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
   })
   @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
   public ProgressInfoDto retrieveDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
   }
-
 
   /**
    * Get all available countries that can be used.
@@ -131,7 +154,7 @@ class DatasetController {
   @GetMapping(value = "dataset/languages", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public List<LanguageView> getAllLanguages(){
+  public List<LanguageView> getAllLanguages() {
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
         .collect(Collectors.toList());
   }
