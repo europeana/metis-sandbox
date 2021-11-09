@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.config.web;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -16,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 class MvcConfig implements WebMvcConfigurer {
 
   @Value("${sandbox.cors.mapping}")
-  private String corsMapping;
+  private String[] corsMapping;
 
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
@@ -31,7 +30,7 @@ class MvcConfig implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    if (StringUtils.isNotBlank(corsMapping)) {
+    if (corsMapping.length != 0) {
       registry.addMapping("/**").allowedOrigins(corsMapping);
     }
   }
