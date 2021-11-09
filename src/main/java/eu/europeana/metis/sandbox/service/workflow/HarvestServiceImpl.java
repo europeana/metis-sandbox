@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
@@ -111,4 +112,3 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
 }
-
