@@ -26,7 +26,7 @@ public interface HarvestService {
    * @throws ServiceException if file is not valid, error reading file, if records are empty
    */
   List<ByteArrayInputStream> harvest(String url) throws ServiceException;
-rvest
+
 
   /**
    * Harvest the given endpoint {@link String} to a list of byte[], one string per file in the zip
