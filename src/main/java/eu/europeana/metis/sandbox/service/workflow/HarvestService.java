@@ -34,11 +34,9 @@ public interface HarvestService {
    * @param endpoint    for zip file containing one or more records
    * @param setSpec     record specification
    * @param prefix      record prefix
-   * @param incremental Boolean to specify incremental processing
    * @return List of byte[]
    * @throws ServiceException if file is not valid, error reading file, if records are empty
    */
-  List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix,
-      Boolean incremental) throws ServiceException;
+  List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix) throws ServiceException;
 
 }

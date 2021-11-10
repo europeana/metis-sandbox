@@ -125,12 +125,10 @@ class DatasetController {
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
-      @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "incremental processing", defaultValue = "false") @RequestParam Boolean incremental) {
+      @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvest(url, setspec, metadataformat,
-        incremental);
+    List<ByteArrayInputStream> records = harvestService.harvest(url, setspec, metadataformat);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);

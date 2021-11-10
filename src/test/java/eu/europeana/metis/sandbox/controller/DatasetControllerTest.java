@@ -1,5 +1,16 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
+import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -17,6 +28,14 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,24 +45,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
-import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(DatasetController.class)
@@ -101,6 +102,29 @@ class DatasetControllerTest {
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.dataset-id", is("12345")));
+  }
+
+  @Test
+  void processDatasetFromOAI_expectSuccess() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    var datasetObject = new Dataset("12345", Set.of(), 0);
+
+    when(harvestService.harvest(url, "1073", "rdf")).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
+
+    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .param("country", ITALY.xmlValue())
+            .param("language", IT.xmlValue())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
   }

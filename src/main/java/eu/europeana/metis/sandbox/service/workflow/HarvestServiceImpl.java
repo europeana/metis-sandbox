@@ -56,8 +56,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix,
-      Boolean incremental) throws ServiceException {
+  public List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix) throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     List<Pair<String, Exception>> exceptions = new ArrayList<>();
@@ -65,15 +64,15 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       OaiRecordHeaderIterator recordHeaderIterator = harvesterOai
           .harvestRecordHeaders(new OaiHarvest(endpoint, prefix, setSpec));
+      OaiRepository oaiRepo = new OaiRepository(endpoint, prefix);
 
-      recordHeaderIterator.forEach(r -> {
-        OaiRepository oaiRepo = new OaiRepository(endpoint, prefix);
+      recordHeaderIterator.forEach(rh -> {
         try {
           var rec = harvesterOai
-              .harvestRecord(oaiRepo, r.getOaiIdentifier());
+              .harvestRecord(oaiRepo, rh.getOaiIdentifier());
           records.add(new ByteArrayInputStream(rec.getRecord().readAllBytes()));
         } catch (HarvesterException | IOException e) {
-          exceptions.add(new ImmutablePair<>(r.getOaiIdentifier(), e));
+          exceptions.add(new ImmutablePair<>(rh.getOaiIdentifier(), e));
           return ReportingIteration.IterationResult.TERMINATE;
         }
         return ReportingIteration.IterationResult.CONTINUE;
