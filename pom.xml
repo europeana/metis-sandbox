@@ -47,8 +47,6 @@
 		<version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
 		<version.coveralls>4.0.0</version.coveralls>
 		<version.surefire.plugin>2.22.1</version.surefire.plugin>
-		<version.com.github.tomakehurst.wiremock>2.27.2</version.com.github.tomakehurst.wiremock>
-		<version.xmlunit.matchers>2.8.2</version.xmlunit.matchers>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -185,33 +183,6 @@
 					<artifactId>android-json</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>com.github.tomakehurst</groupId>
-			<artifactId>wiremock</artifactId>
-			<version>${version.com.github.tomakehurst.wiremock}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>log4j</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.xmlunit</groupId>
-			<artifactId>xmlunit-core</artifactId>
-			<version>${version.xmlunit.matchers}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.xmlunit</groupId>
-			<artifactId>xmlunit-matchers</artifactId>
-			<version>${version.xmlunit.matchers}</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
