@@ -11,10 +11,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.zeroturnaround.zip.ZipException;
+
 
 
 @ExtendWith(MockitoExtension.class)
@@ -25,58 +30,79 @@ public class HarvestServiceImplTest {
   private static final HarvestServiceImpl harvestService = new HarvestServiceImpl();
 
   @Test
-  void harvestServiceFromURL_expectSuccess() throws IOException {
+  void harvestServiceFromURL_ExpectSuccess() throws IOException {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
 
     var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
     var records = harvestService.harvest(dataSetPath.toUri().toString());
+    Set<Integer> recordsLengths = new HashSet<>();
+    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
-    // In spite records being the same size, they are not in the same order.
-    // So comparing with assertArrayEquals() will output a failed assertion
-    // assertArrayEquals(expectedRecords.toArray(),records.toArray());
+    assertEquals(expectedRecordsLengths,recordsLengths);
+
     assertEquals(expectedRecords.size(), records.size());
   }
 
   @Test
-  void harvestServiceFromUploadFile_expectSuccess() throws IOException {
+  void harvestServiceFromUploadedFile_ExpectSuccess() throws IOException {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
 
     assertTrue(Files.exists(dataSetPath));
 
-    MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         Files.newInputStream(dataSetPath));
 
     var expectedRecords = zipfilereader.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
-    var records = harvestService.harvest(dataset);
-    // In spite records being the same size, they are not in the same order.
-    // So comparing with assertArrayEquals() will output a failed assertion
-    // assertArrayEquals(expectedRecords.toArray(),records.toArray());
+    var records = harvestService.harvest(datasetFile);
+    Set<Integer> recordsLengths = new HashSet<>();
+    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertEquals(expectedRecordsLengths,recordsLengths);
+
     assertEquals(expectedRecords.size(), records.size());
   }
 
   @Test
-  void harvestService_expectFailNonExistingFile() {
+  void harvestServiceFromURL_NonExisting_ExpectFail() {
 
-    Path dataSetPath = Paths.get("src", "test", "resources", "zip", "non-existing-file.zip");
+    Path dataSetPath = Paths.get("src", "test", "resources", "zip", "non-existing.zip");
 
     assertFalse(Files.exists(dataSetPath));
 
-    assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
+    assertThrows(ServiceException.class,
+        () -> harvestService.harvest(dataSetPath.toUri().toString()));
   }
 
   @Test
-  void harvestService_expectFailCorruptFile() {
+  void harvestServiceFromFile_CorruptFile_ExpectFail() throws IOException {
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "corrupt_file.zip");
 
     assertTrue(Files.exists(dataSetPath));
-
     assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
+    MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        Files.newInputStream(dataSetPath));
+
+    assertThrows(ZipException.class, () -> harvestService.harvest(datasetFile));
+  }
+
+  @Test
+  void harvestServiceFromFile_NonExistingFile_ExpectFail() throws IOException {
+
+    MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        new NullInputStream());
+
+    assertThrows(ZipException.class, () -> harvestService.harvest(datasetFile));
+    
   }
 
 }

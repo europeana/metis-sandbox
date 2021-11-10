@@ -61,7 +61,6 @@ class DatasetController {
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
 
-
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService) {

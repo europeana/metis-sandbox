@@ -61,7 +61,6 @@ class DatasetControllerIT {
   @Test
   public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
 
-
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
@@ -71,7 +70,6 @@ class DatasetControllerIT {
             .param("incremental", "false"))
         .andExpect(status().isAccepted());
   }
-
 
   @Test
   public void retrieveDataset_expectStatus_ok() throws Exception {
