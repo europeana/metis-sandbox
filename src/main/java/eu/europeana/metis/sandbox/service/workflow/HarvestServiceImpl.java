@@ -30,7 +30,8 @@ public class HarvestServiceImpl implements HarvestService {
   private static final OaiHarvester harvesterOai = HarvesterFactory.createOaiHarvester();
 
   @Override
-  public List<ByteArrayInputStream> harvest(MultipartFile file) throws ServiceException {
+  public List<ByteArrayInputStream> harvestZipMultipartFile(MultipartFile file)
+      throws ServiceException {
 
     List<ByteArrayInputStream> records;
 
@@ -43,7 +44,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvest(String url) throws ServiceException {
+  public List<ByteArrayInputStream> harvestZipUrl(String url) throws ServiceException {
 
     List<ByteArrayInputStream> records;
 
@@ -56,23 +57,25 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvest(String endpoint, String setSpec, String prefix) throws ServiceException {
+  public List<ByteArrayInputStream> harvestOaiPmhEndpoint(String endpoint, String setSpec,
+      String prefix)
+      throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     List<Pair<String, Exception>> exceptions = new ArrayList<>();
 
-    try {
-      OaiRecordHeaderIterator recordHeaderIterator = harvesterOai
-          .harvestRecordHeaders(new OaiHarvest(endpoint, prefix, setSpec));
-      OaiRepository oaiRepo = new OaiRepository(endpoint, prefix);
+    try (OaiRecordHeaderIterator recordHeaderIterator = harvesterOai
+        .harvestRecordHeaders(new OaiHarvest(endpoint, prefix, setSpec))) {
 
-      recordHeaderIterator.forEach(rh -> {
+      OaiRepository oaiRepository = new OaiRepository(endpoint, prefix);
+
+      recordHeaderIterator.forEach(recordHeader -> {
         try {
-          var rec = harvesterOai
-              .harvestRecord(oaiRepo, rh.getOaiIdentifier());
-          records.add(new ByteArrayInputStream(rec.getRecord().readAllBytes()));
+          var oaiRecord = harvesterOai
+              .harvestRecord(oaiRepository, recordHeader.getOaiIdentifier());
+          records.add(new ByteArrayInputStream(oaiRecord.getRecord().readAllBytes()));
         } catch (HarvesterException | IOException e) {
-          exceptions.add(new ImmutablePair<>(rh.getOaiIdentifier(), e));
+          exceptions.add(new ImmutablePair<>(recordHeader.getOaiIdentifier(), e));
           return ReportingIteration.IterationResult.TERMINATE;
         }
         return ReportingIteration.IterationResult.CONTINUE;
@@ -81,7 +84,7 @@ public class HarvestServiceImpl implements HarvestService {
         throw new ServiceException("Error processing " + exceptions.get(0).getKey(),
             exceptions.get(0).getValue());
       }
-    } catch (HarvesterException e) {
+    } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting records ", e);
     }
     if (records.isEmpty()) {
@@ -90,12 +93,12 @@ public class HarvestServiceImpl implements HarvestService {
     return records;
   }
 
-  private List<ByteArrayInputStream> harvest(InputStream is) throws ServiceException {
+  private List<ByteArrayInputStream> harvest(InputStream inputStream) throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
 
     try {
-      harvester.harvestRecords(is, CompressedFileExtension.ZIP, entry -> {
+      harvester.harvestRecords(inputStream, CompressedFileExtension.ZIP, entry -> {
         final byte[] content = entry.getEntryContent().readAllBytes();
         records.add(new ByteArrayInputStream(content));
       });

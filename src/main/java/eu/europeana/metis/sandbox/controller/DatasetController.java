@@ -83,7 +83,7 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    List<ByteArrayInputStream> records = harvestService.harvest(dataset);
+    List<ByteArrayInputStream> records = harvestService.harvestZipMultipartFile(dataset);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
@@ -105,7 +105,7 @@ class DatasetController {
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvest(url);
+    List<ByteArrayInputStream> records = harvestService.harvestZipUrl(url);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
@@ -128,7 +128,8 @@ class DatasetController {
       @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvest(url, setspec, metadataformat);
+    List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
+        metadataformat);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);

@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.utils.ZipFileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,13 +18,12 @@ import java.util.Set;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zeroturnaround.zip.ZipException;
 
 
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 public class HarvestServiceImplTest {
 
   private static final ZipFileReader zipfilereader = new ZipFileReader();
@@ -39,11 +40,11 @@ public class HarvestServiceImplTest {
     Set<Integer> expectedRecordsLengths = new HashSet<>();
     expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
-    var records = harvestService.harvest(dataSetPath.toUri().toString());
+    var records = harvestService.harvestZipUrl(dataSetPath.toUri().toString());
     Set<Integer> recordsLengths = new HashSet<>();
     records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
-    assertEquals(expectedRecordsLengths,recordsLengths);
+    assertEquals(expectedRecordsLengths, recordsLengths);
 
     assertEquals(expectedRecords.size(), records.size());
   }
@@ -62,11 +63,11 @@ public class HarvestServiceImplTest {
     Set<Integer> expectedRecordsLengths = new HashSet<>();
     expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
-    var records = harvestService.harvest(datasetFile);
+    var records = harvestService.harvestZipMultipartFile(datasetFile);
     Set<Integer> recordsLengths = new HashSet<>();
     records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
-    assertEquals(expectedRecordsLengths,recordsLengths);
+    assertEquals(expectedRecordsLengths, recordsLengths);
 
     assertEquals(expectedRecords.size(), records.size());
   }
@@ -79,7 +80,7 @@ public class HarvestServiceImplTest {
     assertFalse(Files.exists(dataSetPath));
 
     assertThrows(ServiceException.class,
-        () -> harvestService.harvest(dataSetPath.toUri().toString()));
+        () -> harvestService.harvestZipUrl(dataSetPath.toUri().toString()));
   }
 
   @Test
@@ -88,11 +89,11 @@ public class HarvestServiceImplTest {
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "corrupt_file.zip");
 
     assertTrue(Files.exists(dataSetPath));
-    assertThrows(ServiceException.class, () -> harvestService.harvest(dataSetPath.toString()));
+
     MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         Files.newInputStream(dataSetPath));
 
-    assertThrows(ZipException.class, () -> harvestService.harvest(datasetFile));
+    assertThrows(ZipException.class, () -> harvestService.harvestZipMultipartFile(datasetFile));
   }
 
   @Test
@@ -101,8 +102,21 @@ public class HarvestServiceImplTest {
     MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         new NullInputStream());
 
-    assertThrows(ZipException.class, () -> harvestService.harvest(datasetFile));
-    
+    assertThrows(ZipException.class, () -> harvestService.harvestZipMultipartFile(datasetFile));
+
   }
+
+  // TODO: this should be tested with wiremock or mock the harvest implementation itself
+  void harvestServiceFromOAI_PMH_ExpectSuccess() throws URISyntaxException {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+    var records = harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf");
+
+    int expectedRecordSize = 165;
+
+    assertEquals(expectedRecordSize, records.size());
+  }
+
 
 }

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,7 +76,7 @@ class DatasetControllerTest {
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvest(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -95,10 +96,10 @@ class DatasetControllerTest {
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvest(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
@@ -116,10 +117,10 @@ class DatasetControllerTest {
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvest(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
-    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
             .param("url", url)
@@ -149,11 +150,28 @@ class DatasetControllerTest {
 
     String url = "zip" + File.separator + "dataset-valid.zip";
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data=set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data=set")
             .param("name", "invalidDatasetName")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("dataset name can only include letters, numbers, _ or - characters")));
+  }
+
+  @Test
+  void processDatasetFromOAI_invalidName_expectFail() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data=set")
+            .param("name", "invalidDatasetName")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("dataset name can only include letters, numbers, _ or - characters")));
@@ -165,7 +183,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(harvestService.harvest(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
+    when(harvestService.harvestZipMultipartFile(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -181,12 +199,31 @@ class DatasetControllerTest {
 
     String url = "zip" + File.separator + "dataset-valid.zip";
 
-    when(harvestService.harvest(url)).thenThrow(new IllegalArgumentException(new Exception()));
+    when(harvestService.harvestZipUrl(url)).thenThrow(new IllegalArgumentException(new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(result -> assertTrue(
+            result.getResolvedException() instanceof IllegalArgumentException));
+  }
+
+  @Test
+  void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenThrow(
+        new IllegalArgumentException(new Exception()));
+
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
         .andExpect(status().isBadRequest())
         .andExpect(result -> assertTrue(
             result.getResolvedException() instanceof IllegalArgumentException));
@@ -205,7 +242,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(harvestService.harvest(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -228,12 +265,37 @@ class DatasetControllerTest {
         .map(ByteArrayInputStream::new)
         .collect(Collectors.toList());
 
-    when(harvestService.harvest(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(records);
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            containsString("Amount of records can not be more than")));
+  }
+
+  @Test
+  void processDatasetFromOAI_recordsQtyExceeded_expectFail() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+    var records = IntStream.range(0, 1000)
+        .boxed()
+        .map(Object::toString)
+        .map(String::getBytes)
+        .map(ByteArrayInputStream::new)
+        .collect(Collectors.toList());
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             containsString("Amount of records can not be more than")));
@@ -248,7 +310,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(harvestService.harvest(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
@@ -268,14 +330,36 @@ class DatasetControllerTest {
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
 
-    when(harvestService.harvest(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.message",
+            is("Failed Please retry, if problem persists contact provider.")));
+  }
+
+  @Test
+  void processDatasetFromOAI_datasetServiceFails_expectFail() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+        .thenThrow(new ServiceException("Failed", new Exception()));
+
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
@@ -290,7 +374,7 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(harvestService.harvest(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new RecordParsingException(new Exception()));
 
@@ -310,14 +394,36 @@ class DatasetControllerTest {
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
 
-    when(harvestService.harvest(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new RecordParsingException(new Exception()));
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("Error while parsing a xml record. ")));
+  }
+
+  @Test
+  void processDatasetFromOAI_datasetServiceInvalidRecord_expectFail() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Error while parsing a xml record. ")));

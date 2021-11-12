@@ -5,6 +5,7 @@ import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.SandboxApplication;
@@ -33,7 +34,7 @@ class DatasetControllerIT {
   private MockMvc mvc;
 
   @Test
-  public void harvestDataseWithFile_expectStatus_accepted() throws Exception {
+  public void harvestDatasetWithFile_expectStatus_accepted() throws Exception {
 
     MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         testUtils.readFileToBytes("zip" + File.separator + "dataset-valid.zip"));
@@ -51,17 +52,18 @@ class DatasetControllerIT {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(datasetPath));
 
-    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
             .param("url", datasetPath.toUri().toString()))
         .andExpect(status().isAccepted());
   }
 
-  @Test
+  // TODO: This sort of integration test should be addressed differently, with wiremock or
+  // with implementation mocks
   public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
 
-    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
             .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
