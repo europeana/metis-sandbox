@@ -1,8 +1,5 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
-
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Dataset;
@@ -37,9 +34,6 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
   @Override
   public CompletableFuture<Void> publish(Dataset dataset) {
-    requireNonNull(dataset, "Dataset must not be null");
-    checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
-
     return CompletableFuture.runAsync(() -> dataset.getRecords()
         .forEach(this::publish), asyncDatasetPublishServiceTaskExecutor);
   }

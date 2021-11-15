@@ -18,10 +18,8 @@ public class RecordError {
    * Constructor, creates object from the provided exception
    *
    * @param exception must not be null
-   * @throws NullPointerException if exception is null
    */
   public RecordError(RecordProcessingException exception) {
-    requireNonNull(exception, "Exception must not be null");
     this.message = Optional.ofNullable(exception.getReportMessage())
         .orElse("No message. Report to service provider");
     this.stackTrace = ExceptionUtils.getStackTrace(exception);
