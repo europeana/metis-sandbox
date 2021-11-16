@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto.report;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import eu.europeana.metis.sandbox.common.Step;
@@ -26,7 +24,6 @@ public class ProgressByStepDto {
 
   public ProgressByStepDto(Step step, long success, long fail, long warn,
       List<ErrorInfoDto> errors) {
-    requireNonNull(step, "Step must not be null");
     this.step = step;
     this.total = success + fail + warn;
     this.success = success;
