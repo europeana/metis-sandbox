@@ -8,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.utils.ZipFileReader;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,7 +22,7 @@ import org.zeroturnaround.zip.ZipException;
 
 
 @ExtendWith(SpringExtension.class)
-public class HarvestServiceImplTest {
+public class HttpHarvestServiceImplTest {
 
   private static final ZipFileReader zipfilereader = new ZipFileReader();
 
@@ -105,18 +103,5 @@ public class HarvestServiceImplTest {
     assertThrows(ZipException.class, () -> harvestService.harvestZipMultipartFile(datasetFile));
 
   }
-
-  // TODO: this should be tested with wiremock or mock the harvest implementation itself
-  void harvestServiceFromOAI_PMH_ExpectSuccess() throws URISyntaxException {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-
-    var records = harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf");
-
-    int expectedRecordSize = 165;
-
-    assertEquals(expectedRecordSize, records.size());
-  }
-
 
 }
