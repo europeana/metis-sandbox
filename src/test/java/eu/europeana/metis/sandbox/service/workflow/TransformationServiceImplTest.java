@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -12,12 +13,15 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,17 +40,29 @@ class TransformationServiceImplTest {
   @Mock
   private XsltTransformer xsltTransformer;
 
+  @Mock
+  TransformXsltRepository transformXsltRepository;
+
+
   @InjectMocks
   private TransformationServiceImpl service;
 
   @Test
   void transform_expectSuccess() throws IOException, TransformationException {
-    var input = testUtils.readFileToBytes("record"+ File.separator+"transform"+File.separator+"record-input.xml");
-    var expected = testUtils.readFileToString("record"+File.separator+"transform"+File.separator+"record-expected.xml");
+    var input = testUtils.readFileToBytes(
+        "record" + File.separator + "transform" + File.separator + "record-input.xml");
+    var expected = testUtils.readFileToString(
+        "record" + File.separator + "transform" + File.separator + "record-expected.xml");
+    var transformFile = new String(
+        testUtils.readFileToBytes("record" + File.separator + "defaultTransform.xml"),
+        StandardCharsets.UTF_8);
 
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
         .recordId("").build();
+
+    TransformXsltEntity dummyEntity = new TransformXsltEntity(transformFile);
+    when(transformXsltRepository.findById(anyInt())).thenReturn(Optional.of(dummyEntity));
 
     when(objectProvider.getObject(anyString(), anyString(), anyString()))
         .thenReturn(xsltTransformer);
@@ -65,7 +81,14 @@ class TransformationServiceImplTest {
 
   @Test
   void transform_invalidXml_expectFail() throws IOException, TransformationException {
-    var input = testUtils.readFileToBytes("record"+File.separator+"bad-order"+File.separator+"record-input.xml");
+    var input = testUtils.readFileToBytes(
+        "record" + File.separator + "bad-order" + File.separator + "record-input.xml");
+    var transformFile = new String(
+        testUtils.readFileToBytes("record" + File.separator + "defaultTransform.xml"),
+        StandardCharsets.UTF_8);
+
+    TransformXsltEntity dummyEntity = new TransformXsltEntity(transformFile);
+    when(transformXsltRepository.findById(anyInt())).thenReturn(Optional.of(dummyEntity));
 
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT).content(input)
