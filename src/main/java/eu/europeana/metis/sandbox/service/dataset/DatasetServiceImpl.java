@@ -68,7 +68,6 @@ class DatasetServiceImpl implements DatasetService {
     }
 
     publishService.publish(dataset);
-
     return dataset;
   }
 
