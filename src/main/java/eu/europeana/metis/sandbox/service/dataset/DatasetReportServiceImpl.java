@@ -65,6 +65,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
   @Override
   @Transactional(readOnly = true)
   public ProgressInfoDto getReport(String datasetId) {
+    requireNonNull(datasetId, "Dataset id must not be null");
 
     // search for dataset
     DatasetEntity dataset = getDataset(datasetId);

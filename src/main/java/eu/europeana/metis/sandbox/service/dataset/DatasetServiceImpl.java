@@ -1,6 +1,8 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -37,6 +39,11 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
       List<ByteArrayInputStream> records) {
+    requireNonNull(datasetName, "Dataset name must not be null");
+    requireNonNull(country, "Country must not be null");
+    requireNonNull(language, "Language must not be null");
+    requireNonNull(records, "Records must not be null");
+    checkArgument(!records.isEmpty(), "Records must not be empty");
 
     var entity = new DatasetEntity(datasetName, records.size(), language, country);
     try {
@@ -61,6 +68,7 @@ class DatasetServiceImpl implements DatasetService {
     }
 
     publishService.publish(dataset);
+
     return dataset;
   }
 

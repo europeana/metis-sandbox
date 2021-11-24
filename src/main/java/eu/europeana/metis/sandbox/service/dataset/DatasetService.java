@@ -18,6 +18,8 @@ public interface DatasetService {
    * @param language    must not be null
    * @param records     must not be null
    * @return the created dataset
+   * @throws NullPointerException     if any input is null
+   * @throws IllegalArgumentException if records list is empty
    * @throws ServiceException         if any unhandled exception happens, exception will contain
    *                                  original exception
    * @throws RecordParsingException   if fails to parse a record from the records list
