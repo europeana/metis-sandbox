@@ -31,8 +31,6 @@ public class DatasetInfoDto {
   public DatasetInfoDto(String datasetId, String datasetName,
       LocalDateTime creationDate,
       Language language, Country country) {
-    requireNonNull(datasetId, "Dataset ID must not be null");
-    requireNonNull(datasetName, "Dataset Name must not be null");
     this.creationDate = creationDate;
     this.language = language;
     this.country = country;

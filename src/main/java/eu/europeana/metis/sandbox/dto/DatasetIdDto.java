@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import io.swagger.annotations.ApiModel;
@@ -19,7 +17,6 @@ public class DatasetIdDto {
   private final int duplicateRecords;
 
   public DatasetIdDto(Dataset dataset) {
-    requireNonNull(dataset, "Dataset id must not be null");
     this.recordsToProcess = dataset.getRecords().size();
     this.duplicateRecords = dataset.getDuplicates();
     this.datasetId = dataset.getDatasetId();

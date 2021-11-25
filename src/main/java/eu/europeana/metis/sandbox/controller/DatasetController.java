@@ -69,6 +69,14 @@ class DatasetController {
     this.reportService = reportService;
   }
 
+  /**
+   * POST API call for harvesting and processing the records given a zip file
+   * @param datasetName The given name of the dataset to be processed
+   * @param country The given country from which the records refer to
+   * @param language The given language that the records contain
+   * @param dataset The given dataset itself to be processed as a zip file
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
   @ApiOperation("Process the given dataset by HTTP providing a file")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
@@ -93,6 +101,14 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
+  /**
+   * POST API call for harvesting and processing the records given a URL of a zip file
+   * @param datasetName The given name of the dataset to be processed
+   * @param country The given country from which the records refer to
+   * @param language The given language that the records contain
+   * @param url The given dataset itself to be processed as a URL of a zip file
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
   @ApiOperation("Process the given dataset by HTTP providing an URL")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
@@ -114,6 +130,11 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
+  /**
+   * GET API call to return the progress status of a given dataset id
+   * @param datasetId The given dataset id to look for
+   * @return The report of the dataset status
+   */
   @ApiOperation("Get dataset progress information")
   @ApiResponses({
       @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
