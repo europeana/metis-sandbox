@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -24,6 +26,11 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
   @Override
   public Dataset generate(String id, String name, Country country, Language language,
       List<ByteArrayInputStream> records) {
+    requireNonNull(name, "Dataset name must not be null");
+    requireNonNull(country, "Country must not be null");
+    requireNonNull(language, "Language must not be null");
+    requireNonNull(records, "Records must not be null");
+    checkArgument(!records.isEmpty(), "Records must not be empty");
 
     var totalRecords = records.size();
     var recordObjectList = records.stream()
