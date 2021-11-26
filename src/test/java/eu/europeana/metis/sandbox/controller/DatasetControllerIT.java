@@ -59,8 +59,8 @@ class DatasetControllerIT {
         .andExpect(status().isAccepted());
   }
 
-  // TODO: This sort of integration test should be addressed differently, with wiremock or
-  // with implementation mocks
+  // TODO: This sort of integration test should be addressed differently,
+  //  with wiremock or pointing to a local URL repository
   public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")

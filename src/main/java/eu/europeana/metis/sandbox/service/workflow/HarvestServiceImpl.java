@@ -1,8 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
-import eu.europeana.metis.harvesting.HarvesterFactory;
-
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
@@ -19,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,8 +25,16 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
-  private static final HttpHarvester harvester = HarvesterFactory.createHttpHarvester();
-  private static final OaiHarvester harvesterOai = HarvesterFactory.createOaiHarvester();
+  private final HttpHarvester harvester;
+
+  private final OaiHarvester harvesterOai;
+
+  @Autowired
+  public HarvestServiceImpl(HttpHarvester harvester,
+      OaiHarvester harvesterOai) {
+    this.harvester = harvester;
+    this.harvesterOai = harvesterOai;
+  }
 
   @Override
   public List<ByteArrayInputStream> harvestZipMultipartFile(MultipartFile file)
