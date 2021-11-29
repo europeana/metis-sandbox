@@ -7,7 +7,7 @@ drop table if exists dataset;
 drop table if exists record_log;
 drop table if exists record_error_log;
 drop table if exists thumbnail;
-drop table if exists transform;
+drop table if exists  transform_xslt;
 commit;
 
 begin;
