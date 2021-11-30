@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto.report;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Status;
 import io.swagger.annotations.ApiModel;
@@ -24,9 +22,6 @@ public class ErrorInfoDto {
 
   public ErrorInfoDto(String errorMessage, Status type,
       List<String> recordIds) {
-    requireNonNull(errorMessage, "Error message must not be null");
-    requireNonNull(type, "Type must not be null");
-    requireNonNull(recordIds, "Record ids must not be null");
     this.recordIds = Collections.unmodifiableList(recordIds);
     this.type = type;
     this.errorMessage = errorMessage;

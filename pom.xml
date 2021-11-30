@@ -40,7 +40,7 @@
 	<properties>
 		<version.java>11</version.java>
 		<version.springfox>2.9.2</version.springfox>
-		<version.metis>5</version.metis>
+		<version.metis>6-SNAPSHOT</version.metis>
 		<version.europeana>2.14.1-SNAPSHOT</version.europeana>
 		<version.postgresql>42.2.11</version.postgresql>
 		<version.aws.s3>1.11.762</version.aws.s3>
@@ -140,13 +140,6 @@
 					<artifactId>mockito-all</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<!-- TODO 02-11-2021: Once metis version is updated (with the commons-lang library update), we should remove the dependency below -->
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
 		</dependency>
 
 		<!-- Persistence -->

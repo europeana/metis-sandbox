@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto.report;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
@@ -56,10 +54,6 @@ public class ProgressInfoDto {
   public ProgressInfoDto(String portalPreviewUrl, String portalPublishUrl,
       int totalRecords,
       long processedRecords, List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
-    requireNonNull(portalPreviewUrl, "Preview portal url must not be null");
-    requireNonNull(portalPublishUrl, "Publish portal url must not be null");
-    requireNonNull(progressByStep, "Progress by step must not be null");
-    requireNonNull(datasetInfoDto, "Dataset info must not be null");
     this.totalRecords = totalRecords;
     this.processedRecords = processedRecords;
     this.status =
