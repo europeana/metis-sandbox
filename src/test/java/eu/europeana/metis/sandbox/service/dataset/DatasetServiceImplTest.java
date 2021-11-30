@@ -55,7 +55,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com");
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
@@ -77,7 +77,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com");
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
@@ -88,13 +88,13 @@ class DatasetServiceImplTest {
   @Test
   void createDataset_nullValue_expectFail() {
     assertThrows(NullPointerException.class,
-        () -> service.createDataset(null, Country.AUSTRIA, Language.BE, List.of()));
+        () -> service.createDataset(null, Country.AUSTRIA, Language.BE, List.of(), ""));
   }
 
   @Test
   void createDataset_emptyRecordList_expectFail() {
     assertThrows(IllegalArgumentException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, List.of()));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, List.of(), ""));
   }
 
   @Test
@@ -108,7 +108,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class)))
         .thenThrow(new IllegalArgumentException());
     assertThrows(ServiceException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com"));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);
@@ -132,7 +132,7 @@ class DatasetServiceImplTest {
         .thenReturn(dataset);
 
     assertThrows(ServiceException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com"));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);

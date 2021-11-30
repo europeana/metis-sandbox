@@ -36,11 +36,20 @@ public class DatasetEntity {
   @Enumerated(EnumType.STRING)
   private Country country;
 
+  private String xsltTransformerEdmExternal = "";
+
   public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
     this.language = language;
     this.country = country;
+
+  }
+
+  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
+      String xsltTransformerEdmExternal) {
+    this(datasetName, recordsQuantity, language, country);
+    this.xsltTransformerEdmExternal = xsltTransformerEdmExternal;
   }
 
   public DatasetEntity() {
@@ -95,4 +104,11 @@ public class DatasetEntity {
     this.country = country;
   }
 
+  public String getXsltTransformerEdmExternal() {
+    return xsltTransformerEdmExternal;
+  }
+
+  public void setXsltTransformerEdmExternal(String xsltTransformerEdmExternal) {
+    this.xsltTransformerEdmExternal = xsltTransformerEdmExternal;
+  }
 }

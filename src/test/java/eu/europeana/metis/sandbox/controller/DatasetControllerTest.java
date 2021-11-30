@@ -75,7 +75,7 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvest(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "https://example.com")).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -95,7 +95,7 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvest(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "https://example.com")).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
@@ -225,7 +225,7 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     when(harvestService.harvest(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "https://example.com"))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -245,7 +245,7 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvest(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "https://example.com"))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -267,7 +267,7 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     when(harvestService.harvest(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records,"https://example.com"))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -287,7 +287,7 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvest(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "https://example.com"))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
