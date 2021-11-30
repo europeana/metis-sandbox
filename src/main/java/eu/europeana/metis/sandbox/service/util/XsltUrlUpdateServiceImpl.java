@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.util;
 
-import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,12 +35,16 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
     try (final InputStream xsltStream = httpClient.send(httpRequest, BodyHandlers.ofInputStream())
         .body()) {
-      TransformXsltEntity entity = new TransformXsltEntity(new String(xsltStream.readAllBytes(),
-          StandardCharsets.UTF_8));
-      transformXsltRepository.saveAndFlush(entity);
+      String transformXslt = new String(xsltStream.readAllBytes(),
+          StandardCharsets.UTF_8);
+      var entity = transformXsltRepository.findByTransformXslt(transformXslt);
+      // if xslt not in DB, save it
+      if (entity != null && entity.isPresent()) {
+        transformXsltRepository.save(entity.get());
+      }
     } catch (IOException | InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOGGER.warn("Error updating default transform XSLT ",e);
+      LOGGER.warn("Error updating default transform XSLT ", e);
     }
 
   }

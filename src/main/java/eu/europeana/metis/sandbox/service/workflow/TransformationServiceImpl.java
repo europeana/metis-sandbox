@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 class TransformationServiceImpl implements TransformationService {
 
-  private final TransformXsltRepository transformXsltRepository;
+  private TransformXsltRepository transformXsltRepository;
 
   public TransformationServiceImpl(TransformXsltRepository transformXsltRepository) {
     this.transformXsltRepository = transformXsltRepository;
@@ -42,9 +42,10 @@ class TransformationServiceImpl implements TransformationService {
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
       String edmLanguage) throws TransformationException {
+
     var xsltTransformEntity = transformXsltRepository.findById(1);
-    String  xsltTransform = null;
-    if (xsltTransformEntity.isPresent()){
+    String xsltTransform = null;
+    if (xsltTransformEntity.isPresent()) {
       xsltTransform = xsltTransformEntity.get().getTransformXslt();
     }
     return new XsltTransformer(xsltTransform, datasetName, edmCountry, edmLanguage);
