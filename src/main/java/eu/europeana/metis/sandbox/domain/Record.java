@@ -44,11 +44,8 @@ public class Record {
    * @param record  must not be null
    * @param content must not be null. Xml representation of the record
    * @return record object
-   * @throws NullPointerException if any parameter is null
    */
   public static Record from(Record record, byte[] content) {
-    requireNonNull(record);
-    requireNonNull(content);
 
     return Record.builder()
         .recordId(record.getRecordId())
@@ -166,11 +163,6 @@ public class Record {
     }
 
     public Record build() {
-      requireNonNull(recordId, "Record id must not be null");
-      requireNonNull(datasetId, "Dataset id must not be null");
-      requireNonNull(datasetName, "Dataset name id must not be null");
-      requireNonNull(country, "Country must not be null");
-      requireNonNull(language, "Language must not be null");
       return new Record(recordId, datasetId, datasetName, country, language, content);
     }
   }
