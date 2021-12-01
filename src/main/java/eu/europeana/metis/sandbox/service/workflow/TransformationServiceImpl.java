@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 class TransformationServiceImpl implements TransformationService {
 
-  private TransformXsltRepository transformXsltRepository;
+  private final TransformXsltRepository transformXsltRepository;
 
   public TransformationServiceImpl(TransformXsltRepository transformXsltRepository) {
     this.transformXsltRepository = transformXsltRepository;
@@ -48,6 +48,8 @@ class TransformationServiceImpl implements TransformationService {
     if (xsltTransformEntity.isPresent()) {
       xsltTransform = xsltTransformEntity.get().getTransformXslt();
     }
+    // TODO: this xsltTransform needs to be changed in metis-transform library, from a String to a
+    // InputStream, perhaps, check MET-4065 and MET-4066
     return new XsltTransformer(xsltTransform, datasetName, edmCountry, edmLanguage);
   }
 
