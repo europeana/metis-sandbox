@@ -135,7 +135,11 @@ class DatasetController {
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
-   * @param url The given dataset itself to be processed as a URL of a zip file
+   * @param url The given URL of the OAI-PMH repository to be processed
+   * @param setspec forms a unique identifier for the set within the repository,
+   *                it must be unique for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format
+   *                       in OAI-PMH requests issued to the repository
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
