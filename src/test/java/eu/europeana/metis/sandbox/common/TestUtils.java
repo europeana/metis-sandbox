@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 public class TestUtils {
 
@@ -41,30 +40,17 @@ public class TestUtils {
       throws IOException {
     String zipFolder = UUID.randomUUID().toString();
     ZipFile zipFile = this.createTempZipFile(providedZipFile, zipFolder);
+    List<ByteArrayInputStream> result = null;
+    List<InputStream> streams = this.getContentFromZipFile(zipFile);
+    List<ByteArrayInputStream> tmpResult = new ArrayList<>(streams.size());
 
-    List<ByteArrayInputStream> result;
-    try {
-      List<InputStream> streams = this.getContentFromZipFile(zipFile);
-      List<ByteArrayInputStream> tmpResult = new ArrayList<>(streams.size());
-      Iterator<InputStream> streamsIterator = streams.iterator();
-
-      while (true) {
-        if (!streamsIterator.hasNext()) {
-          result = tmpResult;
-          break;
-        }
-        InputStream stream = streamsIterator.next();
-        tmpResult.add(new ByteArrayInputStream(IOUtils.toByteArray(stream)));
-      }
-    } catch (Throwable exceptionReading) {
-      try {
-        zipFile.close();
-        FileUtils.deleteDirectory(new File(zipFolder));
-      } catch (Throwable exceptionClosing) {
-        exceptionReading.addSuppressed(exceptionClosing);
-      }
-      throw exceptionReading;
+    for (InputStream inputStream : streams) {
+      result = tmpResult;
+      tmpResult.add(new ByteArrayInputStream(inputStream.readAllBytes()));
     }
+    zipFile.close();
+    FileUtils.deleteDirectory(new File(zipFolder));
+
     return result;
   }
 
@@ -80,14 +66,14 @@ public class TestUtils {
 
     while (entries.hasNext()) {
       ZipEntry zipEntry = entries.next();
-      if (this.accept(zipEntry)) {
+      if (safeCheck(zipEntry)) {
         result.add(zipFile.getInputStream(zipEntry));
       }
     }
     return result;
   }
 
-  private boolean accept(ZipEntry zipEntry) {
+  private boolean safeCheck(ZipEntry zipEntry) {
     return !zipEntry.isDirectory() && !zipEntry.getName().startsWith("__MACOSX")
         && !zipEntry.getName().endsWith(".DS_Store");
   }
