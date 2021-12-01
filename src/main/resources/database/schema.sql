@@ -7,7 +7,7 @@ drop table if exists dataset;
 drop table if exists record_log;
 drop table if exists record_error_log;
 drop table if exists thumbnail;
-drop table if exists  transform_xslt;
+drop table if exists  default_transform_xslt;
 commit;
 
 begin;
@@ -56,7 +56,7 @@ create table if not exists thumbnail
     Primary Key (id)
 );
 
-create table if not exists transform_xslt
+create table if not exists default_transform_xslt
 (
     id                serial,
     transform_xslt    text not null,
