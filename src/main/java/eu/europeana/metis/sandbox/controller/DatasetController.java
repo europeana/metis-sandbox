@@ -101,7 +101,6 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-
     String xsltFileString = "";
 
     if(xsltFile != null && !xsltFile.isEmpty()){
