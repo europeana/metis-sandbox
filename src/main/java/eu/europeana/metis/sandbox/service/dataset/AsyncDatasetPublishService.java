@@ -13,5 +13,5 @@ public interface AsyncDatasetPublishService {
    * @throws NullPointerException     if dataset object is null
    * @throws IllegalArgumentException if dataset records are empty
    */
-  CompletableFuture<Void> publish(Dataset dataset);
+  CompletableFuture<Void> publish(Dataset dataset, boolean hasXsltToEdmExternal);
 }
