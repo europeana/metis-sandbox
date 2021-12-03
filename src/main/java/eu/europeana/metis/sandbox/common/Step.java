@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum Step {
   CREATE("import", 0),
+  TRANSFORM_TO_EDM_EXTERNAL("transform to EDM external", 1),
   VALIDATE_EXTERNAL("validate (edm external)", 1),
   TRANSFORM("transform", 2),
   VALIDATE_INTERNAL("validate (edm internal)", 3),

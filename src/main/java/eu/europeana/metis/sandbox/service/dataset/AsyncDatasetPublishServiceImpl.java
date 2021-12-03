@@ -36,16 +36,19 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   }
 
   @Override
-  public CompletableFuture<Void> publish(Dataset dataset) {
+  public CompletableFuture<Void> publish(Dataset dataset, boolean hasXsltToEdmExternal) {
     requireNonNull(dataset, "Dataset must not be null");
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-        .forEach(this::publish), asyncDatasetPublishServiceTaskExecutor);
+        .forEach(record -> this.publish(record, hasXsltToEdmExternal)), asyncDatasetPublishServiceTaskExecutor);
   }
 
-  private void publish(Record record) {
-    Event recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+  private void publish(Record record, boolean hasXsltToEdmExternal) {
+
+    Event recordEvent = hasXsltToEdmExternal ?
+        new Event(new RecordInfo(record), Step.TRANSFORM_TO_EDM_EXTERNAL, Status.SUCCESS) :
+        new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
     try {
       amqpTemplate.convertAndSend(initialQueue, recordEvent);
     } catch (AmqpException e) {
