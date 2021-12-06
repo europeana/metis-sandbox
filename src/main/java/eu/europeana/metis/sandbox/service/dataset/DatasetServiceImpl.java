@@ -97,7 +97,7 @@ class DatasetServiceImpl implements DatasetService {
       }
     }
 
-    publishService.publish(dataset);
+    publishService.publish(dataset, false);
     return dataset;
   }
 
