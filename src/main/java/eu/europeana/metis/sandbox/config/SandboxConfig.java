@@ -43,6 +43,9 @@ class SandboxConfig {
   @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
   private String transformationToEdmExternalQueue;
 
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  private String transformationToEdmExternalQueue;
+
   @Value("${sandbox.dataset.creation.threads.core-pool-size}")
   private Integer corePoolSize;
 
