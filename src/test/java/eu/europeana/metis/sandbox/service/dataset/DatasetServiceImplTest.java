@@ -58,7 +58,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com");
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publish(dataset, false);
 
     assertEquals("1234", result.getDatasetId());
   }
@@ -80,7 +80,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com");
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publish(dataset, false);
 
     assertEquals("1234", result.getDatasetId());
   }
@@ -111,7 +111,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com"));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset);
+    verify(publishService, never()).publish(dataset, false);
   }
 
   @Test
@@ -135,7 +135,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com"));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset);
+    verify(publishService, never()).publish(dataset, false);
   }
 
   @Test

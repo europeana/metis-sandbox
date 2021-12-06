@@ -23,16 +23,21 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AsyncDatasetPublishServiceImpl.class);
 
+  //TODO: How to send different messages to different queues
+
   private final AmqpTemplate amqpTemplate;
   private final String initialQueue;
+  private final String transformationToEdmExternalQueue;
   private final Executor asyncDatasetPublishServiceTaskExecutor;
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
       String initialQueue,
+      String transformationToEdmExternalQueue,
       Executor asyncDatasetPublishServiceTaskExecutor) {
     this.amqpTemplate = amqpTemplate;
     this.initialQueue = initialQueue;
     this.asyncDatasetPublishServiceTaskExecutor = asyncDatasetPublishServiceTaskExecutor;
+    this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
   }
 
   @Override
@@ -45,12 +50,14 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   }
 
   private void publish(Record record, boolean hasXsltToEdmExternal) {
-
-    Event recordEvent = hasXsltToEdmExternal ?
-        new Event(new RecordInfo(record), Step.TRANSFORM_TO_EDM_EXTERNAL, Status.SUCCESS) :
-        new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
     try {
-      amqpTemplate.convertAndSend(initialQueue, recordEvent);
+      if(hasXsltToEdmExternal){
+        amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
+            new Event(new RecordInfo(record), Step.TRANSFORM_TO_EDM_EXTERNAL, Status.SUCCESS));
+      } else {
+        amqpTemplate.convertAndSend(initialQueue,
+            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+      }
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", record.getRecordId(), e);
     }
