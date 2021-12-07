@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,22 +39,27 @@ class DatasetServiceImpl implements DatasetService {
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records) {
+      List<ByteArrayInputStream> records, String xsltTransformerEDMExternal) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    var entity = new DatasetEntity(datasetName, records.size(), language, country);
+    DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country);
+
+    if(!StringUtils.isEmpty(xsltTransformerEDMExternal)){
+      entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
+    }
+
     try {
       entity = datasetRepository.save(entity);
     } catch (Exception e) {
       throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
     }
 
-    var datasetId = String.valueOf(entity.getDatasetId());
-    var dataset = generatorService
+    String datasetId = String.valueOf(entity.getDatasetId());
+    Dataset dataset = generatorService
         .generate(datasetId, datasetName, country, language, records);
 
     // if there are duplicate records in the original list
