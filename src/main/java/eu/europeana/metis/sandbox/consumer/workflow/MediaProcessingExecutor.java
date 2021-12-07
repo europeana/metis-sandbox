@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
  * the result in the media processed queue
  */
 @Component
-class EnrichedConsumer extends StepConsumer {
+class MediaProcessingExecutor extends StepExecutor {
 
   private final MediaProcessingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.media.queue}")
   private String routingKey;
 
-  public EnrichedConsumer(AmqpTemplate amqpTemplate,
+  public MediaProcessingExecutor(AmqpTemplate amqpTemplate,
       MediaProcessingService service) {
     super(amqpTemplate);
     this.service = service;

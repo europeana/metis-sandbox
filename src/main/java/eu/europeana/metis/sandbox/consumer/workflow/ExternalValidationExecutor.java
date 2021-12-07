@@ -9,27 +9,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes transformed to edm external events and performs external validation to the contained record <br/>
- * Publishes the result in the externally validated queue
+ * Consumes created events and performs external validation to the contained record <br/> Publishes
+ * the result in the externally validated queue
  */
 @Component
-class TransformedToEdmExternalConsumer extends StepConsumer {
+class ExternalValidationExecutor extends StepExecutor {
 
   private final ExternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.external.queue}")
   private String routingKey;
 
-  public TransformedToEdmExternalConsumer(AmqpTemplate amqpTemplate,
+  public ExternalValidationExecutor(AmqpTemplate amqpTemplate,
       ExternalValidationService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}", containerFactory = "transformationEdmExternalFactory",
-      autoStartup = "${sandbox.rabbitmq.queues.record.transformation.edm.external.auto-start:true}")
+  @RabbitListener(queues = {"${sandbox.rabbitmq.queues.record.created.queue}",
+      "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}"}, containerFactory = "createdFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.created.auto-start:true}")
   public void validateExternal(Event input) {
     consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()));
   }
-
 }

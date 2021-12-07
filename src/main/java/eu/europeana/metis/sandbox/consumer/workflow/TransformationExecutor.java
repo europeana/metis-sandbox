@@ -13,21 +13,20 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the transformed queue
  */
 @Component
-class ExternallyValidatedConsumer extends StepConsumer {
+class TransformationExecutor extends StepExecutor {
 
   private final TransformationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.transformed.queue}")
   private String routingKey;
 
-  public ExternallyValidatedConsumer(AmqpTemplate amqpTemplate,
+  public TransformationExecutor(AmqpTemplate amqpTemplate,
       TransformationService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = {"${sandbox.rabbitmq.queues.record.validated.external.queue}",
-      "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}"}, containerFactory = "externallyValidatedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.validated.external.auto-start:true}")
   public void transform(Event input) {
     consume(routingKey, input, Step.TRANSFORM, () -> service.transformToEdmInternal(input.getBody()));

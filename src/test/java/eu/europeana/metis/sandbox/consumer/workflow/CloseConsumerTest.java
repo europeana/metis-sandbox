@@ -22,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class PublishedConsumerTest {
+class CloseConsumerTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
@@ -31,7 +31,7 @@ class PublishedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private PublishedConsumer consumer;
+  private CloseConsumer consumer;
 
   @Test
   void close_expectSuccess() {

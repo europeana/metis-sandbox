@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the normalized queue
  */
 @Component
-class InternallyValidatedConsumer extends StepConsumer {
+class NormalizationExecutor extends StepExecutor {
 
   private final NormalizationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.normalized.queue}")
   private String routingKey;
 
-  public InternallyValidatedConsumer(AmqpTemplate amqpTemplate,
+  public NormalizationExecutor(AmqpTemplate amqpTemplate,
       NormalizationService service) {
     super(amqpTemplate);
     this.service = service;
