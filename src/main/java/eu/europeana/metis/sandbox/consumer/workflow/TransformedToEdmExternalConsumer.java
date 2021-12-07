@@ -26,7 +26,7 @@ class TransformedToEdmExternalConsumer extends StepConsumer {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}", containerFactory = "...Factory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}", containerFactory = "transformationEdmExternalFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformation.edm.external.auto-start:true}")
   public void validateExternal(Event input) {
     consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()));
