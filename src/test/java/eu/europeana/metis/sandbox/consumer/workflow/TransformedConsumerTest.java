@@ -37,7 +37,7 @@ class TransformedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private TransformedConsumer consumer;
+  private InternalValidationExecutor consumer;
 
   @Test
   void validateInternal_expectSuccess() {

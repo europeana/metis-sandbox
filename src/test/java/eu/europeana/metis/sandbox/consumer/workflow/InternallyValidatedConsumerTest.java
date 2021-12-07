@@ -37,7 +37,7 @@ class InternallyValidatedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private InternallyValidatedConsumer consumer;
+  private NormalizationExecutor consumer;
 
   @Test
   void normalize_expectSuccess() {

@@ -36,7 +36,7 @@ class EnrichedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private EnrichedConsumer consumer;
+  private MediaProcessingExecutor consumer;
 
   @Test
   void processMedia_expectSuccess() {

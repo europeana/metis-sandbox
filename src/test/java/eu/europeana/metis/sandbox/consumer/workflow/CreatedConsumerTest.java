@@ -37,7 +37,7 @@ class CreatedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private CreatedConsumer consumer;
+  private ExternalValidationExecutor consumer;
 
   @Test
   void validateExternal_expectSuccess() {

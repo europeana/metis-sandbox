@@ -37,7 +37,7 @@ class NormalizedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private NormalizedConsumer consumer;
+  private EnrichmentExecutor consumer;
 
   @Test
   void enrich_expectSuccess() {
