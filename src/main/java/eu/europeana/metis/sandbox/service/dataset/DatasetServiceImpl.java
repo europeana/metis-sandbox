@@ -47,9 +47,11 @@ class DatasetServiceImpl implements DatasetService {
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
     DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country);
+    boolean hasXsltTransformerEdmExternal = false;
 
     if(!StringUtils.isEmpty(xsltTransformerEDMExternal)){
       entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
+      hasXsltTransformerEdmExternal = true;
     }
 
     try {
@@ -73,7 +75,7 @@ class DatasetServiceImpl implements DatasetService {
       }
     }
 
-    publishService.publish(dataset, false);
+    publishService.publish(dataset, hasXsltTransformerEdmExternal);
     return dataset;
   }
 

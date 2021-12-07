@@ -92,9 +92,14 @@ class SandboxConfig {
     return executor;
   }
 
-  @Bean
+  @Bean(name = "initialQueue")
   String initialQueue() {
     return initialQueue;
+  }
+
+  @Bean(name = "transformationToEdmExternalQueue")
+  String transformationToEdmExternalQueue(){
+    return transformationToEdmExternalQueue;
   }
 
   @Bean

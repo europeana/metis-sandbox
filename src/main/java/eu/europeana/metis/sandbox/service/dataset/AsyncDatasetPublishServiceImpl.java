@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,7 +24,6 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AsyncDatasetPublishServiceImpl.class);
 
-  //TODO: How to send different messages to different queues
 
   private final AmqpTemplate amqpTemplate;
   private final String initialQueue;
@@ -31,8 +31,8 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private final Executor asyncDatasetPublishServiceTaskExecutor;
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-      String initialQueue,
-      String transformationToEdmExternalQueue,
+      @Qualifier("initialQueue") String initialQueue,
+      @Qualifier("transformationToEdmExternalQueue") String transformationToEdmExternalQueue,
       Executor asyncDatasetPublishServiceTaskExecutor) {
     this.amqpTemplate = amqpTemplate;
     this.initialQueue = initialQueue;
