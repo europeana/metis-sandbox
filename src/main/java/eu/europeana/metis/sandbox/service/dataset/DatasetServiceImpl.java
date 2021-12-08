@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -27,13 +28,17 @@ class DatasetServiceImpl implements DatasetService {
   private final DatasetRepository datasetRepository;
   private final AsyncDatasetPublishService publishService;
 
+  private final TransformationService transformationService;
+
   public DatasetServiceImpl(
       DatasetGeneratorService generatorService,
       DatasetRepository datasetRepository,
-      AsyncDatasetPublishService publishService) {
+      AsyncDatasetPublishService publishService,
+      TransformationService transformationService) {
     this.generatorService = generatorService;
     this.datasetRepository = datasetRepository;
     this.publishService = publishService;
+    this.transformationService = transformationService;
   }
 
   @Transactional
@@ -48,10 +53,6 @@ class DatasetServiceImpl implements DatasetService {
 
     DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country);
 
-    if(!StringUtils.isEmpty(xsltTransformerEDMExternal)){
-      entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
-    }
-
     try {
       entity = datasetRepository.save(entity);
     } catch (Exception e) {
@@ -59,6 +60,18 @@ class DatasetServiceImpl implements DatasetService {
     }
 
     String datasetId = String.valueOf(entity.getDatasetId());
+
+    // TODO: Perform extra transformation step here
+
+    //If string only has spaces, isEmpty() returns false, hence why we also use isBlank()
+    if(!StringUtils.isEmpty(xsltTransformerEDMExternal) && !StringUtils.isBlank(xsltTransformerEDMExternal)){
+      entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
+      records.forEach(recordStream -> new ByteArrayInputStream(transformationService.transformToEdmExternal(recordStream,
+          datasetId, datasetName, xsltTransformerEDMExternal, country, language, recordStream.readAllBytes())));
+    }
+
+    // --------------------------------------------
+
     Dataset dataset = generatorService
         .generate(datasetId, datasetName, country, language, records);
 

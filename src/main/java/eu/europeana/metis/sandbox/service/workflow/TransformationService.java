@@ -1,8 +1,11 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import java.io.InputStream;
 
 public interface TransformationService {
 
@@ -25,4 +28,8 @@ public interface TransformationService {
    * @throws RecordProcessingException if records fails at transformation
    */
   RecordInfo transformToEdmExternal(Record record);
+
+  public byte[] transformToEdmExternal(InputStream contentInputStream, String datasetId,
+      String datasetName, String xsltToEdmExternal, Country country, Language language,
+      byte[] recordContent);
 }
