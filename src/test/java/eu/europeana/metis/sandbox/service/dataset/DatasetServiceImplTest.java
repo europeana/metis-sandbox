@@ -55,7 +55,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com");
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "");
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
@@ -77,7 +77,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com");
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, "");
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
@@ -132,7 +132,7 @@ class DatasetServiceImplTest {
         .thenReturn(dataset);
 
     assertThrows(ServiceException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, "https://example.com"));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, ""));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);
