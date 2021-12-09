@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
@@ -91,8 +92,7 @@ class DatasetController {
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile)
-      throws IOException {
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
@@ -101,13 +101,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String xsltFileString = "";
-
-    if(xsltFile != null && !xsltFile.isEmpty()){
-      checkArgument(xsltFile.getContentType().equals("application/xslt+xml"),
-          "The given xslt file should be a single xml file.");
-      xsltFileString = new String(xsltFile.getBytes(), StandardCharsets.UTF_8);
-    }
+    String xsltFileString = createXsltAsStringIfPresent(xsltFile);
 
     // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
     Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
@@ -136,8 +130,7 @@ class DatasetController {
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile)
-      throws IOException {
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
@@ -146,13 +139,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String xsltFileString = "";
-
-    if(xsltFile != null && !xsltFile.isEmpty()){
-      checkArgument(xsltFile.getContentType().equals("application/xslt+xml"),
-          "The given xslt file should be a single xml file.");
-      xsltFileString = new String(xsltFile.getBytes(), StandardCharsets.UTF_8);
-    }
+    String xsltFileString = createXsltAsStringIfPresent(xsltFile);
 
     Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
         xsltFileString);
@@ -184,7 +171,7 @@ class DatasetController {
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
@@ -193,17 +180,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String xsltFileString = "";
-
-    if(xsltFile != null && !xsltFile.isEmpty()){
-      checkArgument(xsltFile.getContentType().equals("application/xslt+xml"),
-          "The given xslt file should be a single xml file.");
-      try {
-        xsltFileString = new String(xsltFile.getBytes(), StandardCharsets.UTF_8);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
+    String xsltFileString = createXsltAsStringIfPresent(xsltFile);
 
     var datasetObject = datasetService.createDataset(datasetName, country, language, records,
         xsltFileString);
@@ -258,6 +235,20 @@ class DatasetController {
   public List<LanguageView> getAllLanguages() {
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
         .collect(Collectors.toList());
+  }
+
+  private String createXsltAsStringIfPresent(MultipartFile xslt) {
+    if(xslt != null && !xslt.isEmpty()){
+      checkArgument(xslt.getContentType().equals("application/xslt+xml"),
+          "The given xslt file should be a single xml file.");
+      try {
+        return new String(xslt.getBytes(), StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        throw new XsltProcessingException("Something wrong happened while processing xslt file", e);
+      }
+    }
+
+    return "";
   }
 
   private static class CountryView {
