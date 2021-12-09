@@ -63,8 +63,8 @@ class DatasetServiceImpl implements DatasetService {
 
     // Extra transformation step occurs here
 
-    //If string only has spaces, isEmpty() returns false, hence why we also use isBlank()
-    if(!StringUtils.isEmpty(xsltTransformerEDMExternal) && !StringUtils.isBlank(xsltTransformerEDMExternal)){
+    //If string only has spaces, isNotEmpty() returns true, hence why we also use isNotBlank()
+    if(StringUtils.isNotEmpty(xsltTransformerEDMExternal) && StringUtils.isNotBlank(xsltTransformerEDMExternal)){
         entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
         records.replaceAll(recordStream -> new ByteArrayInputStream(
             transformationService.transformToEdmExternal(datasetId, datasetName,

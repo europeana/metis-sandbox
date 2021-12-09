@@ -69,7 +69,8 @@ class DatasetReportServiceImplTest {
         "A review URL will be generated when the dataset has finished processing",
         5, 4L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
+            false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
@@ -104,7 +105,7 @@ class DatasetReportServiceImplTest {
         "A review URL will be generated when the dataset has finished processing",
         5, 0L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
+        new DatasetInfoDto("","", LocalDateTime.now(), null, null, false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
@@ -130,7 +131,8 @@ class DatasetReportServiceImplTest {
         "https://metis-sandbox/portal/preview/search?q=edm_datasetName:null_dataset*",
         "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5, 5L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
+            false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
@@ -162,7 +164,8 @@ class DatasetReportServiceImplTest {
         "All dataset records failed to be processed",
         "All dataset records failed to be processed", 5, 5L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS));
+        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
+            false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
@@ -198,7 +201,7 @@ class DatasetReportServiceImplTest {
     var expected = new ProgressInfoDto(
         "Dataset is empty",
         "Dataset is empty", 0, 0L, List.of(),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null));
+        new DatasetInfoDto("","", LocalDateTime.now(), null, null, false));
     var report = service.getReport("1");
     assertReportEquals(expected, report);
   }

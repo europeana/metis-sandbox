@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -28,14 +26,18 @@ public class DatasetInfoDto {
   @JsonProperty("country")
   private final Country country;
 
+  @JsonProperty("xslt-transformed")
+  private final boolean xsltTransformed;
+
   public DatasetInfoDto(String datasetId, String datasetName,
       LocalDateTime creationDate,
-      Language language, Country country) {
+      Language language, Country country, boolean xsltTransformed) {
     this.creationDate = creationDate;
     this.language = language;
     this.country = country;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
+    this.xsltTransformed = xsltTransformed;
   }
 
   public String getDatasetId() {
@@ -58,4 +60,7 @@ public class DatasetInfoDto {
     return country;
   }
 
+  public boolean isXsltTransformed() {
+    return xsltTransformed;
+  }
 }
