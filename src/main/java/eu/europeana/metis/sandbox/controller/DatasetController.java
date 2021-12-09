@@ -104,7 +104,7 @@ class DatasetController {
     String xsltFileString = "";
 
     if(xsltFile != null && !xsltFile.isEmpty()){
-      checkArgument(xsltFile.getContentType().matches("application/xslt+xml"),
+      checkArgument(xsltFile.getContentType().equals("application/xslt+xml"),
           "The given xslt file should be a single xml file.");
       xsltFileString = new String(xsltFile.getBytes(), StandardCharsets.UTF_8);
     }

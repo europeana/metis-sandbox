@@ -61,16 +61,15 @@ class DatasetServiceImpl implements DatasetService {
 
     String datasetId = String.valueOf(entity.getDatasetId());
 
-    // TODO: Perform extra transformation step here
+    // Extra transformation step occurs here
 
     //If string only has spaces, isEmpty() returns false, hence why we also use isBlank()
     if(!StringUtils.isEmpty(xsltTransformerEDMExternal) && !StringUtils.isBlank(xsltTransformerEDMExternal)){
-      entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
-      records.forEach(recordStream -> new ByteArrayInputStream(transformationService.transformToEdmExternal(recordStream,
-          datasetId, datasetName, xsltTransformerEDMExternal, country, language, recordStream.readAllBytes())));
+        entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
+        records.replaceAll(recordStream -> new ByteArrayInputStream(
+            transformationService.transformToEdmExternal(datasetId, datasetName,
+                xsltTransformerEDMExternal, country, language, recordStream.readAllBytes())));
     }
-
-    // --------------------------------------------
 
     Dataset dataset = generatorService
         .generate(datasetId, datasetName, country, language, records);

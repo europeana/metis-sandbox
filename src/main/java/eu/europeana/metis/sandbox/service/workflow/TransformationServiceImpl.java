@@ -13,7 +13,6 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import java.io.InputStream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -55,25 +54,21 @@ class TransformationServiceImpl implements TransformationService {
     String xsltToEdmExternal = datasetRepository.getOne(Integer.valueOf(
         record.getDatasetId())).getXsltTransformerEdmExternal();
 
-    return new RecordInfo(Record.from(record, transformToEdmExternal(record.getContentInputStream(),
-        record.getDatasetId(), record.getDatasetName(), xsltToEdmExternal, record.getCountry(),
+    return new RecordInfo(Record.from(record, transformToEdmExternal(record.getDatasetId(),
+        record.getDatasetName(), xsltToEdmExternal, record.getCountry(),
         record.getLanguage(), record.getContent())));
   }
 
   @Override
-  public byte[] transformToEdmExternal(InputStream contentInputStream, String datasetId,
-      String datasetName, String xsltToEdmExternal, Country country, Language language,
-      byte[] recordContent) {
+  public byte[] transformToEdmExternal(String datasetId, String datasetName, String xsltToEdmExternal,
+      Country country, Language language, byte[] recordContent) {
 
     byte[] recordToEdmExternal;
     try {
-      EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
-          .constructEuropeanaId(contentInputStream, datasetId);
       XsltTransformer transformer = new XsltTransformer(xsltToEdmExternal, getXmlDatasetName(datasetId, datasetName),
           country.xmlValue(), language.name().toLowerCase());
-      recordToEdmExternal = transformer
-          .transformToBytes(recordContent, europeanaGeneratedIdsMap);
-    } catch (TransformationException | EuropeanaIdException e){
+      recordToEdmExternal = transformer.transformToBytes(recordContent, null);
+    } catch (TransformationException e){
       throw new RecordProcessingException(datasetId, e);
     }
 
