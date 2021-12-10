@@ -30,6 +30,6 @@ public interface TransformationService {
   RecordInfo transformToEdmExternal(Record record);
 
   public byte[] transformToEdmExternal(String datasetId,
-      String datasetName, String xsltToEdmExternal, Country country, Language language,
+      String datasetName, InputStream xsltToEdmExternal, Country country, Language language,
       byte[] recordContent);
 }

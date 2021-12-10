@@ -18,13 +18,16 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -101,7 +104,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String xsltFileString = createXsltAsStringIfPresent(xsltFile);
+    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
     // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
     Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
@@ -139,10 +142,10 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String xsltFileString = createXsltAsStringIfPresent(xsltFile);
+    InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
 
     Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+        xsltInputStream);
     return new DatasetIdDto(datasetObject);
   }
 
@@ -180,7 +183,7 @@ class DatasetController {
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    String xsltFileString = createXsltAsStringIfPresent(xsltFile);
+    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
     var datasetObject = datasetService.createDataset(datasetName, country, language, records,
         xsltFileString);
@@ -237,18 +240,17 @@ class DatasetController {
         .collect(Collectors.toList());
   }
 
-  private String createXsltAsStringIfPresent(MultipartFile xslt) {
+  private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
     if(xslt != null && !xslt.isEmpty()){
       checkArgument(xslt.getContentType().equals("application/xslt+xml"),
           "The given xslt file should be a single xml file.");
       try {
-        return new String(xslt.getBytes(), StandardCharsets.UTF_8);
+        return new ByteArrayInputStream(xslt.getBytes());
       } catch (IOException e) {
-        throw new XsltProcessingException("Something wrong happened while processing xslt file", e);
+        throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
       }
     }
-
-    return "";
+    return null;
   }
 
   private static class CountryView {

@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 public interface DatasetService {
@@ -17,7 +18,7 @@ public interface DatasetService {
    * @param country     must not be null
    * @param language    must not be null
    * @param records     must not be null
-   * @param xsltTransformerEDMExternal the xslt file as a string
+   * @param xsltTransformerEDMExternal the xslt file as a input stream
    * @return the created dataset
    * @throws NullPointerException     if any input is null
    * @throws IllegalArgumentException if records list is empty
@@ -27,7 +28,7 @@ public interface DatasetService {
    * @see Dataset
    */
   Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, String xsltTransformerEDMExternal);
+      List<ByteArrayInputStream> records, InputStream xsltTransformerEDMExternal);
 
   /**
    * Get dataset ids created before than the specified days

@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
@@ -14,12 +15,16 @@ import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 class DatasetServiceImpl implements DatasetService {
@@ -44,7 +49,7 @@ class DatasetServiceImpl implements DatasetService {
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, String xsltTransformerEDMExternal) {
+      List<ByteArrayInputStream> records, InputStream xsltTransformerEDMExternal) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
@@ -62,13 +67,16 @@ class DatasetServiceImpl implements DatasetService {
     String datasetId = String.valueOf(entity.getDatasetId());
 
     // Extra transformation step occurs here
-
-    //If string only has spaces, isNotEmpty() returns true, hence why we also use isNotBlank()
-    if(StringUtils.isNotEmpty(xsltTransformerEDMExternal) && StringUtils.isNotBlank(xsltTransformerEDMExternal)){
-        entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
+    if(xsltTransformerEDMExternal != null){
+      try {
+        entity.setXsltTransformerEdmExternal(new String(xsltTransformerEDMExternal.readAllBytes(), StandardCharsets.UTF_8));
+        xsltTransformerEDMExternal.reset();
         records.replaceAll(recordStream -> new ByteArrayInputStream(
             transformationService.transformToEdmExternal(datasetId, datasetName,
                 xsltTransformerEDMExternal, country, language, recordStream.readAllBytes())));
+      } catch (IOException e) {
+        throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
+      }
     }
 
     Dataset dataset = generatorService

@@ -13,6 +13,10 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -55,20 +59,21 @@ class TransformationServiceImpl implements TransformationService {
         record.getDatasetId())).getXsltTransformerEdmExternal();
 
     return new RecordInfo(Record.from(record, transformToEdmExternal(record.getDatasetId(),
-        record.getDatasetName(), xsltToEdmExternal, record.getCountry(),
-        record.getLanguage(), record.getContent())));
+        record.getDatasetName(),
+        new ByteArrayInputStream(xsltToEdmExternal.getBytes(StandardCharsets.UTF_8)),
+        record.getCountry(), record.getLanguage(), record.getContent())));
   }
 
   @Override
-  public byte[] transformToEdmExternal(String datasetId, String datasetName, String xsltToEdmExternal,
+  public byte[] transformToEdmExternal(String datasetId, String datasetName, InputStream xsltToEdmExternal,
       Country country, Language language, byte[] recordContent) {
 
     byte[] recordToEdmExternal;
     try {
-      XsltTransformer transformer = new XsltTransformer(xsltToEdmExternal, getXmlDatasetName(datasetId, datasetName),
-          country.xmlValue(), language.name().toLowerCase());
+      XsltTransformer transformer = new XsltTransformer(String.format("%s_%s", datasetId, datasetName), xsltToEdmExternal,
+          getXmlDatasetName(datasetId, datasetName), country.xmlValue(), language.name().toLowerCase());
       recordToEdmExternal = transformer.transformToBytes(recordContent, null);
-    } catch (TransformationException e){
+    } catch (TransformationException e) {
       throw new RecordProcessingException(datasetId, e);
     }
 

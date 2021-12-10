@@ -5,6 +5,8 @@ import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -31,6 +33,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -77,7 +80,7 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "")).thenReturn(datasetObject);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null)).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -101,7 +104,7 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "string")).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -122,7 +125,7 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "")).thenReturn(datasetObject);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null)).thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
@@ -145,7 +148,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "string")).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
             .file(xsltMock)
@@ -167,7 +170,7 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "")).thenReturn(datasetObject);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null)).thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.xmlValue())
@@ -193,7 +196,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "string")).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .file(xsltMock)
@@ -387,7 +390,7 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -407,7 +410,7 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -427,7 +430,7 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -451,7 +454,7 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records,""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records,null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -471,7 +474,7 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -491,7 +494,7 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -518,7 +521,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records,""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records,null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -542,7 +545,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -567,7 +570,7 @@ class DatasetControllerTest {
 
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
