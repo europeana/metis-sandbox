@@ -14,7 +14,6 @@ import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.ObjectProvider;
@@ -70,7 +69,7 @@ class TransformationServiceImpl implements TransformationService {
 
     byte[] recordToEdmExternal;
     try {
-      XsltTransformer transformer = new XsltTransformer(String.format("%s_%s", datasetId, datasetName), xsltToEdmExternal,
+      XsltTransformer transformer = new XsltTransformer(getXmlDatasetName(datasetId, datasetName), xsltToEdmExternal,
           getXmlDatasetName(datasetId, datasetName), country.xmlValue(), language.name().toLowerCase());
       recordToEdmExternal = transformer.transformToBytes(recordContent, null);
     } catch (TransformationException e) {
