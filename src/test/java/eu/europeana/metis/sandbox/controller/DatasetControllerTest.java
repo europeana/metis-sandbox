@@ -88,6 +88,31 @@ class DatasetControllerTest {
   }
 
   @Test
+  void processDatasetFromFileWithXslt_expectSuccess() throws Exception {
+
+    MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        "<test></test>".getBytes());
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/xslt+xml",
+        "string".getBytes());
+
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    var datasetObject = new Dataset("12345", Set.of(), 0);
+
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "string")).thenReturn(datasetObject);
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(dataset)
+            .file(xsltMock)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.dataset-id", is("12345")));
+  }
+
+  @Test
   void processDatasetFromURL_expectSuccess() throws Exception {
 
     String url = "zip" + File.separator + "dataset-valid.zip";
@@ -100,6 +125,30 @@ class DatasetControllerTest {
     when(datasetService.createDataset("my-data-set", ITALY, IT, records, "")).thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.dataset-id", is("12345")));
+  }
+
+  @Test
+  void processDatasetFromURLWithXsltFile_expectSuccess() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+
+    var records = List.of(new ByteArrayInputStream(testUtils.readFileToBytes(url)));
+
+    var datasetObject = new Dataset("12345", Set.of(), 0);
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/xslt+xml",
+        "string".getBytes());
+
+    when(harvestService.harvestZipUrl(url)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "string")).thenReturn(datasetObject);
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .file(xsltMock)
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url))
@@ -121,6 +170,33 @@ class DatasetControllerTest {
     when(datasetService.createDataset("my-data-set", ITALY, IT, records, "")).thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .param("country", ITALY.xmlValue())
+            .param("language", IT.xmlValue())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.dataset-id", is("12345")));
+  }
+
+  @Test
+  void processDatasetFromOAIWithXsltFile_expectSuccess() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    var datasetObject = new Dataset("12345", Set.of(), 0);
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/xslt+xml",
+        "string".getBytes());
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, "string")).thenReturn(datasetObject);
+
+    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .file(xsltMock)
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
             .param("url", url)
@@ -430,6 +506,83 @@ class DatasetControllerTest {
   }
 
   @Test
+  void processDatasetFromFile_differentXsltFileType_expectFail() throws Exception {
+
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        "<test></test>".getBytes());
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
+        "string".getBytes());
+
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records,""))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+            .file(xsltMock)
+            .file(dataset)
+            .param("country", ITALY.name())
+            .param("language", IT.name()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("The given xslt file should be a single xml file.")));
+  }
+
+  @Test
+  void processDatasetFromURL_differentXsltFileType_expectFail() throws Exception {
+
+    String url = "zip" + File.separator + "dataset-valid.zip";
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
+        "string".getBytes());
+
+    when(harvestService.harvestZipUrl(url)).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+            .file(xsltMock)
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("The given xslt file should be a single xml file.")));
+  }
+
+  @Test
+  void processDatasetFromOAI_differentXsltFileType_expectFail() throws Exception {
+
+    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+        new ByteArrayInputStream("record2".getBytes()));
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
+        "string".getBytes());
+
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, ""))
+        .thenThrow(new RecordParsingException(new Exception()));
+
+    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+            .file(xsltMock)
+            .param("country", ITALY.name())
+            .param("language", IT.name())
+            .param("url", url)
+            .param("setspec", "1073")
+            .param("metadataformat", "rdf"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message",
+            is("The given xslt file should be a single xml file.")));
+  }
+
+  @Test
   void retrieveDataset_expectSuccess() throws Exception {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
@@ -456,7 +609,8 @@ class DatasetControllerTest {
         .andExpect(jsonPath("$.dataset-info.dataset-name", is("Test")))
         .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
         .andExpect(jsonPath("$.dataset-info.language", is("Dutch")))
-        .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")));
+        .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")))
+        .andExpect(jsonPath("$.dataset-info.xslt-transformed", is(false)));
   }
 
   @Test
