@@ -54,9 +54,6 @@ class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
-
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
@@ -93,9 +90,6 @@ class DatasetController {
 
     List<ByteArrayInputStream> records = harvestService.harvestZipMultipartFile(dataset);
 
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
-
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
@@ -124,8 +118,6 @@ class DatasetController {
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = harvestService.harvestZipUrl(url);
 
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
@@ -159,9 +151,6 @@ class DatasetController {
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
         metadataformat);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
 
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
