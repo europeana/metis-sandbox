@@ -38,14 +38,14 @@ class DatasetServiceImpl implements DatasetService {
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records) {
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    var entity = new DatasetEntity(datasetName, records.size(), language, country);
+    var entity = new DatasetEntity(datasetName, records.size(), language, country, hasReachedRecordLimit);
     try {
       entity = datasetRepository.save(entity);
     } catch (Exception e) {

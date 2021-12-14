@@ -65,11 +65,11 @@ public class HarvestServiceImplTest {
 
     var records = harvestService.harvestZipUrl(dataSetPath.toUri().toString());
     Set<Integer> recordsLengths = new HashSet<>();
-    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+    records.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
     assertEquals(expectedRecordsLengths, recordsLengths);
 
-    assertEquals(expectedRecords.size(), records.size());
+    assertEquals(expectedRecords.size(), records.getValue().size());
   }
 
   @Test
@@ -87,11 +87,11 @@ public class HarvestServiceImplTest {
 
     var records = harvestService.harvestZipMultipartFile(datasetFile);
     Set<Integer> recordsLengths = new HashSet<>();
-    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+    records.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
     assertEquals(expectedRecordsLengths, recordsLengths);
 
-    assertEquals(expectedRecords.size(), records.size());
+    assertEquals(expectedRecords.size(), records.getValue().size());
   }
 
   @Test

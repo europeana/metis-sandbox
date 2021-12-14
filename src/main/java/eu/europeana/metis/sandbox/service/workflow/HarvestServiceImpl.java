@@ -43,30 +43,30 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvestZipMultipartFile(MultipartFile file)
+  public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipMultipartFile(MultipartFile file)
       throws ServiceException {
 
-    List<ByteArrayInputStream> records;
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> pairResult;
 
     try {
-      records = this.harvest(file.getInputStream()).getValue();
+      pairResult = this.harvest(file.getInputStream());
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records from file " + file.getName(), e);
     }
-    return records;
+    return pairResult;
   }
 
   @Override
-  public List<ByteArrayInputStream> harvestZipUrl(String url) throws ServiceException {
+  public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipUrl(String url) throws ServiceException {
 
-    List<ByteArrayInputStream> records;
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> pairResult;
 
     try (InputStream input = new URL(url).openStream()) {
-      records = this.harvest(input).getValue();
+      pairResult = this.harvest(input);
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records from " + url, e);
     }
-    return records;
+    return pairResult;
   }
 
   @Override

@@ -18,7 +18,7 @@ public interface HarvestService {
    * @return List of byte[]
    * @throws ServiceException if file is not valid, error reading file, if records are empty
    */
-  List<ByteArrayInputStream> harvestZipMultipartFile(MultipartFile file) throws ServiceException;
+  Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipMultipartFile(MultipartFile file) throws ServiceException;
 
   /**
    * Harvest the given URL {@link String} to a list of byte[], one string per file
@@ -27,7 +27,7 @@ public interface HarvestService {
    * @return List of byte[]
    * @throws ServiceException if error processing URL, if URL timeout, if records are empty
    */
-  List<ByteArrayInputStream> harvestZipUrl(String url) throws ServiceException;
+  Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipUrl(String url) throws ServiceException;
 
   /**
    * Harvest the given OAI endpoint {@link String} to a list of byte[]

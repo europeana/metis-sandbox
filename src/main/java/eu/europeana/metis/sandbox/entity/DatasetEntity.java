@@ -36,11 +36,15 @@ public class DatasetEntity {
   @Enumerated(EnumType.STRING)
   private Country country;
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
+  Boolean hasReachedRecordLimit;
+
+  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
+      Boolean hasReachedRecordLimit) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
     this.language = language;
     this.country = country;
+    this.hasReachedRecordLimit = hasReachedRecordLimit;
   }
 
   public DatasetEntity() {
@@ -95,4 +99,11 @@ public class DatasetEntity {
     this.country = country;
   }
 
+  public Boolean getHasReachedRecordLimit() {
+    return hasReachedRecordLimit;
+  }
+
+  public void setHasReachedRecordLimit(Boolean hasReachedRecordLimit) {
+    this.hasReachedRecordLimit = hasReachedRecordLimit;
+  }
 }

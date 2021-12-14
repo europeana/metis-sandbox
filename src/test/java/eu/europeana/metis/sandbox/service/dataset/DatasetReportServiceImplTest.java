@@ -56,7 +56,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -96,7 +96,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithoutErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS,false);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
     var report = new ProgressInfoDto(
@@ -122,7 +122,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportCompleted_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
 
@@ -149,7 +149,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportCompletedAllErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -190,7 +190,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_retrieveEmptyDataset_expectSuccess() {
-    var datasetEntity = new DatasetEntity("test", 0, Language.NL, Country.NETHERLANDS);
+    var datasetEntity = new DatasetEntity("test", 0, Language.NL, Country.NETHERLANDS, false);
     datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
@@ -213,7 +213,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_failToRetrieveRecords_expectFail() {
-    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5, Language.NL, Country.NETHERLANDS)));
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5, Language.NL, Country.NETHERLANDS, false)));
     when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));

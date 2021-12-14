@@ -17,6 +17,7 @@ public interface DatasetService {
    * @param country     must not be null
    * @param language    must not be null
    * @param records     must not be null
+   * @param hasReachedRecordLimit boolean to indicate if number of harvested records reached the limit
    * @return the created dataset
    * @throws NullPointerException     if any input is null
    * @throws IllegalArgumentException if records list is empty
@@ -26,7 +27,7 @@ public interface DatasetService {
    * @see Dataset
    */
   Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records);
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit);
 
   /**
    * Get dataset ids created before than the specified days

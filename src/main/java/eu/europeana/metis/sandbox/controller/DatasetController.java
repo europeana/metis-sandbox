@@ -19,8 +19,10 @@ import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,9 +90,11 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    List<ByteArrayInputStream> records = harvestService.harvestZipMultipartFile(dataset);
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestedRecords =
+        harvestService.harvestZipMultipartFile(dataset);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    var datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getValue(), harvestedRecords.getKey().get());
     return new DatasetIdDto(datasetObject);
   }
 
@@ -116,9 +120,10 @@ class DatasetController {
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestZipUrl(url);
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestedRecords = harvestService.harvestZipUrl(url);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    var datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getValue(), harvestedRecords.getKey().get());
     return new DatasetIdDto(datasetObject);
   }
 
@@ -149,10 +154,11 @@ class DatasetController {
       @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
-        metadataformat).getValue();
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestedRecords = harvestService.harvestOaiPmhEndpoint(
+        url, setspec, metadataformat);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    var datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getValue(), harvestedRecords.getKey().get());
     return new DatasetIdDto(datasetObject);
   }
 
