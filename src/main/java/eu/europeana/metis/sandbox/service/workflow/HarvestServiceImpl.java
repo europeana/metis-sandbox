@@ -70,12 +70,13 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public List<ByteArrayInputStream> harvestOaiPmhEndpoint(String endpoint, String setSpec,
+  public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestOaiPmhEndpoint(String endpoint, String setSpec,
       String prefix)
       throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     List<Pair<String, Exception>> exceptions = new ArrayList<>();
+    AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = harvesterOai
         .harvestRecordHeaders(new OaiHarvest(endpoint, prefix, setSpec))) {
@@ -84,9 +85,13 @@ public class HarvestServiceImpl implements HarvestService {
 
       recordHeaderIterator.forEach(recordHeader -> {
         try {
-          OaiRecord oaiRecord = harvesterOai
-              .harvestRecord(oaiRepository, recordHeader.getOaiIdentifier());
-          records.add(new ByteArrayInputStream(oaiRecord.getRecord().readAllBytes()));
+          if(records.size() == maxRecords){
+            hasReachedRecordLimit.set(true);
+          } else {
+            OaiRecord oaiRecord = harvesterOai
+                .harvestRecord(oaiRepository, recordHeader.getOaiIdentifier());
+            records.add(new ByteArrayInputStream(oaiRecord.getRecord().readAllBytes()));
+          }
         } catch (HarvesterException | IOException e) {
           exceptions.add(new ImmutablePair<>(recordHeader.getOaiIdentifier(), e));
           return ReportingIteration.IterationResult.TERMINATE;
@@ -103,7 +108,7 @@ public class HarvestServiceImpl implements HarvestService {
     if (records.isEmpty()) {
       throw new ServiceException("Error records are empty ", null);
     }
-    return records;
+    return new ImmutablePair<>(hasReachedRecordLimit,records);
   }
 
   private Pair<AtomicBoolean, List<ByteArrayInputStream>> harvest(InputStream inputStream) throws ServiceException {

@@ -3,6 +3,8 @@ package eu.europeana.metis.sandbox.service.workflow;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.ByteArrayInputStream;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -33,11 +35,12 @@ public interface HarvestService {
    * @param endpoint for OAI endpoint containing one or more records
    * @param setSpec  record specification
    * @param prefix   record prefix
-   * @return List of byte[]
+   * @return A pair with a boolean indicating if the number of harvested records reached the limit
+   * and a List of byte[] with the harvested records
    * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
    *                          empty
    */
-  List<ByteArrayInputStream> harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
+  Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
       throws ServiceException;
 
 }

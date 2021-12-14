@@ -35,8 +35,10 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,10 +116,12 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
+        new ImmutablePair<>(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records)).thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -287,8 +291,10 @@ class DatasetControllerTest {
         .map(String::getBytes)
         .map(ByteArrayInputStream::new)
         .collect(Collectors.toList());
+    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
+        new ImmutablePair<>(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.name())
@@ -349,8 +355,10 @@ class DatasetControllerTest {
     String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
+        new ImmutablePair<>(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
@@ -413,8 +421,10 @@ class DatasetControllerTest {
     String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
+        new ImmutablePair<>(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records))
         .thenThrow(new RecordParsingException(new Exception()));
 

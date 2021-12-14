@@ -140,12 +140,12 @@ public class HarvestServiceImplTest {
 
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId"))).thenReturn(oaiRecord);
 
-    var records = harvestService
+    var pairResult = harvestService
         .harvestOaiPmhEndpoint("someEndpointURL", "somePrefix", "someSetSpec");
 
-    assertEquals(1, records.size());
+    assertEquals(1, pairResult.getValue().size());
 
-    assertEquals("record", new String(records.get(0).readAllBytes(), StandardCharsets.UTF_8));
+    assertEquals("record", new String(pairResult.getValue().get(0).readAllBytes(), StandardCharsets.UTF_8));
 
   }
 
