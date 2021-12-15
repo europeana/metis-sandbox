@@ -10,6 +10,7 @@ create table if not exists dataset (
    created_date timestamp with time zone default now(),
    country varchar(25),
    language varchar(2),
+   has_reached_record_limit bool,
    Primary Key (dataset_id)
 );
 

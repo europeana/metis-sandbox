@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -36,8 +35,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -238,85 +235,6 @@ class DatasetControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(result -> assertTrue(
             result.getResolvedException() instanceof IllegalArgumentException));
-  }
-
-  @Test
-  void processDatasetFromFile_recordsQtyExceeded_expectFail() throws Exception {
-
-    var records = IntStream.range(0, 1000)
-        .boxed()
-        .map(Object::toString)
-        .map(String::getBytes)
-        .map(ByteArrayInputStream::new)
-        .collect(Collectors.toList());
-
-    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        "<test></test>".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(pairMock);
-
-    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-            .file(dataset)
-            .param("country", ITALY.name())
-            .param("language", IT.name()))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            containsString("Amount of records can not be more than")));
-  }
-
-  @Test
-  void processDatasetFromURL_recordsQtyExceeded_expectFail() throws Exception {
-
-    String url = "zip" + File.separator + "dataset-valid.zip";
-
-    var records = IntStream.range(0, 1000)
-        .boxed()
-        .map(Object::toString)
-        .map(String::getBytes)
-        .map(ByteArrayInputStream::new)
-        .collect(Collectors.toList());
-
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestZipUrl(url)).thenReturn(pairMock);
-
-    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            containsString("Amount of records can not be more than")));
-  }
-
-  @Test
-  void processDatasetFromOAI_recordsQtyExceeded_expectFail() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-
-    var records = IntStream.range(0, 1000)
-        .boxed()
-        .map(Object::toString)
-        .map(String::getBytes)
-        .map(ByteArrayInputStream::new)
-        .collect(Collectors.toList());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            containsString("Amount of records can not be more than")));
   }
 
   @Test

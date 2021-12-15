@@ -40,18 +40,19 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zeroturnaround.zip.ZipException;
 
-
 @ExtendWith(SpringExtension.class)
 public class HarvestServiceImplTest {
 
   private final TestUtils testUtils = new TestUtils();
 
-  private static HttpHarvester httpHarvester = spy(HarvesterFactory.createHttpHarvester());
+  private static final HttpHarvester httpHarvester = spy(HarvesterFactory.createHttpHarvester());
 
-  private static OaiHarvester oaiHarvester = mock(OaiHarvester.class);
+  private static final OaiHarvester oaiHarvester = mock(OaiHarvester.class);
 
-  private static HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,
-      oaiHarvester);
+  private static final int maxRecords = 1000;
+
+  private static final HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,
+      oaiHarvester, maxRecords);
 
   @Test
   void harvestServiceFromURL_ExpectSuccess() throws IOException {

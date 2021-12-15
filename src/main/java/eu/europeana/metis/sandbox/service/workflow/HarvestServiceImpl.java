@@ -42,6 +42,12 @@ public class HarvestServiceImpl implements HarvestService {
     this.harvesterOai = harvesterOai;
   }
 
+  HarvestServiceImpl(HttpHarvester harvester, OaiHarvester oaiHarvester, int maxRecords){
+    this.harvester = harvester;
+    this.harvesterOai = oaiHarvester;
+    this.maxRecords = maxRecords;
+  }
+
   @Override
   public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipMultipartFile(MultipartFile file)
       throws ServiceException {
