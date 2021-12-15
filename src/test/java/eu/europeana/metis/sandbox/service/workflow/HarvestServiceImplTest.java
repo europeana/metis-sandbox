@@ -22,6 +22,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,8 +33,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.mock.web.MockMultipartFile;
@@ -49,13 +52,13 @@ public class HarvestServiceImplTest {
 
   private static final OaiHarvester oaiHarvester = mock(OaiHarvester.class);
 
-  private static final int maxRecords = 1000;
-
   private static final HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,
-      oaiHarvester, maxRecords);
+      oaiHarvester);
 
   @Test
-  void harvestServiceFromURL_ExpectSuccess() throws IOException {
+  void harvestServiceFromURL_noRecordLimit_ExpectSuccess() throws IOException {
+
+    harvestService.setMaxRecords(1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -64,17 +67,42 @@ public class HarvestServiceImplTest {
     Set<Integer> expectedRecordsLengths = new HashSet<>();
     expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
-    var records = harvestService.harvestZipUrl(dataSetPath.toUri().toString());
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> pairResult =
+        harvestService.harvestZipUrl(dataSetPath.toUri().toString());
     Set<Integer> recordsLengths = new HashSet<>();
-    records.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
+    pairResult.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
     assertEquals(expectedRecordsLengths, recordsLengths);
-
-    assertEquals(expectedRecords.size(), records.getValue().size());
+    assertFalse(pairResult.getKey().get());
+    assertEquals(expectedRecords.size(), pairResult.getValue().size());
   }
 
   @Test
-  void harvestServiceFromUploadedFile_ExpectSuccess() throws IOException {
+  void harvestServiceFromURL_withRecordLimit_ExpectSuccess() throws IOException {
+
+    harvestService.setMaxRecords(2);
+
+    Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+    assertTrue(Files.exists(dataSetPath));
+
+    var expectedRecords = testUtils.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
+
+    Pair<AtomicBoolean, List<ByteArrayInputStream>> pairResult =
+        harvestService.harvestZipUrl(dataSetPath.toUri().toString());
+    Set<Integer> recordsLengths = new HashSet<>();
+    pairResult.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertTrue(expectedRecordsLengths.containsAll(recordsLengths));
+    assertTrue(pairResult.getKey().get());
+    assertEquals(2, pairResult.getValue().size());
+  }
+
+  @Test
+  void harvestServiceFromUploadedFile_noRecordLimit_ExpectSuccess() throws IOException {
+
+    harvestService.setMaxRecords(1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -91,8 +119,32 @@ public class HarvestServiceImplTest {
     records.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
     assertEquals(expectedRecordsLengths, recordsLengths);
-
+    assertFalse(records.getKey().get());
     assertEquals(expectedRecords.size(), records.getValue().size());
+  }
+
+  @Test
+  void harvestServiceFromUploadedFile_withRecordLimit_ExpectSuccess() throws IOException {
+
+    harvestService.setMaxRecords(2);
+
+    Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+    assertTrue(Files.exists(dataSetPath));
+
+    MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        Files.newInputStream(dataSetPath));
+
+    var expectedRecords = testUtils.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
+
+    var records = harvestService.harvestZipMultipartFile(datasetFile);
+    Set<Integer> recordsLengths = new HashSet<>();
+    records.getValue().forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertTrue(expectedRecordsLengths.containsAll(recordsLengths));
+    assertTrue(records.getKey().get());
+    assertEquals(2, records.getValue().size());
   }
 
   @Test
@@ -130,7 +182,9 @@ public class HarvestServiceImplTest {
   }
 
   @Test
-  void harvestServiceFromOai_ExpectSuccess() throws HarvesterException {
+  void harvestServiceFromOai_noRecordLimit_ExpectSuccess() throws HarvesterException {
+
+    harvestService.setMaxRecords(1000);
 
     OaiRecordHeader recordHeader = new OaiRecordHeader("someId", false, Instant.now());
     OaiRecord oaiRecord = new OaiRecord(recordHeader, () -> "record".getBytes(StandardCharsets.UTF_8));
@@ -145,7 +199,36 @@ public class HarvestServiceImplTest {
         .harvestOaiPmhEndpoint("someEndpointURL", "somePrefix", "someSetSpec");
 
     assertEquals(1, pairResult.getValue().size());
+    assertFalse(pairResult.getKey().get());
+    assertEquals("record", new String(pairResult.getValue().get(0).readAllBytes(), StandardCharsets.UTF_8));
 
+  }
+
+  @Test
+  void harvestServiceFromOai_withRecordLimit_ExpectSuccess() throws HarvesterException {
+
+    harvestService.setMaxRecords(2);
+
+    OaiRecordHeader recordHeader1 = new OaiRecordHeader("someId1", false, Instant.now());
+    OaiRecordHeader recordHeader2 = new OaiRecordHeader("someId2", false, Instant.now());
+    OaiRecordHeader recordHeader3 = new OaiRecordHeader("someId3", false, Instant.now());
+    OaiRecord oaiRecord1 = new OaiRecord(recordHeader1, () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecord oaiRecord2 = new OaiRecord(recordHeader1, () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecord oaiRecord3 = new OaiRecord(recordHeader1, () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(List.of(recordHeader1, recordHeader2, recordHeader3));
+
+    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
+        oaiRecordHeaderIterator);
+
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId1"))).thenReturn(oaiRecord1);
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId2"))).thenReturn(oaiRecord2);
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId3"))).thenReturn(oaiRecord3);
+
+    var pairResult = harvestService
+        .harvestOaiPmhEndpoint("someEndpointURL", "somePrefix", "someSetSpec");
+
+    assertEquals(2, pairResult.getValue().size());
+    assertTrue(pairResult.getKey().get());
     assertEquals("record", new String(pairResult.getValue().get(0).readAllBytes(), StandardCharsets.UTF_8));
 
   }
