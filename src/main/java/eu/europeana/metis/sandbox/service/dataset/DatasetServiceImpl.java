@@ -44,6 +44,12 @@ class DatasetServiceImpl implements DatasetService {
     this.transformationService = transformationService;
   }
 
+  @Override
+  public Dataset createDataset(String datasetName, Country country, Language language,
+      List<ByteArrayInputStream> records) {
+    return createDataset(datasetName, country, language, records, new ByteArrayInputStream(new byte[0]));
+  }
+
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,

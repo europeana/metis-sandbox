@@ -26,18 +26,18 @@ public class DatasetInfoDto {
   @JsonProperty("country")
   private final Country country;
 
-  @JsonProperty("xslt-transformed")
-  private final boolean xsltTransformed;
+  @JsonProperty("transformed-to-edm-external")
+  private final boolean transformedToEdmExternal;
 
   public DatasetInfoDto(String datasetId, String datasetName,
       LocalDateTime creationDate,
-      Language language, Country country, boolean xsltTransformed) {
+      Language language, Country country, boolean transformedToEdmExternal) {
     this.creationDate = creationDate;
     this.language = language;
     this.country = country;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
-    this.xsltTransformed = xsltTransformed;
+    this.transformedToEdmExternal = transformedToEdmExternal;
   }
 
   public String getDatasetId() {
@@ -60,7 +60,7 @@ public class DatasetInfoDto {
     return country;
   }
 
-  public boolean isXsltTransformed() {
-    return xsltTransformed;
+  public boolean isTransformedToEdmExternal() {
+    return transformedToEdmExternal;
   }
 }
