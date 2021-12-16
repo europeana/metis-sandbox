@@ -73,7 +73,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     //Create DatasetInfoDto from DatasetEntity
     DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-        dataset.getLanguage(), dataset.getCountry(), isXsltNotEmpty(dataset.getXsltTransformerEdmExternal()));
+        dataset.getLanguage(), dataset.getCountry(), StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;
@@ -227,7 +227,4 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return errorInfoDtoList;
   }
 
-  private boolean isXsltNotEmpty(String xslt){
-    return StringUtils.isNotEmpty(xslt) && StringUtils.isNotBlank(xslt);
-  }
 }

@@ -40,7 +40,7 @@ class TransformationServiceImpl implements TransformationService {
     try {
       EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
-      XsltTransformer transformer = getTransformer(getXmlDatasetName(record),
+      XsltTransformer transformer = getTransformer(getNewXmlName(record),
           record.getCountry().xmlValue(), record.getLanguage().name().toLowerCase());
       recordTransformed = transformer
           .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
@@ -55,7 +55,7 @@ class TransformationServiceImpl implements TransformationService {
   public RecordInfo transformToEdmExternal(Record record) {
     requireNonNull(record, "Record must not be null");
     String xsltToEdmExternal = datasetRepository.getOne(Integer.valueOf(
-        record.getDatasetId())).getXsltTransformerEdmExternal();
+        record.getDatasetId())).getXsltEdmExternalContent();
 
     return new RecordInfo(Record.from(record, transformToEdmExternal(record.getDatasetId(),
         record.getDatasetName(),
@@ -69,8 +69,8 @@ class TransformationServiceImpl implements TransformationService {
 
     byte[] recordToEdmExternal;
     try {
-      XsltTransformer transformer = new XsltTransformer(getXmlDatasetName(datasetId, datasetName), xsltToEdmExternal,
-          getXmlDatasetName(datasetId, datasetName), country.xmlValue(), language.name().toLowerCase());
+      XsltTransformer transformer = new XsltTransformer(getNewXmlName(datasetId, datasetName), xsltToEdmExternal,
+          getNewXmlName(datasetId, datasetName), country.xmlValue(), language.name().toLowerCase());
       recordToEdmExternal = transformer.transformToBytes(recordContent, null);
     } catch (TransformationException e) {
       throw new RecordProcessingException(datasetId, e);
@@ -84,11 +84,11 @@ class TransformationServiceImpl implements TransformationService {
     return xsltTransformer.getObject(datasetName, edmCountry, edmLanguage);
   }
 
-  private String getXmlDatasetName(Record record) {
-    return getXmlDatasetName(record.getDatasetId(), record.getDatasetName());
+  private String getNewXmlName(Record record) {
+    return getNewXmlName(record.getDatasetId(), record.getDatasetName());
   }
 
-  private String getXmlDatasetName(String datasetId, String datasetName){
+  private String getNewXmlName(String datasetId, String datasetName){
     return String.join("_", datasetId, datasetName);
   }
 }

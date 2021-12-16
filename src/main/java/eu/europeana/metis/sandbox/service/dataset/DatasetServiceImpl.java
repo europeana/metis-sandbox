@@ -47,7 +47,7 @@ class DatasetServiceImpl implements DatasetService {
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, InputStream xsltTransformerEDMExternal) {
+      List<ByteArrayInputStream> records, InputStream xsltEdmExternalContentStream) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
@@ -64,17 +64,9 @@ class DatasetServiceImpl implements DatasetService {
 
     String datasetId = String.valueOf(entity.getDatasetId());
 
-    // Extra transformation step occurs here
-    if(xsltTransformerEDMExternal != null){
-      try {
-        entity.setXsltTransformerEdmExternal(new String(xsltTransformerEDMExternal.readAllBytes(), StandardCharsets.UTF_8));
-        xsltTransformerEDMExternal.reset();
-        records.replaceAll(recordStream -> new ByteArrayInputStream(
-            transformationService.transformToEdmExternal(datasetId, datasetName,
-                xsltTransformerEDMExternal, country, language, recordStream.readAllBytes())));
-      } catch (IOException e) {
-        throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
-      }
+    if(isInputStreamAvailable(xsltEdmExternalContentStream)){
+      performTransformationToEdmExternal(xsltEdmExternalContentStream, entity, records, datasetId,
+          datasetName, country, language);
     }
 
     Dataset dataset = generatorService
@@ -118,6 +110,28 @@ class DatasetServiceImpl implements DatasetService {
       datasetRepository.deleteById(Integer.valueOf(datasetId));
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
+    }
+  }
+
+  private void performTransformationToEdmExternal(InputStream xsltEdmExternalContentStream,
+      DatasetEntity entity, List<ByteArrayInputStream> records, String datasetId, String datasetName,
+      Country country, Language language){
+    try {
+      entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
+      xsltEdmExternalContentStream.reset();
+      records.replaceAll(recordStream -> new ByteArrayInputStream(
+          transformationService.transformToEdmExternal(datasetId, datasetName,
+              xsltEdmExternalContentStream, country, language, recordStream.readAllBytes())));
+    } catch (IOException e) {
+      throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
+    }
+  }
+
+  private boolean isInputStreamAvailable (InputStream stream){
+    try{
+      return stream != null && stream.available() != 0 ;
+    }  catch (IOException e){
+      throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
     }
   }
 }

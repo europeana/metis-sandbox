@@ -247,7 +247,7 @@ class DatasetController {
         throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
       }
     }
-    return null;
+    return new ByteArrayInputStream(new byte[0]);
   }
 
   private static class CountryView {
