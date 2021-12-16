@@ -53,14 +53,14 @@ class TransformationServiceImplTest {
     when(xsltTransformer.transformToBytes(any(byte[].class), any(EuropeanaGeneratedIdsMap.class)))
         .thenReturn(expected.getBytes());
 
-    var result = service.transform(record);
+    var result = service.transformToEdmInternal(record);
 
     assertArrayEquals(expected.getBytes(), result.getRecord().getContent());
   }
 
   @Test
   void transform_nullRecord_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.transform(null));
+    assertThrows(NullPointerException.class, () -> service.transformToEdmInternal(null));
   }
 
   @Test
@@ -77,7 +77,7 @@ class TransformationServiceImplTest {
         .thenThrow(new TransformationException(new Exception("Failing here")));
 
     RecordProcessingException exception = assertThrows(RecordProcessingException.class,
-        () -> service.transform(record));
+        () -> service.transformToEdmInternal(record));
     assertEquals("1", exception.getRecordId());
   }
 }

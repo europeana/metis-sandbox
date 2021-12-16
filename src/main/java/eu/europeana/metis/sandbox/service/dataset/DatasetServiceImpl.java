@@ -120,7 +120,7 @@ class DatasetServiceImpl implements DatasetService {
       entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
       xsltEdmExternalContentStream.reset();
       records.replaceAll(recordStream -> new ByteArrayInputStream(
-          transformationService.transformToEdmExternal(datasetId, datasetName,
+          transformationService.transform(datasetId, datasetName,
               xsltEdmExternalContentStream, country, language, recordStream.readAllBytes())));
     } catch (IOException e) {
       throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
