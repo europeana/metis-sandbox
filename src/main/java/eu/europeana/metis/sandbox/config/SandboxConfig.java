@@ -6,11 +6,13 @@ import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
+import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.http.HttpHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import eu.europeana.metis.utils.ZipFileReader;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
@@ -95,8 +97,13 @@ class SandboxConfig {
   }
 
   @Bean
-  ZipFileReader zipFileReader() {
-    return new ZipFileReader();
+  OaiHarvester oaiHarvester() {
+    return HarvesterFactory.createOaiHarvester();
+  }
+
+  @Bean
+  HttpHarvester httpHarvester() {
+    return HarvesterFactory.createHttpHarvester();
   }
 
   @Bean

@@ -29,8 +29,6 @@ class RecordLogServiceImpl implements RecordLogService {
   @Override
   @Transactional
   public void logRecordEvent(Event recordEvent) {
-    requireNonNull(recordEvent, "Record event must not be null");
-
     var record = recordEvent.getBody();
     var recordErrors = recordEvent.getRecordErrors();
 

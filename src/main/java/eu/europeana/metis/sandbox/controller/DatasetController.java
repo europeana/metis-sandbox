@@ -69,6 +69,14 @@ class DatasetController {
     this.reportService = reportService;
   }
 
+  /**
+   * POST API calls for harvesting and processing the records given a zip file
+   * @param datasetName The given name of the dataset to be processed
+   * @param country The given country from which the records refer to
+   * @param language The given language that the records contain
+   * @param dataset The given dataset itself to be processed as a zip file
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
   @ApiOperation("Process the given dataset by HTTP providing a file")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
@@ -78,21 +86,29 @@ class DatasetController {
   public DatasetIdDto harvestDatasetFromFile(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    List<ByteArrayInputStream> records = harvestService.harvest(dataset);
+    List<ByteArrayInputStream> records = harvestService.harvestZipMultipartFile(dataset);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
 
-    // When saving the record into the database, the variable 'language' is saved as a 2-letter code
     var datasetObject = datasetService.createDataset(datasetName, country, language, records);
     return new DatasetIdDto(datasetObject);
   }
 
+
+  /**
+   * POST API calls for harvesting and processing the records given a URL of a zip file
+   * @param datasetName The given name of the dataset to be processed
+   * @param country The given country from which the records refer to
+   * @param language The given language that the records contain
+   * @param url The given dataset itself to be processed as a URL of a zip file
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
   @ApiOperation("Process the given dataset by HTTP providing an URL")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
@@ -102,11 +118,11 @@ class DatasetController {
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvest(url);
+    List<ByteArrayInputStream> records = harvestService.harvestZipUrl(url);
 
     checkArgument(records.size() < maxRecords,
         "Amount of records can not be more than " + maxRecords);
@@ -114,6 +130,48 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
+  /**
+   * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
+   * @param datasetName The given name of the dataset to be processed
+   * @param country The given country from which the records refer to
+   * @param language The given language that the records contain
+   * @param url The given URL of the OAI-PMH repository to be processed
+   * @param setspec forms a unique identifier for the set within the repository,
+   *                it must be unique for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format
+   *                       in OAI-PMH requests issued to the repository
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
+  @ApiOperation("Process the given dataset using OAI-PMH")
+  @ApiResponses({
+      @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
+  })
+  @PostMapping(value = "dataset/{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public DatasetIdDto harvestDatasetOaiPmh(
+      @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+      @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
+      @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
+      @ApiParam(value = "metadata format") @RequestParam String metadataformat) {
+    checkArgument(namePattern.matcher(datasetName).matches(),
+        "dataset name can only include letters, numbers, _ or - characters");
+    List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
+        metadataformat);
+
+    checkArgument(records.size() < maxRecords,
+        "Amount of records can not be more than " + maxRecords);
+
+    var datasetObject = datasetService.createDataset(datasetName, country, language, records);
+    return new DatasetIdDto(datasetObject);
+  }
+
+  /**
+   * GET API calls to return the progress status of a given dataset id
+   * @param datasetId The given dataset id to look for
+   * @return The report of the dataset status
+   */
   @ApiOperation("Get dataset progress information")
   @ApiResponses({
       @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)

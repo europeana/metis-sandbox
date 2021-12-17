@@ -16,14 +16,28 @@ public interface HarvestService {
    * @return List of byte[]
    * @throws ServiceException if file is not valid, error reading file, if records are empty
    */
-  List<ByteArrayInputStream> harvest(MultipartFile file) throws ServiceException;
+  List<ByteArrayInputStream> harvestZipMultipartFile(MultipartFile file) throws ServiceException;
 
   /**
-   * Harvest the given URL {@link String} to a list of byte[], one string per file in the zip
+   * Harvest the given URL {@link String} to a list of byte[], one string per file
    *
    * @param url URL for zip file containing one or more records
    * @return List of byte[]
-   * @throws ServiceException if file is not valid, error reading file, if records are empty
+   * @throws ServiceException if error processing URL, if URL timeout, if records are empty
    */
-  List<ByteArrayInputStream> harvest(String url) throws ServiceException;
+  List<ByteArrayInputStream> harvestZipUrl(String url) throws ServiceException;
+
+  /**
+   * Harvest the given OAI endpoint {@link String} to a list of byte[]
+   *
+   * @param endpoint for OAI endpoint containing one or more records
+   * @param setSpec  record specification
+   * @param prefix   record prefix
+   * @return List of byte[]
+   * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
+   *                          empty
+   */
+  List<ByteArrayInputStream> harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
+      throws ServiceException;
+
 }
