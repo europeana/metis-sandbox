@@ -540,7 +540,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -564,7 +564,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -588,7 +588,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")

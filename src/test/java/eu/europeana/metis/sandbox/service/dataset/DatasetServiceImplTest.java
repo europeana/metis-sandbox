@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -17,8 +18,11 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -39,6 +43,9 @@ class DatasetServiceImplTest {
   @Mock
   private DatasetRepository datasetRepository;
 
+  @Mock
+  private TransformationService transformationService;
+
   @InjectMocks
   private DatasetServiceImpl service;
 
@@ -55,11 +62,38 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, null);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
 
+    assertEquals("1234", result.getDatasetId());
+  }
+
+  @Test
+  void createDataset_withXsltContent_expectSuccess() {
+
+    var records = new ArrayList<ByteArrayInputStream>();
+    records.add(new ByteArrayInputStream("record1".getBytes()));
+    var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
+        .language(Language.BE).content("".getBytes()).recordId("").build();
+    var dataset = new Dataset("1234", Set.of(record), 0);
+    var datasetEntity = new DatasetEntity("name", 5, Language.NL, Country.NETHERLANDS);
+    datasetEntity.setDatasetId(1);
+    ByteArrayInputStream xsltContent = new ByteArrayInputStream(
+        "xsltContent".getBytes(StandardCharsets.UTF_8));
+    byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
+
+    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
+    when(transformationService.transform("1", xsltContent, "record1".getBytes())).thenReturn(
+        transformResultMock);
+    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+        .thenReturn(dataset);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, xsltContent);
+
+    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
+    verify(publishService, times(1)).publish(dataset);
+    verify(transformationService, times(1)).transform("1", xsltContent, "record1".getBytes());
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -77,24 +111,54 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, null);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
+    assertEquals("1234", result.getDatasetId());
+  }
 
+  @Test
+  void createDataset_withDuplicateRecordsAndXsltContent_expectSuccess() {
+
+    var records = new ArrayList<ByteArrayInputStream>();
+    records.add(new ByteArrayInputStream("record1".getBytes()));
+    records.add(new ByteArrayInputStream("record2".getBytes()));
+    var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
+        .language(Language.BE).content("".getBytes()).recordId("").build();
+    var dataset = new Dataset("1234", Set.of(record), 0);
+    var datasetEntity = new DatasetEntity("name", 1, Language.NL, Country.NETHERLANDS);
+    datasetEntity.setDatasetId(1);
+    ByteArrayInputStream xsltContent = new ByteArrayInputStream(
+        "xsltContent".getBytes(StandardCharsets.UTF_8));
+    byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
+
+    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
+    when(transformationService.transform("1", xsltContent, "record1".getBytes())).thenReturn(
+        transformResultMock);
+    when(transformationService.transform("1", xsltContent, "record2".getBytes())).thenReturn(
+        transformResultMock);
+    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+        .thenReturn(dataset);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, xsltContent);
+
+    verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
+    verify(publishService, times(1)).publish(dataset);
+    verify(transformationService, times(2)).transform(anyString(), any(ByteArrayInputStream.class),
+        any(byte[].class));
     assertEquals("1234", result.getDatasetId());
   }
 
   @Test
   void createDataset_nullValue_expectFail() {
     assertThrows(NullPointerException.class,
-        () -> service.createDataset(null, Country.AUSTRIA, Language.BE, List.of(), null));
+        () -> service.createDataset(null, Country.AUSTRIA, Language.BE, List.of()));
   }
 
   @Test
   void createDataset_emptyRecordList_expectFail() {
     assertThrows(IllegalArgumentException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, List.of(), null));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, List.of()));
   }
 
   @Test
@@ -108,7 +172,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class)))
         .thenThrow(new IllegalArgumentException());
     assertThrows(ServiceException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, null));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);
@@ -132,7 +196,7 @@ class DatasetServiceImplTest {
         .thenReturn(dataset);
 
     assertThrows(ServiceException.class,
-        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, null));
+        () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, never()).publish(dataset);

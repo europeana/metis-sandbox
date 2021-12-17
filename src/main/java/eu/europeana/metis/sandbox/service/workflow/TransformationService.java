@@ -23,17 +23,12 @@ public interface TransformationService {
    * Transform the given record to EDM external format using a xslt given by the user previously
    *
    * @param datasetId The id of the dataset where record belongs to
-   * @param datasetName The name of the dataset where record belongs to
    * @param xsltToEdmExternal The xslt content to perform the transformation
-   * @param country The country of the dataset
-   * @param language The language of the dataset
    * @param recordContent The content of the record to be transformed as an array of bytes
    * @return {@link RecordInfo} containing record transformed
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if records fails at transformation
    */
 
-  byte[] transform(String datasetId,
-      String datasetName, InputStream xsltToEdmExternal, Country country, Language language,
-      byte[] recordContent);
+  byte[] transform(String datasetId, InputStream xsltToEdmExternal, byte[] recordContent);
 }

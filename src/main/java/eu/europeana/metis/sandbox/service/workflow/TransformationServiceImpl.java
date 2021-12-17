@@ -46,14 +46,11 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   @Override
-  public byte[] transform(String datasetId, String datasetName, InputStream xsltToEdmExternal,
-      Country country, Language language, byte[] recordContent) {
+  public byte[] transform(String datasetId, InputStream xsltToEdmExternal, byte[] recordContent) {
 
     byte[] recordToEdmExternal;
     try {
-      XsltTransformer transformer = new XsltTransformer(
-          getJoinDatasetIdDatasetName(datasetId, datasetName), xsltToEdmExternal,
-          getJoinDatasetIdDatasetName(datasetId, datasetName), country.xmlValue(), language.name().toLowerCase());
+      XsltTransformer transformer = new XsltTransformer(datasetId, xsltToEdmExternal);
       recordToEdmExternal = transformer.transformToBytes(recordContent, null);
     } catch (TransformationException e) {
       throw new RecordProcessingException(datasetId, e);
