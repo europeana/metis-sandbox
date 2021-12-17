@@ -85,7 +85,7 @@ class DatasetServiceImplTest {
     byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(transformationService.transform("1", xsltContent, "record1".getBytes())).thenReturn(
+    when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
         transformResultMock);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
@@ -93,7 +93,7 @@ class DatasetServiceImplTest {
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset);
-    verify(transformationService, times(1)).transform("1", xsltContent, "record1".getBytes());
+    verify(transformationService, times(1)).transform("1_name", xsltContent, "record1".getBytes());
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -134,9 +134,9 @@ class DatasetServiceImplTest {
     byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(transformationService.transform("1", xsltContent, "record1".getBytes())).thenReturn(
+    when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
         transformResultMock);
-    when(transformationService.transform("1", xsltContent, "record2".getBytes())).thenReturn(
+    when(transformationService.transform("1_name", xsltContent, "record2".getBytes())).thenReturn(
         transformResultMock);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);

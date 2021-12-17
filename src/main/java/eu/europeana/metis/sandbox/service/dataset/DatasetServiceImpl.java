@@ -71,7 +71,7 @@ class DatasetServiceImpl implements DatasetService {
     String datasetId = String.valueOf(entity.getDatasetId());
 
     if(isInputStreamAvailable(xsltEdmExternalContentStream)){
-      performTransformationToEdmExternal(xsltEdmExternalContentStream, entity, records, datasetId);
+      performTransformationToEdmExternal(xsltEdmExternalContentStream, entity, records, String.join("_", datasetId, datasetName));
     }
 
     Dataset dataset = generatorService
@@ -119,12 +119,12 @@ class DatasetServiceImpl implements DatasetService {
   }
 
   private void performTransformationToEdmExternal(InputStream xsltEdmExternalContentStream,
-      DatasetEntity entity, List<ByteArrayInputStream> records, String datasetId){
+      DatasetEntity entity, List<ByteArrayInputStream> records, String identifier){
     try {
       entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
       xsltEdmExternalContentStream.reset();
       records.replaceAll(recordStream -> new ByteArrayInputStream(
-          transformationService.transform(datasetId, xsltEdmExternalContentStream, recordStream.readAllBytes())));
+          transformationService.transform(identifier, xsltEdmExternalContentStream, recordStream.readAllBytes())));
     } catch (IOException e) {
       throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
     }

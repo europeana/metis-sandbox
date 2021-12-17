@@ -3,10 +3,9 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.transformation.service.CacheValueSupplier.CacheValueSupplierException;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -46,17 +45,17 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   @Override
-  public byte[] transform(String datasetId, InputStream xsltToEdmExternal, byte[] recordContent) {
+  public byte[] transform(String identifier, InputStream xsltContentInputStream, byte[] recordContent) {
 
-    byte[] recordToEdmExternal;
+    byte[] resultRecord;
     try {
-      XsltTransformer transformer = new XsltTransformer(datasetId, xsltToEdmExternal);
-      recordToEdmExternal = transformer.transformToBytes(recordContent, null);
+      XsltTransformer transformer = getNewTransformerObject(identifier, xsltContentInputStream);
+      resultRecord = transformer.transformToBytes(recordContent, null);
     } catch (TransformationException e) {
-      throw new RecordProcessingException(datasetId, e);
+      throw new RecordProcessingException(identifier, e);
     }
 
-    return recordToEdmExternal;
+    return resultRecord;
   }
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
@@ -70,5 +69,10 @@ class TransformationServiceImpl implements TransformationService {
 
   private String getJoinDatasetIdDatasetName(String datasetId, String datasetName){
     return String.join("_", datasetId, datasetName);
+  }
+
+  protected XsltTransformer getNewTransformerObject(String identifier, InputStream xsltFile)
+      throws TransformationException {
+    return new XsltTransformer(identifier, xsltFile);
   }
 }
