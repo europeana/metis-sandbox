@@ -80,7 +80,9 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null)).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class)))
+        .thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -95,7 +97,8 @@ class DatasetControllerTest {
 
     MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
-    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/xslt+xml",
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
         "string".getBytes());
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
@@ -104,7 +107,8 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(InputStream.class))).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -125,7 +129,8 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null)).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
@@ -144,11 +149,13 @@ class DatasetControllerTest {
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/xslt+xml",
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
         "string".getBytes());
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(InputStream.class))).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
             .file(xsltMock)
@@ -170,7 +177,9 @@ class DatasetControllerTest {
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null)).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class)))
+        .thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.xmlValue())
@@ -192,11 +201,13 @@ class DatasetControllerTest {
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/xslt+xml",
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
         "string".getBytes());
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(InputStream.class))).thenReturn(datasetObject);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .file(xsltMock)
@@ -262,7 +273,8 @@ class DatasetControllerTest {
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenThrow(new InvalidZipFileException(new Exception()));
+    when(harvestService.harvestZipMultipartFile(dataset)).thenThrow(
+        new InvalidZipFileException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -278,7 +290,8 @@ class DatasetControllerTest {
 
     String url = "zip" + File.separator + "dataset-valid.zip";
 
-    when(harvestService.harvestZipUrl(url)).thenThrow(new IllegalArgumentException(new Exception()));
+    when(harvestService.harvestZipUrl(url)).thenThrow(
+        new IllegalArgumentException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
@@ -390,7 +403,8 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -410,7 +424,8 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -430,7 +445,8 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -454,7 +470,8 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records,null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -474,7 +491,8 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -494,7 +512,8 @@ class DatasetControllerTest {
         new ByteArrayInputStream("record2".getBytes()));
 
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -521,7 +540,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset("my-data-set", ITALY, IT, records,null))
+    when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -568,7 +587,6 @@ class DatasetControllerTest {
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
 
-
     when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
     when(datasetService.createDataset("my-data-set", ITALY, IT, records, null))
         .thenThrow(new RecordParsingException(new Exception()));
@@ -613,7 +631,7 @@ class DatasetControllerTest {
         .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
         .andExpect(jsonPath("$.dataset-info.language", is("Dutch")))
         .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")))
-        .andExpect(jsonPath("$.dataset-info.xslt-transformed", is(false)));
+        .andExpect(jsonPath("$.dataset-info.transformed-to-edm-external", is(false)));
   }
 
   @Test
