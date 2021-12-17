@@ -46,23 +46,24 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records) {
-    return createDataset(datasetName, country, language, records, new ByteArrayInputStream(new byte[0]));
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit) {
+    return createDataset(datasetName, country, language, records, hasReachedRecordLimit,
+        new ByteArrayInputStream(new byte[0]));
   }
 
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, InputStream xsltEdmExternalContentStream) {
-      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit) {
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit,
+      InputStream xsltEdmExternalContentStream) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    var entity = new DatasetEntity(datasetName, records.size(), language, country, hasReachedRecordLimit);
-    DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country);
+    DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country,
+        hasReachedRecordLimit);
 
     try {
       entity = datasetRepository.save(entity);

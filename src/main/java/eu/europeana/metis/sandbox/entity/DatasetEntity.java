@@ -51,8 +51,8 @@ public class DatasetEntity {
   }
 
   public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
-      String xsltEdmExternalContent) {
-    this(datasetName, recordsQuantity, language, country);
+      Boolean hasReachedRecordLimit, String xsltEdmExternalContent) {
+    this(datasetName, recordsQuantity, language, country, hasReachedRecordLimit);
     this.xsltEdmExternalContent = xsltEdmExternalContent;
   }
 

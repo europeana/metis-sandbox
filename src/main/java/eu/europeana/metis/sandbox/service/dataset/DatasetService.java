@@ -47,7 +47,7 @@ public interface DatasetService {
    * @see Dataset
    */
   Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, InputStream xsltEdmExternalContentStream);
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit, InputStream xsltEdmExternalContentStream);
 
   /**
    * Get dataset ids created before than the specified days

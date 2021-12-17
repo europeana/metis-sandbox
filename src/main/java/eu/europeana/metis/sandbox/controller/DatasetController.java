@@ -59,9 +59,6 @@ class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
-
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
@@ -103,11 +100,10 @@ class DatasetController {
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
     // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, harvestedRecords.getValue(),
+        harvestedRecords.getKey().get(), xsltFileString);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getValue(), harvestedRecords.getKey().get());
+
     return new DatasetIdDto(datasetObject);
   }
 
@@ -129,7 +125,7 @@ class DatasetController {
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
 
@@ -137,13 +133,10 @@ class DatasetController {
         "dataset name can only include letters, numbers, _ or - characters");
     Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestedRecords = harvestService.harvestZipUrl(url);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getValue(), harvestedRecords.getKey().get());
-
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
 
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltInputStream);
+    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, harvestedRecords.getValue(),
+        harvestedRecords.getKey().get(), xsltInputStream);
     return new DatasetIdDto(datasetObject);
   }
 
@@ -178,13 +171,10 @@ class DatasetController {
     Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestedRecords = harvestService.harvestOaiPmhEndpoint(
         url, setspec, metadataformat);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getValue(), harvestedRecords.getKey().get());
-
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+    var datasetObject = datasetService.createDataset(datasetName, country, language, harvestedRecords.getValue(),
+        harvestedRecords.getKey().get(), xsltFileString);
     return new DatasetIdDto(datasetObject);
   }
 

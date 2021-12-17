@@ -32,8 +32,7 @@ public class DatasetInfoDto {
   @JsonProperty("transformed-to-edm-external")
   private final boolean transformedToEdmExternal;
 
-  public DatasetInfoDto(String datasetId, String datasetName,
-      LocalDateTime creationDate,
+  public DatasetInfoDto(String datasetId, String datasetName, LocalDateTime creationDate,
       Language language, Country country, boolean recordLimitExceeded, boolean transformedToEdmExternal) {
 
     this.creationDate = creationDate;
