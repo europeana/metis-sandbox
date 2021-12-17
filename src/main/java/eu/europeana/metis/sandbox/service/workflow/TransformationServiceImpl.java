@@ -10,6 +10,9 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,13 +47,15 @@ class TransformationServiceImpl implements TransformationService {
       String edmLanguage) throws TransformationException {
 
     var xsltTransformEntity = transformXsltRepository.findById(1);
-    String xsltTransform = null;
+    String xsltTransform;
+    InputStream xsltInputStream = null;
     if (xsltTransformEntity.isPresent()) {
       xsltTransform = xsltTransformEntity.get().getTransformXslt();
+      xsltInputStream = new ByteArrayInputStream(xsltTransform.getBytes(StandardCharsets.UTF_8));
     }
-    // TODO: this xsltTransform needs to be changed in metis-transform library, from a String to a
-    // InputStream, perhaps, check MET-4065 and MET-4066
-    return new XsltTransformer(xsltTransform, datasetName, edmCountry, edmLanguage);
+    // First argument is to be used as cacheKey, it can be any string.
+    // Check implementation of constructor in metis-transformation-service module
+    return new XsltTransformer("xsltKey", xsltInputStream, datasetName, edmCountry, edmLanguage);
   }
 
   private String getXmlDatasetName(Record record) {

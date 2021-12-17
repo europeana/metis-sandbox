@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Contains a record and a list of errors if any
@@ -45,4 +46,22 @@ public class RecordInfo {
   public List<RecordError> getErrors() {
     return errors;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RecordInfo that = (RecordInfo) o;
+    return record.equals(that.record) && errors.equals(that.errors);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(record, errors);
+  }
+
 }
