@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +73,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     //Create DatasetInfoDto from DatasetEntity
     DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-        dataset.getLanguage(), dataset.getCountry());
+        dataset.getLanguage(), dataset.getCountry(), StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;
@@ -225,4 +226,5 @@ class DatasetReportServiceImpl implements DatasetReportService {
     errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
     return errorInfoDtoList;
   }
+
 }

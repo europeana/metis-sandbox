@@ -47,10 +47,10 @@ class ExternallyValidatedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.transform(record)).thenReturn(new RecordInfo(record));
+    when(service.transformToEdmInternal(record)).thenReturn(new RecordInfo(record));
     consumer.transform(recordEvent);
 
-    verify(service).transform(record);
+    verify(service).transformToEdmInternal(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.TRANSFORM, captor.getValue().getStep());
@@ -66,7 +66,7 @@ class ExternallyValidatedConsumerTest {
 
     consumer.transform(recordEvent);
 
-    verify(service, never()).transform(record);
+    verify(service, never()).transformToEdmInternal(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
@@ -78,11 +78,11 @@ class ExternallyValidatedConsumerTest {
         .recordId("").build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.transform(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.transformToEdmInternal(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.transform(recordEvent);
 
-    verify(service).transform(record);
+    verify(service).transformToEdmInternal(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

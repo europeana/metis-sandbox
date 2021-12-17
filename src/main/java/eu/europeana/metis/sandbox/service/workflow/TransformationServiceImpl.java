@@ -25,14 +25,14 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   @Override
-  public RecordInfo transform(Record record) {
+  public RecordInfo transformToEdmInternal(Record record) {
     requireNonNull(record, "Record must not be null");
 
     byte[] recordTransformed;
     try {
-      var europeanaGeneratedIdsMap = new EuropeanaIdCreator()
+      EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
-      var transformer = getTransformer(getXmlDatasetName(record),
+      XsltTransformer transformer = getTransformer(getJoinDatasetIdDatasetName(record),
           record.getCountry().xmlValue(), record.getLanguage().name().toLowerCase());
       recordTransformed = transformer
           .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
@@ -41,6 +41,20 @@ class TransformationServiceImpl implements TransformationService {
     }
 
     return new RecordInfo(Record.from(record, recordTransformed));
+  }
+
+  @Override
+  public byte[] transform(String identifier, InputStream xsltContentInputStream, byte[] recordContent) {
+
+    byte[] resultRecord;
+    try {
+      XsltTransformer transformer = getNewTransformerObject(identifier, xsltContentInputStream);
+      resultRecord = transformer.transformToBytes(recordContent, null);
+    } catch (TransformationException e) {
+      throw new RecordProcessingException(identifier, e);
+    }
+
+    return resultRecord;
   }
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
@@ -58,7 +72,16 @@ class TransformationServiceImpl implements TransformationService {
     return new XsltTransformer("xsltKey", xsltInputStream, datasetName, edmCountry, edmLanguage);
   }
 
-  private String getXmlDatasetName(Record record) {
-    return String.join("_", record.getDatasetId(), record.getDatasetName());
+  private String getJoinDatasetIdDatasetName(Record record) {
+    return getJoinDatasetIdDatasetName(record.getDatasetId(), record.getDatasetName());
+  }
+
+  private String getJoinDatasetIdDatasetName(String datasetId, String datasetName){
+    return String.join("_", datasetId, datasetName);
+  }
+
+  protected XsltTransformer getNewTransformerObject(String identifier, InputStream xsltFile)
+      throws TransformationException {
+    return new XsltTransformer(identifier, xsltFile);
   }
 }
