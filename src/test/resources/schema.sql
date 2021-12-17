@@ -8,9 +8,10 @@ create table if not exists dataset (
    dataset_name varchar(255) not null,
    records_quantity integer not null,
    created_date timestamp with time zone default now(),
-   country varchar(25),
-   language varchar(2),
-   has_reached_record_limit bool,
+   country varchar(35),
+   language varchar(3),
+    has_reached_record_limit bool,
+   xslt_edm_external_content text,
    Primary Key (dataset_id)
 );
 

@@ -29,15 +29,20 @@ public class DatasetInfoDto {
   @JsonProperty("record-limit-exceeded")
   private final boolean recordLimitExceeded;
 
+  @JsonProperty("transformed-to-edm-external")
+  private final boolean transformedToEdmExternal;
+
   public DatasetInfoDto(String datasetId, String datasetName,
       LocalDateTime creationDate,
-      Language language, Country country, boolean recordLimitExceeded) {
+      Language language, Country country, boolean recordLimitExceeded, boolean transformedToEdmExternal) {
+
     this.creationDate = creationDate;
     this.language = language;
     this.country = country;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
     this.recordLimitExceeded = recordLimitExceeded;
+    this.transformedToEdmExternal = transformedToEdmExternal;
   }
 
   public String getDatasetId() {
@@ -62,5 +67,8 @@ public class DatasetInfoDto {
 
   public boolean isRecordLimitExceeded() {
     return recordLimitExceeded;
+  }
+  public boolean isTransformedToEdmExternal() {
+    return transformedToEdmExternal;
   }
 }

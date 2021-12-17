@@ -29,6 +29,6 @@ class ExternallyValidatedConsumer extends StepConsumer {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.validated.external.auto-start:true}")
   public void transform(Event input) {
-    consume(routingKey, input, Step.TRANSFORM, () -> service.transform(input.getBody()));
+    consume(routingKey, input, Step.TRANSFORM, () -> service.transformToEdmInternal(input.getBody()));
   }
 }

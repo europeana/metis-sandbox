@@ -18,6 +18,7 @@ create table if not exists dataset (
    country varchar(35) not null,
    language varchar(3) not null,
    has_reached_record_limit bool,
+   xslt_edm_external_content text,
    Primary Key (dataset_id)
 );
 
