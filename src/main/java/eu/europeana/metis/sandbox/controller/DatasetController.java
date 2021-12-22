@@ -10,6 +10,8 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.tier.FakeTierCalculationProvider;
+import eu.europeana.metis.sandbox.dto.report.tier.RecordTierCalculationDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
@@ -38,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/dataset/")
 @Api(value = "Dataset Controller")
 class DatasetController {
 
@@ -75,6 +77,7 @@ class DatasetController {
 
   /**
    * POST API calls for harvesting and processing the records given a zip file
+   *
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
@@ -85,14 +88,14 @@ class DatasetController {
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/harvestByFile", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "{name}/harvestByFile", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetFromFile(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
@@ -113,6 +116,7 @@ class DatasetController {
 
   /**
    * POST API calls for harvesting and processing the records given a URL of a zip file
+   *
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
@@ -123,14 +127,14 @@ class DatasetController {
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
@@ -148,21 +152,21 @@ class DatasetController {
 
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
+   *
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
    * @param url The given URL of the OAI-PMH repository to be processed
-   * @param setspec forms a unique identifier for the set within the repository,
-   *                it must be unique for each set.
-   * @param metadataformat or metadata prefix is a string to specify the metadata format
-   *                       in OAI-PMH requests issued to the repository
+   * @param setspec forms a unique identifier for the set within the repository, it must be unique for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH requests issued to the
+   * repository
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
   @ApiResponses({
       @ApiResponse(code = 202, message = MESSAGE_FOR_PROCESS_DATASET, response = Object.class)
   })
-  @PostMapping(value = "dataset/{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(value = "{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public DatasetIdDto harvestDatasetOaiPmh(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
@@ -171,7 +175,7 @@ class DatasetController {
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
     List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
@@ -189,6 +193,7 @@ class DatasetController {
 
   /**
    * GET API calls to return the progress status of a given dataset id
+   *
    * @param datasetId The given dataset id to look for
    * @return The report of the dataset status
    */
@@ -196,10 +201,23 @@ class DatasetController {
   @ApiResponses({
       @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
   })
-  @GetMapping(value = "dataset/{id}", produces = APPLICATION_JSON_VALUE)
-  public ProgressInfoDto retrieveDataset(
+  @GetMapping(value = "{id}", produces = APPLICATION_JSON_VALUE)
+  public ProgressInfoDto getDataset(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return reportService.getReport(datasetId);
+  }
+
+  @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
+  public RecordTierCalculationDto computeRecordMediaCalculation(@PathVariable("id") String datasetId,
+      @RequestParam RecordIdType recordIdType, @RequestParam String recordId) {
+    // TODO: 22/12/2021 Write the service that generated this
+    // TODO: 22/12/2021 Keep in mind that the europeana id is not stored as a separate field, which we might need to implement
+    return FakeTierCalculationProvider.getFakeObject();
+  }
+
+  // TODO: 22/12/2021 Move to the service that will actually use this
+  private enum RecordIdType {
+    PROVIDER_ID, EUROPEANA_ID
   }
 
   /**
@@ -212,7 +230,7 @@ class DatasetController {
   @ApiResponses({
       @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
   })
-  @GetMapping(value = "dataset/countries", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "countries", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<CountryView> getAllCountries() {
@@ -229,7 +247,7 @@ class DatasetController {
   @ApiResponses({
       @ApiResponse(code = 200, message = MESSAGE_FOR_RETRIEVE_DATASET, response = Object.class)
   })
-  @GetMapping(value = "dataset/languages", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "languages", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<LanguageView> getAllLanguages() {
@@ -238,7 +256,7 @@ class DatasetController {
   }
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
-    if(xslt != null && !xslt.isEmpty()){
+    if (xslt != null && !xslt.isEmpty()) {
       checkArgument(xslt.getContentType().equals("application/xslt+xml"),
           "The given xslt file should be a single xml file.");
       try {

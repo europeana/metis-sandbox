@@ -1,0 +1,49 @@
+package eu.europeana.metis.sandbox.dto.report.tier;
+
+import eu.europeana.indexing.tiers.model.MetadataTier;
+import java.util.List;
+
+class ContextualClasses {
+
+  private int completeContextualResources;
+  private int distinctClassesOfCompleteContextualResources;
+  private List<String> distinctClassesList;
+  // TODO: 22/12/2021 For setting this check QualityAnnotationSolrCreator.SolrTier.
+  // TODO: 22/12/2021 Probably extract this method to reuse it here.
+  private String metadataTier;
+
+  public ContextualClasses() {
+  }
+
+  public int getCompleteContextualResources() {
+    return completeContextualResources;
+  }
+
+  public void setCompleteContextualResources(int completeContextualResources) {
+    this.completeContextualResources = completeContextualResources;
+  }
+
+  public int getDistinctClassesOfCompleteContextualResources() {
+    return distinctClassesOfCompleteContextualResources;
+  }
+
+  public void setDistinctClassesOfCompleteContextualResources(int distinctClassesOfCompleteContextualResources) {
+    this.distinctClassesOfCompleteContextualResources = distinctClassesOfCompleteContextualResources;
+  }
+
+  public List<String> getDistinctClassesList() {
+    return distinctClassesList;
+  }
+
+  public void setDistinctClassesList(List<String> distinctClassesList) {
+    this.distinctClassesList = distinctClassesList;
+  }
+
+  public String getMetadataTier() {
+    return metadataTier;
+  }
+
+  public void setMetadataTier(String metadataTier) {
+    this.metadataTier = metadataTier;
+  }
+}
