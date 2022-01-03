@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -75,14 +76,13 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(pairMock);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -104,14 +104,13 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(pairMock);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(InputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -128,14 +127,13 @@ class DatasetControllerTest {
     String url = "zip" + File.separator + "dataset-valid.zip";
 
     var records = List.of(new ByteArrayInputStream(testUtils.readFileToBytes(url)));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(pairMock);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -158,12 +156,11 @@ class DatasetControllerTest {
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
         "string".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(pairMock);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(InputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
             .file(xsltMock)
@@ -181,14 +178,13 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -215,12 +211,11 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(InputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .file(xsltMock)
@@ -342,12 +337,11 @@ class DatasetControllerTest {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(pairMock);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq( pairMock.getKey().get()), any(InputStream.class)))
+        eq( harvestContent.hasReachedRecordLimit()), any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -365,12 +359,11 @@ class DatasetControllerTest {
     String url = "zip" + File.separator + "dataset-valid.zip";
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(pairMock);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(InputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -388,12 +381,11 @@ class DatasetControllerTest {
     String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -415,12 +407,11 @@ class DatasetControllerTest {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(pairMock);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -438,12 +429,11 @@ class DatasetControllerTest {
     String url = "zip" + File.separator + "dataset-valid.zip";
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(pairMock);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -461,12 +451,11 @@ class DatasetControllerTest {
     String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -491,12 +480,11 @@ class DatasetControllerTest {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(pairMock);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -518,12 +506,11 @@ class DatasetControllerTest {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(pairMock);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -545,12 +532,11 @@ class DatasetControllerTest {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
-    ImmutablePair<AtomicBoolean, List<ByteArrayInputStream>> pairMock =
-        new ImmutablePair<>(new AtomicBoolean(false), records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(pairMock);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(pairMock.getKey().get()), any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")

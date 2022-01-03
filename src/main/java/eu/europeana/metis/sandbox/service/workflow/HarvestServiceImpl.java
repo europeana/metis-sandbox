@@ -9,6 +9,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,10 +44,10 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipMultipartFile(MultipartFile file)
+  public HarvestContent harvestZipMultipartFile(MultipartFile file)
       throws ServiceException {
 
-    Pair<AtomicBoolean, List<ByteArrayInputStream>> pairResult;
+    HarvestContent pairResult;
 
     try {
       pairResult = this.harvest(file.getInputStream());
@@ -57,9 +58,9 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestZipUrl(String url) throws ServiceException {
+  public HarvestContent harvestZipUrl(String url) throws ServiceException {
 
-    Pair<AtomicBoolean, List<ByteArrayInputStream>> pairResult;
+    HarvestContent pairResult;
 
     try (InputStream input = new URL(url).openStream()) {
       pairResult = this.harvest(input);
@@ -70,7 +71,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public Pair<AtomicBoolean, List<ByteArrayInputStream>> harvestOaiPmhEndpoint(String endpoint, String setSpec,
+  public HarvestContent harvestOaiPmhEndpoint(String endpoint, String setSpec,
       String prefix)
       throws ServiceException {
 
@@ -108,10 +109,10 @@ public class HarvestServiceImpl implements HarvestService {
     if (records.isEmpty()) {
       throw new ServiceException("Error records are empty ", null);
     }
-    return new ImmutablePair<>(hasReachedRecordLimit,records);
+    return new HarvestContent(hasReachedRecordLimit,records);
   }
 
-  private Pair<AtomicBoolean, List<ByteArrayInputStream>> harvest(InputStream inputStream) throws ServiceException {
+  private HarvestContent harvest(InputStream inputStream) throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
@@ -133,7 +134,7 @@ public class HarvestServiceImpl implements HarvestService {
     if (records.isEmpty()) {
       throw new ServiceException("Provided file does not contain any records", null);
     }
-    return new ImmutablePair<>(hasReachedRecordLimit,records);
+    return new HarvestContent(hasReachedRecordLimit,records);
   }
 
   protected void setMaxRecords(int limitRecords){
