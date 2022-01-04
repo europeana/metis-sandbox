@@ -4,14 +4,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.indexing.tiers.view.FakeTierCalculationProvider;
+import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.tier.FakeTierCalculationProvider;
-import eu.europeana.metis.sandbox.dto.report.tier.RecordTierCalculationDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
@@ -208,7 +208,7 @@ class DatasetController {
   }
 
   @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
-  public RecordTierCalculationDto computeRecordMediaCalculation(@PathVariable("id") String datasetId,
+  public RecordTierCalculationView computeRecordMediaCalculation(@PathVariable("id") String datasetId,
       @RequestParam RecordIdType recordIdType, @RequestParam String recordId) {
     // TODO: 22/12/2021 Write the service that generated this
     // TODO: 22/12/2021 Keep in mind that the europeana id is not stored as a separate field, which we might need to implement
