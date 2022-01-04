@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.indexing.tiers.view.FakeTierCalculationProvider;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -14,6 +13,7 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.record.RecordTierCaclulationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -66,13 +66,16 @@ class DatasetController {
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
+  private final RecordTierCaclulationService recordTierCaclulationService;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
-      DatasetReportService reportService) {
+      DatasetReportService reportService,
+      RecordTierCaclulationService recordTierCaclulationService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
+    this.recordTierCaclulationService = recordTierCaclulationService;
   }
 
   /**
@@ -209,15 +212,10 @@ class DatasetController {
 
   @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
   public RecordTierCalculationView computeRecordMediaCalculation(@PathVariable("id") String datasetId,
-      @RequestParam RecordIdType recordIdType, @RequestParam String recordId) {
+      @RequestParam(defaultValue = "PROVIDER_ID") RecordTierCaclulationService.RecordIdType recordIdType, @RequestParam String recordId) {
     // TODO: 22/12/2021 Write the service that generated this
     // TODO: 22/12/2021 Keep in mind that the europeana id is not stored as a separate field, which we might need to implement
-    return FakeTierCalculationProvider.getFakeObject();
-  }
-
-  // TODO: 22/12/2021 Move to the service that will actually use this
-  private enum RecordIdType {
-    PROVIDER_ID, EUROPEANA_ID
+    return recordTierCaclulationService.calculateTiers(recordId, datasetId);
   }
 
   /**
