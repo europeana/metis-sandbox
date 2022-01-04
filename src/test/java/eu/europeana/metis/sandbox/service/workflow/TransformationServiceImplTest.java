@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +64,7 @@ class TransformationServiceImplTest {
     TransformXsltEntity transformXsltEntity = new TransformXsltEntity(transformFile);
     when(transformXsltRepository.findById(anyInt())).thenReturn(Optional.of(transformXsltEntity));
 
-    var result = transformationService.transform(inputRecord);
+    var result = transformationService.transformToEdmInternal(inputRecord);
 
     assertEquals(expectedRecordInfo, result);
 
@@ -86,7 +85,7 @@ class TransformationServiceImplTest {
 
     RecordProcessingException exception =
         assertThrows(RecordProcessingException.class,
-            () -> transformationService.transform(record));
+            () -> transformationService.transformToEdmInternal(record));
 
     assertEquals("1", exception.getRecordId());
   }
