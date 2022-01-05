@@ -40,8 +40,12 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
           StandardCharsets.UTF_8);
       var entity = transformXsltRepository.findByTransformXslt(transformXslt);
 
+
       if (entity != null && entity.isPresent()) {
-        transformXsltRepository.save(entity.get());
+        if (!(transformXslt.equals(entity.get().getTransformXslt()))){
+          entity.get().setTransformXslt(transformXslt);
+          transformXsltRepository.save(entity.get());
+        }
       }
       else {
         transformXsltRepository.save(new TransformXsltEntity(transformXslt));
