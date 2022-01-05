@@ -31,6 +31,13 @@ class WorkflowListenerConfig {
   }
 
   @Bean
+  SimpleRabbitListenerContainerFactory transformationEdmExternalFactory(
+      SimpleRabbitListenerContainerFactoryConfigurer configurer,
+      ConnectionFactory connectionFactory) {
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+  }
+
+  @Bean
   SimpleRabbitListenerContainerFactory externallyValidatedFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {

@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
  * Consumes published events to close them
  */
 @Component
-class PublishedConsumer {
+class CloseConsumer {
 
   private final AmqpTemplate amqpTemplate;
 
   @Value("${sandbox.rabbitmq.routing-key.closed}")
   private String routingKey;
 
-  public PublishedConsumer(AmqpTemplate amqpTemplate) {
+  public CloseConsumer(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
 

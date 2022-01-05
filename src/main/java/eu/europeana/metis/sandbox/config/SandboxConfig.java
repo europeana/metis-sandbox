@@ -40,6 +40,9 @@ class SandboxConfig {
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String initialQueue;
 
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  private String transformationToEdmExternalQueue;
+
   @Value("${sandbox.dataset.creation.threads.core-pool-size}")
   private Integer corePoolSize;
 
@@ -91,9 +94,14 @@ class SandboxConfig {
     return executor;
   }
 
-  @Bean
+  @Bean(name = "initialQueue")
   String initialQueue() {
     return initialQueue;
+  }
+
+  @Bean(name = "transformationToEdmExternalQueue")
+  String transformationToEdmExternalQueue(){
+    return transformationToEdmExternalQueue;
   }
 
   @Bean

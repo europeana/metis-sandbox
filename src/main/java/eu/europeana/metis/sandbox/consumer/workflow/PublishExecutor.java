@@ -10,28 +10,28 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes media processed events and performs indexing to the contained record
- * <br/>
- * Publishes the result in the indexed queue
+ * Consumes previewed events and publish
+ * <br />
+ * Publishes the result in the published queue
  */
 @Component
-class MediaProcessedConsumer extends StepConsumer {
+class PublishExecutor extends StepExecutor {
 
   private final IndexingService service;
 
-  @Value("${sandbox.rabbitmq.queues.record.previewed.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.published.queue}")
   private String routingKey;
 
-  public MediaProcessedConsumer(AmqpTemplate amqpTemplate,
+  public PublishExecutor(AmqpTemplate amqpTemplate,
       IndexingService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory",
-      autoStartup = "${sandbox.rabbitmq.queues.record.media.auto-start:true}")
-  public void preview(Event input) {
-    consume(routingKey, input, Step.PREVIEW,
-        () -> service.index(input.getBody(), IndexEnvironment.PREVIEW));
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}", containerFactory = "previewedFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.previewed.auto-start:true}")
+  public void publish(Event input) {
+    consume(routingKey, input, Step.PUBLISH,
+        () -> service.index(input.getBody(), IndexEnvironment.PUBLISH));
   }
 }

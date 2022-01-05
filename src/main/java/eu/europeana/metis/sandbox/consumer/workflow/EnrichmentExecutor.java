@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
  * result in the enriched queue
  */
 @Component
-class NormalizedConsumer extends StepConsumer {
+class EnrichmentExecutor extends StepExecutor {
 
   private final EnrichmentService service;
 
   @Value("${sandbox.rabbitmq.queues.record.enriched.queue}")
   private String routingKey;
 
-  public NormalizedConsumer(AmqpTemplate amqpTemplate,
+  public EnrichmentExecutor(AmqpTemplate amqpTemplate,
       EnrichmentService service) {
     super(amqpTemplate);
     this.service = service;

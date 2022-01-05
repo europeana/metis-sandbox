@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,31 +24,40 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AsyncDatasetPublishServiceImpl.class);
 
+
   private final AmqpTemplate amqpTemplate;
   private final String initialQueue;
+  private final String transformationToEdmExternalQueue;
   private final Executor asyncDatasetPublishServiceTaskExecutor;
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-      String initialQueue,
+      @Qualifier("initialQueue") String initialQueue,
+      @Qualifier("transformationToEdmExternalQueue") String transformationToEdmExternalQueue,
       Executor asyncDatasetPublishServiceTaskExecutor) {
     this.amqpTemplate = amqpTemplate;
     this.initialQueue = initialQueue;
     this.asyncDatasetPublishServiceTaskExecutor = asyncDatasetPublishServiceTaskExecutor;
+    this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
   }
 
   @Override
-  public CompletableFuture<Void> publish(Dataset dataset) {
+  public CompletableFuture<Void> publish(Dataset dataset, boolean hasXsltToEdmExternal) {
     requireNonNull(dataset, "Dataset must not be null");
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-        .forEach(this::publish), asyncDatasetPublishServiceTaskExecutor);
+        .forEach(record -> this.publish(record, hasXsltToEdmExternal)), asyncDatasetPublishServiceTaskExecutor);
   }
 
-  private void publish(Record record) {
-    Event recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+  private void publish(Record record, boolean hasXsltToEdmExternal) {
     try {
-      amqpTemplate.convertAndSend(initialQueue, recordEvent);
+      if(hasXsltToEdmExternal){
+        amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
+            new Event(new RecordInfo(record), Step.TRANSFORM_TO_EDM_EXTERNAL, Status.SUCCESS));
+      } else {
+        amqpTemplate.convertAndSend(initialQueue,
+            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+      }
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", record.getRecordId(), e);
     }

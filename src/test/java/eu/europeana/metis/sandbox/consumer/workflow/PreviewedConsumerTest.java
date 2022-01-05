@@ -38,7 +38,7 @@ class PreviewedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private PreviewedConsumer consumer;
+  private PublishExecutor consumer;
 
   @Test
   void publish_expectSuccess() {

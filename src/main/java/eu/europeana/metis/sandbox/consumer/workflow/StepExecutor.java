@@ -15,12 +15,12 @@ import org.springframework.amqp.core.AmqpTemplate;
 /**
  * Parent class for all consumer steps, generalizes the consumers action
  */
-class StepConsumer {
+class StepExecutor {
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final AmqpTemplate amqpTemplate;
 
-  StepConsumer(AmqpTemplate amqpTemplate) {
+  StepExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
 

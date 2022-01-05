@@ -38,7 +38,7 @@ class MediaProcessedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private MediaProcessedConsumer consumer;
+  private PreviewExecutor consumer;
 
   @Test
   void indexing_expectSuccess() {

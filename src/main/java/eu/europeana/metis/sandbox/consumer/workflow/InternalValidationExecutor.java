@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the internally validated queue
  */
 @Component
-class TransformedConsumer extends StepConsumer {
+class InternalValidationExecutor extends StepExecutor {
 
   private final InternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
   private String routingKey;
 
-  public TransformedConsumer(AmqpTemplate amqpTemplate,
+  public InternalValidationExecutor(AmqpTemplate amqpTemplate,
       InternalValidationService service) {
     super(amqpTemplate);
     this.service = service;

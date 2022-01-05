@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the transformed queue
  */
 @Component
-class ExternallyValidatedConsumer extends StepConsumer {
+class TransformationExecutor extends StepExecutor {
 
   private final TransformationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.transformed.queue}")
   private String routingKey;
 
-  public ExternallyValidatedConsumer(AmqpTemplate amqpTemplate,
+  public TransformationExecutor(AmqpTemplate amqpTemplate,
       TransformationService service) {
     super(amqpTemplate);
     this.service = service;

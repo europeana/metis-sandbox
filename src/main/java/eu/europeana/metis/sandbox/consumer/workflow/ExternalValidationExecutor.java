@@ -13,20 +13,21 @@ import org.springframework.stereotype.Component;
  * the result in the externally validated queue
  */
 @Component
-class CreatedConsumer extends StepConsumer {
+class ExternalValidationExecutor extends StepExecutor {
 
   private final ExternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.external.queue}")
   private String routingKey;
 
-  public CreatedConsumer(AmqpTemplate amqpTemplate,
+  public ExternalValidationExecutor(AmqpTemplate amqpTemplate,
       ExternalValidationService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.created.queue}", containerFactory = "createdFactory",
+  @RabbitListener(queues = {"${sandbox.rabbitmq.queues.record.created.queue}",
+      "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}"}, containerFactory = "createdFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.created.auto-start:true}")
   public void validateExternal(Event input) {
     consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()));

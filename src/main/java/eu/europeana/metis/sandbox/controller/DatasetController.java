@@ -24,10 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -73,8 +71,7 @@ class DatasetController {
   }
 
   /**
-   * POST API calls for harvesting and processing the records given a zip file
-   *
+   * POST API call for harvesting and processing the records given a zip file
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
@@ -109,10 +106,8 @@ class DatasetController {
     return new DatasetIdDto(datasetObject);
   }
 
-
   /**
-   * POST API calls for harvesting and processing the records given a URL of a zip file
-   *
+   * POST API call for harvesting and processing the records given a URL of a zip file
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
@@ -183,8 +178,7 @@ class DatasetController {
   }
 
   /**
-   * GET API calls to return the progress status of a given dataset id
-   *
+   * GET API call to return the progress status of a given dataset id
    * @param datasetId The given dataset id to look for
    * @return The report of the dataset status
    */
