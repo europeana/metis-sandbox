@@ -2,12 +2,15 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
+import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,9 +18,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,64 +35,77 @@ public class HarvestServiceImpl implements HarvestService {
 
   private final OaiHarvester harvesterOai;
 
+  private final int maxRecords;
+
   @Autowired
   public HarvestServiceImpl(HttpHarvester harvester,
-      OaiHarvester harvesterOai) {
+      OaiHarvester harvesterOai, @Value("${sandbox.dataset.max-size}") int maxRecords) {
     this.harvester = harvester;
     this.harvesterOai = harvesterOai;
+    this.maxRecords = maxRecords;
+    this.harvester.setMaxNumberOfIterations(maxRecords);
   }
 
   @Override
-  public List<ByteArrayInputStream> harvestZipMultipartFile(MultipartFile file)
+  public HarvestContent harvestZipMultipartFile(MultipartFile file)
       throws ServiceException {
 
-    List<ByteArrayInputStream> records;
+    HarvestContent pairResult;
 
     try {
-      records = this.harvest(file.getInputStream());
+      pairResult = this.harvest(file.getInputStream());
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records from file " + file.getName(), e);
     }
-    return records;
+    return pairResult;
   }
 
   @Override
-  public List<ByteArrayInputStream> harvestZipUrl(String url) throws ServiceException {
+  public HarvestContent harvestZipUrl(String url) throws ServiceException {
 
-    List<ByteArrayInputStream> records;
+    HarvestContent pairResult;
 
     try (InputStream input = new URL(url).openStream()) {
-      records = this.harvest(input);
+      pairResult = this.harvest(input);
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records from " + url, e);
     }
-    return records;
+    return pairResult;
   }
 
   @Override
-  public List<ByteArrayInputStream> harvestOaiPmhEndpoint(String endpoint, String setSpec,
+  public HarvestContent harvestOaiPmhEndpoint(String endpoint, String setSpec,
       String prefix)
       throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     List<Pair<String, Exception>> exceptions = new ArrayList<>();
+    AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = harvesterOai
         .harvestRecordHeaders(new OaiHarvest(endpoint, prefix, setSpec))) {
 
       OaiRepository oaiRepository = new OaiRepository(endpoint, prefix);
 
+      AtomicInteger currentNumberOfIterations = new AtomicInteger();
+
       recordHeaderIterator.forEach(recordHeader -> {
+        if(currentNumberOfIterations.get() >= maxRecords){
+          hasReachedRecordLimit.set(true);
+          return IterationResult.TERMINATE;
+        }
         try {
-          var oaiRecord = harvesterOai
+          OaiRecord oaiRecord = harvesterOai
               .harvestRecord(oaiRepository, recordHeader.getOaiIdentifier());
           records.add(new ByteArrayInputStream(oaiRecord.getRecord().readAllBytes()));
         } catch (HarvesterException | IOException e) {
           exceptions.add(new ImmutablePair<>(recordHeader.getOaiIdentifier(), e));
           return ReportingIteration.IterationResult.TERMINATE;
         }
+        currentNumberOfIterations.getAndIncrement();
         return ReportingIteration.IterationResult.CONTINUE;
       });
+
       if (!exceptions.isEmpty()) {
         throw new ServiceException("Error processing " + exceptions.get(0).getKey(),
             exceptions.get(0).getValue());
@@ -97,12 +116,13 @@ public class HarvestServiceImpl implements HarvestService {
     if (records.isEmpty()) {
       throw new ServiceException("Error records are empty ", null);
     }
-    return records;
+    return new HarvestContent(hasReachedRecordLimit,records);
   }
 
-  private List<ByteArrayInputStream> harvest(InputStream inputStream) throws ServiceException {
+  private HarvestContent harvest(InputStream inputStream) throws ServiceException {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
+    AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
 
     try {
       harvester.harvestRecords(inputStream, CompressedFileExtension.ZIP, entry -> {
@@ -114,10 +134,14 @@ public class HarvestServiceImpl implements HarvestService {
       throw new ServiceException("Error harvesting records ", e);
     }
 
+    if(records.size() == maxRecords){
+      hasReachedRecordLimit.set(true);
+    }
+
     if (records.isEmpty()) {
       throw new ServiceException("Provided file does not contain any records", null);
     }
-    return records;
+    return new HarvestContent(hasReachedRecordLimit,records);
   }
 
 }

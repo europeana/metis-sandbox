@@ -73,7 +73,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     //Create DatasetInfoDto from DatasetEntity
     DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-        dataset.getLanguage(), dataset.getCountry(), StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
+        dataset.getLanguage(), dataset.getCountry(), dataset.getRecordLimitExceeded(), StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;
@@ -226,5 +226,4 @@ class DatasetReportServiceImpl implements DatasetReportService {
     errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
     return errorInfoDtoList;
   }
-
 }

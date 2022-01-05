@@ -38,17 +38,21 @@ public class DatasetEntity {
 
   private String xsltEdmExternalContent;
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
+  private Boolean recordLimitExceeded;
+
+  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
+      Boolean recordLimitExceeded) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
     this.language = language;
     this.country = country;
+    this.recordLimitExceeded = recordLimitExceeded;
 
   }
 
   public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
-      String xsltEdmExternalContent) {
-    this(datasetName, recordsQuantity, language, country);
+      Boolean recordLimitExceeded, String xsltEdmExternalContent) {
+    this(datasetName, recordsQuantity, language, country, recordLimitExceeded);
     this.xsltEdmExternalContent = xsltEdmExternalContent;
   }
 
@@ -104,6 +108,13 @@ public class DatasetEntity {
     this.country = country;
   }
 
+  public Boolean getRecordLimitExceeded() {
+    return recordLimitExceeded;
+  }
+
+  public void setRecordLimitExceeded(Boolean hasReachedRecordLimit) {
+    this.recordLimitExceeded = hasReachedRecordLimit;
+  }
   public String getXsltEdmExternalContent() {
     return xsltEdmExternalContent;
   }
