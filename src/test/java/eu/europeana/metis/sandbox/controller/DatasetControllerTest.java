@@ -30,6 +30,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.record.RecordTierCaclulationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -65,6 +66,9 @@ class DatasetControllerTest {
 
   @MockBean
   private DatasetReportService datasetReportService;
+
+  @MockBean
+  private RecordTierCaclulationService recordTierCaclulationService;
 
   private final TestUtils testUtils = new TestUtils();
 
