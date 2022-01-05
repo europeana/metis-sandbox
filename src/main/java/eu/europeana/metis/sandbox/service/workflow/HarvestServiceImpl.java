@@ -35,14 +35,15 @@ public class HarvestServiceImpl implements HarvestService {
 
   private final OaiHarvester harvesterOai;
 
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
+  private final int maxRecords;
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester harvester,
-      OaiHarvester harvesterOai) {
+      OaiHarvester harvesterOai, @Value("${sandbox.dataset.max-size}") int maxRecords) {
     this.harvester = harvester;
     this.harvesterOai = harvesterOai;
+    this.maxRecords = maxRecords;
+    this.harvester.setMaxNumberOfIterations(maxRecords);
   }
 
   @Override
@@ -89,7 +90,7 @@ public class HarvestServiceImpl implements HarvestService {
       AtomicInteger currentNumberOfIterations = new AtomicInteger();
 
       recordHeaderIterator.forEach(recordHeader -> {
-        if(currentNumberOfIterations.get() == maxRecords){
+        if(currentNumberOfIterations.get() >= maxRecords){
           hasReachedRecordLimit.set(true);
           return IterationResult.TERMINATE;
         }
@@ -122,7 +123,6 @@ public class HarvestServiceImpl implements HarvestService {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
-    harvester.setMaxNumberOfIterations(maxRecords);
 
     try {
       harvester.harvestRecords(inputStream, CompressedFileExtension.ZIP, entry -> {
@@ -142,10 +142,6 @@ public class HarvestServiceImpl implements HarvestService {
       throw new ServiceException("Provided file does not contain any records", null);
     }
     return new HarvestContent(hasReachedRecordLimit,records);
-  }
-
-  protected void setMaxRecords(int limitRecords){
-    this.maxRecords = limitRecords;
   }
 
 }

@@ -6,21 +6,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HarvestContent {
 
-  private AtomicBoolean reachedRecordLimit;
+  private AtomicBoolean recordLimitExceeded;
   private List<ByteArrayInputStream> content;
 
-  public HarvestContent(AtomicBoolean reachedRecordLimit,
+  public HarvestContent(AtomicBoolean recordLimitExceeded,
       List<ByteArrayInputStream> content) {
-    this.reachedRecordLimit = reachedRecordLimit;
+    this.recordLimitExceeded = recordLimitExceeded;
     this.content = content;
   }
 
   public boolean hasReachedRecordLimit() {
-    return reachedRecordLimit.get();
+    return recordLimitExceeded.get();
   }
 
-  public void setReachedRecordLimit(AtomicBoolean reachedRecordLimit) {
-    this.reachedRecordLimit = reachedRecordLimit;
+  public void setRecordLimitExceeded(AtomicBoolean recordLimitExceeded) {
+    this.recordLimitExceeded = recordLimitExceeded;
   }
 
   public List<ByteArrayInputStream> getContent() {
