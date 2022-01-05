@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -23,9 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,9 +60,6 @@ class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
-
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
@@ -75,6 +74,7 @@ class DatasetController {
 
   /**
    * POST API calls for harvesting and processing the records given a zip file
+   *
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
@@ -92,20 +92,19 @@ class DatasetController {
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    List<ByteArrayInputStream> records = harvestService.harvestZipMultipartFile(dataset);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
+    HarvestContent harvestedRecords =
+        harvestService.harvestZipMultipartFile(dataset);
 
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
     // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getContent(),
+        harvestedRecords.hasReachedRecordLimit(), xsltFileString);
 
     return new DatasetIdDto(datasetObject);
   }
@@ -113,6 +112,7 @@ class DatasetController {
 
   /**
    * POST API calls for harvesting and processing the records given a URL of a zip file
+   *
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
@@ -128,34 +128,32 @@ class DatasetController {
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestZipUrl(url);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
+    HarvestContent harvestedRecords = harvestService.harvestZipUrl(url);
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
 
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltInputStream);
+    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltInputStream);
     return new DatasetIdDto(datasetObject);
   }
 
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
+   *
    * @param datasetName The given name of the dataset to be processed
    * @param country The given country from which the records refer to
    * @param language The given language that the records contain
    * @param url The given URL of the OAI-PMH repository to be processed
-   * @param setspec forms a unique identifier for the set within the repository,
-   *                it must be unique for each set.
-   * @param metadataformat or metadata prefix is a string to specify the metadata format
-   *                       in OAI-PMH requests issued to the repository
+   * @param setspec forms a unique identifier for the set within the repository, it must be unique
+   * for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
+   * requests issued to the repository
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
@@ -171,24 +169,22 @@ class DatasetController {
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile){
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
-        metadataformat);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
+    HarvestContent harvestedRecords = harvestService.harvestOaiPmhEndpoint(
+        url, setspec, metadataformat);
 
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+    var datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltFileString);
     return new DatasetIdDto(datasetObject);
   }
 
   /**
    * GET API calls to return the progress status of a given dataset id
+   *
    * @param datasetId The given dataset id to look for
    * @return The report of the dataset status
    */
@@ -238,13 +234,14 @@ class DatasetController {
   }
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
-    if(xslt != null && !xslt.isEmpty()){
+    if (xslt != null && !xslt.isEmpty()) {
       checkArgument(xslt.getContentType().equals("application/xslt+xml"),
           "The given xslt file should be a single xml file.");
       try {
         return new ByteArrayInputStream(xslt.getBytes());
       } catch (IOException e) {
-        throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
+        throw new XsltProcessingException("Something wrong happened while processing xslt file.",
+            e);
       }
     }
     return new ByteArrayInputStream(new byte[0]);

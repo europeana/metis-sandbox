@@ -17,6 +17,7 @@ create table if not exists dataset (
    created_date timestamp with time zone default now(),
    country varchar(35) not null,
    language varchar(3) not null,
+   record_limit_exceeded bool,
    xslt_edm_external_content text,
    Primary Key (dataset_id)
 );
