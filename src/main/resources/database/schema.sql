@@ -12,16 +12,16 @@ commit;
 
 begin;
 
-create table if not exists dataset
-(
-    dataset_id                serial,
-    dataset_name              varchar(255) not null,
-    records_quantity          integer      not null,
-    created_date              timestamp with time zone default now(),
-    country                   varchar(35)  not null,
-    language                  varchar(3)   not null,
-    xslt_edm_external_content text,
-    Primary Key (dataset_id)
+create table if not exists dataset (
+   dataset_id serial,
+   dataset_name varchar(255) not null,
+   records_quantity integer not null,
+   created_date timestamp with time zone default now(),
+   country varchar(35) not null,
+   language varchar(3) not null,
+   record_limit_exceeded bool,
+   xslt_edm_external_content text,
+   Primary Key (dataset_id)
 );
 
 create table if not exists record_log
