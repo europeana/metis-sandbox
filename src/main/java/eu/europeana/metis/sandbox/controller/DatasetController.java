@@ -212,10 +212,9 @@ class DatasetController {
 
   @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
   public RecordTierCalculationView computeRecordMediaCalculation(@PathVariable("id") String datasetId,
-      @RequestParam(defaultValue = "PROVIDER_ID") RecordTierCaclulationService.RecordIdType recordIdType, @RequestParam String recordId) {
-    // TODO: 22/12/2021 Write the service that generated this
+      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCaclulationService.RecordIdType recordIdType, @RequestParam String recordId) {
     // TODO: 22/12/2021 Keep in mind that the europeana id is not stored as a separate field, which we might need to implement
-    return recordTierCaclulationService.calculateTiers(recordId, datasetId);
+    return recordTierCaclulationService.calculateTiers(recordIdType, recordId, datasetId);
   }
 
   /**

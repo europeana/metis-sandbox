@@ -56,6 +56,7 @@ create table if not exists thumbnail (
 
 create index on record_log (dataset_id);
 create index on record_log (europeana_id);
+create index on record_log (europeana_id, dataset_id, step);
 create index on record_error_log (dataset_id);
 create index on thumbnail (dataset_id);
 commit;

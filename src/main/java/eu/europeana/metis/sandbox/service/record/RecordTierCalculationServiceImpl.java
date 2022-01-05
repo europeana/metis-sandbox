@@ -16,20 +16,32 @@ public class RecordTierCalculationServiceImpl implements RecordTierCaclulationSe
 
   private final RecordLogRepository recordLogRepository;
 
+  /**
+   * Parameterized constructor
+   *
+   * @param recordLogRepository the record log repository
+   */
   public RecordTierCalculationServiceImpl(RecordLogRepository recordLogRepository) {
     this.recordLogRepository = recordLogRepository;
   }
 
   @Override
-  public RecordTierCalculationView calculateTiers(String recordId, String datasetId) {
+  public RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId,
+      String datasetId) {
     //Retrieve record from the database
-    final RecordLogEntity recordLog = recordLogRepository.findRecordLog(recordId, datasetId, Step.MEDIA_PROCESS);
+    final RecordLogEntity recordLog;
+    if (recordIdType == RecordIdType.EUROPEANA_ID) {
+      recordLog = recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(recordId, datasetId,
+          Step.MEDIA_PROCESS);
+    } else {
+      recordLog = recordLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+          Step.MEDIA_PROCESS);
+    }
 
     RecordTierCalculationView recordTierCalculationView = null;
     if (Objects.nonNull(recordLog)) {
-      // we need to also store the europeanaId during transformation in the database
-      final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator("europeanaId", recordId,
-          recordLog.getContent());
+      final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
+          recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent());
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     }
 

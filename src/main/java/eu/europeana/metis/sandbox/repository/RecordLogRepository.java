@@ -27,14 +27,22 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   List<StepStatistic> getStepStatistics(String datasetId);
 
   /**
-   * Get record given the record id, dataset id and step
+   * Get record given the provider record id, dataset id and step
    * @param recordId the record id
    * @param datasetId the dataset id
    * @param step the step
    * @return the record log
    */
-  @Query("SELECT rle FROM RecordLogEntity rle WHERE rle.recordId= ?1 and rle.datasetId = ?2 and rle.step = ?3")
-  RecordLogEntity findRecordLog(String recordId, String datasetId, Step step);
+  RecordLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step step);
+
+  /**
+   * Get record given the europeana record id, dataset id and step
+   * @param europeanaId the record id
+   * @param datasetId the dataset id
+   * @param step the step
+   * @return the record log
+   */
+  RecordLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String europeanaId, String datasetId, Step step);
 
   /**
    * Delete records that belong to the given dataset id
