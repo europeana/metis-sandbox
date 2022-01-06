@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -6,7 +6,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -15,7 +14,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.service.workflow.IndexingService;
+import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,64 +25,64 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class MediaProcessedConsumerTest {
+class TransformedConsumerTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
 
   @Mock
-  private IndexingService service;
+  private InternalValidationService service;
 
   @Captor
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private PreviewExecutor consumer;
+  private InternalValidationExecutor consumer;
 
   @Test
-  void indexing_expectSuccess() {
+  void validateInternal_expectSuccess() {
     var record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.SUCCESS);
 
-    when(service.index(record, IndexEnvironment.PREVIEW)).thenReturn(new RecordInfo(record));
-    consumer.preview(recordEvent);
+    when(service.validate(record)).thenReturn(new RecordInfo(record));
+    consumer.validateInternal(recordEvent);
 
-    verify(service).index(record, IndexEnvironment.PREVIEW);
+    verify(service).validate(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.PREVIEW, captor.getValue().getStep());
+    assertEquals(Step.VALIDATE_INTERNAL, captor.getValue().getStep());
   }
 
   @Test
-  void indexing_inputMessageWithFailStatus_expectNoInteractions() {
+  void validateInternal_inputMessageWithFailStatus_expectNoInteractions() {
     var record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.FAIL);
 
-    consumer.preview(recordEvent);
+    consumer.validateInternal(recordEvent);
 
-    verify(service, never()).index(record, IndexEnvironment.PREVIEW);
+    verify(service, never()).validate(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
   @Test
-  void indexing_serviceThrowException_expectFailStatus() {
+  void validateInternal_serviceThrowException_expectFailStatus() {
     var record = Record.builder()
-        .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
+        .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId("").build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.SUCCESS);
 
-    when(service.index(record, IndexEnvironment.PREVIEW)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.preview(recordEvent);
+    consumer.validateInternal(recordEvent);
 
-    verify(service).index(record, IndexEnvironment.PREVIEW);
+    verify(service).validate(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

@@ -38,7 +38,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 class SandboxConfig {
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
-  private String initialQueue;
+  private String createdQueue;
 
   @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
   private String transformationToEdmExternalQueue;
@@ -94,9 +94,9 @@ class SandboxConfig {
     return executor;
   }
 
-  @Bean(name = "initialQueue")
-  String initialQueue() {
-    return initialQueue;
+  @Bean(name = "createdQueue")
+  String createdQueue() {
+    return createdQueue;
   }
 
   @Bean(name = "transformationToEdmExternalQueue")

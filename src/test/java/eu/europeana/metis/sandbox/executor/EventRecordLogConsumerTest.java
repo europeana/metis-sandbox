@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer;
+package eu.europeana.metis.sandbox.executor;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

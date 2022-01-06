@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
@@ -13,10 +14,11 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,19 +41,24 @@ class DatasetServiceImpl implements DatasetService {
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, String xsltTransformerEDMExternal) {
+      List<ByteArrayInputStream> records, boolean recordLimitExceeded,
+      InputStream xsltEdmExternalContentStream) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country);
+    DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country,
+        recordLimitExceeded);
     boolean hasXsltTransformerEdmExternal = false;
 
-    if(!StringUtils.isEmpty(xsltTransformerEDMExternal)){
-      entity.setXsltTransformerEdmExternal(xsltTransformerEDMExternal);
-      hasXsltTransformerEdmExternal = true;
+    if(isInputStreamAvailable(xsltEdmExternalContentStream)){
+      try {
+        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
+      } catch (IOException e) {
+        throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
+      }
     }
 
     try {
@@ -102,6 +109,14 @@ class DatasetServiceImpl implements DatasetService {
       datasetRepository.deleteById(Integer.valueOf(datasetId));
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
+    }
+  }
+
+  private boolean isInputStreamAvailable (InputStream stream){
+    try{
+      return stream != null && stream.available() != 0 ;
+    }  catch (IOException e){
+      throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
     }
   }
 }
