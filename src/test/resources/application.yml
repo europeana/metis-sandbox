@@ -89,6 +89,7 @@ sandbox:
         core-pool-size: 5
         max-pool-size: 5
         thread-prefix: sandbox-test-
+    provider-record-url-template: http://localhost:8080/dataset/{datasetId}/record?recordId={recordId}&recordIdType={recordIdType}
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed

@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @RestController
 @RequestMapping("/dataset/")
@@ -69,6 +71,9 @@ class DatasetController {
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
+
+  @Autowired
+  private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
@@ -216,13 +221,15 @@ class DatasetController {
 
   @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
   public RecordTierCalculationView computeRecordTierCalculation(@PathVariable("id") String datasetId,
-      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType, @RequestParam String recordId) {
+      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
+      @RequestParam String recordId) {
     return recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId);
   }
 
   @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
   public String getRecord(@PathVariable("id") String datasetId,
-      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType, @RequestParam String recordId) {
+      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
+      @RequestParam String recordId) {
     return recordLogService.getProviderRecordString(recordIdType, recordId, datasetId);
   }
 

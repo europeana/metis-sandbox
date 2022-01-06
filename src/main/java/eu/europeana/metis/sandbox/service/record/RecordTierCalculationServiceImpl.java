@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriTemplate;
 
 /**
  * Service for calculating record tier statistics
@@ -13,8 +14,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class RecordTierCalculationServiceImpl implements RecordTierCalculationService {
 
-  private static final String JSON_SUFFIX = ".json";
   private final RecordLogService recordLogService;
+
+  @Value("${sandbox.dataset.provider-record-url-template}")
+  private String providerRecordUrlTemplate;
 
   @Value("${sandbox.portal.publish.record-base-url}")
   private String portalPublishRecordBaseUrl;
@@ -35,9 +38,11 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
 
     RecordTierCalculationView recordTierCalculationView = null;
     if (Objects.nonNull(recordLog)) {
-      final String portalPublishRecordUrl = portalPublishRecordBaseUrl + recordLog.getEuropeanaId() + JSON_SUFFIX;
+      final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId()).toString();
+      final String providerRecordUrl = new UriTemplate(this.providerRecordUrlTemplate).expand(datasetId, recordId, recordIdType).toString();
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
-          recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl);
+          recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
+          providerRecordUrl);
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     }
 
