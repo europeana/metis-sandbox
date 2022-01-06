@@ -2,6 +2,8 @@ package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.entity.RecordLogEntity;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 
 public interface RecordLogService {
 
@@ -13,6 +15,12 @@ public interface RecordLogService {
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    */
   void logRecordEvent(Event recordEvent);
+
+  String getProviderRecordString(RecordIdType recordIdType, String recordId,
+      String datasetId);
+
+  RecordLogEntity getRecordLogEntity(RecordIdType recordIdType, String recordId,
+      String datasetId);
 
   /**
    * Remove records matching the provided dataset id

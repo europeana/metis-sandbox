@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 
-public interface RecordTierCaclulationService {
+public interface RecordTierCalculationService {
 
   /**
    * Calculates the tiers for a provider record id and dataset id
@@ -12,10 +12,7 @@ public interface RecordTierCaclulationService {
    * @param datasetId the dataset id
    * @return the record tier calculation view
    */
-  RecordTierCalculationView calculateTiers(
-      RecordIdType recordIdType, String recordId,
-      String datasetId);
-
+  RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId, String datasetId);
 
   enum RecordIdType {
     PROVIDER_ID, EUROPEANA_ID

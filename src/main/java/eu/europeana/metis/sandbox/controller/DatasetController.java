@@ -13,7 +13,8 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.record.RecordTierCaclulationService;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -66,16 +67,19 @@ class DatasetController {
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
-  private final RecordTierCaclulationService recordTierCaclulationService;
+  private final RecordLogService recordLogService;
+  private final RecordTierCalculationService recordTierCalculationService;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService,
-      RecordTierCaclulationService recordTierCaclulationService) {
+      RecordLogService recordLogService,
+      RecordTierCalculationService recordTierCalculationService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
-    this.recordTierCaclulationService = recordTierCaclulationService;
+    this.recordLogService = recordLogService;
+    this.recordTierCalculationService = recordTierCalculationService;
   }
 
   /**
@@ -210,11 +214,16 @@ class DatasetController {
     return reportService.getReport(datasetId);
   }
 
+  @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
+  public RecordTierCalculationView computeRecordTierCalculation(@PathVariable("id") String datasetId,
+      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType, @RequestParam String recordId) {
+    return recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId);
+  }
+
   @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
-  public RecordTierCalculationView computeRecordMediaCalculation(@PathVariable("id") String datasetId,
-      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCaclulationService.RecordIdType recordIdType, @RequestParam String recordId) {
-    // TODO: 22/12/2021 Keep in mind that the europeana id is not stored as a separate field, which we might need to implement
-    return recordTierCaclulationService.calculateTiers(recordIdType, recordId, datasetId);
+  public String getRecord(@PathVariable("id") String datasetId,
+      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType, @RequestParam String recordId) {
+    return recordLogService.getProviderRecordString(recordIdType, recordId, datasetId);
   }
 
   /**

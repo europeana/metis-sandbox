@@ -62,7 +62,6 @@ sandbox:
   portal:
     preview:
       dataset-base-url: http://metis-test
-      record-base-url: http://metis-test/item
     publish:
       dataset-base-url: http://metis-test
       record-base-url: http://metis-test/item
