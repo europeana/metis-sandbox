@@ -38,10 +38,9 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
         .body()) {
       String transformXslt = new String(xsltStream.readAllBytes(),
           StandardCharsets.UTF_8);
-      var entity = transformXsltRepository.findByTransformXslt(transformXslt);
+      var entity = transformXsltRepository.findById(1);
 
-
-      if (entity != null && entity.isPresent()) {
+      if (entity.isPresent()) {
         if (!(transformXslt.equals(entity.get().getTransformXslt()))){
           entity.get().setTransformXslt(transformXslt);
           transformXsltRepository.save(entity.get());
