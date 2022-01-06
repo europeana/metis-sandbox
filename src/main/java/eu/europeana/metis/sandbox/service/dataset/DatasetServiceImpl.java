@@ -38,6 +38,13 @@ class DatasetServiceImpl implements DatasetService {
     this.publishService = publishService;
   }
 
+  @Override
+  public Dataset createDataset(String datasetName, Country country, Language language,
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit) {
+    return createDataset(datasetName, country, language, records, hasReachedRecordLimit,
+        new ByteArrayInputStream(new byte[0]));
+  }
+
   @Transactional
   @Override
   public Dataset createDataset(String datasetName, Country country, Language language,
@@ -56,6 +63,7 @@ class DatasetServiceImpl implements DatasetService {
     if(isInputStreamAvailable(xsltEdmExternalContentStream)){
       try {
         entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
+        hasXsltTransformerEdmExternal = true;
       } catch (IOException e) {
         throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
       }

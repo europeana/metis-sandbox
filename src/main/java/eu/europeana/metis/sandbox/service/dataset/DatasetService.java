@@ -18,6 +18,25 @@ public interface DatasetService {
    * @param country     must not be null
    * @param language    must not be null
    * @param records     must not be null
+   * @param hasReachedRecordLimit boolean to indicate if number of harvested records reached the limit
+   * @return the created dataset
+   * @throws NullPointerException     if any input is null
+   * @throws IllegalArgumentException if records list is empty
+   * @throws ServiceException         if any unhandled exception happens, exception will contain
+   *                                  original exception
+   * @throws RecordParsingException   if fails to parse a record from the records list
+   * @see Dataset
+   */
+  Dataset createDataset(String datasetName, Country country, Language language,
+      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit);
+
+  /**
+   * Creates a dataset id and publishes the given records for further processing
+   *
+   * @param datasetName must not be null
+   * @param country     must not be null
+   * @param language    must not be null
+   * @param records     must not be null
    * @param recordLimitExceeded boolean to indicate if the record max has been exceeded
    * during harvesting
    * @param xsltEdmExternalContentStream Content of xslt file as input stream
