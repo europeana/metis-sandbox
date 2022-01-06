@@ -58,28 +58,6 @@ public class Record {
         .build();
   }
 
-  /**
-   * Creates a record based on the provided record but replacing the content with the one provided and also adding the european id
-   * if not present.
-   *
-   * @param record must not be null
-   * @param europeanaId the europeana id
-   * @param content must not be null. Xml representation of the record
-   * @return record object
-   */
-  public static Record from(Record record, String europeanaId, byte[] content) {
-
-    return Record.builder()
-        .recordId(record.getRecordId())
-        .europeanaId(europeanaId)
-        .datasetId(record.getDatasetId())
-        .datasetName(record.getDatasetName())
-        .content(content)
-        .country(record.getCountry())
-        .language(record.getLanguage())
-        .build();
-  }
-
   public static RecordBuilder builder() {
     return new RecordBuilder();
   }

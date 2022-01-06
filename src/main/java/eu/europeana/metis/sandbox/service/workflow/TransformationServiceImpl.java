@@ -29,9 +29,8 @@ class TransformationServiceImpl implements TransformationService {
     requireNonNull(record, "Record must not be null");
 
     byte[] recordTransformed;
-    final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap;
     try {
-      europeanaGeneratedIdsMap = new EuropeanaIdCreator()
+      final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
       XsltTransformer transformer = getTransformer(getJoinDatasetIdDatasetName(record),
           record.getCountry().xmlValue(), record.getLanguage().name().toLowerCase());
@@ -41,7 +40,7 @@ class TransformationServiceImpl implements TransformationService {
       throw new RecordProcessingException(record.getRecordId(), e);
     }
 
-    return new RecordInfo(Record.from(record, europeanaGeneratedIdsMap.getEuropeanaGeneratedId(), recordTransformed));
+    return new RecordInfo(Record.from(record, recordTransformed));
   }
 
   @Override
