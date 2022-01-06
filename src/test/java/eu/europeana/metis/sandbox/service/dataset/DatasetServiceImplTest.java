@@ -67,7 +67,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publish(dataset, false);
 
     assertEquals("1234", result.getDatasetId());
   }
@@ -91,10 +91,11 @@ class DatasetServiceImplTest {
         transformResultMock);
     when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false, xsltContent);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false,
+        xsltContent);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publish(dataset, true);
     verify(transformationService, times(1)).transform("1_name", xsltContent, "record1".getBytes());
     assertEquals("1234", result.getDatasetId());
   }
@@ -116,7 +117,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publish(dataset, false);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -142,10 +143,11 @@ class DatasetServiceImplTest {
         transformResultMock);
     when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false, xsltContent);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false,
+        xsltContent);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publish(dataset, true);
     verify(transformationService, times(2)).transform(anyString(), any(ByteArrayInputStream.class),
         any(byte[].class));
     assertEquals("1234", result.getDatasetId());
@@ -177,7 +179,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, false));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset);
+    verify(publishService, never()).publish(dataset, false);
   }
 
   @Test
@@ -201,7 +203,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, false));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset);
+    verify(publishService, never()).publish(dataset, false);
   }
 
   @Test
