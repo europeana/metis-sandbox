@@ -26,16 +26,16 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
 
   private final AmqpTemplate amqpTemplate;
-  private final String initialQueue;
+  private final String createdQueue;
   private final String transformationToEdmExternalQueue;
   private final Executor asyncDatasetPublishServiceTaskExecutor;
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-      @Qualifier("initialQueue") String initialQueue,
+      @Qualifier("createdQueue") String createdQueue,
       @Qualifier("transformationToEdmExternalQueue") String transformationToEdmExternalQueue,
       Executor asyncDatasetPublishServiceTaskExecutor) {
     this.amqpTemplate = amqpTemplate;
-    this.initialQueue = initialQueue;
+    this.createdQueue = createdQueue;
     this.asyncDatasetPublishServiceTaskExecutor = asyncDatasetPublishServiceTaskExecutor;
     this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
   }
@@ -55,7 +55,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
             new Event(new RecordInfo(record), Step.TRANSFORM_TO_EDM_EXTERNAL, Status.SUCCESS));
       } else {
-        amqpTemplate.convertAndSend(initialQueue,
+        amqpTemplate.convertAndSend(createdQueue,
             new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
       }
     } catch (AmqpException e) {

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer;
+package eu.europeana.metis.sandbox.executor;
 
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;

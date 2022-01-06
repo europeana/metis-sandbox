@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;

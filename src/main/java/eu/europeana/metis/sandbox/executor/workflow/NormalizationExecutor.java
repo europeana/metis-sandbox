@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;

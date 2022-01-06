@@ -36,7 +36,7 @@ class AsyncDatasetPublishServiceImplTest {
   @BeforeEach
   void setUp() {
     service = new AsyncDatasetPublishServiceImpl(amqpTemplate,
-        "initialQueue","transformationEdmExternalQueue", taskExecutor);
+        "createdQueue","transformationEdmExternalQueue", taskExecutor);
   }
 
   @Test
