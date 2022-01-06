@@ -28,7 +28,8 @@ class PublishExecutor extends StepExecutor {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}", containerFactory = "previewedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}",
+      containerFactory = "publishFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.previewed.auto-start:true}")
   public void publish(Event input) {
     consume(routingKey, input, Step.PUBLISH,

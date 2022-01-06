@@ -28,7 +28,8 @@ class PreviewExecutor extends StepExecutor {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}", containerFactory = "mediaProcessedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}",
+      containerFactory = "previewFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.media.auto-start:true}")
   public void preview(Event input) {
     consume(routingKey, input, Step.PREVIEW,

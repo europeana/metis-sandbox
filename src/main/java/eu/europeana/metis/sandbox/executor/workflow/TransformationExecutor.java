@@ -26,7 +26,8 @@ class TransformationExecutor extends StepExecutor {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}", containerFactory = "externallyValidatedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}",
+      containerFactory = "transformationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.validated.external.auto-start:true}")
   public void transform(Event input) {
     consume(routingKey, input, Step.TRANSFORM, () -> service.transformToEdmInternal(input.getBody()));

@@ -26,7 +26,8 @@ class NormalizationExecutor extends StepExecutor {
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}",
+      containerFactory = "normalizationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.validated.internal.auto-start:true}")
   public void normalize(Event input) {
     consume(routingKey, input, Step.NORMALIZE, () -> service.normalize(input.getBody()));

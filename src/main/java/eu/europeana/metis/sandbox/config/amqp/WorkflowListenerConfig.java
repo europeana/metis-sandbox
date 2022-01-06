@@ -24,7 +24,7 @@ class WorkflowListenerConfig {
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory createdFactory(
+  SimpleRabbitListenerContainerFactory externalValidationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
@@ -38,56 +38,56 @@ class WorkflowListenerConfig {
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory externallyValidatedFactory(
+  SimpleRabbitListenerContainerFactory transformationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory transformedFactory(
+  SimpleRabbitListenerContainerFactory internalValidationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory internallyValidatedFactory(
+  SimpleRabbitListenerContainerFactory normalizationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory normalizedFactory(
+  SimpleRabbitListenerContainerFactory enrichmentFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory enrichedFactory(
+  SimpleRabbitListenerContainerFactory mediaProcessingFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory mediaProcessedFactory(
+  SimpleRabbitListenerContainerFactory previewFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory previewedFactory(
+  SimpleRabbitListenerContainerFactory publishFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory publishedFactory(
+  SimpleRabbitListenerContainerFactory closingFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
