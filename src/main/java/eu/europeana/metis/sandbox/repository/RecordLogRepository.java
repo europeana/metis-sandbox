@@ -8,6 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+/**
+ * A {@link JpaRepository} that stores records logs.
+ * <p>A record log is a representation of a record per each step.</p>
+ */
 public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long> {
 
   /**
@@ -28,6 +32,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
 
   /**
    * Get record given the provider record id, dataset id and step
+   *
    * @param recordId the record id
    * @param datasetId the dataset id
    * @param step the step
@@ -37,6 +42,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
 
   /**
    * Get record given the europeana record id, dataset id and step
+   *
    * @param europeanaId the record id
    * @param datasetId the dataset id
    * @param step the step

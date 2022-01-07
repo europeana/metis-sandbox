@@ -15,20 +15,21 @@ import org.springframework.web.util.UriTemplate;
 public class RecordTierCalculationServiceImpl implements RecordTierCalculationService {
 
   private final RecordLogService recordLogService;
-
   @Value("${sandbox.dataset.provider-record-url-template}")
-  private String providerRecordUrlTemplate;
-
+  private final String providerRecordUrlTemplate;
   @Value("${sandbox.portal.publish.record-base-url}")
-  private String portalPublishRecordBaseUrl;
+  private final String portalPublishRecordBaseUrl;
 
   /**
    * Parameterized constructor
    *
    * @param recordLogService the record log repository
    */
-  public RecordTierCalculationServiceImpl(RecordLogService recordLogService) {
+  public RecordTierCalculationServiceImpl(RecordLogService recordLogService, String providerRecordUrlTemplate,
+      String portalPublishRecordBaseUrl) {
     this.recordLogService = recordLogService;
+    this.providerRecordUrlTemplate = providerRecordUrlTemplate;
+    this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }
 
   @Override
@@ -38,8 +39,10 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
 
     RecordTierCalculationView recordTierCalculationView = null;
     if (Objects.nonNull(recordLog)) {
-      final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId()).toString();
-      final String providerRecordUrl = new UriTemplate(this.providerRecordUrlTemplate).expand(datasetId, recordId, recordIdType).toString();
+      final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId())
+          .toString();
+      final String providerRecordUrl = new UriTemplate(this.providerRecordUrlTemplate).expand(datasetId, recordId, recordIdType)
+          .toString();
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
           recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
           providerRecordUrl);
