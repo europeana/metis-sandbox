@@ -23,7 +23,7 @@ public interface TransformationService {
    * @param datasetId The id of the dataset where record belongs to
    * @param xsltToEdmExternal The xslt content to perform the transformation
    * @param recordContent The content of the record to be transformed as an array of bytes
-   * @return {@link RecordInfo} containing record transformed
+   * @return a byte array containing record transformed content
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if records fails at transformation
    */
