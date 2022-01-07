@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 
 public interface RecordTierCalculationService {
 
@@ -12,7 +13,8 @@ public interface RecordTierCalculationService {
    * @param datasetId the dataset id
    * @return the record tier calculation view
    */
-  RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId, String datasetId);
+  RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId, String datasetId)
+      throws NoRecordFoundException;
 
   enum RecordIdType {
     PROVIDER_ID, EUROPEANA_ID

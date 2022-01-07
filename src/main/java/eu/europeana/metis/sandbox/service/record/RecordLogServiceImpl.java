@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
@@ -14,7 +15,6 @@ import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,9 +54,10 @@ class RecordLogServiceImpl implements RecordLogService {
   }
 
   @Override
-  public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId) {
+  public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId)
+      throws NoRecordFoundException {
     return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getContent)
-        .orElse(StringUtils.EMPTY);
+        .orElseThrow(() -> new NoRecordFoundException(String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId, datasetId)));
   }
 
   @Override

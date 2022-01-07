@@ -5,6 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -90,10 +91,11 @@ class DatasetController {
   /**
    * POST API calls for harvesting and processing the records given a zip file
    *
-   * @param datasetName The given name of the dataset to be processed
-   * @param country The given country from which the records refer to
-   * @param language The given language that the records contain
-   * @param dataset The given dataset itself to be processed as a zip file
+   * @param datasetName the given name of the dataset to be processed
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param dataset the given dataset itself to be processed as a zip file
+   * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing a file")
@@ -129,10 +131,11 @@ class DatasetController {
   /**
    * POST API calls for harvesting and processing the records given a URL of a zip file
    *
-   * @param datasetName The given name of the dataset to be processed
-   * @param country The given country from which the records refer to
-   * @param language The given language that the records contain
-   * @param url The given dataset itself to be processed as a URL of a zip file
+   * @param datasetName the given name of the dataset to be processed
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param url the given dataset itself to be processed as a URL of a zip file
+   * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing an URL")
@@ -165,13 +168,14 @@ class DatasetController {
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
    *
-   * @param datasetName The given name of the dataset to be processed
-   * @param country The given country from which the records refer to
-   * @param language The given language that the records contain
-   * @param url The given URL of the OAI-PMH repository to be processed
+   * @param datasetName the given name of the dataset to be processed
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param url the given URL of the OAI-PMH repository to be processed
    * @param setspec forms a unique identifier for the set within the repository, it must be unique for each set.
    * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH requests issued to the
    * repository
+   * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
@@ -219,17 +223,43 @@ class DatasetController {
     return reportService.getReport(datasetId);
   }
 
+  /**
+   * GET API returns the generated tier calculation view for a stored record.
+   * @param datasetId the dataset id
+   * @param recordIdType the record id type that should be searched with
+   * @param recordId the record id
+   * @return the record tier calculation view
+   * @throws NoRecordFoundException if record was not found
+   */
+  @ApiOperation("Get the tier calculation")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Response contains the tier calculation view"),
+      @ApiResponse(code = 404, message = "Record not found")
+  })
   @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
   public RecordTierCalculationView computeRecordTierCalculation(@PathVariable("id") String datasetId,
       @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
-      @RequestParam String recordId) {
+      @RequestParam String recordId) throws NoRecordFoundException {
     return recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId);
   }
 
-  @GetMapping(value = "{id}/record", produces = APPLICATION_JSON_VALUE)
+  /**
+   * GET API returns the string representation of the stored record.
+   * @param datasetId the dataset id
+   * @param recordIdType the record id type that should be searched with
+   * @param recordId the record id
+   * @return the string representation of the stored record
+   * @throws NoRecordFoundException if record was not found
+   */
+  @ApiOperation("Get record string representation")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "String representation of record"),
+      @ApiResponse(code = 404, message = "Record not found")
+  })
+  @GetMapping(value = "{id}/record")
   public String getRecord(@PathVariable("id") String datasetId,
       @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
-      @RequestParam String recordId) {
+      @RequestParam String recordId) throws NoRecordFoundException {
     return recordLogService.getProviderRecordString(recordIdType, recordId, datasetId);
   }
 

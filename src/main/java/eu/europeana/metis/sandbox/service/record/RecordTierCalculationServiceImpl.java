@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.RecordTierCalculationViewGenerator;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,11 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
    * Parameterized constructor
    *
    * @param recordLogService the record log repository
+   * @param providerRecordUrlTemplate the provider record url template.
+   * <p>
+   * This string value should conform to {@link UriTemplate}.
+   * </p>
+   * @param portalPublishRecordBaseUrl the portal publish record base url
    */
   public RecordTierCalculationServiceImpl(RecordLogService recordLogService, String providerRecordUrlTemplate,
       String portalPublishRecordBaseUrl) {
@@ -34,10 +40,10 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
 
   @Override
   public RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId,
-      String datasetId) {
+      String datasetId) throws NoRecordFoundException {
     final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordIdType, recordId, datasetId);
 
-    RecordTierCalculationView recordTierCalculationView = null;
+    RecordTierCalculationView recordTierCalculationView;
     if (Objects.nonNull(recordLog)) {
       final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId())
           .toString();
@@ -47,6 +53,9 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
           recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
           providerRecordUrl);
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
+    } else {
+      throw new NoRecordFoundException(
+          String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId, datasetId));
     }
 
     return recordTierCalculationView;
