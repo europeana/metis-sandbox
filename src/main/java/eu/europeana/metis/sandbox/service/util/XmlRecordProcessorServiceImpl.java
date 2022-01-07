@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import java.io.ByteArrayInputStream;
+import java.util.UUID;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.ObjectFactory;
@@ -30,7 +31,8 @@ class XmlRecordProcessorServiceImpl implements XmlRecordProcessorService {
     String recordId;
 
     try {
-      recordId = xpath.evaluate(RECORD_ID_EXPRESSION, source);
+      String evaluationResult = xpath.evaluate(RECORD_ID_EXPRESSION, source);
+      recordId = isEmpty(evaluationResult) ? UUID.randomUUID().toString() : evaluationResult;
     } catch (XPathExpressionException e) {
       throw new RecordParsingException(e);
     }
