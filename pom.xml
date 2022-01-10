@@ -29,12 +29,12 @@
     <repository>
       <id>artifactory.eanadev.org</id>
       <name>artifactory.eanadev.org-releases</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
+      <url>https://artifactory.eanadev.org/artifactory/libs-release-local</url>
     </repository>
     <snapshotRepository>
       <id>artifactory.eanadev.org</id>
       <name>artifactory.eanadev.org-snapshots</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+      <url>https://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -48,7 +48,6 @@
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
-
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -214,7 +213,7 @@
     <repository>
       <id>libs-release</id>
       <name>libs-release</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-release</url>
+      <url>https://artifactory.eanadev.org/artifactory/libs-release</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -227,7 +226,7 @@
     <repository>
       <id>libs-snapshot</id>
       <name>libs-snapshots</name>
-      <url>http://artifactory.eanadev.org/artifactory/libs-snapshot</url>
+      <url>https://artifactory.eanadev.org/artifactory/libs-snapshot</url>
       <releases>
         <enabled>false</enabled>
       </releases>

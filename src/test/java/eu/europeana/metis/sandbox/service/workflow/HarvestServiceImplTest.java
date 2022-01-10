@@ -20,6 +20,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.IOException;
@@ -40,21 +41,19 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zeroturnaround.zip.ZipException;
 
-
 @ExtendWith(SpringExtension.class)
 public class HarvestServiceImplTest {
 
   private final TestUtils testUtils = new TestUtils();
 
-  private static HttpHarvester httpHarvester = spy(HarvesterFactory.createHttpHarvester());
+  private static final HttpHarvester httpHarvester = spy(HarvesterFactory.createHttpHarvester());
 
-  private static OaiHarvester oaiHarvester = mock(OaiHarvester.class);
-
-  private static HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,
-      oaiHarvester);
+  private static final OaiHarvester oaiHarvester = mock(OaiHarvester.class);
 
   @Test
-  void harvestServiceFromURL_ExpectSuccess() throws IOException {
+  void harvestServiceFromURL_notExceedingRecordLimit_ExpectSuccess() throws IOException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -63,17 +62,40 @@ public class HarvestServiceImplTest {
     Set<Integer> expectedRecordsLengths = new HashSet<>();
     expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
 
-    var records = harvestService.harvestZipUrl(dataSetPath.toUri().toString());
+    HarvestContent harvestContent = harvestService.harvestZipUrl(dataSetPath.toUri().toString());
     Set<Integer> recordsLengths = new HashSet<>();
-    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+    harvestContent.getContent().forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
     assertEquals(expectedRecordsLengths, recordsLengths);
-
-    assertEquals(expectedRecords.size(), records.size());
+    assertFalse(harvestContent.hasReachedRecordLimit());
+    assertEquals(expectedRecords.size(), harvestContent.getContent().size());
   }
 
   @Test
-  void harvestServiceFromUploadedFile_ExpectSuccess() throws IOException {
+  void harvestServiceFromURL_exceedingRecordLimit_ExpectSuccess() throws IOException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 2);
+
+    Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+    assertTrue(Files.exists(dataSetPath));
+
+    var expectedRecords = testUtils.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
+
+    HarvestContent harvestContent = harvestService.harvestZipUrl(dataSetPath.toUri().toString());
+    Set<Integer> recordsLengths = new HashSet<>();
+    harvestContent.getContent().forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertTrue(expectedRecordsLengths.containsAll(recordsLengths));
+    assertTrue(harvestContent.hasReachedRecordLimit());
+    assertEquals(2, harvestContent.getContent().size());
+  }
+
+  @Test
+  void harvestServiceFromUploadedFile_notExceedingRecordLimit_ExpectSuccess() throws IOException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -87,15 +109,40 @@ public class HarvestServiceImplTest {
 
     var records = harvestService.harvestZipMultipartFile(datasetFile);
     Set<Integer> recordsLengths = new HashSet<>();
-    records.forEach(r -> recordsLengths.add(r.readAllBytes().length));
+    records.getContent().forEach(r -> recordsLengths.add(r.readAllBytes().length));
 
     assertEquals(expectedRecordsLengths, recordsLengths);
+    assertFalse(records.hasReachedRecordLimit());
+    assertEquals(expectedRecords.size(), records.getContent().size());
+  }
 
-    assertEquals(expectedRecords.size(), records.size());
+  @Test
+  void harvestServiceFromUploadedFile_exceedingRecordLimit_ExpectSuccess() throws IOException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 2);
+
+    Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+    assertTrue(Files.exists(dataSetPath));
+
+    MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        Files.newInputStream(dataSetPath));
+
+    var expectedRecords = testUtils.getContentFromZipFile(Files.newInputStream(dataSetPath));
+    Set<Integer> expectedRecordsLengths = new HashSet<>();
+    expectedRecords.forEach(er -> expectedRecordsLengths.add(er.readAllBytes().length));
+
+    var records = harvestService.harvestZipMultipartFile(datasetFile);
+    Set<Integer> recordsLengths = new HashSet<>();
+    records.getContent().forEach(r -> recordsLengths.add(r.readAllBytes().length));
+
+    assertTrue(expectedRecordsLengths.containsAll(recordsLengths));
+    assertTrue(records.hasReachedRecordLimit());
+    assertEquals(2, records.getContent().size());
   }
 
   @Test
   void harvestServiceFromURL_NonExisting_ExpectFail() {
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "non-existing.zip");
 
@@ -107,6 +154,7 @@ public class HarvestServiceImplTest {
 
   @Test
   void harvestServiceFromFile_CorruptFile_ExpectFail() throws IOException {
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "corrupt_file.zip");
 
@@ -121,6 +169,8 @@ public class HarvestServiceImplTest {
   @Test
   void harvestServiceFromFile_NonExistingFile_ExpectFail() throws IOException {
 
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
+
     MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         new NullInputStream());
 
@@ -129,10 +179,13 @@ public class HarvestServiceImplTest {
   }
 
   @Test
-  void harvestServiceFromOai_ExpectSuccess() throws HarvesterException {
+  void harvestServiceFromOai_notExceedingRecordLimit_ExpectSuccess() throws HarvesterException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     OaiRecordHeader recordHeader = new OaiRecordHeader("someId", false, Instant.now());
-    OaiRecord oaiRecord = new OaiRecord(recordHeader, () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecord oaiRecord = new OaiRecord(recordHeader,
+        () -> "record".getBytes(StandardCharsets.UTF_8));
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(List.of(recordHeader));
 
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
@@ -140,17 +193,57 @@ public class HarvestServiceImplTest {
 
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId"))).thenReturn(oaiRecord);
 
-    var records = harvestService
+    var harvestContent = harvestService.
+        harvestOaiPmhEndpoint("someEndpointURL", "somePrefix", "someSetSpec");
+
+    assertEquals(1, harvestContent.getContent().size());
+    assertFalse(harvestContent.hasReachedRecordLimit());
+    assertEquals("record",
+        new String(harvestContent.getContent().get(0).readAllBytes(), StandardCharsets.UTF_8));
+
+  }
+
+  @Test
+  void harvestServiceFromOai_exceedingRecordLimit_ExpectSuccess() throws HarvesterException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 2);
+
+    OaiRecordHeader recordHeader1 = new OaiRecordHeader("someId1", false, Instant.now());
+    OaiRecordHeader recordHeader2 = new OaiRecordHeader("someId2", false, Instant.now());
+    OaiRecordHeader recordHeader3 = new OaiRecordHeader("someId3", false, Instant.now());
+    OaiRecord oaiRecord1 = new OaiRecord(recordHeader1,
+        () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecord oaiRecord2 = new OaiRecord(recordHeader1,
+        () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecord oaiRecord3 = new OaiRecord(recordHeader1,
+        () -> "record".getBytes(StandardCharsets.UTF_8));
+    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(
+        List.of(recordHeader1, recordHeader2, recordHeader3));
+
+    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
+        oaiRecordHeaderIterator);
+
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId1"))).thenReturn(
+        oaiRecord1);
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId2"))).thenReturn(
+        oaiRecord2);
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), eq("someId3"))).thenReturn(
+        oaiRecord3);
+
+    HarvestContent harvestContent = harvestService
         .harvestOaiPmhEndpoint("someEndpointURL", "somePrefix", "someSetSpec");
 
-    assertEquals(1, records.size());
-
-    assertEquals("record", new String(records.get(0).readAllBytes(), StandardCharsets.UTF_8));
+    assertEquals(2, harvestContent.getContent().size());
+    assertTrue(harvestContent.hasReachedRecordLimit());
+    assertEquals("record",
+        new String(harvestContent.getContent().get(0).readAllBytes(), StandardCharsets.UTF_8));
 
   }
 
   @Test
   void harvestServiceFromOai_ExpectServiceException() throws HarvesterException {
+
+    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(
         Collections.emptyList());

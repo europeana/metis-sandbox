@@ -5,23 +5,24 @@ import static java.util.Objects.requireNonNull;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import org.springframework.beans.factory.ObjectProvider;
+import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 
 @Service
 class TransformationServiceImpl implements TransformationService {
 
-  private final ObjectProvider<XsltTransformer> xsltTransformer;
+  private final TransformXsltRepository transformXsltRepository;
 
-  public TransformationServiceImpl(
-      ObjectProvider<XsltTransformer> xsltTransformer) {
-    this.xsltTransformer = xsltTransformer;
+  public TransformationServiceImpl(TransformXsltRepository transformXsltRepository) {
+    this.transformXsltRepository = transformXsltRepository;
   }
 
   @Override
@@ -58,8 +59,18 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
-      String edmLanguage) {
-    return xsltTransformer.getObject(datasetName, edmCountry, edmLanguage);
+      String edmLanguage) throws TransformationException {
+
+    var xsltTransformEntity = transformXsltRepository.findById(1);
+    String xsltTransform;
+    InputStream xsltInputStream = null;
+    if (xsltTransformEntity.isPresent()) {
+      xsltTransform = xsltTransformEntity.get().getTransformXslt();
+      xsltInputStream = new ByteArrayInputStream(xsltTransform.getBytes(StandardCharsets.UTF_8));
+    }
+    // First argument is to be used as cacheKey, it can be any string.
+    // Check implementation of constructor in metis-transformation-service module
+    return new XsltTransformer("xsltKey", xsltInputStream, datasetName, edmCountry, edmLanguage);
   }
 
   private String getJoinDatasetIdDatasetName(Record record) {

@@ -6,6 +6,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,9 +62,6 @@ class DatasetController {
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
-
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
 
   private final HarvestService harvestService;
   private final DatasetService datasetService;
@@ -109,16 +106,15 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    List<ByteArrayInputStream> records = harvestService.harvestZipMultipartFile(dataset);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
+    HarvestContent harvestedRecords =
+        harvestService.harvestZipMultipartFile(dataset);
 
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
     // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getContent(),
+        harvestedRecords.hasReachedRecordLimit(), xsltFileString);
 
     return new DatasetIdDto(datasetObject);
   }
@@ -143,21 +139,18 @@ class DatasetController {
   public DatasetIdDto harvestDatasetFromURL(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
-      @ApiParam(value = "language of the dataset", required = true, defaultValue = "nl") @RequestParam Language language,
+      @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestZipUrl(url);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
+    HarvestContent harvestedRecords = harvestService.harvestZipUrl(url);
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
 
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltInputStream);
+    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltInputStream);
     return new DatasetIdDto(datasetObject);
   }
 
@@ -190,16 +183,13 @@ class DatasetController {
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    List<ByteArrayInputStream> records = harvestService.harvestOaiPmhEndpoint(url, setspec,
-        metadataformat);
-
-    checkArgument(records.size() < maxRecords,
-        "Amount of records can not be more than " + maxRecords);
+    HarvestContent harvestedRecords = harvestService.harvestOaiPmhEndpoint(
+        url, setspec, metadataformat);
 
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language, records,
-        xsltFileString);
+    var datasetObject = datasetService.createDataset(datasetName, country, language,
+        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltFileString);
     return new DatasetIdDto(datasetObject);
   }
 
@@ -301,7 +291,8 @@ class DatasetController {
       try {
         return new ByteArrayInputStream(xslt.getBytes());
       } catch (IOException e) {
-        throw new XsltProcessingException("Something wrong happened while processing xslt file.", e);
+        throw new XsltProcessingException("Something wrong happened while processing xslt file.",
+            e);
       }
     }
     return new ByteArrayInputStream(new byte[0]);

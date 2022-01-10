@@ -15,28 +15,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DatasetRemoverScheduleTest {
+class DatasetRemoverSchedulerTest {
 
   @Mock
   private DatasetRemoverService datasetRemoverService;
 
   @InjectMocks
-  private DatasetRemoverSchedule datasetRemoverSchedule;
+  private DatasetRemoverScheduler datasetRemoverScheduler;
 
   @BeforeEach
   void init() {
-    setField(datasetRemoverSchedule, "daysToPreserve", 7);
+    setField(datasetRemoverScheduler, "daysToPreserve", 7);
   }
 
   @Test
   void remove_expectSuccess() {
-    datasetRemoverSchedule.remove();
+    datasetRemoverScheduler.remove();
     verify(datasetRemoverService).remove(7);
   }
 
   @Test
   void remove_failToRemove_expectFail() {
     doThrow(new ServiceException("", new Exception())).when(datasetRemoverService).remove(7);
-    assertThrows(ServiceException.class, () -> datasetRemoverSchedule.remove());
+    assertThrows(ServiceException.class, () -> datasetRemoverScheduler.remove());
   }
 }

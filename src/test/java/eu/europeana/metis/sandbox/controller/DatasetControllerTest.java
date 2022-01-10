@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -47,8 +47,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,12 +90,13 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -118,12 +118,13 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(InputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
             .file(dataset)
@@ -140,12 +141,14 @@ class DatasetControllerTest {
     String url = "zip" + File.separator + "dataset-valid.zip";
 
     var records = List.of(new ByteArrayInputStream(testUtils.readFileToBytes(url)));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
+        .thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("country", ITALY.name())
@@ -167,10 +170,11 @@ class DatasetControllerTest {
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
         "string".getBytes());
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(InputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
             .file(xsltMock)
@@ -188,12 +192,13 @@ class DatasetControllerTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
     var datasetObject = new Dataset("12345", Set.of(), 0);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenReturn(datasetObject);
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -220,9 +225,11 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
+
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(InputStream.class))).thenReturn(datasetObject);
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .file(xsltMock)
@@ -337,78 +344,6 @@ class DatasetControllerTest {
   }
 
   @Test
-  void processDatasetFromFile_recordsQtyExceeded_expectFail() throws Exception {
-
-    var records = IntStream.range(0, 1000)
-        .boxed()
-        .map(Object::toString)
-        .map(String::getBytes)
-        .map(ByteArrayInputStream::new)
-        .collect(Collectors.toList());
-
-    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        "<test></test>".getBytes());
-
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-
-    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-            .file(dataset)
-            .param("country", ITALY.name())
-            .param("language", IT.name()))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            containsString("Amount of records can not be more than")));
-  }
-
-  @Test
-  void processDatasetFromURL_recordsQtyExceeded_expectFail() throws Exception {
-
-    String url = "zip" + File.separator + "dataset-valid.zip";
-
-    var records = IntStream.range(0, 1000)
-        .boxed()
-        .map(Object::toString)
-        .map(String::getBytes)
-        .map(ByteArrayInputStream::new)
-        .collect(Collectors.toList());
-
-    when(harvestService.harvestZipUrl(url)).thenReturn(records);
-
-    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            containsString("Amount of records can not be more than")));
-  }
-
-  @Test
-  void processDatasetFromOAI_recordsQtyExceeded_expectFail() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-
-    var records = IntStream.range(0, 1000)
-        .boxed()
-        .map(Object::toString)
-        .map(String::getBytes)
-        .map(ByteArrayInputStream::new)
-        .collect(Collectors.toList());
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            containsString("Amount of records can not be more than")));
-  }
-
-  @Test
   void processDatasetFromFile_datasetServiceFails_expectFail() throws Exception {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
@@ -416,10 +351,11 @@ class DatasetControllerTest {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(InputStream.class)))
+        eq( harvestContent.hasReachedRecordLimit()), any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -437,10 +373,11 @@ class DatasetControllerTest {
     String url = "zip" + File.separator + "dataset-valid.zip";
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(InputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -458,10 +395,11 @@ class DatasetControllerTest {
     String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -483,10 +421,11 @@ class DatasetControllerTest {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -504,10 +443,11 @@ class DatasetControllerTest {
     String url = "zip" + File.separator + "dataset-valid.zip";
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(records);
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -525,10 +465,11 @@ class DatasetControllerTest {
     String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
     when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        any(ByteArrayInputStream.class)))
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -553,9 +494,11 @@ class DatasetControllerTest {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(records);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(ByteArrayInputStream.class)))
+    when(harvestService.harvestZipMultipartFile(dataset)).thenReturn(harvestContent);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -577,9 +520,11 @@ class DatasetControllerTest {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestZipUrl(url)).thenReturn(records);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(ByteArrayInputStream.class)))
+    when(harvestService.harvestZipUrl(url)).thenReturn(harvestContent);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -601,9 +546,11 @@ class DatasetControllerTest {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
+    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
 
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(records);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records), any(ByteArrayInputStream.class)))
+    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
+    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
         .thenThrow(new RecordParsingException(new Exception()));
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -628,7 +575,7 @@ class DatasetControllerTest {
     var createProgress = new ProgressByStepDto(Step.CREATE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
     var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
-        Country.NETHERLANDS, false);
+        Country.NETHERLANDS, false, false);
     var report = new ProgressInfoDto("https://metis-sandbox", "https://metis-sandbox",
         10, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
     when(datasetReportService.getReport("1")).thenReturn(report);
@@ -646,6 +593,7 @@ class DatasetControllerTest {
         .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
         .andExpect(jsonPath("$.dataset-info.language", is("Dutch")))
         .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")))
+        .andExpect(jsonPath("$.dataset-info.record-limit-exceeded", is(false)))
         .andExpect(jsonPath("$.dataset-info.transformed-to-edm-external", is(false)));
   }
 
