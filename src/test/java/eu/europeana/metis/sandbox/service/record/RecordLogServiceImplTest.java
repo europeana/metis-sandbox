@@ -1,14 +1,20 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -19,7 +25,9 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +45,12 @@ class RecordLogServiceImplTest {
 
   @InjectMocks
   private RecordLogServiceImpl service;
+
+  @BeforeEach
+  void prepare() {
+    reset(errorLogRepository);
+    reset(recordLogRepository);
+  }
 
   @Test
   void logRecord_expectSuccess() {
@@ -82,6 +96,42 @@ class RecordLogServiceImplTest {
         .thenThrow(new RuntimeException("Exception saving"));
 
     assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
+  }
+
+  @Test
+  void getProviderRecordString_expectSuccess() throws Exception {
+    final RecordLogEntity recordLogEntity = new RecordLogEntity();
+    recordLogEntity.setContent("content");
+    when(recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
+    assertNotNull(service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+  }
+
+  @Test
+  void getProviderRecordString_expectFail() {
+    //Case null entity
+    when(recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS)).thenReturn(null);
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+
+    //Case null content
+    when(recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+  }
+
+  @Test
+  void getRecordLogEntity() {
+    //Case EUROPEANA_ID
+    service.getRecordLogEntity(RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    verify(recordLogRepository, never()).findRecordLogByRecordIdAndDatasetIdAndStep(anyString(), anyString(), any(Step.class));
+    clearInvocations(recordLogRepository);
+
+    //Case PROVIDER_ID
+    service.getRecordLogEntity(RecordIdType.PROVIDER_ID, "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByRecordIdAndDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    verify(recordLogRepository, never()).findRecordLogByEuropeanaIdAndDatasetIdAndStep(anyString(), anyString(), any(Step.class));
   }
 
   @Test
