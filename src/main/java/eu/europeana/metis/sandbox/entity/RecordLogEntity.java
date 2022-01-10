@@ -14,6 +14,15 @@ public class RecordLogEntity extends RecordEntity {
 
   private String content;
 
+  /**
+   * Parameterized constructor
+   * @param recordId the record id
+   * @param europeanaId the europeana id
+   * @param datasetId the dataset id
+   * @param step the workflow step
+   * @param status the status of the record
+   * @param content the record content, usually an xml string
+   */
   public RecordLogEntity(String recordId, String europeanaId, String datasetId,
       Step step, Status status, String content) {
     this.recordId = recordId;

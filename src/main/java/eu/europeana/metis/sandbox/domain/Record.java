@@ -14,7 +14,7 @@ import java.util.Objects;
  * object construction, we are not making a copy of it because it is expensive and Record object is expected to be use as a non
  * mutable object.
  */
-public class Record {
+public final class Record {
 
   private final String recordId;
   private final String europeanaId;

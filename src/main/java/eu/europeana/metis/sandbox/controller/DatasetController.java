@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -300,7 +301,7 @@ class DatasetController {
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
     if (xslt != null && !xslt.isEmpty()) {
-      checkArgument(xslt.getContentType().equals("application/xslt+xml"),
+      checkArgument(Objects.equals(xslt.getContentType(), "application/xslt+xml"),
           "The given xslt file should be a single xml file.");
       try {
         return new ByteArrayInputStream(xslt.getBytes());

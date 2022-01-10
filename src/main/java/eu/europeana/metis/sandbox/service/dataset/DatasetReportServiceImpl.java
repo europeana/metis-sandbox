@@ -151,7 +151,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     try {
       optionalDataset = datasetRepository.findById(Integer.valueOf(datasetId));
     } catch (RuntimeException exception) {
-      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
+      throw new ServiceException(format("Failed to get dataset with id: [%s]. ", datasetId),
           exception);
     }
 

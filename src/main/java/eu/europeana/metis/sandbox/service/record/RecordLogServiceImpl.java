@@ -57,7 +57,9 @@ class RecordLogServiceImpl implements RecordLogService {
   public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId)
       throws NoRecordFoundException {
     return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getContent)
-        .orElseThrow(() -> new NoRecordFoundException(String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId, datasetId)));
+        .orElseThrow(() -> new NoRecordFoundException(
+            String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId,
+                datasetId)));
   }
 
   @Override

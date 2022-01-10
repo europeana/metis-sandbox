@@ -80,15 +80,21 @@ class ControllerErrorHandler {
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 
+  /**
+   * Handles {@link NoRecordFoundException} exceptions.
+   *
+   * @param e no record found exception
+   * @return the response entity
+   */
   @ExceptionHandler(NoRecordFoundException.class)
   public ResponseEntity<Object> handleInvalidDatasetException(
-      NoRecordFoundException ex) {
+      NoRecordFoundException e) {
     final ResponseStatus annotationResponseStatus = AnnotationUtils
-        .findAnnotation(ex.getClass(), ResponseStatus.class);
+        .findAnnotation(e.getClass(), ResponseStatus.class);
     HttpStatus status = annotationResponseStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR
         : annotationResponseStatus.value();
-    var exceptionModel = new ExceptionModelDto(status.value(), status, ex.getMessage());
-    LOGGER.error(ex.getMessage(), ex);
+    var exceptionModel = new ExceptionModelDto(status.value(), status, e.getMessage());
+    LOGGER.error(e.getMessage(), e);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
 }
