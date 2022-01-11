@@ -31,7 +31,7 @@ class TransformationServiceImpl implements TransformationService {
 
     byte[] recordTransformed;
     try {
-      EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
+      final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
       XsltTransformer transformer = getTransformer(getJoinDatasetIdDatasetName(record),
           record.getCountry().xmlValue(), record.getLanguage().name().toLowerCase());

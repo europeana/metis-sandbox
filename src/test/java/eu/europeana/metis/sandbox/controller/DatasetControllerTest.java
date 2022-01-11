@@ -3,22 +3,28 @@ package eu.europeana.metis.sandbox.controller;
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
+import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -30,6 +36,9 @@ import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -39,7 +48,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +73,12 @@ class DatasetControllerTest {
 
   @MockBean
   private DatasetReportService datasetReportService;
+
+  @MockBean
+  private RecordLogService recordLogService;
+
+  @MockBean
+  private RecordTierCalculationService recordTierCalculationService;
 
   private final TestUtils testUtils = new TestUtils();
 
@@ -605,5 +619,71 @@ class DatasetControllerTest {
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
+  }
+
+  @Test
+  void computeRecordTierCalculation_expectSuccess() throws Exception {
+    final String datasetId = "1";
+    final RecordIdType recordIdType = RecordIdType.PROVIDER_ID;
+    final String recordId = "recordId";
+    final String europeanaId = "europeanaId";
+
+    final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView();
+    final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
+    recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
+    recordTierCalculationView.setRecordTierCalculationSummary(recordTierCalculationSummary);
+    when(recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId)).thenReturn(recordTierCalculationView);
+
+    mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
+            .param("recordIdType", recordIdType.name())
+            .param("recordId", recordId))
+        .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is("europeanaId")))
+        .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
+  }
+
+  @Test
+  void computeRecordTierCalculation_NoRecordFoundException() throws Exception {
+    final String datasetId = "1";
+    final RecordIdType recordIdType = RecordIdType.PROVIDER_ID;
+    final String recordId = "recordId";
+    when(recordTierCalculationService.calculateTiers(any(RecordIdType.class), anyString(), anyString())).thenThrow(
+        new NoRecordFoundException("record not found"));
+    mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
+            .param("recordIdType", recordIdType.name())
+            .param("recordId", recordId))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message",
+            is("record not found")));
+  }
+
+  @Test
+  void getRecord_expectSuccess() throws Exception {
+    final String datasetId = "1";
+    final RecordIdType recordIdType = RecordIdType.EUROPEANA_ID;
+    final String recordId = "europeanaId";
+    final String returnString = "exampleString";
+    when(recordLogService.getProviderRecordString(recordIdType, recordId, datasetId)).thenReturn(returnString);
+
+    mvc.perform(get("/dataset/{id}/record", datasetId)
+            .param("recordIdType", recordIdType.name())
+            .param("recordId", recordId))
+        .andExpect(content().string(returnString));
+  }
+
+  @Test
+  void getRecord_NoRecordFoundException() throws Exception {
+    final String datasetId = "1";
+    final RecordIdType recordIdType = RecordIdType.EUROPEANA_ID;
+    final String recordId = "europeanaId";
+    final String returnString = "exampleString";
+    when(recordLogService.getProviderRecordString(any(RecordIdType.class), anyString(), anyString())).thenThrow(
+        new NoRecordFoundException("record not found"));
+
+    mvc.perform(get("/dataset/{id}/record", datasetId)
+            .param("recordIdType", recordIdType.name())
+            .param("recordId", recordId))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message",
+            is("record not found")));
   }
 }
