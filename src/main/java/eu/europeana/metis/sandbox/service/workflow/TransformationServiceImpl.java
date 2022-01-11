@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 class TransformationServiceImpl implements TransformationService {
 
   private final ObjectProvider<XsltTransformer> xsltTransformer;
-
   private final DatasetRepository datasetRepository;
 
   public TransformationServiceImpl(
@@ -54,8 +53,8 @@ class TransformationServiceImpl implements TransformationService {
   @Override
   public RecordInfo transform(Record record) {
     InputStream xsltContent = new ByteArrayInputStream(
-        datasetRepository.getDatasetEntityByDatasetId(Integer.parseInt(record.getDatasetId()))
-            .getXsltEdmExternalContent().getBytes(StandardCharsets.UTF_8));
+        datasetRepository.getXsltContentFromDatasetId(Integer.parseInt(record.getDatasetId()))
+            .getBytes(StandardCharsets.UTF_8));
     return new RecordInfo(Record.from(record, transform(record.getRecordId(), xsltContent,
         record.getContent())));
   }
