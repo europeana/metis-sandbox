@@ -53,10 +53,11 @@ class TransformationServiceImpl implements TransformationService {
 
   @Override
   public RecordInfo transform(Record record) {
-    return new RecordInfo(Record.from(record, transform(record.getRecordId(),
-        new ByteArrayInputStream(
-            datasetRepository.getXsltContentFromDatasetId(record.getDatasetId())
-                .getBytes(StandardCharsets.UTF_8)), record.getContent())));
+    InputStream xsltContent = new ByteArrayInputStream(
+        datasetRepository.getDatasetEntityByDatasetId(Integer.parseInt(record.getDatasetId()))
+            .getXsltEdmExternalContent().getBytes(StandardCharsets.UTF_8));
+    return new RecordInfo(Record.from(record, transform(record.getRecordId(), xsltContent,
+        record.getContent())));
   }
 
   @Override
