@@ -12,7 +12,7 @@ import javax.persistence.Table;
  */
 
 @Entity
-@Table(name = "transform_xslt")
+@Table(name = "default_transform_xslt")
 public class TransformXsltEntity {
 
   @Id
@@ -27,6 +27,10 @@ public class TransformXsltEntity {
   }
 
   public TransformXsltEntity() {
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
   }
 
   public Integer getId() {
