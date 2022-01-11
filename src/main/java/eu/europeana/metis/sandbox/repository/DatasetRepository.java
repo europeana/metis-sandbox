@@ -26,10 +26,6 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param datasetId must not be null
    * @return xslt content associated to dataset
    */
-  @Query("SELECT " +
-      "dataset.xsltEdmExternalContent " +
-      "FROM " +
-      "    DatasetEntity dataset " +
-      "WHERE dataset.datasetId = ?1 ")
-  String getXsltContentFromDatasetId(String datasetId);
+  @Query
+  DatasetEntity getDatasetEntityByDatasetId(int datasetId);
 }
