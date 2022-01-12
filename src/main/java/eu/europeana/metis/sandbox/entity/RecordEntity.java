@@ -1,32 +1,46 @@
 package eu.europeana.metis.sandbox.entity;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Table;
 
-@MappedSuperclass
-class RecordEntity {
+/**
+ * Entity to map to record table
+ */
+@Entity
+@Table(name = "record")
+public class RecordEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   protected Long id;
 
-  protected String recordId;
-
   protected String europeanaId;
 
   protected String datasetId;
 
-  @Enumerated(EnumType.STRING)
-  protected Step step;
+  private String content;
 
-  @Enumerated(EnumType.STRING)
-  protected Status status;
+  /**
+   * Parameterized constructor
+   * @param id the record id
+   * @param europeanaId the europeana id associated to the record
+   * @param datasetId the dataset id associated to the record
+   * @param content the content of the record
+   */
+  public RecordEntity(Long id, String europeanaId, String datasetId, String content) {
+    this.id = id;
+    this.europeanaId = europeanaId;
+    this.datasetId = datasetId;
+    this.content = content;
+  }
+
+
+  public RecordEntity() {
+    // provide explicit no-args constructor as it is required for Hibernate
+  }
 
   public Long getId() {
     return id;
@@ -34,14 +48,6 @@ class RecordEntity {
 
   public void setId(Long id) {
     this.id = id;
-  }
-
-  public String getRecordId() {
-    return recordId;
-  }
-
-  public void setRecordId(String recordId) {
-    this.recordId = recordId;
   }
 
   public String getEuropeanaId() {
@@ -60,19 +66,11 @@ class RecordEntity {
     this.datasetId = datasetId;
   }
 
-  public Step getStep() {
-    return step;
+  public String getContent() {
+    return content;
   }
 
-  public void setStep(Step step) {
-    this.step = step;
-  }
-
-  public Status getStatus() {
-    return status;
-  }
-
-  public void setStatus(Status status) {
-    this.status = status;
+  public void setContent(String content) {
+    this.content = content;
   }
 }
