@@ -27,10 +27,9 @@ class TransformationServiceImpl implements TransformationService {
 
   public TransformationServiceImpl(
       ObjectProvider<XsltTransformer> xsltTransformer,
-      DatasetRepository datasetRepository) {
+      DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository) {
     this.xsltTransformer = xsltTransformer;
     this.datasetRepository = datasetRepository;
-  public TransformationServiceImpl(TransformXsltRepository transformXsltRepository) {
     this.transformXsltRepository = transformXsltRepository;
   }
 

@@ -16,9 +16,9 @@ import org.springframework.web.util.UriTemplate;
 public class RecordTierCalculationServiceImpl implements RecordTierCalculationService {
 
   private final RecordLogService recordLogService;
-  @Value("${sandbox.dataset.provider-record-url-template}")
+
   private final String providerRecordUrlTemplate;
-  @Value("${sandbox.portal.publish.record-base-url}")
+
   private final String portalPublishRecordBaseUrl;
 
   /**
