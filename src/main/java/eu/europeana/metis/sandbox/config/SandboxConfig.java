@@ -65,6 +65,12 @@ class SandboxConfig {
 
   private String defaultXsltUrl;
 
+  @Value("${sandbox.dataset.provider-record-url-template}")
+  private String providerRecordUrlTemplate;
+
+  @Value("${sandbox.portal.publish.record-base-url}")
+  private String portalPublishRecordBaseUrl;
+
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   XPathFactory xPathFactory() {
@@ -102,6 +108,16 @@ class SandboxConfig {
   @Bean(name = "transformationToEdmExternalQueue")
   String transformationToEdmExternalQueue(){
     return transformationToEdmExternalQueue;
+  }
+
+  @Bean(name = "providerRecordUrlTemplate")
+  String providerRecordUrlTemplate() {
+    return providerRecordUrlTemplate;
+  }
+
+  @Bean(name = "portalPublishRecordBaseUrl")
+  String portalPublishRecordBaseUrl() {
+    return portalPublishRecordBaseUrl;
   }
 
   @Bean
