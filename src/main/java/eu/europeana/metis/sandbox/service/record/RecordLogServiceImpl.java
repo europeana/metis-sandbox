@@ -4,13 +4,17 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,10 +36,10 @@ class RecordLogServiceImpl implements RecordLogService {
     var record = recordEvent.getBody();
     var recordErrors = recordEvent.getRecordErrors();
 
-    var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getDatasetId(),
+    var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getEuropeanaId(), record.getDatasetId(),
         recordEvent.getStep(), recordEvent.getStatus(), new String(record.getContent(), StandardCharsets.UTF_8));
     var recordErrorLogEntities = recordErrors.stream()
-        .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getDatasetId(),
+        .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getEuropeanaId(), record.getDatasetId(),
             recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
             error.getStackTrace()))
         .collect(toList());
@@ -47,6 +51,28 @@ class RecordLogServiceImpl implements RecordLogService {
       throw new ServiceException(
           format("Error saving record log for record: [%s]. ", record.getRecordId()), e);
     }
+  }
+
+  @Override
+  public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId)
+      throws NoRecordFoundException {
+    return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getContent)
+        .orElseThrow(() -> new NoRecordFoundException(
+            String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId,
+                datasetId)));
+  }
+
+  @Override
+  public RecordLogEntity getRecordLogEntity(RecordIdType recordIdType, String recordId, String datasetId) {
+    final RecordLogEntity recordLogEntity;
+    if (recordIdType == RecordIdType.EUROPEANA_ID) {
+      recordLogEntity = recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(
+          recordId, datasetId, Step.MEDIA_PROCESS);
+    } else {
+      recordLogEntity = recordLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+          Step.MEDIA_PROCESS);
+    }
+    return recordLogEntity;
   }
 
   @Override

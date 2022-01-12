@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
  * Schedule to delete old datasets
  */
 @Component
-class DatasetRemoverSchedule {
+class DatasetRemoverScheduler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverSchedule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverScheduler.class);
 
   @Value("${sandbox.dataset.clean.days-to-preserve:7}")
   private int daysToPreserve;
 
   private final DatasetRemoverService service;
 
-  DatasetRemoverSchedule(DatasetRemoverService service) {
+  DatasetRemoverScheduler(DatasetRemoverService service) {
     this.service = service;
   }
 

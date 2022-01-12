@@ -62,9 +62,10 @@ sandbox:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
   portal:
     preview:
-      url: http://metis-test
+      dataset-base-url: http://metis-test
     publish:
-      url: http://metis-test
+      dataset-base-url: http://metis-test
+      record-base-url: http://metis-test/item
   truststore:
     path:
     password:
@@ -89,6 +90,7 @@ sandbox:
         core-pool-size: 5
         max-pool-size: 5
         thread-prefix: sandbox-test-
+    provider-record-url-template: http://localhost:8080/dataset/{datasetId}/record?recordId={recordId}&recordIdType={recordIdType}
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed

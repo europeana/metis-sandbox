@@ -18,6 +18,8 @@ class RecordEntity {
 
   protected String recordId;
 
+  protected String europeanaId;
+
   protected String datasetId;
 
   @Enumerated(EnumType.STRING)
@@ -40,6 +42,14 @@ class RecordEntity {
 
   public void setRecordId(String recordId) {
     this.recordId = recordId;
+  }
+
+  public String getEuropeanaId() {
+    return europeanaId;
+  }
+
+  public void setEuropeanaId(String europeanaId) {
+    this.europeanaId = europeanaId;
   }
 
   public String getDatasetId() {

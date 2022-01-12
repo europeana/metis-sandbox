@@ -16,9 +16,21 @@ public class RecordErrorLogEntity extends RecordEntity {
 
   private String stackTrace;
 
-  public RecordErrorLogEntity(String recordId, String datasetId,
+  /**
+   * Parameterized constructor
+   *
+   * @param recordId the record id
+   * @param europeanaId the europeana id
+   * @param datasetId the dataset id
+   * @param step the workflow step
+   * @param status the status of the record
+   * @param message the message, usually an error message
+   * @param stackTrace the stack trace of the error
+   */
+  public RecordErrorLogEntity(String recordId, String europeanaId, String datasetId,
       Step step, Status status, String message, String stackTrace) {
     this.recordId = recordId;
+    this.europeanaId = europeanaId;
     this.datasetId = datasetId;
     this.step = step;
     this.status = status;

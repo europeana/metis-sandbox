@@ -10,15 +10,14 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * Object that represents a record.
- * <br /><br />
- * Stores the record content as a byte[], do not
- * override the byte[] contents after object construction, we are not making a copy of it because it
- * is expensive and Record object is expected to be use as a non mutable object.
+ * Object that represents a record. <br /><br /> Stores the record content as a byte[], do not override the byte[] contents after
+ * object construction, we are not making a copy of it because it is expensive and Record object is expected to be use as a non
+ * mutable object.
  */
-public class Record {
+public final class Record {
 
   private final String recordId;
+  private final String europeanaId;
   private final String datasetId;
   private final String datasetName;
   private final Country country;
@@ -28,9 +27,10 @@ public class Record {
   //Suppress: Mutable members should not be stored or returned directly
   //byte[] coming from RecordBuilder is already a copy of the original byte[]
   @SuppressWarnings("squid:S2384")
-  private Record(String recordId, String datasetId, String datasetName,
+  private Record(String recordId, String europeanaId, String datasetId, String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
+    this.europeanaId = europeanaId;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
     this.country = country;
@@ -41,7 +41,7 @@ public class Record {
   /**
    * Creates a record based on the provided record but replacing the content with the one provided
    *
-   * @param record  must not be null
+   * @param record must not be null
    * @param content must not be null. Xml representation of the record
    * @return record object
    */
@@ -49,6 +49,7 @@ public class Record {
 
     return Record.builder()
         .recordId(record.getRecordId())
+        .europeanaId(record.getEuropeanaId())
         .datasetId(record.getDatasetId())
         .datasetName(record.getDatasetName())
         .content(content)
@@ -63,6 +64,10 @@ public class Record {
 
   public String getRecordId() {
     return this.recordId;
+  }
+
+  public String getEuropeanaId() {
+    return this.europeanaId;
   }
 
   public String getDatasetId() {
@@ -84,9 +89,8 @@ public class Record {
   /**
    * Content of the record
    *
-   * @implNote Overwriting this field contents after construction could cause problems. <br /> We
-   * are not making a copy of it because it is expensive and Record object is expected to be use as
-   * a non mutable object
+   * @implNote Overwriting this field contents after construction could cause problems. <br /> We are not making a copy of it
+   * because it is expensive and Record object is expected to be use as a non mutable object
    */
   //Suppress: Mutable members should not be stored or returned directly
   @SuppressWarnings("squid:S2384")
@@ -125,6 +129,7 @@ public class Record {
   public static class RecordBuilder {
 
     private String recordId;
+    private String europeanaId;
     private String datasetId;
     private String datasetName;
     private Country country;
@@ -133,6 +138,11 @@ public class Record {
 
     public RecordBuilder recordId(String recordId) {
       this.recordId = recordId;
+      return this;
+    }
+
+    public RecordBuilder europeanaId(String europeanaId) {
+      this.europeanaId = europeanaId;
       return this;
     }
 
@@ -163,7 +173,7 @@ public class Record {
     }
 
     public Record build() {
-      return new Record(recordId, datasetId, datasetName, country, language, content);
+      return new Record(recordId, europeanaId, datasetId, datasetName, country, language, content);
     }
   }
 }

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
@@ -22,12 +23,15 @@ class TransformationServiceImpl implements TransformationService {
 
   private final ObjectProvider<XsltTransformer> xsltTransformer;
   private final DatasetRepository datasetRepository;
+  private final TransformXsltRepository transformXsltRepository;
 
   public TransformationServiceImpl(
       ObjectProvider<XsltTransformer> xsltTransformer,
       DatasetRepository datasetRepository) {
     this.xsltTransformer = xsltTransformer;
     this.datasetRepository = datasetRepository;
+  public TransformationServiceImpl(TransformXsltRepository transformXsltRepository) {
+    this.transformXsltRepository = transformXsltRepository;
   }
 
   @Override
@@ -36,7 +40,7 @@ class TransformationServiceImpl implements TransformationService {
 
     byte[] recordTransformed;
     try {
-      EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
+      final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
       XsltTransformer transformer = getTransformer(getJoinDatasetIdDatasetName(record),
           record.getCountry().xmlValue(), record.getLanguage().name().toLowerCase());
@@ -48,7 +52,6 @@ class TransformationServiceImpl implements TransformationService {
 
     return new RecordInfo(Record.from(record, recordTransformed));
   }
-
 
   @Override
   public RecordInfo transform(Record record) {
@@ -75,8 +78,18 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
-      String edmLanguage) {
-    return xsltTransformer.getObject(datasetName, edmCountry, edmLanguage);
+      String edmLanguage) throws TransformationException {
+
+    var xsltTransformEntity = transformXsltRepository.findById(1);
+    String xsltTransform;
+    InputStream xsltInputStream = null;
+    if (xsltTransformEntity.isPresent()) {
+      xsltTransform = xsltTransformEntity.get().getTransformXslt();
+      xsltInputStream = new ByteArrayInputStream(xsltTransform.getBytes(StandardCharsets.UTF_8));
+    }
+    // First argument is to be used as cacheKey, it can be any string.
+    // Check implementation of constructor in metis-transformation-service module
+    return new XsltTransformer("xsltKey", xsltInputStream, datasetName, edmCountry, edmLanguage);
   }
 
   private String getJoinDatasetIdDatasetName(Record record) {

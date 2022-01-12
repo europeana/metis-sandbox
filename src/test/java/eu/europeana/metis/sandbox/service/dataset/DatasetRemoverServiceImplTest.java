@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DatasetRemoveServiceImplTest {
+class DatasetRemoverServiceImplTest {
 
   @Mock
   private DatasetService datasetService;
@@ -33,7 +33,7 @@ class DatasetRemoveServiceImplTest {
   private ThumbnailStoreService thumbnailStoreService;
 
   @InjectMocks
-  private DatasetRemoveServiceImpl service;
+  private DatasetRemoverServiceImpl service;
 
   @Test
   void remove_expectSuccess() {

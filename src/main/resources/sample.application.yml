@@ -53,12 +53,6 @@ sandbox:
     driverClassName: org.postgresql.Driver
     username: sandbox
     password:
-  s3:
-    access-key:
-    secret-key:
-    endpoint:
-    signing-region:
-    thumbnails-bucket:
   dataset:
     clean:
       frequency: 0 0 0 * * ? # At 00:00:00am every day
@@ -69,6 +63,7 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+    provider-record-url-template: http://localhost:8080/dataset/{datasetId}/record?recordId={recordId}&recordIdType={recordIdType}
   validation:
     edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
     executor:
@@ -125,11 +120,17 @@ sandbox:
         default:
           collection:
         timeout:
+  s3:
+    access-key:
+    secret-key:
+    endpoint:
+    signing-region:
+    thumbnails-bucket:
   portal:
     preview:
-      url:
+      dataset-base-url:
     publish:
-      url:
+      dataset-base-url:
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed

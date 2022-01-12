@@ -44,11 +44,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
-  @Value("${sandbox.portal.preview.url}")
-  private String portalPreviewUrl;
+  @Value("${sandbox.portal.preview.dataset-base-url}")
+  private String portalPreviewDatasetUrl;
 
-  @Value("${sandbox.portal.publish.url}")
-  private String portalPublishUrl;
+  @Value("${sandbox.portal.publish.dataset-base-url}")
+  private String portalPublishDatasetUrl;
 
   private final DatasetRepository datasetRepository;
   private final RecordLogRepository recordLogRepository;
@@ -121,12 +121,12 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private String getPreviewPortalUrl(DatasetEntity dataset, long completedRecords,
       long failedRecords) {
-    return getPortalUrl(portalPreviewUrl, dataset, completedRecords, failedRecords);
+    return getPortalUrl(portalPreviewDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
   private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,
       long failedRecords) {
-    return getPortalUrl(portalPublishUrl, dataset, completedRecords, failedRecords);
+    return getPortalUrl(portalPublishDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
   private String getPortalUrl(String portal, DatasetEntity dataset, long completedRecords,
@@ -151,7 +151,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     try {
       optionalDataset = datasetRepository.findById(Integer.valueOf(datasetId));
     } catch (RuntimeException exception) {
-      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
+      throw new ServiceException(format("Failed to get dataset with id: [%s]. ", datasetId),
           exception);
     }
 

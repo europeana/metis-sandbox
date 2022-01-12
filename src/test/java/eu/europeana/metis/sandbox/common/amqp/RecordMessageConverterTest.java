@@ -4,6 +4,7 @@ import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.COUN
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATASET_NAME;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERRORS;
+import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.EUROPEANA_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.LANGUAGE;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.RECORD_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STATUS;
@@ -44,7 +45,7 @@ class RecordMessageConverterTest {
   void toMessage_expectSuccess() {
     var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
         .language(Language.IT)
-        .datasetId("1").datasetName("").recordId("").build();
+        .datasetId("1").datasetName("").recordId("").europeanaId("").build();
     var event = new Event(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS);
 
     var result = MessageBuilder.withBody(record.getContent())
@@ -59,7 +60,7 @@ class RecordMessageConverterTest {
   void toMessage_recordWithErrors_expectSuccess() {
     var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
         .language(Language.IT)
-        .datasetId("1").datasetName("").recordId("").build();
+        .datasetId("1").datasetName("").recordId("").europeanaId("").build();
     var recordError = new RecordError(new RecordProcessingException("23", new Exception("failed here")));
     var event = new Event(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
         Status.SUCCESS);
@@ -84,6 +85,7 @@ class RecordMessageConverterTest {
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
         .setHeaderIfAbsent(RECORD_ID, "")
+        .setHeaderIfAbsent(EUROPEANA_ID, "")
         .setHeaderIfAbsent(DATASET_ID, "1")
         .setHeaderIfAbsent(DATASET_NAME, "")
         .setHeaderIfAbsent(COUNTRY, "ITALY")
@@ -109,6 +111,7 @@ class RecordMessageConverterTest {
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
         .setHeaderIfAbsent(RECORD_ID, "")
+        .setHeaderIfAbsent(EUROPEANA_ID, "")
         .setHeaderIfAbsent(DATASET_ID, "1")
         .setHeaderIfAbsent(DATASET_NAME, "")
         .setHeaderIfAbsent(COUNTRY, "ITALY")

@@ -48,9 +48,9 @@ class DatasetReportServiceImplTest {
 
   @BeforeEach
   void setup() {
-    setField(service, "portalPreviewUrl",
+    setField(service, "portalPreviewDatasetUrl",
         "https://metis-sandbox/portal/preview/search?q=edm_datasetName:");
-    setField(service, "portalPublishUrl",
+    setField(service, "portalPublishDatasetUrl",
         "https://metis-sandbox/portal/publish/search?q=edm_datasetName:");
   }
 
