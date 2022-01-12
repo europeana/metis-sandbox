@@ -45,15 +45,14 @@ class RecordTierCalculationServiceImplTest {
     String europeanaRecordString = testUtils.readFileToString(
         Paths.get("record", "media", "europeana_record_with_technical_metadata.xml").toFile().toString());
 
-    final String recordId = "recordId";
+    final int recordId = 1;
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
     final Step mediaProcessStep = Step.MEDIA_PROCESS;
-    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordId, europeanaId, datasetId, mediaProcessStep,
-        Status.SUCCESS, europeanaRecordString);
-    when(recordLogServiceMock.getRecordLogEntity(RecordIdType.PROVIDER_ID, recordId, datasetId)).thenReturn(recordLogEntity);
+    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordId, mediaProcessStep, Status.SUCCESS);
+    when(recordLogServiceMock.getRecordLogEntity(RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId)).thenReturn(recordLogEntity);
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
-        RecordIdType.PROVIDER_ID, recordId, datasetId);
+        RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId);
     assertNotNull(recordTierCalculationView);
     assertEquals(recordLogEntity.getRecordId(),
         recordTierCalculationView.getRecordTierCalculationSummary().getProviderRecordId());

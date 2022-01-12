@@ -4,6 +4,7 @@
 
 begin;
 drop table if exists dataset;
+drop table if exists record;
 drop table if exists record_log;
 drop table if exists record_error_log;
 drop table if exists thumbnail;
@@ -23,25 +24,30 @@ create table if not exists dataset (
    Primary Key (dataset_id)
 );
 
+create table if not exists record
+(
+    id bigserial,
+    europeana_id varchar(100) null,
+    dataset_id   varchar(100) not null,
+    content text not null,
+    Primary Key (id),
+    unique (europeana_id, dataset_id)
+    );
+
 create table  if not exists record_log (
    id bigserial,
-   record_id varchar(100) not null,
-   europeana_id varchar(100) not null,
-   dataset_id varchar(100) not null,
+   record_id bigint not null,
    step varchar(30) not null,
    status varchar(30) not null,
-   content text not null,
    created_date timestamp with time zone default now(),
    Primary Key(id),
-   unique (record_id, dataset_id, step),
-   unique (europeana_id, dataset_id, step)
+   Foreign Key (record_id) References record(id),
+   unique (record_id, step)
 );
 
 create table if not exists record_error_log (
     id bigserial,
-    record_id varchar(100) not null,
-    europeana_id varchar(100) not null,
-    dataset_id varchar(100) not null,
+    record_id bigint not null,
     step varchar(30) not null,
     status varchar(30) not null,
     message text not null,
@@ -64,7 +70,8 @@ create table if not exists default_transform_xslt
     Primary Key (id)
 );
 
-create index on record_log (dataset_id);
-create index on record_error_log (dataset_id);
+create index on record_log (record_id);
+create index on record_error_log (record_id);
+create index on record (dataset_id);
 create index on thumbnail (dataset_id);
 commit;
