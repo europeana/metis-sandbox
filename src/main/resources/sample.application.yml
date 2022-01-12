@@ -131,6 +131,7 @@ sandbox:
       dataset-base-url:
     publish:
       dataset-base-url:
+      record-base-url:
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed
