@@ -15,7 +15,7 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
@@ -66,18 +66,18 @@ class DatasetController {
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
-  private final RecordLogService recordLogService;
+  private final RecordService recordService;
   private final RecordTierCalculationService recordTierCalculationService;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService,
-      RecordLogService recordLogService,
+      RecordService recordService,
       RecordTierCalculationService recordTierCalculationService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
-    this.recordLogService = recordLogService;
+    this.recordService = recordService;
     this.recordTierCalculationService = recordTierCalculationService;
   }
 
@@ -246,7 +246,7 @@ class DatasetController {
   public String getRecord(@PathVariable("id") String datasetId,
       @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
       @RequestParam String recordId) throws NoRecordFoundException {
-    return recordLogService.getProviderRecordString(recordIdType, recordId, datasetId);
+    return recordService.getProviderRecordString(recordIdType, recordId, datasetId);
   }
 
   /**

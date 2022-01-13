@@ -4,9 +4,9 @@
 
 begin;
 drop table if exists dataset;
-drop table if exists record;
 drop table if exists record_log;
 drop table if exists record_error_log;
+drop table if exists record;
 drop table if exists thumbnail;
 drop table if exists default_transform_xslt;
 commit;
@@ -53,7 +53,9 @@ create table if not exists record_error_log (
     message text not null,
     stack_trace text not null ,
     created_date timestamp with time zone default now(),
-    Primary Key (id)
+    Primary Key (id),
+    Foreign Key (record_id) References record(id),
+    unique (record_id, step)
 );
 
 create table if not exists thumbnail (

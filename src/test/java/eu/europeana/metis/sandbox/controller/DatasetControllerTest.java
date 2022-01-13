@@ -36,7 +36,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
@@ -75,7 +75,7 @@ class DatasetControllerTest {
   private DatasetReportService datasetReportService;
 
   @MockBean
-  private RecordLogService recordLogService;
+  private RecordService recordService;
 
   @MockBean
   private RecordTierCalculationService recordTierCalculationService;
@@ -662,7 +662,7 @@ class DatasetControllerTest {
     final RecordIdType recordIdType = RecordIdType.EUROPEANA_ID;
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
-    when(recordLogService.getProviderRecordString(recordIdType, recordId, datasetId)).thenReturn(returnString);
+    when(recordService.getProviderRecordString(recordIdType, recordId, datasetId)).thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
             .param("recordIdType", recordIdType.name())
@@ -676,7 +676,7 @@ class DatasetControllerTest {
     final RecordIdType recordIdType = RecordIdType.EUROPEANA_ID;
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
-    when(recordLogService.getProviderRecordString(any(RecordIdType.class), anyString(), anyString())).thenThrow(
+    when(recordService.getProviderRecordString(any(RecordIdType.class), anyString(), anyString())).thenThrow(
         new NoRecordFoundException("record not found"));
 
     mvc.perform(get("/dataset/{id}/record", datasetId)

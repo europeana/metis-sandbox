@@ -8,7 +8,9 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
+//import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -17,11 +19,14 @@ import org.springframework.stereotype.Service;
 @Service
 class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
-  private final XmlRecordProcessorService xmlRecordProcessorService;
+//  private final XmlRecordProcessorService xmlRecordProcessorService;
+  private final RecordRepository recordRepository;
 
   public DatasetGeneratorServiceImpl(
-      XmlRecordProcessorService xmlRecordProcessorService) {
-    this.xmlRecordProcessorService = xmlRecordProcessorService;
+//      XmlRecordProcessorService xmlRecordProcessorService,
+      RecordRepository recordRepository) {
+//    this.xmlRecordProcessorService = xmlRecordProcessorService;
+    this.recordRepository = recordRepository;
   }
 
   @Override
@@ -36,7 +41,8 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     var recordObjectList = records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(record -> {
-          var recordId = xmlRecordProcessorService.getRecordId(record);
+          RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, datasetId, new String(record)));
+          var recordId = String.valueOf(recordEntity.getId());
           return Record.builder()
               .recordId(recordId)
               .europeanaId(EuropeanaIdCreator.constructEuropeanaIdString(recordId, datasetId))

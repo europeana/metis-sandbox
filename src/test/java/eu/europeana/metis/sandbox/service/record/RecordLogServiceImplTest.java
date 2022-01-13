@@ -22,6 +22,7 @@ import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
@@ -96,42 +97,6 @@ class RecordLogServiceImplTest {
         .thenThrow(new RuntimeException("Exception saving"));
 
     assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
-  }
-
-  @Test
-  void getProviderRecordString_expectSuccess() throws Exception {
-    final RecordLogEntity recordLogEntity = new RecordLogEntity();
-    recordLogEntity.setContent("content");
-    when(recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId",
-        Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
-    assertNotNull(service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
-  }
-
-  @Test
-  void getProviderRecordString_expectFail() {
-    //Case null entity
-    when(recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId",
-        Step.MEDIA_PROCESS)).thenReturn(null);
-    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
-
-    //Case null content
-    when(recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId",
-        Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
-    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
-  }
-
-  @Test
-  void getRecordLogEntity() {
-    //Case EUROPEANA_ID
-    service.getRecordLogEntity(RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogByEuropeanaIdAndDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
-    verify(recordLogRepository, never()).findRecordLogByRecordIdAndDatasetIdAndStep(anyString(), anyString(), any(Step.class));
-    clearInvocations(recordLogRepository);
-
-    //Case PROVIDER_ID
-    service.getRecordLogEntity(RecordIdType.PROVIDER_ID, "recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogByRecordIdAndDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
-    verify(recordLogRepository, never()).findRecordLogByEuropeanaIdAndDatasetIdAndStep(anyString(), anyString(), any(Step.class));
   }
 
   @Test
