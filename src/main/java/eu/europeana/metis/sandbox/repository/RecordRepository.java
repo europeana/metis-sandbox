@@ -38,4 +38,15 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
   @Query("UPDATE RecordEntity rec SET rec.europeanaId = ?2, rec.providerId = ?3 WHERE rec.id = ?1")
   void updateEuropeanaIdAndProviderId(String recordId, String europeanaId, String providerId);
 
+  /**
+   * Update record with new values for europeana id and provider id
+   *
+   * @param recordId the id of the record to update
+   * @param europeanaId the europeana id value to update with
+   * @param providerId the provider id value to update with
+   */
+  @Modifying
+  @Query("UPDATE RecordEntity rec SET rec.europeanaId = ?2, rec.providerId = ?3 WHERE rec.id = ?1")
+  void updateEuropeanaIdAndProviderId(String recordId, String europeanaId, String providerId);
+
 }
