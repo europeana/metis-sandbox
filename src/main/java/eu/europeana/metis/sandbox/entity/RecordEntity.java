@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,19 +20,19 @@ public class RecordEntity {
 
   protected String europeanaId;
 
+  @Column(name = "dataset_id")
   protected String datasetId;
 
   private String content;
 
   /**
    * Parameterized constructor
-   * @param id the record id
+   *
    * @param europeanaId the europeana id associated to the record
    * @param datasetId the dataset id associated to the record
    * @param content the content of the record
    */
-  public RecordEntity(Long id, String europeanaId, String datasetId, String content) {
-    this.id = id;
+  public RecordEntity(String europeanaId, String datasetId, String content) {
     this.europeanaId = europeanaId;
     this.datasetId = datasetId;
     this.content = content;

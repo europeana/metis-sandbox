@@ -2,9 +2,15 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.SecondaryTable;
 import javax.persistence.Table;
 
 /**
@@ -12,9 +18,17 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "record_error_log")
-public class RecordErrorLogEntity extends RecordEntity {
+@SecondaryTable(name = "record", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id"))
+public class RecordErrorLogEntity {
 
-  private Integer recordId;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  private Long recordId;
+
+  @Column(name = "dataset_id", table = "record")
+  private String datasetId;
 
   private String message;
 
@@ -35,7 +49,7 @@ public class RecordErrorLogEntity extends RecordEntity {
    * @param message the message, usually an error message
    * @param stackTrace the stack trace of the error
    */
-  public RecordErrorLogEntity(Integer recordId, Step step, Status status, String message,
+  public RecordErrorLogEntity(Long recordId, Step step, Status status, String message,
       String stackTrace) {
     this.recordId = recordId;
     this.step = step;
@@ -48,11 +62,19 @@ public class RecordErrorLogEntity extends RecordEntity {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
-  public Integer getRecordId() {
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public Long getRecordId() {
     return recordId;
   }
 
-  public void setRecordId(Integer recordId) {
+  public void setRecordId(Long recordId) {
     this.recordId = recordId;
   }
 
