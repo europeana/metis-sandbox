@@ -1,20 +1,15 @@
 package eu.europeana.metis.sandbox.service.record;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -22,11 +17,10 @@ import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +37,9 @@ class RecordLogServiceImplTest {
 
   @Mock
   RecordErrorLogRepository errorLogRepository;
+
+  @Mock
+  RecordRepository recordRepository;
 
   @InjectMocks
   private RecordLogServiceImpl service;
@@ -102,13 +99,12 @@ class RecordLogServiceImplTest {
   @Test
   void remove_expectSuccess() {
     service.remove("1");
-    verify(errorLogRepository).deleteByDatasetId("1");
-    verify(recordLogRepository).deleteByDatasetId("1");
+    verify(recordRepository).deleteByDatasetId("1");
   }
 
   @Test
   void remove_errorOnDelete_expectFail() {
-    doThrow(new ServiceException("Failed", new Exception())).when(recordLogRepository)
+    doThrow(new ServiceException("Failed", new Exception())).when(recordRepository)
         .deleteByDatasetId("1");
     assertThrows(ServiceException.class, () -> service.remove("1"));
   }

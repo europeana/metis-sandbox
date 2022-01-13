@@ -2,15 +2,16 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.SecondaryTable;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -18,17 +19,15 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "record_error_log")
-@SecondaryTable(name = "record", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id"))
 public class RecordErrorLogEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long recordId;
-
-  @Column(name = "dataset_id", table = "record")
-  private String datasetId;
+  @OneToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+  @JoinColumn(name = "record_id", referencedColumnName = "id")
+  private RecordEntity recordId;
 
   private String message;
 
@@ -49,7 +48,7 @@ public class RecordErrorLogEntity {
    * @param message the message, usually an error message
    * @param stackTrace the stack trace of the error
    */
-  public RecordErrorLogEntity(Long recordId, Step step, Status status, String message,
+  public RecordErrorLogEntity(RecordEntity recordId, Step step, Status status, String message,
       String stackTrace) {
     this.recordId = recordId;
     this.step = step;
@@ -70,11 +69,11 @@ public class RecordErrorLogEntity {
     this.id = id;
   }
 
-  public Long getRecordId() {
+  public RecordEntity getRecordId() {
     return recordId;
   }
 
-  public void setRecordId(Long recordId) {
+  public void setRecordId(RecordEntity recordId) {
     this.recordId = recordId;
   }
 

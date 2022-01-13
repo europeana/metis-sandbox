@@ -16,6 +16,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -80,7 +81,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<ErrorLogView> errorsLog;
     try {
       stepStatistics = recordLogRepository.getStepStatistics(datasetId);
-      errorsLog = errorLogRepository.getByDatasetId(datasetId);
+      errorsLog = errorLogRepository.getByRecordId_DatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
@@ -190,7 +191,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return errorsLog
         .stream()
         .sorted(Comparator.comparingInt((ErrorLogView e) -> e.getStep().precedence())
-            .thenComparing(ErrorLogView::getRecordId))
+            .thenComparing(x -> x.getRecordId().getId()))
         .collect(groupingBy(ErrorLogView::getStep, LinkedHashMap::new,
             groupingBy(ErrorLogView::getStatus,
                 groupingBy(ErrorLogView::getMessage))));
@@ -220,6 +221,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status, recordList.stream()
                 .map(ErrorLogView::getRecordId)
+                .map(RecordEntity::getId)
+                .map(String::valueOf)
                 .sorted(String::compareTo)
                 .collect(toList())))));
 

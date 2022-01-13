@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toList;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
@@ -35,9 +36,9 @@ class RecordLogServiceImpl implements RecordLogService {
     var record = recordEvent.getBody();
     var recordErrors = recordEvent.getRecordErrors();
 
-    var recordLogEntity = new RecordLogEntity(record.getRecordId(), recordEvent.getStep(), recordEvent.getStatus());
+    var recordLogEntity = new RecordLogEntity(new RecordEntity(record), recordEvent.getStep(), recordEvent.getStatus());
     var recordErrorLogEntities = recordErrors.stream()
-        .map(error -> new RecordErrorLogEntity(record.getRecordId(), recordEvent.getStep(),
+        .map(error -> new RecordErrorLogEntity(new RecordEntity(record), recordEvent.getStep(),
             recordEvent.getStatus(), error.getMessage(),
             error.getStackTrace()))
         .collect(toList());

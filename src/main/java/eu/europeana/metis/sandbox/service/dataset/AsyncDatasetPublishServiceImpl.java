@@ -52,7 +52,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     try {
       if(hasXsltToEdmExternal){
         amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-            new Event(new RecordInfo(record), Step.TRANSFORM_TO_EDM_EXTERNAL, Status.SUCCESS));
+            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
       } else {
         amqpTemplate.convertAndSend(createdQueue,
             new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));

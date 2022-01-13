@@ -18,7 +18,7 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
-  List<ErrorLogView> getByDatasetId(String datasetId);
+  List<ErrorLogView> getByRecordId_DatasetId(String datasetId);
 
   /**
    * Delete errors for the specified dataset id
@@ -26,6 +26,6 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    * @param datasetId must not be null
    */
   @Modifying
-  @Query("delete from RecordErrorLogEntity where datasetId = ?1")
+  @Query("delete from RecordErrorLogEntity where recordId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
 }

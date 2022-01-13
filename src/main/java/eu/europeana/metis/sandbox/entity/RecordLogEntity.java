@@ -2,15 +2,16 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.SecondaryTable;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -18,18 +19,15 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "record_log")
-@SecondaryTable(name = "record", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id"))
-
 public class RecordLogEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long recordId;
-
-  @Column(name = "dataset_id", table = "record")
-  private String datasetId;
+  @OneToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+  @JoinColumn(name = "record_id", referencedColumnName = "id")
+  private RecordEntity recordId;
 
   @Enumerated(EnumType.STRING)
   protected Step step;
@@ -44,7 +42,7 @@ public class RecordLogEntity {
    * @param status the status of the record
    */
 
-  public RecordLogEntity(Long recordId, Step step, Status status) {
+  public RecordLogEntity(RecordEntity recordId, Step step, Status status) {
     this.recordId = recordId;
     this.step = step;
     this.status = status;
@@ -55,11 +53,11 @@ public class RecordLogEntity {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
-  public Long getRecordId() {
+  public RecordEntity getRecordId() {
     return recordId;
   }
 
-  public void setRecordId(Long recordId) {
+  public void setRecordId(RecordEntity recordId) {
     this.recordId = recordId;
   }
 
