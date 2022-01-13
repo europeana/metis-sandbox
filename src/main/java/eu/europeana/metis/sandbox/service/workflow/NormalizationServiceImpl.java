@@ -30,7 +30,7 @@ class NormalizationServiceImpl implements NormalizationService {
       normalizer = normalizerFactory.getNormalizer();
       result = normalizer.normalize(record.getContentInputStream());
     } catch (NormalizationConfigurationException | NormalizationException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
+      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
     }
 
     return new RecordInfo(Record.from(record, result));

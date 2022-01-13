@@ -34,7 +34,7 @@ class EventRecordLogConsumerTest {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     consumer.logRecord(recordEvent);
@@ -47,7 +47,7 @@ class EventRecordLogConsumerTest {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)

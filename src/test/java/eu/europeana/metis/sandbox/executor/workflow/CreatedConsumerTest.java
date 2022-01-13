@@ -44,7 +44,7 @@ class CreatedConsumerTest {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.validate(record)).thenReturn(new RecordInfo(record));
@@ -61,7 +61,7 @@ class CreatedConsumerTest {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
     consumer.validateExternal(recordEvent);
@@ -75,7 +75,7 @@ class CreatedConsumerTest {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));

@@ -30,6 +30,7 @@ class RecordMessageConverter implements MessageConverter {
   protected static final int RIGHT = 1;
   protected static final String RECORD_ID = "recordId";
   protected static final String EUROPEANA_ID = "europeanaId";
+  protected static final String PROVIDER_ID = "providerId";
   protected static final String DATASET_ID = "datasetId";
   protected static final String DATASET_NAME = "datasetName";
   protected static final String LANGUAGE = "language";
@@ -60,6 +61,7 @@ class RecordMessageConverter implements MessageConverter {
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
         .setHeaderIfAbsent(RECORD_ID, record.getRecordId())
         .setHeaderIfAbsent(EUROPEANA_ID, record.getEuropeanaId())
+        .setHeaderIfAbsent(PROVIDER_ID, record.getProviderId())
         .setHeaderIfAbsent(DATASET_ID, record.getDatasetId())
         .setHeaderIfAbsent(DATASET_NAME, record.getDatasetName())
         .setHeaderIfAbsent(COUNTRY, record.getCountry())
@@ -90,7 +92,7 @@ class RecordMessageConverter implements MessageConverter {
   public Object fromMessage(Message message) {
     byte[] content = message.getBody();
     MessageProperties properties = message.getMessageProperties();
-    String recordId = properties.getHeader(RECORD_ID);
+    Long recordId = properties.getHeader(RECORD_ID);
     String europeanaId = properties.getHeader(EUROPEANA_ID);
     String datasetId = properties.getHeader(DATASET_ID);
     String datasetName = properties.getHeader(DATASET_NAME);

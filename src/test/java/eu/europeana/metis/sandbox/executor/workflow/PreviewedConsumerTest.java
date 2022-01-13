@@ -45,7 +45,7 @@ class PreviewedConsumerTest {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.index(record, IndexEnvironment.PUBLISH)).thenReturn(new RecordInfo(record));
@@ -62,7 +62,7 @@ class PreviewedConsumerTest {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
     consumer.publish(recordEvent);
@@ -76,7 +76,7 @@ class PreviewedConsumerTest {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.index(record, IndexEnvironment.PUBLISH))

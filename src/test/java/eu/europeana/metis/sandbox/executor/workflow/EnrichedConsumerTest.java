@@ -43,7 +43,7 @@ class EnrichedConsumerTest {
     Record record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     Event recordEvent = new Event(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record)).thenReturn(new RecordInfo(record));
@@ -60,7 +60,7 @@ class EnrichedConsumerTest {
     Record record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     Event recordEvent = new Event(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record))
