@@ -42,7 +42,7 @@ class TransformationServiceImpl implements TransformationService {
       recordTransformed = transformer
           .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
     } catch (TransformationException | EuropeanaIdException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
+      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
     }
 
     return new RecordInfo(Record.from(record, recordTransformed));
@@ -53,7 +53,7 @@ class TransformationServiceImpl implements TransformationService {
     InputStream xsltContent = new ByteArrayInputStream(
         datasetRepository.getXsltContentFromDatasetId(Integer.parseInt(record.getDatasetId()))
             .getBytes(StandardCharsets.UTF_8));
-    return new RecordInfo(Record.from(record, transform(record.getRecordId(), xsltContent,
+    return new RecordInfo(Record.from(record, transform(String.valueOf(record.getRecordId()), xsltContent,
         record.getContent())));
   }
 

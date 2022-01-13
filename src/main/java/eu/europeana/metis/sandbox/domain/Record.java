@@ -16,7 +16,7 @@ import java.util.Objects;
  */
 public final class Record {
 
-  private final String recordId;
+  private final Long recordId;
   private String europeanaId;
   private String providerId;
   private final String datasetId;
@@ -28,7 +28,7 @@ public final class Record {
   //Suppress: Mutable members should not be stored or returned directly
   //byte[] coming from RecordBuilder is already a copy of the original byte[]
   @SuppressWarnings("squid:S2384")
-  private Record(String recordId, String europeanaId, String providerId, String datasetId,
+  private Record(Long recordId, String europeanaId, String providerId, String datasetId,
       String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
@@ -65,7 +65,7 @@ public final class Record {
     return new RecordBuilder();
   }
 
-  public String getRecordId() {
+  public Long getRecordId() {
     return this.recordId;
   }
 
@@ -143,7 +143,7 @@ public final class Record {
 
   public static class RecordBuilder {
 
-    private String recordId;
+    private Long recordId;
     private String providerId;
     private String europeanaId;
     private String datasetId;
@@ -152,7 +152,7 @@ public final class Record {
     private Language language;
     private byte[] content;
 
-    public RecordBuilder recordId(String recordId) {
+    public RecordBuilder recordId(Long recordId) {
       this.recordId = recordId;
       return this;
     }

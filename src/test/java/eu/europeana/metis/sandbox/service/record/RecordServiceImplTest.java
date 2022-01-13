@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.service.record;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
@@ -60,12 +59,12 @@ public class RecordServiceImplTest {
     //Case EUROPEANA_ID
     service.getRecordEntity(RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
     verify(recordRepository).findRecordEntityByEuropeanaIdAndDatasetId("recordId", "datasetId");
-    verify(recordRepository, never()).findRecordEntityByIdAndDatasetId(anyLong(), anyString());
+    verify(recordRepository, never()).findRecordEntityByProviderIdAndDatasetId(anyString(), anyString());
     clearInvocations(recordRepository);
 
     //Case PROVIDER_ID
     service.getRecordEntity(RecordIdType.PROVIDER_ID, "recordId", "datasetId");
-    verify(recordRepository).findRecordEntityByIdAndDatasetId(1L, "datasetId");
+    verify(recordRepository).findRecordEntityByProviderIdAndDatasetId("recordId", "datasetId");
     verify(recordRepository, never()).findRecordEntityByEuropeanaIdAndDatasetId(anyString(), anyString());
   }
 

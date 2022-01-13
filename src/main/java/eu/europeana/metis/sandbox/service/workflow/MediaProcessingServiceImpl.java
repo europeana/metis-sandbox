@@ -72,7 +72,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
 
     } catch (MediaProcessorException | IOException | RdfDeserializationException e) {
       LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
-      throw new RecordProcessingException(record.getRecordId(), e);
+      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
     }
 
     // Get output rdf bytes
@@ -112,7 +112,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     } catch(MediaExtractionException e) {
       LOGGER.warn("Error while extracting media for record {}. ", record.getRecordId(), e);
       // collect warnings
-      recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
+      recordErrors.add(new RecordError(new RecordProcessingException(String.valueOf(record.getRecordId()), e)));
     }
 
     return successful;
@@ -127,7 +127,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       } catch (ThumbnailStoringException e) {
         LOGGER.warn("Error while storing thumbnail for record {}. ", record.getRecordId(), e);
         // collect warn
-        recordErrors.add(new RecordError(new RecordProcessingException(record.getRecordId(), e)));
+        recordErrors.add(new RecordError(new RecordProcessingException(String.valueOf(record.getRecordId()), e)));
       }
     }
   }
@@ -137,7 +137,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     try {
       return rdfDeserializer.getRdfForResourceEnriching(inputRdf);
     } catch (RdfDeserializationException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
+      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
     }
   }
 
@@ -146,7 +146,7 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     try {
       return rdfSerializer.serialize(rdfForEnrichment);
     } catch (RdfSerializationException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
+      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
     }
   }
 }

@@ -31,9 +31,8 @@ create table if not exists record
     provider_id varchar(100) null,
     dataset_id   varchar(100) not null,
     content text not null,
-    Primary Key (id),
-    unique (europeana_id, dataset_id)
-    );
+    Primary Key (id)
+);
 
 create table  if not exists record_log (
    id bigserial,
@@ -42,8 +41,7 @@ create table  if not exists record_log (
    status varchar(30) not null,
    created_date timestamp with time zone default now(),
    Primary Key(id),
-   Foreign Key (record_id) References record(id),
-   unique (record_id, step)
+   Foreign Key (record_id) References record(id)
 );
 
 create table if not exists record_error_log (
@@ -55,8 +53,7 @@ create table if not exists record_error_log (
     stack_trace text not null ,
     created_date timestamp with time zone default now(),
     Primary Key (id),
-    Foreign Key (record_id) References record(id),
-    unique (record_id, step)
+    Foreign Key (record_id) References record(id)
 );
 
 create table if not exists thumbnail (

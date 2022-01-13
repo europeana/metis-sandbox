@@ -39,7 +39,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
           RecordEntity recordEntity = new RecordEntity(null, null, datasetId, new String(record));
           recordRepository.save(recordEntity);
           return Record.builder()
-              .recordId(String.valueOf(recordEntity.getId()))
+              .recordId(recordEntity.getId())
               .datasetId(datasetId)
               .datasetName(name)
               .country(country)

@@ -50,14 +50,14 @@ class TransformationServiceImplTest {
         .country(Country.ITALY)
         .language(Language.IT)
         .content(input.getBytes(StandardCharsets.UTF_8))
-        .recordId("1").build();
+        .recordId(1L).build();
 
     var expectedRecord = Record.builder()
         .datasetId("1").datasetName("One")
         .country(Country.ITALY)
         .language(Language.IT)
         .content(expected.getBytes(StandardCharsets.UTF_8))
-        .recordId("1").build();
+        .recordId(1L).build();
 
     var expectedRecordInfo = new RecordInfo(expectedRecord, Collections.emptyList());
 
@@ -81,7 +81,7 @@ class TransformationServiceImplTest {
         .country(Country.ITALY)
         .language(Language.IT)
         .content(input.getBytes(StandardCharsets.UTF_8))
-        .recordId("1").build();
+        .recordId(1L).build();
 
     RecordProcessingException exception =
         assertThrows(RecordProcessingException.class,

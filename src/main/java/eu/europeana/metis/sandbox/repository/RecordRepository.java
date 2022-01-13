@@ -10,11 +10,11 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
   /**
    * Get record given the provider record id and dataset id
    *
-   * @param recordId the record id
+   * @param providerId the record id
    * @param datasetId the dataset id
    * @return the record entity
    */
-  RecordEntity findRecordEntityByIdAndDatasetId(Long recordId, String datasetId);
+  RecordEntity findRecordEntityByProviderIdAndDatasetId(String providerId, String datasetId);
 
   /**
    * Get record given the europeana record id and dataset id
@@ -34,6 +34,15 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    */
   @Modifying
   @Query("UPDATE RecordEntity rec SET rec.europeanaId = ?2, rec.providerId = ?3 WHERE rec.id = ?1")
-  void updateEuropeanaIdAndProviderId(String recordId, String europeanaId, String providerId);
+  void updateEuropeanaIdAndProviderId(Long recordId, String europeanaId, String providerId);
+
+  /**
+   * Delete records that belong to the given dataset id
+   *
+   * @param datasetId must not be null
+   */
+  @Modifying
+  @Query("delete from RecordEntity where datasetId = ?1")
+  void deleteByDatasetId(String datasetId);
 
 }

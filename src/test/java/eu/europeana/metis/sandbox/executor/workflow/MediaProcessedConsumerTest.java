@@ -45,7 +45,7 @@ class MediaProcessedConsumerTest {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.index(record, IndexEnvironment.PREVIEW)).thenReturn(new RecordInfo(record));
@@ -62,7 +62,7 @@ class MediaProcessedConsumerTest {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
     consumer.preview(recordEvent);
@@ -76,7 +76,7 @@ class MediaProcessedConsumerTest {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.index(record, IndexEnvironment.PREVIEW)).thenThrow(new RecordProcessingException("1", new Exception()));

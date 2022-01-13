@@ -49,7 +49,8 @@ class RecordTierCalculationServiceImplTest {
     final Long recordId = 1L;
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
-    final RecordEntity recordEntity = new RecordEntity(europeanaId, datasetId, europeanaRecordString);
+    final String providerId = "providerId";
+    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId, europeanaRecordString);
     recordEntity.setId(recordId);
     when(recordServiceMock.getRecordEntity(RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId)).thenReturn(recordEntity);
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
