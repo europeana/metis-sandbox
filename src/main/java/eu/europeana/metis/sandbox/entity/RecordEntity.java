@@ -20,6 +20,8 @@ public class RecordEntity {
 
   protected String europeanaId;
 
+  protected String providerId;
+
   @Column(name = "dataset_id")
   protected String datasetId;
 
@@ -32,8 +34,9 @@ public class RecordEntity {
    * @param datasetId the dataset id associated to the record
    * @param content the content of the record
    */
-  public RecordEntity(String europeanaId, String datasetId, String content) {
+  public RecordEntity(String europeanaId, String providerId, String datasetId, String content) {
     this.europeanaId = europeanaId;
+    this.providerId = providerId;
     this.datasetId = datasetId;
     this.content = content;
   }
@@ -57,6 +60,14 @@ public class RecordEntity {
 
   public void setEuropeanaId(String europeanaId) {
     this.europeanaId = europeanaId;
+  }
+
+  public String getProviderId() {
+    return providerId;
+  }
+
+  public void setProviderId(String providerId) {
+    this.providerId = providerId;
   }
 
   public String getDatasetId() {
