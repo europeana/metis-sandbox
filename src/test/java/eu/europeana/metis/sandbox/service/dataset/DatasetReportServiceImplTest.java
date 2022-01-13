@@ -16,6 +16,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -72,22 +73,31 @@ class DatasetReportServiceImplTest {
         new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
             false, false));
 
+    RecordEntity recordEntity1 = new RecordEntity();
+    recordEntity1.setId(1L);
+    RecordEntity recordEntity2 = new RecordEntity();
+    recordEntity2.setId(2L);
+    RecordEntity recordEntity3 = new RecordEntity();
+    recordEntity3.setId(3L);
+    RecordEntity recordEntity4 = new RecordEntity();
+    recordEntity4.setId(4L);
+
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
     var recordViewExternal2 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 4);
-    var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView1 = new ErrorLogViewImpl(1L, recordEntity1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
-    var errorView2 = new ErrorLogViewImpl(1L, "2", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView2 = new ErrorLogViewImpl(1L, recordEntity2, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
-    var errorView3 = new ErrorLogViewImpl(1L, "3", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView3 = new ErrorLogViewImpl(1L, recordEntity3, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
-    var errorView4 = new ErrorLogViewImpl(1L, "4", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView4 = new ErrorLogViewImpl(1L, recordEntity4, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
 
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal1, recordViewExternal2));
-    when(errorLogRepository.getByDatasetId("1"))
+    when(errorLogRepository.getByRecordId_DatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
 
     var result = service.getReport("1");
@@ -113,7 +123,7 @@ class DatasetReportServiceImplTest {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal));
-    when(errorLogRepository.getByDatasetId("1"))
+    when(errorLogRepository.getByRecordId_DatasetId("1"))
         .thenReturn(List.of());
 
     var result = service.getReport("1");
@@ -141,7 +151,7 @@ class DatasetReportServiceImplTest {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal, recordViewClose));
-    when(errorLogRepository.getByDatasetId("1"))
+    when(errorLogRepository.getByRecordId_DatasetId("1"))
         .thenReturn(List.of());
 
     var result = service.getReport("1");
@@ -169,21 +179,33 @@ class DatasetReportServiceImplTest {
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
-    var errorView1 = new ErrorLogViewImpl(1L, "1", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+
+    RecordEntity recordEntity1 = new RecordEntity();
+    recordEntity1.setId(1L);
+    RecordEntity recordEntity2 = new RecordEntity();
+    recordEntity2.setId(2L);
+    RecordEntity recordEntity3 = new RecordEntity();
+    recordEntity3.setId(3L);
+    RecordEntity recordEntity4 = new RecordEntity();
+    recordEntity4.setId(4L);
+    RecordEntity recordEntity5 = new RecordEntity();
+    recordEntity5.setId(5L);
+
+    var errorView1 = new ErrorLogViewImpl(1L, recordEntity1, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
-    var errorView2 = new ErrorLogViewImpl(1L, "2", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView2 = new ErrorLogViewImpl(1L, recordEntity2, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
-    var errorView3 = new ErrorLogViewImpl(1L, "3", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView3 = new ErrorLogViewImpl(1L, recordEntity3, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
-    var errorView4 = new ErrorLogViewImpl(1L, "4", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView4 = new ErrorLogViewImpl(1L, recordEntity4, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
-    var errorView5 = new ErrorLogViewImpl(1L, "5", 1, Step.VALIDATE_EXTERNAL, Status.FAIL,
+    var errorView5 = new ErrorLogViewImpl(1L, recordEntity5, Step.VALIDATE_EXTERNAL, Status.FAIL,
         "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.");
 
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal));
-    when(errorLogRepository.getByDatasetId("1"))
+    when(errorLogRepository.getByRecordId_DatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4, errorView5));
 
     var result = service.getReport("1");
@@ -266,17 +288,15 @@ class DatasetReportServiceImplTest {
   private static class ErrorLogViewImpl implements ErrorLogView {
 
     private final Long id;
-    private final String recordId;
-    private final Integer datasetId;
+    private final RecordEntity recordId;
     private final Step step;
     private final Status status;
     private final String message;
 
-    public ErrorLogViewImpl(Long id, String recordId, Integer datasetId,
+    public ErrorLogViewImpl(Long id, RecordEntity recordId,
         Step step, Status status, String message) {
       this.id = id;
       this.recordId = recordId;
-      this.datasetId = datasetId;
       this.step = step;
       this.status = status;
       this.message = message;
@@ -288,13 +308,8 @@ class DatasetReportServiceImplTest {
     }
 
     @Override
-    public String getRecordId() {
+    public RecordEntity getRecordId() {
       return recordId;
-    }
-
-    @Override
-    public Integer getDatasetId() {
-      return datasetId;
     }
 
     @Override

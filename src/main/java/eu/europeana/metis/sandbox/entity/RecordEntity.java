@@ -1,10 +1,12 @@
 package eu.europeana.metis.sandbox.entity;
 
-import javax.persistence.Column;
+import eu.europeana.metis.sandbox.domain.Record;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -22,10 +24,15 @@ public class RecordEntity {
 
   protected String providerId;
 
-  @Column(name = "dataset_id")
   protected String datasetId;
 
-  private String content;
+  protected String content;
+
+  @OneToOne(mappedBy = "recordId", fetch = FetchType.LAZY)
+  private RecordLogEntity recordLogEntity;
+
+  @OneToOne(mappedBy = "recordId", fetch = FetchType.LAZY)
+  private RecordErrorLogEntity recordErrorLogEntity;
 
   /**
    * Parameterized constructor
@@ -39,6 +46,18 @@ public class RecordEntity {
     this.providerId = providerId;
     this.datasetId = datasetId;
     this.content = content;
+  }
+
+  /**
+   * Contructor
+   *
+   * @param record the record
+   */
+  public RecordEntity(Record record){
+    this.europeanaId = record.getEuropeanaId();
+    this.providerId = record.getProviderId();
+    this.datasetId = record.getDatasetId();
+    this.content = new String(record.getContent());
   }
 
 
