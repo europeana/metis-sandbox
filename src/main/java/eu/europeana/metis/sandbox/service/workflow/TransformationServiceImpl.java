@@ -15,20 +15,16 @@ import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 class TransformationServiceImpl implements TransformationService {
 
-  private final ObjectProvider<XsltTransformer> xsltTransformer;
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
   public TransformationServiceImpl(
-      ObjectProvider<XsltTransformer> xsltTransformer,
       DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository) {
-    this.xsltTransformer = xsltTransformer;
     this.datasetRepository = datasetRepository;
     this.transformXsltRepository = transformXsltRepository;
   }

@@ -28,7 +28,7 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generate_expectSuccess() {
 
-    when(xmlRecordProcessorService.getRecordId(any(byte[].class)))
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class)))
         .thenReturn("1")
         .thenReturn("2");
 
@@ -43,7 +43,7 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generateWithDuplicateRecord_expectSuccess() {
 
-    when(xmlRecordProcessorService.getRecordId(any(byte[].class)))
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class)))
         .thenReturn("1");
 
     var dataset = generator
