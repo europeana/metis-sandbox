@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.entity;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.List;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -29,10 +28,10 @@ public class RecordEntity {
 
   protected String content;
 
-  @OneToMany(mappedBy = "recordId", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "recordId")
   private List<RecordLogEntity> recordLogEntity;
 
-  @OneToMany(mappedBy = "recordId", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "recordId")
   private List<RecordErrorLogEntity> recordErrorLogEntity;
 
   /**
@@ -104,5 +103,23 @@ public class RecordEntity {
 
   public void setContent(String content) {
     this.content = content;
+  }
+
+  public List<RecordLogEntity> getRecordLogEntity() {
+    return recordLogEntity;
+  }
+
+  public void setRecordLogEntity(
+      List<RecordLogEntity> recordLogEntity) {
+    this.recordLogEntity = recordLogEntity;
+  }
+
+  public List<RecordErrorLogEntity> getRecordErrorLogEntity() {
+    return recordErrorLogEntity;
+  }
+
+  public void setRecordErrorLogEntity(
+      List<RecordErrorLogEntity> recordErrorLogEntity) {
+    this.recordErrorLogEntity = recordErrorLogEntity;
   }
 }

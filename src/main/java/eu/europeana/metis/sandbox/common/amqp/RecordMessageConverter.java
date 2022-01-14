@@ -94,6 +94,7 @@ class RecordMessageConverter implements MessageConverter {
     MessageProperties properties = message.getMessageProperties();
     Long recordId = properties.getHeader(RECORD_ID);
     String europeanaId = properties.getHeader(EUROPEANA_ID);
+    String providerId = properties.getHeader(PROVIDER_ID);
     String datasetId = properties.getHeader(DATASET_ID);
     String datasetName = properties.getHeader(DATASET_NAME);
     String language = properties.getHeader(LANGUAGE);
@@ -105,6 +106,7 @@ class RecordMessageConverter implements MessageConverter {
     Record record = Record.builder()
         .recordId(recordId)
         .europeanaId(europeanaId)
+        .providerId(providerId)
         .datasetId(datasetId)
         .datasetName(datasetName)
         .country(Country.valueOf(country))

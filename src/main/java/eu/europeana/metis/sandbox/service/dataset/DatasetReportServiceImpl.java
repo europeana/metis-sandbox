@@ -81,7 +81,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<ErrorLogView> errorsLog;
     try {
       stepStatistics = recordLogRepository.getStepStatistics(datasetId);
-      errorsLog = errorLogRepository.getByRecordId_DatasetId(datasetId);
+      errorsLog = errorLogRepository.getByRecordIdDatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
