@@ -42,7 +42,7 @@ class TransformationServiceImpl implements TransformationService {
       recordTransformed = transformer
           .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
     } catch (TransformationException | EuropeanaIdException e) {
-      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
+      throw new RecordProcessingException(record.getProviderId(), e);
     }
 
     return new RecordInfo(Record.from(record, recordTransformed));

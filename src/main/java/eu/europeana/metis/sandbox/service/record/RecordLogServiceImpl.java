@@ -36,9 +36,10 @@ class RecordLogServiceImpl implements RecordLogService {
     var record = recordEvent.getBody();
     var recordErrors = recordEvent.getRecordErrors();
 
-    var recordLogEntity = new RecordLogEntity(new RecordEntity(record), recordEvent.getStep(), recordEvent.getStatus());
+    RecordEntity recordEntity = recordRepository.getOne(record.getRecordId());
+    var recordLogEntity = new RecordLogEntity(recordEntity, recordEvent.getStep(), recordEvent.getStatus());
     var recordErrorLogEntities = recordErrors.stream()
-        .map(error -> new RecordErrorLogEntity(new RecordEntity(record), recordEvent.getStep(),
+        .map(error -> new RecordErrorLogEntity(recordEntity, recordEvent.getStep(),
             recordEvent.getStatus(), error.getMessage(),
             error.getStackTrace()))
         .collect(toList());
@@ -48,7 +49,7 @@ class RecordLogServiceImpl implements RecordLogService {
       errorLogRepository.saveAll(recordErrorLogEntities);
     } catch (RuntimeException e) {
       throw new ServiceException(
-          format("Error saving record log for record: [%s]. ", record.getRecordId()), e);
+          format("Error saving record log for record: [%s]. ", record.getProviderId()), e);
     }
   }
 
