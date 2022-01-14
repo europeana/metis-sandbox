@@ -78,6 +78,7 @@ class TransformationServiceImplTest {
 
     var record = Record.builder()
         .datasetId("1").datasetName("One")
+        .providerId("1")
         .country(Country.ITALY)
         .language(Language.IT)
         .content(input.getBytes(StandardCharsets.UTF_8))

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -13,6 +14,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
@@ -34,12 +36,15 @@ class ExternalValidationServiceImplTest {
   @Mock
   private ValidationExecutionService validationExecutionService;
 
+  @Mock
+  private RecordService recordService;
+
   @InjectMocks
   private ExternalValidationServiceImpl service;
 
   @Test
   void validate_expectSuccess() throws TransformationException {
-    var record = Record.builder().recordId(1L)
+    var record = Record.builder().recordId(1L).providerId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -50,6 +55,7 @@ class ExternalValidationServiceImplTest {
     when(orderingService.performOrdering("".getBytes())).thenReturn("".getBytes());
     when(validationExecutionService.singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
+    doNothing().when(recordService).setEuropeanaIdAndProviderId(any());
 
     var result = service.validate(record);
 
