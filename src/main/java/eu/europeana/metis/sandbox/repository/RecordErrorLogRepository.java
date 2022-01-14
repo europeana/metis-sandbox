@@ -24,7 +24,7 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    * Creation</a>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
-  List<ErrorLogView> getByRecordId_DatasetId(String datasetId);
+  List<ErrorLogView> getByRecordIdDatasetId(String datasetId);
 
   /**
    * Get record given a record id, dataset id and step.

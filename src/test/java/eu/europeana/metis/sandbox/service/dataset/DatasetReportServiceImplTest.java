@@ -97,7 +97,7 @@ class DatasetReportServiceImplTest {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal1, recordViewExternal2));
-    when(errorLogRepository.getByRecordId_DatasetId("1"))
+    when(errorLogRepository.getByRecordIdDatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
 
     var result = service.getReport("1");
@@ -123,7 +123,7 @@ class DatasetReportServiceImplTest {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal));
-    when(errorLogRepository.getByRecordId_DatasetId("1"))
+    when(errorLogRepository.getByRecordIdDatasetId("1"))
         .thenReturn(List.of());
 
     var result = service.getReport("1");
@@ -151,7 +151,7 @@ class DatasetReportServiceImplTest {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal, recordViewClose));
-    when(errorLogRepository.getByRecordId_DatasetId("1"))
+    when(errorLogRepository.getByRecordIdDatasetId("1"))
         .thenReturn(List.of());
 
     var result = service.getReport("1");
@@ -205,7 +205,7 @@ class DatasetReportServiceImplTest {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     when(recordLogRepository.getStepStatistics("1")).thenReturn(
         List.of(recordViewCreate, recordViewExternal));
-    when(errorLogRepository.getByRecordId_DatasetId("1"))
+    when(errorLogRepository.getByRecordIdDatasetId("1"))
         .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4, errorView5));
 
     var result = service.getReport("1");
