@@ -13,11 +13,11 @@ public class DatasetMetadata {
   private Country country;
   private Language language;
 
-  private DatasetMetadata(Builder builder) {
-    setDatasetId(builder.datasetId);
-    setDatasetName(builder.datasetName);
-    setCountry(builder.country);
-    setLanguage(builder.language);
+  private DatasetMetadata(DatasetMetadataBuilder datasetMetadataBuilder) {
+    setDatasetId(datasetMetadataBuilder.datasetId);
+    setDatasetName(datasetMetadataBuilder.datasetName);
+    setCountry(datasetMetadataBuilder.country);
+    setLanguage(datasetMetadataBuilder.language);
   }
 
   /**
@@ -25,8 +25,8 @@ public class DatasetMetadata {
    *
    * @return the builder
    */
-  public static Builder newBuilder() {
-    return new Builder();
+  public static DatasetMetadataBuilder Builder() {
+    return new DatasetMetadataBuilder();
   }
 
   /**
@@ -104,14 +104,14 @@ public class DatasetMetadata {
   /**
    * {@code DatasetMetadata} builder static inner class.
    */
-  public static final class Builder {
+  public static final class DatasetMetadataBuilder {
 
     private String datasetId;
     private String datasetName;
     private Country country;
     private Language language;
 
-    private Builder() {
+    private DatasetMetadataBuilder() {
     }
 
     /**
@@ -120,7 +120,7 @@ public class DatasetMetadata {
      * @param datasetId the {@code datasetId} to set
      * @return a reference to this Builder
      */
-    public Builder withDatasetId(String datasetId) {
+    public DatasetMetadataBuilder withDatasetId(String datasetId) {
       this.datasetId = datasetId;
       return this;
     }
@@ -131,7 +131,7 @@ public class DatasetMetadata {
      * @param datasetName the {@code datasetName} to set
      * @return a reference to this Builder
      */
-    public Builder withDatasetName(String datasetName) {
+    public DatasetMetadataBuilder withDatasetName(String datasetName) {
       this.datasetName = datasetName;
       return this;
     }
@@ -142,7 +142,7 @@ public class DatasetMetadata {
      * @param country the {@code country} to set
      * @return a reference to this Builder
      */
-    public Builder withCountry(Country country) {
+    public DatasetMetadataBuilder withCountry(Country country) {
       this.country = country;
       return this;
     }
@@ -153,7 +153,7 @@ public class DatasetMetadata {
      * @param language the {@code language} to set
      * @return a reference to this Builder
      */
-    public Builder withLanguage(Language language) {
+    public DatasetMetadataBuilder withLanguage(Language language) {
       this.language = language;
       return this;
     }
