@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -58,7 +57,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
             new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
       }
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", record.getRecordId(), e);
+      LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);
     }
   }
 }

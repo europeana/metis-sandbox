@@ -1,12 +1,13 @@
 package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.domain.Record;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -28,11 +29,11 @@ public class RecordEntity {
 
   protected String content;
 
-  @OneToOne(mappedBy = "recordId", fetch = FetchType.LAZY)
-  private RecordLogEntity recordLogEntity;
+  @OneToMany(mappedBy = "recordId", fetch = FetchType.LAZY)
+  private List<RecordLogEntity> recordLogEntity;
 
-  @OneToOne(mappedBy = "recordId", fetch = FetchType.LAZY)
-  private RecordErrorLogEntity recordErrorLogEntity;
+  @OneToMany(mappedBy = "recordId", fetch = FetchType.LAZY)
+  private List<RecordErrorLogEntity> recordErrorLogEntity;
 
   /**
    * Parameterized constructor
