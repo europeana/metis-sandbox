@@ -36,10 +36,9 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     var recordObjectList = records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(record -> {
-          RecordEntity recordEntity = new RecordEntity(null, null, datasetId, new String(record));
-          recordRepository.save(recordEntity);
+          Long recordId = recordRepository.save(new RecordEntity(null, null, datasetId, new String(record))).getId();
           return Record.builder()
-              .recordId(recordEntity.getId())
+              .recordId(recordId)
               .datasetId(datasetId)
               .datasetName(name)
               .country(country)

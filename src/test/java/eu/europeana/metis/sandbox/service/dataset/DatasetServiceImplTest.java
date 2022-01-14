@@ -82,11 +82,8 @@ class DatasetServiceImplTest {
     datasetEntity.setDatasetId(1);
     ByteArrayInputStream xsltContent = new ByteArrayInputStream(
         "xsltContent".getBytes(StandardCharsets.UTF_8));
-    byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
-        transformResultMock);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false,
@@ -94,7 +91,6 @@ class DatasetServiceImplTest {
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset, true);
-    verify(transformationService, times(1)).transform("1_name", xsltContent, "record1".getBytes());
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -132,13 +128,8 @@ class DatasetServiceImplTest {
     datasetEntity.setDatasetId(1);
     ByteArrayInputStream xsltContent = new ByteArrayInputStream(
         "xsltContent".getBytes(StandardCharsets.UTF_8));
-    byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
-        transformResultMock);
-    when(transformationService.transform("1_name", xsltContent, "record2".getBytes())).thenReturn(
-        transformResultMock);
     when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
         .thenReturn(dataset);
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false,
@@ -146,8 +137,6 @@ class DatasetServiceImplTest {
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
     verify(publishService, times(1)).publish(dataset, true);
-    verify(transformationService, times(2)).transform(anyString(), any(ByteArrayInputStream.class),
-        any(byte[].class));
     assertEquals("1234", result.getDatasetId());
   }
 

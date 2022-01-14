@@ -6,6 +6,7 @@ import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.DATA
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.ERRORS;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.EUROPEANA_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.LANGUAGE;
+import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.PROVIDER_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.RECORD_ID;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STATUS;
 import static eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter.STEP;
@@ -84,8 +85,9 @@ class RecordMessageConverterTest {
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
-        .setHeaderIfAbsent(RECORD_ID, "")
+        .setHeaderIfAbsent(RECORD_ID, 1L)
         .setHeaderIfAbsent(EUROPEANA_ID, "")
+        .setHeaderIfAbsent(PROVIDER_ID, "")
         .setHeaderIfAbsent(DATASET_ID, "1")
         .setHeaderIfAbsent(DATASET_NAME, "")
         .setHeaderIfAbsent(COUNTRY, "ITALY")
@@ -110,8 +112,9 @@ class RecordMessageConverterTest {
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
-        .setHeaderIfAbsent(RECORD_ID, "")
+        .setHeaderIfAbsent(RECORD_ID, 1L)
         .setHeaderIfAbsent(EUROPEANA_ID, "")
+        .setHeaderIfAbsent(PROVIDER_ID, "")
         .setHeaderIfAbsent(DATASET_ID, "1")
         .setHeaderIfAbsent(DATASET_NAME, "")
         .setHeaderIfAbsent(COUNTRY, "ITALY")

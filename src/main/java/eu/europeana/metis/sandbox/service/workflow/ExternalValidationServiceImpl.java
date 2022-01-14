@@ -34,10 +34,12 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
   public RecordInfo validate(Record record) {
     requireNonNull(record, "Record must not be null");
     byte[] recordOrdered;
+    recordService.setEuropeanaIdAndProviderId(record);
+
     try {
       recordOrdered = orderingService.performOrdering(record.getContent());
     } catch (TransformationException e) {
-      throw new RecordProcessingException(String.valueOf(record.getRecordId()), e);
+      throw new RecordProcessingException(record.getProviderId(), e);
     }
 
     var validationResult = validator
@@ -47,7 +49,6 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
           validationResult.getRecordId(), validationResult.getNodeId());
     }
 
-    recordService.setEuropeanaIdAndProviderId(record);
     return new RecordInfo(Record.from(record, recordOrdered));
   }
 
