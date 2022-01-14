@@ -5,8 +5,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -16,11 +14,14 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetGeneratorServiceImpl.class);
 
   private final XmlRecordProcessorService xmlRecordProcessorService;
 
@@ -46,8 +47,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
   }
 
   private Set<Record> processRecordsAndRemoveDuplicates(DatasetMetadata datasetMetadata, List<ByteArrayInputStream> records) {
-    return records
-        .stream()
+    return records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem))
         .flatMap(Optional::stream)
@@ -67,6 +67,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
                                .content(recordData)
                                .build());
     } catch (IllegalArgumentException | RecordParsingException processorServiceException) {
+      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordData), processorServiceException);
       return Optional.empty();
     }
   }

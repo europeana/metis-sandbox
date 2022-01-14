@@ -7,17 +7,17 @@ import eu.europeana.metis.sandbox.common.locale.Language;
  * DatasetMetadata class used in {@link eu.europeana.metis.sandbox.service.dataset.DatasetGeneratorService} to provide dataset
  * metadata to generate it.
  */
-public class DatasetMetadata {
-  private String datasetId;
-  private String datasetName;
-  private Country country;
-  private Language language;
+public final class DatasetMetadata {
+  private final String datasetId;
+  private final String datasetName;
+  private final Country country;
+  private final Language language;
 
   private DatasetMetadata(DatasetMetadataBuilder datasetMetadataBuilder) {
-    setDatasetId(datasetMetadataBuilder.datasetId);
-    setDatasetName(datasetMetadataBuilder.datasetName);
-    setCountry(datasetMetadataBuilder.country);
-    setLanguage(datasetMetadataBuilder.language);
+    this.datasetId = datasetMetadataBuilder.datasetId;
+    this.datasetName = datasetMetadataBuilder.datasetName;
+    this.country = datasetMetadataBuilder.country;
+    this.language = datasetMetadataBuilder.language;
   }
 
   /**
@@ -25,7 +25,7 @@ public class DatasetMetadata {
    *
    * @return the builder
    */
-  public static DatasetMetadataBuilder Builder() {
+  public static DatasetMetadataBuilder builder() {
     return new DatasetMetadataBuilder();
   }
 
@@ -39,30 +39,12 @@ public class DatasetMetadata {
   }
 
   /**
-   * Sets dataset id.
-   *
-   * @param datasetId the dataset id
-   */
-  public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  /**
    * Gets dataset name.
    *
    * @return the dataset name
    */
   public String getDatasetName() {
     return datasetName;
-  }
-
-  /**
-   * Sets dataset name.
-   *
-   * @param datasetName the dataset name
-   */
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
   }
 
   /**
@@ -75,30 +57,12 @@ public class DatasetMetadata {
   }
 
   /**
-   * Sets country.
-   *
-   * @param country the country
-   */
-  public void setCountry(Country country) {
-    this.country = country;
-  }
-
-  /**
    * Gets language.
    *
    * @return the language
    */
   public Language getLanguage() {
     return language;
-  }
-
-  /**
-   * Sets language.
-   *
-   * @param language the language
-   */
-  public void setLanguage(Language language) {
-    this.language = language;
   }
 
   /**

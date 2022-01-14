@@ -79,7 +79,7 @@ class DatasetServiceImpl implements DatasetService {
       performTransformationToEdmExternal(xsltEdmExternalContentStream, entity, records, String.join("_", datasetId, datasetName));
     }
 
-    Dataset dataset = generatorService.generate(DatasetMetadata.Builder()
+    Dataset dataset = generatorService.generate(DatasetMetadata.builder()
                                                                .withDatasetId(datasetId)
                                                                .withDatasetName(datasetName)
                                                                .withCountry(country)

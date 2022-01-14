@@ -74,7 +74,7 @@ class DatasetGeneratorServiceImplTest {
   }
 
   private static DatasetMetadata getTestDatasetMetadata() {
-    return DatasetMetadata.Builder()
+    return DatasetMetadata.builder()
                           .withDatasetId("1")
                           .withDatasetName("datasetName")
                           .withCountry(Country.ITALY)
