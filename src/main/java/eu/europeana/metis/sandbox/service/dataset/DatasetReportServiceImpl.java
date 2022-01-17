@@ -221,8 +221,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status, recordList.stream()
                 .map(ErrorLogView::getRecordId)
-                .map(RecordEntity::getId)
-                .map(String::valueOf)
+                .map(RecordEntity::getProviderId)
                 .sorted(String::compareTo)
                 .collect(toList())))));
 
