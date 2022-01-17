@@ -10,6 +10,8 @@ import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -76,8 +78,13 @@ class DatasetServiceImpl implements DatasetService {
     }
 
     String datasetId = String.valueOf(entity.getDatasetId());
-    Dataset dataset = generatorService
-        .generate(datasetId, datasetName, country, language, records);
+
+    Dataset dataset = generatorService.generate(DatasetMetadata.builder()
+                                                               .withDatasetId(datasetId)
+                                                               .withDatasetName(datasetName)
+                                                               .withCountry(country)
+                                                               .withLanguage(language)
+                                                               .build(), records);
 
     // if there are duplicate records in the original list
     if (dataset.getRecords().size() < records.size()) {
@@ -97,14 +104,14 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public List<String> getDatasetIdsCreatedBefore(int days) {
     LocalDateTime date = LocalDateTime.now()
-        .truncatedTo(ChronoUnit.DAYS)
-        .minusDays(days);
+                                      .truncatedTo(ChronoUnit.DAYS)
+                                      .minusDays(days);
 
     try {
       return datasetRepository.getByCreatedDateBefore(date).stream()
-          .map(DatasetIdView::getDatasetId)
-          .map(Object::toString)
-          .collect(toList());
+                              .map(DatasetIdView::getDatasetId)
+                              .map(Object::toString)
+                              .collect(toList());
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }

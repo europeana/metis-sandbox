@@ -15,8 +15,12 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,10 +46,10 @@ class DatasetControllerIT {
         testUtils.readFileToBytes("zip" + File.separator + "dataset-valid.zip"));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-            .file(dataset)
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue()))
-        .andExpect(status().isAccepted());
+           .file(dataset)
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue()))
+       .andExpect(status().isAccepted());
   }
 
   @Test
@@ -55,10 +59,10 @@ class DatasetControllerIT {
     assertTrue(Files.exists(datasetPath));
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue())
-            .param("url", datasetPath.toUri().toString()))
-        .andExpect(status().isAccepted());
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", datasetPath.toUri().toString()))
+       .andExpect(status().isAccepted());
   }
 
   // TODO: This sort of integration test should be addressed differently,
@@ -66,19 +70,37 @@ class DatasetControllerIT {
   public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue())
-            .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf")
-            .param("incremental", "false"))
-        .andExpect(status().isAccepted());
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
+           .param("setspec", "1073")
+           .param("metadataformat", "rdf")
+           .param("incremental", "false"))
+       .andExpect(status().isAccepted());
   }
 
   @Test
   public void retrieveDataset_expectStatus_ok() throws Exception {
     mvc.perform(get("/dataset/{id}", "1"))
-        .andExpect(status().isOk());
+       .andExpect(status().isOk());
   }
 
+  private static Stream<Arguments> provideZipTestFiles() {
+    return Stream.of(
+        Arguments.of("dataset-one","dataset-valid-with-corrupt-record.zip"),
+        Arguments.of("dataset-two","dataset-with-corrupt-records.zip"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideZipTestFiles")
+  public void harvestDatasetWithFile_withCorruptRecords_expectStatus_accepted(final String datasetName, final String fileName) throws Exception {
+    MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+        testUtils.readFileToBytes("zip" + File.separator + fileName));
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", datasetName)
+           .file(dataset)
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue()))
+       .andExpect(status().isAccepted());
+  }
 }
