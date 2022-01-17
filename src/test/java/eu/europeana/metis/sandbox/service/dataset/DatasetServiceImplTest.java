@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -14,6 +15,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
@@ -60,7 +62,7 @@ class DatasetServiceImplTest {
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+    when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
@@ -87,7 +89,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
     when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
         transformResultMock);
-    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+    when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false, xsltContent);
 
@@ -109,7 +111,7 @@ class DatasetServiceImplTest {
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+    when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
@@ -138,7 +140,7 @@ class DatasetServiceImplTest {
         transformResultMock);
     when(transformationService.transform("1_name", xsltContent, "record2".getBytes())).thenReturn(
         transformResultMock);
-    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+    when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false, xsltContent);
 
@@ -192,7 +194,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class)))
         .thenReturn(datasetEntity)
         .thenThrow(new RuntimeException("Failed"));
-    when(generatorService.generate("1", "name", Country.AUSTRIA, Language.BE, records))
+    when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
 
     assertThrows(ServiceException.class,
