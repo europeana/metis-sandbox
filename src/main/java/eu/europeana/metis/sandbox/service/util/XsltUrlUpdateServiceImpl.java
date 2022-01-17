@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
@@ -26,33 +25,44 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
   }
 
   @Override
-  @Transactional
   public void updateXslt(String defaultXsltUrl) {
 
-    HttpRequest httpRequest = HttpRequest.newBuilder()
-        .GET()
-        .uri(URI.create(defaultXsltUrl))
-        .build();
+    InputStream xsltStream = null;
+    HttpRequest httpRequest;
+    try {
+      httpRequest = HttpRequest.newBuilder()
+          .GET()
+          .uri(URI.create(defaultXsltUrl))
+          .build();
 
-    try (final InputStream xsltStream = httpClient.send(httpRequest, BodyHandlers.ofInputStream())
-        .body()) {
-      String transformXslt = new String(xsltStream.readAllBytes(),
-          StandardCharsets.UTF_8);
+      xsltStream = httpClient.send(httpRequest, BodyHandlers.ofInputStream()).body();
+
+    } catch (IOException | InterruptedException e) {
+      // try to load resource as file
+      xsltStream = getClass().getClassLoader().getResourceAsStream(defaultXsltUrl);
+    } catch (Exception e) {
+      LOGGER.warn("Error getting default transform XSLT ", e);
+    }
+    if (xsltStream != null) {
+      saveDefaultXslt(xsltStream);
+    }
+  }
+
+  private void saveDefaultXslt(InputStream xsltStream) {
+    try {
+      String transformXslt = new String(xsltStream.readAllBytes(), StandardCharsets.UTF_8);
       var entity = transformXsltRepository.findById(1);
 
       if (entity.isPresent()) {
-        if (!(transformXslt.equals(entity.get().getTransformXslt()))){
+        if (!(transformXslt.equals(entity.get().getTransformXslt()))) {
           entity.get().setTransformXslt(transformXslt);
           transformXsltRepository.save(entity.get());
         }
-      }
-      else {
+      } else {
         transformXsltRepository.save(new TransformXsltEntity(transformXslt));
       }
-    } catch (IOException | InterruptedException e) {
-      Thread.currentThread().interrupt();
-      LOGGER.warn("Error updating default transform XSLT ", e);
+    } catch (IOException e) {
+      LOGGER.warn("Error persisting default transform XSLT to Database", e);
     }
-
   }
 }
