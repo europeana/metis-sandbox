@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.HarvestContent;
@@ -628,10 +629,9 @@ class DatasetControllerTest {
     final String recordId = "recordId";
     final String europeanaId = "europeanaId";
 
-    final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView();
     final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
     recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
-    recordTierCalculationView.setRecordTierCalculationSummary(recordTierCalculationSummary);
+    final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(recordTierCalculationSummary, new ContentTierBreakdown(), null);
     when(recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId)).thenReturn(recordTierCalculationView);
 
     mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
