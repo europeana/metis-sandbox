@@ -51,24 +51,24 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     return records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(record -> {
-          Long recordId = recordRepository.save(new RecordEntity(null, null, datasetId, new String(record))).getId();
+          Long recordId = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(record))).getId();
           return Record.builder()
               .recordId(recordId)
-              .datasetId(datasetId)
-              .datasetName(name)
-              .country(country)
-              .language(language)
+              .datasetId(datasetMetadata.getDatasetId())
+              .datasetName(datasetMetadata.getDatasetName())
+              .country(datasetMetadata.getCountry())
+              .language(datasetMetadata.getLanguage())
               .content(record)
               .build();
         })
-        .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem))
+        .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem.getContent()))
         .flatMap(Optional::stream)
         .collect(toSet());
   }
 
   private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, final byte[] recordData) {
     try {
-      Long recordId = recordRepository.save(new RecordEntity(null, null, datasetId, new String(record))).getId();
+      Long recordId = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(recordData))).getId();
       return Optional.of(Record.builder()
                                .recordId(recordId)
                                .datasetId(datasetMetadata.getDatasetId())
