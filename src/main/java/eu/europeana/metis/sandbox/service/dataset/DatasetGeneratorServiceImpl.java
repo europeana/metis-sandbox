@@ -51,7 +51,8 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     return records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(record -> {
-          Long recordId = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(record))).getId();
+          RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(record)));
+          Long recordId = recordEntity.getId();
           return Record.builder()
               .recordId(recordId)
               .datasetId(datasetMetadata.getDatasetId())
@@ -61,24 +62,23 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
               .content(record)
               .build();
         })
-        .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem.getContent()))
+        .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem))
         .flatMap(Optional::stream)
         .collect(toSet());
   }
 
-  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, final byte[] recordData) {
+  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, Record record) {
     try {
-      Long recordId = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(recordData))).getId();
       return Optional.of(Record.builder()
-                               .recordId(recordId)
+                               .recordId(record.getRecordId())
                                .datasetId(datasetMetadata.getDatasetId())
                                .datasetName(datasetMetadata.getDatasetName())
                                .country(datasetMetadata.getCountry())
                                .language(datasetMetadata.getLanguage())
-                               .content(recordData)
+                               .content(record.getContent())
                                .build());
     } catch (IllegalArgumentException | RecordParsingException processorServiceException) {
-      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordData), processorServiceException);
+      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(record.getContent()), processorServiceException);
       return Optional.empty();
     }
   }

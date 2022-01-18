@@ -37,17 +37,12 @@ class DatasetGeneratorServiceImplTest {
     RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "record2");
     recordEntity2.setId(2L);
     RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "record3");
-    recordEntity2.setId(3L);
+    recordEntity3.setId(3L);
     RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "record4");
-    recordEntity2.setId(4L);
+    recordEntity4.setId(4L);
     RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1", "record5");
-    recordEntity2.setId(5L);
-    when(recordRepository.save(any()))
-            .thenReturn(recordEntity1)
-            .thenReturn(recordEntity2)
-            .thenReturn(recordEntity3)
-            .thenReturn(recordEntity4)
-            .thenReturn(recordEntity5);
+    recordEntity5.setId(5L);
+    when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1, recordEntity2, recordEntity3, recordEntity4, recordEntity5);
 
     Dataset dataset = generator.generate(getTestDatasetMetadata(), getTestRecords());
 

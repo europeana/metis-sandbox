@@ -4,7 +4,6 @@ import eu.europeana.indexing.tiers.RecordTierCalculationViewGenerator;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriTemplate;

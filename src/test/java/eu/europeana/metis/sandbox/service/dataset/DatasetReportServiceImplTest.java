@@ -60,8 +60,8 @@ class DatasetReportServiceImplTest {
     var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
-    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
+    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("providerId1", "providerId2"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("providerId3", "providerId4"));
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
@@ -73,13 +73,13 @@ class DatasetReportServiceImplTest {
         new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
             false, false));
 
-    RecordEntity recordEntity1 = new RecordEntity();
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "record1");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity();
+    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "record2");
     recordEntity2.setId(2L);
-    RecordEntity recordEntity3 = new RecordEntity();
+    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "record3");
     recordEntity3.setId(3L);
-    RecordEntity recordEntity4 = new RecordEntity();
+    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "record4");
     recordEntity4.setId(4L);
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -164,8 +164,8 @@ class DatasetReportServiceImplTest {
     var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
-    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4", "5"));
+    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("providerId1", "providerId2"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("providerId3", "providerId4", "providerId5"));
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
@@ -180,15 +180,15 @@ class DatasetReportServiceImplTest {
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
 
-    RecordEntity recordEntity1 = new RecordEntity();
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "record1");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity();
+    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "record2");
     recordEntity2.setId(2L);
-    RecordEntity recordEntity3 = new RecordEntity();
+    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "record3");
     recordEntity3.setId(3L);
-    RecordEntity recordEntity4 = new RecordEntity();
+    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "record4");
     recordEntity4.setId(4L);
-    RecordEntity recordEntity5 = new RecordEntity();
+    RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1", "record5");
     recordEntity5.setId(5L);
 
     var errorView1 = new ErrorLogViewImpl(1L, recordEntity1, Step.VALIDATE_EXTERNAL, Status.FAIL,

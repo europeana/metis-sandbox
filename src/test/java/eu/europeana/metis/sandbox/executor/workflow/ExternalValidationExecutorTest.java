@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class CreatedConsumerTest {
+class ExternalValidationExecutorTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
