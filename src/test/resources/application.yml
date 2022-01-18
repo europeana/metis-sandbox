@@ -108,6 +108,12 @@ sandbox:
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
+        transformation:
+          edm:
+            external:
+              queue: sandbox.record.transformation.edm.external
+              dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
+              auto-start: true
         ordered:
           queue: sandbox.record.ordered
           dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
