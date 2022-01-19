@@ -26,7 +26,7 @@ create table if not exists dataset (
 create table  if not exists record_log (
    id bigserial,
    record_id varchar(255) not null,
-   europeana_id varchar(100) not null,
+   europeana_id varchar(255) not null,
    dataset_id varchar(100) not null,
    step varchar(30) not null,
    status varchar(30) not null,
@@ -40,7 +40,7 @@ create table  if not exists record_log (
 create table if not exists record_error_log (
     id bigserial,
     record_id varchar(255) not null,
-    europeana_id varchar(100) not null,
+    europeana_id varchar(255) not null,
     dataset_id varchar(100) not null,
     step varchar(30) not null,
     status varchar(30) not null,
