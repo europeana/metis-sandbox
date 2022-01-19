@@ -1,3 +1,6 @@
+[![CI](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=coverage)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
+
 # Metis Sandbox
 
 ## Purpose
