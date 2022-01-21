@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 
@@ -41,6 +42,9 @@ public interface RecordLogService {
    * @return the record log entity
    */
   RecordLogEntity getRecordLogEntity(RecordIdType recordIdType, String recordId,
+      String datasetId);
+
+  RecordErrorLogEntity getRecordErrorLogEntity(RecordIdType recordIdType, String recordId,
       String datasetId);
 
   /**

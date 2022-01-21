@@ -1,9 +1,13 @@
 package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.RecordTierCalculationViewGenerator;
+import eu.europeana.indexing.tiers.view.ProcessingError;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
+import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
+import java.util.ArrayList;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,16 +46,23 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
   public RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId,
       String datasetId) throws NoRecordFoundException {
     final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordIdType, recordId, datasetId);
-
     RecordTierCalculationView recordTierCalculationView;
     if (Objects.nonNull(recordLog)) {
+      //Check if the record had failed
+      final ArrayList<ProcessingError> processingErrors = new ArrayList<>();
+      if (recordLog.getStatus() == Status.FAIL) {
+        final RecordErrorLogEntity recordErrorLogEntity = recordLogService.getRecordErrorLogEntity(recordIdType, recordId,
+            datasetId);
+        processingErrors.add(new ProcessingError(recordErrorLogEntity.getMessage(), recordErrorLogEntity.getStackTrace()));
+      }
+
       final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId())
-          .toString();
+                                                                                            .toString();
       final String providerRecordUrl = new UriTemplate(this.providerRecordUrlTemplate).expand(datasetId, recordId, recordIdType)
-          .toString();
+                                                                                      .toString();
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
           recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
-          providerRecordUrl);
+          providerRecordUrl, processingErrors);
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     } else {
       throw new NoRecordFoundException(
