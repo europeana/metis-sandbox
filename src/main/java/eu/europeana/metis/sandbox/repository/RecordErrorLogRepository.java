@@ -26,6 +26,10 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    */
   List<ErrorLogView> getByRecordIdDatasetId(String datasetId);
 
+  RecordErrorLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String europeanaId, String datasetId, Step step);
+
+  RecordErrorLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
+
   /**
    * Get record given a record id, dataset id and step.
    * <p>The record id will be searched against both {@link RecordErrorLogEntity#getRecordId().getProviderId()} and {@link
