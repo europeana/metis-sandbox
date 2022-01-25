@@ -192,12 +192,7 @@
       <artifactId>log4j-core</artifactId>
       <version>${version.log4j}</version>
     </dependency>
-    <dependency>
-      <groupId>com.lmax</groupId>
-      <artifactId>disruptor</artifactId>
-      <version>${version.disruptor}</version>
-    </dependency>
-    
+
     <!-- Persistence -->
     <dependency>
       <groupId>com.h2database</groupId>
