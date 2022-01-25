@@ -22,12 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 class RecordLogServiceImpl implements RecordLogService {
 
   private final RecordLogRepository recordLogRepository;
-  private final RecordErrorLogRepository errorLogRepository;
+  private final RecordErrorLogRepository recordErrorLogRepository;
 
   public RecordLogServiceImpl(RecordLogRepository recordLogRepository,
-      RecordErrorLogRepository errorLogRepository) {
+      RecordErrorLogRepository recordErrorLogRepository) {
     this.recordLogRepository = recordLogRepository;
-    this.errorLogRepository = errorLogRepository;
+    this.recordErrorLogRepository = recordErrorLogRepository;
   }
 
   @Override
@@ -46,7 +46,7 @@ class RecordLogServiceImpl implements RecordLogService {
 
     try {
       recordLogRepository.save(recordLogEntity);
-      errorLogRepository.saveAll(recordErrorLogEntities);
+      recordErrorLogRepository.saveAll(recordErrorLogEntities);
     } catch (RuntimeException e) {
       throw new ServiceException(
           format("Error saving record log for record: [%s]. ", record.getRecordId()), e);
@@ -76,11 +76,24 @@ class RecordLogServiceImpl implements RecordLogService {
   }
 
   @Override
+  public RecordErrorLogEntity getRecordErrorLogEntity(RecordIdType recordIdType, String recordId, String datasetId) {
+    final RecordErrorLogEntity recordErrorLogEntity;
+    if (recordIdType == RecordIdType.EUROPEANA_ID) {
+      recordErrorLogEntity = recordErrorLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(
+          recordId, datasetId, Step.MEDIA_PROCESS);
+    } else {
+      recordErrorLogEntity = recordErrorLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+          Step.MEDIA_PROCESS);
+    }
+    return recordErrorLogEntity;
+  }
+
+  @Override
   @Transactional
   public void remove(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
     try {
-      errorLogRepository.deleteByDatasetId(datasetId);
+      recordErrorLogRepository.deleteByDatasetId(datasetId);
       recordLogRepository.deleteByDatasetId(datasetId);
     } catch (RuntimeException e) {
       throw new ServiceException(

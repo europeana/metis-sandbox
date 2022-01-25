@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.repository;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import java.util.List;
@@ -19,6 +20,10 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<ErrorLogView> getByDatasetId(String datasetId);
+
+  RecordErrorLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String europeanaId, String datasetId, Step step);
+
+  RecordErrorLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
 
   /**
    * Delete errors for the specified dataset id
