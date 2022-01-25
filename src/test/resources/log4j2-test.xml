@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Properties>
+    <Property name="LOG_PATTERN">%d{yyyy-MMM-dd HH:mm:ss} metis-sandbox %p [%c:%L] [%thread] - %message%xException{150}%n</Property>
+    <Property name="LOG_DIR">@log.dir@/@app.name@</Property>
+    <Property name="APP_NAME">@app.name@</Property>
+  </Properties>
+  <Appenders>
+    <Console name="Console">
+      <PatternLayout pattern="${LOG_PATTERN}"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="eu.europeana" level="warn">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="eu.europeana.metis.sandboxeu.europeana.metis.sandbox" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.springframework" level="warn">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.hibernate" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.mongo.driver.connection" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Root level="info">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>
