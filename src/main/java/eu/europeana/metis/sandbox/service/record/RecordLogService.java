@@ -31,15 +31,21 @@ public interface RecordLogService {
   String getProviderRecordString(String recordId, String datasetId) throws NoRecordFoundException;
 
   /**
-   * Get record log entity from the database
+   * Get a record log entity from the database
    *
-   * @param recordIdType the record id type
    * @param recordId the record id
    * @param datasetId the dataset id
    * @return the record log entity
    */
   RecordLogEntity getRecordLogEntity(String recordId, String datasetId);
 
+  /**
+   * Get a record error log entity from the database
+   *
+   * @param recordId the record id
+   * @param datasetId the dataset id
+   * @return the record error log entity
+   */
   RecordErrorLogEntity getRecordErrorLogEntity(String recordId, String datasetId);
 
   /**
