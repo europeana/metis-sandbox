@@ -26,8 +26,6 @@ public class RecordEntity {
 
   protected String datasetId;
 
-  protected String content;
-
   @OneToMany(mappedBy = "recordId")
   private List<RecordLogEntity> recordLogEntity;
 
@@ -38,14 +36,13 @@ public class RecordEntity {
    * Parameterized constructor
    *
    * @param europeanaId the europeana id associated to the record
+   * @param providerId the id of the record provided
    * @param datasetId the dataset id associated to the record
-   * @param content the content of the record
    */
-  public RecordEntity(String europeanaId, String providerId, String datasetId, String content) {
+  public RecordEntity(String europeanaId, String providerId, String datasetId) {
     this.europeanaId = europeanaId;
     this.providerId = providerId;
     this.datasetId = datasetId;
-    this.content = content;
   }
 
   /**
@@ -57,7 +54,6 @@ public class RecordEntity {
     this.europeanaId = record.getEuropeanaId();
     this.providerId = record.getProviderId();
     this.datasetId = record.getDatasetId();
-    this.content = new String(record.getContent());
   }
 
 
@@ -95,14 +91,6 @@ public class RecordEntity {
 
   public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public void setContent(String content) {
-    this.content = content;
   }
 
   public List<RecordLogEntity> getRecordLogEntity() {

@@ -73,13 +73,13 @@ class DatasetReportServiceImplTest {
         new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
             false, false));
 
-    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "record1");
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "record2");
+    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1");
     recordEntity2.setId(2L);
-    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "record3");
+    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1");
     recordEntity3.setId(3L);
-    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "record4");
+    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1");
     recordEntity4.setId(4L);
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -180,15 +180,15 @@ class DatasetReportServiceImplTest {
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
 
-    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "record1");
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "record2");
+    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1");
     recordEntity2.setId(2L);
-    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "record3");
+    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1");
     recordEntity3.setId(3L);
-    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "record4");
+    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1");
     recordEntity4.setId(4L);
-    RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1", "record5");
+    RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1");
     recordEntity5.setId(5L);
 
     var errorView1 = new ErrorLogViewImpl(1L, recordEntity1, Step.VALIDATE_EXTERNAL, Status.FAIL,
