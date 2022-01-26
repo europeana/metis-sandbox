@@ -30,7 +30,6 @@ create table if not exists record
     europeana_id varchar(255) null,
     provider_id varchar(255) null,
     dataset_id varchar(100) not null,
-    content text not null,
     Primary Key (id)
 );
 
@@ -40,6 +39,7 @@ create table  if not exists record_log (
    step varchar(30) not null,
    status varchar(30) not null,
    created_date timestamp with time zone default now(),
+   content text not null,
    Primary Key(id),
    Foreign Key (record_id) References record(id)
 );

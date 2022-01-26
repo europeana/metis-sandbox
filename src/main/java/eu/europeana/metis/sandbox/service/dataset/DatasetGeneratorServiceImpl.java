@@ -51,7 +51,8 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
     return records.stream()
         .map(ByteArrayInputStream::readAllBytes)
         .map(record -> {
-          RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(record)));
+          //TODO: Where to save the content
+          RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId()));
           Long recordId = recordEntity.getId();
           return Record.builder()
               .recordId(recordId)

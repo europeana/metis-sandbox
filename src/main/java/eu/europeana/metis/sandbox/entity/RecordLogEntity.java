@@ -29,6 +29,8 @@ public class RecordLogEntity {
   @JoinColumn(name = "record_id", referencedColumnName = "id")
   private RecordEntity recordId;
 
+  protected String content;
+
   @Enumerated(EnumType.STRING)
   protected Step step;
 
@@ -42,8 +44,9 @@ public class RecordLogEntity {
    * @param status the status of the record
    */
 
-  public RecordLogEntity(RecordEntity recordId, Step step, Status status) {
+  public RecordLogEntity(RecordEntity recordId, String content, Step step, Status status) {
     this.recordId = recordId;
+    this.content = content;
     this.step = step;
     this.status = status;
 
@@ -83,5 +86,13 @@ public class RecordLogEntity {
 
   public Long getId() {
     return id;
+  }
+
+  public String getContent() {
+    return content;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
   }
 }

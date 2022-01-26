@@ -28,6 +28,26 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   List<StepStatistic> getStepStatistics(String datasetId);
 
   /**
+   * Get record given the europeana record id, dataset id and step
+   *
+   * @param europeanaId the record id
+   * @param datasetId the dataset id
+   * @param step the step
+   * @return the record log
+   */
+  RecordLogEntity findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep(String europeanaId, String datasetId, Step step);
+
+  /**
+   * Get record given the provider record id, dataset id and step
+   *
+   * @param recordId the record id
+   * @param datasetId the dataset id
+   * @param step the step
+   * @return the record log
+   */
+  RecordLogEntity findRecordLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep(String recordId, String datasetId, Step step);
+
+  /**
    * Delete records that belong to the given dataset id
    *
    * @param datasetId must not be null
@@ -35,8 +55,4 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Modifying
   @Query("delete from RecordLogEntity where recordId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
-
-  RecordLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
-
-  RecordLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
 }

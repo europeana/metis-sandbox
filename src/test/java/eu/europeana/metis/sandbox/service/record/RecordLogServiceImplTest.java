@@ -1,15 +1,15 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -112,5 +112,39 @@ class RecordLogServiceImplTest {
   @Test
   void remove_nullInput_expectFail() {
     assertThrows(NullPointerException.class, () -> service.remove(null));
+  }
+
+  @Test
+  void getProviderRecordString_expectSuccess() throws Exception {
+    final RecordLogEntity recordLogEntity = new RecordLogEntity();
+    recordLogEntity.setContent("content");
+    when(recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS))
+            .thenReturn(recordLogEntity);
+    assertNotNull(service.getProviderRecordString(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+  }
+
+  @Test
+  void getProviderRecordString_expectFail() {
+    //Case null entity
+    when(recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS)).thenReturn(null);
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+
+    //Case null content
+    when(recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+  }
+
+  @Test
+  void getRecordLogEntity() {
+    //Case EUROPEANA_ID
+    service.getRecordLogEntity(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    verify(recordLogRepository, never()).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep(anyString(), anyString(), any(Step.class));
+    clearInvocations(service);
+
+    //Case PROVIDER_ID
+    service.getRecordLogEntity(RecordTierCalculationService.RecordIdType.PROVIDER_ID, "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    verify(recordLogRepository, never()).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep(anyString(), anyString(), any(Step.class));
   }
 }

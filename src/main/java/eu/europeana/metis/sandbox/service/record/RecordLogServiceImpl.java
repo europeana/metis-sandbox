@@ -41,7 +41,8 @@ class RecordLogServiceImpl implements RecordLogService {
     var recordErrors = recordEvent.getRecordErrors();
 
     RecordEntity recordEntity = recordRepository.getOne(record.getRecordId());
-    var recordLogEntity = new RecordLogEntity(recordEntity, recordEvent.getStep(), recordEvent.getStatus());
+    var recordLogEntity = new RecordLogEntity(recordEntity, new String(recordEvent.getBody().getContent()),
+            recordEvent.getStep(), recordEvent.getStatus());
     var recordErrorLogEntities = recordErrors.stream()
         .map(error -> new RecordErrorLogEntity(recordEntity, recordEvent.getStep(),
             recordEvent.getStatus(), error.getMessage(),
@@ -60,8 +61,7 @@ class RecordLogServiceImpl implements RecordLogService {
   @Override
   public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId)
       throws NoRecordFoundException {
-    return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getRecordId)
-            .map(RecordEntity::getContent)
+    return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getContent)
         .orElseThrow(() -> new NoRecordFoundException(
             String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId,
                 datasetId)));
@@ -71,10 +71,10 @@ class RecordLogServiceImpl implements RecordLogService {
   public RecordLogEntity getRecordLogEntity(RecordIdType recordIdType, String recordId, String datasetId) {
     final RecordLogEntity recordLogEntity;
     if (recordIdType == RecordIdType.EUROPEANA_ID) {
-      recordLogEntity = recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(
+      recordLogEntity = recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep(
           recordId, datasetId, Step.MEDIA_PROCESS);
     } else {
-      recordLogEntity = recordLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+      recordLogEntity = recordLogRepository.findRecordLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep(recordId, datasetId,
           Step.MEDIA_PROCESS);
     }
     return recordLogEntity;
@@ -84,10 +84,10 @@ class RecordLogServiceImpl implements RecordLogService {
   public RecordErrorLogEntity getRecordErrorLogEntity(RecordIdType recordIdType, String recordId, String datasetId) {
     final RecordErrorLogEntity recordErrorLogEntity;
     if (recordIdType == RecordIdType.EUROPEANA_ID) {
-      recordErrorLogEntity = recordErrorLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(
+      recordErrorLogEntity = recordErrorLogRepository.findRecordErrorLogEntityByRecordId_EuropeanaIdAndRecordId_DatasetIdAndStep(
           recordId, datasetId, Step.MEDIA_PROCESS);
     } else {
-      recordErrorLogEntity = recordErrorLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+      recordErrorLogEntity = recordErrorLogRepository.findRecordErrorLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep(recordId, datasetId,
           Step.MEDIA_PROCESS);
     }
     return recordErrorLogEntity;

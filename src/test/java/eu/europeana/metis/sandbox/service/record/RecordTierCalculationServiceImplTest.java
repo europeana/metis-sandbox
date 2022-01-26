@@ -52,9 +52,10 @@ class RecordTierCalculationServiceImplTest {
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
     final String providerId = "providerId";
-    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId, europeanaRecordString);
+    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId);
+    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, Step.MEDIA_PROCESS, Status.SUCCESS);
     recordEntity.setId(recordId);
-    when(recordServiceMock.getRecordEntity(RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId)).thenReturn(recordEntity);
+    when(recordLogService.getRecordLogEntity(RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId)).thenReturn(recordLogEntity);
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
         RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId);
     assertNotNull(recordTierCalculationView);
@@ -64,7 +65,7 @@ class RecordTierCalculationServiceImplTest {
 
   @Test
   void calculateTiers_NoRecordFoundException(){
-    when(recordServiceMock.getRecordEntity(any(RecordIdType.class), anyString(), anyString())).thenReturn(null);
+    when(recordLogService.getRecordLogEntity(any(RecordIdType.class), anyString(), anyString())).thenReturn(null);
     assertThrows(NoRecordFoundException.class, ()->recordTierCalculationService.calculateTiers(
         RecordIdType.PROVIDER_ID, "recordId", "datasetId"));
   }

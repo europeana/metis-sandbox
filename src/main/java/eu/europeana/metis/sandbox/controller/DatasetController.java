@@ -15,7 +15,7 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.record.RecordService;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
@@ -66,18 +66,17 @@ class DatasetController {
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
-  private final RecordService recordService;
+  private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
 
   public DatasetController(HarvestService harvestService,
-      DatasetService datasetService,
-      DatasetReportService reportService,
-      RecordService recordService,
-      RecordTierCalculationService recordTierCalculationService) {
+                           DatasetService datasetService,
+                           DatasetReportService reportService,
+                           RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
-    this.recordService = recordService;
+    this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
   }
 
@@ -222,8 +221,8 @@ class DatasetController {
       @ApiResponse(code = 200, message = "Response contains the tier calculation view"),
       @ApiResponse(code = 404, message = "Record not found")
   })
-  @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
-  public RecordTierCalculationView computeRecordTierCalculation(@PathVariable("id") String datasetId,
+  @GetMapping(value = "{datasetId}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
+  public RecordTierCalculationView computeRecordTierCalculation(@PathVariable("datasetId") String datasetId,
       @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
       @RequestParam String recordId) throws NoRecordFoundException {
     return recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId);
@@ -242,11 +241,11 @@ class DatasetController {
       @ApiResponse(code = 200, message = "String representation of record"),
       @ApiResponse(code = 404, message = "Record not found")
   })
-  @GetMapping(value = "{id}/record")
-  public String getRecord(@PathVariable("id") String datasetId,
+  @GetMapping(value = "{datasetId}/record")
+  public String getRecord(@PathVariable("datasetId") String datasetId,
       @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
       @RequestParam String recordId) throws NoRecordFoundException {
-    return recordService.getProviderRecordString(recordIdType, recordId, datasetId);
+    return recordLogService.getProviderRecordString(recordIdType, recordId, datasetId);
   }
 
   /**
