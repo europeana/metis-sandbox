@@ -16,6 +16,8 @@ import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
+import java.util.Optional;
 
 @Service
 class RecordLogServiceImpl implements RecordLogService {
@@ -58,7 +60,8 @@ class RecordLogServiceImpl implements RecordLogService {
   @Override
   public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId)
       throws NoRecordFoundException {
-    return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getContent)
+    return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getRecordId)
+            .map(RecordEntity::getContent)
         .orElseThrow(() -> new NoRecordFoundException(
             String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId,
                 datasetId)));

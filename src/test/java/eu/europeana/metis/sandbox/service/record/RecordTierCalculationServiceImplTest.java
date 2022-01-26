@@ -32,12 +32,14 @@ class RecordTierCalculationServiceImplTest {
 
   @Mock
   private RecordService recordServiceMock;
+  @Mock
+  private RecordLogService recordLogService;
   private RecordTierCalculationServiceImpl recordTierCalculationService;
 
   @BeforeEach
   public void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
-        new RecordTierCalculationServiceImpl(recordServiceMock, providerRecordUrlTemplate,
+        new RecordTierCalculationServiceImpl(recordLogService, providerRecordUrlTemplate,
             portalPublishRecordBaseUrl));
   }
 

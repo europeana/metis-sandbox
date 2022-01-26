@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.repository;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import java.util.List;
@@ -34,4 +35,8 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Modifying
   @Query("delete from RecordLogEntity where recordId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
+
+  RecordLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
+
+  RecordLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
 }
