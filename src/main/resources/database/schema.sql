@@ -27,8 +27,8 @@ create table if not exists dataset (
 create table if not exists record
 (
     id bigserial,
-    europeana_id varchar(100) null,
-    provider_id varchar(100) null,
+    europeana_id varchar(255) null,
+    provider_id varchar(255) null,
     dataset_id varchar(100) not null,
     content text not null,
     Primary Key (id)

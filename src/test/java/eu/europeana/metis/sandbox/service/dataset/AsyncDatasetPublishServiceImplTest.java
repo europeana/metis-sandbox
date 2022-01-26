@@ -43,9 +43,11 @@ class AsyncDatasetPublishServiceImplTest {
   void publish_expectSuccess() throws Exception {
 
     var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L)
+                        .europeanaId("1")
         .country(Country.ITALY)
         .language(Language.IT).content("".getBytes()).build();
     var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L)
+                        .europeanaId("2")
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
@@ -59,9 +61,10 @@ class AsyncDatasetPublishServiceImplTest {
   void publish_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
     var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L)
+        .europeanaId("1")
         .country(Country.ITALY)
         .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L)
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2")
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
