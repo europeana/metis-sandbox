@@ -49,4 +49,8 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Modifying
   @Query("delete from RecordLogEntity where recordId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
+
+  RecordLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
+
+  RecordLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
 }
