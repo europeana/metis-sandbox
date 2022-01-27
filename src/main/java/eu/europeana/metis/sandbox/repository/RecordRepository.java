@@ -8,24 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
 
   /**
-   * Get record given the provider record id and dataset id
-   *
-   * @param providerId the record id
-   * @param datasetId the dataset id
-   * @return the record entity
-   */
-  RecordEntity findRecordEntityByProviderIdAndDatasetId(String providerId, String datasetId);
-
-  /**
-   * Get record given the europeana record id and dataset id
-   *
-   * @param europeanaId the record id
-   * @param datasetId the dataset id
-   * @return the record entity
-   */
-  RecordEntity findRecordEntityByEuropeanaIdAndDatasetId(String europeanaId, String datasetId);
-
-  /**
    * Update record with new values for europeana id and provider id
    *
    * @param recordId the id of the record to update
