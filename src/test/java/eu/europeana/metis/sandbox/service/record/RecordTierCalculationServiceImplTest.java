@@ -59,7 +59,7 @@ class RecordTierCalculationServiceImplTest {
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
         RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId);
     assertNotNull(recordTierCalculationView);
-    assertEquals(String.valueOf(recordEntity.getId()),
+    assertEquals(recordEntity.getProviderId(),
         recordTierCalculationView.getRecordTierCalculationSummary().getProviderRecordId());
   }
 

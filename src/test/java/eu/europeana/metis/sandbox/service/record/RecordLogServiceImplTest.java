@@ -139,8 +139,8 @@ class RecordLogServiceImplTest {
     //Case EUROPEANA_ID
     service.getRecordLogEntity(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
     verify(recordLogRepository).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
-    verify(recordLogRepository, never()).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep(anyString(), anyString(), any(Step.class));
-    clearInvocations(service);
+    verify(recordLogRepository, never()).findRecordLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep(anyString(), anyString(), any(Step.class));
+    clearInvocations(recordLogRepository);
 
     //Case PROVIDER_ID
     service.getRecordLogEntity(RecordTierCalculationService.RecordIdType.PROVIDER_ID, "recordId", "datasetId");
