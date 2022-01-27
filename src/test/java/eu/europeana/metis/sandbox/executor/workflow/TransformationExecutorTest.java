@@ -45,7 +45,7 @@ class TransformationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_EXTERNAL, Status.SUCCESS);
 
     when(service.transformToEdmInternal(record)).thenReturn(new RecordInfo(record));
     consumer.transform(recordEvent);
@@ -62,7 +62,7 @@ class TransformationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_EXTERNAL, Status.FAIL);
 
     consumer.transform(recordEvent);
 
@@ -76,7 +76,7 @@ class TransformationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_EXTERNAL, Status.SUCCESS);
 
     when(service.transformToEdmInternal(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
