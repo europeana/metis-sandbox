@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -51,14 +50,10 @@ public class RecordServiceImplTest {
                 .content(content).build();
 
         String providerId = "providerId";
-        String europeanaId = "europeanaId";
+        String europeanaId = "/1/providerId";
 
         when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-
-        try (MockedStatic<EuropeanaIdCreator> mockedStatic = Mockito.mockStatic(EuropeanaIdCreator.class)) {
-            mockedStatic.when(() -> EuropeanaIdCreator.constructEuropeanaIdString(providerId, "1")).thenReturn(europeanaId);
-            service.setEuropeanaIdAndProviderId(record);
-        }
+        service.setEuropeanaIdAndProviderId(record);
 
         verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
         assertEquals(providerId, record.getProviderId());
