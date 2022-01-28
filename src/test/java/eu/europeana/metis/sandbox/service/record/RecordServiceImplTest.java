@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
-public class RecordServiceImplTest {
+class RecordServiceImplTest {
 
     @Mock
     private RecordRepository recordRepository;
