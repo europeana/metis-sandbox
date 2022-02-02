@@ -6,7 +6,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -21,7 +21,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of {@link MessageConverter} that can work with {@link Event}
+ * Implementation of {@link MessageConverter} that can work with {@link RecordProcessEvent}
  */
 @Component
 class RecordMessageConverter implements MessageConverter {
@@ -49,13 +49,13 @@ class RecordMessageConverter implements MessageConverter {
    */
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
-    if (!(object instanceof Event)) {
+    if (!(object instanceof RecordProcessEvent)) {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
-    Event recordEvent = (Event) object;
-    Record record = recordEvent.getBody();
-    List<RecordError> errors = recordEvent.getRecordErrors();
+    RecordProcessEvent recordRecordProcessEvent = (RecordProcessEvent) object;
+    Record record = recordRecordProcessEvent.getRecord();
+    List<RecordError> errors = recordRecordProcessEvent.getRecordErrors();
 
     MessageProperties properties = MessagePropertiesBuilder.newInstance()
         .setContentType(MessageProperties.CONTENT_TYPE_XML)
@@ -66,8 +66,8 @@ class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(DATASET_NAME, record.getDatasetName())
         .setHeaderIfAbsent(COUNTRY, record.getCountry())
         .setHeaderIfAbsent(LANGUAGE, record.getLanguage())
-        .setHeader(STEP, recordEvent.getStep())
-        .setHeader(STATUS, recordEvent.getStatus())
+        .setHeader(STEP, recordRecordProcessEvent.getStep())
+        .setHeader(STATUS, recordRecordProcessEvent.getStatus())
         .build();
 
     if (!errors.isEmpty()) {
@@ -123,6 +123,6 @@ class RecordMessageConverter implements MessageConverter {
 
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 
-    return new Event(recordInfo, Step.valueOf(step), Status.valueOf(status));
+    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status));
   }
 }

@@ -9,7 +9,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class CloseExecutorTest {
   private AmqpTemplate amqpTemplate;
 
   @Captor
-  private ArgumentCaptor<Event> captor;
+  private ArgumentCaptor<RecordProcessEvent> captor;
 
   @InjectMocks
   private CloseExecutor consumer;
@@ -39,7 +39,7 @@ class CloseExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     consumer.close(recordEvent);
 
@@ -54,10 +54,10 @@ class CloseExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
     consumer.close(recordEvent);
 
-    verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 }

@@ -16,7 +16,7 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -59,7 +59,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
-    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.CREATE,
+    var event = new RecordProcessEvent(new RecordInfo(record, List.of(recordError)), Step.CREATE,
         Status.SUCCESS);
 
     service.logRecordEvent(event);
@@ -78,7 +78,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(recordLogRepository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -91,7 +91,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(errorLogRepository.saveAll(anyList()))
         .thenThrow(new RuntimeException("Exception saving"));

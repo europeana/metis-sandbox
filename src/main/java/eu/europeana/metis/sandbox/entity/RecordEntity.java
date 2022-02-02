@@ -46,7 +46,7 @@ public class RecordEntity {
   }
 
   /**
-   * Contructor
+   * Constructor
    *
    * @param recordInput the record
    */

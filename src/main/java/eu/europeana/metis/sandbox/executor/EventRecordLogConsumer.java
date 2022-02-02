@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.executor;
 
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ class EventRecordLogConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.log.queue}", containerFactory = "recordLogFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.log.auto-start:true}")
-  public void logRecord(Event input) {
+  public void logRecord(RecordProcessEvent input) {
     recordLogService.logRecordEvent(input);
   }
 }

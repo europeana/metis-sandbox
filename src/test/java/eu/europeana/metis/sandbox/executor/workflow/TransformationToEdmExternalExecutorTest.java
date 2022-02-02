@@ -5,7 +5,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
@@ -33,7 +33,7 @@ class TransformationToEdmExternalExecutorTest {
     private TransformationService service;
 
     @Captor
-    private ArgumentCaptor<Event> captor;
+    private ArgumentCaptor<RecordProcessEvent> captor;
 
     @InjectMocks
     private TransformationToEdmExternalExecutor consumer;
@@ -44,7 +44,7 @@ class TransformationToEdmExternalExecutorTest {
                 .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
                 .content("".getBytes())
                 .recordId(1L).build();
-        var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+        var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
         when(service.transform(record)).thenReturn(new RecordInfo(record));
         consumer.transformationToEdmExternal(recordEvent);
@@ -61,12 +61,12 @@ class TransformationToEdmExternalExecutorTest {
                 .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
                 .content("".getBytes())
                 .recordId(1L).build();
-        var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
+        var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
         consumer.transformationToEdmExternal(recordEvent);
 
         verify(service, never()).transform(record);
-        verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
+        verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
     }
 
     @Test
@@ -75,7 +75,7 @@ class TransformationToEdmExternalExecutorTest {
                 .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
                 .content("".getBytes())
                 .recordId(1L).build();
-        var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+        var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
         when(service.transform(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
