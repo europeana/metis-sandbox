@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -31,8 +31,8 @@ class PreviewExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}",
       containerFactory = "previewFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.media.auto-start:true}")
-  public void preview(Event input) {
+  public void preview(RecordProcessEvent input) {
     consume(routingKey, input, Step.PREVIEW,
-        () -> service.index(input.getBody(), IndexEnvironment.PREVIEW));
+        () -> service.index(input.getRecord(), IndexEnvironment.PREVIEW));
   }
 }

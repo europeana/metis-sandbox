@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -54,7 +54,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     service.publish(dataset, false).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
+    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(RecordProcessEvent.class));
   }
 
   @Test
@@ -70,11 +70,11 @@ class AsyncDatasetPublishServiceImplTest {
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-        .convertAndSend(anyString(), any(Event.class));
+        .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
     service.publish(dataset, false).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
+    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(RecordProcessEvent.class));
   }
 
   @Test
