@@ -90,7 +90,9 @@ public class HarvestServiceImpl implements HarvestService {
       AtomicInteger currentNumberOfIterations = new AtomicInteger();
 
       recordHeaderIterator.forEach(recordHeader -> {
-        if(currentNumberOfIterations.get() >= maxRecords){
+        currentNumberOfIterations.getAndIncrement();
+
+        if(currentNumberOfIterations.get() > maxRecords){
           hasReachedRecordLimit.set(true);
           return IterationResult.TERMINATE;
         }
@@ -102,7 +104,6 @@ public class HarvestServiceImpl implements HarvestService {
           exceptions.add(new ImmutablePair<>(recordHeader.getOaiIdentifier(), e));
           return ReportingIteration.IterationResult.TERMINATE;
         }
-        currentNumberOfIterations.getAndIncrement();
         return ReportingIteration.IterationResult.CONTINUE;
       });
 
@@ -123,19 +124,21 @@ public class HarvestServiceImpl implements HarvestService {
 
     List<ByteArrayInputStream> records = new ArrayList<>();
     AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
+    AtomicInteger numberOfIterations = new AtomicInteger(0);
 
     try {
       harvester.harvestRecords(inputStream, CompressedFileExtension.ZIP, entry -> {
-        final byte[] content = entry.getEntryContent().readAllBytes();
-        records.add(new ByteArrayInputStream(content));
+        numberOfIterations.getAndIncrement();
+        if(numberOfIterations.get() > maxRecords){
+          hasReachedRecordLimit.set(true);
+        } else {
+          final byte[] content = entry.getEntryContent().readAllBytes();
+          records.add(new ByteArrayInputStream(content));
+        }
       });
 
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting records ", e);
-    }
-
-    if(records.size() == maxRecords){
-      hasReachedRecordLimit.set(true);
     }
 
     if (records.isEmpty()) {
