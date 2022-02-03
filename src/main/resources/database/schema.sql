@@ -30,7 +30,9 @@ create table if not exists record
     europeana_id varchar(255) null,
     provider_id varchar(255) null,
     dataset_id varchar(100) not null,
-    Primary Key (id)
+    Primary Key (id),
+    unique(europeana_id, dataset_id),
+    unique(provider_id, dataset_id)
 );
 
 create table  if not exists record_log (
@@ -41,7 +43,8 @@ create table  if not exists record_log (
    created_date timestamp with time zone default now(),
    content text not null,
    Primary Key(id),
-   Foreign Key (record_id) References record(id)
+   Foreign Key (record_id) References record(id),
+   unique(record_id, step)
 );
 
 create table if not exists record_error_log (
@@ -72,6 +75,6 @@ create table if not exists default_transform_xslt
 
 create index on record_log (record_id);
 create index on record_error_log (record_id);
-create index on record (dataset_id);
+create index on record (dataset_id,  COALESCE(europeana_id, provider_id)) ;
 create index on thumbnail (dataset_id);
 commit;
