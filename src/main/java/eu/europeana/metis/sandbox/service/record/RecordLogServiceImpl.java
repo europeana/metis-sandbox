@@ -12,7 +12,6 @@ import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -39,10 +38,11 @@ class RecordLogServiceImpl implements RecordLogService {
     var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getEuropeanaId(), record.getDatasetId(),
         recordEvent.getStep(), recordEvent.getStatus(), new String(record.getContent(), StandardCharsets.UTF_8));
     var recordErrorLogEntities = recordErrors.stream()
-        .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getEuropeanaId(), record.getDatasetId(),
-            recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
-            error.getStackTrace()))
-        .collect(toList());
+                                             .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getEuropeanaId(),
+                                                 record.getDatasetId(),
+                                                 recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
+                                                 error.getStackTrace()))
+                                             .collect(toList());
 
     try {
       recordLogRepository.save(recordLogEntity);
@@ -54,37 +54,25 @@ class RecordLogServiceImpl implements RecordLogService {
   }
 
   @Override
-  public String getProviderRecordString(RecordIdType recordIdType, String recordId, String datasetId)
+  public String getProviderRecordString(String recordId, String datasetId)
       throws NoRecordFoundException {
-    return Optional.ofNullable(getRecordLogEntity(recordIdType, recordId, datasetId)).map(RecordLogEntity::getContent)
-        .orElseThrow(() -> new NoRecordFoundException(
-            String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId,
-                datasetId)));
+    return Optional.ofNullable(getRecordLogEntity(recordId, datasetId)).map(RecordLogEntity::getContent)
+                   .orElseThrow(() -> new NoRecordFoundException(
+                       String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId)));
   }
 
   @Override
-  public RecordLogEntity getRecordLogEntity(RecordIdType recordIdType, String recordId, String datasetId) {
+  public RecordLogEntity getRecordLogEntity(String recordId, String datasetId) {
     final RecordLogEntity recordLogEntity;
-    if (recordIdType == RecordIdType.EUROPEANA_ID) {
-      recordLogEntity = recordLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(
-          recordId, datasetId, Step.MEDIA_PROCESS);
-    } else {
-      recordLogEntity = recordLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
-          Step.MEDIA_PROCESS);
-    }
+    recordLogEntity = recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep(recordId, datasetId, Step.MEDIA_PROCESS);
     return recordLogEntity;
   }
 
   @Override
-  public RecordErrorLogEntity getRecordErrorLogEntity(RecordIdType recordIdType, String recordId, String datasetId) {
+  public RecordErrorLogEntity getRecordErrorLogEntity(String recordId, String datasetId) {
     final RecordErrorLogEntity recordErrorLogEntity;
-    if (recordIdType == RecordIdType.EUROPEANA_ID) {
-      recordErrorLogEntity = recordErrorLogRepository.findRecordLogByEuropeanaIdAndDatasetIdAndStep(
-          recordId, datasetId, Step.MEDIA_PROCESS);
-    } else {
-      recordErrorLogEntity = recordErrorLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
-          Step.MEDIA_PROCESS);
-    }
+    recordErrorLogEntity = recordErrorLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+        Step.MEDIA_PROCESS);
     return recordErrorLogEntity;
   }
 

@@ -5,7 +5,6 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
-import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 
 /**
  * Service handling functionality regarding record logs and errors.
@@ -24,28 +23,30 @@ public interface RecordLogService {
   /**
    * Get provider record content as String from the database
    *
-   * @param recordIdType the record id type
    * @param recordId the reocrd id
    * @param datasetId the dataset id
    * @return the record content
    * @throws NoRecordFoundException if the record was not found
    */
-  String getProviderRecordString(RecordIdType recordIdType, String recordId,
-      String datasetId) throws NoRecordFoundException;
+  String getProviderRecordString(String recordId, String datasetId) throws NoRecordFoundException;
 
   /**
-   * Get record log entity from the database
+   * Get a record log entity from the database
    *
-   * @param recordIdType the record id type
    * @param recordId the record id
    * @param datasetId the dataset id
    * @return the record log entity
    */
-  RecordLogEntity getRecordLogEntity(RecordIdType recordIdType, String recordId,
-      String datasetId);
+  RecordLogEntity getRecordLogEntity(String recordId, String datasetId);
 
-  RecordErrorLogEntity getRecordErrorLogEntity(RecordIdType recordIdType, String recordId,
-      String datasetId);
+  /**
+   * Get a record error log entity from the database
+   *
+   * @param recordId the record id
+   * @param datasetId the dataset id
+   * @return the record error log entity
+   */
+  RecordErrorLogEntity getRecordErrorLogEntity(String recordId, String datasetId);
 
   /**
    * Remove records matching the provided dataset id

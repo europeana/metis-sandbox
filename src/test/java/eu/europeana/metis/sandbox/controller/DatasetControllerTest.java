@@ -39,7 +39,6 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
-import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -625,7 +624,6 @@ class DatasetControllerTest {
   @Test
   void computeRecordTierCalculation_expectSuccess() throws Exception {
     final String datasetId = "1";
-    final RecordIdType recordIdType = RecordIdType.PROVIDER_ID;
     final String recordId = "recordId";
     final String europeanaId = "europeanaId";
 
@@ -633,10 +631,9 @@ class DatasetControllerTest {
     recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
     final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(recordTierCalculationSummary,
         new ContentTierBreakdown(null, null, false, false, false, null), null);
-    when(recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId)).thenReturn(recordTierCalculationView);
+    when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenReturn(recordTierCalculationView);
 
     mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
-           .param("recordIdType", recordIdType.name())
            .param("recordId", recordId))
        .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is("europeanaId")))
        .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
@@ -645,12 +642,10 @@ class DatasetControllerTest {
   @Test
   void computeRecordTierCalculation_NoRecordFoundException() throws Exception {
     final String datasetId = "1";
-    final RecordIdType recordIdType = RecordIdType.PROVIDER_ID;
     final String recordId = "recordId";
-    when(recordTierCalculationService.calculateTiers(any(RecordIdType.class), anyString(), anyString())).thenThrow(
+    when(recordTierCalculationService.calculateTiers(anyString(), anyString())).thenThrow(
         new NoRecordFoundException("record not found"));
     mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
-           .param("recordIdType", recordIdType.name())
            .param("recordId", recordId))
        .andExpect(status().isNotFound())
        .andExpect(jsonPath("$.message",
@@ -660,13 +655,11 @@ class DatasetControllerTest {
   @Test
   void getRecord_expectSuccess() throws Exception {
     final String datasetId = "1";
-    final RecordIdType recordIdType = RecordIdType.EUROPEANA_ID;
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
-    when(recordLogService.getProviderRecordString(recordIdType, recordId, datasetId)).thenReturn(returnString);
+    when(recordLogService.getProviderRecordString(recordId, datasetId)).thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
-           .param("recordIdType", recordIdType.name())
            .param("recordId", recordId))
        .andExpect(content().string(returnString));
   }
@@ -674,15 +667,12 @@ class DatasetControllerTest {
   @Test
   void getRecord_NoRecordFoundException() throws Exception {
     final String datasetId = "1";
-    final RecordIdType recordIdType = RecordIdType.EUROPEANA_ID;
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
-    when(recordLogService.getProviderRecordString(any(RecordIdType.class), anyString(), anyString())).thenThrow(
+    when(recordLogService.getProviderRecordString(anyString(), anyString())).thenThrow(
         new NoRecordFoundException("record not found"));
 
-    mvc.perform(get("/dataset/{id}/record", datasetId)
-           .param("recordIdType", recordIdType.name())
-           .param("recordId", recordId))
+    mvc.perform(get("/dataset/{id}/record", datasetId).param("recordId", recordId))
        .andExpect(status().isNotFound())
        .andExpect(jsonPath("$.message",
            is("record not found")));

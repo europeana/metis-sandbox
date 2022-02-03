@@ -20,8 +20,6 @@ import org.springframework.web.util.UriTemplate;
 public class RecordTierCalculationServiceImpl implements RecordTierCalculationService {
 
   private final RecordLogService recordLogService;
-  @Value("${sandbox.dataset.provider-record-url-template}")
-  private final String providerRecordUrlTemplate;
   @Value("${sandbox.portal.publish.record-base-url}")
   private final String portalPublishRecordBaseUrl;
 
@@ -29,43 +27,37 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
    * Parameterized constructor
    *
    * @param recordLogService the record log repository
-   * @param providerRecordUrlTemplate the provider record url template.
    * <p>
    * This string value should conform to {@link UriTemplate}.
    * </p>
    * @param portalPublishRecordBaseUrl the portal publish record base url
    */
-  public RecordTierCalculationServiceImpl(RecordLogService recordLogService, String providerRecordUrlTemplate,
-      String portalPublishRecordBaseUrl) {
+  public RecordTierCalculationServiceImpl(RecordLogService recordLogService, String portalPublishRecordBaseUrl) {
     this.recordLogService = recordLogService;
-    this.providerRecordUrlTemplate = providerRecordUrlTemplate;
     this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }
 
   @Override
-  public RecordTierCalculationView calculateTiers(RecordIdType recordIdType, String recordId,
-      String datasetId) throws NoRecordFoundException {
-    final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordIdType, recordId, datasetId);
+  public RecordTierCalculationView calculateTiers(String recordId, String datasetId) throws NoRecordFoundException {
+    final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId);
     RecordTierCalculationView recordTierCalculationView;
     if (Objects.nonNull(recordLog)) {
       //Check if the record had failed
       final ArrayList<ProcessingError> processingErrors = new ArrayList<>();
       if (recordLog.getStatus() == Status.FAIL) {
-        final RecordErrorLogEntity recordErrorLogEntity = recordLogService.getRecordErrorLogEntity(recordIdType, recordId,
+        final RecordErrorLogEntity recordErrorLogEntity = recordLogService.getRecordErrorLogEntity(recordId,
             datasetId);
         processingErrors.add(new ProcessingError(recordErrorLogEntity.getMessage(), recordErrorLogEntity.getStackTrace()));
       }
 
       final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId())
                                                                                             .toString();
-
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
-              recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
-              processingErrors);
+          recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl, processingErrors);
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     } else {
       throw new NoRecordFoundException(
-          String.format("Record not found for RecordIdType: %s, recordId: %s, datasetId: %s", recordIdType, recordId, datasetId));
+          String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId));
     }
 
     return recordTierCalculationView;
