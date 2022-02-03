@@ -58,11 +58,10 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
 
       final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId())
                                                                                             .toString();
-      final String providerRecordUrl = new UriTemplate(this.providerRecordUrlTemplate).expand(datasetId, recordId, recordIdType)
-                                                                                      .toString();
+
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
-          recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
-          providerRecordUrl, processingErrors);
+              recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl,
+              processingErrors);
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     } else {
       throw new NoRecordFoundException(
