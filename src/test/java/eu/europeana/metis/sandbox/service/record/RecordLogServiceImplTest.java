@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -118,33 +123,34 @@ class RecordLogServiceImplTest {
   void getProviderRecordString_expectSuccess() throws Exception {
     final RecordLogEntity recordLogEntity = new RecordLogEntity();
     recordLogEntity.setContent("content");
-    when(recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS))
-            .thenReturn(recordLogEntity);
-    assertNotNull(service.getProviderRecordString(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
+    assertNotNull(service.getProviderRecordString("recordId", "datasetId"));
   }
 
   @Test
   void getProviderRecordString_expectFail() {
     //Case null entity
-    when(recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS)).thenReturn(null);
-    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS)).thenReturn(null);
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString("recordId", "datasetId"));
 
     //Case null content
-    when(recordLogRepository.findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
-    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString( "recordId", "datasetId"));
   }
 
   @Test
   void getRecordLogEntity() {
-    //Case EUROPEANA_ID
-    service.getRecordLogEntity(RecordTierCalculationService.RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
-    verify(recordLogRepository, never()).findRecordLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep(anyString(), anyString(), any(Step.class));
+    service.getRecordLogEntity("recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
     clearInvocations(recordLogRepository);
 
     //Case PROVIDER_ID
-    service.getRecordLogEntity(RecordTierCalculationService.RecordIdType.PROVIDER_ID, "recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
-    verify(recordLogRepository, never()).findRecordLogEntityByRecordId_EuropeanaIdAndAndRecordId_DatasetIdAndStep(anyString(), anyString(), any(Step.class));
+    service.getRecordLogEntity(RecordIdType.PROVIDER_ID, "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByRecordIdAndDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    verify(recordLogRepository, never()).findRecordLogByEuropeanaIdAndDatasetIdAndStep(anyString(), anyString(), any(Step.class));
   }
+
 }

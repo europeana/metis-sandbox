@@ -70,10 +70,10 @@ class DatasetController {
   private final RecordTierCalculationService recordTierCalculationService;
 
   public DatasetController(HarvestService harvestService,
-                           DatasetService datasetService,
-                           DatasetReportService reportService,
-                           RecordLogService recordLogService,
-                           RecordTierCalculationService recordTierCalculationService) {
+      DatasetService datasetService,
+      DatasetReportService reportService,
+      RecordLogService recordLogService,
+      RecordTierCalculationService recordTierCalculationService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
@@ -212,7 +212,6 @@ class DatasetController {
   /**
    * GET API returns the generated tier calculation view for a stored record.
    * @param datasetId the dataset id
-   * @param recordIdType the record id type that should be searched with
    * @param recordId the record id
    * @return the record tier calculation view
    * @throws NoRecordFoundException if record was not found
@@ -225,15 +224,13 @@ class DatasetController {
   @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
   public RecordTierCalculationView computeRecordTierCalculation(
           @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
-      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
       @RequestParam String recordId) throws NoRecordFoundException {
-    return recordTierCalculationService.calculateTiers(recordIdType, recordId, datasetId);
+    return recordTierCalculationService.calculateTiers(recordId, datasetId);
   }
 
   /**
    * GET API returns the string representation of the stored record.
    * @param datasetId the dataset id
-   * @param recordIdType the record id type that should be searched with
    * @param recordId the record id
    * @return the string representation of the stored record
    * @throws NoRecordFoundException if record was not found
@@ -245,10 +242,8 @@ class DatasetController {
   })
   @GetMapping(value = "{id}/record")
   public String getRecord(
-          @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
-      @RequestParam(defaultValue = "EUROPEANA_ID") RecordTierCalculationService.RecordIdType recordIdType,
-      @RequestParam String recordId) throws NoRecordFoundException {
-    return recordLogService.getProviderRecordString(recordIdType, recordId, datasetId);
+          @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId, @RequestParam String recordId) throws NoRecordFoundException {
+    return recordLogService.getProviderRecordString(recordId, datasetId);
   }
 
   /**

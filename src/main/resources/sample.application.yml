@@ -63,7 +63,6 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
-    provider-record-url-template: http://localhost:8080/dataset/{datasetId}/record?recordId={recordId}&recordIdType={recordIdType}
   validation:
     edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
     executor:
