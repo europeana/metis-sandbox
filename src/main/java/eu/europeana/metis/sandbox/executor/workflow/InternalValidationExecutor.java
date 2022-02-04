@@ -29,7 +29,7 @@ class InternalValidationExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}",
       containerFactory = "internalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
-  public void validateInternal(RecordProcessEvent input) {
-    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getRecord()));
+  public void validateInternal(RecordProcessEvent event) {
+    consume(routingKey, event, Step.VALIDATE_INTERNAL, () -> service.validate(event.getRecord()));
   }
 }

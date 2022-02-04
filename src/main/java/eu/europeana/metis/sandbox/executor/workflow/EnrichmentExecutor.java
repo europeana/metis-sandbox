@@ -29,7 +29,7 @@ class EnrichmentExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}",
       containerFactory = "enrichmentFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.normalized.auto-start:true}")
-  public void enrich(RecordProcessEvent input) {
-    consume(routingKey, input, Step.ENRICH, () -> service.enrich(input.getRecord()));
+  public void enrich(RecordProcessEvent event) {
+    consume(routingKey, event, Step.ENRICH, () -> service.enrich(event.getRecord()));
   }
 }

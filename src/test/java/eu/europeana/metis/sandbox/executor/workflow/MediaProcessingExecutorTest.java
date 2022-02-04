@@ -10,9 +10,9 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.MediaProcessingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,10 +44,11 @@ class MediaProcessingExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
+    RecordProcessEvent recordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
+        Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record)).thenReturn(new RecordInfo(record));
-    consumer.processMedia(recordRecordProcessEvent);
+    consumer.processMedia(recordProcessEvent);
 
     verify(service).processMedia(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
@@ -61,12 +62,13 @@ class MediaProcessingExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
+    RecordProcessEvent recordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
+        Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record))
         .thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.processMedia(recordRecordProcessEvent);
+    consumer.processMedia(recordProcessEvent);
 
     verify(service).processMedia(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());

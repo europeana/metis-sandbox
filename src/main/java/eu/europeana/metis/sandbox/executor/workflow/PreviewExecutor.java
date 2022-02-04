@@ -10,9 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes media processed events and performs indexing to the contained record
- * <br/>
- * Publishes the result in the indexed queue
+ * Consumes media processed events and performs indexing to the contained record <br/> Publishes the
+ * result in the indexed queue
  */
 @Component
 class PreviewExecutor extends StepExecutor {
@@ -31,8 +30,8 @@ class PreviewExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.media.queue}",
       containerFactory = "previewFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.media.auto-start:true}")
-  public void preview(RecordProcessEvent input) {
-    consume(routingKey, input, Step.PREVIEW,
-        () -> service.index(input.getRecord(), IndexEnvironment.PREVIEW));
+  public void preview(RecordProcessEvent event) {
+    consume(routingKey, event, Step.PREVIEW,
+        () -> service.index(event.getRecord(), IndexEnvironment.PREVIEW));
   }
 }

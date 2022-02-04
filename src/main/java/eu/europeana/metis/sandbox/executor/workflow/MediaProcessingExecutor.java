@@ -29,7 +29,7 @@ class MediaProcessingExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.enriched.queue}",
       containerFactory = "mediaProcessingFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.enriched.auto-start:true}")
-  public void processMedia(RecordProcessEvent input) {
-    consume(routingKey, input, Step.MEDIA_PROCESS, () -> service.processMedia(input.getRecord()));
+  public void processMedia(RecordProcessEvent event) {
+    consume(routingKey, event, Step.MEDIA_PROCESS, () -> service.processMedia(event.getRecord()));
   }
 }

@@ -21,7 +21,7 @@ class EventRecordLogConsumer {
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.log.queue}", containerFactory = "recordLogFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.log.auto-start:true}")
-  public void logRecord(RecordProcessEvent input) {
-    recordLogService.logRecordEvent(input);
+  public void logRecord(RecordProcessEvent event) {
+    recordLogService.logRecordEvent(event);
   }
 }
