@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes previewed events and publish
- * <br />
- * Publishes the result in the published queue
+ * Consumes previewed events and publish <br /> Publishes the result in the published queue
  */
 @Component
 class PublishExecutor extends StepExecutor {
@@ -31,8 +29,8 @@ class PublishExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}",
       containerFactory = "publishFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.previewed.auto-start:true}")
-  public void publish(RecordProcessEvent input) {
-    consume(routingKey, input, Step.PUBLISH,
-        () -> service.index(input.getRecord(), IndexEnvironment.PUBLISH));
+  public void publish(RecordProcessEvent event) {
+    consume(routingKey, event, Step.PUBLISH,
+        () -> service.index(event.getRecord(), IndexEnvironment.PUBLISH));
   }
 }

@@ -3,9 +3,9 @@ package eu.europeana.metis.sandbox.executor.workflow;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -20,13 +20,13 @@ public class StepExecutor {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final AmqpTemplate amqpTemplate;
 
-  protected StepExecutor(AmqpTemplate amqpTemplate) {
+  StepExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
 
-  public void consume(String routingKey, RecordProcessEvent input, Step step,
+  public void consume(String routingKey, RecordProcessEvent event, Step step,
       Supplier<RecordInfo> recordInfoSupplier) {
-    if (input.getStatus() == Status.FAIL) {
+    if (event.getStatus() == Status.FAIL) {
       return;
     }
 
@@ -38,7 +38,7 @@ public class StepExecutor {
     } catch (RecordProcessingException ex) {
       logger.error("Exception while performing step: [{}]. ", step.value(), ex);
       var recordError = new RecordError(ex);
-      output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)),
+      output = new RecordProcessEvent(new RecordInfo(event.getRecord(), List.of(recordError)),
           step, Status.FAIL);
     }
 

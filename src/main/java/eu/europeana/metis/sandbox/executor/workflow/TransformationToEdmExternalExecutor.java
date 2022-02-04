@@ -29,9 +29,9 @@ class TransformationToEdmExternalExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}",
       containerFactory = "transformationEdmExternalFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformation.edm.external.auto-start:true}")
-  public void transformationToEdmExternal(RecordProcessEvent input) {
-    consume(routingKey, input, Step.TRANSFORM_TO_EDM_EXTERNAL,
-        () -> service.transform(input.getRecord()));
+  public void transformationToEdmExternal(RecordProcessEvent event) {
+    consume(routingKey, event, Step.TRANSFORM_TO_EDM_EXTERNAL,
+        () -> service.transform(event.getRecord()));
   }
 
 }

@@ -29,7 +29,7 @@ class ExternalValidationExecutor extends StepExecutor {
   @RabbitListener(queues = {"${sandbox.rabbitmq.queues.record.created.queue}"},
       containerFactory = "externalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.created.auto-start:true}")
-  public void validateExternal(RecordProcessEvent input) {
-    consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getRecord()));
+  public void validateExternal(RecordProcessEvent event) {
+    consume(routingKey, event, Step.VALIDATE_EXTERNAL, () -> service.validate(event.getRecord()));
   }
 }

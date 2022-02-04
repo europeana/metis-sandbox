@@ -12,9 +12,9 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
@@ -70,7 +70,7 @@ class DatasetReportServiceImplTest {
         "A review URL will be generated when the dataset has finished processing",
         5, 4L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
+        new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
             false, false));
 
     RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1");
@@ -107,7 +107,7 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReportWithoutErrors_expectSuccess() {
-    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS,false);
+    var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
     var report = new ProgressInfoDto(
@@ -115,7 +115,7 @@ class DatasetReportServiceImplTest {
         "A review URL will be generated when the dataset has finished processing",
         5, 0L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null, false, false));
+        new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
     var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
@@ -141,7 +141,7 @@ class DatasetReportServiceImplTest {
         "https://metis-sandbox/portal/preview/search?q=edm_datasetName:null_dataset*",
         "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5, 5L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
+        new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
             false, false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -165,7 +165,8 @@ class DatasetReportServiceImplTest {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("providerId1", "providerId2"));
-    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("providerId3", "providerId4", "providerId5"));
+    var error2 = new ErrorInfoDto(message2, Status.FAIL,
+        List.of("providerId3", "providerId4", "providerId5"));
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
@@ -174,7 +175,7 @@ class DatasetReportServiceImplTest {
         "All dataset records failed to be processed",
         "All dataset records failed to be processed", 5, 5L,
         List.of(createProgress, externalProgress),
-        new DatasetInfoDto("","", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
+        new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
             false, false));
 
     var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
@@ -223,7 +224,7 @@ class DatasetReportServiceImplTest {
     var expected = new ProgressInfoDto(
         "Dataset is empty",
         "Dataset is empty", 0, 0L, List.of(),
-        new DatasetInfoDto("","", LocalDateTime.now(), null, null, false, false));
+        new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
     var report = service.getReport("1");
     assertReportEquals(expected, report);
   }
@@ -238,7 +239,8 @@ class DatasetReportServiceImplTest {
 
   @Test
   void getReport_failToRetrieveRecords_expectFail() {
-    when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5, Language.NL, Country.NETHERLANDS, false)));
+    when(datasetRepository.findById(1)).thenReturn(
+        Optional.of(new DatasetEntity("test", 5, Language.NL, Country.NETHERLANDS, false)));
     when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
     assertThrows(ServiceException.class, () -> service.getReport("1"));
