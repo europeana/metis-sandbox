@@ -97,7 +97,12 @@ class DatasetServiceImpl implements DatasetService {
       }
     }
 
-    publishService.publish(dataset, hasXsltTransformerEdmExternal);
+    if(hasXsltTransformerEdmExternal){
+      publishService.publishWithXslt(dataset);
+    } else {
+      publishService.publishWithoutXslt(dataset);
+    }
+
     return dataset;
   }
 

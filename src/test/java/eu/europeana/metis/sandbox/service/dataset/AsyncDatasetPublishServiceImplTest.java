@@ -52,7 +52,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    service.publish(dataset, false).get();
+    service.publishWithoutXslt(dataset).get();
 
     verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
   }
@@ -72,19 +72,19 @@ class AsyncDatasetPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(Event.class));
 
-    service.publish(dataset, false).get();
+    service.publishWithoutXslt(dataset).get();
 
     verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
   }
 
   @Test
   void publish_nullDataset_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.publish(null, false));
+    assertThrows(NullPointerException.class, () -> service.publishWithoutXslt(null));
   }
 
   @Test
   void publish_emptyRecords_expectFail() {
     Dataset dataset = new Dataset("1234", Set.of(), 0);
-    assertThrows(IllegalArgumentException.class, () -> service.publish(dataset, false));
+    assertThrows(IllegalArgumentException.class, () -> service.publishWithoutXslt(dataset));
   }
 }

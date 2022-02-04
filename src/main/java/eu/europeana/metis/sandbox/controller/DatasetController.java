@@ -72,7 +72,8 @@ class DatasetController {
   public DatasetController(HarvestService harvestService,
                            DatasetService datasetService,
                            DatasetReportService reportService,
-                           RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService) {
+                           RecordLogService recordLogService,
+                           RecordTierCalculationService recordTierCalculationService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;

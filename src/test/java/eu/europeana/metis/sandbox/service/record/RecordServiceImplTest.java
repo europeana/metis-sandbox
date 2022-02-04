@@ -38,7 +38,7 @@ class RecordServiceImplTest {
 
     @Test
     void setEuropeanaIdAndProviderId_expectSuccess() {
-        byte[] content = "content".getBytes(StandardCharsets.UTF_8);
+        final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
         Record record = Record.builder()
                 .recordId(1L)
                 .datasetId("1")
@@ -47,8 +47,8 @@ class RecordServiceImplTest {
                 .language(Language.NL)
                 .content(content).build();
 
-        String providerId = "providerId";
-        String europeanaId = "/1/providerId";
+        final String providerId = "providerId";
+        final String europeanaId = "/1/providerId";
 
         when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
         service.setEuropeanaIdAndProviderId(record);

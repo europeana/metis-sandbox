@@ -45,7 +45,7 @@ class XmlRecordProcessorServiceImplTest {
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
-    String recordId = service.getProviderId(xmlRecord);
+    final String recordId = service.getProviderId(xmlRecord);
 
     assertEquals("URN:NBN:SI:doc-35SZSOCF", recordId);
   }

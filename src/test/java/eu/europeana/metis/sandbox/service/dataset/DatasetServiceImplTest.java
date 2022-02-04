@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -67,7 +66,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset, false);
+    verify(publishService, times(1)).publishWithoutXslt(dataset);
 
     assertEquals("1234", result.getDatasetId());
   }
@@ -92,7 +91,7 @@ class DatasetServiceImplTest {
         xsltContent);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset, true);
+    verify(publishService, times(1)).publishWithXslt(dataset);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -113,7 +112,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset, false);
+    verify(publishService, times(1)).publishWithoutXslt(dataset);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -138,7 +137,7 @@ class DatasetServiceImplTest {
         xsltContent);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset, true);
+    verify(publishService, times(1)).publishWithXslt(dataset);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -168,7 +167,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, false));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset, false);
+    verify(publishService, never()).publishWithoutXslt(dataset);
   }
 
   @Test
@@ -192,7 +191,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, false));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset, false);
+    verify(publishService, never()).publishWithoutXslt(dataset);
   }
 
   @Test

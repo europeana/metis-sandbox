@@ -9,8 +9,10 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -20,44 +22,56 @@ import org.springframework.stereotype.Service;
 @Service
 class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(AsyncDatasetPublishServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(AsyncDatasetPublishServiceImpl.class);
 
 
-  private final AmqpTemplate amqpTemplate;
-  private final String createdQueue;
-  private final String transformationToEdmExternalQueue;
-  private final Executor asyncDatasetPublishServiceTaskExecutor;
+    private final AmqpTemplate amqpTemplate;
+    private final String createdQueue;
+    private final String transformationToEdmExternalQueue;
+    private final Executor asyncDatasetPublishServiceTaskExecutor;
 
-  public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-      String createdQueue, String transformationToEdmExternalQueue,
-      Executor asyncDatasetPublishServiceTaskExecutor) {
-    this.amqpTemplate = amqpTemplate;
-    this.createdQueue = createdQueue;
-    this.asyncDatasetPublishServiceTaskExecutor = asyncDatasetPublishServiceTaskExecutor;
-    this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
-  }
-
-  @Override
-  public CompletableFuture<Void> publish(Dataset dataset, boolean hasXsltToEdmExternal) {
-    requireNonNull(dataset, "Dataset must not be null");
-    checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
-
-    return CompletableFuture.runAsync(() -> dataset.getRecords()
-        .forEach(record -> this.publish(record, hasXsltToEdmExternal)), asyncDatasetPublishServiceTaskExecutor);
-  }
-
-  private void publish(Record record, boolean hasXsltToEdmExternal) {
-    try {
-      if(hasXsltToEdmExternal){
-        amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
-      } else {
-        amqpTemplate.convertAndSend(createdQueue,
-            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
-      }
-    } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);
+    public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
+                                          String createdQueue, String transformationToEdmExternalQueue,
+                                          Executor asyncDatasetPublishServiceTaskExecutor) {
+        this.amqpTemplate = amqpTemplate;
+        this.createdQueue = createdQueue;
+        this.asyncDatasetPublishServiceTaskExecutor = asyncDatasetPublishServiceTaskExecutor;
+        this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
     }
-  }
+
+    @Override
+    public CompletableFuture<Void> publishWithoutXslt(Dataset dataset) {
+        requireNonNull(dataset, "Dataset must not be null");
+        checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
+
+        return CompletableFuture.runAsync(() -> dataset.getRecords()
+                .forEach(this::publishToCreatedQueue), asyncDatasetPublishServiceTaskExecutor);
+    }
+
+    @Override
+    public CompletableFuture<Void> publishWithXslt(Dataset dataset) {
+        requireNonNull(dataset, "Dataset must not be null");
+        checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
+
+        return CompletableFuture.runAsync(() -> dataset.getRecords()
+                .forEach(this::publishToTransformationToEdmExternalQueue), asyncDatasetPublishServiceTaskExecutor);
+    }
+
+    private void publishToCreatedQueue(Record record) {
+        try {
+            amqpTemplate.convertAndSend(createdQueue, new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+        } catch (AmqpException e) {
+            LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);
+        }
+    }
+
+    private void publishToTransformationToEdmExternalQueue(Record record) {
+        try {
+            amqpTemplate.convertAndSend(transformationToEdmExternalQueue, new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+        } catch (AmqpException e) {
+            LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);
+        }
+    }
+
 }
