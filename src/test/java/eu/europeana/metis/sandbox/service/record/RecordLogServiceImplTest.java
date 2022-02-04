@@ -9,8 +9,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -148,9 +146,8 @@ class RecordLogServiceImplTest {
     clearInvocations(recordLogRepository);
 
     //Case PROVIDER_ID
-    service.getRecordLogEntity(RecordIdType.PROVIDER_ID, "recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogByRecordIdAndDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
-    verify(recordLogRepository, never()).findRecordLogByEuropeanaIdAndDatasetIdAndStep(anyString(), anyString(), any(Step.class));
+    service.getRecordLogEntity( "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
   }
 
 }

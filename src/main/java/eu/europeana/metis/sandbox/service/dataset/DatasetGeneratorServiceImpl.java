@@ -49,36 +49,27 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
   private Set<Record> processRecordsAndRemoveDuplicates(DatasetMetadata datasetMetadata, List<ByteArrayInputStream> records) {
     return records.stream()
-        .map(ByteArrayInputStream::readAllBytes)
-        .map(record -> {
-          RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId()));
-          Long recordId = recordEntity.getId();
-          return Record.builder()
-              .recordId(recordId)
-              .datasetId(datasetMetadata.getDatasetId())
-              .datasetName(datasetMetadata.getDatasetName())
-              .country(datasetMetadata.getCountry())
-              .language(datasetMetadata.getLanguage())
-              .content(record)
-              .build();
-        })
-        .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem))
-        .flatMap(Optional::stream)
-        .collect(toSet());
+            .map(ByteArrayInputStream::readAllBytes)
+            .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem))
+            .flatMap(Optional::stream)
+            .collect(toSet());
   }
 
-  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, Record record) {
+
+  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, byte[] record) {
     try {
+      final RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId()));
+      final Long recordId = recordEntity.getId();
       return Optional.of(Record.builder()
-                               .recordId(record.getRecordId())
+                               .recordId(recordId)
                                .datasetId(datasetMetadata.getDatasetId())
                                .datasetName(datasetMetadata.getDatasetName())
                                .country(datasetMetadata.getCountry())
                                .language(datasetMetadata.getLanguage())
-                               .content(record.getContent())
+                               .content(record)
                                .build());
     } catch (IllegalArgumentException | RecordParsingException processorServiceException) {
-      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(record.getContent()), processorServiceException);
+      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(record), processorServiceException);
       return Optional.empty();
     }
   }

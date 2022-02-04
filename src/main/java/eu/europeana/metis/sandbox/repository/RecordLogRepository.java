@@ -29,15 +29,16 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
 
   /**
    * Get record given a record id, dataset id and step.
-   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId()} and {@link
-   * RecordLogEntity#getEuropeanaId()}.</p>
+   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
+   * RecordLogEntity#getRecordId().getEuropeanaId()}.</p>
    *
    * @param recordId the record id
    * @param datasetId the dataset id
    * @param step the step
    * @return the record log
    */
-  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId = ?1 OR rle.europeanaId= ?1) AND rle.datasetId = ?2 AND rle.step = ?3 ")
+  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
+          "AND rle.recordId.datasetId = ?2 AND rle.step = ?3 ")
   RecordLogEntity findRecordLogByRecordIdDatasetIdAndStep(String recordId, String datasetId, Step step);
 
   /**

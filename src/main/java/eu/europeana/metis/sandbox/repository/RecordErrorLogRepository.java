@@ -28,19 +28,17 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
 
   /**
    * Get record given a record id, dataset id and step.
-   * <p>The record id will be searched against both {@link RecordErrorLogEntity#getRecordId()} and {@link
-   * RecordErrorLogEntity#getEuropeanaId()}.</p>
+   * <p>The record id will be searched against both {@link RecordErrorLogEntity#getRecordId().getProviderId()} and {@link
+   * RecordErrorLogEntity#getRecordId().getEuropeanaId()}.</p>
    *
    * @param recordId the record id
    * @param datasetId the dataset id
    * @param step the step
    * @return the record error log
    */
-  @Query("SELECT rele FROM RecordErrorLogEntity rele WHERE (rele.recordId = ?1 OR rele.europeanaId= ?1) AND rele.datasetId = ?2 AND rele.step = ?3 ")
+  @Query("SELECT rele FROM RecordErrorLogEntity rele WHERE (rele.recordId.providerId = ?1 OR rele.recordId.europeanaId= ?1) " +
+          "AND rele.recordId.datasetId = ?2 AND rele.step = ?3 ")
   RecordErrorLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step step);
-  RecordErrorLogEntity findRecordErrorLogEntityByRecordId_EuropeanaIdAndRecordId_DatasetIdAndStep(String europeanaId, String datasetId, Step step);
-
-  RecordErrorLogEntity findRecordErrorLogEntityByRecordId_ProviderIdAndRecordId_DatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
 
   /**
    * Delete errors for the specified dataset id

@@ -28,16 +28,12 @@ class RecordTierCalculationServiceImplTest {
   private final static String portalPublishRecordBaseUrl = "https://example-domain.org/portal/search?view=grid&q=edm_datasetName:";
 
   @Mock
-  private RecordService recordServiceMock;
-  @Mock
-  private RecordLogService recordLogService;
+  private RecordLogService recordLogServiceMock;
   private RecordTierCalculationServiceImpl recordTierCalculationService;
 
   @BeforeEach
   public void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
-        new RecordTierCalculationServiceImpl(recordLogService, providerRecordUrlTemplate,
-            portalPublishRecordBaseUrl));
         new RecordTierCalculationServiceImpl(recordLogServiceMock, portalPublishRecordBaseUrl));
   }
 
@@ -49,17 +45,16 @@ class RecordTierCalculationServiceImplTest {
     final Long recordId = 1L;
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
-    final Step mediaProcessStep = Step.MEDIA_PROCESS;
-    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordId, europeanaId, datasetId, mediaProcessStep,
-        Status.SUCCESS, europeanaRecordString);
-    when(recordLogServiceMock.getRecordLogEntity(recordId, datasetId)).thenReturn(recordLogEntity);
     final String providerId = "providerId";
     final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId);
-    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, Step.MEDIA_PROCESS, Status.SUCCESS);
+    final Step mediaProcessStep = Step.MEDIA_PROCESS;
+    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep, Status.SUCCESS);
     recordEntity.setId(recordId);
-    when(recordLogService.getRecordLogEntity(RecordIdType.PROVIDER_ID, String.valueOf(recordId), datasetId)).thenReturn(recordLogEntity);
+    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId)).thenReturn(recordLogEntity);
+
+
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
-        recordId, datasetId);
+        providerId, datasetId);
     assertNotNull(recordTierCalculationView);
     assertEquals(recordEntity.getProviderId(),
         recordTierCalculationView.getRecordTierCalculationSummary().getProviderRecordId());
@@ -69,8 +64,5 @@ class RecordTierCalculationServiceImplTest {
   void calculateTiers_NoRecordFoundException(){
     when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString())).thenReturn(null);
     assertThrows(NoRecordFoundException.class, ()->recordTierCalculationService.calculateTiers("recordId", "datasetId"));
-    when(recordLogService.getRecordLogEntity(any(RecordIdType.class), anyString(), anyString())).thenReturn(null);
-    assertThrows(NoRecordFoundException.class, ()->recordTierCalculationService.calculateTiers(
-        RecordIdType.PROVIDER_ID, "recordId", "datasetId"));
   }
 }
