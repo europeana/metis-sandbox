@@ -5,7 +5,6 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -15,7 +14,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
-          distribution: 'adopt'
+          distribution: 'temurin'
           cache: maven
       - name: Cache SonarCloud packages
         uses: actions/cache@v2
@@ -23,18 +22,19 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: Build Clean-Verify-Jacoco-Sonar
+      - name: Build - Clean Jacoco Verify
         run: >
           mvn --batch-mode --update-snapshots
           clean
           org.jacoco:jacoco-maven-plugin:prepare-agent
           verify
           org.jacoco:jacoco-maven-plugin:report
+      - name: Sonar Analyze
+        run: >
+          mvn --batch-mode
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=europeana
           -Dsonar.projectKey=europeana_metis-sandbox
-          -Dsonar.java.source=11
-          -Dsonar.java.target=11
           sonar:sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
