@@ -49,8 +49,8 @@ class DatasetServiceImpl implements DatasetService {
                 new ByteArrayInputStream(new byte[0]));
     }
 
-    @Transactional
     @Override
+    @Transactional
     public Dataset createDataset(String datasetName, Country country, Language language,
                                  List<ByteArrayInputStream> records, boolean recordLimitExceeded,
                                  InputStream xsltEdmExternalContentStream) {
@@ -79,9 +79,8 @@ class DatasetServiceImpl implements DatasetService {
             throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
         }
 
-        String datasetId = String.valueOf(entity.getDatasetId());
-
-        Dataset dataset = generatorService.generate(DatasetMetadata.builder()
+        final String datasetId = String.valueOf(entity.getDatasetId());
+        final Dataset dataset = generatorService.generate(DatasetMetadata.builder()
                 .withDatasetId(datasetId)
                 .withDatasetName(datasetName)
                 .withCountry(country)

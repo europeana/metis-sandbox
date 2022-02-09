@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
-import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -68,7 +67,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
                                .language(datasetMetadata.getLanguage())
                                .content(recordContent)
                                .build());
-    } catch (IllegalArgumentException | RecordParsingException processorServiceException) {
+    } catch (RuntimeException processorServiceException) {
       LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordContent), processorServiceException);
       return Optional.empty();
     }
