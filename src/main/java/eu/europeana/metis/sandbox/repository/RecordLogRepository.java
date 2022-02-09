@@ -30,7 +30,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   /**
    * Get record given a record id, dataset id and step.
    * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
-   * RecordLogEntity#getRecordId().getEuropeanaId()}.</p>
+   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
    *
    * @param recordId the record id
    * @param datasetId the dataset id

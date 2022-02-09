@@ -7,8 +7,8 @@ public interface RecordService {
   /**
    * Updates record's europeana id and provider id values
    *
-   * @param record the record to update
+   * @param recordToUpdate the record to update
    */
-  void setEuropeanaIdAndProviderId(Record record);
+  void setEuropeanaIdAndProviderId(Record recordToUpdate);
 
 }

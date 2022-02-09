@@ -33,11 +33,11 @@ public interface TransformationService {
   /**
    * Transform the given record to EDM external format using a xslt given by the user previously
    *
-   * @param record must not be null
+   * @param recordToTransform must not be null
    * @return {@link RecordInfo} containing record transformed
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if records fails at transformation
    */
 
-  RecordInfo transform(Record record);
+  RecordInfo transform(Record recordToTransform);
 }

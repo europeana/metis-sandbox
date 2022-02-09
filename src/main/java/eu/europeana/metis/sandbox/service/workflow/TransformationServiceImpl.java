@@ -49,12 +49,12 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   @Override
-  public RecordInfo transform(Record record) {
+  public RecordInfo transform(Record recordToTransform) {
     InputStream xsltContent = new ByteArrayInputStream(
-        datasetRepository.getXsltContentFromDatasetId(Integer.parseInt(record.getDatasetId()))
+        datasetRepository.getXsltContentFromDatasetId(Integer.parseInt(recordToTransform.getDatasetId()))
             .getBytes(StandardCharsets.UTF_8));
-    return new RecordInfo(Record.from(record, transform(String.valueOf(record.getRecordId()), xsltContent,
-        record.getContent())));
+    return new RecordInfo(Record.from(recordToTransform, transform(String.valueOf(recordToTransform.getRecordId()), xsltContent,
+        recordToTransform.getContent())));
   }
 
   @Override

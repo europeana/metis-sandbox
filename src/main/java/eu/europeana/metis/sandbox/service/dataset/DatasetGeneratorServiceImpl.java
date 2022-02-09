@@ -56,7 +56,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
   }
 
 
-  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, byte[] record) {
+  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, byte[] recordContent) {
     try {
       final RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId()));
       final Long recordId = recordEntity.getId();
@@ -66,10 +66,10 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
                                .datasetName(datasetMetadata.getDatasetName())
                                .country(datasetMetadata.getCountry())
                                .language(datasetMetadata.getLanguage())
-                               .content(record)
+                               .content(recordContent)
                                .build());
     } catch (IllegalArgumentException | RecordParsingException processorServiceException) {
-      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(record), processorServiceException);
+      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordContent), processorServiceException);
       return Optional.empty();
     }
   }

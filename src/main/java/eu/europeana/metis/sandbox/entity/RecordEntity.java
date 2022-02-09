@@ -48,12 +48,12 @@ public class RecordEntity {
   /**
    * Contructor
    *
-   * @param record the record
+   * @param recordInput the record
    */
-  public RecordEntity(Record record){
-    this.europeanaId = record.getEuropeanaId();
-    this.providerId = record.getProviderId();
-    this.datasetId = record.getDatasetId();
+  public RecordEntity(Record recordInput){
+    this.europeanaId = recordInput.getEuropeanaId();
+    this.providerId = recordInput.getProviderId();
+    this.datasetId = recordInput.getDatasetId();
   }
 
 

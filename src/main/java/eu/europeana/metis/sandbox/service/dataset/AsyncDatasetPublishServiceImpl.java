@@ -58,19 +58,19 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
                 .forEach(this::publishToTransformationToEdmExternalQueue), asyncDatasetPublishServiceTaskExecutor);
     }
 
-    private void publishToCreatedQueue(Record record) {
+    private void publishToCreatedQueue(Record recordData) {
         try {
-            amqpTemplate.convertAndSend(createdQueue, new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+            amqpTemplate.convertAndSend(createdQueue, new Event(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS));
         } catch (AmqpException e) {
-            LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);
+            LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
         }
     }
 
-    private void publishToTransformationToEdmExternalQueue(Record record) {
+    private void publishToTransformationToEdmExternalQueue(Record recordData) {
         try {
-            amqpTemplate.convertAndSend(transformationToEdmExternalQueue, new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+            amqpTemplate.convertAndSend(transformationToEdmExternalQueue, new Event(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS));
         } catch (AmqpException e) {
-            LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);
+            LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
         }
     }
 

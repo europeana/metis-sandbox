@@ -25,10 +25,10 @@ class XmlRecordProcessorServiceImpl implements XmlRecordProcessorService {
   }
 
   @Override
-  public String getProviderId(byte[] record) {
+  public String getProviderId(byte[] recordContent) {
     var xpathFactory = getXPathFactory();
     var xpath = xpathFactory.newXPath();
-    var source = new InputSource(new ByteArrayInputStream(record));
+    var source = new InputSource(new ByteArrayInputStream(recordContent));
     String recordId;
 
     try {

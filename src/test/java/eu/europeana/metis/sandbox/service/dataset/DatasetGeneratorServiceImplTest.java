@@ -14,11 +14,16 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import java.io.ByteArrayInputStream;
 import java.util.List;
+
+import org.hibernate.HibernateException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.PersistenceException;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetGeneratorServiceImplTest {
@@ -71,18 +76,22 @@ class DatasetGeneratorServiceImplTest {
     assertThrows(IllegalArgumentException.class, () -> generator.generate(getTestDatasetMetadata(), List.of()));
   }
 
-//  @Test
-//  void generate_inCaseOfInvalidRecords_expectSuccess() {
-//    when(xmlRecordProcessorService.getRecordId("record1".getBytes())).thenThrow(RecordParsingException.class);
-//    when(xmlRecordProcessorService.getRecordId("record2".getBytes())).thenReturn("2");
-//    when(xmlRecordProcessorService.getRecordId("record3".getBytes())).thenThrow(RecordParsingException.class);
-//    when(xmlRecordProcessorService.getRecordId("record4".getBytes())).thenThrow(IllegalArgumentException.class);
-//    when(xmlRecordProcessorService.getRecordId("record5".getBytes())).thenReturn("5");
-//
-//    Dataset dataset = generator.generate(getTestDatasetMetadata(), getTestRecords());
-//
-//    assertEquals(2, dataset.getRecords().size());
-//  }
+  @Test
+  void generate_inCaseOfInvalidRecords_expectSuccess() {
+    final RecordEntity recordEntity1 = new RecordEntity(null, null, "1");
+    recordEntity1.setId(9514055L);
+    final RecordEntity recordEntity2 = new RecordEntity(null, null, "1");
+    recordEntity1.setId(9514058L);
+    when(recordRepository.save(any(RecordEntity.class))).thenThrow(RecordParsingException.class)
+            .thenReturn(recordEntity1)
+            .thenThrow(RecordParsingException.class)
+            .thenThrow(IllegalArgumentException.class)
+            .thenReturn(recordEntity2);
+
+    Dataset dataset = generator.generate(getTestDatasetMetadata(), getTestRecords());
+
+    assertEquals(2, dataset.getRecords().size());
+  }
 
   private static DatasetMetadata getTestDatasetMetadata() {
     return DatasetMetadata.builder()

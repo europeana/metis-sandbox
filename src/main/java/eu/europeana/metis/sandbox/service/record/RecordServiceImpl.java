@@ -21,12 +21,12 @@ public class RecordServiceImpl implements RecordService {
 
   @Override
   @Transactional
-  public void setEuropeanaIdAndProviderId(Record record){
-    String providerId = xmlRecordProcessorService.getProviderId(record.getContent());
-    String europeanaId = EuropeanaIdCreator.constructEuropeanaIdString(providerId, record.getDatasetId());
-    record.setEuropeanaId(europeanaId);
-    record.setProviderId(providerId);
-    recordRepository.updateEuropeanaIdAndProviderId(record.getRecordId(), europeanaId, providerId);
+  public void setEuropeanaIdAndProviderId(Record recordToUpdate){
+    String providerId = xmlRecordProcessorService.getProviderId(recordToUpdate.getContent());
+    String europeanaId = EuropeanaIdCreator.constructEuropeanaIdString(providerId, recordToUpdate.getDatasetId());
+    recordToUpdate.setEuropeanaId(europeanaId);
+    recordToUpdate.setProviderId(providerId);
+    recordRepository.updateEuropeanaIdAndProviderId(recordToUpdate.getRecordId(), europeanaId, providerId);
   }
 
 }

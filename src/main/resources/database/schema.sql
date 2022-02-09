@@ -75,6 +75,6 @@ create table if not exists default_transform_xslt
 
 create index on record_log (record_id);
 create index on record_error_log (record_id);
-create index on record (dataset_id, COALESCE(europeana_id), COALESCE(provider_id)) ;
+create index on record (dataset_id, europeana_id, provider_id);
 create index on thumbnail (dataset_id);
 commit;
