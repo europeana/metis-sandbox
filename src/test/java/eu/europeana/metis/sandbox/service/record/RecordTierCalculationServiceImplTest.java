@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -41,17 +42,21 @@ class RecordTierCalculationServiceImplTest {
     String europeanaRecordString = testUtils.readFileToString(
         Paths.get("record", "media", "europeana_record_with_technical_metadata.xml").toFile().toString());
 
-    final String recordId = "recordId";
+    final Long recordId = 1L;
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
+    final String providerId = "providerId";
+    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId);
     final Step mediaProcessStep = Step.MEDIA_PROCESS;
-    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordId, europeanaId, datasetId, mediaProcessStep,
-        Status.SUCCESS, europeanaRecordString);
-    when(recordLogServiceMock.getRecordLogEntity(recordId, datasetId)).thenReturn(recordLogEntity);
+    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep, Status.SUCCESS);
+    recordEntity.setId(recordId);
+    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId)).thenReturn(recordLogEntity);
+
+
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
-        recordId, datasetId);
+        providerId, datasetId);
     assertNotNull(recordTierCalculationView);
-    assertEquals(recordLogEntity.getRecordId(),
+    assertEquals(recordEntity.getProviderId(),
         recordTierCalculationView.getRecordTierCalculationSummary().getProviderRecordId());
   }
 

@@ -50,10 +50,11 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
         processingErrors.add(new ProcessingError(recordErrorLogEntity.getMessage(), recordErrorLogEntity.getStackTrace()));
       }
 
-      final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getEuropeanaId())
+      final String portalPublishRecordUrl = new UriTemplate(this.portalPublishRecordBaseUrl).expand(recordLog.getRecordId().getEuropeanaId())
                                                                                             .toString();
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
-          recordLog.getEuropeanaId(), recordLog.getRecordId(), recordLog.getContent(), portalPublishRecordUrl, processingErrors);
+              recordLog.getRecordId().getEuropeanaId(), recordLog.getRecordId().getProviderId(), recordLog.getContent(),
+              portalPublishRecordUrl, processingErrors);
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     } else {
       throw new NoRecordFoundException(

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class EnrichedConsumerTest {
+class MediaProcessingExecutorTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
@@ -36,14 +36,14 @@ class EnrichedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private EnrichedConsumer consumer;
+  private MediaProcessingExecutor consumer;
 
   @Test
   void processMedia_expectSuccess() {
     Record record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     Event recordEvent = new Event(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record)).thenReturn(new RecordInfo(record));
@@ -60,7 +60,7 @@ class EnrichedConsumerTest {
     Record record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     Event recordEvent = new Event(new RecordInfo(record), Step.ENRICH, Status.SUCCESS);
 
     when(service.processMedia(record))

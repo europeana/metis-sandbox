@@ -16,8 +16,9 @@ import java.util.Objects;
  */
 public final class Record {
 
-  private final String recordId;
-  private final String europeanaId;
+  private final Long recordId;
+  private String europeanaId;
+  private String providerId;
   private final String datasetId;
   private final String datasetName;
   private final Country country;
@@ -27,9 +28,11 @@ public final class Record {
   //Suppress: Mutable members should not be stored or returned directly
   //byte[] coming from RecordBuilder is already a copy of the original byte[]
   @SuppressWarnings("squid:S2384")
-  private Record(String recordId, String europeanaId, String datasetId, String datasetName,
+  private Record(Long recordId, String europeanaId, String providerId, String datasetId,
+      String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
+    this.providerId = providerId;
     this.europeanaId = europeanaId;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
@@ -62,12 +65,24 @@ public final class Record {
     return new RecordBuilder();
   }
 
-  public String getRecordId() {
+  public Long getRecordId() {
     return this.recordId;
   }
 
   public String getEuropeanaId() {
     return this.europeanaId;
+  }
+
+  public void setEuropeanaId(String europeanaId) {
+    this.europeanaId = europeanaId;
+  }
+
+  public void setProviderId(String providerId) {
+    this.providerId = providerId;
+  }
+
+  public String getProviderId(){
+    return this.providerId;
   }
 
   public String getDatasetId() {
@@ -128,7 +143,8 @@ public final class Record {
 
   public static class RecordBuilder {
 
-    private String recordId;
+    private Long recordId;
+    private String providerId;
     private String europeanaId;
     private String datasetId;
     private String datasetName;
@@ -136,13 +152,18 @@ public final class Record {
     private Language language;
     private byte[] content;
 
-    public RecordBuilder recordId(String recordId) {
+    public RecordBuilder recordId(Long recordId) {
       this.recordId = recordId;
       return this;
     }
 
     public RecordBuilder europeanaId(String europeanaId) {
       this.europeanaId = europeanaId;
+      return this;
+    }
+
+    public RecordBuilder providerId(String providerId){
+      this.providerId = providerId;
       return this;
     }
 
@@ -173,7 +194,7 @@ public final class Record {
     }
 
     public Record build() {
-      return new Record(recordId, europeanaId, datasetId, datasetName, country, language, content);
+      return new Record(recordId, europeanaId, providerId, datasetId, datasetName, country, language, content);
     }
   }
 }

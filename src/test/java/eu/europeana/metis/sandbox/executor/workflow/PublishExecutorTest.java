@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class MediaProcessedConsumerTest {
+class PublishExecutorTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
@@ -38,52 +38,53 @@ class MediaProcessedConsumerTest {
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private MediaProcessedConsumer consumer;
+  private PublishExecutor consumer;
 
   @Test
-  void indexing_expectSuccess() {
+  void publish_expectSuccess() {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, IndexEnvironment.PREVIEW)).thenReturn(new RecordInfo(record));
-    consumer.preview(recordEvent);
+    when(service.index(record, IndexEnvironment.PUBLISH)).thenReturn(new RecordInfo(record));
+    consumer.publish(recordEvent);
 
-    verify(service).index(record, IndexEnvironment.PREVIEW);
+    verify(service).index(record, IndexEnvironment.PUBLISH);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.PREVIEW, captor.getValue().getStep());
+    assertEquals(Step.PUBLISH, captor.getValue().getStep());
   }
 
   @Test
-  void indexing_inputMessageWithFailStatus_expectNoInteractions() {
+  void publish_inputMessageWithFailStatus_expectNoInteractions() {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
-    consumer.preview(recordEvent);
+    consumer.publish(recordEvent);
 
-    verify(service, never()).index(record, IndexEnvironment.PREVIEW);
+    verify(service, never()).index(record, IndexEnvironment.PUBLISH);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
   @Test
-  void indexing_serviceThrowException_expectFailStatus() {
+  void publish_serviceThrowException_expectFailStatus() {
     var record = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, IndexEnvironment.PREVIEW)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.index(record, IndexEnvironment.PUBLISH))
+        .thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.preview(recordEvent);
+    consumer.publish(recordEvent);
 
-    verify(service).index(record, IndexEnvironment.PREVIEW);
+    verify(service).index(record, IndexEnvironment.PUBLISH);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

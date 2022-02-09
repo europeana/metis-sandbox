@@ -23,6 +23,7 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ class RecordLogServiceImplTest {
   @Mock
   RecordErrorLogRepository errorLogRepository;
 
+  @Mock
+  RecordRepository recordRepository;
+
   @InjectMocks
   private RecordLogServiceImpl service;
 
@@ -51,7 +55,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_expectSuccess() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId("1")
+    var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
@@ -71,7 +75,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSaveRecord_expectFail() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId("1")
+    var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
@@ -84,7 +88,7 @@ class RecordLogServiceImplTest {
 
   @Test
   void logRecord_unableToSaveRecordErrors_expectFail() {
-    var record = Record.builder().recordId("").content("".getBytes()).datasetId("1")
+    var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
@@ -93,6 +97,24 @@ class RecordLogServiceImplTest {
         .thenThrow(new RuntimeException("Exception saving"));
 
     assertThrows(ServiceException.class, () -> service.logRecordEvent(event));
+  }
+
+  @Test
+  void remove_expectSuccess() {
+    service.remove("1");
+    verify(recordRepository).deleteByDatasetId("1");
+  }
+
+  @Test
+  void remove_errorOnDelete_expectFail() {
+    doThrow(new ServiceException("Failed", new Exception())).when(recordRepository)
+        .deleteByDatasetId("1");
+    assertThrows(ServiceException.class, () -> service.remove("1"));
+  }
+
+  @Test
+  void remove_nullInput_expectFail() {
+    assertThrows(NullPointerException.class, () -> service.remove(null));
   }
 
   @Test
@@ -122,24 +144,10 @@ class RecordLogServiceImplTest {
     service.getRecordLogEntity("recordId", "datasetId");
     verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
     clearInvocations(recordLogRepository);
+
+    //Case PROVIDER_ID
+    service.getRecordLogEntity( "recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
   }
 
-  @Test
-  void remove_expectSuccess() {
-    service.remove("1");
-    verify(errorLogRepository).deleteByDatasetId("1");
-    verify(recordLogRepository).deleteByDatasetId("1");
-  }
-
-  @Test
-  void remove_errorOnDelete_expectFail() {
-    doThrow(new ServiceException("Failed", new Exception())).when(recordLogRepository)
-        .deleteByDatasetId("1");
-    assertThrows(ServiceException.class, () -> service.remove("1"));
-  }
-
-  @Test
-  void remove_nullInput_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.remove(null));
-  }
 }

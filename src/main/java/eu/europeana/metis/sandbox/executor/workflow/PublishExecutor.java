@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.Step;
@@ -15,20 +15,21 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the published queue
  */
 @Component
-class PreviewedConsumer extends StepConsumer {
+class PublishExecutor extends StepExecutor {
 
   private final IndexingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.published.queue}")
   private String routingKey;
 
-  public PreviewedConsumer(AmqpTemplate amqpTemplate,
+  public PublishExecutor(AmqpTemplate amqpTemplate,
       IndexingService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}", containerFactory = "previewedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.previewed.queue}",
+      containerFactory = "publishFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.previewed.auto-start:true}")
   public void publish(Event input) {
     consume(routingKey, input, Step.PUBLISH,

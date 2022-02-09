@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
@@ -13,20 +13,21 @@ import org.springframework.stereotype.Component;
  * result in the enriched queue
  */
 @Component
-class NormalizedConsumer extends StepConsumer {
+class EnrichmentExecutor extends StepExecutor {
 
   private final EnrichmentService service;
 
   @Value("${sandbox.rabbitmq.queues.record.enriched.queue}")
   private String routingKey;
 
-  public NormalizedConsumer(AmqpTemplate amqpTemplate,
+  public EnrichmentExecutor(AmqpTemplate amqpTemplate,
       EnrichmentService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}", containerFactory = "normalizedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}",
+      containerFactory = "enrichmentFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.normalized.auto-start:true}")
   public void enrich(Event input) {
     consume(routingKey, input, Step.ENRICH, () -> service.enrich(input.getBody()));

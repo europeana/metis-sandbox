@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -56,7 +55,7 @@ class DatasetServiceImplTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("".getBytes()).recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId(1L).build();
     var dataset = new Dataset("1234", Set.of(record), 0);
     var datasetEntity = new DatasetEntity("name", 5, Language.NL, Country.NETHERLANDS, false);
     datasetEntity.setDatasetId(1);
@@ -67,7 +66,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publishWithoutXslt(dataset);
 
     assertEquals("1234", result.getDatasetId());
   }
@@ -78,24 +77,21 @@ class DatasetServiceImplTest {
     var records = new ArrayList<ByteArrayInputStream>();
     records.add(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("".getBytes()).recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId(1L).build();
     var dataset = new Dataset("1234", Set.of(record), 0);
     var datasetEntity = new DatasetEntity("name", 5, Language.NL, Country.NETHERLANDS, false);
     datasetEntity.setDatasetId(1);
     ByteArrayInputStream xsltContent = new ByteArrayInputStream(
         "xsltContent".getBytes(StandardCharsets.UTF_8));
-    byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
-        transformResultMock);
     when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false, xsltContent);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false,
+        xsltContent);
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
-    verify(transformationService, times(1)).transform("1_name", xsltContent, "record1".getBytes());
+    verify(publishService, times(1)).publishWithXslt(dataset);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -105,7 +101,7 @@ class DatasetServiceImplTest {
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("".getBytes()).recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId(1L).build();
     var dataset = new Dataset("1234", Set.of(record), 0);
     var datasetEntity = new DatasetEntity("name", 1, Language.NL, Country.NETHERLANDS, false);
     datasetEntity.setDatasetId(1);
@@ -116,7 +112,7 @@ class DatasetServiceImplTest {
     var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
+    verify(publishService, times(1)).publishWithoutXslt(dataset);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -127,27 +123,21 @@ class DatasetServiceImplTest {
     records.add(new ByteArrayInputStream("record1".getBytes()));
     records.add(new ByteArrayInputStream("record2".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("".getBytes()).recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId(1L).build();
     var dataset = new Dataset("1234", Set.of(record), 0);
     var datasetEntity = new DatasetEntity("name", 1, Language.NL, Country.NETHERLANDS, false);
     datasetEntity.setDatasetId(1);
     ByteArrayInputStream xsltContent = new ByteArrayInputStream(
         "xsltContent".getBytes(StandardCharsets.UTF_8));
-    byte[] transformResultMock = "transformedRecord".getBytes(StandardCharsets.UTF_8);
 
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-    when(transformationService.transform("1_name", xsltContent, "record1".getBytes())).thenReturn(
-        transformResultMock);
-    when(transformationService.transform("1_name", xsltContent, "record2".getBytes())).thenReturn(
-        transformResultMock);
     when(generatorService.generate(any(DatasetMetadata.class), eq(records)))
         .thenReturn(dataset);
-    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false, xsltContent);
+    var result = service.createDataset("name", Country.AUSTRIA, Language.BE, records, false,
+        xsltContent);
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, times(1)).publish(dataset);
-    verify(transformationService, times(2)).transform(anyString(), any(ByteArrayInputStream.class),
-        any(byte[].class));
+    verify(publishService, times(1)).publishWithXslt(dataset);
     assertEquals("1234", result.getDatasetId());
   }
 
@@ -168,7 +158,7 @@ class DatasetServiceImplTest {
 
     var records = List.of(new ByteArrayInputStream("record1".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("".getBytes()).recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId(1L).build();
     var dataset = new Dataset("1234", Set.of(record), 0);
 
     when(datasetRepository.save(any(DatasetEntity.class)))
@@ -177,7 +167,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, false));
 
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset);
+    verify(publishService, never()).publishWithoutXslt(dataset);
   }
 
   @Test
@@ -186,7 +176,7 @@ class DatasetServiceImplTest {
     var records = List.of(new ByteArrayInputStream("record1".getBytes()),
         new ByteArrayInputStream("record2".getBytes()));
     var record = Record.builder().datasetId("1").datasetName("").country(Country.AUSTRIA)
-        .language(Language.BE).content("".getBytes()).recordId("").build();
+        .language(Language.BE).content("".getBytes()).recordId(1L).build();
     var dataset = new Dataset("1234", Set.of(record), 0);
     var datasetEntity = new DatasetEntity("name", 1, Language.NL, Country.NETHERLANDS, false);
     datasetEntity.setDatasetId(1);
@@ -201,7 +191,7 @@ class DatasetServiceImplTest {
         () -> service.createDataset("name", Country.AUSTRIA, Language.BE, records, false));
 
     verify(datasetRepository, times(2)).save(any(DatasetEntity.class));
-    verify(publishService, never()).publish(dataset);
+    verify(publishService, never()).publishWithoutXslt(dataset);
   }
 
   @Test

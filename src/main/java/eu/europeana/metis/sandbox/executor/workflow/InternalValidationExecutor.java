@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
@@ -13,20 +13,21 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the internally validated queue
  */
 @Component
-class TransformedConsumer extends StepConsumer {
+class InternalValidationExecutor extends StepExecutor {
 
   private final InternalValidationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
   private String routingKey;
 
-  public TransformedConsumer(AmqpTemplate amqpTemplate,
+  public InternalValidationExecutor(AmqpTemplate amqpTemplate,
       InternalValidationService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}", containerFactory = "transformedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}",
+      containerFactory = "internalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
   public void validateInternal(Event input) {
     consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getBody()));

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -13,18 +13,19 @@ import org.springframework.stereotype.Component;
  * Consumes published events to close them
  */
 @Component
-class PublishedConsumer {
+class CloseExecutor {
 
   private final AmqpTemplate amqpTemplate;
 
   @Value("${sandbox.rabbitmq.routing-key.closed}")
   private String routingKey;
 
-  public PublishedConsumer(AmqpTemplate amqpTemplate) {
+  public CloseExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.published.queue}", containerFactory = "publishedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.published.queue}",
+      containerFactory = "closingFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.published.auto-start:true}")
   public void close(Event input) {
     if (input.getStatus() == Status.FAIL) {

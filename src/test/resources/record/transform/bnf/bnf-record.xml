@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<record xmlns="http://www.openarchives.org/OAI/2.0/"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   <header>
+      <identifier>oai:bnf.fr:gallica/ark:/12148/btv1b110012843</identifier>
+      <datestamp>2020-01-07</datestamp>
+      <setSpec>gallica:typedoc:manuscrits</setSpec>
+   </header>
+   <metadata>
+      <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+         <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/">http://gallica.bnf.fr/ark:/12148/btv1b110012843</dc:identifier>
+         <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">AḤMAD IBN YŪSUF AL-DIMA&#x8a;QĪ [AL-QARAMĀNĪ], m. 1019/1611. Taʾrīẖ aẖbār al-duwal wa āṯār al-uwal.</dc:title>
+         <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">أحمد بن يوسف الدمشقي القرماني. تأريخ أخبار الدول و آثار الأول.</dc:title>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Aẖbār al-duwal wa-āṯār al-uwal</dc:description>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Tuḥfat al-ʿaǧāʾib wa-mā fī al-dunyā min al-ġarāʾib</dc:description>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">أخبار الدول واَثار الأول</dc:description>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">تحفه العجائب وما في الدنيا من الغرائب</dc:description>
+         <dc:relation xmlns:dc="http://purl.org/dc/elements/1.1/">Notice du catalogue : http://archivesetmanuscrits.bnf.fr/ark:/12148/cc29514m</dc:relation>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Numérisation effectuée à partir d'un document de substitution.</dc:description>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Rédaction terminée en muḥarram 1008/1599.Incomplet de la fin. Le texte s'arrête au cours de la dernière partie du dernier chapitre (cf. éd. de Beyrouth, 1992, III p. 501)Titre aux f. 2 et 2v. Au f. 1 figure un autre titre : Tuḥfat al-ʿaǧāʾib wa mā fī l-dunyā min al-ġarāʾib.Inc. (f. 2v) :الحمد لله على تصاريف العبر عند سماع التواريخ (...) أمّا بعد فلمّا كان في التواريخDerniers mots (f. 266v) :تشتمل على نيف و تسعين ألف قرية و هي مدينة عظيمةBROCKELMANN (C), Geschichte der arabischen Literatur, II2 387 ; Suppl., II p. 412 ; ʿABD AL-RAḤMĀN, I p. 760 ; Lithographié à Baghdad, 1865 ; réimpr. Beyrouth, 1980 ; Impr. en marge du Kāmil fī l-taʿrīẖ de Ibn al-Aṯīr, Būlāq, 1290 h/1874 ; éd. F. SAʿD et A. HUTAYT, Beyrouth, 1992.Copie anonyme et non datée, peut-être de plusieurs mains.</dc:description>
+         <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Provient de la collection Asselin de Cherville. - Corrections marginales. - Vers en turc ; marques effacées (f. 1) ; deux lignes ajoutées (f. 267).</dc:description>
+         <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">Taʿlīq. - et. - nasẖī. - - Rares vocalisations. - Ponctuation de points et virgules inversées rouges. - Titres rubriqués omis aux f. 183-191, puis 257 à la fin. - Réclames à tous les feuillets. - Marques de collation avec un autographe (f. 15v, 18v, 23...). - Réserves. - 267 fol. (f. 175-175v laissés en blanc). Derniers feuillets endommagés. Foliotation orientale. - 295 x 195 mm. - 31 lignes à la page. - Surface écrite 215 x 110 mm. - Réglure à la. - miṣṭara. - . - Quinions. - Papier filigrané. Filigranes en forme d'ancre, cf. MOŠIN (V.), Anchor Watermarks type It IV 2g 1c (f. 47, 267), contremarques A ? (f. 13), BB (f. 25) ; d'arbalète avec les lettres BE (f. 175). - Reliure à recouvrement, maroquin brun, plaques centrales en forme de mandorles polylobées, 70 x 53 mm estampées à froid ; décor de feuilles bifurquées et chardons, cf. DEROCHE (F.), Les Manuscrits du Coran : du Maghreb à l'Insulinde. Paris, 1985, II, type OSd 8 ; pendentifs à décor de chardon. Bordure de filets estampés à froid. Axe vertical marqué par un filet et trois s à l'intersection avec la bordure. Motif de chardon au rabat. Bordure de filets au rabat et sur la partie protégeant la gouttière. Contreplats de papier peigne</dc:format>
+         <dc:subject xmlns:dc="http://purl.org/dc/elements/1.1/">Histoire universelle et antéislamique</dc:subject>
+         <dc:subject xmlns:dc="http://purl.org/dc/elements/1.1/">Prophète et premiers califes</dc:subject>
+         <dc:subject xmlns:dc="http://purl.org/dc/elements/1.1/">Chroniques et Histoire des dynasties</dc:subject>
+         <dc:subject xmlns:dc="http://purl.org/dc/elements/1.1/">Poésie</dc:subject>
+         <dc:source xmlns:dc="http://purl.org/dc/elements/1.1/">Bibliothèque nationale de France. Département des Manuscrits. Arabe 1556</dc:source>
+         <dc:rights xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="fre">domaine public</dc:rights>
+         <dc:rights xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="eng">public domain</dc:rights>
+         <dc:date xmlns:dc="http://purl.org/dc/elements/1.1/">1601-1700</dc:date>
+         <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">ara</dc:language>
+         <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">ota</dc:language>
+         <dc:type xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="eng">manuscript</dc:type>
+         <dc:type xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="fre">manuscrit</dc:type>
+         <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Aḥmad ibn Yūsuf al-Dima&#x9a;qī al-Qaramānī. Auteur du texte</dc:creator>
+         <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">أحمد بن يوسف الدمشقي القرماني. Auteur du texte</dc:creator>
+         <dc:contributor xmlns:dc="http://purl.org/dc/elements/1.1/">ASSELIN DE CHERVILLE, Jean-Louis. Ancien possesseur</dc:contributor>
+         <dc:contributor xmlns:dc="http://purl.org/dc/elements/1.1/">RENAUDOT, Eusèbe. Ancien possesseur</dc:contributor>
+      </oai_dc:dc>
+   </metadata>
+</record>

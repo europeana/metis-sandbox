@@ -7,15 +7,16 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum Step {
   CREATE("import", 0),
-  VALIDATE_EXTERNAL("validate (edm external)", 1),
-  TRANSFORM("transform", 2),
-  VALIDATE_INTERNAL("validate (edm internal)", 3),
-  NORMALIZE("normalise", 4),
-  ENRICH("enrich", 5),
-  MEDIA_PROCESS("process media", 6),
-  PREVIEW("preview", 7),
-  PUBLISH("publish", 8),
-  CLOSE("close", 9);
+  TRANSFORM_TO_EDM_EXTERNAL("transform to EDM external", 1),
+  VALIDATE_EXTERNAL("validate (edm external)", 2),
+  TRANSFORM("transform", 3),
+  VALIDATE_INTERNAL("validate (edm internal)", 4),
+  NORMALIZE("normalise", 5),
+  ENRICH("enrich", 6),
+  MEDIA_PROCESS("process media", 7),
+  PREVIEW("preview", 8),
+  PUBLISH("publish", 9),
+  CLOSE("close", 10);
 
   private final String value;
   private final int precedence;

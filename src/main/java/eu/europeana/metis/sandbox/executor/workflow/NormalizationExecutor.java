@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
@@ -13,20 +13,21 @@ import org.springframework.stereotype.Component;
  * Publishes the result in the normalized queue
  */
 @Component
-class InternallyValidatedConsumer extends StepConsumer {
+class NormalizationExecutor extends StepExecutor {
 
   private final NormalizationService service;
 
   @Value("${sandbox.rabbitmq.queues.record.normalized.queue}")
   private String routingKey;
 
-  public InternallyValidatedConsumer(AmqpTemplate amqpTemplate,
+  public NormalizationExecutor(AmqpTemplate amqpTemplate,
       NormalizationService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}", containerFactory = "internallyValidatedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.internal.queue}",
+      containerFactory = "normalizationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.validated.internal.auto-start:true}")
   public void normalize(Event input) {
     consume(routingKey, input, Step.NORMALIZE, () -> service.normalize(input.getBody()));

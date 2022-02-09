@@ -37,7 +37,7 @@ class IndexingServiceImpl implements IndexingService {
       indexer.index(record.getContentInputStream(),
               new IndexingProperties(new Date(), false, null, false, true));
     } catch (IndexingException ex) {
-      throw new RecordProcessingException(record.getRecordId(), ex);
+      throw new RecordProcessingException(record.getProviderId(), ex);
     }
 
     return new RecordInfo(record);

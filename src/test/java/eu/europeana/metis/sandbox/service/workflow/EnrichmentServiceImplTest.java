@@ -34,7 +34,7 @@ class EnrichmentServiceImplTest {
       throws EnrichmentException, DereferenceException, SerializationException {
     var content = "This is the content";
     var newContent = "This is new content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -48,14 +48,14 @@ class EnrichmentServiceImplTest {
   void enrich_withDereferenceException_expectFail()
       throws EnrichmentException, DereferenceException, SerializationException {
     var content = "This is the content";
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
     when(enrichmentWorker.process(any(InputStream.class)))
         .thenThrow(new EnrichmentException("Failed", new Exception()));
     var recordInfo = service.enrich(record);
 
-    assertEquals("1", recordInfo.getRecord().getRecordId());
+    assertEquals(1L, recordInfo.getRecord().getRecordId());
     assertEquals(1, recordInfo.getErrors().size());
   }
 

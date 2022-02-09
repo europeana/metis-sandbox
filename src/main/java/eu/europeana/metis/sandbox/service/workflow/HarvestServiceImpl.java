@@ -63,14 +63,14 @@ public class HarvestServiceImpl implements HarvestService {
   @Override
   public HarvestContent harvestZipUrl(String url) throws ServiceException {
 
-    HarvestContent pairResult;
+    HarvestContent harvestContent;
 
     try (InputStream input = new URL(url).openStream()) {
-      pairResult = this.harvest(input);
+      harvestContent = this.harvest(input);
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records from " + url, e);
     }
-    return pairResult;
+    return harvestContent;
   }
 
   @Override

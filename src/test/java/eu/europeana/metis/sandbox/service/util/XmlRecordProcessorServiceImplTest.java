@@ -45,14 +45,14 @@ class XmlRecordProcessorServiceImplTest {
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
-    String recordId = service.getRecordId(xmlRecord);
+    final String recordId = service.getProviderId(xmlRecord);
 
     assertEquals("URN:NBN:SI:doc-35SZSOCF", recordId);
   }
 
   @Test
   void getRecordId_nullRecord_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.getRecordId(null));
+    assertThrows(NullPointerException.class, () -> service.getProviderId(null));
   }
 
   @Test
@@ -64,7 +64,7 @@ class XmlRecordProcessorServiceImplTest {
     when(xPath.evaluate(any(String.class), any(InputSource.class)))
         .thenThrow(new XPathExpressionException("Fail here"));
 
-    assertThrows(RecordParsingException.class, () -> service.getRecordId(xmlRecord));
+    assertThrows(RecordParsingException.class, () -> service.getProviderId(xmlRecord));
   }
 
   @Test
@@ -73,6 +73,6 @@ class XmlRecordProcessorServiceImplTest {
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
-    assertThrows(IllegalArgumentException.class, () -> service.getRecordId(xmlRecord));
+    assertThrows(IllegalArgumentException.class, () -> service.getProviderId(xmlRecord));
   }
 }

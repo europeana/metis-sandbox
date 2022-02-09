@@ -21,26 +21,24 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @return statistics for the given dataset
    * @see StepStatistic
    */
-  @Query("SELECT " +
-      "    new eu.europeana.metis.sandbox.entity.StepStatistic(rle.step, rle.status, COUNT(rle)) " +
-      "FROM " +
-      "    RecordLogEntity rle " +
-      "WHERE rle.datasetId = ?1 " +
-      "GROUP BY " +
-      "    rle.step, rle.status")
+  @Query( value = "SELECT new eu.europeana.metis.sandbox.entity.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+      + "FROM RecordLogEntity rle "
+      + "WHERE rle.recordId.datasetId = ?1 "
+      + "GROUP BY rle.step, rle.status")
   List<StepStatistic> getStepStatistics(String datasetId);
 
   /**
    * Get record given a record id, dataset id and step.
-   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId()} and {@link
-   * RecordLogEntity#getEuropeanaId()}.</p>
+   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
+   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
    *
    * @param recordId the record id
    * @param datasetId the dataset id
    * @param step the step
    * @return the record log
    */
-  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId = ?1 OR rle.europeanaId= ?1) AND rle.datasetId = ?2 AND rle.step = ?3 ")
+  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
+          "AND rle.recordId.datasetId = ?2 AND rle.step = ?3 ")
   RecordLogEntity findRecordLogByRecordIdDatasetIdAndStep(String recordId, String datasetId, Step step);
 
   /**
@@ -49,6 +47,6 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @param datasetId must not be null
    */
   @Modifying
-  @Query("delete from RecordLogEntity where datasetId = ?1")
+  @Query("delete from RecordLogEntity where recordId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
 }

@@ -37,7 +37,9 @@ public interface DatasetService {
    * @param country     must not be null
    * @param language    must not be null
    * @param records     must not be null
-   * @param xsltEdmExternalContentStream the xslt file as an input stream
+   * @param recordLimitExceeded boolean to indicate if the record max has been exceeded
+   * during harvesting
+   * @param xsltEdmExternalContentStream Content of xslt file as input stream
    * @return the created dataset
    * @throws NullPointerException     if any input is null
    * @throws IllegalArgumentException if records list is empty
@@ -47,7 +49,8 @@ public interface DatasetService {
    * @see Dataset
    */
   Dataset createDataset(String datasetName, Country country, Language language,
-      List<ByteArrayInputStream> records, boolean hasReachedRecordLimit, InputStream xsltEdmExternalContentStream);
+      List<ByteArrayInputStream> records, boolean recordLimitExceeded,
+      InputStream xsltEdmExternalContentStream);
 
   /**
    * Get dataset ids created before than the specified days

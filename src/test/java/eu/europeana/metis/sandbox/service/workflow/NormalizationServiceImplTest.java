@@ -38,7 +38,7 @@ class NormalizationServiceImplTest {
   @Test
   void normalize_expectSuccess()
       throws NormalizationConfigurationException, NormalizationException {
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -53,7 +53,7 @@ class NormalizationServiceImplTest {
   @Test
   void normalize_normalizationConfigException_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -68,7 +68,7 @@ class NormalizationServiceImplTest {
   @Test
   void normalize_normalizationException_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 

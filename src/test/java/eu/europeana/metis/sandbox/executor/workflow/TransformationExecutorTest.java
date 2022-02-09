@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
+import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,64 +25,64 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class TransformedConsumerTest {
+class TransformationExecutorTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
 
   @Mock
-  private InternalValidationService service;
+  private TransformationService service;
 
   @Captor
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private TransformedConsumer consumer;
+  private TransformationExecutor consumer;
 
   @Test
-  void validateInternal_expectSuccess() {
+  void transform_expectSuccess() {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
-    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.SUCCESS);
+        .recordId(1L).build();
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_EXTERNAL, Status.SUCCESS);
 
-    when(service.validate(record)).thenReturn(new RecordInfo(record));
-    consumer.validateInternal(recordEvent);
+    when(service.transformToEdmInternal(record)).thenReturn(new RecordInfo(record));
+    consumer.transform(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).transformToEdmInternal(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.VALIDATE_INTERNAL, captor.getValue().getStep());
+    assertEquals(Step.TRANSFORM, captor.getValue().getStep());
   }
 
   @Test
-  void validateInternal_inputMessageWithFailStatus_expectNoInteractions() {
+  void transform_inputMessageWithFailStatus_expectNoInteractions() {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
-    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.FAIL);
+        .recordId(1L).build();
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_EXTERNAL, Status.FAIL);
 
-    consumer.validateInternal(recordEvent);
+    consumer.transform(recordEvent);
 
-    verify(service, never()).validate(record);
+    verify(service, never()).transformToEdmInternal(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
   @Test
-  void validateInternal_serviceThrowException_expectFailStatus() {
+  void transform_serviceThrowException_expectFailStatus() {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
-    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.SUCCESS);
+        .recordId(1L).build();
+    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_EXTERNAL, Status.SUCCESS);
 
-    when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.transformToEdmInternal(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.validateInternal(recordEvent);
+    consumer.transform(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).transformToEdmInternal(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

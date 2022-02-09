@@ -38,7 +38,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 class SandboxConfig {
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
-  private String initialQueue;
+  private String createdQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  private String transformationToEdmExternalQueue;
 
   @Value("${sandbox.dataset.creation.threads.core-pool-size}")
   private Integer corePoolSize;
@@ -61,6 +64,12 @@ class SandboxConfig {
   private String edmSorterUrl;
 
   private String defaultXsltUrl;
+
+  @Value("${sandbox.dataset.provider-record-url-template}")
+  private String providerRecordUrlTemplate;
+
+  @Value("${sandbox.portal.publish.record-base-url}")
+  private String portalPublishRecordBaseUrl;
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -91,9 +100,24 @@ class SandboxConfig {
     return executor;
   }
 
-  @Bean
-  String initialQueue() {
-    return initialQueue;
+  @Bean(name = "createdQueue")
+  String createdQueue() {
+    return createdQueue;
+  }
+
+  @Bean(name = "transformationToEdmExternalQueue")
+  String transformationToEdmExternalQueue(){
+    return transformationToEdmExternalQueue;
+  }
+
+  @Bean(name = "providerRecordUrlTemplate")
+  String providerRecordUrlTemplate() {
+    return providerRecordUrlTemplate;
+  }
+
+  @Bean(name = "portalPublishRecordBaseUrl")
+  String portalPublishRecordBaseUrl() {
+    return portalPublishRecordBaseUrl;
   }
 
   @Bean

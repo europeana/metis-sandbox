@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Event;
@@ -13,20 +13,21 @@ import org.springframework.stereotype.Component;
  * the result in the media processed queue
  */
 @Component
-class EnrichedConsumer extends StepConsumer {
+class MediaProcessingExecutor extends StepExecutor {
 
   private final MediaProcessingService service;
 
   @Value("${sandbox.rabbitmq.queues.record.media.queue}")
   private String routingKey;
 
-  public EnrichedConsumer(AmqpTemplate amqpTemplate,
+  public MediaProcessingExecutor(AmqpTemplate amqpTemplate,
       MediaProcessingService service) {
     super(amqpTemplate);
     this.service = service;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.enriched.queue}", containerFactory = "enrichedFactory",
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.enriched.queue}",
+      containerFactory = "mediaProcessingFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.enriched.auto-start:true}")
   public void processMedia(Event input) {
     consume(routingKey, input, Step.MEDIA_PROCESS, () -> service.processMedia(input.getBody()));

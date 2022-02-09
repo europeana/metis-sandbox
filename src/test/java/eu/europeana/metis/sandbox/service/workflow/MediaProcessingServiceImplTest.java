@@ -72,7 +72,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_expectSuccess() throws RdfDeserializationException,
       MediaProcessorException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -117,7 +117,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_getRdfResourceEntries_expectFail()
       throws MediaProcessorException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -133,7 +133,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_getResourceExtractionResults_MediaProcessorException_expectFail()
       throws MediaProcessorException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -150,7 +150,7 @@ class MediaProcessingServiceImplTest {
       throws RdfDeserializationException, MediaProcessorException,
       MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -182,7 +182,7 @@ class MediaProcessingServiceImplTest {
       throws RdfDeserializationException, MediaProcessorException,
       MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -213,7 +213,7 @@ class MediaProcessingServiceImplTest {
       throws RdfDeserializationException, MediaProcessorException,
       MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -258,7 +258,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_getEnrichedRdf_RdfDeserializationException_expectFail()
       throws RdfDeserializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -276,7 +276,7 @@ class MediaProcessingServiceImplTest {
           throws RdfDeserializationException, MediaProcessorException, MediaExtractionException,
           RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content(content).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 

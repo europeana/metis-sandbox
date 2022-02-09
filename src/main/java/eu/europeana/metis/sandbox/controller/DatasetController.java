@@ -222,7 +222,8 @@ class DatasetController {
       @ApiResponse(code = 404, message = "Record not found")
   })
   @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
-  public RecordTierCalculationView computeRecordTierCalculation(@PathVariable("id") String datasetId,
+  public RecordTierCalculationView computeRecordTierCalculation(
+          @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
       @RequestParam String recordId) throws NoRecordFoundException {
     return recordTierCalculationService.calculateTiers(recordId, datasetId);
   }
@@ -240,7 +241,8 @@ class DatasetController {
       @ApiResponse(code = 404, message = "Record not found")
   })
   @GetMapping(value = "{id}/record")
-  public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId) throws NoRecordFoundException {
+  public String getRecord(
+          @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId, @RequestParam String recordId) throws NoRecordFoundException {
     return recordLogService.getProviderRecordString(recordId, datasetId);
   }
 

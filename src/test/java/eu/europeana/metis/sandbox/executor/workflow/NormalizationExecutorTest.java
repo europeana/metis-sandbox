@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.consumer.workflow;
+package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import eu.europeana.metis.sandbox.service.workflow.TransformationService;
+import eu.europeana.metis.sandbox.service.workflow.NormalizationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,64 +25,64 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class ExternallyValidatedConsumerTest {
+class NormalizationExecutorTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
 
   @Mock
-  private TransformationService service;
+  private NormalizationService service;
 
   @Captor
   private ArgumentCaptor<Event> captor;
 
   @InjectMocks
-  private ExternallyValidatedConsumer consumer;
+  private NormalizationExecutor consumer;
 
   @Test
-  void transform_expectSuccess() {
+  void normalize_expectSuccess() {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.transformToEdmInternal(record)).thenReturn(new RecordInfo(record));
-    consumer.transform(recordEvent);
+    when(service.normalize(record)).thenReturn(new RecordInfo(record));
+    consumer.normalize(recordEvent);
 
-    verify(service).transformToEdmInternal(record);
+    verify(service).normalize(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.TRANSFORM, captor.getValue().getStep());
+    assertEquals(Step.NORMALIZE, captor.getValue().getStep());
   }
 
   @Test
-  void transform_inputMessageWithFailStatus_expectNoInteractions() {
+  void normalize_inputMessageWithFailStatus_expectNoInteractions() {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
-    consumer.transform(recordEvent);
+    consumer.normalize(recordEvent);
 
-    verify(service, never()).transformToEdmInternal(record);
+    verify(service, never()).normalize(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
   @Test
-  void transform_serviceThrowException_expectFailStatus() {
+  void normalize_serviceThrowException_expectFailStatus() {
     var record = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
-        .recordId("").build();
+        .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.transformToEdmInternal(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.normalize(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 
-    consumer.transform(recordEvent);
+    consumer.normalize(recordEvent);
 
-    verify(service).transformToEdmInternal(record);
+    verify(service).normalize(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());
