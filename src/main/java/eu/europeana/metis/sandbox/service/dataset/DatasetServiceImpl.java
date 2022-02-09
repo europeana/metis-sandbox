@@ -43,6 +43,7 @@ class DatasetServiceImpl implements DatasetService {
     }
 
     @Override
+    @Transactional
     public Dataset createDataset(String datasetName, Country country, Language language,
                                  List<ByteArrayInputStream> records, boolean recordLimitExceeded) {
         return createDataset(datasetName, country, language, records, recordLimitExceeded,
