@@ -79,9 +79,9 @@ class DatasetServiceImpl implements DatasetService {
             throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
         }
 
-        final String datasetId = String.valueOf(entity.getDatasetId());
+        String datasetId = String.valueOf(entity.getDatasetId());
 
-        final Dataset dataset = generatorService.generate(DatasetMetadata.builder()
+        Dataset dataset = generatorService.generate(DatasetMetadata.builder()
                 .withDatasetId(datasetId)
                 .withDatasetName(datasetName)
                 .withCountry(country)

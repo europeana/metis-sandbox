@@ -173,17 +173,6 @@ class DatasetReportServiceImplTest {
         var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
 
-//        RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1");
-//        recordEntity1.setId(1L);
-//        RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1");
-//        recordEntity2.setId(2L);
-//        RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1");
-//        recordEntity3.setId(3L);
-//        RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1");
-//        recordEntity4.setId(4L);
-//        RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1");
-//        recordEntity5.setId(5L);
-
         var errorView1 = new ErrorLogViewImpl(1L, getTestRecordEntity(1L), Step.VALIDATE_EXTERNAL, Status.FAIL,
                 "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.");
         var errorView2 = new ErrorLogViewImpl(1L, getTestRecordEntity(2L), Step.VALIDATE_EXTERNAL, Status.FAIL,
