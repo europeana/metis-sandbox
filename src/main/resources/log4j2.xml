@@ -14,7 +14,7 @@
     <Logger name="eu.europeana" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="eu.europeana.metis.sandboxeu.europeana.metis.sandbox" level="info">
+    <Logger name="eu.europeana.metis.sandbox" level="info">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.springframework" level="warn">

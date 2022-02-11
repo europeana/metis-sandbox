@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -7,72 +8,78 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Config for record log. This binds an exchange with a queue using a routing key that listens for
- * all messages traveling through the message broker
+ * Config for harvester listeners. Every listener has a {@link SimpleRabbitListenerContainerFactory}.
+ * <br /><br /> If changes like increasing consumers for a listener are needed, here is the place to
+ * do it, by using the SimpleRabbitListenerContainerFactory
  */
+
+
 @Configuration
-class RecordLogConfiguration {
+public class HarvesterOaiPmhAmqpConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.log.queue}")
-  private String queue;
+  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.queue}")
+  private String harvestOaiPmhQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.dlq}")
-  private String dlq;
+  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.dlq}")
+  private String harvestOaiPmhDlq;
 
   @Value("${sandbox.rabbitmq.exchange.dlq}")
   private String exchangeDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.routing-key}")
-  private String routingKey;
+  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.routing-key}")
+  private String harvestOaiPmhRoutingKey;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.consumers}")
   private int consumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.max-consumers}")
   private int maxConsumers;
 
   private final MessageConverter messageConverter;
 
   private final AmqpConfiguration amqpConfiguration;
 
-  public RecordLogConfiguration(
-      @Qualifier("recordMessageConverter") MessageConverter messageConverter,
+  public HarvesterOaiPmhAmqpConfig(
+      MessageConverter messageConverter,
       AmqpConfiguration amqpConfiguration) {
     this.messageConverter = messageConverter;
     this.amqpConfiguration = amqpConfiguration;
   }
 
   @Bean
-  Queue logQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq)
+  Queue buildQueue() {
+    return QueueBuilder.durable(harvestOaiPmhQueue).deadLetterExchange(exchangeDlq)
+        .deadLetterRoutingKey(
+            harvestOaiPmhDlq)
         .build();
   }
 
   @Bean
-  Queue logDlq() {
-    return QueueBuilder.durable(dlq).build();
+  Queue buildDlq() {
+    return QueueBuilder.durable(harvestOaiPmhDlq).build();
   }
 
   @Bean
-  Binding logBinding() {
-    return BindingBuilder.bind(logQueue()).to(amqpConfiguration.exchange()).with(routingKey);
+  Binding buildBinding() {
+    return BindingBuilder.bind(buildQueue()).to(amqpConfiguration.exchange()).with(
+        harvestOaiPmhRoutingKey);
   }
 
   @Bean
-  Binding logDlqBinding() {
-    return BindingBuilder.bind(logDlq()).to(amqpConfiguration.dlqExchange()).with(dlq);
+  Binding buildDlqBinding() {
+    return BindingBuilder.bind(buildDlq()).to(amqpConfiguration.dlqExchange())
+        .with(harvestOaiPmhDlq);
   }
 
   // By having a factory defined for each consumer we can tune specific settings if we need to
   @Bean
-  SimpleRabbitListenerContainerFactory recordLogFactory(
+  SimpleRabbitListenerContainerFactory harvestOaiPmhFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
     var factory = new SimpleRabbitListenerContainerFactory();
@@ -82,4 +89,5 @@ class RecordLogConfiguration {
     factory.setMaxConcurrentConsumers(maxConsumers);
     return factory;
   }
+
 }

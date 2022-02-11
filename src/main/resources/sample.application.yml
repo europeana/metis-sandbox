@@ -138,6 +138,13 @@ sandbox:
       name: sandbox
       dlq: ${sandbox.rabbitmq.exchange.name}.dlq
     queues:
+      harvest-oai:
+        queue: sandbox.harvest-oai
+        dlq: ${sandbox.rabbitmq.queues.record.harvest-oai.queue}.dlq
+        routing-key: sandbox.record.harvest#
+        auto-start: true
+        consumers: 20
+        max-consumers: 40
       record:
         log:
           queue: sandbox.record.log

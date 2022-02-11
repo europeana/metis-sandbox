@@ -37,6 +37,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan("eu.europeana.validation.service")
 class SandboxConfig {
 
+//  @Value("${sandbox.rabbitmq.queues.harvest.queue}")
+//  private String oaiHarvestQueue;
+
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String createdQueue;
 
@@ -99,6 +102,11 @@ class SandboxConfig {
     executor.initialize();
     return executor;
   }
+
+//  @Bean(name = "oaiHarvestedQueue")
+//  String oaiHarvestedQueue() {
+//    return oaiHarvestQueue;
+//  }
 
   @Bean(name = "createdQueue")
   String createdQueue() {

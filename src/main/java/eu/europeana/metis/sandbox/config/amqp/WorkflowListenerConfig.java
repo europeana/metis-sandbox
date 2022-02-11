@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.config.amqp;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +20,7 @@ class WorkflowListenerConfig {
   private final MessageConverter messageConverter;
 
   public WorkflowListenerConfig(
-      MessageConverter messageConverter) {
+      @Qualifier("recordMessageConverter") MessageConverter messageConverter) {
     this.messageConverter = messageConverter;
   }
 

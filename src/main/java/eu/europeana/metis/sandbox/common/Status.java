@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum Status {
   SUCCESS("success"),
+  BUSY("busy"),
   FAIL("error"),
   WARN("warning");
 

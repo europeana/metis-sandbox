@@ -41,7 +41,6 @@ class StepExecutor {
       output = new Event(new RecordInfo(input.getBody(), List.of(recordError)),
           step, Status.FAIL);
     }
-
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

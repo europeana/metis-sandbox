@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
+import eu.europeana.metis.sandbox.common.amqp.HarvestOaiPmhMessageConverter;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
@@ -14,21 +15,28 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Config for amqp, contains exchange, queues and dead letter queues definitions
- * as well as their bindings.
- * <br /><br />
- * If there is a need to add a new queue in the future here is the place to do it
+ * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their
+ * bindings. <br /><br /> If there is a need to add a new queue in the future here is the place to
+ * do it
  */
 @Configuration
 class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
 
+//  private final HarvestOaiPmhMessageConverter harvestOaiPmhMessageConverter;
+
   @Value("${sandbox.rabbitmq.exchange.name}")
   private String exchange;
 
   @Value("${sandbox.rabbitmq.exchange.dlq}")
   private String exchangeDlq;
+
+//  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.queue}")
+//  private String harvestOaiQueue;
+//
+//  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.dlq}")
+//  private String harvestOaiDlq;
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String createdQueue;
@@ -95,6 +103,18 @@ class AmqpConfiguration {
     this.messageConverter = messageConverter;
   }
 
+
+//
+//  public AmqpConfiguration(HarvestOaiPmhMessageConverter messageConverter) {
+//    this.harvestOaiPmhMessageConverter = messageConverter;
+//    this.messageConverter = null;
+//  }
+
+//  public AmqpConfiguration(
+//      @Qualifier("harvestOaiPmhMessageConverter") HarvestOaiPmhMessageConverter messageConverter) {
+//    this.messageConverter = messageConverter;
+//  }
+
   @Bean
   TopicExchange exchange() {
     return new TopicExchange(exchange);
@@ -116,24 +136,35 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(createdDlq).build(),
-        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            transformationToEdmExternalDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
+//        QueueBuilder.durable(harvestOaiQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(harvestOaiDlq).build(),
+        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(createdDlq).build(),
+        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(
+                transformationToEdmExternalDlq).build(),
+        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(externalValidatedDlq).build(),
+        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(transformedDlq).build(),
+        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(normalizedDlq).build(),
+        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(mediaProcessedDlq).build(),
         QueueBuilder.durable(previewedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
             previewedDlq).build(),
-        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(publishedDlq).build()
+        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(publishedDlq).build()
     );
   }
 
   @Bean
   Declarables deadQueues() {
     return new Declarables(
+//        QueueBuilder.durable(harvestOaiDlq).build(),
         QueueBuilder.durable(createdDlq).build(),
         QueueBuilder.durable(transformationToEdmExternalDlq).build(),
         QueueBuilder.durable(externalValidatedDlq).build(),
@@ -149,14 +180,17 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue, externalValidatedQueue,
-        transformedQueue, normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue,
+    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue,
+        externalValidatedQueue,
+        transformedQueue, normalizedQueue, internalValidatedQueue, enrichedQueue,
+        mediaProcessedQueue,
         previewedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq, externalValidatedDlq,
+    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
+        externalValidatedDlq,
         transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq,
         previewedDlq, publishedDlq);
   }
@@ -164,13 +198,16 @@ class AmqpConfiguration {
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Declarables getDeclarables(String exchange, String created, String transformationToEdmExternal,
+  private Declarables getDeclarables(String exchange, String created,
+      String transformationToEdmExternal,
       String externalValidated, String transformed, String normalized,
       String internalValidated, String enriched, String mediaProcessed,
       String previewed, String published) {
     return new Declarables(
+//        new Binding(harvestOai, DestinationType.QUEUE, exchange, harvestOai, null),
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
-        new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange, transformationToEdmExternal, null),
+        new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange,
+            transformationToEdmExternal, null),
         new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
         new Binding(transformed, DestinationType.QUEUE, exchange, transformed, null),
         new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),

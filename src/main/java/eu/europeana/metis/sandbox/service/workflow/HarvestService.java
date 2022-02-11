@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.domain.HarvestOaiPmhEvent;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -42,4 +43,5 @@ public interface HarvestService {
   HarvestContent harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
       throws ServiceException;
 
+  void harvestOaiPmhToQueue(HarvestOaiPmhEvent event);
 }
