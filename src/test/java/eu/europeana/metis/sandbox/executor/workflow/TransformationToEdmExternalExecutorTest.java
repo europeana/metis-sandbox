@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class TransformationToEdmExternalExecutorTest {
+public class TransformationToEdmExternalExecutorTest {
 
     @Mock
     private AmqpTemplate amqpTemplate;

@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.repository;
 
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import java.util.List;
@@ -28,20 +27,6 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   List<StepStatistic> getStepStatistics(String datasetId);
 
   /**
-   * Get record given a record id, dataset id and step.
-   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
-   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
-   *
-   * @param recordId the record id
-   * @param datasetId the dataset id
-   * @param step the step
-   * @return the record log
-   */
-  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
-          "AND rle.recordId.datasetId = ?2 AND rle.step = ?3 ")
-  RecordLogEntity findRecordLogByRecordIdDatasetIdAndStep(String recordId, String datasetId, Step step);
-
-  /**
    * Delete records that belong to the given dataset id
    *
    * @param datasetId must not be null
@@ -49,8 +34,4 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Modifying
   @Query("delete from RecordLogEntity where recordId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
-
-  RecordLogEntity findRecordLogByEuropeanaIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
-
-  RecordLogEntity findRecordLogByRecordIdAndDatasetIdAndStep(String recordId, String datasetId, Step mediaProcess);
 }
