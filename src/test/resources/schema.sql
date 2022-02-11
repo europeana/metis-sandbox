@@ -27,12 +27,11 @@ create table if not exists dataset (
 create table if not exists record
 (
     id bigserial,
-    europeana_id varchar(255) null,
-    provider_id varchar(255) null,
+    europeana_id varchar(100) null,
+    provider_id varchar(100) null,
     dataset_id varchar(100) not null,
-    Primary Key (id),
-    unique(europeana_id, dataset_id),
-    unique(provider_id, dataset_id)
+    content text not null,
+    Primary Key (id)
     );
 
 create table  if not exists record_log (
@@ -41,10 +40,8 @@ create table  if not exists record_log (
     step varchar(30) not null,
     status varchar(30) not null,
     created_date timestamp with time zone default now(),
-    content text not null,
     Primary Key(id),
-    Foreign Key (record_id) References record(id),
-    unique(record_id, step)
+    Foreign Key (record_id) References record(id)
     );
 
 create table if not exists record_error_log (
@@ -75,6 +72,6 @@ create table if not exists default_transform_xslt
 
 create index on record_log (record_id);
 create index on record_error_log (record_id);
-create index on record (dataset_id, europeana_id, provider_id);
+create index on record (dataset_id);
 create index on thumbnail (dataset_id);
 commit;
