@@ -1,62 +1,71 @@
 package eu.europeana.metis.sandbox.service.record;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService.RecordIdType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.nio.charset.StandardCharsets;
-
-import static org.mockito.Mockito.*;
-
 
 @ExtendWith(MockitoExtension.class)
 public class RecordServiceImplTest {
 
-    @Mock
-    private RecordRepository recordRepository;
+  @Mock
+  private RecordRepository recordRepository;
 
-    @Mock
-    private XmlRecordProcessorService xmlRecordProcessorService;
+  @InjectMocks
+  private RecordServiceImpl service;
 
-    @InjectMocks
-    private RecordServiceImpl service;
+  @BeforeEach
+  void prepare() {
+    reset(recordRepository);
+  }
 
-    @BeforeEach
-    void prepare() {
-        reset(recordRepository);
-    }
+  @Test
+  void getProviderRecordString_expectSuccess() throws Exception {
+    final RecordEntity recordEntity = new RecordEntity();
+    recordEntity.setContent("content");
+    when(recordRepository.findRecordEntityByEuropeanaIdAndDatasetId("recordId", "datasetId"))
+        .thenReturn(recordEntity);
+    assertNotNull(service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+  }
 
-    @Test
-    void setEuropeanaIdAndProviderId_expectSuccess() {
-        byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-        Record record = Record.builder()
-                .recordId(1L)
-                .datasetId("1")
-                .datasetName("datasetName")
-                .country(Country.NETHERLANDS)
-                .language(Language.NL)
-                .content(content).build();
+  @Test
+  void getProviderRecordString_expectFail() {
+    //Case null entity
+    when(recordRepository.findRecordEntityByEuropeanaIdAndDatasetId("recordId", "datasetId")).thenReturn(null);
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
 
-        String providerId = "providerId";
-        String europeanaId = "/1/providerId";
+    //Case null content
+    when(recordRepository.findRecordEntityByEuropeanaIdAndDatasetId("recordId", "datasetId")).thenReturn(new RecordEntity());
+    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString(RecordIdType.EUROPEANA_ID, "recordId", "datasetId"));
+  }
 
-        when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-        service.setEuropeanaIdAndProviderId(record);
+  @Test
+  void getRecordLogEntity() {
+    //Case EUROPEANA_ID
+    service.getRecordEntity(RecordIdType.EUROPEANA_ID, "recordId", "datasetId");
+    verify(recordRepository).findRecordEntityByEuropeanaIdAndDatasetId("recordId", "datasetId");
+    verify(recordRepository, never()).findRecordEntityByProviderIdAndDatasetId(anyString(), anyString());
+    clearInvocations(recordRepository);
 
-        verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
-        assertEquals(providerId, record.getProviderId());
-        assertEquals(europeanaId, record.getEuropeanaId());
-    }
+    //Case PROVIDER_ID
+    service.getRecordEntity(RecordIdType.PROVIDER_ID, "recordId", "datasetId");
+    verify(recordRepository).findRecordEntityByProviderIdAndDatasetId("recordId", "datasetId");
+    verify(recordRepository, never()).findRecordEntityByEuropeanaIdAndDatasetId(anyString(), anyString());
+  }
+
 }

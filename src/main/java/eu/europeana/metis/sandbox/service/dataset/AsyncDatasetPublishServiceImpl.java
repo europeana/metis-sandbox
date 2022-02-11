@@ -6,7 +6,7 @@ import static java.util.Objects.requireNonNull;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Dataset;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.util.concurrent.CompletableFuture;
@@ -51,10 +51,10 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     try {
       if(hasXsltToEdmExternal){
         amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-            new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
       } else {
         amqpTemplate.convertAndSend(createdQueue,
-            new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
+            new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS));
       }
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", record.getProviderId(), e);

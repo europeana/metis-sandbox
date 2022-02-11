@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -42,39 +42,36 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publish_expectSuccess() throws Exception {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId("1")
-                        .europeanaId("1")
+    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L)
         .country(Country.ITALY)
         .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId("2")
-                        .europeanaId("2")
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L)
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     service.publish(dataset, false).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(RecordProcessEvent.class));
+    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
   }
 
   @Test
   void publish_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId("1")
-        .europeanaId("1")
+    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L)
         .country(Country.ITALY)
         .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId("2").europeanaId("2")
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L)
         .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-        .convertAndSend(anyString(), any(RecordProcessEvent.class));
+        .convertAndSend(anyString(), any(Event.class));
 
     service.publish(dataset, false).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(RecordProcessEvent.class));
+    verify(amqpTemplate, times(2)).convertAndSend(anyString(), any(Event.class));
   }
 
   @Test

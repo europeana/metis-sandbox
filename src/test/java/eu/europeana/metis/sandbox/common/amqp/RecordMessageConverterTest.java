@@ -21,7 +21,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -47,7 +47,7 @@ class RecordMessageConverterTest {
     var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
         .language(Language.IT)
         .datasetId("1").datasetName("").recordId(1L).europeanaId("").build();
-    var event = new RecordProcessEvent(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS);
+    var event = new Event(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS);
 
     var result = MessageBuilder.withBody(record.getContent())
         .build();
@@ -63,7 +63,7 @@ class RecordMessageConverterTest {
         .language(Language.IT)
         .datasetId("1").datasetName("").recordId(1L).europeanaId("").build();
     var recordError = new RecordError(new RecordProcessingException("23", new Exception("failed here")));
-    var event = new RecordProcessEvent(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
+    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
         Status.SUCCESS);
 
     var result = MessageBuilder.withBody(record.getContent())
@@ -103,8 +103,8 @@ class RecordMessageConverterTest {
 
     Object result = converter.fromMessage(message);
 
-    assertThat(result, instanceOf(RecordProcessEvent.class));
-    assertArrayEquals("This is the content".getBytes(), ((RecordProcessEvent) result).getRecord().getContent());
+    assertThat(result, instanceOf(Event.class));
+    assertArrayEquals("This is the content".getBytes(), ((Event) result).getBody().getContent());
   }
 
   @Test
@@ -130,8 +130,8 @@ class RecordMessageConverterTest {
 
     Object result = converter.fromMessage(message);
 
-    assertThat(result, instanceOf(RecordProcessEvent.class));
-    assertArrayEquals("This is the content".getBytes(), ((RecordProcessEvent) result).getRecord().getContent());
-    assertEquals("failed", ((RecordProcessEvent) result).getRecordErrors().get(0).getMessage());
+    assertThat(result, instanceOf(Event.class));
+    assertArrayEquals("This is the content".getBytes(), ((Event) result).getBody().getContent());
+    assertEquals("failed", ((Event) result).getRecordErrors().get(0).getMessage());
   }
 }

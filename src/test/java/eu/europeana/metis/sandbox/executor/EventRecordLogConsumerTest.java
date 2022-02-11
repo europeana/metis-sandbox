@@ -10,7 +10,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -35,11 +35,11 @@ class EventRecordLogConsumerTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     consumer.logRecord(recordEvent);
 
-    verify(recordLogService).logRecordEvent(any(RecordProcessEvent.class));
+    verify(recordLogService).logRecordEvent(any(Event.class));
   }
 
   @Test
@@ -48,12 +48,12 @@ class EventRecordLogConsumerTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)
-        .logRecordEvent(any(RecordProcessEvent.class));
+        .logRecordEvent(any(Event.class));
     assertThrows(RecordProcessingException.class, () -> consumer.logRecord(recordEvent));
 
-    verify(recordLogService).logRecordEvent(any(RecordProcessEvent.class));
+    verify(recordLogService).logRecordEvent(any(Event.class));
   }
 }

@@ -11,7 +11,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.workflow.NormalizationService;
@@ -34,7 +34,7 @@ class NormalizationExecutorTest {
   private NormalizationService service;
 
   @Captor
-  private ArgumentCaptor<RecordProcessEvent> captor;
+  private ArgumentCaptor<Event> captor;
 
   @InjectMocks
   private NormalizationExecutor consumer;
@@ -45,7 +45,7 @@ class NormalizationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.normalize(record)).thenReturn(new RecordInfo(record));
     consumer.normalize(recordEvent);
@@ -62,12 +62,12 @@ class NormalizationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
 
     consumer.normalize(recordEvent);
 
     verify(service, never()).normalize(record);
-    verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
+    verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
   @Test
@@ -76,7 +76,7 @@ class NormalizationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
     when(service.normalize(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

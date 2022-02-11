@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -19,9 +20,12 @@ import org.springframework.stereotype.Service;
 @Service
 class TransformationServiceImpl implements TransformationService {
 
+  private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
-  public TransformationServiceImpl(TransformXsltRepository transformXsltRepository) {
+  public TransformationServiceImpl(
+      DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository) {
+    this.datasetRepository = datasetRepository;
     this.transformXsltRepository = transformXsltRepository;
   }
 
@@ -38,14 +42,24 @@ class TransformationServiceImpl implements TransformationService {
       recordTransformed = transformer
           .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
     } catch (TransformationException | EuropeanaIdException e) {
-      throw new RecordProcessingException(record.getRecordId(), e);
+      throw new RecordProcessingException(record.getProviderId(), e);
     }
 
     return new RecordInfo(Record.from(record, recordTransformed));
   }
 
   @Override
-  public byte[] transform(String identifier, InputStream xsltContentInputStream, byte[] recordContent) {
+  public RecordInfo transform(Record record) {
+    InputStream xsltContent = new ByteArrayInputStream(
+        datasetRepository.getXsltContentFromDatasetId(Integer.parseInt(record.getDatasetId()))
+            .getBytes(StandardCharsets.UTF_8));
+    return new RecordInfo(Record.from(record, transform(String.valueOf(record.getRecordId()), xsltContent,
+        record.getContent())));
+  }
+
+  @Override
+  public byte[] transform(String identifier, InputStream xsltContentInputStream,
+      byte[] recordContent) {
 
     byte[] resultRecord;
     try {
@@ -77,7 +91,7 @@ class TransformationServiceImpl implements TransformationService {
     return getJoinDatasetIdDatasetName(record.getDatasetId(), record.getDatasetName());
   }
 
-  private String getJoinDatasetIdDatasetName(String datasetId, String datasetName){
+  private String getJoinDatasetIdDatasetName(String datasetId, String datasetName) {
     return String.join("_", datasetId, datasetName);
   }
 

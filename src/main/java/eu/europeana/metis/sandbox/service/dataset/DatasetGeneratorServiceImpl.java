@@ -8,8 +8,8 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +23,11 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DatasetGeneratorServiceImpl.class);
 
-  private final XmlRecordProcessorService xmlRecordProcessorService;
+  private final RecordRepository recordRepository;
 
-  public DatasetGeneratorServiceImpl(XmlRecordProcessorService xmlRecordProcessorService) {
-    this.xmlRecordProcessorService = xmlRecordProcessorService;
+  public DatasetGeneratorServiceImpl(
+      RecordRepository recordRepository) {
+    this.recordRepository = recordRepository;
   }
 
   @Override
@@ -49,25 +50,35 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
   private Set<Record> processRecordsAndRemoveDuplicates(DatasetMetadata datasetMetadata, List<ByteArrayInputStream> records) {
     return records.stream()
         .map(ByteArrayInputStream::readAllBytes)
+        .map(record -> {
+          RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), new String(record)));
+          Long recordId = recordEntity.getId();
+          return Record.builder()
+              .recordId(recordId)
+              .datasetId(datasetMetadata.getDatasetId())
+              .datasetName(datasetMetadata.getDatasetName())
+              .country(datasetMetadata.getCountry())
+              .language(datasetMetadata.getLanguage())
+              .content(record)
+              .build();
+        })
         .map(recordItem -> getOptionalRecordFromProcessorService(datasetMetadata, recordItem))
         .flatMap(Optional::stream)
         .collect(toSet());
   }
 
-  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, final byte[] recordData) {
+  private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, Record record) {
     try {
-      final String recordId = xmlRecordProcessorService.getRecordId(recordData);
       return Optional.of(Record.builder()
-                               .recordId(recordId)
-                               .europeanaId(EuropeanaIdCreator.constructEuropeanaIdString(recordId, datasetMetadata.getDatasetId()))
+                               .recordId(record.getRecordId())
                                .datasetId(datasetMetadata.getDatasetId())
                                .datasetName(datasetMetadata.getDatasetName())
                                .country(datasetMetadata.getCountry())
                                .language(datasetMetadata.getLanguage())
-                               .content(recordData)
+                               .content(record.getContent())
                                .build());
     } catch (IllegalArgumentException | RecordParsingException processorServiceException) {
-      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordData), processorServiceException);
+      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(record.getContent()), processorServiceException);
       return Optional.empty();
     }
   }
