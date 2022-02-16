@@ -12,11 +12,10 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -221,7 +220,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status, recordList.stream()
                 .map(ErrorLogView::getRecordId)
-                .map(RecordEntity::getProviderId)
+                .map(recordEntity -> String.format("%s | %s | %s", recordEntity.getId(), recordEntity.getProviderId(), recordEntity.getEuropeanaId()))
                 .sorted(String::compareTo)
                 .collect(toList())))));
 

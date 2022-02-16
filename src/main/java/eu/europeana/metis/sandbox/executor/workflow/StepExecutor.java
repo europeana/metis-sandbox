@@ -36,12 +36,21 @@ class StepExecutor {
       var status = recordInfo.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new Event(recordInfo, step, status);
     } catch (RecordProcessingException ex) {
-      logger.error("Exception while performing step: [{}]. ", step.value(), ex);
-      var recordError = new RecordError(ex);
-      output = new Event(new RecordInfo(input.getBody(), List.of(recordError)),
-          step, Status.FAIL);
+      output = createFailEvent(input, step, ex);
+    } catch (RuntimeException ex) {
+      //Also catch runtime exceptions to avoid losing the message or thread
+      output = createFailEvent(input, step, new RecordProcessingException(Long.toString(input.getBody().getRecordId()), ex));
     }
 
     amqpTemplate.convertAndSend(routingKey, output);
+  }
+
+  private Event createFailEvent(Event input, Step step, RecordProcessingException ex) {
+    Event output;
+    logger.error("Exception while performing step: [{}]. ", step.value(), ex);
+    var recordError = new RecordError(ex);
+    output = new Event(new RecordInfo(input.getBody(), List.of(recordError)),
+        step, Status.FAIL);
+    return output;
   }
 }
