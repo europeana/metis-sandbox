@@ -81,25 +81,6 @@ sandbox:
   enrichment:
     dereference-url:
     enrichment-url:
-  preview:
-    mongo:
-      application-name:
-      db:
-      hosts:
-      ports:
-      authentication-db:
-      username:
-      password:
-      ssl-enable:
-    solr:
-      hosts:
-      zookeeper:
-        hosts:
-        ports:
-        chroot:
-        default:
-          collection:
-        timeout:
   publish:
     mongo:
       application-name:
@@ -126,8 +107,6 @@ sandbox:
     signing-region:
     thumbnails-bucket:
   portal:
-    preview:
-      dataset-base-url:
     publish:
       dataset-base-url:
       record-base-url:
@@ -184,10 +163,6 @@ sandbox:
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
-          auto-start: true
-        previewed:
-          queue: sandbox.record.previewed
-          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
           auto-start: true
         published:
           queue: sandbox.record.published

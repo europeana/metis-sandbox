@@ -576,7 +576,7 @@ class DatasetControllerTest {
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
     var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
         Country.NETHERLANDS, false, false);
-    var report = new ProgressInfoDto("https://metis-sandbox", "https://metis-sandbox",
+    var report = new ProgressInfoDto("https://metis-sandbox",
         10, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
     when(datasetReportService.getReport("1")).thenReturn(report);
 
@@ -584,8 +584,6 @@ class DatasetControllerTest {
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.status",
            is("completed")))
-       .andExpect(jsonPath("$.portal-preview",
-           is("https://metis-sandbox")))
        .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
            is(message1)))
        .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
