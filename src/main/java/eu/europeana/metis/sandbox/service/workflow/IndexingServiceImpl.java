@@ -24,17 +24,17 @@ class IndexingServiceImpl implements IndexingService {
   }
 
   @Override
-  public RecordInfo index(Record record) {
-    requireNonNull(record, "Record must not be null");
+  public RecordInfo index(Record recordToIndex) {
+    requireNonNull(recordToIndex, "Record must not be null");
 
     try {
-      publishIndexer.index(record.getContentInputStream(),
+      publishIndexer.index(recordToIndex.getContentInputStream(),
               new IndexingProperties(new Date(), false, null, false, true));
     } catch (IndexingException ex) {
-      throw new RecordProcessingException(record.getProviderId(), ex);
+      throw new RecordProcessingException(recordToIndex.getProviderId(), ex);
     }
 
-    return new RecordInfo(record);
+    return new RecordInfo(recordToIndex);
   }
 
   @Override

@@ -10,12 +10,12 @@ public interface IndexingService {
   /**
    * Index given record in publish
    *
-   * @param record must not be null
+   * @param recordToIndex must not be null
    * @return {@link RecordInfo} containing indexed record
    * @throws NullPointerException if record or index are null
    * @throws RecordProcessingException if there is an issue while indexing
    */
-  RecordInfo index(Record record);
+  RecordInfo index(Record recordToIndex);
 
   /**
    * Remove index for given dataset from publish
