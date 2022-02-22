@@ -44,14 +44,6 @@ sandbox:
   enrichment:
     dereference-url: http://metis-test
     enrichment-url: http://metis-test
-  preview:
-    mongo:
-      application-name: metis-sandbox-application-preview-test
-      db: metis-sandbox-test
-      hosts: localhost
-      ports: 27017
-    solr:
-      hosts: http://metis-test:8888/solr/metis_sandbox_test
   publish:
     mongo:
       application-name: metis-sandbox-application-publish-test
@@ -61,8 +53,6 @@ sandbox:
     solr:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
   portal:
-    preview:
-      dataset-base-url: http://metis-test
     publish:
       dataset-base-url: http://metis-test
       record-base-url: http://metis-test/item
@@ -136,9 +126,6 @@ sandbox:
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
-        previewed:
-          queue: sandbox.record.previewed
-          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
         published:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
