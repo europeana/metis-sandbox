@@ -44,9 +44,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
-  @Value("${sandbox.portal.preview.dataset-base-url}")
-  private String portalPreviewDatasetUrl;
-
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
 
@@ -87,8 +84,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     if (stepStatistics.isEmpty()) {
-      return new ProgressInfoDto(getPreviewPortalUrl(dataset, 0L, 0L),
-          getPublishPortalUrl(dataset, 0L, 0L),
+      return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L, 0L),
           dataset.getRecordsQuantity(), 0L, List.of(),
           datasetInfoDto);
     }
@@ -113,15 +109,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordErrorsByStep));
 
     return new ProgressInfoDto(
-        getPreviewPortalUrl(dataset, completedRecords, failedRecords),
         getPublishPortalUrl(dataset, completedRecords, failedRecords),
         dataset.getRecordsQuantity(), completedRecords,
         stepsInfo, datasetInfoDto);
-  }
-
-  private String getPreviewPortalUrl(DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    return getPortalUrl(portalPreviewDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
   private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,

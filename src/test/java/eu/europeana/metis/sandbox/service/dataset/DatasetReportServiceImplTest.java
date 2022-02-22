@@ -51,8 +51,6 @@ class DatasetReportServiceImplTest {
 
     @BeforeEach
     void setup() {
-        setField(service, "portalPreviewDatasetUrl",
-                "https://metis-sandbox/portal/preview/search?q=edm_datasetName:");
         setField(service, "portalPublishDatasetUrl",
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:");
     }
@@ -68,7 +66,6 @@ class DatasetReportServiceImplTest {
         var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
         var report = new ProgressInfoDto(
-                "A review URL will be generated when the dataset has finished processing",
                 "A review URL will be generated when the dataset has finished processing",
                 5, 4L,
                 List.of(createProgress, externalProgress),
@@ -105,7 +102,6 @@ class DatasetReportServiceImplTest {
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var report = new ProgressInfoDto(
                 "A review URL will be generated when the dataset has finished processing",
-                "A review URL will be generated when the dataset has finished processing",
                 5, 0L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
@@ -131,7 +127,6 @@ class DatasetReportServiceImplTest {
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
 
         var report = new ProgressInfoDto(
-                "https://metis-sandbox/portal/preview/search?q=edm_datasetName:null_dataset*",
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
@@ -164,7 +159,6 @@ class DatasetReportServiceImplTest {
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
         var report = new ProgressInfoDto(
-                "All dataset records failed to be processed",
                 "All dataset records failed to be processed", 5, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
@@ -203,7 +197,6 @@ class DatasetReportServiceImplTest {
         when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
         var expected = new ProgressInfoDto(
-                "Dataset is empty",
                 "Dataset is empty", 0, 0L, List.of(),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
         var report = service.getReport("1");
@@ -232,7 +225,6 @@ class DatasetReportServiceImplTest {
     }
 
     private void assertReportEquals(ProgressInfoDto expected, ProgressInfoDto actual) {
-        assertEquals(expected.getPortalPreviewUrl(), actual.getPortalPreviewUrl());
         assertEquals(expected.getPortalPublishUrl(), actual.getPortalPublishUrl());
         assertEquals(expected.getProcessedRecords(), actual.getProcessedRecords());
         assertEquals(expected.getTotalRecords(), actual.getTotalRecords());

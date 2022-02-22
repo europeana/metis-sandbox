@@ -6,7 +6,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
@@ -48,10 +47,10 @@ class PublishExecutorTest {
         .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, IndexEnvironment.PUBLISH)).thenReturn(new RecordInfo(record));
+    when(service.index(record)).thenReturn(new RecordInfo(record));
     consumer.publish(recordEvent);
 
-    verify(service).index(record, IndexEnvironment.PUBLISH);
+    verify(service).index(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.PUBLISH, captor.getValue().getStep());
@@ -67,7 +66,7 @@ class PublishExecutorTest {
 
     consumer.publish(recordEvent);
 
-    verify(service, never()).index(record, IndexEnvironment.PUBLISH);
+    verify(service, never()).index(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
   }
 
@@ -79,12 +78,12 @@ class PublishExecutorTest {
         .recordId(1L).build();
     var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
 
-    when(service.index(record, IndexEnvironment.PUBLISH))
+    when(service.index(record))
         .thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.publish(recordEvent);
 
-    verify(service).index(record, IndexEnvironment.PUBLISH);
+    verify(service).index(record);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());
