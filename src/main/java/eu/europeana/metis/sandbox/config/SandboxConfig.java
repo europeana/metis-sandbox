@@ -37,8 +37,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan("eu.europeana.validation.service")
 class SandboxConfig {
 
-//  @Value("${sandbox.rabbitmq.queues.harvest.queue}")
-//  private String oaiHarvestQueue;
+  @Value("${sandbox.rabbitmq.queues.record.harvest.oai.queue}")
+  private String oaiHarvestQueue;
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String createdQueue;
@@ -94,7 +94,7 @@ class SandboxConfig {
   }
 
   @Bean
-  Executor asyncDatasetPublishServiceTaskExecutor() {
+  Executor asyncServiceTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);
     executor.setMaxPoolSize(maxPoolSize);
@@ -103,10 +103,10 @@ class SandboxConfig {
     return executor;
   }
 
-//  @Bean(name = "oaiHarvestedQueue")
-//  String oaiHarvestedQueue() {
-//    return oaiHarvestQueue;
-//  }
+  @Bean(name = "oaiHarvestedQueue")
+  String oaiHarvestedQueue() {
+    return oaiHarvestQueue;
+  }
 
   @Bean(name = "createdQueue")
   String createdQueue() {

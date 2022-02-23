@@ -5,14 +5,21 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
-import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.HarvestContent;
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordError;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -26,6 +33,7 @@ import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -63,32 +71,37 @@ class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
+//  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
   private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
+  private final AsyncDatasetPublishService asyncDatasetPublishService;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService,
       RecordLogService recordLogService,
-      RecordTierCalculationService recordTierCalculationService) {
+      RecordTierCalculationService recordTierCalculationService,
+      AsyncDatasetPublishService asyncDatasetPublishService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
     this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
+    this.asyncDatasetPublishService = asyncDatasetPublishService;
   }
 
   /**
    * POST API calls for harvesting and processing the records given a zip file
    *
    * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param dataset the given dataset itself to be processed as a zip file
-   * @param xsltFile the xslt file used for transformation to edm external
+   * @param country     the given country from which the records refer to
+   * @param language    the given language that the records contain
+   * @param dataset     the given dataset itself to be processed as a zip file
+   * @param xsltFile    the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing a file")
@@ -124,10 +137,10 @@ class DatasetController {
    * POST API calls for harvesting and processing the records given a URL of a zip file
    *
    * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param url the given dataset itself to be processed as a URL of a zip file
-   * @param xsltFile the xslt file used for transformation to edm external
+   * @param country     the given country from which the records refer to
+   * @param language    the given language that the records contain
+   * @param url         the given dataset itself to be processed as a URL of a zip file
+   * @param xsltFile    the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing an URL")
@@ -157,14 +170,15 @@ class DatasetController {
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
    *
-   * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param url the given URL of the OAI-PMH repository to be processed
-   * @param setspec forms a unique identifier for the set within the repository, it must be unique for each set.
-   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH requests issued to the
-   * repository
-   * @param xsltFile the xslt file used for transformation to edm external
+   * @param datasetName    the given name of the dataset to be processed
+   * @param country        the given country from which the records refer to
+   * @param language       the given language that the records contain
+   * @param url            the given URL of the OAI-PMH repository to be processed
+   * @param setspec        forms a unique identifier for the set within the repository, it must be
+   *                       unique for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
+   *                       requests issued to the repository
+   * @param xsltFile       the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
@@ -183,14 +197,61 @@ class DatasetController {
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    HarvestContent harvestedRecords = harvestService.harvestOaiPmhEndpoint(
-        url, setspec, metadataformat);
+//    HarvestContent harvestedRecords = harvestService.harvestOaiPmhEndpoint(
+//        url, setspec, metadataformat);
+//
+//    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
+//
+//    var datasetObject = datasetService.createDataset(datasetName, country, language,
+//        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltFileString);
+//    return new DatasetIdDto(datasetObject);
+    Record record = Record.builder()
+        .country(country)
+        .language(language)
+        .datasetName(datasetName)
+        .datasetId("")
+        .recordId(1L)
+        .europeanaId("")
+        .providerId("")
+        .content(new byte[0])
+        .build();
+    List<RecordError> recordErrors = new ArrayList<>();
+    RecordInfo recordInfo = new RecordInfo(record, recordErrors);
+//    Record rnil = Record.builder().build();
 
-    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
+    RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.BUSY,
+        0, url, setspec, metadataformat, xsltFile);
+//    HarvestOaiPmhEvent event = new HarvestOaiPmhEvent(recordInfo,Step.HARVEST_OAI_PMH,
+//        Status.BUSY,0, url, setspec, metadataformat, xsltFile);
 
-    var datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltFileString);
-    return new DatasetIdDto(datasetObject);
+    asyncDatasetPublishService.harvestOaiPmh(event);
+//    harvestService.asyncOaiHarvestEvent(event);
+
+//    List<ByteArrayInputStream> records = new ArrayList<>();
+//    records.add((ByteArrayInputStream) Record.builder()
+//        .datasetName("")
+//        .datasetName("")
+//        .language(Language.NL)
+//        .country(Country.NETHERLANDS)
+//        .recordId(1L)
+//        .europeanaId("")
+//        .providerId("")
+//        .content(new byte[0])
+//        .build().getContentInputStream());
+//
+//    Dataset dataset = null;
+//    if (xsltFile != null && !xsltFile.isEmpty()) {
+//      try {
+//        dataset = datasetService.createEmptyDataset(datasetName, country, language, records,
+//            xsltFile.getInputStream());
+//      } catch (IOException ex) {
+//        logger.error("Error creating dataset ", ex);
+//      }
+//    } else {
+//      dataset = datasetService.createDataset(datasetName, country, language, records, false);
+//    }
+
+    return null;
   }
 
   /**
@@ -211,8 +272,9 @@ class DatasetController {
 
   /**
    * GET API returns the generated tier calculation view for a stored record.
+   *
    * @param datasetId the dataset id
-   * @param recordId the record id
+   * @param recordId  the record id
    * @return the record tier calculation view
    * @throws NoRecordFoundException if record was not found
    */
@@ -223,15 +285,16 @@ class DatasetController {
   })
   @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
   public RecordTierCalculationView computeRecordTierCalculation(
-          @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
+      @PathVariable("id") String datasetId,
       @RequestParam String recordId) throws NoRecordFoundException {
     return recordTierCalculationService.calculateTiers(recordId, datasetId);
   }
 
   /**
    * GET API returns the string representation of the stored record.
+   *
    * @param datasetId the dataset id
-   * @param recordId the record id
+   * @param recordId  the record id
    * @return the string representation of the stored record
    * @throws NoRecordFoundException if record was not found
    */
@@ -241,8 +304,8 @@ class DatasetController {
       @ApiResponse(code = 404, message = "Record not found")
   })
   @GetMapping(value = "{id}/record")
-  public String getRecord(
-          @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId, @RequestParam String recordId) throws NoRecordFoundException {
+  public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId)
+      throws NoRecordFoundException {
     return recordLogService.getProviderRecordString(recordId, datasetId);
   }
 

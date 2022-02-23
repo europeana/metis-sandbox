@@ -23,7 +23,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.executor.workflow.HarvestOaiPmhExecutor;
+import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,9 +36,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import org.apache.commons.io.input.NullInputStream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zeroturnaround.zip.ZipException;
 
@@ -51,12 +54,12 @@ public class HarvestServiceImplTest {
 
   private static final OaiHarvester oaiHarvester = mock(OaiHarvester.class);
 
-  private static final HarvestOaiPmhExecutor harvestOaiPmhExecutor = mock(HarvestOaiPmhExecutor.class);
+  private HarvestService harvestService;
 
   @Test
   void harvestServiceFromURL_notExceedingRecordLimit_ExpectSuccess() throws IOException {
 
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null, oaiHarvester,  1000);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -77,7 +80,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestServiceFromURL_exceedingRecordLimit_ExpectSuccess() throws IOException {
 
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null, oaiHarvester, 2);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 2);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -98,7 +101,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestServiceFromUploadedFile_notExceedingRecordLimit_ExpectSuccess() throws IOException {
 
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null, oaiHarvester, 1000);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -122,7 +125,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestServiceFromUploadedFile_exceedingRecordLimit_ExpectSuccess() throws IOException {
 
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null,oaiHarvester, 2);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 2);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
     assertTrue(Files.exists(dataSetPath));
@@ -145,7 +148,8 @@ public class HarvestServiceImplTest {
 
   @Test
   void harvestServiceFromURL_NonExisting_ExpectFail() {
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,null, oaiHarvester, 1000);
+
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "non-existing.zip");
 
@@ -157,7 +161,8 @@ public class HarvestServiceImplTest {
 
   @Test
   void harvestServiceFromFile_CorruptFile_ExpectFail() throws IOException {
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null, oaiHarvester, 1000);
+
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     Path dataSetPath = Paths.get("src", "test", "resources", "zip", "corrupt_file.zip");
 
@@ -172,7 +177,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestServiceFromFile_NonExistingFile_ExpectFail() throws IOException {
 
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null, oaiHarvester, 1000);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         new NullInputStream());
@@ -184,7 +189,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestServiceFromOai_notExceedingRecordLimit_ExpectSuccess() throws HarvesterException {
 
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,null, oaiHarvester, 1000);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     OaiRecordHeader recordHeader = new OaiRecordHeader("someId", false, Instant.now());
     OaiRecord oaiRecord = new OaiRecord(recordHeader,
@@ -208,8 +213,7 @@ public class HarvestServiceImplTest {
 
   @Test
   void harvestServiceFromOai_exceedingRecordLimit_ExpectSuccess() throws HarvesterException {
-
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester,null, oaiHarvester, 2);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 2);
 
     OaiRecordHeader recordHeader1 = new OaiRecordHeader("someId1", false, Instant.now());
     OaiRecordHeader recordHeader2 = new OaiRecordHeader("someId2", false, Instant.now());
@@ -245,8 +249,7 @@ public class HarvestServiceImplTest {
 
   @Test
   void harvestServiceFromOai_ExpectServiceException() throws HarvesterException {
-
-    HarvestServiceImpl harvestService = new HarvestServiceImpl(httpHarvester, null, oaiHarvester, 1000);
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000);
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(
         Collections.emptyList());
@@ -263,8 +266,7 @@ public class HarvestServiceImplTest {
 
     private final List<OaiRecordHeader> source;
 
-    private TestHeaderIterator(
-        List<OaiRecordHeader> source) {
+    private TestHeaderIterator(List<OaiRecordHeader> source) {
       this.source = source;
     }
 

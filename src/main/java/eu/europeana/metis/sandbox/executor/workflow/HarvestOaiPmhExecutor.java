@@ -1,55 +1,63 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.domain.HarvestOaiPmhEvent;
-import eu.europeana.metis.sandbox.service.workflow.HarvestServiceImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HarvestOaiPmhExecutor {
+public class HarvestOaiPmhExecutor extends StepExecutor {
+
+  //  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private final HarvestService harvestService;
+  private final OaiHarvester oaiHarvester;
+
+  @Value("${sandbox.rabbitmq.queues.record.created.queue}")
+  private String routingKey;
 
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
-  private final AmqpTemplate amqpTemplate;
-//  private final HarvestServiceImpl harvestService;
-
-  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.queue}")
-  private String harvestOaiQueue;
-
-
-  public HarvestOaiPmhExecutor(AmqpTemplate amqpTemplate) {
-    this.amqpTemplate = amqpTemplate;
-//    this.harvestService = harvestService;
+  public HarvestOaiPmhExecutor(AmqpTemplate amqpTemplate, HarvestService service,
+      OaiHarvester oaiHarvester) {
+    super(amqpTemplate);
+    this.harvestService = service;
+    this.oaiHarvester = oaiHarvester;
   }
 
-  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.harvest-oai.queue}", containerFactory = "harvestOaiPmhFactory",
-      autoStartup = "${sandbox.rabbitmq.queues.record.harvest-oai.autostart}")
-  public void harvestOaiPmh(HarvestOaiPmhEvent input) {
-    if (input.getStatus() == Status.FAIL) {
-      return;
+  @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.harvest.oai.queue}", containerFactory = "harvestOaiPmhFactory",
+      autoStartup = "${sandbox.rabbitmq.queues.record.harvest.oai.auto-start}")
+  public void harvestOaiPmh(RecordProcessEvent input) {
+
+    try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
+        .harvestRecordHeaders(
+            new OaiHarvest(input.getUrl(), input.getMetadataformat(), input.getSetspec()))) {
+
+      AtomicInteger currentNumberOfIterations = new AtomicInteger();
+
+      recordHeaderIterator.forEach(recordHeader -> {
+        currentNumberOfIterations.getAndIncrement();
+
+        if (currentNumberOfIterations.get() > input.getMaxRecords()) {
+          return IterationResult.TERMINATE;
+        }
+        // send to next queue, in this case: sandbox.rabbitmq.queues.record.created.queue
+        consume(routingKey, input, input.getStep(),
+            () -> harvestService.harvestOaiRecordHeader(input, recordHeader));
+
+        return IterationResult.CONTINUE;
+      });
+
+    } catch (HarvesterException | IOException e) {
+      throw new ServiceException("Error harvesting OAI-PMH records ", e);
     }
-    HarvestOaiPmhEvent output;
-    try {
-      output = new HarvestOaiPmhEvent(input.getStatus(), input.getStep(), input.getUrl(),
-          input.getSetspec(), input.getMetadataformat(), input.getOaiRecordId(),
-          input.getDatasetId());
-    } catch (ServiceException ex) {
-      logger.error("Exception in HarvestOaiPmhExecutor", ex);
-      input.setStatus(Status.FAIL);
-      output = new HarvestOaiPmhEvent(input.getStatus(), input.getStep(), input.getUrl(),
-          input.getSetspec(), input.getMetadataformat(), input.getOaiRecordId(),
-          input.getDatasetId());
-    }
-//    logger.info("HarvestOaiPmhExecutor convert and send to queue");
-    amqpTemplate.convertAndSend(harvestOaiQueue, output);
-//    consume(harvestOaiQueue, output, Step.HARVEST_OAI_PMH, () ->
-//        harvestService.harvestOaiPmhToQueue(input);
   }
 }

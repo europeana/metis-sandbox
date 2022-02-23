@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.EnrichmentService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,7 +29,7 @@ class EnrichmentExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.normalized.queue}",
       containerFactory = "enrichmentFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.normalized.auto-start:true}")
-  public void enrich(Event input) {
-    consume(routingKey, input, Step.ENRICH, () -> service.enrich(input.getBody()));
+  public void enrich(RecordProcessEvent input) {
+    consume(routingKey, input, Step.ENRICH, () -> service.enrich(input.getRecord()));
   }
 }

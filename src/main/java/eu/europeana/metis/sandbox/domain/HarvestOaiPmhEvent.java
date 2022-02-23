@@ -1,109 +1,83 @@
 package eu.europeana.metis.sandbox.domain;
 
-
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
-
-public class HarvestOaiPmhEvent {
-
-  //  private RecordInfo recordInfo;
-  private Status status;
-  private Step step;
-  private String datasetId;
-  private String oaiRecordId;
-  private String url;
-  private String setspec;
-  private String metadataformat;
-
-
-  public HarvestOaiPmhEvent(Status status, Step step, String url, String setspec,
-      String metadataformat, String oaiRecordId, String datasetId) {
-//    this.recordInfo = recordInfo;
-    this.status = status;
-    this.step = step;
-    this.url = url;
-    this.setspec = setspec;
-    this.metadataformat = metadataformat;
-    this.oaiRecordId = oaiRecordId;
-    this.datasetId = datasetId;
-  }
-
-//  public RecordInfo getRecordInfo() {
-//    return recordInfo;
-//  }
-
-//  public void setRecordInfo(RecordInfo recordInfo) {
-//    this.recordInfo = recordInfo;
-//  }
-
-//  public Status getStatus() {
-//    return status;
+//import eu.europeana.metis.sandbox.common.Status;
+//import eu.europeana.metis.sandbox.common.Step;
+//import eu.europeana.metis.sandbox.common.locale.Country;
+//import eu.europeana.metis.sandbox.common.locale.Language;
+//import org.springframework.web.multipart.MultipartFile;
+//
+//public class HarvestOaiPmhEvent extends RecordProcessEvent {
+//
+//  private int maxRecords;
+//  private String url;
+//  private String setspec;
+//  private String metadataformat;
+//  private MultipartFile xsltFile;
+//
+//
+//  public HarvestOaiPmhEvent(RecordInfo recordInfo, Step step, Status status, int maxRecords,
+//      String url, String setspec, String metadataformat, MultipartFile xsltFile) {
+//    super(recordInfo, step, status);
+//    this.maxRecords = maxRecords;
+//    this.url = url;
+//    this.setspec = setspec;
+//    this.metadataformat = metadataformat;
+//    this.xsltFile = xsltFile;
 //  }
 //
-//  public void setStatus(Status status) {
-//    this.status = status;
+//  public int getMaxRecords() {
+//    return maxRecords;
 //  }
-
-//  public List<RecordError> getRecordErrors() {
-//    return recordInfo.getErrors();
+//
+//  public void setMaxRecords(int maxRecords) {
+//    this.maxRecords = maxRecords;
 //  }
-
-  public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  public String getDatasetId() {
-    return datasetId;
-  }
-
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-
-  public void setSetspec(String setspec) {
-    this.setspec = setspec;
-  }
-
-  public String getSetspec() {
-    return setspec;
-  }
-
-
-  public void setMetadataformat(String metadataformat) {
-    this.metadataformat = metadataformat;
-  }
-
-  public String getMetadataformat() {
-    return metadataformat;
-  }
-
-  public void setOaiRecordId(String oaiRecordId) {
-    this.oaiRecordId = oaiRecordId;
-  }
-
-  public String getOaiRecordId() {
-    return oaiRecordId;
-  }
-
-
-  public Status getStatus() {
-    return status;
-  }
-
-  public void setStatus(Status status) {
-    this.status = status;
-  }
-
-  public Step getStep() {
-    return step;
-  }
-
-  public void setStep(Step step) {
-    this.step = step;
-  }
-}
+//
+//  public String getDataSetName() {
+//    return super.getRecord().getDatasetName();
+//  }
+//
+//  public RecordInfo getRecordInfo() {
+//    return super.getRecordInfo();
+//  }
+//
+//  public Country getCountry() {
+//    return super.getRecord().getCountry();
+//  }
+//
+//  public Language getLanguage() {
+//    return super.getRecord().getLanguage();
+//  }
+//
+//  public String getUrl() {
+//    return url;
+//  }
+//
+//  public void setUrl(String url) {
+//    this.url = url;
+//  }
+//
+//  public String getSetspec() {
+//    return setspec;
+//  }
+//
+//  public void setSetspec(String setspec) {
+//    this.setspec = setspec;
+//  }
+//
+//  public String getMetadataformat() {
+//    return metadataformat;
+//  }
+//
+//  public void setMetadataformat(String metadataformat) {
+//    this.metadataformat = metadataformat;
+//  }
+//
+//  public MultipartFile getXsltFile() {
+//    return xsltFile;
+//  }
+//
+//  public void setXsltFile(MultipartFile xsltFile) {
+//    this.xsltFile = xsltFile;
+//  }
+//}

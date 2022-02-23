@@ -12,9 +12,9 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +35,7 @@ class PublishExecutorTest {
   private IndexingService service;
 
   @Captor
-  private ArgumentCaptor<Event> captor;
+  private ArgumentCaptor<RecordProcessEvent> captor;
 
   @InjectMocks
   private PublishExecutor consumer;
@@ -46,7 +46,8 @@ class PublishExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
+        1000, "", "", "", null);
 
     when(service.index(record, IndexEnvironment.PUBLISH)).thenReturn(new RecordInfo(record));
     consumer.publish(recordEvent);
@@ -63,12 +64,13 @@ class PublishExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, 1000,
+        "", "", "", null);
 
     consumer.publish(recordEvent);
 
     verify(service, never()).index(record, IndexEnvironment.PUBLISH);
-    verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
@@ -77,7 +79,8 @@ class PublishExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
+        1000, "", "", "", null);
 
     when(service.index(record, IndexEnvironment.PUBLISH))
         .thenThrow(new RecordProcessingException("1", new Exception()));

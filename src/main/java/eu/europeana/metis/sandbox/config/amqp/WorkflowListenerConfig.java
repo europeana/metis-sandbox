@@ -3,16 +3,14 @@ package eu.europeana.metis.sandbox.config.amqp;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * Config for workflow listeners. Every listener has a {@link SimpleRabbitListenerContainerFactory}.
- * <br /><br />
- * If changes like increasing consumers for a listener are needed, here is the place to do it, by using the
- * SimpleRabbitListenerContainerFactory
+ * <br /><br /> If changes like increasing consumers for a listener are needed, here is the place to
+ * do it, by using the SimpleRabbitListenerContainerFactory
  */
 @Configuration
 class WorkflowListenerConfig {
@@ -20,8 +18,15 @@ class WorkflowListenerConfig {
   private final MessageConverter messageConverter;
 
   public WorkflowListenerConfig(
-      @Qualifier("recordMessageConverter") MessageConverter messageConverter) {
+      MessageConverter messageConverter) {
     this.messageConverter = messageConverter;
+  }
+
+  @Bean
+  SimpleRabbitListenerContainerFactory harvestOaiPmhFactory(
+      SimpleRabbitListenerContainerFactoryConfigurer configurer,
+      ConnectionFactory connectionFactory) {
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 
   @Bean

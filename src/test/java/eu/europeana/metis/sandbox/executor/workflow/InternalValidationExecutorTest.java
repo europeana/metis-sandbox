@@ -11,9 +11,9 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ class InternalValidationExecutorTest {
   private InternalValidationService service;
 
   @Captor
-  private ArgumentCaptor<Event> captor;
+  private ArgumentCaptor<RecordProcessEvent> captor;
 
   @InjectMocks
   private InternalValidationExecutor consumer;
@@ -45,7 +45,8 @@ class InternalValidationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
+        Status.SUCCESS, 1000, "", "", "", null);
 
     when(service.validate(record)).thenReturn(new RecordInfo(record));
     consumer.validateInternal(recordEvent);
@@ -62,12 +63,13 @@ class InternalValidationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
+        Status.FAIL, 1000, "", "", "", null);
 
     consumer.validateInternal(recordEvent);
 
     verify(service, never()).validate(record);
-    verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
@@ -76,7 +78,8 @@ class InternalValidationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new Event(new RecordInfo(record), Step.VALIDATE_INTERNAL, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
+        Status.SUCCESS, 1000, "", "", "", null);
 
     when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

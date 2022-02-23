@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
-import eu.europeana.metis.sandbox.common.amqp.HarvestOaiPmhMessageConverter;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
@@ -24,19 +23,17 @@ class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
 
-//  private final HarvestOaiPmhMessageConverter harvestOaiPmhMessageConverter;
-
   @Value("${sandbox.rabbitmq.exchange.name}")
   private String exchange;
 
   @Value("${sandbox.rabbitmq.exchange.dlq}")
   private String exchangeDlq;
 
-//  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.queue}")
-//  private String harvestOaiQueue;
-//
-//  @Value("${sandbox.rabbitmq.queues.record.harvest-oai.dlq}")
-//  private String harvestOaiDlq;
+  @Value("${sandbox.rabbitmq.queues.record.harvest.oai.queue}")
+  private String harvestOaiQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.harvest.oai.dlq}")
+  private String harvestOaiDlq;
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String createdQueue;
@@ -104,17 +101,6 @@ class AmqpConfiguration {
   }
 
 
-//
-//  public AmqpConfiguration(HarvestOaiPmhMessageConverter messageConverter) {
-//    this.harvestOaiPmhMessageConverter = messageConverter;
-//    this.messageConverter = null;
-//  }
-
-//  public AmqpConfiguration(
-//      @Qualifier("harvestOaiPmhMessageConverter") HarvestOaiPmhMessageConverter messageConverter) {
-//    this.messageConverter = messageConverter;
-//  }
-
   @Bean
   TopicExchange exchange() {
     return new TopicExchange(exchange);
@@ -136,7 +122,8 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-//        QueueBuilder.durable(harvestOaiQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(harvestOaiDlq).build(),
+        QueueBuilder.durable(harvestOaiQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(harvestOaiDlq).build(),
         QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
             .deadLetterRoutingKey(createdDlq).build(),
         QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
@@ -164,7 +151,7 @@ class AmqpConfiguration {
   @Bean
   Declarables deadQueues() {
     return new Declarables(
-//        QueueBuilder.durable(harvestOaiDlq).build(),
+        QueueBuilder.durable(harvestOaiDlq).build(),
         QueueBuilder.durable(createdDlq).build(),
         QueueBuilder.durable(transformationToEdmExternalDlq).build(),
         QueueBuilder.durable(externalValidatedDlq).build(),
@@ -180,31 +167,28 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue,
-        externalValidatedQueue,
-        transformedQueue, normalizedQueue, internalValidatedQueue, enrichedQueue,
-        mediaProcessedQueue,
-        previewedQueue, publishedQueue);
+    return getDeclarables(exchange, createdQueue, harvestOaiQueue, transformationToEdmExternalQueue,
+        externalValidatedQueue, transformedQueue, normalizedQueue, internalValidatedQueue,
+        enrichedQueue, mediaProcessedQueue, previewedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
-        externalValidatedDlq,
-        transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq,
-        previewedDlq, publishedDlq);
+    return getDeclarables(exchangeDlq, createdDlq, harvestOaiDlq, transformationToEdmExternalDlq,
+        externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
+        mediaProcessedDlq, previewedDlq, publishedDlq);
   }
 
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Declarables getDeclarables(String exchange, String created,
+  private Declarables getDeclarables(String exchange, String created, String harvestOai,
       String transformationToEdmExternal,
       String externalValidated, String transformed, String normalized,
       String internalValidated, String enriched, String mediaProcessed,
       String previewed, String published) {
     return new Declarables(
-//        new Binding(harvestOai, DestinationType.QUEUE, exchange, harvestOai, null),
+        new Binding(harvestOai, DestinationType.QUEUE, exchange, harvestOai, null),
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
         new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange,
             transformationToEdmExternal, null),

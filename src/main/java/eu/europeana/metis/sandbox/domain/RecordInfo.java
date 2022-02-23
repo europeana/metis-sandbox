@@ -13,7 +13,7 @@ public class RecordInfo {
   private final List<RecordError> errors;
 
   /**
-   * Constructor, defaults errors to an empty non modifiable list
+   * Constructor, defaults errors to an empty non-modifiable list
    *
    * @param record must not be null
    */
@@ -22,13 +22,12 @@ public class RecordInfo {
   }
 
   /**
-   * Constructor, store errors as a non modifiable list
+   * Constructor, store errors as a list
    *
    * @param record must not be null
    * @param errors must not be null
    */
-  public RecordInfo(Record record,
-      List<RecordError> errors) {
+  public RecordInfo(Record record, List<RecordError> errors) {
     this.record = record;
     this.errors = Collections.unmodifiableList(errors);
   }
