@@ -135,7 +135,7 @@ public class RecordMessageConverter implements MessageConverter {
 
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 
-    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status),
+    return new RecordProcessEvent(recordInfo, datasetId, Step.valueOf(step), Status.valueOf(status),
         maxRecords, url, setspec, metadataformat, xsltFile);
   }
 }

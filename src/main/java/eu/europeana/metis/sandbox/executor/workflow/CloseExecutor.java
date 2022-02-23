@@ -32,7 +32,7 @@ class CloseExecutor {
       return;
     }
 
-    RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()),
+    RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()), input.getDatasetId(),
         Step.CLOSE, Status.SUCCESS, 1000, "", "", "", null);
     amqpTemplate.convertAndSend(routingKey, output);
   }

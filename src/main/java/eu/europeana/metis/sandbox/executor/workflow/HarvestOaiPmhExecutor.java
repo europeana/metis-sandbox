@@ -24,34 +24,23 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
 
   private final HarvestService harvestService;
   private final OaiHarvester oaiHarvester;
-  private final DatasetService datasetService;
+  //TODO Add DatasetRepository
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String routingKey;
 
 
   public HarvestOaiPmhExecutor(AmqpTemplate amqpTemplate, HarvestService service,
-                               OaiHarvester oaiHarvester, DatasetService datasetService) {
+                               OaiHarvester oaiHarvester) {
     super(amqpTemplate);
     this.harvestService = service;
     this.oaiHarvester = oaiHarvester;
-    this.datasetService = datasetService;
+
   }
 
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.harvest.oai.queue}", containerFactory = "harvestOaiPmhFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.harvest.oai.auto-start}")
-  public void harvestOaiPmh(RecordProcessEvent input) throws IOException {
-    //TODO Handle IOException
-    Record recordToHarvest = input.getRecord();
-    String createdDatasetId;
-    if(input.getXsltFile() == null) {
-      createdDatasetId = datasetService.createEmptyDataset(recordToHarvest.getDatasetName(), recordToHarvest.getCountry(),
-              recordToHarvest.getLanguage(), null);
-    } else {
-      createdDatasetId = datasetService.createEmptyDataset(recordToHarvest.getDatasetName(), recordToHarvest.getCountry(),
-              recordToHarvest.getLanguage(), input.getXsltFile().getInputStream());
-    }
-
+  public void harvestOaiPmh(RecordProcessEvent input)  {
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
         .harvestRecordHeaders(
             new OaiHarvest(input.getUrl(), input.getMetadataformat(), input.getSetspec()))) {
@@ -67,7 +56,7 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
         }
         // send to next queue, in this case: sandbox.rabbitmq.queues.record.created.queue
         consume(routingKey, input, input.getStep(),
-            () -> harvestService.harvestOaiRecordHeader(input, recordHeader, createdDatasetId));
+            () -> harvestService.harvestOaiRecordHeader(input, recordHeader, input.getDatasetId()));
           //TODO: Update dataset recordsQuantity
         return IterationResult.CONTINUE;
       });

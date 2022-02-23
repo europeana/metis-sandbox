@@ -187,66 +187,44 @@ class DatasetController {
   })
   @PostMapping(value = "{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDto harvestDatasetOaiPmh(
+  public String harvestDatasetOaiPmh(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) throws IOException {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-//    HarvestContent harvestedRecords = harvestService.harvestOaiPmhEndpoint(
-//        url, setspec, metadataformat);
-//
-//    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
-//
-//    var datasetObject = datasetService.createDataset(datasetName, country, language,
-//        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltFileString);
-//    return new DatasetIdDto(datasetObject);
+
+    //TODO Handle IOException
     Record record = Record.builder()
         .country(country)
         .language(language)
         .datasetName(datasetName)
+            .content(new byte[0])
         .build();
+
+    String createdDatasetId;
+    if(xsltFile == null) {
+      createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
+              language, null);
+    } else {
+      createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
+              language, xsltFile.getInputStream());
+    }
+
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
-//    Record rnil = Record.builder().build();
 
-    RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
+    RecordProcessEvent event = new RecordProcessEvent(recordInfo, createdDatasetId, Step.HARVEST_OAI_PMH, Status.SUCCESS,
         0, url, setspec, metadataformat, xsltFile);
-//    HarvestOaiPmhEvent event = new HarvestOaiPmhEvent(recordInfo,Step.HARVEST_OAI_PMH,
-//        Status.BUSY,0, url, setspec, metadataformat, xsltFile);
 
     asyncDatasetPublishService.harvestOaiPmh(event);
-//    harvestService.asyncOaiHarvestEvent(event);
 
-//    List<ByteArrayInputStream> records = new ArrayList<>();
-//    records.add((ByteArrayInputStream) Record.builder()
-//        .datasetName("")
-//        .datasetName("")
-//        .language(Language.NL)
-//        .country(Country.NETHERLANDS)
-//        .recordId(1L)
-//        .europeanaId("")
-//        .providerId("")
-//        .content(new byte[0])
-//        .build().getContentInputStream());
-//
-//    Dataset dataset = null;
-//    if (xsltFile != null && !xsltFile.isEmpty()) {
-//      try {
-//        dataset = datasetService.createEmptyDataset(datasetName, country, language, records,
-//            xsltFile.getInputStream());
-//      } catch (IOException ex) {
-//        logger.error("Error creating dataset ", ex);
-//      }
-//    } else {
-//      dataset = datasetService.createDataset(datasetName, country, language, records, false);
-//    }
 
-    return null;
+    return createdDatasetId;
   }
 
   /**

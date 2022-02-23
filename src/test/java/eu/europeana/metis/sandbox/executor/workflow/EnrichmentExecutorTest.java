@@ -45,7 +45,7 @@ class EnrichmentExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.NORMALIZE, Status.SUCCESS,
         1000, "", "", "", null);
 
     when(service.enrich(record)).thenReturn(new RecordInfo(record));
@@ -63,7 +63,7 @@ class EnrichmentExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.FAIL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.NORMALIZE, Status.FAIL,
         1000, "", "", "", null);
 
     consumer.enrich(recordEvent);
@@ -78,7 +78,7 @@ class EnrichmentExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.NORMALIZE, Status.SUCCESS,
         1000, "", "", "", null);
 
     when(service.enrich(record)).thenThrow(new RecordProcessingException("1", new Exception()));
