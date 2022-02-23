@@ -147,10 +147,8 @@ public class HarvestServiceImpl implements HarvestService {
           .content(oaiRecord.getRecord().readAllBytes())
           .recordId(event.getRecord().getRecordId())
           .country(event.getRecord().getCountry())
+          .datasetId("1")
           .language(event.getRecord().getLanguage())
-          .europeanaId("")
-          .providerId("")
-          .datasetId("")
           .datasetName(event.getRecord().getDatasetName())
           .build();
 
