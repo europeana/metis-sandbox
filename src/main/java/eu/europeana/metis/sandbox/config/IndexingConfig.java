@@ -18,53 +18,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Config to define preview and publish indexers
+ * Config to define publish indexer
  */
 @Profile("default")
 @Configuration
 class IndexingConfig {
-
-  @Value("${sandbox.preview.mongo.hosts}")
-  private String[] mongoPreviewHosts;
-
-  @Value("${sandbox.preview.mongo.ports}")
-  private int[] mongoPreviewPorts;
-
-  @Value("${sandbox.preview.mongo.authentication-db:#{null}}")
-  private String mongoPreviewAuthenticationDb;
-
-  @Value("${sandbox.preview.mongo.username:#{null}}")
-  private String mongoPreviewUsername;
-
-  @Value("${sandbox.preview.mongo.password:#{null}}")
-  private String mongoPreviewPassword;
-
-  @Value("${sandbox.preview.mongo.ssl-enable:#{null}}")
-  private Boolean mongoPreviewEnableSSL;
-
-  @Value("${sandbox.preview.mongo.db}")
-  private String mongoPreviewDb;
-
-  @Value("${sandbox.preview.mongo.application-name:#{null}}")
-  private String mongoPreviewApplicationName;
-
-  @Value("${sandbox.preview.solr.hosts}")
-  private String[] solrPreviewHosts;
-
-  @Value("${sandbox.preview.solr.zookeeper.hosts:#{null}}")
-  private String[] zookeeperPreviewHosts;
-
-  @Value("${sandbox.preview.solr.zookeeper.ports:#{null}}")
-  private int[] zookeeperPreviewPorts;
-
-  @Value("${sandbox.preview.solr.zookeeper.chroot:#{null}}")
-  private String zookeeperPreviewChroot;
-
-  @Value("${sandbox.preview.solr.zookeeper.default.collection:#{null}}")
-  private String zookeeperPreviewDefaultCollection;
-
-  @Value("${sandbox.preview.solr.zookeeper.timeout:#{null}}")
-  private Integer zookeeperPreviewTimeoutInSecs;
 
   @Value("${sandbox.publish.mongo.hosts}")
   private String[] mongoPublishHosts;
@@ -107,16 +65,6 @@ class IndexingConfig {
 
   @Value("${sandbox.publish.solr.zookeeper.timeout:#{null}}")
   private Integer zookeeperPublishTimeoutInSecs;
-
-  @Bean
-  Indexer previewIndexer()
-      throws URISyntaxException, SetupRelatedIndexingException, IndexerRelatedIndexingException {
-    return getIndexer(mongoPreviewHosts, mongoPreviewPorts, mongoPreviewDb,
-        mongoPreviewAuthenticationDb,
-        mongoPreviewUsername, mongoPreviewPassword, mongoPreviewEnableSSL, solrPreviewHosts,
-        zookeeperPreviewHosts, zookeeperPreviewPorts, zookeeperPreviewChroot,
-        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs, mongoPreviewApplicationName);
-  }
 
   @Bean
   Indexer publishIndexer()

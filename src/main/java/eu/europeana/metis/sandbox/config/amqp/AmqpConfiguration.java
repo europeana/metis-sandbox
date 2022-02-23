@@ -83,12 +83,6 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
   private String mediaProcessedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.previewed.queue}")
-  private String previewedQueue;
-
-  @Value("${sandbox.rabbitmq.queues.record.previewed.dlq}")
-  private String previewedDlq;
-
   @Value("${sandbox.rabbitmq.queues.record.published.queue}")
   private String publishedQueue;
 
@@ -99,7 +93,6 @@ class AmqpConfiguration {
       MessageConverter messageConverter) {
     this.messageConverter = messageConverter;
   }
-
 
   @Bean
   TopicExchange exchange() {
@@ -141,8 +134,6 @@ class AmqpConfiguration {
             .deadLetterRoutingKey(enrichedDlq).build(),
         QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
             .deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(previewedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            previewedDlq).build(),
         QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
             .deadLetterRoutingKey(publishedDlq).build()
     );
@@ -151,7 +142,6 @@ class AmqpConfiguration {
   @Bean
   Declarables deadQueues() {
     return new Declarables(
-        QueueBuilder.durable(harvestOaiDlq).build(),
         QueueBuilder.durable(createdDlq).build(),
         QueueBuilder.durable(transformationToEdmExternalDlq).build(),
         QueueBuilder.durable(externalValidatedDlq).build(),
@@ -160,7 +150,6 @@ class AmqpConfiguration {
         QueueBuilder.durable(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedDlq).build(),
         QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(previewedDlq).build(),
         QueueBuilder.durable(publishedDlq).build()
     );
   }
@@ -169,24 +158,23 @@ class AmqpConfiguration {
   Declarables bindings() {
     return getDeclarables(exchange, createdQueue, harvestOaiQueue, transformationToEdmExternalQueue,
         externalValidatedQueue, transformedQueue, normalizedQueue, internalValidatedQueue,
-        enrichedQueue, mediaProcessedQueue, previewedQueue, publishedQueue);
+        enrichedQueue, mediaProcessedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
     return getDeclarables(exchangeDlq, createdDlq, harvestOaiDlq, transformationToEdmExternalDlq,
         externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
-        mediaProcessedDlq, previewedDlq, publishedDlq);
+        mediaProcessedDlq, publishedDlq);
   }
 
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
   private Declarables getDeclarables(String exchange, String created, String harvestOai,
-      String transformationToEdmExternal,
-      String externalValidated, String transformed, String normalized,
+      String transformationToEdmExternal, String externalValidated, String transformed, String normalized,
       String internalValidated, String enriched, String mediaProcessed,
-      String previewed, String published) {
+      String published) {
     return new Declarables(
         new Binding(harvestOai, DestinationType.QUEUE, exchange, harvestOai, null),
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
@@ -198,7 +186,6 @@ class AmqpConfiguration {
         new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
         new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
         new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
-        new Binding(previewed, DestinationType.QUEUE, exchange, previewed, null),
         new Binding(published, DestinationType.QUEUE, exchange, published, null)
     );
   }

@@ -12,11 +12,10 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -44,9 +43,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private static final String FINISH_ALL_ERRORS = "All dataset records failed to be processed";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
-
-  @Value("${sandbox.portal.preview.dataset-base-url}")
-  private String portalPreviewDatasetUrl;
 
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
@@ -88,8 +84,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     if (stepStatistics.isEmpty()) {
-      return new ProgressInfoDto(getPreviewPortalUrl(dataset, 0L, 0L),
-          getPublishPortalUrl(dataset, 0L, 0L),
+      return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L, 0L),
           dataset.getRecordsQuantity(), 0L, List.of(),
           datasetInfoDto);
     }
@@ -114,15 +109,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordErrorsByStep));
 
     return new ProgressInfoDto(
-        getPreviewPortalUrl(dataset, completedRecords, failedRecords),
         getPublishPortalUrl(dataset, completedRecords, failedRecords),
         dataset.getRecordsQuantity(), completedRecords,
         stepsInfo, datasetInfoDto);
-  }
-
-  private String getPreviewPortalUrl(DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    return getPortalUrl(portalPreviewDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
   private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,
@@ -221,7 +210,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status, recordList.stream()
                 .map(ErrorLogView::getRecordId)
-                .map(RecordEntity::getProviderId)
+                .map(recordEntity -> String.format("%s | %s | %s", recordEntity.getId(), recordEntity.getProviderId(), recordEntity.getEuropeanaId()))
                 .sorted(String::compareTo)
                 .collect(toList())))));
 

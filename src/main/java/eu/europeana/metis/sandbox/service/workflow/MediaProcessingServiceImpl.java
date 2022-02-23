@@ -61,8 +61,11 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     try (MediaExtractor extractor = processorFactory.createMediaExtractor()) {
       // Get main thumbnail
       RdfResourceEntry resourceThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(inputRdf);
-      boolean hasMainThumbnail = processResource(resourceThumbnail, record, rdfForEnrichment,
-          extractor, recordErrors, false);
+      boolean hasMainThumbnail = false;
+      if (resourceThumbnail != null) {
+        hasMainThumbnail = processResource(resourceThumbnail, record, rdfForEnrichment,
+            extractor, recordErrors, false);
+      }
 
       // Process remaining resources
       List<RdfResourceEntry> remainingResources = rdfDeserializer.getRemainingResourcesForMediaExtraction(inputRdf);

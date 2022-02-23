@@ -31,9 +31,6 @@ public class ProgressInfoDto {
     }
   }
 
-  @JsonProperty("portal-preview")
-  private final String portalPreviewUrl;
-
   @JsonProperty("portal-publish")
   private final String portalPublishUrl;
 
@@ -51,7 +48,7 @@ public class ProgressInfoDto {
   @JsonProperty("dataset-info")
   private final DatasetInfoDto datasetInfoDto;
 
-  public ProgressInfoDto(String portalPreviewUrl, String portalPublishUrl,
+  public ProgressInfoDto(String portalPublishUrl,
       int totalRecords,
       long processedRecords, List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
     this.totalRecords = totalRecords;
@@ -59,13 +56,8 @@ public class ProgressInfoDto {
     this.status =
         this.totalRecords == this.processedRecords ? Status.COMPLETED : Status.IN_PROGRESS;
     this.progressByStep = Collections.unmodifiableList(progressByStep);
-    this.portalPreviewUrl = portalPreviewUrl;
     this.portalPublishUrl = portalPublishUrl;
     this.datasetInfoDto = datasetInfoDto;
-  }
-
-  public String getPortalPreviewUrl() {
-    return portalPreviewUrl;
   }
 
   public String getPortalPublishUrl() {
