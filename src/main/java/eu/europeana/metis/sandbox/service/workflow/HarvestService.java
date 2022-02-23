@@ -45,5 +45,5 @@ public interface HarvestService {
   HarvestContent harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
       throws ServiceException;
 
-  RecordInfo harvestOaiRecordHeader(RecordProcessEvent event, OaiRecordHeader oaiRecordHeader);
+  RecordInfo harvestOaiRecordHeader(RecordProcessEvent event, OaiRecordHeader oaiRecordHeader, String datasetId);
 }

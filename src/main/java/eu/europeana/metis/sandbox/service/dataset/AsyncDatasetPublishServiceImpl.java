@@ -53,13 +53,6 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private void sendToOaiHarvestQueue(RecordProcessEvent event) {
     try {
       amqpTemplate.convertAndSend(oaiHarvestedQueue, event);
-//          message -> {
-//        message.getMessageProperties().setHeader("URL", "");
-//        message.getMessageProperties().setHeader("SETSPEC", "");
-//        message.getMessageProperties().setHeader("METADATAFORMAT","");
-//
-//        return message;
-//      });
     } catch (AmqpException e) {
       LOGGER.error("Error sending event to oaiHarvestQueue: ", e);
     }

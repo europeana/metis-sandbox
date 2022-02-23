@@ -16,7 +16,9 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,11 +48,14 @@ public class HarvestServiceImpl implements HarvestService {
 
   private final int maxRecords;
 
+  private final RecordRepository recordRepository;
+
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
-      @Value("${sandbox.dataset.max-size}") int maxRecords) {
+                            @Value("${sandbox.dataset.max-size}") int maxRecords, RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
+    this.recordRepository = recordRepository;
     this.httpHarvester.setMaxNumberOfIterations(maxRecords);
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
@@ -133,26 +138,25 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Override
   public RecordInfo harvestOaiRecordHeader(RecordProcessEvent event,
-      OaiRecordHeader oaiRecordHeader) {
+      OaiRecordHeader oaiRecordHeader, String datasetId) {
 
-    OaiRecord oaiRecord = null;
-    Record record = null;
+    OaiRecord oaiRecord;
+    Record record = event.getRecord();
     List<RecordError> recordErrors = new ArrayList<>();
 
     try {
       OaiRepository oaiRepository = new OaiRepository(event.getUrl(), event.getMetadataformat());
       oaiRecord = oaiHarvester.harvestRecord(oaiRepository, oaiRecordHeader.getOaiIdentifier());
-
-      record = Record.builder()
-          .content(oaiRecord.getRecord().readAllBytes())
-          .recordId(event.getRecord().getRecordId())
-          .country(event.getRecord().getCountry())
-          .datasetId("1")
-          .language(event.getRecord().getLanguage())
-          .datasetName(event.getRecord().getDatasetName())
-          .build();
-
-      return new RecordInfo(record, recordErrors);
+      RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetId));
+      Record harvestedRecord = Record.builder()
+              .content(oaiRecord.getRecord().readAllBytes())
+              .recordId(recordEntity.getId())
+              .country(event.getRecord().getCountry())
+              .datasetId(datasetId)
+              .language(event.getRecord().getLanguage())
+              .datasetName(event.getRecord().getDatasetName())
+              .build();
+      return new RecordInfo(harvestedRecord, recordErrors);
 
     } catch (HarvesterException | IOException e) {
       logger.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
@@ -161,7 +165,7 @@ public class HarvestServiceImpl implements HarvestService {
           "Error harvesting OAI-PMH Record Header:" + oaiRecordHeader.getOaiIdentifier(),
           e.getMessage()));
 
-      return new RecordInfo(Record.builder().build(), recordErrors);
+      return new RecordInfo(record, recordErrors);
     }
   }
 

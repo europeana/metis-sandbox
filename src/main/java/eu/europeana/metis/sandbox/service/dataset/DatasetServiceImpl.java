@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,57 +48,33 @@ class DatasetServiceImpl implements DatasetService {
         new ByteArrayInputStream(new byte[0]));
   }
 
-//  @Override
-//  @Transactional
-//  public Dataset createEmptyDataset(String datasetName, Country country, Language language,
-//      List<ByteArrayInputStream> records, InputStream xsltEdmExternalContentStream) {
-//    requireNonNull(datasetName, "Dataset name must not be null");
-//    requireNonNull(country, "Country must not be null");
-//    requireNonNull(language, "Language must not be null");
-//
-//    DatasetEntity entity = new DatasetEntity(datasetName, 0, language, country, false);
-//
-//    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
-//      try {
-//        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
-//      } catch (IOException e) {
-//        throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
-//      }
-//    }
-//
-//    try {
-//      entity = datasetRepository.save(entity);
-//    } catch (Exception e) {
-//      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
-//    }
-//
-//    final String datasetId = String.valueOf(entity.getDatasetId());
-//    final Dataset dataset = generatorService.generate(DatasetMetadata.builder()
-//        .withDatasetId(datasetId)
-//        .withDatasetName(datasetName)
-//        .withCountry(country)
-//        .withLanguage(language)
-//        .build(), records);
-//
-//    // if there are duplicate records in the original list
-//    if (dataset.getRecords().size() < records.size()) {
-//      // adjust records qty to be equal to non-duplicate records
-//      entity.setRecordsQuantity(dataset.getRecords().size());
-//      try {
-//        datasetRepository.save(entity);
-//      } catch (Exception e) {
-//        throw new ServiceException(format("Error updating dataset: [%s]. ", datasetName), e);
-//      }
-//    }
-//
-////    if (hasXsltTransformerEdmExternal) {
-////      publishService.publishWithXslt(dataset);
-////    } else {
-////      publishService.publishWithoutXslt(dataset);
-////    }
-//
-//    return dataset;
-//  }
+  @Override
+  @Transactional
+  public String createEmptyDataset(String datasetName, Country country, Language language,
+      InputStream xsltEdmExternalContentStream) {
+    requireNonNull(datasetName, "Dataset name must not be null");
+    requireNonNull(country, "Country must not be null");
+    requireNonNull(language, "Language must not be null");
+
+    DatasetEntity entity = new DatasetEntity(datasetName, 0, language, country, false);
+
+    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
+      try {
+        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
+      } catch (IOException e) {
+        throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
+      }
+    }
+
+    try {
+      entity = datasetRepository.save(entity);
+    } catch (Exception e) {
+      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
+    }
+
+    return String.valueOf(entity.getDatasetId());
+
+  }
 
 
   @Override

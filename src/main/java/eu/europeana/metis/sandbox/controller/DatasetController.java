@@ -209,17 +209,12 @@ class DatasetController {
         .country(country)
         .language(language)
         .datasetName(datasetName)
-        .datasetId("")
-        .recordId(1L)
-        .europeanaId("")
-        .providerId("")
-        .content(new byte[0])
         .build();
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 //    Record rnil = Record.builder().build();
 
-    RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.BUSY,
+    RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
         0, url, setspec, metadataformat, xsltFile);
 //    HarvestOaiPmhEvent event = new HarvestOaiPmhEvent(recordInfo,Step.HARVEST_OAI_PMH,
 //        Status.BUSY,0, url, setspec, metadataformat, xsltFile);

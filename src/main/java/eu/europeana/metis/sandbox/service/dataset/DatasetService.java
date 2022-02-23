@@ -48,8 +48,8 @@ public interface DatasetService {
    */
 
 
-//  Dataset createEmptyDataset(String datasetName, Country country, Language language,
-//      List<ByteArrayInputStream> records, InputStream xsltEdmExternalContentStream);
+  String createEmptyDataset(String datasetName, Country country, Language language,
+      InputStream xsltEdmExternalContentStream);
 
   /**
    * Creates a dataset id and publishes the given records for further processing
