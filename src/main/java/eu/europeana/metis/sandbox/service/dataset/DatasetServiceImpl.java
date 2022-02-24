@@ -161,6 +161,18 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
+  @Override
+  @Transactional
+  public void updateNumberOfTotalRecord(String datasetId, int numberOfRecords) {
+    datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetId), numberOfRecords);
+  }
+
+  @Override
+  @Transactional
+  public void updateRecordsLimitExceeded(String datasetId) {
+    datasetRepository.updateRecordLimitExceededToTrue(Integer.parseInt(datasetId));
+  }
+
   private boolean isInputStreamAvailable(InputStream stream) {
     try {
       return stream != null && stream.available() != 0;

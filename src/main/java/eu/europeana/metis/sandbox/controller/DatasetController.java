@@ -68,7 +68,6 @@ class DatasetController {
 
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
-//  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private final HarvestService harvestService;
   private final DatasetService datasetService;
@@ -191,27 +190,20 @@ class DatasetController {
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) throws IOException {
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    String createdDatasetId;
-    if(xsltFile == null) {
-      createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
-              language, null);
-    } else {
-      createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
-              language, xsltFile.getInputStream());
-    }
 
-    //TODO Handle IOException
+    InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
     Record record = Record.builder()
-        .country(country)
-        .language(language)
-        .datasetName(datasetName)
+            .country(country)
+            .language(language)
+            .datasetName(datasetName)
             .datasetId(createdDatasetId)
             .content(new byte[0])
-        .build();
+            .build();
 
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);

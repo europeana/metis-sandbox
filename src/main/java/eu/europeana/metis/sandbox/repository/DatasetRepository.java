@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
@@ -19,6 +20,14 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<DatasetIdView> getByCreatedDateBefore(LocalDateTime date);
+
+  @Modifying
+  @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
+  void updateRecordsQuantity(int datasetId, int quantity);
+
+  @Modifying
+  @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
+  void updateRecordLimitExceededToTrue(int datasetId);
 
   /**
    * Get xslt content based on datasetId

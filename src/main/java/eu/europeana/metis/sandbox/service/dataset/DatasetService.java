@@ -38,7 +38,6 @@ public interface DatasetService {
    * @param datasetName must not be null
    * @param country     must not be null
    * @param language    must not be null
-   * @param records     can be null
    * @return the created dataset
    * @throws NullPointerException   if any input is null
    * @throws ServiceException       if any unhandled exception happens, exception will contain
@@ -91,4 +90,8 @@ public interface DatasetService {
    * @throws ServiceException     if removing dataset fails
    */
   void remove(String datasetId);
+
+  void updateNumberOfTotalRecord(String datasetId, int numberOfRecords);
+
+  void updateRecordsLimitExceeded(String datasetId);
 }
