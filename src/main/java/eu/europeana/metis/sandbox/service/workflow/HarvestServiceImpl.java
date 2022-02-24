@@ -91,25 +91,21 @@ public class HarvestServiceImpl implements HarvestService {
 
 
   @Override
-  public RecordInfo harvestOaiRecordHeader(RecordProcessEvent event,
+  public RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest,
       OaiRecordHeader oaiRecordHeader, String datasetId) {
 
-    final OaiHarvestData oaiHarvestData = event.getOaiHarvestData();
-    OaiRecord oaiRecord;
-    Record record = event.getRecord();
     List<RecordError> recordErrors = new ArrayList<>();
-
     try {
       OaiRepository oaiRepository = new OaiRepository(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat());
-      oaiRecord = oaiHarvester.harvestRecord(oaiRepository, oaiRecordHeader.getOaiIdentifier());
+      OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository, oaiRecordHeader.getOaiIdentifier());
       RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetId));
       Record harvestedRecord = Record.builder()
               .content(oaiRecord.getRecord().readAllBytes())
               .recordId(recordEntity.getId())
-              .country(event.getRecord().getCountry())
+              .country(recordToHarvest.getCountry())
               .datasetId(datasetId)
-              .language(event.getRecord().getLanguage())
-              .datasetName(event.getRecord().getDatasetName())
+              .language(recordToHarvest.getLanguage())
+              .datasetName(recordToHarvest.getDatasetName())
               .build();
       return new RecordInfo(harvestedRecord, recordErrors);
 
@@ -120,7 +116,7 @@ public class HarvestServiceImpl implements HarvestService {
           "Error harvesting OAI-PMH Record Header:" + oaiRecordHeader.getOaiIdentifier(),
           e.getMessage()));
 
-      return new RecordInfo(record, recordErrors);
+      return new RecordInfo(recordToHarvest, recordErrors);
     }
   }
 
