@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class RecordProcessEvent {
 
   private final RecordInfo recordInfo;
-  private final String datasetId;
   private final Status status;
   private final Step step;
   private int maxRecords;
@@ -27,11 +26,10 @@ public class RecordProcessEvent {
    * @param step       must not be null
    * @param status     must not be null
    */
-  public RecordProcessEvent(RecordInfo recordInfo, String datasetId, Step step, Status status, int maxRecords,
+  public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status, int maxRecords,
       String url, String setspec, String metadataformat, MultipartFile xsltFile) {
     this.status = status;
     this.recordInfo = recordInfo;
-    this.datasetId = datasetId;
     this.step = step;
     this.maxRecords = maxRecords;
     this.url = url;
@@ -98,9 +96,5 @@ public class RecordProcessEvent {
 
   public void setXsltFile(MultipartFile xsltFile) {
     this.xsltFile = xsltFile;
-  }
-
-  public String getDatasetId() {
-    return datasetId;
   }
 }

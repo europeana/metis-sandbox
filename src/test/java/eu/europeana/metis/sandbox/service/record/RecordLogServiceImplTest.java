@@ -58,7 +58,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
-    var event = new RecordProcessEvent(new RecordInfo(record), "1", Step.CREATE, Status.SUCCESS, 1000,
+    var event = new RecordProcessEvent(new RecordInfo(record),  Step.CREATE, Status.SUCCESS, 1000,
         "", "", "", null);
 
     service.logRecordEvent(event);
@@ -77,7 +77,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new RecordProcessEvent(new RecordInfo(record), "1", Step.CREATE, Status.SUCCESS, 1000,
+    var event = new RecordProcessEvent(new RecordInfo(record),  Step.CREATE, Status.SUCCESS, 1000,
         "", "", "", null);
 
     when(recordLogRepository.save(any(RecordLogEntity.class)))
@@ -91,7 +91,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new RecordProcessEvent(new RecordInfo(record), "1", Step.CREATE, Status.SUCCESS, 1000,
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS, 1000,
         "", "", "", null);
 
     when(errorLogRepository.saveAll(anyList()))

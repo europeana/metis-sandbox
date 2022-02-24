@@ -56,7 +56,7 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
         }
         // send to next queue, in this case: sandbox.rabbitmq.queues.record.created.queue
         consume(routingKey, input, input.getStep(),
-            () -> harvestService.harvestOaiRecordHeader(input, recordHeader, input.getDatasetId()));
+            () -> harvestService.harvestOaiRecordHeader(input, recordHeader, input.getRecord().getDatasetId()));
           //TODO: Update dataset recordsQuantity
         return IterationResult.CONTINUE;
       });

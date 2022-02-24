@@ -82,7 +82,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   public void publishToCreatedQueue(Record recordData) {
     try {
       amqpTemplate.convertAndSend(createdQueue,
-          new RecordProcessEvent(new RecordInfo(recordData), recordData.getDatasetId(), Step.CREATE, Status.SUCCESS,
+          new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
               maxRecords, "", "", "", null));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
@@ -92,7 +92,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private void publishToTransformationToEdmExternalQueue(Record recordData) {
     try {
       amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-          new RecordProcessEvent(new RecordInfo(recordData), recordData.getDatasetId(), Step.CREATE, Status.SUCCESS,
+          new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
               maxRecords, "", "", "", null));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);

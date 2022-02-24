@@ -39,7 +39,7 @@ class CloseExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.CREATE, Status.SUCCESS,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
         1000, "", "", "", null);
 
     consumer.close(recordEvent);
@@ -55,7 +55,7 @@ class CloseExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.CREATE, Status.FAIL, 1000,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, 1000,
         "", "", "", null);
 
     consumer.close(recordEvent);

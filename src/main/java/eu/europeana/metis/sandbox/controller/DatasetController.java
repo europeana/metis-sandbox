@@ -33,10 +33,7 @@ import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -187,7 +184,7 @@ class DatasetController {
   })
   @PostMapping(value = "{name}/harvestOaiPmh", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public String harvestDatasetOaiPmh(
+  public DatasetIdDto harvestDatasetOaiPmh(
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
@@ -198,14 +195,6 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    //TODO Handle IOException
-    Record record = Record.builder()
-        .country(country)
-        .language(language)
-        .datasetName(datasetName)
-            .content(new byte[0])
-        .build();
-
     String createdDatasetId;
     if(xsltFile == null) {
       createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
@@ -215,16 +204,25 @@ class DatasetController {
               language, xsltFile.getInputStream());
     }
 
+    //TODO Handle IOException
+    Record record = Record.builder()
+        .country(country)
+        .language(language)
+        .datasetName(datasetName)
+            .datasetId(createdDatasetId)
+            .content(new byte[0])
+        .build();
+
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 
-    RecordProcessEvent event = new RecordProcessEvent(recordInfo, createdDatasetId, Step.HARVEST_OAI_PMH, Status.SUCCESS,
+    RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
         0, url, setspec, metadataformat, xsltFile);
 
     asyncDatasetPublishService.harvestOaiPmh(event);
 
 
-    return createdDatasetId;
+    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }
 
   /**

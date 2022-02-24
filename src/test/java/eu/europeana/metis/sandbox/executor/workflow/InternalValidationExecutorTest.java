@@ -45,7 +45,7 @@ class InternalValidationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.VALIDATE_INTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.SUCCESS, 1000, "", "", "", null);
 
     when(service.validate(record)).thenReturn(new RecordInfo(record));
@@ -63,7 +63,7 @@ class InternalValidationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.VALIDATE_INTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.FAIL, 1000, "", "", "", null);
 
     consumer.validateInternal(recordEvent);
@@ -78,7 +78,7 @@ class InternalValidationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), "1", Step.VALIDATE_INTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.SUCCESS, 1000, "", "", "", null);
 
     when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
