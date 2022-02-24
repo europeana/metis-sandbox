@@ -3,9 +3,7 @@ package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
@@ -22,11 +20,13 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import java.util.Collections;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.function.Predicate;
+
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,69 +39,72 @@ import org.springframework.amqp.core.AmqpTemplate;
 @ExtendWith(MockitoExtension.class)
 class HarvestOaiPmhExecutorTest {
 
-  @Mock
-  private AmqpTemplate amqpTemplate;
+    @Mock
+    private AmqpTemplate amqpTemplate;
 
-  private final Executor taskExecutor = Runnable::run;
+    @Mock
+    private DatasetService datasetService;
 
-//  private AsyncDatasetPublishService asyncDatasetPublishService;
+    @Mock
+    private OaiHarvester oaiHarvester;
 
-  @InjectMocks
-  private HarvestOaiPmhExecutor executor;
+    @Mock
+    private HarvestService harvestService;
 
-  @Mock
-  private DatasetService datasetService;
+    @Captor
+    private ArgumentCaptor<RecordProcessEvent> captor;
 
-  @Mock
-  private OaiHarvestData oaiHarvestData;
-
-//  @BeforeEach
-//  void setUp() {
-//    asyncDatasetPublishService = new AsyncDatasetPublishServiceImpl(amqpTemplate, "oaiHarvestQueue", "createdQueue",
-//        "transformationEdmExternalQueue", taskExecutor);
-//  }
-
-  private static final OaiHarvester oaiHarvester = mock(OaiHarvester.class);
-
-  @Captor
-  private ArgumentCaptor<RecordProcessEvent> captor;
+    @InjectMocks
+    private HarvestOaiPmhExecutor executor;
 
 
-  @Test
-  void harvestOaiPmh_withoutXslt_expectSuccess()
-      throws HarvesterException, ExecutionException, InterruptedException {
+    @Test
+    void harvestOaiPmh_withoutXslt_expectSuccess()
+            throws HarvesterException {
 
-    // setup
-    Record record = Record.builder()
-        .datasetId("1")
-        .datasetName("One")
-        .country(Country.PORTUGAL)
-        .language(Language.PT)
-        .content(new byte[0])
-        .recordId(1L)
-        .build();
+        // setup
+        Record recordToSend = Record.builder()
+                .datasetId("1")
+                .datasetName("One")
+                .country(Country.PORTUGAL)
+                .language(Language.PT)
+                .content(new byte[0])
+                .build();
 
-    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
-        Step.HARVEST_OAI_PMH, Status.SUCCESS, 1000, oaiHarvestData);
+        Record recordToReturn = Record.builder()
+                .datasetId("1")
+                .datasetName("One")
+                .country(Country.PORTUGAL)
+                .language(Language.PT)
+                .content("record".getBytes(StandardCharsets.UTF_8))
+                .recordId(1L)
+                .build();
 
-    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(
-        Collections.emptyList());
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat");
+        RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(recordToSend),
+                Step.HARVEST_OAI_PMH, Status.SUCCESS, 1000, oaiHarvestData);
+        OaiRecordHeader element1 = mock(OaiRecordHeader.class);
+        List<OaiRecordHeader> iteratorList = new ArrayList<>();
+        iteratorList.add(element1);
+        OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(
+                iteratorList);
+        RecordInfo recordInfoResult = new RecordInfo(recordToReturn);
 
-    // test
-    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
-        oaiRecordHeaderIterator);
+        when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
+                oaiRecordHeaderIterator);
+        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordToSend, element1))
+                .thenReturn(recordInfoResult);
 
-//    asyncDatasetPublishService.harvestOaiPmh("One", "id", Country.PORTUGAL,
-//        Language.PT, null, oaiHarvestData).get();
+        executor.harvestOaiPmh(recordRecordProcessEvent);
 
-    executor.harvestOaiPmh(recordRecordProcessEvent);
+        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordToSend, element1);
+        verify(datasetService).updateNumberOfTotalRecord("1", 1);
+        verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    verify(amqpTemplate).convertAndSend(any(), captor.capture());
+        assertEquals(Step.HARVEST_OAI_PMH, captor.getValue().getStep());
+    }
 
-    assertEquals(Step.HARVEST_OAI_PMH, captor.getValue().getStep());
-  }
-
-  //  @Test
+    //  @Test
 //  void harvestOaiPmh_expectFail()
 //      throws HarvesterException, ExecutionException, InterruptedException {
 //
@@ -141,25 +144,25 @@ class HarvestOaiPmhExecutorTest {
 //  }
 
 
-  private static class TestHeaderIterator implements OaiRecordHeaderIterator {
+    private static class TestHeaderIterator implements OaiRecordHeaderIterator {
 
-    private final List<OaiRecordHeader> source;
+        private final List<OaiRecordHeader> source;
 
-    private TestHeaderIterator(List<OaiRecordHeader> source) {
-      this.source = source;
+        private TestHeaderIterator(List<OaiRecordHeader> source) {
+            this.source = source;
+        }
+
+        @Override
+        public void forEachFiltered(final ReportingIteration<OaiRecordHeader> action,
+                                    final Predicate<OaiRecordHeader> filter) {
+
+            this.source.forEach(action::process);
+        }
+
+        @Override
+        public void close() {
+        }
     }
-
-    @Override
-    public void forEachFiltered(final ReportingIteration<OaiRecordHeader> action,
-        final Predicate<OaiRecordHeader> filter) {
-
-      this.source.forEach(action::process);
-    }
-
-    @Override
-    public void close() {
-    }
-  }
 
 
 }

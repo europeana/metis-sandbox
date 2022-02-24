@@ -54,7 +54,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
                                                  Language language, InputStream xsltInputStream,
                                                  OaiHarvestData oaiHarvestData) {
 
-        Record record = Record.builder()
+        Record recordDataEncapsulated = Record.builder()
                 .country(country)
                 .language(language)
                 .datasetName(datasetName)
@@ -63,7 +63,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
                 .build();
 
         List<RecordError> recordErrors = new ArrayList<>();
-        RecordInfo recordInfo = new RecordInfo(record, recordErrors);
+        RecordInfo recordInfo = new RecordInfo(recordDataEncapsulated, recordErrors);
         RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
                 maxRecords, oaiHarvestData);
 
