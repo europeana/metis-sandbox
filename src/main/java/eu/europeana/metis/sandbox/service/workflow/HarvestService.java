@@ -36,14 +36,14 @@ public interface HarvestService {
   /**
    * Harvest the given OAI endpoint from the given event based on the given datasetId
    *
-   * @param event The harvest OAI event
-   * @param oaiRecordHeader
-   * @param datasetId
+   * @param oaiHarvestData The object that encapsulate the necessary data for harvesting
+   * @param recordToHarvest The encapsulation of the data of a record to be harvested
+   * @param oaiRecordHeader The record header associated with the record to be harvested
    * @return A HarvestContent object containing the content of the harvest and a bollean indicating
    * if it reached the max number of records
    * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
    *                          empty
    */
   RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest,
-      OaiRecordHeader oaiRecordHeader, String datasetIdd);
+      OaiRecordHeader oaiRecordHeader);
 }

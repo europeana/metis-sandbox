@@ -92,18 +92,18 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Override
   public RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest,
-      OaiRecordHeader oaiRecordHeader, String datasetId) {
+      OaiRecordHeader oaiRecordHeader) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
       OaiRepository oaiRepository = new OaiRepository(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository, oaiRecordHeader.getOaiIdentifier());
-      RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetId));
+      RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, recordToHarvest.getDatasetId()));
       Record harvestedRecord = Record.builder()
               .content(oaiRecord.getRecord().readAllBytes())
               .recordId(recordEntity.getId())
               .country(recordToHarvest.getCountry())
-              .datasetId(datasetId)
+              .datasetId(recordToHarvest.getDatasetId())
               .language(recordToHarvest.getLanguage())
               .datasetName(recordToHarvest.getDatasetName())
               .build();
