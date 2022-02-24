@@ -41,8 +41,6 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
-    maximumPoolSize: 10           # this is the default we make it explicit in the config.
-    leakDetectionThreshold: 5000  # five second should be enough
 sandbox:
   cors:
     mapping: '*'
@@ -54,6 +52,8 @@ sandbox:
     driverClassName: org.postgresql.Driver
     username: sandbox
     password:
+    maximumPoolSize: 10           # this is the default we make it explicit in the config.
+    leakDetectionThreshold: 5000  # five second should be enough
   dataset:
     clean:
       frequency: 0 0 0 * * ? # At 00:00:00am every day
