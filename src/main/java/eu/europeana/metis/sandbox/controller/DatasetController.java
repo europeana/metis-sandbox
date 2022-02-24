@@ -197,21 +197,8 @@ class DatasetController {
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
-    Record record = Record.builder()
-            .country(country)
-            .language(language)
-            .datasetName(datasetName)
-            .datasetId(createdDatasetId)
-            .content(new byte[0])
-            .build();
 
-    List<RecordError> recordErrors = new ArrayList<>();
-    RecordInfo recordInfo = new RecordInfo(record, recordErrors);
-
-    RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
-        0, url, setspec, metadataformat);
-
-    asyncDatasetPublishService.harvestOaiPmh(event);
+    asyncDatasetPublishService.harvestOaiPmh(datasetName, createdDatasetId, country, language, xsltInputStream, url, setspec, metadataformat);
 
     return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }
