@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.common;
 
+/**
+ * Class to encapsulate the data that is used for oai-pmh harvesting
+ */
 public class OaiHarvestData {
 
     private String url;

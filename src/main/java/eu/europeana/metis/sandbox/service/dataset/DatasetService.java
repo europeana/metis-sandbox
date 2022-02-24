@@ -91,9 +91,23 @@ public interface DatasetService {
    */
   void remove(String datasetId);
 
+  /**
+   * Updates the value of recordQuantity in the database to the given dataset
+   * @param datasetId The id of the dataset to update to
+   * @param numberOfRecords The new value to update into the dataset
+   */
   void updateNumberOfTotalRecord(String datasetId, int numberOfRecords);
 
+  /**
+   * Sets to true the boolean recordLimitExceeded in the databse
+   * @param datasetId The id of the dataset to update this into
+   */
   void updateRecordsLimitExceeded(String datasetId);
 
+  /**
+   * A boolean type of query to check if dataset has xslt content in the database
+   * @param datasetId The id of the dataset to update into
+   * @return Returns 0 if there is no xslt, 1 otherwise
+   */
   int isXsltPresent(String datasetId);
 }

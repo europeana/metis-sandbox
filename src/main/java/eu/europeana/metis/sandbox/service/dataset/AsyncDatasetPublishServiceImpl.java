@@ -71,14 +71,6 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
                 () -> this.sendToOaiHarvestQueue(event), asyncServiceTaskExecutor);
     }
 
-    private void sendToOaiHarvestQueue(RecordProcessEvent event) {
-        try {
-            amqpTemplate.convertAndSend(oaiHarvestedQueue, event);
-        } catch (AmqpException e) {
-            LOGGER.error("Error sending event to oaiHarvestQueue: ", e);
-        }
-    }
-
 
     @Override
     public CompletableFuture<Void> publishWithoutXslt(Dataset dataset) {
@@ -100,7 +92,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     }
 
 
-    public void publishToCreatedQueue(Record recordData) {
+    private void publishToCreatedQueue(Record recordData) {
         try {
             amqpTemplate.convertAndSend(createdQueue,
                     new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
@@ -117,6 +109,14 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
                             maxRecords, null));
         } catch (AmqpException e) {
             LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
+        }
+    }
+
+    private void sendToOaiHarvestQueue(RecordProcessEvent event) {
+        try {
+            amqpTemplate.convertAndSend(oaiHarvestedQueue, event);
+        } catch (AmqpException e) {
+            LOGGER.error("Error sending event to oaiHarvestQueue: ", e);
         }
     }
 

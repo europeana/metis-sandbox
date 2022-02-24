@@ -21,14 +21,28 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    */
   List<DatasetIdView> getByCreatedDateBefore(LocalDateTime date);
 
+  /**
+   * Updates the value of recordQuantity to the given dataset
+   * @param datasetId The id of the dataset to update to
+   * @param quantity The new value to update into the dataset
+   */
   @Modifying
   @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
   void updateRecordsQuantity(int datasetId, int quantity);
 
+  /**
+   * Sets to true the boolean recordLimitExceeded
+   * @param datasetId The id of the dataset to update this into
+   */
   @Modifying
   @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
   void updateRecordLimitExceededToTrue(int datasetId);
 
+  /**
+   * A boolean type of query to check if dataset has xslt content
+   * @param datasetId The id of the dataset to update into
+   * @return Returns 0 if there is no xslt, 1 otherwise
+   */
   @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltEdmExternalContent IS NOT NULL")
   int isXsltPresent(int datasetId);
 

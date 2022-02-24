@@ -4,8 +4,6 @@ import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
-import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
@@ -34,8 +32,16 @@ public interface AsyncDatasetPublishService {
    */
   CompletableFuture<Void> publishWithXslt(Dataset dataset);
 
-  void publishToCreatedQueue(Record record);
-
+  /**
+   * Async publish to message broker for further processing. This will send messages to 'harvestOai` queue
+   * @param datasetName The name of the dataset to be harvested
+   * @param datasetId The id of the dataset to be harvested
+   * @param country  The country of the dataset to be harvested
+   * @param language The language of the dataset to be harvested
+   * @param xsltInputStream The input stream of the xslt. If there xslt is not present, the input stream is empty
+   * @param oaiHarvestData And object that encapsulates the data necessary for OAI-PMH harvesting
+   * @return
+   */
   CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country, Language language,
                                         InputStream xsltInputStream,
                                         OaiHarvestData oaiHarvestData);
