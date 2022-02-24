@@ -48,7 +48,7 @@ class RecordMessageConverterTest {
         .language(Language.IT)
         .datasetId("1").datasetName("").recordId(1L).europeanaId("").build();
     var event = new RecordProcessEvent(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS, 1000,
-        "", "", "", null);
+        "", "", "");
 
     var result = MessageBuilder.withBody(record.getContent())
         .build();
@@ -66,7 +66,7 @@ class RecordMessageConverterTest {
     var recordError = new RecordError(
         new RecordProcessingException("23", new Exception("failed here")));
     var event = new RecordProcessEvent(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
-        Status.SUCCESS, 1000, "", "", "", null);
+        Status.SUCCESS, 1000, "", "", "");
 
     var result = MessageBuilder.withBody(record.getContent())
         .build();

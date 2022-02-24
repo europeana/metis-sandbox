@@ -94,4 +94,6 @@ public interface DatasetService {
   void updateNumberOfTotalRecord(String datasetId, int numberOfRecords);
 
   void updateRecordsLimitExceeded(String datasetId);
+
+  int isXsltPresent(String datasetId);
 }

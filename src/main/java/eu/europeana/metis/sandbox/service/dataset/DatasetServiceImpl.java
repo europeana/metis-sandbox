@@ -173,6 +173,11 @@ class DatasetServiceImpl implements DatasetService {
     datasetRepository.updateRecordLimitExceededToTrue(Integer.parseInt(datasetId));
   }
 
+  @Override
+  public int isXsltPresent(String datasetId) {
+    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId));
+  }
+
   private boolean isInputStreamAvailable(InputStream stream) {
     try {
       return stream != null && stream.available() != 0;

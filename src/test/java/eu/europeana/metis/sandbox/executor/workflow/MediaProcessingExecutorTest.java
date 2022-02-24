@@ -45,7 +45,7 @@ class MediaProcessingExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
-            Step.ENRICH, Status.SUCCESS, 1000, "", "", "", null);
+            Step.ENRICH, Status.SUCCESS, 1000, "", "", "");
     when(service.processMedia(record)).thenReturn(new RecordInfo(record));
     consumer.processMedia(recordRecordProcessEvent);
 
@@ -62,7 +62,7 @@ class MediaProcessingExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
-            Step.ENRICH, Status.SUCCESS, 1000, "", "", "", null);
+            Step.ENRICH, Status.SUCCESS, 1000, "", "", "");
 
     when(service.processMedia(record))
         .thenThrow(new RecordProcessingException("1", new Exception()));

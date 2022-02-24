@@ -35,12 +35,12 @@ class StepExecutor {
       var recordInfo = recordInfoSupplier.get();
       var status = recordInfo.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new RecordProcessEvent(recordInfo, step, status, input.getMaxRecords(),
-          input.getUrl(), input.getSetspec(), input.getMetadataformat(), input.getXsltFile());
+          input.getUrl(), input.getSetspec(), input.getMetadataformat());
     } catch (RecordProcessingException ex) {
       logger.error("Exception while performing step: [{}]. ", step.value(), ex);
       var recordError = new RecordError(ex);
       output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)),
-              step, Status.FAIL, 1000, "", "", "", null);
+              step, Status.FAIL, 1000, "", "", "");
     }
     amqpTemplate.convertAndSend(routingKey, output);
   }

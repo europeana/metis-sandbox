@@ -24,8 +24,10 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
   private final DatasetService datasetService;
 
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
-  private String routingKey;
+  private String routingKeyCreated;
 
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  private String routingKeyTransformationToEdmExternal;
 
   public HarvestOaiPmhExecutor(AmqpTemplate amqpTemplate, HarvestService service,
                                OaiHarvester oaiHarvester, DatasetService datasetService) {
@@ -39,6 +41,8 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
       autoStartup = "${sandbox.rabbitmq.queues.record.harvest.oai.auto-start}")
   public void harvestOaiPmh(RecordProcessEvent input)  {
     String datasetId = input.getRecord().getDatasetId();
+    String queueToSend = datasetService.isXsltPresent(datasetId) > 0 ? routingKeyTransformationToEdmExternal : routingKeyCreated;
+
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
         .harvestRecordHeaders(
             new OaiHarvest(input.getUrl(), input.getMetadataformat(), input.getSetspec()))) {
@@ -54,7 +58,7 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
           return IterationResult.TERMINATE;
         }
         // send to next queue, in this case: sandbox.rabbitmq.queues.record.created.queue
-        consume(routingKey, input, input.getStep(),
+        consume(queueToSend, input, input.getStep(),
             () -> harvestService.harvestOaiRecordHeader(input, recordHeader, datasetId));
 
         return IterationResult.CONTINUE;

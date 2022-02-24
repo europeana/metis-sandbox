@@ -46,7 +46,7 @@ class TransformationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_EXTERNAL,
-        Status.SUCCESS, 1000, "", "", "", null);
+        Status.SUCCESS, 1000, "", "", "");
 
     when(service.transformToEdmInternal(record)).thenReturn(new RecordInfo(record));
     consumer.transform(recordEvent);
@@ -64,7 +64,7 @@ class TransformationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_EXTERNAL,
-        Status.FAIL, 1000, "", "", "", null);
+        Status.FAIL, 1000, "", "", "");
 
     consumer.transform(recordEvent);
 
@@ -79,7 +79,7 @@ class TransformationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_EXTERNAL,
-        Status.SUCCESS, 1000, "", "", "", null);
+        Status.SUCCESS, 1000, "", "", "");
 
     when(service.transformToEdmInternal(record)).thenThrow(
         new RecordProcessingException("1", new Exception()));

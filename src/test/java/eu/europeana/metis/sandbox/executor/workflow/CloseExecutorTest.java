@@ -40,7 +40,7 @@ class CloseExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, "", "", "", null);
+        1000, "", "", "");
 
     consumer.close(recordEvent);
 
@@ -56,7 +56,7 @@ class CloseExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, 1000,
-        "", "", "", null);
+        "", "", "");
 
     consumer.close(recordEvent);
 

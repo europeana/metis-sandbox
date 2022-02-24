@@ -29,6 +29,9 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
   @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
   void updateRecordLimitExceededToTrue(int datasetId);
 
+  @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltEdmExternalContent IS NOT NULL")
+  int isXsltPresent(int datasetId);
+
   /**
    * Get xslt content based on datasetId
    *

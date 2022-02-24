@@ -10,6 +10,8 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.amqp.core.Message;
@@ -43,7 +45,6 @@ public class RecordMessageConverter implements MessageConverter {
   protected static final String SETSPEC = "setspec";
   protected static final String METADATAFORMAT = "metadataformat";
   protected static final String MAX_RECORDS = "maxrecords";
-  protected static final String XSLT_FILE = "xsltfile";
 
   /**
    * Convert an Event to a Message.
@@ -78,7 +79,6 @@ public class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(SETSPEC, recordRecordProcessEvent.getSetspec())
         .setHeaderIfAbsent(METADATAFORMAT, recordRecordProcessEvent.getMetadataformat())
         .setHeaderIfAbsent(MAX_RECORDS, recordRecordProcessEvent.getMaxRecords())
-        .setHeaderIfAbsent(XSLT_FILE, recordRecordProcessEvent.getXsltFile())
         .build();
 
     if (!errors.isEmpty()) {
@@ -118,7 +118,6 @@ public class RecordMessageConverter implements MessageConverter {
     String setspec = properties.getHeader(SETSPEC);
     String metadataformat = properties.getHeader(METADATAFORMAT);
     Integer maxRecords = properties.getHeader(MAX_RECORDS);
-    MultipartFile xsltFile = properties.getHeader(XSLT_FILE);
 
     Record record = Record.builder().recordId(recordId).europeanaId(europeanaId)
         .providerId(providerId).datasetId(datasetId).datasetName(datasetName)
@@ -136,6 +135,6 @@ public class RecordMessageConverter implements MessageConverter {
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 
     return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status),
-        maxRecords, url, setspec, metadataformat, xsltFile);
+        maxRecords, url, setspec, metadataformat);
   }
 }

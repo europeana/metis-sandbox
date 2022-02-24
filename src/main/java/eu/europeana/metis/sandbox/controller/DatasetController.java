@@ -209,10 +209,9 @@ class DatasetController {
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 
     RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
-        0, url, setspec, metadataformat, xsltFile);
+        0, url, setspec, metadataformat);
 
     asyncDatasetPublishService.harvestOaiPmh(event);
-
 
     return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }

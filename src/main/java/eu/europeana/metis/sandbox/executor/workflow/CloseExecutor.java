@@ -33,7 +33,7 @@ class CloseExecutor {
     }
 
     RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()),
-        Step.CLOSE, Status.SUCCESS, 1000, "", "", "", null);
+        Step.CLOSE, Status.SUCCESS, 1000, "", "", "");
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

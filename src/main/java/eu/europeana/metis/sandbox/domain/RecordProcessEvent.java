@@ -2,8 +2,9 @@ package eu.europeana.metis.sandbox.domain;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+
+import java.io.InputStream;
 import java.util.List;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Event that contains a record and its processing details
@@ -17,7 +18,6 @@ public class RecordProcessEvent {
   private String url;
   private String setspec;
   private String metadataformat;
-  private MultipartFile xsltFile;
 
   /**
    * Creates an event based on the one provided, using the provided {@link Step}
@@ -27,7 +27,7 @@ public class RecordProcessEvent {
    * @param status     must not be null
    */
   public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status, int maxRecords,
-      String url, String setspec, String metadataformat, MultipartFile xsltFile) {
+      String url, String setspec, String metadataformat) {
     this.status = status;
     this.recordInfo = recordInfo;
     this.step = step;
@@ -35,7 +35,6 @@ public class RecordProcessEvent {
     this.url = url;
     this.setspec = setspec;
     this.metadataformat = metadataformat;
-    this.xsltFile = xsltFile;
   }
 
   public RecordInfo getRecordInfo() {
@@ -90,11 +89,4 @@ public class RecordProcessEvent {
     this.metadataformat = metadataformat;
   }
 
-  public MultipartFile getXsltFile() {
-    return xsltFile;
-  }
-
-  public void setXsltFile(MultipartFile xsltFile) {
-    this.xsltFile = xsltFile;
-  }
 }
