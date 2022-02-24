@@ -109,13 +109,6 @@ sandbox:
       dlq: ${sandbox.rabbitmq.exchange.name}.dlq
     queues:
       record:
-        harvest-oai:
-          queue: sandbox.harvest-oai
-          dlq: ${sandbox.rabbitmq.queues.record.harvest-oai.queue}.dlq
-          routing-key: sandbox.record.harvest#
-          auto-start: true
-          consumers: 20
-          max-consumers: 40
         log:
           queue: sandbox.record.log
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
@@ -125,6 +118,11 @@ sandbox:
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
+        harvest:
+          oai:
+            queue: sandbox.harvest.oai
+            dlq: ${sandbox.rabbitmq.queues.record.harvest.oai.queue}.dlq
+            auto-start: true
         transformation:
           edm:
             external:
