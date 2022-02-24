@@ -46,7 +46,7 @@ class PublishExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, "", "", "");
+        1000, null);
 
     when(service.index(record)).thenReturn(new RecordInfo(record));
     consumer.publish(recordEvent);
@@ -64,7 +64,7 @@ class PublishExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record),Step.CREATE, Status.FAIL, 1000,
-        "", "", "");
+            null);
 
     consumer.publish(recordEvent);
 
@@ -79,7 +79,7 @@ class PublishExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, "", "", "");
+        1000, null);
 
     when(service.index(record))
         .thenThrow(new RecordProcessingException("1", new Exception()));

@@ -5,6 +5,7 @@ import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -42,10 +43,11 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
   public void harvestOaiPmh(RecordProcessEvent input)  {
     String datasetId = input.getRecord().getDatasetId();
     String queueToSend = datasetService.isXsltPresent(datasetId) > 0 ? routingKeyTransformationToEdmExternal : routingKeyCreated;
+    final OaiHarvestData oaiHarvestData = input.getOaiHarvestData();
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
         .harvestRecordHeaders(
-            new OaiHarvest(input.getUrl(), input.getMetadataformat(), input.getSetspec()))) {
+            new OaiHarvest(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat(), oaiHarvestData.getSetspec()))) {
 
       AtomicInteger currentNumberOfIterations = new AtomicInteger();
 

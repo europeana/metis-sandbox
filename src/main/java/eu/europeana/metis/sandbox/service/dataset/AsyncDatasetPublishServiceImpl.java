@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -51,7 +52,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     @Override
     public CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country,
                                                  Language language, InputStream xsltInputStream,
-                                                 String url, String setspec, String metadataformat) {
+                                                 OaiHarvestData oaiHarvestData) {
 
         Record record = Record.builder()
                 .country(country)
@@ -64,7 +65,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         List<RecordError> recordErrors = new ArrayList<>();
         RecordInfo recordInfo = new RecordInfo(record, recordErrors);
         RecordProcessEvent event = new RecordProcessEvent(recordInfo, Step.HARVEST_OAI_PMH, Status.SUCCESS,
-                maxRecords, url, setspec, metadataformat);
+                maxRecords, oaiHarvestData);
 
         return CompletableFuture.runAsync(
                 () -> this.sendToOaiHarvestQueue(event), asyncServiceTaskExecutor);
@@ -103,7 +104,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         try {
             amqpTemplate.convertAndSend(createdQueue,
                     new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
-                            maxRecords, "", "", ""));
+                            maxRecords, null));
         } catch (AmqpException e) {
             LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
         }
@@ -113,7 +114,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         try {
             amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
                     new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
-                            maxRecords, "", "", ""));
+                            maxRecords, null));
         } catch (AmqpException e) {
             LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
         }

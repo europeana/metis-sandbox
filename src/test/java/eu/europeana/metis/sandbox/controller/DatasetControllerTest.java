@@ -187,62 +187,62 @@ class DatasetControllerTest {
        .andExpect(jsonPath("$.dataset-id", is("12345")));
   }
 
-  @Test
-  void processDatasetFromOAI_expectSuccess() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-
-    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
-        new ByteArrayInputStream("record2".getBytes()));
-    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
-
-    var datasetObject = new Dataset("12345", Set.of(), 0);
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
-        .thenReturn(datasetObject);
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-           .param("country", ITALY.xmlValue())
-           .param("language", IT.xmlValue())
-           .param("url", url)
-           .param("setspec", "1073")
-           .param("metadataformat", "rdf"))
-       .andExpect(status().isAccepted())
-       .andExpect(jsonPath("$.dataset-id", is("12345")));
-  }
-
-  @Test
-  void processDatasetFromOAIWithXsltFile_expectSuccess() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-
-    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
-        new ByteArrayInputStream("record2".getBytes()));
-
-    var datasetObject = new Dataset("12345", Set.of(), 0);
-
-    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
-        "application/xslt+xml",
-        "string".getBytes());
-
-    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
-
-    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
-           .file(xsltMock)
-           .param("country", ITALY.xmlValue())
-           .param("language", IT.xmlValue())
-           .param("url", url)
-           .param("setspec", "1073")
-           .param("metadataformat", "rdf"))
-       .andExpect(status().isAccepted())
-       .andExpect(jsonPath("$.dataset-id", is("12345")));
-  }
+//  @Test
+//  void processDatasetFromOAI_expectSuccess() throws Exception {
+//
+//    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+//
+//    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+//        new ByteArrayInputStream("record2".getBytes()));
+//    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
+//
+//    var datasetObject = new Dataset("12345", Set.of(), 0);
+//
+//    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
+//    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+//        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
+//        .thenReturn(datasetObject);
+//
+//    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//           .param("country", ITALY.xmlValue())
+//           .param("language", IT.xmlValue())
+//           .param("url", url)
+//           .param("setspec", "1073")
+//           .param("metadataformat", "rdf"))
+//       .andExpect(status().isAccepted())
+//       .andExpect(jsonPath("$.dataset-id", is("12345")));
+//  }
+//
+//  @Test
+//  void processDatasetFromOAIWithXsltFile_expectSuccess() throws Exception {
+//
+//    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+//
+//    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+//        new ByteArrayInputStream("record2".getBytes()));
+//
+//    var datasetObject = new Dataset("12345", Set.of(), 0);
+//
+//    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+//        "application/xslt+xml",
+//        "string".getBytes());
+//
+//    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
+//
+//    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
+//    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+//        eq(harvestContent.hasReachedRecordLimit()), any(InputStream.class))).thenReturn(datasetObject);
+//
+//    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//           .file(xsltMock)
+//           .param("country", ITALY.xmlValue())
+//           .param("language", IT.xmlValue())
+//           .param("url", url)
+//           .param("setspec", "1073")
+//           .param("metadataformat", "rdf"))
+//       .andExpect(status().isAccepted())
+//       .andExpect(jsonPath("$.dataset-id", is("12345")));
+//  }
 
   @Test
   void processDatasetFromFile_invalidName_expectFail() throws Exception {
@@ -325,25 +325,25 @@ class DatasetControllerTest {
        .andExpect(result -> assertTrue(
            result.getResolvedException() instanceof IllegalArgumentException));
   }
-
-  @Test
-  void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenThrow(
-        new IllegalArgumentException(new Exception()));
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-           .param("country", ITALY.name())
-           .param("language", IT.name())
-           .param("url", url)
-           .param("setspec", "1073")
-           .param("metadataformat", "rdf"))
-       .andExpect(status().isBadRequest())
-       .andExpect(result -> assertTrue(
-           result.getResolvedException() instanceof IllegalArgumentException));
-  }
+//
+//  @Test
+//  void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
+//
+//    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+//
+//    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenThrow(
+//        new IllegalArgumentException(new Exception()));
+//
+//    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//           .param("country", ITALY.name())
+//           .param("language", IT.name())
+//           .param("url", url)
+//           .param("setspec", "1073")
+//           .param("metadataformat", "rdf"))
+//       .andExpect(status().isBadRequest())
+//       .andExpect(result -> assertTrue(
+//           result.getResolvedException() instanceof IllegalArgumentException));
+//  }
 
   @Test
   void processDatasetFromFile_datasetServiceFails_expectFail() throws Exception {
@@ -391,29 +391,29 @@ class DatasetControllerTest {
            is("Failed Please retry, if problem persists contact provider.")));
   }
 
-  @Test
-  void processDatasetFromOAI_datasetServiceFails_expectFail() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
-        new ByteArrayInputStream("record2".getBytes()));
-    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
-        .thenThrow(new ServiceException("Failed", new Exception()));
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-           .param("country", ITALY.name())
-           .param("language", IT.name())
-           .param("url", url)
-           .param("setspec", "1073")
-           .param("metadataformat", "rdf"))
-       .andExpect(status().isInternalServerError())
-       .andExpect(jsonPath("$.message",
-           is("Failed Please retry, if problem persists contact provider.")));
-  }
+//  @Test
+//  void processDatasetFromOAI_datasetServiceFails_expectFail() throws Exception {
+//
+//    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+//    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+//        new ByteArrayInputStream("record2".getBytes()));
+//    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
+//
+//    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
+//    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+//        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
+//        .thenThrow(new ServiceException("Failed", new Exception()));
+//
+//    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//           .param("country", ITALY.name())
+//           .param("language", IT.name())
+//           .param("url", url)
+//           .param("setspec", "1073")
+//           .param("metadataformat", "rdf"))
+//       .andExpect(status().isInternalServerError())
+//       .andExpect(jsonPath("$.message",
+//           is("Failed Please retry, if problem persists contact provider.")));
+//  }
 
   @Test
   void processDatasetFromFile_datasetServiceInvalidRecord_expectFail() throws Exception {
@@ -461,29 +461,29 @@ class DatasetControllerTest {
            is("Error while parsing a xml record. ")));
   }
 
-  @Test
-  void processDatasetFromOAI_datasetServiceInvalidRecord_expectFail() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
-        new ByteArrayInputStream("record2".getBytes()));
-    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
-        .thenThrow(new RecordParsingException(new Exception()));
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-           .param("country", ITALY.name())
-           .param("language", IT.name())
-           .param("url", url)
-           .param("setspec", "1073")
-           .param("metadataformat", "rdf"))
-       .andExpect(status().isBadRequest())
-       .andExpect(jsonPath("$.message",
-           is("Error while parsing a xml record. ")));
-  }
+//  @Test
+//  void processDatasetFromOAI_datasetServiceInvalidRecord_expectFail() throws Exception {
+//
+//    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+//    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+//        new ByteArrayInputStream("record2".getBytes()));
+//    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
+//
+//    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
+//    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+//        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
+//        .thenThrow(new RecordParsingException(new Exception()));
+//
+//    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//           .param("country", ITALY.name())
+//           .param("language", IT.name())
+//           .param("url", url)
+//           .param("setspec", "1073")
+//           .param("metadataformat", "rdf"))
+//       .andExpect(status().isBadRequest())
+//       .andExpect(jsonPath("$.message",
+//           is("Error while parsing a xml record. ")));
+//  }
 
   @Test
   void processDatasetFromFile_differentXsltFileType_expectFail() throws Exception {
@@ -539,33 +539,33 @@ class DatasetControllerTest {
            is("The given xslt file should be a single xml file.")));
   }
 
-  @Test
-  void processDatasetFromOAI_differentXsltFileType_expectFail() throws Exception {
-
-    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
-        new ByteArrayInputStream("record2".getBytes()));
-
-    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
-        "string".getBytes());
-    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
-
-    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
-    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
-        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
-        .thenThrow(new RecordParsingException(new Exception()));
-
-    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
-           .file(xsltMock)
-           .param("country", ITALY.name())
-           .param("language", IT.name())
-           .param("url", url)
-           .param("setspec", "1073")
-           .param("metadataformat", "rdf"))
-       .andExpect(status().isBadRequest())
-       .andExpect(jsonPath("$.message",
-           is("The given xslt file should be a single xml file.")));
-  }
+//  @Test
+//  void processDatasetFromOAI_differentXsltFileType_expectFail() throws Exception {
+//
+//    String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+//    var records = List.of(new ByteArrayInputStream("record1".getBytes()),
+//        new ByteArrayInputStream("record2".getBytes()));
+//
+//    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
+//        "string".getBytes());
+//    HarvestContent harvestContent = new HarvestContent(new AtomicBoolean(false), records);
+//
+//    when(harvestService.harvestOaiPmhEndpoint(url, "1073", "rdf")).thenReturn(harvestContent);
+//    when(datasetService.createDataset(eq("my-data-set"), eq(ITALY), eq(IT), eq(records),
+//        eq(harvestContent.hasReachedRecordLimit()), any(ByteArrayInputStream.class)))
+//        .thenThrow(new RecordParsingException(new Exception()));
+//
+//    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//           .file(xsltMock)
+//           .param("country", ITALY.name())
+//           .param("language", IT.name())
+//           .param("url", url)
+//           .param("setspec", "1073")
+//           .param("metadataformat", "rdf"))
+//       .andExpect(status().isBadRequest())
+//       .andExpect(jsonPath("$.message",
+//           is("The given xslt file should be a single xml file.")));
+//  }
 
   @Test
   void retrieveDataset_expectSuccess() throws Exception {

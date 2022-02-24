@@ -6,6 +6,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.HarvestContent;
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -197,8 +198,8 @@ class DatasetController {
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
-
-    asyncDatasetPublishService.harvestOaiPmh(datasetName, createdDatasetId, country, language, xsltInputStream, url, setspec, metadataformat);
+    asyncDatasetPublishService.harvestOaiPmh(datasetName, createdDatasetId, country, language, xsltInputStream,
+            new OaiHarvestData(url, setspec, metadataformat));
 
     return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }

@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.common.amqp;
 
 import static java.util.Objects.nonNull;
 
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -75,9 +76,9 @@ public class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(LANGUAGE, record.getLanguage())
         .setHeaderIfAbsent(STEP, recordRecordProcessEvent.getStep())
         .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus())
-        .setHeaderIfAbsent(URL, recordRecordProcessEvent.getUrl())
-        .setHeaderIfAbsent(SETSPEC, recordRecordProcessEvent.getSetspec())
-        .setHeaderIfAbsent(METADATAFORMAT, recordRecordProcessEvent.getMetadataformat())
+        .setHeaderIfAbsent(URL, recordRecordProcessEvent.getOaiHarvestData().getUrl())
+        .setHeaderIfAbsent(SETSPEC, recordRecordProcessEvent.getOaiHarvestData().getSetspec())
+        .setHeaderIfAbsent(METADATAFORMAT, recordRecordProcessEvent.getOaiHarvestData().getMetadataformat())
         .setHeaderIfAbsent(MAX_RECORDS, recordRecordProcessEvent.getMaxRecords())
         .build();
 
@@ -135,6 +136,6 @@ public class RecordMessageConverter implements MessageConverter {
     RecordInfo recordInfo = new RecordInfo(record, recordErrors);
 
     return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status),
-        maxRecords, url, setspec, metadataformat);
+        maxRecords, new OaiHarvestData(url, setspec, metadataformat));
   }
 }

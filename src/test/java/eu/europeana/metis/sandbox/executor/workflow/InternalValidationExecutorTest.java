@@ -46,7 +46,7 @@ class InternalValidationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
-        Status.SUCCESS, 1000, "", "", "");
+        Status.SUCCESS, 1000, null);
 
     when(service.validate(record)).thenReturn(new RecordInfo(record));
     consumer.validateInternal(recordEvent);
@@ -64,7 +64,7 @@ class InternalValidationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
-        Status.FAIL, 1000, "", "", "");
+        Status.FAIL, 1000, null);
 
     consumer.validateInternal(recordEvent);
 
@@ -79,7 +79,7 @@ class InternalValidationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
-        Status.SUCCESS, 1000, "", "", "");
+        Status.SUCCESS, 1000, null);
 
     when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

@@ -59,7 +59,7 @@ class RecordLogServiceImplTest {
     var recordError = new RecordError("message", "stack");
 
     var event = new RecordProcessEvent(new RecordInfo(record),  Step.CREATE, Status.SUCCESS, 1000,
-        "", "", "");
+            null);
 
     service.logRecordEvent(event);
 
@@ -78,7 +78,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new RecordProcessEvent(new RecordInfo(record),  Step.CREATE, Status.SUCCESS, 1000,
-        "", "", "");
+            null);
 
     when(recordLogRepository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -92,7 +92,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
     var event = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS, 1000,
-        "", "", "");
+            null);
 
     when(errorLogRepository.saveAll(anyList()))
         .thenThrow(new RuntimeException("Exception saving"));

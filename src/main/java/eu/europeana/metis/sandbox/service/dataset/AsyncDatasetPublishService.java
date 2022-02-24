@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
@@ -35,6 +36,7 @@ public interface AsyncDatasetPublishService {
 
   void publishToCreatedQueue(Record record);
 
-  CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country, Language language, InputStream xsltInputStream,
-                                        String url, String setspec, String metadataformat);
+  CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country, Language language,
+                                        InputStream xsltInputStream,
+                                        OaiHarvestData oaiHarvestData);
 }

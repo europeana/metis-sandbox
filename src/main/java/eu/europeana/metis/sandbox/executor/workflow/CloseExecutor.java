@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -33,7 +34,7 @@ class CloseExecutor {
     }
 
     RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()),
-        Step.CLOSE, Status.SUCCESS, 1000, "", "", "");
+        Step.CLOSE, Status.SUCCESS, 1000, new OaiHarvestData("","",""));
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

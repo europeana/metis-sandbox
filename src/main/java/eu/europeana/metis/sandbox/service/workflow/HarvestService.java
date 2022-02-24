@@ -42,8 +42,5 @@ public interface HarvestService {
    * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
    *                          empty
    */
-  HarvestContent harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
-      throws ServiceException;
-
   RecordInfo harvestOaiRecordHeader(RecordProcessEvent event, OaiRecordHeader oaiRecordHeader, String datasetId);
 }
