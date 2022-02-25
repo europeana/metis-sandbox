@@ -37,7 +37,6 @@ public interface AsyncDatasetPublishService {
    * @param datasetId The id of the dataset to be harvested
    * @param country  The country of the dataset to be harvested
    * @param language The language of the dataset to be harvested
-   * @param xsltInputStream The input stream of the xslt. If there xslt is not present, the input stream is empty
    * @param oaiHarvestData And object that encapsulates the data necessary for OAI-PMH harvesting
    * @return
    */
