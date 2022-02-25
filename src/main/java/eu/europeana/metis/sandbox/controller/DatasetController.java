@@ -28,7 +28,10 @@ import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -189,13 +192,13 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
+    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
+        xsltInputStream);
     asyncDatasetPublishService.harvestOaiPmh(datasetName, createdDatasetId, country, language,
-            new OaiHarvestData(url, setspec, metadataformat));
+        new OaiHarvestData(url, setspec, metadataformat));
 
-    //TODO 24-02-2022: We need to update the type of object we return since datasetId is the only relevant data
+    //TODO: We need to update the type of object we return since datasetId is the only relevant data
     return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }
 
@@ -287,7 +290,7 @@ class DatasetController {
   @ResponseBody
   public List<LanguageView> getAllLanguages() {
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
-        .collect(Collectors.toList());
+                   .collect(Collectors.toList());
   }
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

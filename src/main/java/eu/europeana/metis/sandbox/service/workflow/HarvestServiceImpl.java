@@ -15,7 +15,6 @@ import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +47,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
-                            @Value("${sandbox.dataset.max-size}") int maxRecords, RecordRepository recordRepository) {
+      @Value("${sandbox.dataset.max-size}") int maxRecords, RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
     this.recordRepository = recordRepository;
     this.httpHarvester.setMaxNumberOfIterations(maxRecords);
@@ -90,17 +89,20 @@ public class HarvestServiceImpl implements HarvestService {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
-      OaiRepository oaiRepository = new OaiRepository(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat());
-      OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository, oaiRecordHeader.getOaiIdentifier());
-      RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, recordToHarvest.getDatasetId()));
+      OaiRepository oaiRepository = new OaiRepository(oaiHarvestData.getUrl(),
+          oaiHarvestData.getMetadataformat());
+      OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
+          oaiRecordHeader.getOaiIdentifier());
+      RecordEntity recordEntity = recordRepository.save(
+          new RecordEntity(null, null, recordToHarvest.getDatasetId()));
       Record harvestedRecord = Record.builder()
-              .content(oaiRecord.getRecord().readAllBytes())
-              .recordId(recordEntity.getId())
-              .country(recordToHarvest.getCountry())
-              .datasetId(recordToHarvest.getDatasetId())
-              .language(recordToHarvest.getLanguage())
-              .datasetName(recordToHarvest.getDatasetName())
-              .build();
+                                     .content(oaiRecord.getRecord().readAllBytes())
+                                     .recordId(recordEntity.getId())
+                                     .country(recordToHarvest.getCountry())
+                                     .datasetId(recordToHarvest.getDatasetId())
+                                     .language(recordToHarvest.getLanguage())
+                                     .datasetName(recordToHarvest.getDatasetName())
+                                     .build();
       return new RecordInfo(harvestedRecord, recordErrors);
 
     } catch (HarvesterException | IOException e) {

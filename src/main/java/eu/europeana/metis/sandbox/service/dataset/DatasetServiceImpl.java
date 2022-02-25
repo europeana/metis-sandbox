@@ -61,7 +61,8 @@ class DatasetServiceImpl implements DatasetService {
       try {
         entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
       } catch (IOException e) {
-        throw new XsltProcessingException("Something went wrong while checking content of xslt file.", e);
+        throw new XsltProcessingException(
+            "Something went wrong while checking content of xslt file.", e);
       }
     }
 
@@ -96,7 +97,8 @@ class DatasetServiceImpl implements DatasetService {
         entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
         hasXsltTransformerEdmExternal = true;
       } catch (IOException e) {
-        throw new XsltProcessingException("Something went wrong while checking the content of the xslt file", e);
+        throw new XsltProcessingException(
+            "Something went wrong while checking the content of the xslt file", e);
       }
     }
 
@@ -108,11 +110,11 @@ class DatasetServiceImpl implements DatasetService {
 
     final String datasetId = String.valueOf(entity.getDatasetId());
     final Dataset dataset = generatorService.generate(DatasetMetadata.builder()
-        .withDatasetId(datasetId)
-        .withDatasetName(datasetName)
-        .withCountry(country)
-        .withLanguage(language)
-        .build(), records);
+                                                                     .withDatasetId(datasetId)
+                                                                     .withDatasetName(datasetName)
+                                                                     .withCountry(country)
+                                                                     .withLanguage(language)
+                                                                     .build(), records);
 
     // if there are duplicate records in the original list
     if (dataset.getRecords().size() < records.size()) {
@@ -137,14 +139,14 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public List<String> getDatasetIdsCreatedBefore(int days) {
     LocalDateTime date = LocalDateTime.now()
-        .truncatedTo(ChronoUnit.DAYS)
-        .minusDays(days);
+                                      .truncatedTo(ChronoUnit.DAYS)
+                                      .minusDays(days);
 
     try {
       return datasetRepository.getByCreatedDateBefore(date).stream()
-          .map(DatasetIdView::getDatasetId)
-          .map(Object::toString)
-          .collect(toList());
+                              .map(DatasetIdView::getDatasetId)
+                              .map(Object::toString)
+                              .collect(toList());
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }

@@ -7,7 +7,6 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -42,8 +41,7 @@ class RecordLogConfiguration {
 
   private final AmqpConfiguration amqpConfiguration;
 
-  public RecordLogConfiguration(
-      @Qualifier("recordMessageConverter") MessageConverter messageConverter,
+  public RecordLogConfiguration(MessageConverter messageConverter,
       AmqpConfiguration amqpConfiguration) {
     this.messageConverter = messageConverter;
     this.amqpConfiguration = amqpConfiguration;
@@ -52,7 +50,7 @@ class RecordLogConfiguration {
   @Bean
   Queue logQueue() {
     return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq)
-        .build();
+                       .build();
   }
 
   @Bean

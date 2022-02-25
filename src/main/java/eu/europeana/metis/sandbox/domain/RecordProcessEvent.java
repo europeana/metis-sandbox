@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.domain;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-
 import java.util.List;
 
 /**
@@ -19,13 +18,14 @@ public class RecordProcessEvent {
 
   /**
    * Creates an event based on the one provided, using the provided {@link Step}
-   *  @param recordInfo must not be null
-   * @param step       must not be null
-   * @param status     must not be null
-   * @param oaiHarvestData
+   *
+   * @param recordInfo     must not be null
+   * @param step           must not be null
+   * @param status         must not be null
+   * @param oaiHarvestData class that encapsulates OAI-PMH data
    */
   public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status, int maxRecords,
-          OaiHarvestData oaiHarvestData) {
+      OaiHarvestData oaiHarvestData) {
     this.status = status;
     this.recordInfo = recordInfo;
     this.step = step;
