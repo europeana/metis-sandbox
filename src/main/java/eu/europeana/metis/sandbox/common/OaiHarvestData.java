@@ -19,23 +19,12 @@ public class OaiHarvestData {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public String getSetspec() {
         return setspec;
-    }
-
-    public void setSetspec(String setspec) {
-        this.setspec = setspec;
     }
 
     public String getMetadataformat() {
         return metadataformat;
     }
 
-    public void setMetadataformat(String metadataformat) {
-        this.metadataformat = metadataformat;
-    }
 }

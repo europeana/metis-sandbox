@@ -43,6 +43,5 @@ public interface AsyncDatasetPublishService {
    * @return
    */
   CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country, Language language,
-                                        InputStream xsltInputStream,
                                         OaiHarvestData oaiHarvestData);
 }

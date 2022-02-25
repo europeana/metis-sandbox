@@ -51,8 +51,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
     @Override
     public CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country,
-                                                 Language language, InputStream xsltInputStream,
-                                                 OaiHarvestData oaiHarvestData) {
+                                                 Language language, OaiHarvestData oaiHarvestData) {
 
         Record recordDataEncapsulated = Record.builder()
                 .country(country)
