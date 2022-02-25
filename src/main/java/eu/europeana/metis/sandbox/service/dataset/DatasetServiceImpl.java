@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +61,7 @@ class DatasetServiceImpl implements DatasetService {
       try {
         entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
       } catch (IOException e) {
-        throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
+        throw new XsltProcessingException("Something went wrong while checking content of xslt file.", e);
       }
     }
 
@@ -97,7 +96,7 @@ class DatasetServiceImpl implements DatasetService {
         entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
         hasXsltTransformerEdmExternal = true;
       } catch (IOException e) {
-        throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
+        throw new XsltProcessingException("Something went wrong while checking the content of the xslt file", e);
       }
     }
 
@@ -182,7 +181,7 @@ class DatasetServiceImpl implements DatasetService {
     try {
       return stream != null && stream.available() != 0;
     } catch (IOException e) {
-      throw new XsltProcessingException("Something went wrong when checking xslt file.", e);
+      throw new XsltProcessingException("Something went wrong when checking xslt input stream.", e);
     }
   }
 }
