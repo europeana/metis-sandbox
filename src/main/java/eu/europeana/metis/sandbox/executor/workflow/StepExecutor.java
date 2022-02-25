@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 
 /**
@@ -41,8 +42,11 @@ class StepExecutor {
       //Also catch runtime exceptions to avoid losing the message or thread
       output = createFailEvent(input, step, new RecordProcessingException(Long.toString(input.getBody().getRecordId()), ex));
     }
-
-    amqpTemplate.convertAndSend(routingKey, output);
+    try {
+      amqpTemplate.convertAndSend(routingKey, output);
+    } catch (RuntimeException rabbitException) {
+      logger.error("Step execution error", rabbitException);
+    }
   }
 
   private Event createFailEvent(Event input, Step step, RecordProcessingException ex) {
