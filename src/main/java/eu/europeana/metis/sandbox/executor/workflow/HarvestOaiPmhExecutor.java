@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,7 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
   @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
   private String routingKeyTransformationToEdmExternal;
 
+  @Autowired
   public HarvestOaiPmhExecutor(AmqpTemplate amqpTemplate, HarvestService service,
                                OaiHarvester oaiHarvester, DatasetService datasetService) {
     super(amqpTemplate);
@@ -71,5 +73,11 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
     }
+  }
+
+  //This method is only used for testing purposes
+  protected void setRoutingKeys(String routingKeyCreated, String routingKeyTransformationToEdmExternal){
+    this.routingKeyCreated = routingKeyCreated;
+    this.routingKeyTransformationToEdmExternal = routingKeyTransformationToEdmExternal;
   }
 }
