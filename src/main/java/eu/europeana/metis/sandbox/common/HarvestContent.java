@@ -19,10 +19,6 @@ public class HarvestContent {
     return recordLimitExceeded.get();
   }
 
-  public void setRecordLimitExceeded(AtomicBoolean recordLimitExceeded) {
-    this.recordLimitExceeded = recordLimitExceeded;
-  }
-
   public List<ByteArrayInputStream> getContent() {
     return content;
   }

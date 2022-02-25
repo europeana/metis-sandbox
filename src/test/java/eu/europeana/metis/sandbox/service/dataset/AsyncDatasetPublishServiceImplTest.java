@@ -17,7 +17,6 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -144,31 +143,37 @@ class AsyncDatasetPublishServiceImplTest {
   }
 
   @Test
-  void harvestOaiPmh_expectSuccess(){
+  void harvestOaiPmh_expectSuccess() {
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat");
 
-    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
+    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
+        oaiHarvestData);
 
     verify(amqpTemplate).convertAndSend(any(), recordProcessEventCaptor.capture());
     assertEquals(Status.SUCCESS, recordProcessEventCaptor.getValue().getStatus());
     assertEquals(Step.HARVEST_OAI_PMH, recordProcessEventCaptor.getValue().getStep());
-    assertEquals("datasetName", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetName());
-    assertEquals("datasetId", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetId());
-    assertEquals(Country.NETHERLANDS, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getCountry());
-    assertEquals(Language.NL, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getLanguage());
+    assertEquals("datasetName",
+        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetName());
+    assertEquals("datasetId",
+        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetId());
+    assertEquals(Country.NETHERLANDS,
+        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getCountry());
+    assertEquals(Language.NL,
+        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getLanguage());
     assertEquals(oaiHarvestData, recordProcessEventCaptor.getValue().getOaiHarvestData());
     assertEquals(new ArrayList<>(), recordProcessEventCaptor.getValue().getRecordErrors());
 
   }
 
   @Test
-  void harvestOaiPmh_expectFail(){
+  void harvestOaiPmh_expectFail() {
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat");
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-            .convertAndSend(anyString(), any(RecordProcessEvent.class));
+        .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
+    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
+        oaiHarvestData);
 
     verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(RecordProcessEvent.class));
   }

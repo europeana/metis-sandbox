@@ -172,8 +172,8 @@ class AmqpConfiguration {
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
   private Declarables getDeclarables(String exchange, String created, String harvestOai,
-      String transformationToEdmExternal, String externalValidated, String transformed, String normalized,
-      String internalValidated, String enriched, String mediaProcessed,
+      String transformationToEdmExternal, String externalValidated, String transformed,
+      String normalized, String internalValidated, String enriched, String mediaProcessed,
       String published) {
     return new Declarables(
         new Binding(harvestOai, DestinationType.QUEUE, exchange, harvestOai, null),
