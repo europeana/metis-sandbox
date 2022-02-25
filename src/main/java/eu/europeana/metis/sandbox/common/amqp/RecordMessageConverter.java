@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * Implementation of {@link MessageConverter} that can work with {@link RecordProcessEvent}
  */
 @Component
-public class RecordMessageConverter implements MessageConverter {
+class RecordMessageConverter implements MessageConverter {
 
   protected static final int LEFT = 0;
   protected static final int RIGHT = 1;
