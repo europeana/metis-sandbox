@@ -112,6 +112,9 @@ class HarvestOaiPmhExecutorTest {
         verify(amqpTemplate).convertAndSend(any(), captor.capture());
         assertEquals(Step.HARVEST_OAI_PMH, captor.getValue().getStep());
         assertEquals(recordInfoResult, captor.getValue().getRecordInfo());
+        assertEquals("url", captor.getValue().getOaiHarvestData().getUrl());
+        assertEquals("setspec",captor.getValue().getOaiHarvestData().getSetspec());
+        assertEquals("metadataformat",captor.getValue().getOaiHarvestData().getMetadataformat());
     }
 
     @Test
@@ -158,6 +161,9 @@ class HarvestOaiPmhExecutorTest {
         verify(amqpTemplate).convertAndSend(any(), captor.capture());
         assertEquals(Step.HARVEST_OAI_PMH, captor.getValue().getStep());
         assertEquals(recordInfoResult, captor.getValue().getRecordInfo());
+        assertEquals("url", captor.getValue().getOaiHarvestData().getUrl());
+        assertEquals("setspec",captor.getValue().getOaiHarvestData().getSetspec());
+        assertEquals("metadataformat",captor.getValue().getOaiHarvestData().getMetadataformat());
 
     }
 
@@ -227,6 +233,8 @@ class HarvestOaiPmhExecutorTest {
         assertEquals(recordInfoResult1, capturedEvents.get(0).getRecordInfo());
         assertEquals(Step.HARVEST_OAI_PMH, capturedEvents.get(1).getStep());
         assertEquals(recordInfoResult2, capturedEvents.get(1).getRecordInfo());
+        assertEquals(oaiHarvestData, capturedEvents.get(0).getOaiHarvestData());
+        assertEquals(oaiHarvestData, capturedEvents.get(1).getOaiHarvestData());
 
     }
 
