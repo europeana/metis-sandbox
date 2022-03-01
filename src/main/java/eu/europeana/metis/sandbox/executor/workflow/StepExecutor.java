@@ -17,7 +17,7 @@ import org.springframework.amqp.core.AmqpTemplate;
  */
 class StepExecutor {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(StepExecutor.class);
   private final AmqpTemplate amqpTemplate;
 
   StepExecutor(AmqpTemplate amqpTemplate) {
@@ -44,13 +44,13 @@ class StepExecutor {
     try {
       amqpTemplate.convertAndSend(routingKey, output);
     } catch (RuntimeException rabbitException) {
-      logger.error("Queue step execution error", rabbitException);
+      LOGGER.error("Queue step execution error", rabbitException);
     }
   }
 
   private Event createFailEvent(Event input, Step step, RecordProcessingException ex) {
     Event output;
-    logger.error("Exception while performing step: [{}]. ", step.value(), ex);
+    LOGGER.error("Exception while performing step: [{}]. ", step.value(), ex);
     var recordError = new RecordError(ex);
     output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), step, Status.FAIL);
     return output;
