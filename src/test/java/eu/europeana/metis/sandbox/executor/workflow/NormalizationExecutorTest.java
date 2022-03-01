@@ -46,7 +46,7 @@ class NormalizationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, null);
+        null);
 
     when(service.normalize(record)).thenReturn(new RecordInfo(record));
     consumer.normalize(recordEvent);
@@ -63,8 +63,7 @@ class NormalizationExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, 1000,
-            null);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, null);
 
     consumer.normalize(recordEvent);
 
@@ -79,7 +78,7 @@ class NormalizationExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, null);
+        null);
 
     when(service.normalize(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

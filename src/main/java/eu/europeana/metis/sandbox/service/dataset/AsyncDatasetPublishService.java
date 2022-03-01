@@ -39,8 +39,7 @@ public interface AsyncDatasetPublishService {
    * @param country        The country of the dataset to be harvested
    * @param language       The language of the dataset to be harvested
    * @param oaiHarvestData And object that encapsulates the data necessary for OAI-PMH harvesting
-   * @return {@link CompletableFuture} of the process
    */
-  CompletableFuture<Void> harvestOaiPmh(String datasetName, String datasetId, Country country,
+  void harvestOaiPmh(String datasetName, String datasetId, Country country,
       Language language, OaiHarvestData oaiHarvestData);
 }

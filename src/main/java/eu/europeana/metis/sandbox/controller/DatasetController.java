@@ -196,7 +196,7 @@ class DatasetController {
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
     asyncDatasetPublishService.harvestOaiPmh(datasetName, createdDatasetId, country, language,
-        new OaiHarvestData(url, setspec, metadataformat));
+        new OaiHarvestData(url, setspec, metadataformat, ""));
 
     //TODO(25-02-2022): We need to update the type of object we return since datasetId is the only relevant data
     return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));

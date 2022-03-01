@@ -5,7 +5,6 @@ import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
@@ -84,15 +83,14 @@ public class HarvestServiceImpl implements HarvestService {
 
 
   @Override
-  public RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest,
-      OaiRecordHeader oaiRecordHeader) {
+  public RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
       OaiRepository oaiRepository = new OaiRepository(oaiHarvestData.getUrl(),
           oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
-          oaiRecordHeader.getOaiIdentifier());
+          oaiHarvestData.getOaiIdentifier());
       RecordEntity recordEntity = recordRepository.save(
           new RecordEntity(null, null, recordToHarvest.getDatasetId()));
       Record harvestedRecord = Record.builder()
@@ -107,9 +105,9 @@ public class HarvestServiceImpl implements HarvestService {
 
     } catch (HarvesterException | IOException e) {
       LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
-          oaiRecordHeader.getOaiIdentifier(), e);
+              oaiHarvestData.getOaiIdentifier(), e);
       recordErrors.add(new RecordError(
-          "Error harvesting OAI-PMH Record Header:" + oaiRecordHeader.getOaiIdentifier(),
+          "Error harvesting OAI-PMH Record Header:" + oaiHarvestData.getOaiIdentifier(),
           e.getMessage()));
 
       return new RecordInfo(recordToHarvest, recordErrors);

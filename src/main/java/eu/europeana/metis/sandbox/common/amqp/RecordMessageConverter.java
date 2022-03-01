@@ -39,10 +39,7 @@ class RecordMessageConverter implements MessageConverter {
   protected static final String STATUS = "status";
   protected static final String STEP = "step";
   protected static final String ERRORS = "errors";
-  protected static final String URL = "url";
-  protected static final String SET_SPEC = "setSpec";
-  protected static final String METADATA_FORMAT = "metadataFormat";
-  protected static final String MAX_RECORDS = "maxRecords";
+  protected static final String RECORD_OAI_HARVEST_DATA = "recordOaiHarvestData";
 
   /**
    * Convert an Event to a Message.
@@ -71,10 +68,7 @@ class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(COUNTRY, recordToProcess.getCountry()).setHeaderIfAbsent(LANGUAGE, recordToProcess.getLanguage())
         .setHeaderIfAbsent(STEP, recordRecordProcessEvent.getStep())
         .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus())
-        .setHeaderIfAbsent(URL, recordRecordProcessEvent.getOaiHarvestData().getUrl())
-        .setHeaderIfAbsent(SET_SPEC, recordRecordProcessEvent.getOaiHarvestData().getSetspec())
-        .setHeaderIfAbsent(METADATA_FORMAT, recordRecordProcessEvent.getOaiHarvestData().getMetadataformat())
-        .setHeaderIfAbsent(MAX_RECORDS, recordRecordProcessEvent.getMaxRecords()).build();
+        .setHeaderIfAbsent(RECORD_OAI_HARVEST_DATA, recordRecordProcessEvent.getOaiHarvestData().toString()).build();
 
     if (!errors.isEmpty()) {
       List<List<String>> errorsHeader = errors.stream().map(x -> List.of(x.getMessage(), x.getStackTrace()))
@@ -109,10 +103,7 @@ class RecordMessageConverter implements MessageConverter {
     String step = properties.getHeader(STEP);
     String status = properties.getHeader(STATUS);
     List<List<Object>> errors = properties.getHeader(ERRORS);
-    String url = properties.getHeader(URL);
-    String setspec = properties.getHeader(SET_SPEC);
-    String metadataformat = properties.getHeader(METADATA_FORMAT);
-    Integer maxRecords = properties.getHeader(MAX_RECORDS);
+    OaiHarvestData oaiHarvestData = OaiHarvestData.fromString(properties.getHeader(RECORD_OAI_HARVEST_DATA));
 
     Record recordToSend = Record.builder().recordId(recordId).europeanaId(europeanaId).providerId(providerId).datasetId(datasetId)
         .datasetName(datasetName).country(Country.valueOf(country)).language(Language.valueOf(language)).content(content).build();
@@ -126,7 +117,6 @@ class RecordMessageConverter implements MessageConverter {
 
     RecordInfo recordInfo = new RecordInfo(recordToSend, recordErrors);
 
-    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status), maxRecords,
-        new OaiHarvestData(url, setspec, metadataformat));
+    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status), oaiHarvestData);
   }
 }

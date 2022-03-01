@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -320,8 +321,9 @@ class DatasetControllerTest {
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
         .thenReturn("12345");
-    when(asyncDatasetPublishService.harvestOaiPmh(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
-        any(OaiHarvestData.class))).thenThrow(new IllegalArgumentException(new Exception()));
+    doThrow(new IllegalArgumentException(new Exception())).when(asyncDatasetPublishService)
+            .harvestOaiPmh(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
+        any(OaiHarvestData.class));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("country", ITALY.name())

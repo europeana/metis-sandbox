@@ -88,9 +88,9 @@ class HarvestOaiPmhExecutorTest {
                 .recordId(1L)
                 .build();
 
-        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat");
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier");
         RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(recordFromEvent),
-                Step.HARVEST_OAI_PMH, Status.SUCCESS, 1000, oaiHarvestData);
+                Step.HARVEST_OAI_PMH, Status.SUCCESS, oaiHarvestData);
         OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier", false, Instant.now());
         List<OaiRecordHeader> iteratorList = new ArrayList<>();
         iteratorList.add(element1);
@@ -101,12 +101,12 @@ class HarvestOaiPmhExecutorTest {
         when(datasetService.isXsltPresent("1")).thenReturn(false);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
                 oaiRecordHeaderIterator);
-        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1))
+        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent))
                 .thenReturn(recordInfoResult);
 
         executor.harvestOaiPmh(recordRecordProcessEvent);
 
-        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1);
+        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent);
         verify(datasetService).updateNumberOfTotalRecord("1", 1);
         verify(executor).consume(eq("sandbox.record.created"), any(RecordProcessEvent.class), any(Step.class), any(Supplier.class));
         verify(amqpTemplate).convertAndSend(any(), captor.capture());
@@ -137,9 +137,9 @@ class HarvestOaiPmhExecutorTest {
                 .recordId(1L)
                 .build();
 
-        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat");
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier");
         RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(recordFromEvent),
-                Step.HARVEST_OAI_PMH, Status.SUCCESS, 1000, oaiHarvestData);
+                Step.HARVEST_OAI_PMH, Status.SUCCESS, oaiHarvestData);
         OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier", false, Instant.now());
         List<OaiRecordHeader> iteratorList = new ArrayList<>();
         iteratorList.add(element1);
@@ -150,12 +150,12 @@ class HarvestOaiPmhExecutorTest {
         when(datasetService.isXsltPresent("1")).thenReturn(true);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
                 oaiRecordHeaderIterator);
-        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1))
+        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent))
                 .thenReturn(recordInfoResult);
 
         executor.harvestOaiPmh(recordRecordProcessEvent);
 
-        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1);
+        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent);
         verify(datasetService).updateNumberOfTotalRecord("1", 1);
         verify(executor).consume(eq("sandbox.record.transformation.edm.external"), any(RecordProcessEvent.class), any(Step.class), any(Supplier.class));
         verify(amqpTemplate).convertAndSend(any(), captor.capture());
@@ -198,9 +198,9 @@ class HarvestOaiPmhExecutorTest {
                 .recordId(2L)
                 .build();
 
-        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat");
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier");
         RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(recordFromEvent),
-                Step.HARVEST_OAI_PMH, Status.SUCCESS, 2, oaiHarvestData);
+                Step.HARVEST_OAI_PMH, Status.SUCCESS, oaiHarvestData);
         OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier1", false, Instant.now());
         OaiRecordHeader element2 = new OaiRecordHeader("oaiIdentifier2", false, Instant.now());
         OaiRecordHeader element3 = new OaiRecordHeader("oaiIdentifier3", false, Instant.now());
@@ -217,15 +217,15 @@ class HarvestOaiPmhExecutorTest {
         when(datasetService.isXsltPresent("1")).thenReturn(false);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
                 oaiRecordHeaderIterator);
-        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1))
+        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent))
                 .thenReturn(recordInfoResult1);
-        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element2))
+        when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent))
                 .thenReturn(recordInfoResult2);
 
         executor.harvestOaiPmh(recordRecordProcessEvent);
 
-        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1);
-        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element2);
+        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent);
+        verify(harvestService).harvestOaiRecordHeader(oaiHarvestData, recordFromEvent);
         verify(datasetService).updateNumberOfTotalRecord("1", 2);
         verify(amqpTemplate, times(2)).convertAndSend(any(), captor.capture());
         List<RecordProcessEvent> capturedEvents = captor.getAllValues();
@@ -249,9 +249,9 @@ class HarvestOaiPmhExecutorTest {
                 .content(new byte[0])
                 .build();
 
-        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat");
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier");
         RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(recordFromEvent),
-                Step.HARVEST_OAI_PMH, Status.SUCCESS, 1000, oaiHarvestData);
+                Step.HARVEST_OAI_PMH, Status.SUCCESS, oaiHarvestData);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenThrow(HarvesterException.class);
 

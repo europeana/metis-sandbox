@@ -193,7 +193,7 @@ public class HarvestServiceImplTest {
 
         harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000, recordRepository);
         RecordEntity recordEntity = new RecordEntity(null, null, "1");
-        OaiHarvestData oaiHarvestData = new OaiHarvestData("someEndpointURL", "someSetSpec", "somePrefix");
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("someEndpointURL", "someSetSpec", "somePrefix", "someOaiIdentifier");
         Record record = Record.builder()
                 .datasetId("1")
                 .country(Country.NETHERLANDS)
@@ -207,7 +207,7 @@ public class HarvestServiceImplTest {
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(oaiRecord);
         when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
-        var harvestContent = harvestService.harvestOaiRecordHeader(oaiHarvestData, record, recordHeader);
+        var harvestContent = harvestService.harvestOaiRecordHeader(oaiHarvestData, record);
 
         assertEquals("1", harvestContent.getRecord().getDatasetId());
         assertEquals(Country.NETHERLANDS, harvestContent.getRecord().getCountry());
@@ -221,7 +221,7 @@ public class HarvestServiceImplTest {
     @Test
     void harvestOaiRecordHeader_ExpectFail() throws HarvesterException {
         harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, 1000, recordRepository);
-        OaiHarvestData oaiHarvestData = new OaiHarvestData("someEndpointURL", "someSetSpec", "somePrefix");
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("someEndpointURL", "someSetSpec", "somePrefix", "someOaiIdentifier");
         Record record = Record.builder()
                 .datasetId("1")
                 .country(Country.NETHERLANDS)
@@ -232,7 +232,7 @@ public class HarvestServiceImplTest {
 
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenThrow(new HarvesterException("error test"));
 
-        var harvestContent = harvestService.harvestOaiRecordHeader(oaiHarvestData, record, recordHeader);
+        var harvestContent = harvestService.harvestOaiRecordHeader(oaiHarvestData, record);
 
         assertEquals(record, harvestContent.getRecord());
         assertFalse(CollectionUtils.isEmpty(harvestContent.getErrors()));

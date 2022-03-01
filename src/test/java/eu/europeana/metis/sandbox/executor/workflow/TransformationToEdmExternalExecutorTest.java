@@ -46,7 +46,7 @@ class TransformationToEdmExternalExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, null);
+        null);
 
     when(service.transform(record)).thenReturn(new RecordInfo(record));
     consumer.transformationToEdmExternal(recordEvent);
@@ -63,8 +63,7 @@ class TransformationToEdmExternalExecutorTest {
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, 1000,
-            null);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.FAIL, null);
 
     consumer.transformationToEdmExternal(recordEvent);
 
@@ -79,7 +78,7 @@ class TransformationToEdmExternalExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, null);
+        null);
 
     when(service.transform(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -37,6 +38,12 @@ class AsyncDatasetPublishServiceImplTest {
   @Mock
   private AmqpTemplate amqpTemplate;
 
+  @Mock
+  private OaiHarvester oaiHarvester;
+
+  @Mock
+  private DatasetService datasetService;
+
   private final Executor taskExecutor = Runnable::run;
 
   private AsyncDatasetPublishService service;
@@ -47,7 +54,7 @@ class AsyncDatasetPublishServiceImplTest {
   @BeforeEach
   void setUp() {
     service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "oaiHarvestQueue", "createdQueue",
-        "transformationEdmExternalQueue", taskExecutor);
+        "transformationEdmExternalQueue", taskExecutor, oaiHarvester, datasetService);
   }
 
   @Test
@@ -140,7 +147,7 @@ class AsyncDatasetPublishServiceImplTest {
 
   @Test
   void harvestOaiPmh_expectSuccess() {
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat");
+    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
@@ -158,7 +165,7 @@ class AsyncDatasetPublishServiceImplTest {
 
   @Test
   void harvestOaiPmh_expectFail() {
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat");
+    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));

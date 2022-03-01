@@ -36,7 +36,7 @@ class EventRecordLogConsumerTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, null);
+        null);
 
     consumer.logRecord(recordEvent);
 
@@ -50,7 +50,7 @@ class EventRecordLogConsumerTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.CREATE, Status.SUCCESS,
-        1000, null);
+        null);
 
     doThrow(new RecordProcessingException("1", new Exception())).when(recordLogService)
         .logRecordEvent(any(RecordProcessEvent.class));

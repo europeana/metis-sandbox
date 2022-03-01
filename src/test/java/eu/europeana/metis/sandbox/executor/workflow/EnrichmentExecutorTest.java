@@ -46,7 +46,7 @@ class EnrichmentExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS,
-        1000, null);
+        null);
 
     when(service.enrich(record)).thenReturn(new RecordInfo(record));
     consumer.enrich(recordEvent);
@@ -64,7 +64,7 @@ class EnrichmentExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.FAIL,
-        1000, null);
+        null);
 
     consumer.enrich(recordEvent);
 
@@ -79,7 +79,7 @@ class EnrichmentExecutorTest {
         .content("".getBytes())
         .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS,
-        1000, null);
+        null);
 
     when(service.enrich(record)).thenThrow(new RecordProcessingException("1", new Exception()));
 

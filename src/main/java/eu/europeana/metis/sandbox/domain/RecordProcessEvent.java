@@ -13,7 +13,6 @@ public class RecordProcessEvent {
   private final RecordInfo recordInfo;
   private final Status status;
   private final Step step;
-  private final int maxRecords;
   private final OaiHarvestData oaiHarvestData;
 
   /**
@@ -22,15 +21,13 @@ public class RecordProcessEvent {
    * @param recordInfo     must not be null
    * @param step           must not be null
    * @param status         must not be null
-   * @param maxRecords     maximum records to be harvested
    * @param oaiHarvestData class that encapsulates OAI-PMH data
    */
-  public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status, int maxRecords,
+  public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status,
       OaiHarvestData oaiHarvestData) {
     this.status = status;
     this.recordInfo = recordInfo;
     this.step = step;
-    this.maxRecords = maxRecords;
     this.oaiHarvestData = oaiHarvestData;
   }
 
@@ -52,10 +49,6 @@ public class RecordProcessEvent {
 
   public Step getStep() {
     return step;
-  }
-
-  public int getMaxRecords() {
-    return maxRecords;
   }
 
   public OaiHarvestData getOaiHarvestData() {

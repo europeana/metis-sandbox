@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -37,12 +36,10 @@ public interface HarvestService {
    *
    * @param oaiHarvestData  The object that encapsulate the necessary data for harvesting
    * @param recordToHarvest The encapsulation of the data of a record to be harvested
-   * @param oaiRecordHeader The record header associated with the record to be harvested
    * @return A HarvestContent object containing the content of the harvest and a bollean indicating
    * if it reached the max number of records
    * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
    *                          empty
    */
-  RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest,
-      OaiRecordHeader oaiRecordHeader);
+  RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest);
 }
