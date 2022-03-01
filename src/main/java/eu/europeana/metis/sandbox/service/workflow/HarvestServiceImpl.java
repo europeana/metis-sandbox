@@ -34,7 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
 
   private final HttpHarvester httpHarvester;
 
@@ -106,7 +106,7 @@ public class HarvestServiceImpl implements HarvestService {
       return new RecordInfo(harvestedRecord, recordErrors);
 
     } catch (HarvesterException | IOException e) {
-      logger.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
+      LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
           oaiRecordHeader.getOaiIdentifier(), e);
       recordErrors.add(new RecordError(
           "Error harvesting OAI-PMH Record Header:" + oaiRecordHeader.getOaiIdentifier(),

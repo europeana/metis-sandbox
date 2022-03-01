@@ -55,12 +55,12 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
       Country country, Language language, OaiHarvestData oaiHarvestData) {
 
     Record recordDataEncapsulated = Record.builder()
-                                          .country(country)
-                                          .language(language)
-                                          .datasetName(datasetName)
-                                          .datasetId(datasetId)
-                                          .content(new byte[0])
-                                          .build();
+        .country(country)
+        .language(language)
+        .datasetName(datasetName)
+        .datasetId(datasetId)
+        .content(new byte[0])
+        .build();
 
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo = new RecordInfo(recordDataEncapsulated, recordErrors);
@@ -78,7 +78,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-                                                   .forEach(this::publishToCreatedQueue),
+            .forEach(this::publishToCreatedQueue),
         asyncServiceTaskExecutor);
   }
 
@@ -88,8 +88,8 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-                                                   .forEach(
-                                                       this::publishToTransformationToEdmExternalQueue),
+            .forEach(
+                this::publishToTransformationToEdmExternalQueue),
         asyncServiceTaskExecutor);
   }
 

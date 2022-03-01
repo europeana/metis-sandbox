@@ -99,7 +99,7 @@ public interface DatasetService {
   void updateNumberOfTotalRecord(String datasetId, int numberOfRecords);
 
   /**
-   * Sets to true the boolean recordLimitExceeded in the databse
+   * Sets to true the boolean recordLimitExceeded in the database
    * @param datasetId The id of the dataset to update this into
    */
   void updateRecordsLimitExceeded(String datasetId);
@@ -109,5 +109,5 @@ public interface DatasetService {
    * @param datasetId The id of the dataset to update into
    * @return Returns 0 if there is no xslt, 1 otherwise
    */
-  int isXsltPresent(String datasetId);
+  boolean isXsltPresent(String datasetId);
 }

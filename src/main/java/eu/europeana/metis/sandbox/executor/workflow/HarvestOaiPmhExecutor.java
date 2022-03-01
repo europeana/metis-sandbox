@@ -44,7 +44,7 @@ public class HarvestOaiPmhExecutor extends StepExecutor {
       autoStartup = "${sandbox.rabbitmq.queues.record.harvest.oai.auto-start}")
   public void harvestOaiPmh(RecordProcessEvent input)  {
     String datasetId = input.getRecord().getDatasetId();
-    String queueToSend = datasetService.isXsltPresent(datasetId) > 0 ? routingKeyTransformationToEdmExternal : routingKeyCreated;
+    String queueToSend = datasetService.isXsltPresent(datasetId)  ? routingKeyTransformationToEdmExternal : routingKeyCreated;
     final OaiHarvestData oaiHarvestData = input.getOaiHarvestData();
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester

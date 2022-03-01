@@ -21,6 +21,9 @@ class CloseExecutor {
   @Value("${sandbox.rabbitmq.routing-key.closed}")
   private String routingKey;
 
+  @Value("${sandbox.dataset.max-size}")
+  private int maxRecords;
+
   public CloseExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
@@ -34,7 +37,7 @@ class CloseExecutor {
     }
 
     RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()),
-        Step.CLOSE, Status.SUCCESS, 1000, new OaiHarvestData("","",""));
+        Step.CLOSE, Status.SUCCESS, maxRecords, new OaiHarvestData("","",""));
     amqpTemplate.convertAndSend(routingKey, output);
   }
 }

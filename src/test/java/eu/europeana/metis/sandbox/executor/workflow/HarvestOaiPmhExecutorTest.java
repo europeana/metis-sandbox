@@ -98,7 +98,7 @@ class HarvestOaiPmhExecutorTest {
                 iteratorList);
         RecordInfo recordInfoResult = new RecordInfo(recordAsResult);
 
-        when(datasetService.isXsltPresent("1")).thenReturn(0);
+        when(datasetService.isXsltPresent("1")).thenReturn(false);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
                 oaiRecordHeaderIterator);
         when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1))
@@ -147,7 +147,7 @@ class HarvestOaiPmhExecutorTest {
                 iteratorList);
         RecordInfo recordInfoResult = new RecordInfo(recordAsResult);
 
-        when(datasetService.isXsltPresent("1")).thenReturn(1);
+        when(datasetService.isXsltPresent("1")).thenReturn(true);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
                 oaiRecordHeaderIterator);
         when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1))
@@ -214,7 +214,7 @@ class HarvestOaiPmhExecutorTest {
         RecordInfo recordInfoResult2 = new RecordInfo(secondRecordToReturn);
 
         // test
-        when(datasetService.isXsltPresent("1")).thenReturn(0);
+        when(datasetService.isXsltPresent("1")).thenReturn(false);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(
                 oaiRecordHeaderIterator);
         when(harvestService.harvestOaiRecordHeader(oaiHarvestData, recordFromEvent, element1))

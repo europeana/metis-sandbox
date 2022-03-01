@@ -53,26 +53,25 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publishWithoutXslt_expectSuccess() throws Exception {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     service.publishWithoutXslt(dataset).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"),
-        any(RecordProcessEvent.class));
+    verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
 
   @Test
   void publishWithoutXslt_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
@@ -81,8 +80,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     service.publishWithoutXslt(dataset).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"),
-        any(RecordProcessEvent.class));
+    verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
 
   @Test
@@ -99,26 +97,25 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publishWithXslt_expectSuccess() throws Exception {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     service.publishWithXslt(dataset).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"),
-        any(RecordProcessEvent.class));
+    verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }
 
   @Test
   void publishWithXslt_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2")
-        .country(Country.ITALY).language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
+    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
+        .language(Language.IT).content("".getBytes()).build();
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
@@ -127,8 +124,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     service.publishWithXslt(dataset).get();
 
-    verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"),
-        any(RecordProcessEvent.class));
+    verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }
 
   @Test
@@ -146,20 +142,15 @@ class AsyncDatasetPublishServiceImplTest {
   void harvestOaiPmh_expectSuccess() {
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat");
 
-    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
-        oaiHarvestData);
+    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
     verify(amqpTemplate).convertAndSend(any(), recordProcessEventCaptor.capture());
     assertEquals(Status.SUCCESS, recordProcessEventCaptor.getValue().getStatus());
     assertEquals(Step.HARVEST_OAI_PMH, recordProcessEventCaptor.getValue().getStep());
-    assertEquals("datasetName",
-        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetName());
-    assertEquals("datasetId",
-        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetId());
-    assertEquals(Country.NETHERLANDS,
-        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getCountry());
-    assertEquals(Language.NL,
-        recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getLanguage());
+    assertEquals("datasetName", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetName());
+    assertEquals("datasetId", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetId());
+    assertEquals(Country.NETHERLANDS, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getCountry());
+    assertEquals(Language.NL, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getLanguage());
     assertEquals(oaiHarvestData, recordProcessEventCaptor.getValue().getOaiHarvestData());
     assertEquals(new ArrayList<>(), recordProcessEventCaptor.getValue().getRecordErrors());
 
@@ -172,8 +163,7 @@ class AsyncDatasetPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
-        oaiHarvestData);
+    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
     verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(RecordProcessEvent.class));
   }

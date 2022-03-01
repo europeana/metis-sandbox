@@ -11,7 +11,6 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.amqp.core.Message;
@@ -41,9 +40,9 @@ class RecordMessageConverter implements MessageConverter {
   protected static final String STEP = "step";
   protected static final String ERRORS = "errors";
   protected static final String URL = "url";
-  protected static final String SETSPEC = "setspec";
-  protected static final String METADATAFORMAT = "metadataformat";
-  protected static final String MAX_RECORDS = "maxrecords";
+  protected static final String SET_SPEC = "setSpec";
+  protected static final String METADATA_FORMAT = "metadataFormat";
+  protected static final String MAX_RECORDS = "maxRecords";
 
   /**
    * Convert an Event to a Message.
@@ -63,26 +62,23 @@ class RecordMessageConverter implements MessageConverter {
     Record recordToProcess = recordRecordProcessEvent.getRecord();
     List<RecordError> errors = recordRecordProcessEvent.getRecordErrors();
 
-    MessageProperties properties = MessagePropertiesBuilder.newInstance()
-        .setContentType(MessageProperties.CONTENT_TYPE_XML)
+    MessageProperties properties = MessagePropertiesBuilder.newInstance().setContentType(MessageProperties.CONTENT_TYPE_XML)
         .setHeaderIfAbsent(RECORD_ID, recordToProcess.getRecordId())
         .setHeaderIfAbsent(EUROPEANA_ID, recordToProcess.getEuropeanaId())
         .setHeaderIfAbsent(PROVIDER_ID, recordToProcess.getProviderId())
         .setHeaderIfAbsent(DATASET_ID, recordToProcess.getDatasetId())
         .setHeaderIfAbsent(DATASET_NAME, recordToProcess.getDatasetName())
-        .setHeaderIfAbsent(COUNTRY, recordToProcess.getCountry())
-        .setHeaderIfAbsent(LANGUAGE, recordToProcess.getLanguage())
+        .setHeaderIfAbsent(COUNTRY, recordToProcess.getCountry()).setHeaderIfAbsent(LANGUAGE, recordToProcess.getLanguage())
         .setHeaderIfAbsent(STEP, recordRecordProcessEvent.getStep())
         .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus())
         .setHeaderIfAbsent(URL, recordRecordProcessEvent.getOaiHarvestData().getUrl())
-        .setHeaderIfAbsent(SETSPEC, recordRecordProcessEvent.getOaiHarvestData().getSetspec())
-        .setHeaderIfAbsent(METADATAFORMAT, recordRecordProcessEvent.getOaiHarvestData().getMetadataformat())
-        .setHeaderIfAbsent(MAX_RECORDS, recordRecordProcessEvent.getMaxRecords())
-        .build();
+        .setHeaderIfAbsent(SET_SPEC, recordRecordProcessEvent.getOaiHarvestData().getSetspec())
+        .setHeaderIfAbsent(METADATA_FORMAT, recordRecordProcessEvent.getOaiHarvestData().getMetadataformat())
+        .setHeaderIfAbsent(MAX_RECORDS, recordRecordProcessEvent.getMaxRecords()).build();
 
     if (!errors.isEmpty()) {
-      List<List<String>> errorsHeader = errors.stream()
-          .map(x -> List.of(x.getMessage(), x.getStackTrace())).collect(Collectors.toList());
+      List<List<String>> errorsHeader = errors.stream().map(x -> List.of(x.getMessage(), x.getStackTrace()))
+          .collect(Collectors.toList());
       properties.setHeader(ERRORS, errorsHeader);
     }
 
@@ -114,26 +110,23 @@ class RecordMessageConverter implements MessageConverter {
     String status = properties.getHeader(STATUS);
     List<List<Object>> errors = properties.getHeader(ERRORS);
     String url = properties.getHeader(URL);
-    String setspec = properties.getHeader(SETSPEC);
-    String metadataformat = properties.getHeader(METADATAFORMAT);
+    String setspec = properties.getHeader(SET_SPEC);
+    String metadataformat = properties.getHeader(METADATA_FORMAT);
     Integer maxRecords = properties.getHeader(MAX_RECORDS);
 
-    Record recordToSend = Record.builder().recordId(recordId).europeanaId(europeanaId)
-        .providerId(providerId).datasetId(datasetId).datasetName(datasetName)
-        .country(Country.valueOf(country)).language(Language.valueOf(language)).content(content)
-        .build();
+    Record recordToSend = Record.builder().recordId(recordId).europeanaId(europeanaId).providerId(providerId).datasetId(datasetId)
+        .datasetName(datasetName).country(Country.valueOf(country)).language(Language.valueOf(language)).content(content).build();
 
     List<RecordError> recordErrors = List.of();
 
     if (nonNull(errors)) {
-      recordErrors = errors.stream()
-          .map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString()))
+      recordErrors = errors.stream().map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString()))
           .collect(Collectors.toList());
     }
 
     RecordInfo recordInfo = new RecordInfo(recordToSend, recordErrors);
 
-    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status),
-        maxRecords, new OaiHarvestData(url, setspec, metadataformat));
+    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status), maxRecords,
+        new OaiHarvestData(url, setspec, metadataformat));
   }
 }

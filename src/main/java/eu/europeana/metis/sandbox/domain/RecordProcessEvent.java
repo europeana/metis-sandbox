@@ -22,6 +22,7 @@ public class RecordProcessEvent {
    * @param recordInfo     must not be null
    * @param step           must not be null
    * @param status         must not be null
+   * @param maxRecords     maximum records to be harvested
    * @param oaiHarvestData class that encapsulates OAI-PMH data
    */
   public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status, int maxRecords,

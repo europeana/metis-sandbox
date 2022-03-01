@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -59,16 +60,15 @@ class DatasetServiceImpl implements DatasetService {
 
     if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
       try {
-        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
+        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
       } catch (IOException e) {
         throw new XsltProcessingException(
             "Something went wrong while checking content of xslt file.", e);
       }
     }
-
     try {
       entity = datasetRepository.save(entity);
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
     }
 
@@ -94,7 +94,7 @@ class DatasetServiceImpl implements DatasetService {
 
     if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
       try {
-        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes()));
+        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
         hasXsltTransformerEdmExternal = true;
       } catch (IOException e) {
         throw new XsltProcessingException(
@@ -104,17 +104,17 @@ class DatasetServiceImpl implements DatasetService {
 
     try {
       entity = datasetRepository.save(entity);
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
     }
 
     final String datasetId = String.valueOf(entity.getDatasetId());
     final Dataset dataset = generatorService.generate(DatasetMetadata.builder()
-                                                                     .withDatasetId(datasetId)
-                                                                     .withDatasetName(datasetName)
-                                                                     .withCountry(country)
-                                                                     .withLanguage(language)
-                                                                     .build(), records);
+        .withDatasetId(datasetId)
+        .withDatasetName(datasetName)
+        .withCountry(country)
+        .withLanguage(language)
+        .build(), records);
 
     // if there are duplicate records in the original list
     if (dataset.getRecords().size() < records.size()) {
@@ -122,7 +122,7 @@ class DatasetServiceImpl implements DatasetService {
       entity.setRecordsQuantity(dataset.getRecords().size());
       try {
         datasetRepository.save(entity);
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
         throw new ServiceException(format("Error updating dataset: [%s]. ", datasetName), e);
       }
     }
@@ -139,14 +139,14 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public List<String> getDatasetIdsCreatedBefore(int days) {
     LocalDateTime date = LocalDateTime.now()
-                                      .truncatedTo(ChronoUnit.DAYS)
-                                      .minusDays(days);
+        .truncatedTo(ChronoUnit.DAYS)
+        .minusDays(days);
 
     try {
       return datasetRepository.getByCreatedDateBefore(date).stream()
-                              .map(DatasetIdView::getDatasetId)
-                              .map(Object::toString)
-                              .collect(toList());
+          .map(DatasetIdView::getDatasetId)
+          .map(Object::toString)
+          .collect(toList());
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }
@@ -175,8 +175,8 @@ class DatasetServiceImpl implements DatasetService {
   }
 
   @Override
-  public int isXsltPresent(String datasetId) {
-    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId));
+  public boolean isXsltPresent(String datasetId) {
+    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0 ? true : false;
   }
 
   private boolean isInputStreamAvailable(InputStream stream) {
