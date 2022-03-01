@@ -3,18 +3,23 @@ package eu.europeana.metis.sandbox.config.amqp;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Config for workflow listeners. Every listener has a {@link SimpleRabbitListenerContainerFactory}.
- * <br /><br />
- * If changes like increasing consumers for a listener are needed, here is the place to do it, by using the
- * SimpleRabbitListenerContainerFactory
+ * Config for workflow listeners. Every listener has a {@link SimpleRabbitListenerContainerFactory}. <br /><br /> If changes like
+ * increasing consumers for a listener are needed, here is the place to do it, by using the SimpleRabbitListenerContainerFactory
  */
 @Configuration
 class WorkflowListenerConfig {
+
+  @Value("${sandbox.rabbitmq.concurrent.queues.consumers:2}")
+  private int concurrentQueueConsumers;
+
+  @Value("${sandbox.rabbitmq.max.concurrent.queues.consumers:8}")
+  private int maxConcurrentQueueConsumers;
 
   private final MessageConverter messageConverter;
 
@@ -91,6 +96,8 @@ class WorkflowListenerConfig {
       ConnectionFactory connectionFactory) {
     var factory = new SimpleRabbitListenerContainerFactory();
     configurer.configure(factory, connectionFactory);
+    factory.setConcurrentConsumers(concurrentQueueConsumers);
+    factory.setMaxConcurrentConsumers(maxConcurrentQueueConsumers);
     factory.setMessageConverter(messageConverter);
     return factory;
   }
