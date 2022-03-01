@@ -79,8 +79,8 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
     }
 
     // Get output rdf bytes
-    var rdfSerializer = converterFactory.createRdfSerializer();
-    byte[] outputRdf = getOutputRdf(record, rdfSerializer, rdfForEnrichment);
+    final RdfSerializer rdfSerializer = converterFactory.createRdfSerializer();
+    final byte[] outputRdf = getOutputRdf(record, rdfSerializer, rdfForEnrichment);
 
     return new RecordInfo(Record.from(record, outputRdf), recordErrors);
   }
@@ -92,12 +92,12 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
    */
   private boolean processResource(RdfResourceEntry resourceToProcess, Record record,
       EnrichedRdf rdfForEnrichment, MediaExtractor extractor, List<RecordError> recordErrors,
-      boolean gotMainThumbnail){
+      boolean gotMainThumbnail) {
 
     ResourceExtractionResult extraction;
     boolean successful = false;
 
-    try{
+    try {
       // Perform media extraction
       extraction = extractor.performMediaExtraction(resourceToProcess, gotMainThumbnail);
 
@@ -105,14 +105,14 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
       successful = extraction != null;
 
       // If successful then store data
-      if(successful){
+      if (successful) {
         rdfForEnrichment.enrichResource(extraction.getMetadata());
-        if(!CollectionUtils.isEmpty(extraction.getThumbnails())) {
+        if (!CollectionUtils.isEmpty(extraction.getThumbnails())) {
           storeThumbnails(record, extraction.getThumbnails(), recordErrors);
         }
       }
 
-    } catch(MediaExtractionException e) {
+    } catch (MediaExtractionException e) {
       LOGGER.warn("Error while extracting media for record {}. ", record.getProviderId(), e);
       // collect warnings
       recordErrors.add(new RecordError(new RecordProcessingException(record.getProviderId(), e)));
