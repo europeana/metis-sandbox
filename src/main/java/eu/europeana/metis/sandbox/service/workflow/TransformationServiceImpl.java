@@ -33,7 +33,7 @@ class TransformationServiceImpl implements TransformationService {
   public RecordInfo transformToEdmInternal(Record record) {
     requireNonNull(record, "Record must not be null");
 
-    byte[] recordTransformed;
+    final byte[] recordTransformed;
     try {
       final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
@@ -61,7 +61,7 @@ class TransformationServiceImpl implements TransformationService {
   public byte[] transform(String identifier, InputStream xsltContentInputStream,
       byte[] recordContent) {
 
-    byte[] resultRecord;
+    final byte[] resultRecord;
     try {
       XsltTransformer transformer = getNewTransformerObject(identifier, xsltContentInputStream);
       resultRecord = transformer.transformToBytes(recordContent, null);
@@ -76,7 +76,7 @@ class TransformationServiceImpl implements TransformationService {
       String edmLanguage) throws TransformationException {
 
     var xsltTransformEntity = transformXsltRepository.findById(1);
-    String xsltTransform;
+    final String xsltTransform;
     InputStream xsltInputStream = null;
     if (xsltTransformEntity.isPresent()) {
       xsltTransform = xsltTransformEntity.get().getTransformXslt();

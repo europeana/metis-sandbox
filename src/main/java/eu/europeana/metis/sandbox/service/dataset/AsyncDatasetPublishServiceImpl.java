@@ -32,7 +32,8 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     private final Executor asyncDatasetPublishServiceTaskExecutor;
 
     public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-                                          String createdQueue, String transformationToEdmExternalQueue,
+                                          String createdQueue,
+                                          String transformationToEdmExternalQueue,
                                           Executor asyncDatasetPublishServiceTaskExecutor) {
         this.amqpTemplate = amqpTemplate;
         this.createdQueue = createdQueue;
