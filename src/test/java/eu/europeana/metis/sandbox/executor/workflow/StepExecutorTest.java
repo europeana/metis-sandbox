@@ -32,7 +32,9 @@ import org.springframework.amqp.core.AmqpTemplate;
 
 /**
  * Unit test for {@link StepExecutor}
+ *
  * @author Jorge Ortiz
+ * @since 01-03-2022
  */
 @ExtendWith(MockitoExtension.class)
 class StepExecutorTest {
@@ -49,34 +51,20 @@ class StepExecutorTest {
   @Test
   void consumeEventStatusSuccess_expectEventSuccess() {
     final String routingKey = "routingKey";
-    final Record myTestRecord = Record.builder().recordId(1L)
-                                      .datasetId("1")
-                                      .datasetName("")
-                                      .country(Country.FINLAND)
-                                      .language(Language.FI)
-                                      .content("".getBytes())
-                                      .build();
+    final Record myTestRecord = getTestRecord(1L);
     final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
 
     stepExecutor.consume(routingKey, myEvent, Step.CREATE, () -> getRecordInfo());
 
     verify(amqpTemplate).convertAndSend(eq(routingKey), captor.capture());
 
-    assertEquals(Step.CREATE, captor.getValue().getStep());
-    assertEquals(getRecordInfo().getRecord().getRecordId(), captor.getValue().getBody().getRecordId());
-    assertEquals(Status.SUCCESS, captor.getValue().getStatus());
+    assertRecordId_CreatedStepAndStatus(getRecordInfo().getRecord().getRecordId(), Status.SUCCESS);
   }
 
   @Test
   void consumeEventStatusFailQueueNeverCalled_expectException() {
     final String routingKey = "routingKey";
-    final Record myTestRecord = Record.builder().recordId(1L)
-                                      .datasetId("1")
-                                      .datasetName("")
-                                      .country(Country.FINLAND)
-                                      .language(Language.FI)
-                                      .content("".getBytes())
-                                      .build();
+    final Record myTestRecord = getTestRecord(1L);
     final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.FAIL);
 
     stepExecutor.consume(routingKey, myEvent, Step.CREATE, () -> getRecordInfo());
@@ -90,13 +78,7 @@ class StepExecutorTest {
   void consumeEventStatusSuccessThrowsRuntimeException_expectEventFail() {
     final String routingKey = "routingKey";
     final Long expectedRecordId = 1L;
-    final Record myTestRecord = Record.builder().recordId(expectedRecordId)
-                                      .datasetId("1")
-                                      .datasetName("")
-                                      .country(Country.FINLAND)
-                                      .language(Language.FI)
-                                      .content("".getBytes())
-                                      .build();
+    final Record myTestRecord = getTestRecord(expectedRecordId);
     final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
 
     stepExecutor.consume(routingKey, myEvent, Step.CREATE, () ->
@@ -106,22 +88,14 @@ class StepExecutorTest {
 
     verify(amqpTemplate).convertAndSend(eq(routingKey), captor.capture());
 
-    assertEquals(Step.CREATE, captor.getValue().getStep());
-    assertEquals(expectedRecordId, captor.getValue().getBody().getRecordId());
-    assertEquals(Status.FAIL, captor.getValue().getStatus());
+    assertRecordId_CreatedStepAndStatus(expectedRecordId, Status.FAIL);
   }
 
   @Test
   void consumeEventStatusSuccessThrowsRecordProcessingException_expectEventFail() {
     final String routingKey = "routingKey";
     final Long expectedRecordId = 2L;
-    final Record myTestRecord = Record.builder().recordId(expectedRecordId)
-                                      .datasetId("1")
-                                      .datasetName("")
-                                      .country(Country.FINLAND)
-                                      .language(Language.FI)
-                                      .content("".getBytes())
-                                      .build();
+    final Record myTestRecord = getTestRecord(expectedRecordId);
     final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
 
     stepExecutor.consume(routingKey, myEvent, Step.CREATE, () ->
@@ -131,9 +105,7 @@ class StepExecutorTest {
 
     verify(amqpTemplate).convertAndSend(eq(routingKey), captor.capture());
 
-    assertEquals(Step.CREATE, captor.getValue().getStep());
-    assertEquals(expectedRecordId, captor.getValue().getBody().getRecordId());
-    assertEquals(Status.FAIL, captor.getValue().getStatus());
+    assertRecordId_CreatedStepAndStatus(expectedRecordId, Status.FAIL);
   }
 
   @Test
@@ -141,13 +113,7 @@ class StepExecutorTest {
     final LogCaptor logCaptor = LogCaptor.forClass(StepExecutor.class);
     final String routingKey = "routingKey";
     final Long expectedRecordId = 2L;
-    final Record myTestRecord = Record.builder().recordId(expectedRecordId)
-                                      .datasetId("1")
-                                      .datasetName("")
-                                      .country(Country.FINLAND)
-                                      .language(Language.FI)
-                                      .content("".getBytes())
-                                      .build();
+    final Record myTestRecord = getTestRecord(expectedRecordId);
     final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
     final RuntimeException runtimeException = new AmqpException("Queue Failure");
     doThrow(runtimeException)
@@ -159,22 +125,32 @@ class StepExecutorTest {
     assertLogCaptor(logCaptor);
   }
 
+  private void assertRecordId_CreatedStepAndStatus(final Long RecordId, final Status status) {
+    assertEquals(RecordId, captor.getValue().getBody().getRecordId());
+    assertEquals(Step.CREATE, captor.getValue().getStep());
+    assertEquals(status, captor.getValue().getStatus());
+  }
+
   private void assertLogCaptor(LogCaptor logCaptor) {
     assertEquals(1, logCaptor.getErrorLogs().size());
     final String testMessage = logCaptor.getErrorLogs().stream().findFirst().get();
-    assertTrue( testMessage.contains("Queue step execution error"));
+    assertTrue(testMessage.contains("Queue step execution error"));
   }
 
   @NotNull
   private RecordInfo getRecordInfo() {
-    final Record mySecondRecord = Record.builder().recordId(2L)
-                                        .datasetId("1")
-                                        .datasetName("")
-                                        .country(Country.FINLAND)
-                                        .language(Language.FI)
-                                        .content("".getBytes())
-                                        .build();
+    final Record mySecondRecord = getTestRecord(2L);
     final RecordInfo recordInfo = new RecordInfo(mySecondRecord);
     return recordInfo;
+  }
+
+  private Record getTestRecord(final long recordId) {
+    return Record.builder().recordId(recordId)
+                 .datasetId("1")
+                 .datasetName("")
+                 .country(Country.FINLAND)
+                 .language(Language.FI)
+                 .content("".getBytes())
+                 .build();
   }
 }
