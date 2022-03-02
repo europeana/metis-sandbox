@@ -71,7 +71,8 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
   }
 
-
+  //If we moved this method to HarvestService while keeping runHarvestOaiAsync method here, it will create a cyclic dependency between
+  //this class and HarvestService. Either we keep as it is or we should figure out a solution
   private void harvestOaiPmh(String datasetName, String datasetId,
                             Country country, Language language, OaiHarvestData oaiHarvestData){
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
@@ -143,8 +144,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private void publishToCreatedQueue(RecordInfo recordInfo) {
     try {
       amqpTemplate.convertAndSend(createdQueue,
-          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS,
-                  new OaiHarvestData()));
+          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
@@ -153,8 +153,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private void publishToTransformationToEdmExternalQueue(RecordInfo recordInfo) {
     try {
       amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS,
-              new OaiHarvestData()));
+          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }

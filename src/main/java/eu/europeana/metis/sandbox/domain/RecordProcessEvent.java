@@ -13,7 +13,6 @@ public class RecordProcessEvent {
   private final RecordInfo recordInfo;
   private final Status status;
   private final Step step;
-  private final OaiHarvestData oaiHarvestData;
 
   /**
    * Creates an event based on the one provided, using the provided {@link Step}
@@ -21,14 +20,11 @@ public class RecordProcessEvent {
    * @param recordInfo     must not be null
    * @param step           must not be null
    * @param status         must not be null
-   * @param oaiHarvestData class that encapsulates OAI-PMH data
    */
-  public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status,
-      OaiHarvestData oaiHarvestData) {
+  public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status) {
     this.status = status;
     this.recordInfo = recordInfo;
     this.step = step;
-    this.oaiHarvestData = oaiHarvestData;
   }
 
   public RecordInfo getRecordInfo() {
@@ -51,7 +47,4 @@ public class RecordProcessEvent {
     return step;
   }
 
-  public OaiHarvestData getOaiHarvestData() {
-    return oaiHarvestData;
-  }
 }

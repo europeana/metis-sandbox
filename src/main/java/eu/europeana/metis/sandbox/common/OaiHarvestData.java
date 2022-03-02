@@ -36,17 +36,4 @@ public class OaiHarvestData {
         return oaiIdentifier;
     }
 
-    @Override
-    public String toString(){
-        return url+","+setspec+","+metadataformat+","+oaiIdentifier;
-    }
-
-    public static OaiHarvestData fromString(String input){
-        String[] values = input.split(",");
-        if(values.length > 0) {
-            return new OaiHarvestData(values[0], values[1], values[2], values[3]);
-        } else {
-            return new OaiHarvestData();
-        }
-    }
 }

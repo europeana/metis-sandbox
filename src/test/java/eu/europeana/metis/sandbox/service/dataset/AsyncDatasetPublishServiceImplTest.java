@@ -163,7 +163,6 @@ class AsyncDatasetPublishServiceImplTest {
     assertEquals("datasetId", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetId());
     assertEquals(Country.NETHERLANDS, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getCountry());
     assertEquals(Language.NL, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getLanguage());
-    assertEquals(oaiHarvestData, recordProcessEventCaptor.getValue().getOaiHarvestData());
     assertEquals(new ArrayList<>(), recordProcessEventCaptor.getValue().getRecordErrors());
 
   }

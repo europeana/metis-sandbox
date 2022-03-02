@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.common.amqp;
 
 import static java.util.Objects.nonNull;
 
-import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -39,7 +38,6 @@ class RecordMessageConverter implements MessageConverter {
   protected static final String STATUS = "status";
   protected static final String STEP = "step";
   protected static final String ERRORS = "errors";
-  protected static final String RECORD_OAI_HARVEST_DATA = "recordOaiHarvestData";
 
   /**
    * Convert an Event to a Message.
@@ -67,8 +65,7 @@ class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(DATASET_NAME, recordToProcess.getDatasetName())
         .setHeaderIfAbsent(COUNTRY, recordToProcess.getCountry()).setHeaderIfAbsent(LANGUAGE, recordToProcess.getLanguage())
         .setHeaderIfAbsent(STEP, recordRecordProcessEvent.getStep())
-        .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus())
-        .setHeaderIfAbsent(RECORD_OAI_HARVEST_DATA, recordRecordProcessEvent.getOaiHarvestData().toString()).build();
+        .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus()).build();
 
     if (!errors.isEmpty()) {
       List<List<String>> errorsHeader = errors.stream().map(x -> List.of(x.getMessage(), x.getStackTrace()))
@@ -103,7 +100,6 @@ class RecordMessageConverter implements MessageConverter {
     String step = properties.getHeader(STEP);
     String status = properties.getHeader(STATUS);
     List<List<Object>> errors = properties.getHeader(ERRORS);
-    OaiHarvestData oaiHarvestData = OaiHarvestData.fromString(properties.getHeader(RECORD_OAI_HARVEST_DATA));
 
     Record recordToSend = Record.builder().recordId(recordId).europeanaId(europeanaId).providerId(providerId).datasetId(datasetId)
         .datasetName(datasetName).country(Country.valueOf(country)).language(Language.valueOf(language)).content(content).build();
@@ -117,6 +113,6 @@ class RecordMessageConverter implements MessageConverter {
 
     RecordInfo recordInfo = new RecordInfo(recordToSend, recordErrors);
 
-    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status), oaiHarvestData);
+    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status));
   }
 }
