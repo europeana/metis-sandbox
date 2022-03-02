@@ -34,6 +34,7 @@ public interface HarvestService {
   /**
    * Harvest the given OAI endpoint from the given event based on the given datasetId
    *
+   * @param datasetId The id of the dataset the record to be harvested belongs to
    * @param oaiHarvestData  The object that encapsulate the necessary data for harvesting
    * @param recordToHarvest The encapsulation of the data of a record to be harvested
    * @return A HarvestContent object containing the content of the harvest and a bollean indicating
@@ -41,5 +42,5 @@ public interface HarvestService {
    * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
    *                          empty
    */
-  RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest);
+  RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest);
 }

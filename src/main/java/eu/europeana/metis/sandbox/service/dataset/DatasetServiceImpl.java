@@ -61,21 +61,8 @@ class DatasetServiceImpl implements DatasetService {
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
 
-    DatasetEntity entity = new DatasetEntity(datasetName, 0, language, country, false);
-
-    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
-      try {
-        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
-      } catch (IOException e) {
-        throw new XsltProcessingException(
-            "Something went wrong while checking content of xslt file.", e);
-      }
-    }
-    try {
-      entity = datasetRepository.save(entity);
-    } catch (RuntimeException e) {
-      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
-    }
+    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, 0, language, country, false),
+            xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
 
@@ -93,25 +80,8 @@ class DatasetServiceImpl implements DatasetService {
     requireNonNull(records, "Records must not be null");
     checkArgument(!records.isEmpty(), "Records must not be empty");
 
-    DatasetEntity entity = new DatasetEntity(datasetName, records.size(), language, country,
-        recordLimitExceeded);
-    boolean hasXsltTransformerEdmExternal = false;
-
-    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
-      try {
-        entity.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
-        hasXsltTransformerEdmExternal = true;
-      } catch (IOException e) {
-        throw new XsltProcessingException(
-            "Something went wrong while checking the content of the xslt file", e);
-      }
-    }
-
-    try {
-      entity = datasetRepository.save(entity);
-    } catch (RuntimeException e) {
-      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetName), e);
-    }
+    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, records.size(), language, country,
+        recordLimitExceeded), xsltEdmExternalContentStream);
 
     final String datasetId = String.valueOf(entity.getDatasetId());
     final Dataset dataset = generatorService.generate(DatasetMetadata.builder()
@@ -132,7 +102,7 @@ class DatasetServiceImpl implements DatasetService {
       }
     }
 
-    if (hasXsltTransformerEdmExternal) {
+    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
       publishService.publishWithXslt(dataset);
     } else {
       publishService.publishWithoutXslt(dataset);
@@ -189,6 +159,25 @@ class DatasetServiceImpl implements DatasetService {
       return stream != null && stream.available() != 0;
     } catch (IOException e) {
       throw new XsltProcessingException("Something went wrong when checking xslt input stream.", e);
+    }
+  }
+
+  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, InputStream xsltEdmExternalContentStream){
+    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
+      try {
+        datasetEntityToSave.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
+        //We reset the stream to it again later
+        xsltEdmExternalContentStream.reset();
+      } catch (IOException e) {
+        throw new XsltProcessingException(
+                "Something went wrong while checking the content of the xslt file", e);
+      }
+    }
+
+    try {
+      return datasetRepository.save(datasetEntityToSave);
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetEntityToSave.getDatasetName()), e);
     }
   }
 }

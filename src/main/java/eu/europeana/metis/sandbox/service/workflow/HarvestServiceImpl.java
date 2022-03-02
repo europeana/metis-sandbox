@@ -83,7 +83,7 @@ public class HarvestServiceImpl implements HarvestService {
 
 
   @Override
-  public RecordInfo harvestOaiRecordHeader(OaiHarvestData oaiHarvestData, Record recordToHarvest) {
+  public RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -92,15 +92,11 @@ public class HarvestServiceImpl implements HarvestService {
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
       RecordEntity recordEntity = recordRepository.save(
-          new RecordEntity(null, null, recordToHarvest.getDatasetId()));
-      Record harvestedRecord = Record.builder()
-                                     .content(oaiRecord.getRecord().readAllBytes())
-                                     .recordId(recordEntity.getId())
-                                     .country(recordToHarvest.getCountry())
-                                     .datasetId(recordToHarvest.getDatasetId())
-                                     .language(recordToHarvest.getLanguage())
-                                     .datasetName(recordToHarvest.getDatasetName())
-                                     .build();
+          new RecordEntity(null, null, datasetId));
+      Record harvestedRecord = recordToHarvest
+              .content(oaiRecord.getRecord().readAllBytes())
+              .recordId(recordEntity.getId())
+              .build();
       return new RecordInfo(harvestedRecord, recordErrors);
 
     } catch (HarvesterException | IOException e) {
@@ -110,7 +106,7 @@ public class HarvestServiceImpl implements HarvestService {
           "Error harvesting OAI-PMH Record Header:" + oaiHarvestData.getOaiIdentifier(),
           e.getMessage()));
 
-      return new RecordInfo(recordToHarvest, recordErrors);
+      return new RecordInfo(recordToHarvest.build(), recordErrors);
     }
   }
 

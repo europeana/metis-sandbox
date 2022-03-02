@@ -10,9 +10,6 @@ public class OaiHarvestData {
     private final String metadataformat;
     private final String oaiIdentifier;
 
-    public OaiHarvestData() {
-        this("","","","");
-    }
     public OaiHarvestData(String url, String setspec, String metadataformat, String oaiIdentifier) {
         this.url = url;
         this.setspec = setspec;

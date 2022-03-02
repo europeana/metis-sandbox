@@ -20,9 +20,6 @@ class CloseExecutor {
   @Value("${sandbox.rabbitmq.routing-key.closed}")
   private String routingKey;
 
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
-
   public CloseExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }

@@ -177,7 +177,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
-    when(harvestService.harvestOaiRecordHeader(any(OaiHarvestData.class), any(Record.class))).thenReturn(new RecordInfo(recordData));
+    when(harvestService.harvestOaiRecordHeader(anyString() ,any(OaiHarvestData.class), any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
             oaiHarvestData);
@@ -210,7 +210,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
-    when(harvestService.harvestOaiRecordHeader(any(OaiHarvestData.class), any(Record.class))).thenReturn(new RecordInfo(recordData));
+    when(harvestService.harvestOaiRecordHeader(anyString() ,any(OaiHarvestData.class), any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
             oaiHarvestData);
@@ -241,7 +241,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
-    when(harvestService.harvestOaiRecordHeader(any(OaiHarvestData.class), any(Record.class))).thenReturn(new RecordInfo(recordData));
+    when(harvestService.harvestOaiRecordHeader(anyString() ,any(OaiHarvestData.class), any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
             oaiHarvestData);
@@ -274,7 +274,7 @@ class AsyncDatasetPublishServiceImplTest {
 
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
-    when(harvestService.harvestOaiRecordHeader(any(OaiHarvestData.class), any(Record.class))).thenReturn(new RecordInfo(recordData));
+    when(harvestService.harvestOaiRecordHeader(anyString() ,any(OaiHarvestData.class), any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL,
             oaiHarvestData);

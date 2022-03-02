@@ -39,7 +39,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
       AsyncDatasetPublishServiceImpl.class);
 
 
-  private int maxRecords;
+  private final int maxRecords;
   private final AmqpTemplate amqpTemplate;
   private final String createdQueue;
   private final String transformationToEdmExternalQueue;
@@ -83,13 +83,11 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
       AtomicInteger currentNumberOfIterations = new AtomicInteger();
 
-      Record recordDataEncapsulated = Record.builder()
+      Record.RecordBuilder recordDataEncapsulated = Record.builder()
               .country(country)
               .language(language)
               .datasetName(datasetName)
-              .datasetId(datasetId)
-              .content(new byte[0])
-              .build();
+              .datasetId(datasetId);
 
       recordHeaderIterator.forEach(recordHeader -> {
         OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
@@ -105,9 +103,11 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         }
 
         if(datasetService.isXsltPresent(datasetId)){
-          publishToTransformationToEdmExternalQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+          publishToTransformationToEdmExternalQueue(harvestService.harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
         } else {
-          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
 
         }
 
