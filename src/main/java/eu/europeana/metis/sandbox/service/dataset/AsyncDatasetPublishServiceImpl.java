@@ -38,7 +38,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private static final Logger LOGGER = LoggerFactory.getLogger(
       AsyncDatasetPublishServiceImpl.class);
 
-  @Value("${sandbox.dataset.max-size}")
+
   private int maxRecords;
   private final AmqpTemplate amqpTemplate;
   private final String createdQueue;
@@ -52,7 +52,8 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
                                         String createdQueue, String transformationToEdmExternalQueue,
                                         Executor asyncServiceTaskExecutor, OaiHarvester oaiHarvester,
-                                        HarvestService harvestService, DatasetService datasetService) {
+                                        HarvestService harvestService, DatasetService datasetService,
+                                        @Value("${sandbox.dataset.max-size}") int maxRecords) {
     this.amqpTemplate = amqpTemplate;
     this.createdQueue = createdQueue;
     this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
@@ -60,6 +61,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     this.oaiHarvester = oaiHarvester;
     this.harvestService = harvestService;
     this.datasetService = datasetService;
+    this.maxRecords = maxRecords;
   }
 
 
@@ -103,9 +105,9 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         }
 
         if(datasetService.isXsltPresent(datasetId)){
-          publishToTransformationToEdmExternalQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated));
+          publishToTransformationToEdmExternalQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated), Step.HARVEST_OAI_PMH);
         } else {
-          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated));
+          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated), Step.HARVEST_OAI_PMH);
 
         }
 
@@ -126,7 +128,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-            .forEach(recordToPublish -> publishToCreatedQueue(new RecordInfo(recordToPublish))),
+            .forEach(recordToPublish -> publishToCreatedQueue(new RecordInfo(recordToPublish), Step.CREATE)),
         asyncServiceTaskExecutor);
   }
 
@@ -137,23 +139,23 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
             .forEach(
-                recordToPublish -> publishToTransformationToEdmExternalQueue(new RecordInfo(recordToPublish))),
+                recordToPublish -> publishToTransformationToEdmExternalQueue(new RecordInfo(recordToPublish), Step.CREATE)),
         asyncServiceTaskExecutor);
   }
 
-  private void publishToCreatedQueue(RecordInfo recordInfo) {
+  private void publishToCreatedQueue(RecordInfo recordInfo, Step step) {
     try {
       amqpTemplate.convertAndSend(createdQueue,
-          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS));
+          new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
   }
 
-  private void publishToTransformationToEdmExternalQueue(RecordInfo recordInfo) {
+  private void publishToTransformationToEdmExternalQueue(RecordInfo recordInfo, Step step) {
     try {
       amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS));
+          new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
