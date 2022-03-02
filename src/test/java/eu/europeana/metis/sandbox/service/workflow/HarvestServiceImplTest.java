@@ -228,15 +228,13 @@ public class HarvestServiceImplTest {
                 .language(Language.NL)
                 .build();
 
-        OaiRecordHeader recordHeader = new OaiRecordHeader("someId", false, Instant.now());
-
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenThrow(new HarvesterException("error test"));
 
         var harvestContent = harvestService.harvestOaiRecordHeader(oaiHarvestData, record);
 
         assertEquals(record, harvestContent.getRecord());
         assertFalse(CollectionUtils.isEmpty(harvestContent.getErrors()));
-        assertEquals("Error harvesting OAI-PMH Record Header:someId", harvestContent.getErrors().get(0).getMessage());
+        assertEquals("Error harvesting OAI-PMH Record Header:someOaiIdentifier", harvestContent.getErrors().get(0).getMessage());
 
     }
 }

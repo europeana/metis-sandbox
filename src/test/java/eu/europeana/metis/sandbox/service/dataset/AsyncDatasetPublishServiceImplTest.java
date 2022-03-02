@@ -53,8 +53,6 @@ class AsyncDatasetPublishServiceImplTest {
 
   private AsyncDatasetPublishService service;
 
-  @Captor
-  private ArgumentCaptor<RecordProcessEvent> recordProcessEventCaptor;
 
   @BeforeEach
   void setUp() {
@@ -150,32 +148,4 @@ class AsyncDatasetPublishServiceImplTest {
     assertThrows(IllegalArgumentException.class, () -> service.publishWithXslt(dataset));
   }
 
-  @Test
-  void harvestOaiPmh_expectSuccess() {
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
-
-    service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
-
-    verify(amqpTemplate).convertAndSend(any(), recordProcessEventCaptor.capture());
-    assertEquals(Status.SUCCESS, recordProcessEventCaptor.getValue().getStatus());
-    assertEquals(Step.HARVEST_OAI_PMH, recordProcessEventCaptor.getValue().getStep());
-    assertEquals("datasetName", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetName());
-    assertEquals("datasetId", recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getDatasetId());
-    assertEquals(Country.NETHERLANDS, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getCountry());
-    assertEquals(Language.NL, recordProcessEventCaptor.getValue().getRecordInfo().getRecord().getLanguage());
-    assertEquals(new ArrayList<>(), recordProcessEventCaptor.getValue().getRecordErrors());
-
-  }
-
-  @Test
-  void harvestOaiPmh_expectFail() {
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
-
-    doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-        .convertAndSend(anyString(), any(RecordProcessEvent.class));
-
-    service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
-
-    verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(RecordProcessEvent.class));
-  }
 }

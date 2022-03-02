@@ -181,7 +181,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public boolean isXsltPresent(String datasetId) {
-    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0 ? true : false;
+    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0;
   }
 
   private boolean isInputStreamAvailable(InputStream stream) {
