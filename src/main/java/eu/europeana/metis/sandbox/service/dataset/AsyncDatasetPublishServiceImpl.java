@@ -97,7 +97,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
         currentNumberOfIterations.getAndIncrement();
 
         if (currentNumberOfIterations.get() > maxRecords) {
-          datasetService.updateRecordsLimitExceeded(datasetId);
+          datasetService.updateRecordsLimitExceededToTrue(datasetId);
           currentNumberOfIterations.set(maxRecords);
           return ReportingIteration.IterationResult.TERMINATE;
         }
@@ -126,7 +126,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-            .forEach(record -> publishToCreatedQueue(new RecordInfo(record))),
+            .forEach(recordToPublish -> publishToCreatedQueue(new RecordInfo(recordToPublish))),
         asyncServiceTaskExecutor);
   }
 
@@ -137,7 +137,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
             .forEach(
-                record -> publishToTransformationToEdmExternalQueue(new RecordInfo(record))),
+                recordToPublish -> publishToTransformationToEdmExternalQueue(new RecordInfo(recordToPublish))),
         asyncServiceTaskExecutor);
   }
 

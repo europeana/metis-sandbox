@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
-import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
