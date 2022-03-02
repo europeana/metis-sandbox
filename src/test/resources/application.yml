@@ -22,7 +22,23 @@ spring:
   servlet:
     multipart:
       max-file-size: 5MB
-
+  rabbitmq:
+    virtual-host:
+    host: localhost
+    port: 5672
+    ssl:
+      enabled:
+      algorithm:
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 2
+        prefetch: 1
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          multiplier: 2
+          max-attempts: 3
 sandbox:
   cors:
     mapping: '*'

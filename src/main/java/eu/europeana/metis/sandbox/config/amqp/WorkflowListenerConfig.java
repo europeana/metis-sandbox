@@ -15,11 +15,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class WorkflowListenerConfig {
 
-  @Value("${sandbox.rabbitmq.concurrent.queues.consumers:2}")
+  @Value("${spring.rabbitmq.listener.simple.concurrency:2}")
   private int concurrentQueueConsumers;
 
-  @Value("${sandbox.rabbitmq.max.concurrent.queues.consumers:8}")
+  @Value("${spring.rabbitmq.listener.simple.max-concurrency:2}")
   private int maxConcurrentQueueConsumers;
+
+  @Value("${spring.rabbitmq.listener.prefetch:1}")
+  private int prefetchCount;
 
   private final MessageConverter messageConverter;
 
@@ -98,6 +101,7 @@ class WorkflowListenerConfig {
     configurer.configure(factory, connectionFactory);
     factory.setConcurrentConsumers(concurrentQueueConsumers);
     factory.setMaxConcurrentConsumers(maxConcurrentQueueConsumers);
+    factory.setPrefetchCount(prefetchCount);
     factory.setMessageConverter(messageConverter);
     return factory;
   }

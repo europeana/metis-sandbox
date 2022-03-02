@@ -30,8 +30,8 @@ spring:
       algorithm:
     listener:
       simple:
-        concurrency: 5
-        max-concurrency: 10
+        concurrency: 2
+        max-concurrency: 2
         prefetch: 1
         retry:
           enabled: true
