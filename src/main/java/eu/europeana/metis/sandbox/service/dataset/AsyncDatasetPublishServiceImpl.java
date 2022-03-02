@@ -19,11 +19,12 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 
-import java.io.IOException;;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -41,30 +42,38 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private int maxRecords;
   private final AmqpTemplate amqpTemplate;
   private final String createdQueue;
-  private final String oaiHarvestedQueue;
   private final String transformationToEdmExternalQueue;
   private final Executor asyncServiceTaskExecutor;
   private final OaiHarvester oaiHarvester;
+  private final HarvestService harvestService;
   private final DatasetService datasetService;
 
 
   public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-                                        String oaiHarvestedQueue, String createdQueue, String transformationToEdmExternalQueue,
-                                        Executor asyncServiceTaskExecutor, OaiHarvester oaiHarvester, DatasetService datasetService) {
+                                        String createdQueue, String transformationToEdmExternalQueue,
+                                        Executor asyncServiceTaskExecutor, OaiHarvester oaiHarvester,
+                                        HarvestService harvestService, DatasetService datasetService) {
     this.amqpTemplate = amqpTemplate;
     this.createdQueue = createdQueue;
-    this.oaiHarvestedQueue = oaiHarvestedQueue;
     this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
     this.asyncServiceTaskExecutor = asyncServiceTaskExecutor;
     this.oaiHarvester = oaiHarvester;
+    this.harvestService = harvestService;
     this.datasetService = datasetService;
   }
 
 
   @Override
-  public void harvestOaiPmh(String datasetName, String datasetId,
-      Country country, Language language, OaiHarvestData oaiHarvestData) {
+  public CompletableFuture<Void> runHarvestOaiAsync(String datasetName, String datasetId,
+                                 Country country, Language language, OaiHarvestData oaiHarvestData) {
+        return CompletableFuture.runAsync(
+                () -> harvestOaiPmh(datasetName, datasetId, country, language, oaiHarvestData), asyncServiceTaskExecutor);
 
+  }
+
+
+  private void harvestOaiPmh(String datasetName, String datasetId,
+                            Country country, Language language, OaiHarvestData oaiHarvestData){
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
             .harvestRecordHeaders(
                     new OaiHarvest(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat(), oaiHarvestData.getSetspec()))) {
@@ -91,9 +100,13 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
           currentNumberOfIterations.set(maxRecords);
           return ReportingIteration.IterationResult.TERMINATE;
         }
-        // send to next queue, in this case: sandbox.rabbitmq.queues.record.created.queue
-        CompletableFuture.runAsync(
-                () -> this.sendToOaiHarvestQueue(recordDataEncapsulated, completeOaiHarvestData), asyncServiceTaskExecutor);
+
+        if(datasetService.isXsltPresent(datasetId)){
+          publishToTransformationToEdmExternalQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated));
+        } else {
+          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(completeOaiHarvestData, recordDataEncapsulated));
+
+        }
 
         return ReportingIteration.IterationResult.CONTINUE;
       });
@@ -103,7 +116,6 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
     }
-
   }
 
 
@@ -113,7 +125,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-            .forEach(this::publishToCreatedQueue),
+            .forEach(record -> publishToCreatedQueue(new RecordInfo(record))),
         asyncServiceTaskExecutor);
   }
 
@@ -124,37 +136,27 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
             .forEach(
-                this::publishToTransformationToEdmExternalQueue),
+                record -> publishToTransformationToEdmExternalQueue(new RecordInfo(record))),
         asyncServiceTaskExecutor);
   }
 
-
-  private void publishToCreatedQueue(Record recordData) {
+  private void publishToCreatedQueue(RecordInfo recordInfo) {
     try {
       amqpTemplate.convertAndSend(createdQueue,
-          new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
+          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS,
                   new OaiHarvestData()));
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
+      LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
   }
 
-  private void publishToTransformationToEdmExternalQueue(Record recordData) {
+  private void publishToTransformationToEdmExternalQueue(RecordInfo recordInfo) {
     try {
       amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-          new RecordProcessEvent(new RecordInfo(recordData), Step.CREATE, Status.SUCCESS,
+          new RecordProcessEvent(recordInfo, Step.CREATE, Status.SUCCESS,
               new OaiHarvestData()));
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", recordData.getProviderId(), e);
-    }
-  }
-
-  private void sendToOaiHarvestQueue(Record recordData, OaiHarvestData oaiHarvestData) {
-    try {
-      amqpTemplate.convertAndSend(oaiHarvestedQueue, new RecordProcessEvent(new RecordInfo(recordData), Step.HARVEST_OAI_PMH,
-              Status.SUCCESS, oaiHarvestData));
-    } catch (AmqpException e) {
-      LOGGER.error("Error sending event to oaiHarvestQueue: ", e);
+      LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
   }
 

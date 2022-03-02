@@ -29,12 +29,6 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.exchange.dlq}")
   private String exchangeDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.harvest.oai.queue}")
-  private String harvestOaiQueue;
-
-  @Value("${sandbox.rabbitmq.queues.record.harvest.oai.dlq}")
-  private String harvestOaiDlq;
-
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
   private String createdQueue;
 
@@ -115,8 +109,6 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(harvestOaiQueue).deadLetterExchange(exchangeDlq)
-            .deadLetterRoutingKey(harvestOaiDlq).build(),
         QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
             .deadLetterRoutingKey(createdDlq).build(),
         QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
@@ -156,14 +148,14 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(exchange, createdQueue, harvestOaiQueue, transformationToEdmExternalQueue,
+    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue,
         externalValidatedQueue, transformedQueue, normalizedQueue, internalValidatedQueue,
         enrichedQueue, mediaProcessedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(exchangeDlq, createdDlq, harvestOaiDlq, transformationToEdmExternalDlq,
+    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
         externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
         mediaProcessedDlq, publishedDlq);
   }
@@ -171,12 +163,11 @@ class AmqpConfiguration {
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Declarables getDeclarables(String exchange, String created, String harvestOai,
+  private Declarables getDeclarables(String exchange, String created,
       String transformationToEdmExternal, String externalValidated, String transformed,
       String normalized, String internalValidated, String enriched, String mediaProcessed,
       String published) {
     return new Declarables(
-        new Binding(harvestOai, DestinationType.QUEUE, exchange, harvestOai, null),
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
         new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange,
             transformationToEdmExternal, null),

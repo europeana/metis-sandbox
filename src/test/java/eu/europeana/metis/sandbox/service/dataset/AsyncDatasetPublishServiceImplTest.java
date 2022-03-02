@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,10 +41,13 @@ class AsyncDatasetPublishServiceImplTest {
   private AmqpTemplate amqpTemplate;
 
   @Mock
-  private OaiHarvester oaiHarvester;
+  private HarvestService harvestService;
 
   @Mock
   private DatasetService datasetService;
+
+  @Mock
+  private OaiHarvester oaiHarvester;
 
   private final Executor taskExecutor = Runnable::run;
 
@@ -53,8 +58,8 @@ class AsyncDatasetPublishServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "oaiHarvestQueue", "createdQueue",
-        "transformationEdmExternalQueue", taskExecutor, oaiHarvester, datasetService);
+    service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "createdQueue",
+        "transformationEdmExternalQueue", taskExecutor, oaiHarvester, harvestService, datasetService);
   }
 
   @Test
@@ -149,7 +154,7 @@ class AsyncDatasetPublishServiceImplTest {
   void harvestOaiPmh_expectSuccess() {
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
-    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
+    service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
     verify(amqpTemplate).convertAndSend(any(), recordProcessEventCaptor.capture());
     assertEquals(Status.SUCCESS, recordProcessEventCaptor.getValue().getStatus());
@@ -170,7 +175,7 @@ class AsyncDatasetPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    service.harvestOaiPmh("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
+    service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
     verify(amqpTemplate, times(1)).convertAndSend(anyString(), any(RecordProcessEvent.class));
   }

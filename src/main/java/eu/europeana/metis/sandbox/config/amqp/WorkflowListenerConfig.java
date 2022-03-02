@@ -23,13 +23,6 @@ class WorkflowListenerConfig {
   }
 
   @Bean
-  SimpleRabbitListenerContainerFactory harvestOaiPmhFactory(
-      SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      ConnectionFactory connectionFactory) {
-    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
-  }
-
-  @Bean
   SimpleRabbitListenerContainerFactory externalValidationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
