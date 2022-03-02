@@ -244,7 +244,7 @@ class DatasetServiceImplTest {
 
     String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
     assertEquals("1", result);
-    assertEquals(captor.getValue().getXsltEdmExternalContent(), "record");
+    assertEquals( "record", captor.getValue().getXsltEdmExternalContent());
   }
 
   @Test
