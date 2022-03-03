@@ -13,6 +13,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -22,6 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class HarvestServiceImpl implements HarvestService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
 
   private final HttpHarvester harvester;
 
@@ -140,11 +145,7 @@ public class HarvestServiceImpl implements HarvestService {
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting records ", e);
     } finally {
-      try {
-        inputStream.close();
-      } catch (IOException e) {
-        throw new ServiceException("Unable to close harvest stream", e);
-      }
+      closeStream(inputStream);
     }
 
     if (records.isEmpty()) {
@@ -153,4 +154,13 @@ public class HarvestServiceImpl implements HarvestService {
     return new HarvestContent(hasReachedRecordLimit, records);
   }
 
+  private void closeStream(Closeable closeable) {
+    if (closeable != null) {
+      try {
+        closeable.close();
+      } catch (IOException e) {
+        LOGGER.error("Unable to close harvest stream", e);
+      }
+    }
+  }
 }

@@ -49,10 +49,10 @@ class StepExecutor {
   }
 
   private Event createFailEvent(Event input, Step step, RecordProcessingException ex) {
-    Event output;
-    LOGGER.error("Exception while performing step: [{}]. ", step.value(), ex);
-    var recordError = new RecordError(ex);
-    output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), step, Status.FAIL);
+    final String stepName = step.value();
+    final RecordError recordError = new RecordError(ex);
+    final Event output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), step, Status.FAIL);
+    LOGGER.error("Exception while performing step: [{}]. ", stepName, ex);
     return output;
   }
 }
