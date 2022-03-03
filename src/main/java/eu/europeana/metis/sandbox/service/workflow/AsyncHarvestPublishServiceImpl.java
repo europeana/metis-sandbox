@@ -63,8 +63,9 @@ public class AsyncHarvestPublishServiceImpl implements AsyncHarvestPublishServic
     @Override
     public CompletableFuture<Void> runHarvestOaiAsync(String datasetName, String datasetId,
                                                       Country country, Language language, OaiHarvestData oaiHarvestData) {
+        Record.RecordBuilder recordDataEncapsulated = Record.builder().country(country).language(language).datasetName(datasetName).datasetId(datasetId);
         return CompletableFuture.runAsync(
-                () -> harvestService.harvestOaiPmh(datasetName, datasetId, country, language, oaiHarvestData), asyncServiceTaskExecutor);
+                () -> harvestService.harvestOaiPmh(datasetId, recordDataEncapsulated, oaiHarvestData), asyncServiceTaskExecutor);
 
     }
 

@@ -11,10 +11,13 @@ import java.util.concurrent.CompletableFuture;
 public interface AsyncHarvestPublishService {
 
     /**
-     * Harvest the given file {@link MultipartFile} to a list of byte[], one string per file in the
-     * zip
+     * Start the harvest of a zip asynchronously on the given file {@link MultipartFile}
      *
      * @param file zip file containing one or more records
+     * @param datasetName The name of the dataset to harvest
+     * @param datasetId The id of the dataset to harvest
+     * @param country The country of the dataset to be harvested
+     * @param language The language of the dataset to be harvested
      * @return A HarvestContent object containing the content of the harvest and a bollean indicating
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
@@ -22,10 +25,14 @@ public interface AsyncHarvestPublishService {
     CompletableFuture<Void> runZipHarvestAsync(MultipartFile file, String datasetName, String datasetId, Country country, Language language);
 
     /**
-     * Harvest the given URL {@link String} to a list of byte[], one string per file
+     * Start the harvest of an url asynchronously on the given URL {@link String}
      *
      * @param url URL for zip file containing one or more records
-     * @return A HarvestContent object containing the content of the harvest and a bollean indicating
+     * @param datasetName The name of the dataset to harvest
+     * @param datasetId The id of the dataset to harvest
+     * @param country The country of the dataset to be harvested
+     * @param language The language of the dataset to be harvested
+     * @return A HarvestContent object containing the content of the harvest and a boolean indicating
      * if it reached the max number of records
      * @throws ServiceException if error processing URL, if URL timeout, if records are empty
      */

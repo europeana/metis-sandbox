@@ -9,8 +9,6 @@ import eu.europeana.metis.harvesting.oaipmh.*;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -66,19 +64,12 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public void harvestOaiPmh(String datasetName, String datasetId,
-                             Country country, Language language, OaiHarvestData oaiHarvestData) {
+  public void harvestOaiPmh(String datasetId, Record.RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData) {
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
             .harvestRecordHeaders(
                     new OaiHarvest(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat(), oaiHarvestData.getSetspec()))) {
 
       AtomicInteger currentNumberOfIterations = new AtomicInteger();
-
-      Record.RecordBuilder recordDataEncapsulated = Record.builder()
-              .country(country)
-              .language(language)
-              .datasetName(datasetName)
-              .datasetId(datasetId);
 
       recordHeaderIterator.forEach(recordHeader -> {
         OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
@@ -113,8 +104,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
 
-  @Override
-  public RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest) {
+  private RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -142,7 +132,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest) throws HarvesterException {
+  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated) throws HarvesterException {
 
     AtomicInteger numberOfIterations = new AtomicInteger(0);
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
@@ -161,9 +151,9 @@ public class HarvestServiceImpl implements HarvestService {
           }
 
           if(datasetService.isXsltPresent(datasetId)){
-            asyncRecordPublishService.publishWithXslt(harvestInputStream(content, datasetId, recordToHarvest), Step.HARVEST);
+            asyncRecordPublishService.publishWithXslt(harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST);
           } else {
-            asyncRecordPublishService.publishWithoutXslt(harvestInputStream(content, datasetId, recordToHarvest), Step.HARVEST);
+            asyncRecordPublishService.publishWithoutXslt(harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST);
           }
 
           return ReportingIteration.IterationResult.CONTINUE;

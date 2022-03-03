@@ -2,11 +2,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.domain.RecordInfo;
 
 import java.io.InputStream;
 
@@ -14,20 +10,21 @@ import java.io.InputStream;
 public interface HarvestService {
 
   /**
-   * Harvest the given OAI endpoint from the given event based on the given datasetId
+   * Harvest the given OAI endpoint with the given datasetId, data for the records and OAI-PMH data
    *
-   * @param datasetId The id of the dataset the record to be harvested belongs to
-   * @param oaiHarvestData  The object that encapsulate the necessary data for harvesting
-   * @param recordToHarvest The encapsulation of the data of a record to be harvested
-   * @return A HarvestContent object containing the content of the harvest and a bollean indicating
-   * if it reached the max number of records
-   * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
-   *                          empty
+   * @param datasetId The id of the dataset to be harvested
+   * @param recordDataEncapsulated The encapsulation of data to be used to harvest each record
+   * @param oaiHarvestData The object that encapsulate the necessary data for harvesting
    */
-  RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest);
+  void harvestOaiPmh(String datasetId, Record.RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData);
 
-  void harvestOaiPmh(String datasetName, String datasetId,
-                     Country country, Language language, OaiHarvestData oaiHarvestData);
-
-  void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest) throws HarvesterException;
+  /**
+   * Harvest the input stream {@link InputStream} with the given datasetId and data of the records
+   *
+   * @param inputStream The input stream to harvest from
+   * @param datasetId The id of the dataset to be harvested
+   * @param recordDataEncapsulated The encapsulation of data to be used to harvest each record
+   * @throws HarvesterException In case an issue occurs while harvesting
+   */
+  void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated) throws HarvesterException;
 }
