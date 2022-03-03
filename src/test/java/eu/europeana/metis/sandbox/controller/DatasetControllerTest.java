@@ -37,11 +37,12 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
+import eu.europeana.metis.sandbox.service.dataset.AsyncRecordPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
+import eu.europeana.metis.sandbox.service.workflow.AsyncHarvestPublishService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -84,7 +85,10 @@ class DatasetControllerTest {
   private RecordTierCalculationService recordTierCalculationService;
 
   @MockBean
-  private AsyncDatasetPublishService asyncDatasetPublishService;
+  private AsyncRecordPublishService asyncRecordPublishService;
+
+  @MockBean
+  private AsyncHarvestPublishService asyncHarvestPublishService;
 
   private final TestUtils testUtils = new TestUtils();
 
@@ -321,7 +325,7 @@ class DatasetControllerTest {
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
         .thenReturn("12345");
-    doThrow(new IllegalArgumentException(new Exception())).when(asyncDatasetPublishService)
+    doThrow(new IllegalArgumentException(new Exception())).when(asyncHarvestPublishService)
             .runHarvestOaiAsync(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
         any(OaiHarvestData.class));
 

@@ -3,6 +3,8 @@ package eu.europeana.metis.sandbox.service.workflow;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,4 +45,7 @@ public interface HarvestService {
    *                          empty
    */
   RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest);
+
+  void harvestOaiPmh(String datasetName, String datasetId,
+                     Country country, Language language, OaiHarvestData oaiHarvestData);
 }

@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,18 +30,12 @@ class DatasetServiceImpl implements DatasetService {
 
   private final DatasetGeneratorService generatorService;
   private final DatasetRepository datasetRepository;
-  private final AsyncDatasetPublishService publishService;
 
   public DatasetServiceImpl(
       DatasetGeneratorService generatorService,
-      DatasetRepository datasetRepository,
-      @Lazy AsyncDatasetPublishService publishService) {
-    //TODO 01-03-2022: There is a cyclic dependency between this class and AsyncDatasetPublishService.
-    //TODO 01-03-2022: Once MET-4259 is done, this dependency in this class should go away
-    //TODO 01-03-2022: To fix this issue, it was added a @Lazy annotation. It should be removed once this is fixed
+      DatasetRepository datasetRepository) {
     this.generatorService = generatorService;
     this.datasetRepository = datasetRepository;
-    this.publishService = publishService;
   }
 
   @Override
@@ -102,11 +95,11 @@ class DatasetServiceImpl implements DatasetService {
       }
     }
 
-    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
-      publishService.publishWithXslt(dataset);
-    } else {
-      publishService.publishWithoutXslt(dataset);
-    }
+//    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
+//      publishService.publishWithXslt(dataset);
+//    } else {
+//      publishService.publishWithoutXslt(dataset);
+//    }
 
     return dataset;
   }

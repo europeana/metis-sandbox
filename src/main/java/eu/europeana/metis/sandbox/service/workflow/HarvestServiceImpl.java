@@ -1,14 +1,16 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
-import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
-import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
+import eu.europeana.metis.harvesting.oaipmh.*;
 import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -22,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import eu.europeana.metis.sandbox.service.dataset.AsyncRecordPublishService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +41,9 @@ public class HarvestServiceImpl implements HarvestService {
   private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
 
   private final HttpHarvester httpHarvester;
-
   private final OaiHarvester oaiHarvester;
-
+  private final AsyncRecordPublishService asyncRecordPublishService;
+  private final DatasetService datasetService;
   private final int maxRecords;
 
   private final RecordRepository recordRepository;
@@ -46,8 +51,12 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
-      @Value("${sandbox.dataset.max-size}") int maxRecords, RecordRepository recordRepository) {
+                            AsyncRecordPublishService asyncRecordPublishService,
+                            DatasetService datasetService, @Value("${sandbox.dataset.max-size}") int maxRecords,
+                            RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
+    this.asyncRecordPublishService = asyncRecordPublishService;
+    this.datasetService = datasetService;
     this.recordRepository = recordRepository;
     this.httpHarvester.setMaxNumberOfIterations(maxRecords);
     this.oaiHarvester = oaiHarvester;
@@ -79,6 +88,53 @@ public class HarvestServiceImpl implements HarvestService {
       throw new ServiceException("Error harvesting records from " + url, e);
     }
     return harvestContent;
+  }
+
+  @Override
+  public void harvestOaiPmh(String datasetName, String datasetId,
+                             Country country, Language language, OaiHarvestData oaiHarvestData) {
+    try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
+            .harvestRecordHeaders(
+                    new OaiHarvest(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat(), oaiHarvestData.getSetspec()))) {
+
+      AtomicInteger currentNumberOfIterations = new AtomicInteger();
+
+      Record.RecordBuilder recordDataEncapsulated = Record.builder()
+              .country(country)
+              .language(language)
+              .datasetName(datasetName)
+              .datasetId(datasetId);
+
+      recordHeaderIterator.forEach(recordHeader -> {
+        OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
+                oaiHarvestData.getSetspec(),
+                oaiHarvestData.getMetadataformat(),
+                recordHeader.getOaiIdentifier());
+        currentNumberOfIterations.getAndIncrement();
+
+        if (currentNumberOfIterations.get() > maxRecords) {
+          datasetService.updateRecordsLimitExceededToTrue(datasetId);
+          currentNumberOfIterations.set(maxRecords);
+          return ReportingIteration.IterationResult.TERMINATE;
+        }
+
+        if (datasetService.isXsltPresent(datasetId)) {
+          asyncRecordPublishService.publishWithXslt(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+        } else {
+          asyncRecordPublishService.publishWithoutXslt(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+
+        }
+
+        return ReportingIteration.IterationResult.CONTINUE;
+      });
+
+      datasetService.updateNumberOfTotalRecord(datasetId, currentNumberOfIterations.get());
+
+    } catch (HarvesterException | IOException e) {
+      throw new ServiceException("Error harvesting OAI-PMH records ", e);
+    }
   }
 
 

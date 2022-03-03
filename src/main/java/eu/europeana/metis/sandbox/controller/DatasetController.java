@@ -14,11 +14,11 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
+import eu.europeana.metis.sandbox.service.workflow.AsyncHarvestPublishService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -72,20 +72,20 @@ class DatasetController {
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
-  private final AsyncDatasetPublishService asyncDatasetPublishService;
+  private final AsyncHarvestPublishService asyncHarvestPublishService;
 
   public DatasetController(HarvestService harvestService,
       DatasetService datasetService,
       DatasetReportService reportService,
       RecordLogService recordLogService,
       RecordTierCalculationService recordTierCalculationService,
-      AsyncDatasetPublishService asyncDatasetPublishService) {
+      AsyncHarvestPublishService asyncHarvestPublishService) {
     this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
     this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
-    this.asyncDatasetPublishService = asyncDatasetPublishService;
+    this.asyncHarvestPublishService = asyncHarvestPublishService;
   }
 
   /**
@@ -195,7 +195,7 @@ class DatasetController {
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    asyncDatasetPublishService.runHarvestOaiAsync(datasetName, createdDatasetId, country, language,
+    asyncHarvestPublishService.runHarvestOaiAsync(datasetName, createdDatasetId, country, language,
         new OaiHarvestData(url, setspec, metadataformat, ""));
 
     //TODO(25-02-2022): We need to update the type of object we return since datasetId is the only relevant data
