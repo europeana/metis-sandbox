@@ -7,13 +7,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
-import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
-import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -22,8 +19,6 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -80,7 +75,7 @@ class AsyncRecordPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    dataset.getRecords().forEach(record -> service.publishWithoutXslt(new RecordInfo(record), Step.CREATE));
+    dataset.getRecords().forEach(record -> service.publishWithoutXslt(new RecordInfo(record), Step.HARVEST));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
@@ -98,7 +93,7 @@ class AsyncRecordPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    dataset.getRecords().forEach(record -> service.publishWithoutXslt(new RecordInfo(record), Step.CREATE));
+    dataset.getRecords().forEach(record -> service.publishWithoutXslt(new RecordInfo(record), Step.HARVEST));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
@@ -124,7 +119,7 @@ class AsyncRecordPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    dataset.getRecords().forEach(record -> service.publishWithXslt(new RecordInfo(record), Step.CREATE));
+    dataset.getRecords().forEach(record -> service.publishWithXslt(new RecordInfo(record), Step.HARVEST));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }
@@ -142,7 +137,7 @@ class AsyncRecordPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    dataset.getRecords().forEach(record -> service.publishWithXslt(new RecordInfo(record), Step.CREATE));
+    dataset.getRecords().forEach(record -> service.publishWithXslt(new RecordInfo(record), Step.HARVEST));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }

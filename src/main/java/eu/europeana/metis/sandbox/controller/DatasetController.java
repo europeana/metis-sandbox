@@ -5,7 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
-import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
@@ -113,17 +112,11 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    HarvestContent harvestedRecords =
-        harvestService.harvestZipMultipartFile(dataset);
-
     InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
+    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltFileString);
+    asyncHarvestPublishService.runZipHarvestAsync(dataset, datasetName, createdDatasetId, country, language);
 
-    // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getContent(),
-        harvestedRecords.hasReachedRecordLimit(), xsltFileString);
-
-    return new DatasetIdDto(datasetObject);
+    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }
 
 
@@ -152,13 +145,11 @@ class DatasetController {
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    HarvestContent harvestedRecords = harvestService.harvestZipUrl(url);
-
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltInputStream);
-    return new DatasetIdDto(datasetObject);
+    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
+            xsltInputStream);
+    asyncHarvestPublishService.runHttpHarvestAsync(url, datasetName, createdDatasetId, country, language);
+    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
   }
 
   /**

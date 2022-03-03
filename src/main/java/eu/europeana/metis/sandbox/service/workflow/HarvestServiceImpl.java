@@ -4,8 +4,8 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
+import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.harvesting.oaipmh.*;
-import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -19,20 +19,22 @@ import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.europeana.metis.sandbox.service.dataset.AsyncRecordPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -58,36 +60,9 @@ public class HarvestServiceImpl implements HarvestService {
     this.asyncRecordPublishService = asyncRecordPublishService;
     this.datasetService = datasetService;
     this.recordRepository = recordRepository;
-    this.httpHarvester.setMaxNumberOfIterations(maxRecords);
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
 
-  }
-
-  @Override
-  public HarvestContent harvestZipMultipartFile(MultipartFile file) throws ServiceException {
-
-    HarvestContent pairResult;
-
-    try {
-      pairResult = this.harvest(file.getInputStream());
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from file " + file.getName(), e);
-    }
-    return pairResult;
-  }
-
-  @Override
-  public HarvestContent harvestZipUrl(String url) throws ServiceException {
-
-    HarvestContent harvestContent;
-
-    try (InputStream input = new URL(url).openStream()) {
-      harvestContent = this.harvest(input);
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from " + url, e);
-    }
-    return harvestContent;
   }
 
   @Override
@@ -166,31 +141,79 @@ public class HarvestServiceImpl implements HarvestService {
     }
   }
 
-  private HarvestContent harvest(InputStream inputStream) throws ServiceException {
+  @Override
+  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest) throws HarvesterException {
 
-    List<ByteArrayInputStream> records = new ArrayList<>();
-    AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
     AtomicInteger numberOfIterations = new AtomicInteger(0);
+    List<Pair<Path, Exception>> exception = new ArrayList<>(1);
 
     try {
-      httpHarvester.harvestRecords(inputStream, CompressedFileExtension.ZIP, entry -> {
-        numberOfIterations.getAndIncrement();
-        if (numberOfIterations.get() > maxRecords) {
-          hasReachedRecordLimit.set(true);
-        } else {
-          final byte[] content = entry.getEntryContent().readAllBytes();
-          records.add(new ByteArrayInputStream(content));
+      final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream, CompressedFileExtension.ZIP);
+      iterator.forEach(path -> {
+        try (InputStream content = Files.newInputStream(path)) {
+
+          numberOfIterations.getAndIncrement();
+
+          if (numberOfIterations.get() > maxRecords) {
+            datasetService.updateRecordsLimitExceededToTrue(datasetId);
+            numberOfIterations.set(maxRecords);
+            return ReportingIteration.IterationResult.TERMINATE;
+          }
+
+          if(datasetService.isXsltPresent(datasetId)){
+            asyncRecordPublishService.publishWithXslt(harvestInputStream(content, datasetId, recordToHarvest), Step.HARVEST);
+          } else {
+            asyncRecordPublishService.publishWithoutXslt(harvestInputStream(content, datasetId, recordToHarvest), Step.HARVEST);
+          }
+
+          return ReportingIteration.IterationResult.CONTINUE;
+
+        } catch (IOException | RuntimeException e) {
+          exception.add(new ImmutablePair<>(path, e));
+          return ReportingIteration.IterationResult.TERMINATE;
         }
       });
+
+      // Attempt to delete the temporary iterator content.
+      iterator.deleteIteratorContent();
+
+      datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting records ", e);
     }
 
-    if (records.isEmpty()) {
-      throw new ServiceException("Provided file does not contain any records", null);
+    if (!exception.isEmpty()) {
+      throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
+              exception.get(0).getValue());
     }
-    return new HarvestContent(hasReachedRecordLimit, records);
+
+  }
+
+  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest) throws ServiceException {
+    List<RecordError> recordErrors = new ArrayList<>();
+    RecordEntity recordEntity = recordRepository.save(
+            new RecordEntity(null, null, datasetId));
+
+    try {
+    Record harvestedRecord = recordToHarvest
+            .content(new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes())
+            .recordId(recordEntity.getId())
+            .build();
+
+      return new RecordInfo(harvestedRecord, recordErrors);
+
+    } catch (RuntimeException | IOException e) {
+      LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
+              recordEntity.getId(), e);
+      recordErrors.add(new RecordError(
+              "Error harvesting OAI-PMH Record Header:" + recordEntity.getId(),
+              e.getMessage()));
+
+      return new RecordInfo(recordToHarvest.build(), recordErrors);
+    }
+
+
   }
 
 }

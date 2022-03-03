@@ -63,7 +63,7 @@ class DatasetReportServiceImplTest {
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1 | providerId1 | europeanaId1", "2 | providerId2 | europeanaId2"));
         var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3 | providerId3 | europeanaId3", "4 | providerId4 | europeanaId4"));
         var errors = List.of(error1, error2);
-        var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
         var report = new ProgressInfoDto(
                 "A review URL will be generated when the dataset has finished processing",
@@ -72,7 +72,7 @@ class DatasetReportServiceImplTest {
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false));
 
-        var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+        var recordViewCreate = new StepStatistic(Step.HARVEST, Status.SUCCESS, 5);
         var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1);
         var recordViewExternal2 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 4);
         var errorView1 = new ErrorLogViewImpl(1L, getTestRecordEntity(1L), Step.VALIDATE_EXTERNAL, Status.FAIL,
@@ -98,7 +98,7 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportWithoutErrors_expectSuccess() {
         var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
-        var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var report = new ProgressInfoDto(
                 "A review URL will be generated when the dataset has finished processing",
@@ -106,7 +106,7 @@ class DatasetReportServiceImplTest {
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
 
-        var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+        var recordViewCreate = new StepStatistic(Step.HARVEST, Status.SUCCESS, 5);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
 
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
@@ -123,7 +123,7 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportCompleted_expectSuccess() {
         var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
-        var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
 
         var report = new ProgressInfoDto(
@@ -132,7 +132,7 @@ class DatasetReportServiceImplTest {
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false));
 
-        var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+        var recordViewCreate = new StepStatistic(Step.HARVEST, Status.SUCCESS, 5);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5);
         var recordViewClose = new StepStatistic(Step.CLOSE, Status.SUCCESS, 5);
 
@@ -155,7 +155,7 @@ class DatasetReportServiceImplTest {
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1 | providerId1 | europeanaId1", "2 | providerId2 | europeanaId2"));
         var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3 | providerId3 | europeanaId3", "4 | providerId4 | europeanaId4", "5 | providerId5 | europeanaId5"));
         var errors = List.of(error1, error2);
-        var createProgress = new ProgressByStepDto(Step.CREATE, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
         var report = new ProgressInfoDto(
@@ -164,7 +164,7 @@ class DatasetReportServiceImplTest {
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false));
 
-        var recordViewCreate = new StepStatistic(Step.CREATE, Status.SUCCESS, 5);
+        var recordViewCreate = new StepStatistic(Step.HARVEST, Status.SUCCESS, 5);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5);
 
         var errorView1 = new ErrorLogViewImpl(1L, getTestRecordEntity(1L), Step.VALIDATE_EXTERNAL, Status.FAIL,

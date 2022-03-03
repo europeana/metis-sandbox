@@ -22,8 +22,6 @@ class AsyncRecordPublishServiceImpl implements AsyncRecordPublishService {
   private static final Logger LOGGER = LoggerFactory.getLogger(
       AsyncRecordPublishServiceImpl.class);
 
-
-
   private final AmqpTemplate amqpTemplate;
   private final String createdQueue;
   private final String transformationToEdmExternalQueue;
