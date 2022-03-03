@@ -7,7 +7,7 @@ import static java.util.stream.Collectors.toList;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
@@ -38,16 +38,17 @@ class RecordLogServiceImpl implements RecordLogService {
 
     @Override
     @Transactional
-    public void logRecordEvent(Event recordEvent) {
-        var record = recordEvent.getBody();
-        var recordErrors = recordEvent.getRecordErrors();
+    public void logRecordEvent(RecordProcessEvent recordRecordProcessEvent) {
+        var record = recordRecordProcessEvent.getRecord();
+        var recordErrors = recordRecordProcessEvent.getRecordErrors();
 
         RecordEntity recordEntity = recordRepository.getOne(record.getRecordId());
-        var recordLogEntity = new RecordLogEntity(recordEntity, new String(recordEvent.getBody().getContent()),
-                recordEvent.getStep(), recordEvent.getStatus());
+        var recordLogEntity = new RecordLogEntity(recordEntity, new String(
+            recordRecordProcessEvent.getRecord().getContent()),
+                recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus());
         var recordErrorLogEntities = recordErrors.stream()
                 .map(error -> new RecordErrorLogEntity(recordEntity,
-                        recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
+                        recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus(), error.getMessage(),
                         error.getStackTrace()))
                 .collect(toList());
         try {

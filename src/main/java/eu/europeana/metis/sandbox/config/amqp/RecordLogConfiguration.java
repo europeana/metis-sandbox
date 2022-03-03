@@ -13,8 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Config for record log. This binds an exchange with a queue using a routing key that listens for
- * all messages traveling through the message broker
+ * Config for record log. This binds an exchange with a queue using a routing key that listens for all messages traveling through
+ * the message broker
  */
 @Configuration
 class RecordLogConfiguration {
@@ -41,8 +41,7 @@ class RecordLogConfiguration {
 
   private final AmqpConfiguration amqpConfiguration;
 
-  public RecordLogConfiguration(
-      MessageConverter messageConverter,
+  public RecordLogConfiguration(MessageConverter messageConverter,
       AmqpConfiguration amqpConfiguration) {
     this.messageConverter = messageConverter;
     this.amqpConfiguration = amqpConfiguration;

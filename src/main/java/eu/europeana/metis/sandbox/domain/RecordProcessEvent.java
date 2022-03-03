@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Event that contains a record and its processing details
  */
-public class Event {
+public class RecordProcessEvent {
 
   private final RecordInfo recordInfo;
   private final Status status;
@@ -16,17 +16,21 @@ public class Event {
   /**
    * Creates an event based on the one provided, using the provided {@link Step}
    *
-   * @param recordInfo must not be null
-   * @param step       must not be null
-   * @param status     must not be null
+   * @param recordInfo     must not be null
+   * @param step           must not be null
+   * @param status         must not be null
    */
-  public Event(RecordInfo recordInfo, Step step, Status status) {
+  public RecordProcessEvent(RecordInfo recordInfo, Step step, Status status) {
     this.status = status;
     this.recordInfo = recordInfo;
     this.step = step;
   }
 
-  public Record getBody() {
+  public RecordInfo getRecordInfo() {
+    return recordInfo;
+  }
+
+  public Record getRecord() {
     return recordInfo.getRecord();
   }
 
@@ -41,4 +45,5 @@ public class Event {
   public Step getStep() {
     return step;
   }
+
 }

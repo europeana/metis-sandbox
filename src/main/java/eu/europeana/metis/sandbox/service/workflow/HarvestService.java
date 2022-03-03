@@ -1,7 +1,10 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.sandbox.common.HarvestContent;
+import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -29,17 +32,15 @@ public interface HarvestService {
   HarvestContent harvestZipUrl(String url) throws ServiceException;
 
   /**
-   * Harvest the given OAI endpoint {@link String} to a list of byte[]
+   * Harvest the given OAI endpoint from the given event based on the given datasetId
    *
-   * @param endpoint for OAI endpoint containing one or more records
-   * @param setSpec  record specification
-   * @param prefix   record prefix
+   * @param datasetId The id of the dataset the record to be harvested belongs to
+   * @param oaiHarvestData  The object that encapsulate the necessary data for harvesting
+   * @param recordToHarvest The encapsulation of the data of a record to be harvested
    * @return A HarvestContent object containing the content of the harvest and a bollean indicating
    * if it reached the max number of records
    * @throws ServiceException if error processing endpoint, if endpoint timeout, if records are
    *                          empty
    */
-  HarvestContent harvestOaiPmhEndpoint(String endpoint, String setSpec, String prefix)
-      throws ServiceException;
-
+  RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest);
 }

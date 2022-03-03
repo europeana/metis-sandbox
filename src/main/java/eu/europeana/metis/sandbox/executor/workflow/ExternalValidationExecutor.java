@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,7 +29,7 @@ class ExternalValidationExecutor extends StepExecutor {
   @RabbitListener(queues = {"${sandbox.rabbitmq.queues.record.created.queue}"},
       containerFactory = "externalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.created.auto-start:true}")
-  public void validateExternal(Event input) {
-    consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getBody()));
+  public void validateExternal(RecordProcessEvent input) {
+    consume(routingKey, input, Step.VALIDATE_EXTERNAL, () -> service.validate(input.getRecord()));
   }
 }

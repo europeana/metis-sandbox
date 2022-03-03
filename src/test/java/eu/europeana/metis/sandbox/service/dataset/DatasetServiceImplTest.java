@@ -1,14 +1,9 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -19,7 +14,6 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -28,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,8 +40,8 @@ class DatasetServiceImplTest {
   @Mock
   private DatasetRepository datasetRepository;
 
-  @Mock
-  private TransformationService transformationService;
+  @Captor
+  private ArgumentCaptor<DatasetEntity> captor;
 
   @InjectMocks
   private DatasetServiceImpl service;
@@ -227,6 +223,80 @@ class DatasetServiceImplTest {
         .thenThrow(new RuntimeException("Issue"));
 
     assertThrows(ServiceException.class, () -> service.getDatasetIdsCreatedBefore(7));
+  }
+
+  @Test
+  void createEmptyDataset_withoutXslt_expectSuccess(){
+    DatasetEntity datasetEntity = new DatasetEntity();
+    datasetEntity.setDatasetId(1);
+    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
+
+    String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0]));
+    assertEquals("1", result);
+  }
+
+  @Test
+  void createEmptyDataset_withXslt_expectSuccess(){
+    DatasetEntity datasetEntity = new DatasetEntity();
+    datasetEntity.setDatasetId(1);
+
+    when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
+
+    String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+    assertEquals("1", result);
+    assertEquals( "record", captor.getValue().getXsltEdmExternalContent());
+  }
+
+  @Test
+  void createEmptyDataset_nullDatasetName_expectFail(){
+    assertThrows(NullPointerException.class,
+            () -> service.createEmptyDataset(null, Country.AUSTRIA, Language.BE, null));
+  }
+
+  @Test
+  void createEmptyDataset_nullCountry_expectFail(){
+    assertThrows(NullPointerException.class,
+            () -> service.createEmptyDataset("datasetName", null, Language.BE, null));
+  }
+
+  @Test
+  void createEmptyDataset_nullLanguage_expectFail(){
+    assertThrows(NullPointerException.class,
+            () -> service.createEmptyDataset("datasetName", Country.AUSTRIA, null, null));
+  }
+
+  @Test
+  void createEmptyDataset_exceptionWhileSavingEntity_expectSuccess(){
+    when(datasetRepository.save(any(DatasetEntity.class))).thenThrow(new RuntimeException("error test"));
+
+    assertThrows(ServiceException.class,
+            () -> service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0])));
+  }
+
+  @Test
+  void updateNumberOfTotalRecord_expectSuccess(){
+    service.updateNumberOfTotalRecord("1", 10);
+    verify(datasetRepository).updateRecordsQuantity(1, 10);
+  }
+
+  @Test
+  void updateRecordsLimitExceededToTrue_expectSuccess(){
+    service.updateRecordsLimitExceededToTrue("1");
+    verify(datasetRepository).updateRecordLimitExceededToTrue(1);
+  }
+
+  @Test
+  void updateRecordsLimitExceededToTrue_expectTrue(){
+    when(datasetRepository.isXsltPresent(1)).thenReturn(1);
+    assertTrue(service.isXsltPresent("1"));
+
+  }
+
+  @Test
+  void updateRecordsLimitExceededToTrue_expectFalse(){
+    when(datasetRepository.isXsltPresent(1)).thenReturn(0);
+    assertFalse(service.isXsltPresent("1"));
+
   }
 
   private static class DatasetIdViewImpl implements DatasetIdView {
