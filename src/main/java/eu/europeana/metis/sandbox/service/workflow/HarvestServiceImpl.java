@@ -92,7 +92,7 @@ public class HarvestServiceImpl implements HarvestService {
       recordHeaderIterator.forEach(recordHeader -> {
         currentNumberOfIterations.getAndIncrement();
 
-        if(currentNumberOfIterations.get() > maxRecords){
+        if (currentNumberOfIterations.get() > maxRecords) {
           hasReachedRecordLimit.set(true);
           return IterationResult.TERMINATE;
         }
@@ -117,7 +117,7 @@ public class HarvestServiceImpl implements HarvestService {
     if (records.isEmpty()) {
       throw new ServiceException("Error records are empty ", null);
     }
-    return new HarvestContent(hasReachedRecordLimit,records);
+    return new HarvestContent(hasReachedRecordLimit, records);
   }
 
   private HarvestContent harvest(InputStream inputStream) throws ServiceException {
@@ -129,7 +129,7 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       harvester.harvestRecords(inputStream, CompressedFileExtension.ZIP, entry -> {
         numberOfIterations.getAndIncrement();
-        if(numberOfIterations.get() > maxRecords){
+        if (numberOfIterations.get() > maxRecords) {
           hasReachedRecordLimit.set(true);
         } else {
           final byte[] content = entry.getEntryContent().readAllBytes();
@@ -139,12 +139,18 @@ public class HarvestServiceImpl implements HarvestService {
 
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting records ", e);
+    } finally {
+      try {
+        inputStream.close();
+      } catch (IOException e) {
+        throw new ServiceException("Unable to close harvest stream", e);
+      }
     }
 
     if (records.isEmpty()) {
       throw new ServiceException("Provided file does not contain any records", null);
     }
-    return new HarvestContent(hasReachedRecordLimit,records);
+    return new HarvestContent(hasReachedRecordLimit, records);
   }
 
 }

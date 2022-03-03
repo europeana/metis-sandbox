@@ -13,6 +13,7 @@ import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
@@ -67,6 +68,12 @@ class TransformationServiceImpl implements TransformationService {
       resultRecord = transformer.transformToBytes(recordContent, null);
     } catch (TransformationException e) {
       throw new RecordProcessingException(identifier, e);
+    } finally {
+      try {
+        xsltContentInputStream.close();
+      } catch (IOException e) {
+        throw new RecordProcessingException(identifier, e);
+      }
     }
 
     return resultRecord;

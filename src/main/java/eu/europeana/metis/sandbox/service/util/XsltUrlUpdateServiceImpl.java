@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -31,9 +32,9 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
     HttpRequest httpRequest;
     try {
       httpRequest = HttpRequest.newBuilder()
-          .GET()
-          .uri(URI.create(defaultXsltUrl))
-          .build();
+                               .GET()
+                               .uri(URI.create(defaultXsltUrl))
+                               .build();
 
       xsltStream = httpClient.send(httpRequest, BodyHandlers.ofInputStream()).body();
 
@@ -42,9 +43,11 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
       xsltStream = getClass().getClassLoader().getResourceAsStream(defaultXsltUrl);
     } catch (Exception e) {
       LOGGER.warn("Error getting default transform XSLT ", e);
-    }
-    if (xsltStream != null) {
-      saveDefaultXslt(xsltStream);
+    } finally {
+      if (xsltStream != null) {
+        saveDefaultXslt(xsltStream);
+        closeStream(xsltStream);
+      }
     }
   }
 
@@ -63,6 +66,16 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
       }
     } catch (IOException e) {
       LOGGER.warn("Error persisting default transform XSLT to Database", e);
+    }
+  }
+
+  private void closeStream(Closeable closeable) {
+    if (closeable != null) {
+      try {
+        closeable.close();
+      } catch (IOException e) {
+        LOGGER.error("Unable to close stream transform XSLT", e);
+      }
     }
   }
 }
