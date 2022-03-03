@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -127,7 +128,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   private HarvestContent harvest(InputStream inputStream) throws ServiceException {
 
-    List<ByteArrayInputStream> records = new ArrayList<>();
+    List<byte[]> records = new ArrayList<>();
     AtomicBoolean hasReachedRecordLimit = new AtomicBoolean(false);
     AtomicInteger numberOfIterations = new AtomicInteger(0);
 
@@ -137,8 +138,7 @@ public class HarvestServiceImpl implements HarvestService {
         if (numberOfIterations.get() > maxRecords) {
           hasReachedRecordLimit.set(true);
         } else {
-          final byte[] content = entry.getEntryContent().readAllBytes();
-          records.add(new ByteArrayInputStream(content));
+          records.add(entry.getEntryContent().readAllBytes());
         }
       });
 
@@ -151,7 +151,9 @@ public class HarvestServiceImpl implements HarvestService {
     if (records.isEmpty()) {
       throw new ServiceException("Provided file does not contain any records", null);
     }
-    return new HarvestContent(hasReachedRecordLimit, records);
+    return new HarvestContent(hasReachedRecordLimit, records.stream()
+                                                            .map(ByteArrayInputStream::new)
+                                                            .collect(Collectors.toList()));
   }
 
   private void closeStream(Closeable closeable) {
