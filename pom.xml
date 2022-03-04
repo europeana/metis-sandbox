@@ -52,6 +52,7 @@
     <version.slf4j>1.7.30</version.slf4j>
     <version.log4j>2.17.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
+    <version.wiremock>2.32.0</version.wiremock>
   </properties>
 
   <dependencies>
@@ -234,6 +235,18 @@
       <version>1.0.14</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.github.hakky54</groupId>
+      <artifactId>logcaptor</artifactId>
+      <version>${version.logcaptor}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8</artifactId>
+      <version>${version.wiremock}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Swagger -->
     <dependency>
@@ -245,12 +258,6 @@
       <groupId>io.springfox</groupId>
       <artifactId>springfox-swagger-ui</artifactId>
       <version>${version.springfox}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.github.hakky54</groupId>
-      <artifactId>logcaptor</artifactId>
-      <version>${version.logcaptor}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

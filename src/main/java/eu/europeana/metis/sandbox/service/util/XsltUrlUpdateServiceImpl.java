@@ -41,6 +41,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
     } catch (IOException | InterruptedException e) {
       // try to load resource as file
       xsltStream = getClass().getClassLoader().getResourceAsStream(defaultXsltUrl);
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       LOGGER.warn("Error getting default transform XSLT ", e);
     } finally {
@@ -53,8 +54,8 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
   private void saveDefaultXslt(InputStream xsltStream) {
     try {
-      String transformXslt = new String(xsltStream.readAllBytes(), StandardCharsets.UTF_8);
-      var entity = transformXsltRepository.findById(1);
+      final String transformXslt = new String(xsltStream.readAllBytes(), StandardCharsets.UTF_8);
+      final var entity = transformXsltRepository.findById(1);
 
       if (entity.isPresent()) {
         if (!(transformXslt.equals(entity.get().getTransformXslt()))) {
@@ -64,7 +65,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
       } else {
         transformXsltRepository.save(new TransformXsltEntity(transformXslt));
       }
-    } catch (IOException e) {
+    } catch (RuntimeException | IOException e) {
       LOGGER.warn("Error persisting default transform XSLT to Database", e);
     }
   }
