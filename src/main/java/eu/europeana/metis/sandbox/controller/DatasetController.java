@@ -10,7 +10,6 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -18,7 +17,6 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.AsyncHarvestPublishService;
-import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -28,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -113,7 +110,7 @@ class DatasetController {
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltFileString);
     asyncHarvestPublishService.runZipHarvestAsync(dataset, datasetName, createdDatasetId, country, language);
 
-    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
+    return new DatasetIdDto(createdDatasetId);
   }
 
 
@@ -146,7 +143,7 @@ class DatasetController {
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
             xsltInputStream);
     asyncHarvestPublishService.runHttpHarvestAsync(url, datasetName, createdDatasetId, country, language);
-    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
+    return new DatasetIdDto(createdDatasetId);
   }
 
   /**
@@ -186,8 +183,7 @@ class DatasetController {
     asyncHarvestPublishService.runHarvestOaiAsync(datasetName, createdDatasetId, country, language,
         new OaiHarvestData(url, setspec, metadataformat, ""));
 
-    //TODO(25-02-2022): We need to update the type of object we return since datasetId is the only relevant data
-    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
+    return new DatasetIdDto(createdDatasetId);
   }
 
   /**
