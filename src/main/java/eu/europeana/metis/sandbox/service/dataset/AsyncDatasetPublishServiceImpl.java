@@ -18,13 +18,11 @@ import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-
+import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import eu.europeana.metis.sandbox.service.workflow.HarvestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -35,8 +33,7 @@ import org.springframework.stereotype.Service;
 @Service
 class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      AsyncDatasetPublishServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AsyncDatasetPublishServiceImpl.class);
 
 
   private final int maxRecords;
@@ -49,11 +46,9 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
   private final DatasetService datasetService;
 
 
-  public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate,
-                                        String createdQueue, String transformationToEdmExternalQueue,
-                                        Executor asyncServiceTaskExecutor, OaiHarvester oaiHarvester,
-                                        HarvestService harvestService, DatasetService datasetService,
-                                        @Value("${sandbox.dataset.max-size}") int maxRecords) {
+  public AsyncDatasetPublishServiceImpl(AmqpTemplate amqpTemplate, String createdQueue, String transformationToEdmExternalQueue,
+      Executor asyncServiceTaskExecutor, OaiHarvester oaiHarvester, HarvestService harvestService, DatasetService datasetService,
+      @Value("${sandbox.dataset.max-size}") int maxRecords) {
     this.amqpTemplate = amqpTemplate;
     this.createdQueue = createdQueue;
     this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;
@@ -66,34 +61,33 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
 
   @Override
-  public CompletableFuture<Void> runHarvestOaiAsync(String datasetName, String datasetId,
-                                 Country country, Language language, OaiHarvestData oaiHarvestData) {
-        return CompletableFuture.runAsync(
-                () -> harvestOaiPmh(datasetName, datasetId, country, language, oaiHarvestData), asyncServiceTaskExecutor);
+  public CompletableFuture<Void> runHarvestOaiAsync(String datasetName, String datasetId, Country country, Language language,
+      OaiHarvestData oaiHarvestData) {
+    return CompletableFuture.runAsync(() -> harvestOaiPmh(datasetName, datasetId, country, language, oaiHarvestData),
+        asyncServiceTaskExecutor);
 
   }
 
   //If we moved this method to HarvestService while keeping runHarvestOaiAsync method here, it will create a cyclic dependency between
   //this class and HarvestService. Either we keep as it is or we should figure out a solution
-  private void harvestOaiPmh(String datasetName, String datasetId,
-                            Country country, Language language, OaiHarvestData oaiHarvestData){
-    try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester
-            .harvestRecordHeaders(
-                    new OaiHarvest(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat(), oaiHarvestData.getSetspec()))) {
+  private void harvestOaiPmh(String datasetName, String datasetId, Country country, Language language,
+      OaiHarvestData oaiHarvestData) {
+    try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
+        new OaiHarvest(oaiHarvestData.getUrl(), oaiHarvestData.getMetadataformat(), oaiHarvestData.getSetspec()))) {
 
       AtomicInteger currentNumberOfIterations = new AtomicInteger();
 
-      Record.RecordBuilder recordDataEncapsulated = Record.builder()
-              .country(country)
-              .language(language)
-              .datasetName(datasetName)
-              .datasetId(datasetId);
+      Record.RecordBuilder recordDataEncapsulated = Record.builder().country(country).language(language).datasetName(datasetName)
+          .datasetId(datasetId);
 
       recordHeaderIterator.forEach(recordHeader -> {
-        OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
-                oaiHarvestData.getSetspec(),
-                oaiHarvestData.getMetadataformat(),
-                recordHeader.getOaiIdentifier());
+        OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(), oaiHarvestData.getSetspec(),
+            oaiHarvestData.getMetadataformat(), recordHeader.getOaiIdentifier());
+
+        if (recordHeader.isDeleted()) {
+          return ReportingIteration.IterationResult.CONTINUE;
+        }
+
         currentNumberOfIterations.getAndIncrement();
 
         if (currentNumberOfIterations.get() > maxRecords) {
@@ -102,15 +96,15 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
           return ReportingIteration.IterationResult.TERMINATE;
         }
 
-        if(datasetService.isXsltPresent(datasetId)){
-          publishToTransformationToEdmExternalQueue(harvestService.harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+        if (datasetService.isXsltPresent(datasetId)) {
+          publishToTransformationToEdmExternalQueue(
+              harvestService.harvestOaiRecordHeader(datasetId, completeOaiHarvestData, recordDataEncapsulated),
+              Step.HARVEST_OAI_PMH);
         } else {
-          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+          publishToCreatedQueue(harvestService.harvestOaiRecordHeader(datasetId, completeOaiHarvestData, recordDataEncapsulated),
+              Step.HARVEST_OAI_PMH);
 
         }
-
         return ReportingIteration.IterationResult.CONTINUE;
       });
 
@@ -138,15 +132,13 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
     checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> dataset.getRecords()
-            .forEach(
-                recordToPublish -> publishToTransformationToEdmExternalQueue(new RecordInfo(recordToPublish), Step.CREATE)),
+            .forEach(recordToPublish -> publishToTransformationToEdmExternalQueue(new RecordInfo(recordToPublish), Step.CREATE)),
         asyncServiceTaskExecutor);
   }
 
   private void publishToCreatedQueue(RecordInfo recordInfo, Step step) {
     try {
-      amqpTemplate.convertAndSend(createdQueue,
-          new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
+      amqpTemplate.convertAndSend(createdQueue, new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
@@ -154,8 +146,7 @@ class AsyncDatasetPublishServiceImpl implements AsyncDatasetPublishService {
 
   private void publishToTransformationToEdmExternalQueue(RecordInfo recordInfo, Step step) {
     try {
-      amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
-          new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
+      amqpTemplate.convertAndSend(transformationToEdmExternalQueue, new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
     } catch (AmqpException e) {
       LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
     }
