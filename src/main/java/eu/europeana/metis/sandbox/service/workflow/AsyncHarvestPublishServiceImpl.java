@@ -56,7 +56,7 @@ public class AsyncHarvestPublishServiceImpl implements AsyncHarvestPublishServic
             } catch (HarvesterException e) {
                 throw new ServiceException("Error harvesting records for dataset" + datasetId, e);
             }
-        });
+        }, asyncServiceTaskExecutor);
     }
 
 

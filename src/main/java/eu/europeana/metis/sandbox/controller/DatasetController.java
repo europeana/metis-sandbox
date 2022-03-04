@@ -66,20 +66,17 @@ class DatasetController {
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
 
-  private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
   private final AsyncHarvestPublishService asyncHarvestPublishService;
 
-  public DatasetController(HarvestService harvestService,
-      DatasetService datasetService,
+  public DatasetController(DatasetService datasetService,
       DatasetReportService reportService,
       RecordLogService recordLogService,
       RecordTierCalculationService recordTierCalculationService,
       AsyncHarvestPublishService asyncHarvestPublishService) {
-    this.harvestService = harvestService;
     this.datasetService = datasetService;
     this.reportService = reportService;
     this.recordLogService = recordLogService;

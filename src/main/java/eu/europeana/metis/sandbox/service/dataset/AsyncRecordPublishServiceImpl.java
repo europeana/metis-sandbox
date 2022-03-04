@@ -42,7 +42,6 @@ class AsyncRecordPublishServiceImpl implements AsyncRecordPublishService {
   @Override
   public CompletableFuture<Void> publishWithoutXslt(RecordInfo recordToPublish, Step step) {
     requireNonNull(recordToPublish, "Dataset must not be null");
-//    checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> publishToCreatedQueue(recordToPublish, step),
         asyncServiceTaskExecutor);
@@ -51,7 +50,6 @@ class AsyncRecordPublishServiceImpl implements AsyncRecordPublishService {
   @Override
   public CompletableFuture<Void> publishWithXslt(RecordInfo recordToPublish, Step step) {
     requireNonNull(recordToPublish, "Dataset must not be null");
-//    checkArgument(!dataset.getRecords().isEmpty(), "Dataset records must no be empty");
 
     return CompletableFuture.runAsync(() -> publishToTransformationToEdmExternalQueue(recordToPublish, step),
         asyncServiceTaskExecutor);
