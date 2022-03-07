@@ -3,26 +3,27 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
-import eu.europeana.metis.harvesting.oaipmh.*;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
+import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -30,8 +31,17 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -179,7 +189,7 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1).thenReturn(recordEntity2);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, true,2, Step.HARVEST_OAI_PMH, 2);
+    assertHarvestProcess(recordPublishService, true, 2, Step.HARVEST_OAI_PMH, 2);
   }
 
   @Test
@@ -201,7 +211,7 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, true,1, Step.HARVEST_OAI_PMH, 1);
+    assertHarvestProcess(recordPublishService, true, 1, Step.HARVEST_OAI_PMH, 1);
   }
 
   @Test
@@ -223,7 +233,7 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1).thenReturn(recordEntity2);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, false,2, Step.HARVEST_OAI_PMH, 2);
+    assertHarvestProcess(recordPublishService, false, 2, Step.HARVEST_OAI_PMH, 2);
   }
 
   @Test
