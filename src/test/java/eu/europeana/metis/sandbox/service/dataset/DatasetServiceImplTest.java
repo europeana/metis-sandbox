@@ -78,6 +78,7 @@ class DatasetServiceImplTest {
 
     String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0]));
     assertEquals("1", result);
+    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
@@ -90,6 +91,7 @@ class DatasetServiceImplTest {
     String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
     assertEquals("1", result);
     assertEquals( "record", captor.getValue().getXsltEdmExternalContent());
+    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
@@ -116,6 +118,7 @@ class DatasetServiceImplTest {
 
     assertThrows(ServiceException.class,
             () -> service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0])));
+    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
