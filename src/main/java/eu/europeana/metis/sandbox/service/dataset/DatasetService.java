@@ -56,7 +56,7 @@ public interface DatasetService {
    * Sets to true the boolean recordLimitExceeded in the database
    * @param datasetId The id of the dataset to update this into
    */
-  void updateRecordsLimitExceededToTrue(String datasetId);
+  void setRecordLimitExceeded(String datasetId);
 
   /**
    * A boolean type of query to check if dataset has xslt content in the database

@@ -126,8 +126,8 @@ class DatasetServiceImplTest {
 
   @Test
   void updateRecordsLimitExceededToTrue_expectSuccess(){
-    service.updateRecordsLimitExceededToTrue("1");
-    verify(datasetRepository).updateRecordLimitExceededToTrue(1);
+    service.setRecordLimitExceeded("1");
+    verify(datasetRepository).setRecordLimitExceeded(1);
   }
 
   @Test

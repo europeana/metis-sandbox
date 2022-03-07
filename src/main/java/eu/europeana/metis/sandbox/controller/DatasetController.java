@@ -16,7 +16,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
-import eu.europeana.metis.sandbox.service.workflow.AsyncHarvestPublishService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -67,18 +67,18 @@ class DatasetController {
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
-  private final AsyncHarvestPublishService asyncHarvestPublishService;
+  private final HarvestPublishService harvestPublishService;
 
   public DatasetController(DatasetService datasetService,
       DatasetReportService reportService,
       RecordLogService recordLogService,
       RecordTierCalculationService recordTierCalculationService,
-      AsyncHarvestPublishService asyncHarvestPublishService) {
+      HarvestPublishService harvestPublishService) {
     this.datasetService = datasetService;
     this.reportService = reportService;
     this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
-    this.asyncHarvestPublishService = asyncHarvestPublishService;
+    this.harvestPublishService = harvestPublishService;
   }
 
   /**
@@ -106,9 +106,9 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
-    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltFileString);
-    asyncHarvestPublishService.runZipHarvestAsync(dataset, datasetName, createdDatasetId, country, language);
+    final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
+    harvestPublishService.runHarvestZipAsync(dataset, datasetName, createdDatasetId, country, language);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -139,10 +139,10 @@ class DatasetController {
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
+    final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
             xsltInputStream);
-    asyncHarvestPublishService.runHttpHarvestAsync(url, datasetName, createdDatasetId, country, language);
+    harvestPublishService.runHarvestHttpZipAsync(url, datasetName, createdDatasetId, country, language);
     return new DatasetIdDto(createdDatasetId);
   }
 
@@ -180,7 +180,7 @@ class DatasetController {
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    asyncHarvestPublishService.runHarvestOaiAsync(datasetName, createdDatasetId, country, language,
+    harvestPublishService.runHarvestOaiPmhAsync(datasetName, createdDatasetId, country, language,
         new OaiHarvestData(url, setspec, metadataformat, ""));
 
     return new DatasetIdDto(createdDatasetId);

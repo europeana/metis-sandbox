@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import eu.europeana.metis.sandbox.service.dataset.AsyncRecordPublishService;
+import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -42,7 +42,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
-  private final AsyncRecordPublishService asyncRecordPublishService;
+  private final RecordPublishService recordPublishService;
   private final DatasetService datasetService;
   private final int maxRecords;
 
@@ -51,11 +51,11 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
-                            AsyncRecordPublishService asyncRecordPublishService,
+                            RecordPublishService recordPublishService,
                             DatasetService datasetService, @Value("${sandbox.dataset.max-size}") int maxRecords,
                             RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
-    this.asyncRecordPublishService = asyncRecordPublishService;
+    this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
     this.recordRepository = recordRepository;
     this.oaiHarvester = oaiHarvester;
@@ -79,16 +79,16 @@ public class HarvestServiceImpl implements HarvestService {
         currentNumberOfIterations.getAndIncrement();
 
         if (currentNumberOfIterations.get() > maxRecords) {
-          datasetService.updateRecordsLimitExceededToTrue(datasetId);
+          datasetService.setRecordLimitExceeded(datasetId);
           currentNumberOfIterations.set(maxRecords);
           return ReportingIteration.IterationResult.TERMINATE;
         }
 
         if (datasetService.isXsltPresent(datasetId)) {
-          asyncRecordPublishService.publishWithXslt(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+          recordPublishService.publishToTransformationToEdmExternalQueue(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
                   recordDataEncapsulated), Step.HARVEST_OAI_PMH);
         } else {
-          asyncRecordPublishService.publishWithoutXslt(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+          recordPublishService.publishToHarvestQueue(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
                   recordDataEncapsulated), Step.HARVEST_OAI_PMH);
 
         }
@@ -145,15 +145,15 @@ public class HarvestServiceImpl implements HarvestService {
           numberOfIterations.getAndIncrement();
 
           if (numberOfIterations.get() > maxRecords) {
-            datasetService.updateRecordsLimitExceededToTrue(datasetId);
+            datasetService.setRecordLimitExceeded(datasetId);
             numberOfIterations.set(maxRecords);
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
           if(datasetService.isXsltPresent(datasetId)){
-            asyncRecordPublishService.publishWithXslt(harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST);
+            recordPublishService.publishToTransformationToEdmExternalQueue(harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
           } else {
-            asyncRecordPublishService.publishWithoutXslt(harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST);
+            recordPublishService.publishToHarvestQueue(harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
           }
 
           return ReportingIteration.IterationResult.CONTINUE;

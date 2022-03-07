@@ -45,7 +45,7 @@ class PublishExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     when(service.index(record)).thenReturn(new RecordInfo(record));
     consumer.publish(recordEvent);
@@ -62,7 +62,7 @@ class PublishExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record),Step.HARVEST, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record),Step.HARVEST_ZIP, Status.FAIL);
 
     consumer.publish(recordEvent);
 
@@ -76,7 +76,7 @@ class PublishExecutorTest {
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     when(service.index(record))
         .thenThrow(new RecordProcessingException("1", new Exception()));

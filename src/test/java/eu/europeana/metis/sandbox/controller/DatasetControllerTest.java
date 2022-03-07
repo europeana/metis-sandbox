@@ -23,7 +23,6 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -33,13 +32,11 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.service.dataset.AsyncRecordPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
-import eu.europeana.metis.sandbox.service.workflow.AsyncHarvestPublishService;
-import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -78,7 +75,7 @@ class DatasetControllerTest {
     private RecordTierCalculationService recordTierCalculationService;
 
     @MockBean
-    private AsyncHarvestPublishService asyncHarvestPublishService;
+    private HarvestPublishService harvestPublishService;
 
     @Test
     void processDatasetFromZipFile_withoutXsltFile_expectSuccess() throws Exception {
@@ -138,7 +135,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromURL_withtXsltFile_expectSuccess() throws Exception {
 
-        String url = "zip" + File.separator + "dataset-valid.zip";
+        final String url = "zip" + File.separator + "dataset-valid.zip";
 
 
         MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
@@ -160,7 +157,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAI_expectSuccess() throws Exception {
 
-        String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
@@ -178,7 +175,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAIWithXsltFile_expectSuccess() throws Exception {
 
-        String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
         MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
                 "application/xslt+xml",
@@ -216,7 +213,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromURL_invalidName_expectFail() throws Exception {
 
-        String url = "zip" + File.separator + "dataset-valid.zip";
+        final String url = "zip" + File.separator + "dataset-valid.zip";
 
         mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data=set")
                         .param("name", "invalidDatasetName")
@@ -231,7 +228,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAI_invalidName_expectFail() throws Exception {
 
-        String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data=set")
                         .param("name", "invalidDatasetName")
@@ -248,12 +245,12 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
 
-        String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
                 .thenReturn("12345");
-        doThrow(new IllegalArgumentException(new Exception())).when(asyncHarvestPublishService)
-                .runHarvestOaiAsync(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
+        doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
+                .runHarvestOaiPmhAsync(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
                         any(OaiHarvestData.class));
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -270,7 +267,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAI_datasetServiceFails_expectFail() throws Exception {
 
-        String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
                 .thenThrow(new ServiceException("Failed", new Exception()));
@@ -290,7 +287,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAI_differentXsltFileType_expectFail() throws Exception {
 
-        String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
         MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
                 "string".getBytes());
@@ -314,7 +311,7 @@ class DatasetControllerTest {
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
         var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
         var errors = List.of(error1, error2);
-        var createProgress = new ProgressByStepDto(Step.HARVEST, 10, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 10, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
         var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
                 Country.NETHERLANDS, false, false);

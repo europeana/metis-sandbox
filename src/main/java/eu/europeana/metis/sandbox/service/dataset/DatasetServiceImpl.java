@@ -80,8 +80,8 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public void updateRecordsLimitExceededToTrue(String datasetId) {
-    datasetRepository.updateRecordLimitExceededToTrue(Integer.parseInt(datasetId));
+  public void setRecordLimitExceeded(String datasetId) {
+    datasetRepository.setRecordLimitExceeded(Integer.parseInt(datasetId));
   }
 
   @Override

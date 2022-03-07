@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface AsyncHarvestPublishService {
+public interface HarvestPublishService {
 
     /**
      * Start the harvest of a zip asynchronously on the given file {@link MultipartFile}
@@ -22,7 +22,7 @@ public interface AsyncHarvestPublishService {
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
      */
-    CompletableFuture<Void> runZipHarvestAsync(MultipartFile file, String datasetName, String datasetId, Country country, Language language);
+    CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, String datasetName, String datasetId, Country country, Language language);
 
     /**
      * Start the harvest of an url asynchronously on the given URL {@link String}
@@ -36,7 +36,7 @@ public interface AsyncHarvestPublishService {
      * if it reached the max number of records
      * @throws ServiceException if error processing URL, if URL timeout, if records are empty
      */
-    CompletableFuture<Void> runHttpHarvestAsync(String url, String datasetName, String datasetId, Country country, Language language);
+    CompletableFuture<Void> runHarvestHttpZipAsync(String url, String datasetName, String datasetId, Country country, Language language);
 
     /**
      * Async publish to message broker for further processing. This will send messages to 'harvestOai`
@@ -49,6 +49,6 @@ public interface AsyncHarvestPublishService {
      * @param oaiHarvestData And object that encapsulates the data necessary for OAI-PMH harvesting
      * @return {@link CompletableFuture} of the process
      */
-    CompletableFuture<Void> runHarvestOaiAsync(String datasetName, String datasetId, Country country,
+    CompletableFuture<Void> runHarvestOaiPmhAsync(String datasetName, String datasetId, Country country,
                                                Language language, OaiHarvestData oaiHarvestData);
 }
