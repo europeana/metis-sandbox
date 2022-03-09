@@ -36,7 +36,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    */
   @Modifying
   @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
-  void updateRecordLimitExceededToTrue(int datasetId);
+  void setRecordLimitExceeded(int datasetId);
 
   /**
    * A boolean type of query to check if dataset has xslt content

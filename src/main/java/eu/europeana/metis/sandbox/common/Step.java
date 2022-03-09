@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum Step {
   HARVEST_OAI_PMH("harvest OAI-PMH",1),
-  CREATE("import", 2),
+  HARVEST_ZIP("harvest Zip", 2),
   TRANSFORM_TO_EDM_EXTERNAL("transform to EDM external", 3),
   VALIDATE_EXTERNAL("validate (edm external)", 4),
   TRANSFORM("transform", 5),

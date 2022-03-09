@@ -5,21 +5,18 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
-import eu.europeana.metis.sandbox.common.HarvestContent;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
-import eu.europeana.metis.sandbox.service.workflow.HarvestService;
+import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -29,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -67,25 +63,22 @@ class DatasetController {
   private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
 
-  private final HarvestService harvestService;
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
-  private final AsyncDatasetPublishService asyncDatasetPublishService;
+  private final HarvestPublishService harvestPublishService;
 
-  public DatasetController(HarvestService harvestService,
-      DatasetService datasetService,
+  public DatasetController(DatasetService datasetService,
       DatasetReportService reportService,
       RecordLogService recordLogService,
       RecordTierCalculationService recordTierCalculationService,
-      AsyncDatasetPublishService asyncDatasetPublishService) {
-    this.harvestService = harvestService;
+      HarvestPublishService harvestPublishService) {
     this.datasetService = datasetService;
     this.reportService = reportService;
     this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
-    this.asyncDatasetPublishService = asyncDatasetPublishService;
+    this.harvestPublishService = harvestPublishService;
   }
 
   /**
@@ -113,17 +106,11 @@ class DatasetController {
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
-    HarvestContent harvestedRecords =
-        harvestService.harvestZipMultipartFile(dataset);
+    final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
+    harvestPublishService.runHarvestZipAsync(dataset, datasetName, createdDatasetId, country, language);
 
-    InputStream xsltFileString = createXsltAsInputStreamIfPresent(xsltFile);
-
-    // When saving the record into the database, the variable 'language' is saved as a 2 or 3-letter code
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getContent(),
-        harvestedRecords.hasReachedRecordLimit(), xsltFileString);
-
-    return new DatasetIdDto(datasetObject);
+    return new DatasetIdDto(createdDatasetId);
   }
 
 
@@ -152,13 +139,11 @@ class DatasetController {
 
     checkArgument(namePattern.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
-    HarvestContent harvestedRecords = harvestService.harvestZipUrl(url);
-
-    InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-
-    Dataset datasetObject = datasetService.createDataset(datasetName, country, language,
-        harvestedRecords.getContent(), harvestedRecords.hasReachedRecordLimit(), xsltInputStream);
-    return new DatasetIdDto(datasetObject);
+    final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
+            xsltInputStream);
+    harvestPublishService.runHarvestHttpZipAsync(url, datasetName, createdDatasetId, country, language);
+    return new DatasetIdDto(createdDatasetId);
   }
 
   /**
@@ -195,11 +180,10 @@ class DatasetController {
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    asyncDatasetPublishService.runHarvestOaiAsync(datasetName, createdDatasetId, country, language,
+    harvestPublishService.runHarvestOaiPmhAsync(datasetName, createdDatasetId, country, language,
         new OaiHarvestData(url, setspec, metadataformat, ""));
 
-    //TODO(25-02-2022): We need to update the type of object we return since datasetId is the only relevant data
-    return new DatasetIdDto(new Dataset(createdDatasetId, Collections.emptySet(), 0));
+    return new DatasetIdDto(createdDatasetId);
   }
 
   /**
