@@ -13,13 +13,18 @@ import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class TransformationServiceImpl implements TransformationService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(TransformationServiceImpl.class);
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
@@ -33,7 +38,7 @@ class TransformationServiceImpl implements TransformationService {
   public RecordInfo transformToEdmInternal(Record record) {
     requireNonNull(record, "Record must not be null");
 
-    byte[] recordTransformed;
+    final byte[] recordTransformed;
     try {
       final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
           .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
@@ -61,22 +66,34 @@ class TransformationServiceImpl implements TransformationService {
   public byte[] transform(String identifier, InputStream xsltContentInputStream,
       byte[] recordContent) {
 
-    byte[] resultRecord;
+    final byte[] resultRecord;
     try {
       XsltTransformer transformer = getNewTransformerObject(identifier, xsltContentInputStream);
       resultRecord = transformer.transformToBytes(recordContent, null);
     } catch (TransformationException e) {
       throw new RecordProcessingException(identifier, e);
+    } finally {
+      closeStream(xsltContentInputStream);
     }
 
     return resultRecord;
+  }
+
+  private void closeStream(Closeable closeable) {
+    if (closeable != null) {
+      try {
+        closeable.close();
+      } catch (IOException e) {
+        LOGGER.error("Unable to close transform stream", e);
+      }
+    }
   }
 
   private XsltTransformer getTransformer(String datasetName, String edmCountry,
       String edmLanguage) throws TransformationException {
 
     var xsltTransformEntity = transformXsltRepository.findById(1);
-    String xsltTransform;
+    final String xsltTransform;
     InputStream xsltInputStream = null;
     if (xsltTransformEntity.isPresent()) {
       xsltTransform = xsltTransformEntity.get().getTransformXslt();

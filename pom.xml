@@ -51,6 +51,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.slf4j>1.7.30</version.slf4j>
     <version.log4j>2.17.1</version.log4j>
+    <version.logcaptor>2.7.8</version.logcaptor>
+    <version.wiremock>2.32.0</version.wiremock>
   </properties>
 
   <dependencies>
@@ -191,7 +193,6 @@
       <artifactId>log4j-core</artifactId>
       <version>${version.log4j}</version>
     </dependency>
-
     <!-- Persistence -->
     <dependency>
       <groupId>com.h2database</groupId>
@@ -232,6 +233,18 @@
       <groupId>com.github.fridujo</groupId>
       <artifactId>rabbitmq-mock</artifactId>
       <version>1.0.14</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.hakky54</groupId>
+      <artifactId>logcaptor</artifactId>
+      <version>${version.logcaptor}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8</artifactId>
+      <version>${version.wiremock}</version>
       <scope>test</scope>
     </dependency>
 
@@ -289,6 +302,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${version.surefire.plugin}</version>
+        <configuration>
+          <classpathDependencyExcludes>
+            <classpathDependencyExclude>org.apache.logging.log4j:log4j-slf4j-impl</classpathDependencyExclude>
+          </classpathDependencyExcludes>
+        </configuration>
         <executions>
           <execution>
             <id>unit-tests</id>

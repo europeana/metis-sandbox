@@ -31,11 +31,14 @@ class RecordLogConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.log.routing-key}")
   private String routingKey;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.log.consumers:2}")
   private int consumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers:2}")
   private int maxConsumers;
+
+  @Value("${sandbox.rabbitmq.queues.record.log.prefetch:1}")
+  private int prefetchCount;
 
   private final MessageConverter messageConverter;
 
@@ -49,8 +52,10 @@ class RecordLogConfiguration {
 
   @Bean
   Queue logQueue() {
-    return QueueBuilder.durable(queue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(dlq)
-        .build();
+    return QueueBuilder.durable(queue)
+                       .deadLetterExchange(exchangeDlq)
+                       .deadLetterRoutingKey(dlq)
+                       .build();
   }
 
   @Bean
@@ -60,12 +65,16 @@ class RecordLogConfiguration {
 
   @Bean
   Binding logBinding() {
-    return BindingBuilder.bind(logQueue()).to(amqpConfiguration.exchange()).with(routingKey);
+    return BindingBuilder.bind(logQueue())
+                         .to(amqpConfiguration.exchange())
+                         .with(routingKey);
   }
 
   @Bean
   Binding logDlqBinding() {
-    return BindingBuilder.bind(logDlq()).to(amqpConfiguration.dlqExchange()).with(dlq);
+    return BindingBuilder.bind(logDlq())
+                         .to(amqpConfiguration.dlqExchange())
+                         .with(dlq);
   }
 
   // By having a factory defined for each consumer we can tune specific settings if we need to
@@ -78,6 +87,7 @@ class RecordLogConfiguration {
     factory.setMessageConverter(messageConverter);
     factory.setConcurrentConsumers(consumers);
     factory.setMaxConcurrentConsumers(maxConsumers);
+    factory.setPrefetchCount(prefetchCount);
     return factory;
   }
 }

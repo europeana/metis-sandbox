@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.config.amqp;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,15 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 class WorkflowListenerConfig {
+
+  @Value("${spring.rabbitmq.listener.simple.concurrency:2}")
+  private int concurrentQueueConsumers;
+
+  @Value("${spring.rabbitmq.listener.simple.max-concurrency:2}")
+  private int maxConcurrentQueueConsumers;
+
+  @Value("${spring.rabbitmq.listener.prefetch:1}")
+  private int prefetchCount;
 
   private final MessageConverter messageConverter;
 
@@ -90,6 +100,9 @@ class WorkflowListenerConfig {
       ConnectionFactory connectionFactory) {
     var factory = new SimpleRabbitListenerContainerFactory();
     configurer.configure(factory, connectionFactory);
+    factory.setConcurrentConsumers(concurrentQueueConsumers);
+    factory.setMaxConcurrentConsumers(maxConcurrentQueueConsumers);
+    factory.setPrefetchCount(prefetchCount);
     factory.setMessageConverter(messageConverter);
     return factory;
   }

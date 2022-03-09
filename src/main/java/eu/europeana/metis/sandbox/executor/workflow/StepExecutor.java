@@ -17,7 +17,7 @@ import org.springframework.amqp.core.AmqpTemplate;
  */
 class StepExecutor {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(StepExecutor.class);
   private final AmqpTemplate amqpTemplate;
 
   StepExecutor(AmqpTemplate amqpTemplate) {
@@ -36,11 +36,23 @@ class StepExecutor {
       var status = recordInfo.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
       output = new RecordProcessEvent(recordInfo, step, status);
     } catch (RecordProcessingException ex) {
-      logger.error("Exception while performing step: [{}]. ", step.value(), ex);
-      var recordError = new RecordError(ex);
-      output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)),
-              step, Status.FAIL);
+      output = createFailEvent(input, step, ex);
+    } catch (RuntimeException ex) {
+      //Also catch runtime exceptions to avoid losing the message or thread
+      output = createFailEvent(input, step, new RecordProcessingException(Long.toString(input.getRecord().getRecordId()), ex));
     }
-    amqpTemplate.convertAndSend(routingKey, output);
+    try {
+      amqpTemplate.convertAndSend(routingKey, output);
+    } catch (RuntimeException rabbitException) {
+      LOGGER.error("Queue step execution error", rabbitException);
+    }
+  }
+
+  private RecordProcessEvent createFailEvent(RecordProcessEvent input, Step step, RecordProcessingException ex) {
+    final String stepName = step.value();
+    final RecordError recordError = new RecordError(ex);
+    final RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)), step, Status.FAIL);
+    LOGGER.error("Exception while performing step: [{}]. ", stepName, ex);
+    return output;
   }
 }

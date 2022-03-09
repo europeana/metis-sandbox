@@ -24,8 +24,8 @@ class NormalizationServiceImpl implements NormalizationService {
   public RecordInfo normalize(Record record) {
     requireNonNull(record, "Record must not be null");
 
-    Normalizer normalizer;
-    byte[] result;
+    final Normalizer normalizer;
+    final byte[] result;
     try {
       normalizer = normalizerFactory.getNormalizer();
       result = normalizer.normalize(record.getContentInputStream());
