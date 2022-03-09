@@ -63,6 +63,14 @@ class AsyncDatasetPublishServiceImplTest {
 
   private AsyncDatasetPublishService service;
 
+  private Record record = null;
+
+  private OaiHarvestData oaiHarvestData = null;
+
+  private OaiRecordHeaderIterator oaiRecordHeaderIterator = null;
+
+  private Dataset dataset = null;
+
 
   @BeforeEach
   void setUp() {
@@ -73,12 +81,26 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publishWithoutXslt_expectSuccess() throws Exception {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(1L)
+                        .europeanaId("1")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
+    var record2 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(2L)
+                        .europeanaId("2")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
 
-    Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
+    dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     service.publishWithoutXslt(dataset).get();
 
@@ -88,15 +110,29 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publishWithoutXslt_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(1L)
+                        .europeanaId("1")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
+    var record2 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(2L)
+                        .europeanaId("2")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
 
-    Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
+    dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-        .convertAndSend(anyString(), any(RecordProcessEvent.class));
+                                                              .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
     service.publishWithoutXslt(dataset).get();
 
@@ -117,12 +153,26 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publishWithXslt_expectSuccess() throws Exception {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(1L)
+                        .europeanaId("1")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
+    var record2 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(2L)
+                        .europeanaId("2")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
 
-    Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
+    dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     service.publishWithXslt(dataset).get();
 
@@ -132,15 +182,29 @@ class AsyncDatasetPublishServiceImplTest {
   @Test
   void publishWithXslt_asyncFail_expectNoFail() throws ExecutionException, InterruptedException {
 
-    var record1 = Record.builder().datasetId("1").datasetName("").recordId(1L).europeanaId("1").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
-    var record2 = Record.builder().datasetId("1").datasetName("").recordId(2L).europeanaId("2").country(Country.ITALY)
-        .language(Language.IT).content("".getBytes()).build();
+    var record1 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(1L)
+                        .europeanaId("1")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
+    var record2 = Record.builder()
+                        .datasetId("1")
+                        .datasetName("")
+                        .recordId(2L)
+                        .europeanaId("2")
+                        .country(Country.ITALY)
+                        .language(Language.IT)
+                        .content("".getBytes())
+                        .build();
 
-    Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
+    dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
-        .convertAndSend(anyString(), any(RecordProcessEvent.class));
+                                                              .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
     service.publishWithXslt(dataset).get();
 
@@ -160,10 +224,16 @@ class AsyncDatasetPublishServiceImplTest {
 
   @Test
   void runHarvestOaiAsync_withoutXslt_expectSuccess() throws HarvesterException {
-    Record recordData = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName")
-        .datasetId("datasetId").content(new byte[0]).build();
 
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
+    Record recordData = Record.builder()
+                              .country(Country.NETHERLANDS)
+                              .language(Language.NL)
+                              .datasetName("datasetName")
+                              .datasetId("datasetId")
+                              .content(new byte[0])
+                              .build();
+
+    oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier", false, Instant.now());
     List<OaiRecordHeader> iteratorList = new ArrayList<>();
@@ -185,10 +255,15 @@ class AsyncDatasetPublishServiceImplTest {
     service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "createdQueue", "transformationEdmExternalQueue", taskExecutor,
         oaiHarvester, harvestService, datasetService, 1);
 
-    Record recordData = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName")
-        .datasetId("datasetId").content(new byte[0]).build();
+    record = Record.builder()
+                   .country(Country.NETHERLANDS)
+                   .language(Language.NL)
+                   .datasetName("datasetName")
+                   .datasetId("datasetId")
+                   .content(new byte[0])
+                   .build();
 
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
+    oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier1", false, Instant.now());
     OaiRecordHeader element2 = new OaiRecordHeader("oaiIdentifier2", false, Instant.now());
@@ -200,20 +275,22 @@ class AsyncDatasetPublishServiceImplTest {
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
     when(harvestService.harvestOaiRecordHeader(anyString(), any(OaiHarvestData.class),
-        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
+        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(record));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
-    verify(datasetService, times(1)).updateNumberOfTotalRecord("datasetId", 1);
-    verify(datasetService, times(1)).updateRecordsLimitExceededToTrue("datasetId");
-    verify(amqpTemplate, times(1)).convertAndSend(eq("createdQueue"), captor.capture());
-    assertEquals(recordData, captor.getValue().getRecord());
+    assertHarvestOaiPmh(record, 1, 1, 1, "createdQueue");
   }
 
   @Test
   void runHarvestOaiAsync_withXslt_expectSuccess() throws HarvesterException {
-    Record recordData = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName")
-        .datasetId("datasetId").content(new byte[0]).build();
+    Record recordData = Record.builder()
+                              .country(Country.NETHERLANDS)
+                              .language(Language.NL)
+                              .datasetName("datasetName")
+                              .datasetId("datasetId")
+                              .content(new byte[0])
+                              .build();
 
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
@@ -237,8 +314,13 @@ class AsyncDatasetPublishServiceImplTest {
     service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "createdQueue", "transformationEdmExternalQueue", taskExecutor,
         oaiHarvester, harvestService, datasetService, 1);
 
-    Record recordData = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName")
-        .datasetId("datasetId").content(new byte[0]).build();
+    Record record = Record.builder()
+                          .country(Country.NETHERLANDS)
+                          .language(Language.NL)
+                          .datasetName("datasetName")
+                          .datasetId("datasetId")
+                          .content(new byte[0])
+                          .build();
 
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
@@ -252,74 +334,69 @@ class AsyncDatasetPublishServiceImplTest {
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
     when(harvestService.harvestOaiRecordHeader(anyString(), any(OaiHarvestData.class),
-        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
+        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(record));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
-    verify(datasetService, times(1)).updateNumberOfTotalRecord("datasetId", 1);
-    verify(datasetService, times(1)).updateRecordsLimitExceededToTrue("datasetId");
-    verify(amqpTemplate, times(1)).convertAndSend(eq("transformationEdmExternalQueue"), captor.capture());
-    assertEquals(recordData, captor.getValue().getRecord());
+    assertHarvestOaiPmh(record, 1, 1, 1, "transformationEdmExternalQueue");
   }
 
   @Test
   void runHarvestOaiAsync_withoutXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
-    service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "createdQueue", "transformationEdmExternalQueue", taskExecutor,
-        oaiHarvester, harvestService, datasetService, 1);
 
-    Record recordData = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName")
-        .datasetId("datasetId").content(new byte[0]).build();
-
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
-
-    OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier1", true, Instant.now());
-    OaiRecordHeader element2 = new OaiRecordHeader("oaiIdentifier2", false, Instant.now());
-    List<OaiRecordHeader> iteratorList = new ArrayList<>();
-    iteratorList.add(element1);
-    iteratorList.add(element2);
-    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(iteratorList);
+    setupTest();
 
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
     when(harvestService.harvestOaiRecordHeader(anyString(), any(OaiHarvestData.class),
-        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
+        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(record));
 
     service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
 
-    verify(datasetService, times(1)).updateNumberOfTotalRecord("datasetId", 1);
-    verify(datasetService, times(0)).updateRecordsLimitExceededToTrue("datasetId");
-    verify(amqpTemplate, times(1)).convertAndSend(eq("createdQueue"), captor.capture());
-    assertEquals(recordData, captor.getValue().getRecord());
+    assertHarvestOaiPmh(record, 1, 0, 1, "createdQueue");
+
   }
+
 
   @Test
   void runHarvestOaiAsync_withXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
+
+    setupTest();
+
+    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
+    when(datasetService.isXsltPresent(anyString())).thenReturn(true);
+    when(harvestService.harvestOaiRecordHeader(anyString(), any(OaiHarvestData.class),
+        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(record));
+
+    service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
+
+    assertHarvestOaiPmh(record, 1, 0, 1, "transformationEdmExternalQueue");
+
+  }
+
+  private void setupTest() {
     service = new AsyncDatasetPublishServiceImpl(amqpTemplate, "createdQueue", "transformationEdmExternalQueue", taskExecutor,
         oaiHarvester, harvestService, datasetService, 1);
 
-    Record recordData = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName")
-        .datasetId("datasetId").content(new byte[0]).build();
+    oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
-    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
+    record = Record.builder().country(Country.NETHERLANDS).language(Language.NL).datasetName("datasetName").datasetId("datasetId")
+                   .content(new byte[0]).build();
 
     OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier1", true, Instant.now());
     OaiRecordHeader element2 = new OaiRecordHeader("oaiIdentifier2", false, Instant.now());
     List<OaiRecordHeader> iteratorList = new ArrayList<>();
     iteratorList.add(element1);
     iteratorList.add(element2);
-    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestHeaderIterator(iteratorList);
+    oaiRecordHeaderIterator = new TestHeaderIterator(iteratorList);
 
-    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
-    when(datasetService.isXsltPresent(anyString())).thenReturn(true);
-    when(harvestService.harvestOaiRecordHeader(anyString(), any(OaiHarvestData.class),
-        any(Record.RecordBuilder.class))).thenReturn(new RecordInfo(recordData));
+  }
 
-    service.runHarvestOaiAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, oaiHarvestData);
-
-    verify(datasetService, times(1)).updateNumberOfTotalRecord("datasetId", 1);
-    verify(datasetService, times(0)).updateRecordsLimitExceededToTrue("datasetId");
-    verify(amqpTemplate, times(1)).convertAndSend(eq("transformationEdmExternalQueue"), captor.capture());
-    assertEquals(recordData, captor.getValue().getRecord());
+  private void assertHarvestOaiPmh(Record record, int n1, int n2, int numberOfRecords, String queueToSend) {
+    verify(datasetService, times(n1)).updateNumberOfTotalRecord("datasetId", numberOfRecords);
+    verify(datasetService, times(n2)).updateRecordsLimitExceededToTrue("datasetId");
+    verify(amqpTemplate, times(numberOfRecords)).convertAndSend(eq(queueToSend), captor.capture());
+    assertEquals(record, captor.getValue().getRecord());
   }
 
   private static class TestHeaderIterator implements OaiRecordHeaderIterator {
