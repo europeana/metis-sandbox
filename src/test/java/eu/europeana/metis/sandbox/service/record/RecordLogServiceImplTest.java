@@ -16,15 +16,14 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,8 +58,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
-    var event = new Event(new RecordInfo(record, List.of(recordError)), Step.CREATE,
-        Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record),  Step.HARVEST_ZIP, Status.SUCCESS);
 
     service.logRecordEvent(event);
 
@@ -78,7 +76,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record),  Step.HARVEST_ZIP, Status.SUCCESS);
 
     when(recordLogRepository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -91,7 +89,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     when(errorLogRepository.saveAll(anyList()))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -131,23 +129,27 @@ class RecordLogServiceImplTest {
     //Case null entity
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
         Step.MEDIA_PROCESS)).thenReturn(null);
-    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString("recordId", "datasetId"));
+    assertThrows(NoRecordFoundException.class,
+        () -> service.getProviderRecordString("recordId", "datasetId"));
 
     //Case null content
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
         Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
-    assertThrows(NoRecordFoundException.class, ()-> service.getProviderRecordString( "recordId", "datasetId"));
+    assertThrows(NoRecordFoundException.class,
+        () -> service.getProviderRecordString("recordId", "datasetId"));
   }
 
   @Test
   void getRecordLogEntity() {
     service.getRecordLogEntity("recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS);
     clearInvocations(recordLogRepository);
 
     //Case PROVIDER_ID
-    service.getRecordLogEntity( "recordId", "datasetId");
-    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId", Step.MEDIA_PROCESS);
+    service.getRecordLogEntity("recordId", "datasetId");
+    verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
+        Step.MEDIA_PROCESS);
   }
 
 }

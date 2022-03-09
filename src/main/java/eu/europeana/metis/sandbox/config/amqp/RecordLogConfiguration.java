@@ -44,8 +44,7 @@ class RecordLogConfiguration {
 
   private final AmqpConfiguration amqpConfiguration;
 
-  public RecordLogConfiguration(
-      MessageConverter messageConverter,
+  public RecordLogConfiguration(MessageConverter messageConverter,
       AmqpConfiguration amqpConfiguration) {
     this.messageConverter = messageConverter;
     this.amqpConfiguration = amqpConfiguration;

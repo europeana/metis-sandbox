@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,7 +29,7 @@ class InternalValidationExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.transformed.queue}",
       containerFactory = "internalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
-  public void validateInternal(Event input) {
-    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getBody()));
+  public void validateInternal(RecordProcessEvent input) {
+    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getRecord()));
   }
 }

@@ -11,10 +11,10 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import nl.altindag.log.LogCaptor;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,7 +32,7 @@ class CloseExecutorTest {
   private AmqpTemplate amqpTemplate;
 
   @Captor
-  private ArgumentCaptor<Event> captor;
+  private ArgumentCaptor<RecordProcessEvent> captor;
 
   @InjectMocks
   private CloseExecutor consumer;
@@ -40,7 +40,7 @@ class CloseExecutorTest {
   @Test
   void close_expectSuccess() {
     var record = getTestRecord();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     consumer.close(recordEvent);
 
@@ -52,18 +52,18 @@ class CloseExecutorTest {
   @Test
   void close_inputMessageWithFailStatus_expectNoInteractions() {
     var record = getTestRecord();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.FAIL);
 
     consumer.close(recordEvent);
 
-    verify(amqpTemplate, never()).convertAndSend(any(), any(Event.class));
+    verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void close_exception_expectLogError() {
     final LogCaptor logCaptor = LogCaptor.forClass(CloseExecutor.class);
     var record = getTestRecord();
-    var recordEvent = new Event(new RecordInfo(record), Step.CREATE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
     final RuntimeException runtimeException = new AmqpException("Queue Failure");
     doThrow(runtimeException)
         .when(amqpTemplate)

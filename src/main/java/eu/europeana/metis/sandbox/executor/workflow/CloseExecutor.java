@@ -2,10 +2,10 @@ package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,12 +30,12 @@ class CloseExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.published.queue}",
       containerFactory = "closingFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.published.auto-start:true}")
-  public void close(Event input) {
+  public void close(RecordProcessEvent input) {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
     try {
-      Event output = new Event(new RecordInfo(input.getBody()), Step.CLOSE, Status.SUCCESS);
+      RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()), Step.CLOSE, Status.SUCCESS);
       amqpTemplate.convertAndSend(routingKey, output);
     } catch (RuntimeException closeException) {
       LOGGER.error("Close executor error", closeException);

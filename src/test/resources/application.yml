@@ -11,6 +11,7 @@ spring:
       on-profile: test
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
     hibernate:
       ddl-auto: none
   autoconfigure:
@@ -109,8 +110,8 @@ sandbox:
           queue: sandbox.record.log
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
           routing-key: sandbox.record.#
-          consumers: 20
-          max-consumers: 40
+          consumers: 2
+          max-consumers: 2
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq

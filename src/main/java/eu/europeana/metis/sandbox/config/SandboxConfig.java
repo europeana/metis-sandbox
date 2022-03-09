@@ -91,7 +91,7 @@ class SandboxConfig {
   }
 
   @Bean
-  Executor asyncDatasetPublishServiceTaskExecutor() {
+  Executor asyncServiceTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);
     executor.setMaxPoolSize(maxPoolSize);

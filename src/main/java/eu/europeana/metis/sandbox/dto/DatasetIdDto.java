@@ -11,26 +11,14 @@ public class DatasetIdDto {
 
   @JsonProperty(value = "dataset-id")
   private final String datasetId;
-  @JsonProperty(value = "records-to-process")
-  private final int recordsToProcess;
-  @JsonProperty(value = "duplicate-records")
-  private final int duplicateRecords;
 
-  public DatasetIdDto(Dataset dataset) {
-    this.recordsToProcess = dataset.getRecords().size();
-    this.duplicateRecords = dataset.getDuplicates();
-    this.datasetId = dataset.getDatasetId();
+
+  public DatasetIdDto(String datasetId) {
+    this.datasetId = datasetId;
   }
 
   public String getDatasetId() {
     return this.datasetId;
   }
 
-  public int getRecordsToProcess() {
-    return recordsToProcess;
-  }
-
-  public int getDuplicateRecords() {
-    return duplicateRecords;
-  }
 }

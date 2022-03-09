@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import nl.altindag.log.LogCaptor;
@@ -43,7 +43,7 @@ class StepExecutorTest {
   private AmqpTemplate amqpTemplate;
 
   @Captor
-  private ArgumentCaptor<Event> captor;
+  private ArgumentCaptor<RecordProcessEvent> captor;
 
   @InjectMocks
   private StepExecutor stepExecutor;
@@ -52,9 +52,9 @@ class StepExecutorTest {
   void consumeEventStatusSuccess_expectEventSuccess() {
     final String routingKey = "routingKey";
     final Record myTestRecord = getTestRecord(1L);
-    final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
+    final RecordProcessEvent myEvent = new RecordProcessEvent(new RecordInfo(myTestRecord), Step.HARVEST_ZIP, Status.SUCCESS);
 
-    stepExecutor.consume(routingKey, myEvent, Step.CREATE, () -> getRecordInfo());
+    stepExecutor.consume(routingKey, myEvent, Step.HARVEST_ZIP, () -> getRecordInfo());
 
     verify(amqpTemplate).convertAndSend(eq(routingKey), captor.capture());
 
@@ -65,9 +65,9 @@ class StepExecutorTest {
   void consumeEventStatusFailQueueNeverCalled_expectException() {
     final String routingKey = "routingKey";
     final Record myTestRecord = getTestRecord(1L);
-    final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.FAIL);
+    final RecordProcessEvent myEvent = new RecordProcessEvent(new RecordInfo(myTestRecord), Step.HARVEST_ZIP, Status.FAIL);
 
-    stepExecutor.consume(routingKey, myEvent, Step.CREATE, () -> getRecordInfo());
+    stepExecutor.consume(routingKey, myEvent, Step.HARVEST_ZIP, () -> getRecordInfo());
 
     verify(amqpTemplate, never()).convertAndSend(eq(routingKey), captor.capture());
 
@@ -79,9 +79,9 @@ class StepExecutorTest {
     final String routingKey = "routingKey";
     final Long expectedRecordId = 1L;
     final Record myTestRecord = getTestRecord(expectedRecordId);
-    final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
+    final RecordProcessEvent myEvent = new RecordProcessEvent(new RecordInfo(myTestRecord), Step.HARVEST_ZIP, Status.SUCCESS);
 
-    stepExecutor.consume(routingKey, myEvent, Step.CREATE, () ->
+    stepExecutor.consume(routingKey, myEvent, Step.HARVEST_ZIP, () ->
     {
       throw new RuntimeException("General Failure");
     });
@@ -96,9 +96,9 @@ class StepExecutorTest {
     final String routingKey = "routingKey";
     final Long expectedRecordId = 2L;
     final Record myTestRecord = getTestRecord(expectedRecordId);
-    final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
+    final RecordProcessEvent myEvent = new RecordProcessEvent(new RecordInfo(myTestRecord), Step.HARVEST_ZIP, Status.SUCCESS);
 
-    stepExecutor.consume(routingKey, myEvent, Step.CREATE, () ->
+    stepExecutor.consume(routingKey, myEvent, Step.HARVEST_ZIP, () ->
     {
       throw new RecordProcessingException("2", new Throwable("Record failure"));
     });
@@ -114,20 +114,20 @@ class StepExecutorTest {
     final String routingKey = "routingKey";
     final Long expectedRecordId = 2L;
     final Record myTestRecord = getTestRecord(expectedRecordId);
-    final Event myEvent = new Event(new RecordInfo(myTestRecord), Step.CREATE, Status.SUCCESS);
+    final RecordProcessEvent myEvent = new RecordProcessEvent(new RecordInfo(myTestRecord), Step.HARVEST_ZIP, Status.SUCCESS);
     final RuntimeException runtimeException = new AmqpException("Queue Failure");
     doThrow(runtimeException)
         .when(amqpTemplate)
         .convertAndSend(eq(routingKey), any(Object.class));
 
-    stepExecutor.consume(routingKey, myEvent, Step.CREATE, () -> getRecordInfo());
+    stepExecutor.consume(routingKey, myEvent, Step.HARVEST_ZIP, () -> getRecordInfo());
 
     assertLogCaptor(logCaptor);
   }
 
   private void assertRecordId_CreatedStepAndStatus(final Long RecordId, final Status status) {
-    assertEquals(RecordId, captor.getValue().getBody().getRecordId());
-    assertEquals(Step.CREATE, captor.getValue().getStep());
+    assertEquals(RecordId, captor.getValue().getRecord().getRecordId());
+    assertEquals(Step.HARVEST_ZIP, captor.getValue().getStep());
     assertEquals(status, captor.getValue().getStatus());
   }
 

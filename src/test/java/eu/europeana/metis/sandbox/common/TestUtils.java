@@ -6,13 +6,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.ReportingIteration;
+import eu.europeana.metis.harvesting.http.HttpHarvesterImpl;
+import eu.europeana.metis.harvesting.http.HttpRecordIterator;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import org.apache.commons.io.FileUtils;
 
 public class TestUtils {
@@ -76,5 +86,36 @@ public class TestUtils {
   private boolean safeCheck(ZipEntry zipEntry) {
     return !zipEntry.isDirectory() && !zipEntry.getName().startsWith("__MACOSX")
         && !zipEntry.getName().endsWith(".DS_Store");
+  }
+
+  public static class TestHeaderIterator implements OaiRecordHeaderIterator {
+    private final List<OaiRecordHeader> source;
+    public TestHeaderIterator(List<OaiRecordHeader> source) {
+      this.source = source;
+    }
+    @Override
+    public void forEachFiltered(final ReportingIteration<OaiRecordHeader> action,
+                                final Predicate<OaiRecordHeader> filter) {
+      this.source.forEach(action::process);
+    }
+    @Override
+    public void close() {
+    }
+  }
+
+  public static class TestHttpRecordIterator implements HttpRecordIterator {
+    private final List<Path> extractedDirectory;
+    public TestHttpRecordIterator(List<Path> extractedDirectory) {
+      this.extractedDirectory = extractedDirectory;
+    }
+
+    @Override
+    public void deleteIteratorContent() {
+    }
+
+    @Override
+    public void forEach(ReportingIteration<Path> action) throws HarvesterException {
+      this.extractedDirectory.forEach(action::process);
+    }
   }
 }

@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,7 +29,7 @@ class TransformationExecutor extends StepExecutor {
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.validated.external.queue}",
       containerFactory = "transformationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.validated.external.auto-start:true}")
-  public void transform(Event input) {
-    consume(routingKey, input, Step.TRANSFORM, () -> service.transformToEdmInternal(input.getBody()));
+  public void transform(RecordProcessEvent input) {
+    consume(routingKey, input, Step.TRANSFORM, () -> service.transformToEdmInternal(input.getRecord()));
   }
 }

@@ -4,7 +4,7 @@ import static org.mockito.Mockito.mock;
 
 import com.github.fridujo.rabbitmq.mock.MockConnectionFactory;
 import eu.europeana.indexing.Indexer;
-import eu.europeana.metis.sandbox.service.dataset.AsyncDatasetPublishService;
+import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
 import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -24,8 +24,8 @@ public class TestConfig {
 
   @Bean
   @Primary
-  public AsyncDatasetPublishService publishService() {
-    return mock(AsyncDatasetPublishService.class);
+  public RecordPublishService publishService() {
+    return mock(RecordPublishService.class);
   }
 
   @Bean

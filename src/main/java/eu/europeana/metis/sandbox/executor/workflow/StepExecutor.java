@@ -3,9 +3,9 @@ package eu.europeana.metis.sandbox.executor.workflow;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -24,22 +24,22 @@ class StepExecutor {
     this.amqpTemplate = amqpTemplate;
   }
 
-  public void consume(String routingKey, Event input, Step step,
+  public void consume(String routingKey, RecordProcessEvent input, Step step,
       Supplier<RecordInfo> recordInfoSupplier) {
     if (input.getStatus() == Status.FAIL) {
       return;
     }
 
-    Event output;
+    RecordProcessEvent output;
     try {
       var recordInfo = recordInfoSupplier.get();
       var status = recordInfo.getErrors().isEmpty() ? Status.SUCCESS : Status.WARN;
-      output = new Event(recordInfo, step, status);
+      output = new RecordProcessEvent(recordInfo, step, status);
     } catch (RecordProcessingException ex) {
       output = createFailEvent(input, step, ex);
     } catch (RuntimeException ex) {
       //Also catch runtime exceptions to avoid losing the message or thread
-      output = createFailEvent(input, step, new RecordProcessingException(Long.toString(input.getBody().getRecordId()), ex));
+      output = createFailEvent(input, step, new RecordProcessingException(Long.toString(input.getRecord().getRecordId()), ex));
     }
     try {
       amqpTemplate.convertAndSend(routingKey, output);
@@ -48,10 +48,10 @@ class StepExecutor {
     }
   }
 
-  private Event createFailEvent(Event input, Step step, RecordProcessingException ex) {
+  private RecordProcessEvent createFailEvent(RecordProcessEvent input, Step step, RecordProcessingException ex) {
     final String stepName = step.value();
     final RecordError recordError = new RecordError(ex);
-    final Event output = new Event(new RecordInfo(input.getBody(), List.of(recordError)), step, Status.FAIL);
+    final RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)), step, Status.FAIL);
     LOGGER.error("Exception while performing step: [{}]. ", stepName, ex);
     return output;
   }

@@ -14,10 +14,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Config for amqp, contains exchange, queues and dead letter queues definitions
- * as well as their bindings.
- * <br /><br />
- * If there is a need to add a new queue in the future here is the place to do it
+ * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their
+ * bindings. <br /><br /> If there is a need to add a new queue in the future here is the place to
+ * do it
  */
 @Configuration
 class AmqpConfiguration {
@@ -110,16 +109,25 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(createdDlq).build(),
-        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            transformationToEdmExternalDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(publishedDlq).build()
+        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(createdDlq).build(),
+        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(
+                transformationToEdmExternalDlq).build(),
+        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(externalValidatedDlq).build(),
+        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(transformedDlq).build(),
+        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(normalizedDlq).build(),
+        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(mediaProcessedDlq).build(),
+        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(publishedDlq).build()
     );
   }
 
@@ -140,28 +148,29 @@ class AmqpConfiguration {
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue, externalValidatedQueue,
-        transformedQueue, normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue,
-        publishedQueue);
+    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue,
+        externalValidatedQueue, transformedQueue, normalizedQueue, internalValidatedQueue,
+        enrichedQueue, mediaProcessedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq, externalValidatedDlq,
-        transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq,
-        publishedDlq);
+    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
+        externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
+        mediaProcessedDlq, publishedDlq);
   }
 
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Declarables getDeclarables(String exchange, String created, String transformationToEdmExternal,
-      String externalValidated, String transformed, String normalized,
-      String internalValidated, String enriched, String mediaProcessed,
+  private Declarables getDeclarables(String exchange, String created,
+      String transformationToEdmExternal, String externalValidated, String transformed,
+      String normalized, String internalValidated, String enriched, String mediaProcessed,
       String published) {
     return new Declarables(
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
-        new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange, transformationToEdmExternal, null),
+        new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange,
+            transformationToEdmExternal, null),
         new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
         new Binding(transformed, DestinationType.QUEUE, exchange, transformed, null),
         new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),

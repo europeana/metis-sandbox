@@ -26,6 +26,9 @@
     <Logger name="org.mongo.driver.connection" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="com.zaxxer.hikari" level="debug">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Root level="info">
       <AppenderRef ref="Console" />
     </Root>

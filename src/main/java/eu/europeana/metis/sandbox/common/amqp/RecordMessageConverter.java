@@ -6,10 +6,10 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Event;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.amqp.core.Message;
@@ -21,7 +21,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of {@link MessageConverter} that can work with {@link Event}
+ * Implementation of {@link MessageConverter} that can work with {@link RecordProcessEvent}
  */
 @Component
 class RecordMessageConverter implements MessageConverter {
@@ -45,53 +45,51 @@ class RecordMessageConverter implements MessageConverter {
    * @param object            the object to convert
    * @param messageProperties The message properties.
    * @return the Message
-   * @throws MessageConversionException in case object is not of type Event
+   * @throws MessageConversionException in case object is not of type RecordProcessEvent
    */
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
-    if (!(object instanceof Event)) {
+    if (!(object instanceof RecordProcessEvent)) {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
-    Event recordEvent = (Event) object;
-    Record record = recordEvent.getBody();
-    List<RecordError> errors = recordEvent.getRecordErrors();
+    RecordProcessEvent recordRecordProcessEvent = (RecordProcessEvent) object;
+    Record recordToProcess = recordRecordProcessEvent.getRecord();
+    List<RecordError> errors = recordRecordProcessEvent.getRecordErrors();
 
-    MessageProperties properties = MessagePropertiesBuilder.newInstance()
-        .setContentType(MessageProperties.CONTENT_TYPE_XML)
-        .setHeaderIfAbsent(RECORD_ID, record.getRecordId())
-        .setHeaderIfAbsent(EUROPEANA_ID, record.getEuropeanaId())
-        .setHeaderIfAbsent(PROVIDER_ID, record.getProviderId())
-        .setHeaderIfAbsent(DATASET_ID, record.getDatasetId())
-        .setHeaderIfAbsent(DATASET_NAME, record.getDatasetName())
-        .setHeaderIfAbsent(COUNTRY, record.getCountry())
-        .setHeaderIfAbsent(LANGUAGE, record.getLanguage())
-        .setHeader(STEP, recordEvent.getStep())
-        .setHeader(STATUS, recordEvent.getStatus())
-        .build();
+    MessageProperties properties = MessagePropertiesBuilder.newInstance().setContentType(MessageProperties.CONTENT_TYPE_XML)
+        .setHeaderIfAbsent(RECORD_ID, recordToProcess.getRecordId())
+        .setHeaderIfAbsent(EUROPEANA_ID, recordToProcess.getEuropeanaId())
+        .setHeaderIfAbsent(PROVIDER_ID, recordToProcess.getProviderId())
+        .setHeaderIfAbsent(DATASET_ID, recordToProcess.getDatasetId())
+        .setHeaderIfAbsent(DATASET_NAME, recordToProcess.getDatasetName())
+        .setHeaderIfAbsent(COUNTRY, recordToProcess.getCountry()).setHeaderIfAbsent(LANGUAGE, recordToProcess.getLanguage())
+        .setHeaderIfAbsent(STEP, recordRecordProcessEvent.getStep())
+        .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus()).build();
 
     if (!errors.isEmpty()) {
-      List<List<String>> errorsHeader = errors.stream().map(
-          x -> List.of(x.getMessage(), x.getStackTrace())
-      ).collect(Collectors.toList());
+      List<List<String>> errorsHeader = errors.stream().map(x -> List.of(x.getMessage(), x.getStackTrace()))
+          .collect(Collectors.toList());
       properties.setHeader(ERRORS, errorsHeader);
     }
 
-    return MessageBuilder.withBody(record.getContent())
-        .andProperties(properties)
-        .build();
+    return MessageBuilder.withBody(recordToProcess.getContent()).andProperties(properties).build();
+
   }
 
+
   /**
-   * Convert from a Message to an Event.
+   * Convert from a Message to an RecordProcessEvent.
    *
    * @param message the message to convert
-   * @return the converted Event
+   * @return the converted RecordProcessEvent
    */
   @Override
   public Object fromMessage(Message message) {
-    byte[] content = message.getBody();
+
     MessageProperties properties = message.getMessageProperties();
+    byte[] content = message.getBody();
+
     Long recordId = properties.getHeader(RECORD_ID);
     String europeanaId = properties.getHeader(EUROPEANA_ID);
     String providerId = properties.getHeader(PROVIDER_ID);
@@ -103,26 +101,18 @@ class RecordMessageConverter implements MessageConverter {
     String status = properties.getHeader(STATUS);
     List<List<Object>> errors = properties.getHeader(ERRORS);
 
-    Record record = Record.builder()
-        .recordId(recordId)
-        .europeanaId(europeanaId)
-        .providerId(providerId)
-        .datasetId(datasetId)
-        .datasetName(datasetName)
-        .country(Country.valueOf(country))
-        .language(Language.valueOf(language))
-        .content(content).build();
+    Record recordToSend = Record.builder().recordId(recordId).europeanaId(europeanaId).providerId(providerId).datasetId(datasetId)
+        .datasetName(datasetName).country(Country.valueOf(country)).language(Language.valueOf(language)).content(content).build();
 
     List<RecordError> recordErrors = List.of();
 
     if (nonNull(errors)) {
-      recordErrors = errors.stream()
-          .map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString()))
+      recordErrors = errors.stream().map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString()))
           .collect(Collectors.toList());
     }
 
-    RecordInfo recordInfo = new RecordInfo(record, recordErrors);
+    RecordInfo recordInfo = new RecordInfo(recordToSend, recordErrors);
 
-    return new Event(recordInfo, Step.valueOf(step), Status.valueOf(status));
+    return new RecordProcessEvent(recordInfo, Step.valueOf(step), Status.valueOf(status));
   }
 }
