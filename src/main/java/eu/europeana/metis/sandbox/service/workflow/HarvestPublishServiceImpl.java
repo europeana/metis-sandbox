@@ -25,10 +25,9 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     private final Executor asyncServiceTaskExecutor;
 
     public HarvestPublishServiceImpl(HarvestService harvestService,
-                                          Executor asyncServiceTaskExecutor) {
+                                     Executor asyncServiceTaskExecutor) {
         this.harvestService = harvestService;
         this.asyncServiceTaskExecutor = asyncServiceTaskExecutor;
-
     }
 
     @Override
@@ -76,6 +75,4 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                 () -> harvestService.harvestOaiPmh(datasetId, recordDataEncapsulated, oaiHarvestData), asyncServiceTaskExecutor);
 
     }
-
-
 }

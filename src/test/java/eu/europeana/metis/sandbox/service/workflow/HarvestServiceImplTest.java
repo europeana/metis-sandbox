@@ -81,7 +81,6 @@ public class HarvestServiceImplTest {
 
   @Test
   void harvest_notExceedingRecordLimitWithoutXslt_ExpectSuccess() throws HarvesterException {
-
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
     RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId");
@@ -96,8 +95,8 @@ public class HarvestServiceImplTest {
                                                         .thenReturn(recordEntity2);
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
-    assertHarvestProcess(recordPublishService, true, 2, Step.HARVEST_ZIP, 2);
 
+    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2);
   }
 
   @Test
@@ -116,8 +115,8 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
-    assertHarvestProcess(recordPublishService, true, 1, Step.HARVEST_ZIP, 1);
 
+    assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1);
   }
 
   @Test
@@ -136,13 +135,12 @@ public class HarvestServiceImplTest {
                                                         .thenReturn(recordEntity2);
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
-    assertHarvestProcess(recordPublishService, false, 2, Step.HARVEST_ZIP, 2);
 
+    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2);
   }
 
   @Test
   void harvest_exceedingRecordLimitWithXslt_ExpectSuccess() throws HarvesterException {
-
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
         recordRepository);
 
@@ -157,8 +155,8 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
-    assertHarvestProcess(recordPublishService, false, 1, Step.HARVEST_ZIP, 1);
 
+    assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1);
   }
 
   @Test
@@ -189,7 +187,8 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1).thenReturn(recordEntity2);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, true, 2, Step.HARVEST_OAI_PMH, 2);
+
+    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
   }
 
   @Test
@@ -211,7 +210,8 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, true, 1, Step.HARVEST_OAI_PMH, 1);
+
+    assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1);
   }
 
   @Test
@@ -233,7 +233,8 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1).thenReturn(recordEntity2);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, false, 2, Step.HARVEST_OAI_PMH, 2);
+
+    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
   }
 
   @Test
@@ -255,7 +256,8 @@ public class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
-    assertHarvestProcess(recordPublishService, false, 1, Step.HARVEST_OAI_PMH, 1);
+
+    assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1);
   }
 
   @Test
@@ -266,13 +268,60 @@ public class HarvestServiceImplTest {
         () -> harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData));
   }
 
-  private void assertHarvestProcess(RecordPublishService recordPublishService, boolean harvestInEdmInternal, int times, Step step,
+  @Test
+  void runHarvestOaiAsync_withoutXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 2,
+        recordRepository);
+    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
+
+    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
+        addDeletedRecordToListOaiRecordIterator(
+            prepareListForOaiRecordIterator()));
+
+    OaiRecord mockOaiRecord = mock(OaiRecord.class);
+    when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+    RecordEntity recordEntity = new RecordEntity("", "", "datasetId");
+    recordEntity.setId(1L);
+    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
+    when(datasetService.isXsltPresent(anyString())).thenReturn(false);
+    when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
+
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+
+    verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
+
+    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
+  }
+
+  @Test
+  void runHarvestOaiAsync_withXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
+    harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 2,
+        recordRepository);
+    OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
+
+    OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
+        addDeletedRecordToListOaiRecordIterator(
+            prepareListForOaiRecordIterator()));
+
+    OaiRecord mockOaiRecord = mock(OaiRecord.class);
+    when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+    RecordEntity recordEntity = new RecordEntity("", "", "datasetId");
+    recordEntity.setId(1L);
+    when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
+    when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
+    when(datasetService.isXsltPresent(anyString())).thenReturn(true);
+    when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
+
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+
+    verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
+
+    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
+  }
+
+  private void assertHarvestProcess(RecordPublishService recordPublishService, int times, Step step,
       int numberOfRecords) {
-    if (harvestInEdmInternal) {
-      verify(recordPublishService, times(times)).publishToHarvestQueue(captorRecordInfo.capture(), eq(step));
-    } else {
-      verify(recordPublishService, times(times)).publishToTransformationToEdmExternalQueue(captorRecordInfo.capture(), eq(step));
-    }
     verify(datasetService).updateNumberOfTotalRecord(eq("datasetId"), eq(numberOfRecords));
     assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecord().getDatasetId().equals("datasetId")));
     assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecord().getContent() != null));
@@ -281,6 +330,17 @@ public class HarvestServiceImplTest {
     assertEquals("datasetName", captorRecordInfo.getValue().getRecord().getDatasetName());
   }
 
+  private void assertHarvestProcessWithXslt(RecordPublishService recordPublishService, int times, Step step,
+      int numberOfRecords) {
+    verify(recordPublishService, times(times)).publishToTransformationToEdmExternalQueue(captorRecordInfo.capture(), eq(step));
+    assertHarvestProcess(recordPublishService, times, step, numberOfRecords);
+  }
+
+  private void assertHarvestProcessWithOutXslt(RecordPublishService recordPublishService, int times, Step step,
+      int numberOfRecords) {
+    verify(recordPublishService, times(times)).publishToHarvestQueue(captorRecordInfo.capture(), eq(step));
+    assertHarvestProcess(recordPublishService, times, step, numberOfRecords);
+  }
 
   private List<Path> prepareMockListForHttpIterator() {
     Path record1Path = Paths.get("src", "test", "resources", "zip", "Record1.xml");
@@ -299,18 +359,22 @@ public class HarvestServiceImplTest {
                  .datasetId("datasetId")
                  .country(Country.NETHERLANDS)
                  .language(Language.NL)
+                 .content(new byte[0])
                  .datasetName("datasetName");
   }
 
   private List<OaiRecordHeader> prepareListForOaiRecordIterator() {
-    OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier1", false, Instant.now());
-    OaiRecordHeader element2 = new OaiRecordHeader("oaiIdentifier2", false, Instant.now());
-    List<OaiRecordHeader> iteratorList = new ArrayList<>();
+    final OaiRecordHeader element1 = new OaiRecordHeader("oaiIdentifier1", false, Instant.now());
+    final OaiRecordHeader element2 = new OaiRecordHeader("oaiIdentifier2", false, Instant.now());
+    final List<OaiRecordHeader> iteratorList = new ArrayList<>();
     iteratorList.add(element1);
     iteratorList.add(element2);
     return iteratorList;
   }
 
+  private List<OaiRecordHeader> addDeletedRecordToListOaiRecordIterator(final List<OaiRecordHeader> iteratorList) {
+    final OaiRecordHeader element = new OaiRecordHeader("oaiIdentifier3", true, Instant.now());
+    iteratorList.add(element);
+    return iteratorList;
+  }
 }
-
-
