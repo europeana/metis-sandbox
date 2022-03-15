@@ -30,6 +30,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
@@ -73,10 +74,13 @@ public class HarvestServiceImplTest {
   @Mock
   private RecordRepository recordRepository;
 
+  @Mock
+  private RecordErrorLogRepository recordErrorLogRepository;
+
   @BeforeEach
   void setUp() {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1000,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
   }
 
   @Test
@@ -102,7 +106,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvest_exceedingRecordLimitWithoutXslt_ExpectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
 
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
@@ -142,7 +146,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvest_exceedingRecordLimitWithXslt_ExpectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
 
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
@@ -194,7 +198,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestOaiPmh_exceedingLimitWithoutXslt_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
@@ -240,7 +244,7 @@ public class HarvestServiceImplTest {
   @Test
   void harvestOaiPmh_exceedingLimitWithXslt_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
@@ -271,7 +275,7 @@ public class HarvestServiceImplTest {
   @Test
   void runHarvestOaiAsync_withoutXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 2,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
@@ -297,7 +301,7 @@ public class HarvestServiceImplTest {
   @Test
   void runHarvestOaiAsync_withXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 2,
-        recordRepository);
+        recordRepository, recordErrorLogRepository);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
