@@ -73,6 +73,5 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
         Record.RecordBuilder recordDataEncapsulated = Record.builder().country(country).language(language).datasetName(datasetName).datasetId(datasetId);
         return CompletableFuture.runAsync(
                 () -> harvestService.harvestOaiPmh(datasetId, recordDataEncapsulated, oaiHarvestData), asyncServiceTaskExecutor);
-
     }
 }

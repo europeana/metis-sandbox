@@ -6,6 +6,8 @@ import eu.europeana.metis.sandbox.common.Step;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Represent each step progress in the dataset report
@@ -54,5 +56,37 @@ public class ProgressByStepDto {
 
   public List<ErrorInfoDto> getErrors() {
     return errors;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof ProgressByStepDto)) {
+      return false;
+    }
+
+    ProgressByStepDto that = (ProgressByStepDto) o;
+
+    return new EqualsBuilder().append(total, that.total)
+                              .append(success, that.success)
+                              .append(fail, that.fail)
+                              .append(warn, that.warn)
+                              .append(step, that.step)
+                              .append(errors, that.errors).isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .append(step)
+        .append(total)
+        .append(success)
+        .append(fail)
+        .append(warn)
+        .append(errors)
+        .toHashCode();
   }
 }

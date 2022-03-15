@@ -71,6 +71,27 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Override
   public void harvestOaiPmh(String datasetId, Record.RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData) {
+    try {
+      List<RecordInfo> recordInfoList = harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData);
+      if (datasetService.isXsltPresent(datasetId)) {
+        recordInfoList.parallelStream()
+                      .forEach(recordInfo ->
+                          recordPublishService.publishToTransformationToEdmExternalQueue(recordInfo, Step.HARVEST_OAI_PMH));
+      } else {
+        recordInfoList.parallelStream()
+                      .forEach(recordInfo ->
+                          recordPublishService.publishToHarvestQueue(recordInfo, Step.HARVEST_OAI_PMH));
+      }
+    } catch (RuntimeException e) {
+      throw new ServiceException("Error harvesting OAI-PMH records ", e);
+    }
+  }
+
+  private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
+      OaiHarvestData oaiHarvestData) {
+    final List<RecordInfo> recordInfoList = new ArrayList<>();
+    datasetService.updateNumberOfTotalRecord(datasetId, -1);
+
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         new OaiHarvest(oaiHarvestData.getUrl(),
             oaiHarvestData.getMetadataformat(),
@@ -96,15 +117,8 @@ public class HarvestServiceImpl implements HarvestService {
           return ReportingIteration.IterationResult.TERMINATE;
         }
 
-        if (datasetService.isXsltPresent(datasetId)) {
-          recordPublishService.publishToTransformationToEdmExternalQueue(
-              harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
-        } else {
-          recordPublishService.publishToHarvestQueue(
-              harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
-        }
+        recordInfoList.add(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+            recordDataEncapsulated));
 
         return ReportingIteration.IterationResult.CONTINUE;
       });
@@ -114,6 +128,7 @@ public class HarvestServiceImpl implements HarvestService {
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
     }
+    return recordInfoList;
   }
 
   private RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData,

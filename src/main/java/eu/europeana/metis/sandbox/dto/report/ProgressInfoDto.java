@@ -15,7 +15,8 @@ public class ProgressInfoDto {
 
   public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
 
-  private enum Status {
+  public enum Status {
+    HARVESTING_IDENTIFIERS("harvesting identifiers"),
     COMPLETED("completed"),
     IN_PROGRESS("in progress");
 
@@ -37,7 +38,7 @@ public class ProgressInfoDto {
   private final Status status;
 
   @JsonProperty("total-records")
-  private final long totalRecords;
+  private final int totalRecords;
 
   @JsonProperty("processed-records")
   private final long processedRecords;
@@ -48,13 +49,20 @@ public class ProgressInfoDto {
   @JsonProperty("dataset-info")
   private final DatasetInfoDto datasetInfoDto;
 
-  public ProgressInfoDto(String portalPublishUrl,
-      int totalRecords,
-      long processedRecords, List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
-    this.totalRecords = totalRecords;
+  public ProgressInfoDto(String portalPublishUrl, int totalRecords, long processedRecords,
+      List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
+    
     this.processedRecords = processedRecords;
-    this.status =
-        this.totalRecords == this.processedRecords ? Status.COMPLETED : Status.IN_PROGRESS;
+    if (totalRecords == this.processedRecords) {
+      this.status = Status.COMPLETED;
+      this.totalRecords = totalRecords;
+    } else if (totalRecords == -1) {
+      this.status = Status.HARVESTING_IDENTIFIERS;
+      this.totalRecords = 0;
+    } else {
+      this.status = Status.IN_PROGRESS;
+      this.totalRecords = totalRecords;
+    }
     this.progressByStep = Collections.unmodifiableList(progressByStep);
     this.portalPublishUrl = portalPublishUrl;
     this.datasetInfoDto = datasetInfoDto;
