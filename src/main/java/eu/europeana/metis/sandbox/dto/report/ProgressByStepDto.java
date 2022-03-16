@@ -6,8 +6,6 @@ import eu.europeana.metis.sandbox.common.Step;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Represent each step progress in the dataset report
@@ -63,30 +61,38 @@ public class ProgressByStepDto {
     if (this == o) {
       return true;
     }
-
     if (!(o instanceof ProgressByStepDto)) {
       return false;
     }
 
     ProgressByStepDto that = (ProgressByStepDto) o;
 
-    return new EqualsBuilder().append(total, that.total)
-                              .append(success, that.success)
-                              .append(fail, that.fail)
-                              .append(warn, that.warn)
-                              .append(step, that.step)
-                              .append(errors, that.errors).isEquals();
+    if (total != that.total) {
+      return false;
+    }
+    if (success != that.success) {
+      return false;
+    }
+    if (fail != that.fail) {
+      return false;
+    }
+    if (warn != that.warn) {
+      return false;
+    }
+    if (step != that.step) {
+      return false;
+    }
+    return errors.equals(that.errors);
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(step)
-        .append(total)
-        .append(success)
-        .append(fail)
-        .append(warn)
-        .append(errors)
-        .toHashCode();
+    int result = step.hashCode();
+    result = 31 * result + (int) (total ^ (total >>> 32));
+    result = 31 * result + (int) (success ^ (success >>> 32));
+    result = 31 * result + (int) (fail ^ (fail >>> 32));
+    result = 31 * result + (int) (warn ^ (warn >>> 32));
+    result = 31 * result + errors.hashCode();
+    return result;
   }
 }
