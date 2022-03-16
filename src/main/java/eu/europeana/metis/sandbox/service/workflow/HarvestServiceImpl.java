@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
@@ -51,7 +50,6 @@ public class HarvestServiceImpl implements HarvestService {
   private final int maxRecords;
 
   private final RecordRepository recordRepository;
-
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
@@ -66,30 +64,19 @@ public class HarvestServiceImpl implements HarvestService {
     this.recordRepository = recordRepository;
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
-
   }
 
   @Override
   public void harvestOaiPmh(String datasetId, Record.RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData) {
-    try {
-      List<RecordInfo> recordInfoList = harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData);
-      if (datasetService.isXsltPresent(datasetId)) {
-        recordInfoList.parallelStream()
-                      .forEach(recordInfo ->
-                          recordPublishService.publishToTransformationToEdmExternalQueue(recordInfo, Step.HARVEST_OAI_PMH));
-      } else {
-        recordInfoList.parallelStream()
-                      .forEach(recordInfo ->
-                          recordPublishService.publishToHarvestQueue(recordInfo, Step.HARVEST_OAI_PMH));
-      }
-    } catch (RuntimeException e) {
-      throw new ServiceException("Error harvesting OAI-PMH records ", e);
-    }
+    publishHarvestedRecords(harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData),
+        datasetId,
+        "Error harvesting OAI-PMH records",
+        Step.HARVEST_OAI_PMH);
   }
 
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
       OaiHarvestData oaiHarvestData) {
-    final List<RecordInfo> recordInfoList = new ArrayList<>();
+    List<RecordInfo> recordInfoList = new ArrayList<>();
     datasetService.updateNumberOfTotalRecord(datasetId, -1);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
@@ -162,11 +149,20 @@ public class HarvestServiceImpl implements HarvestService {
   @Override
   public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated)
       throws HarvesterException {
+    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated),
+        datasetId,
+        "Error harvesting  records",
+        Step.HARVEST_ZIP);
+  }
 
-    AtomicInteger numberOfIterations = new AtomicInteger(0);
+  private List<RecordInfo> harvestInputStreamIdentifiers(InputStream inputStream, String datasetId,
+      Record.RecordBuilder recordDataEncapsulated) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
+    List<RecordInfo> recordInfoList = new ArrayList<>();
+    datasetService.updateNumberOfTotalRecord(datasetId, -1);
 
     try {
+      AtomicInteger numberOfIterations = new AtomicInteger(0);
       final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream,
           CompressedFileExtension.ZIP);
       iterator.forEach(path -> {
@@ -180,13 +176,7 @@ public class HarvestServiceImpl implements HarvestService {
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          if (datasetService.isXsltPresent(datasetId)) {
-            recordPublishService.publishToTransformationToEdmExternalQueue(
-                harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
-          } else {
-            recordPublishService.publishToHarvestQueue(
-                harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
-          }
+          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated));
 
           return ReportingIteration.IterationResult.CONTINUE;
 
@@ -201,16 +191,17 @@ public class HarvestServiceImpl implements HarvestService {
 
       datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
+      if (!exception.isEmpty()) {
+        throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
+            exception.get(0).getValue());
+      }
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting records ", e);
     } finally {
       closeStream(inputStream);
     }
 
-    if (!exception.isEmpty()) {
-      throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
-          exception.get(0).getValue());
-    }
+    return recordInfoList;
   }
 
   private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
@@ -235,6 +226,25 @@ public class HarvestServiceImpl implements HarvestService {
           e.getMessage()));
 
       return new RecordInfo(recordToHarvest.build(), recordErrors);
+    }
+  }
+
+  private void publishHarvestedRecords(final List<RecordInfo> recordInfoList,
+      final String datasetId,
+      final String exceptionMessage,
+      final Step processStep) {
+    try {
+      if (datasetService.isXsltPresent(datasetId)) {
+        recordInfoList.parallelStream()
+                      .forEach(recordInfo ->
+                          recordPublishService.publishToTransformationToEdmExternalQueue(recordInfo, processStep));
+      } else {
+        recordInfoList.parallelStream()
+                      .forEach(recordInfo ->
+                          recordPublishService.publishToHarvestQueue(recordInfo, processStep));
+      }
+    } catch (RuntimeException e) {
+      throw new ServiceException(exceptionMessage, e);
     }
   }
 
