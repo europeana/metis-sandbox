@@ -177,8 +177,8 @@ public class HarvestServiceImpl implements HarvestService {
                         recordPublishService.publishToTransformationToEdmExternalQueue(
                                 harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
                     } else {
-                        recordPublishService.publishToHarvestQueue(
-                                harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
+                        RecordInfo harvestResult = harvestInputStream(content, datasetId, recordDataEncapsulated);
+                        recordPublishService.publishToHarvestQueue(harvestResult, Step.HARVEST_ZIP);
                     }
 
                     return ReportingIteration.IterationResult.CONTINUE;
@@ -206,7 +206,8 @@ public class HarvestServiceImpl implements HarvestService {
         }
     }
 
-    private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
+    //This method went from private to protected for testing purposes
+    protected RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
             throws ServiceException {
         List<RecordError> recordErrors = new ArrayList<>();
         RecordEntity recordEntity = recordRepository.save(
@@ -221,10 +222,10 @@ public class HarvestServiceImpl implements HarvestService {
             return new RecordInfo(harvestedRecord, recordErrors);
 
         } catch (RuntimeException | IOException e) {
-            LOGGER.error("Error harvesting File Record Header: {} with exception {}",
+            LOGGER.error("Error harvesting record: {} with exception {}",
                     recordEntity.getId(), e);
             RecordError recordErrorCreated = new RecordError(
-                    "Error harvesting OAI-PMH Record Header:" + recordEntity.getId(),
+                    "Error harvesting zip:" + recordEntity.getId(),
                     e.getMessage());
             recordErrors.add(recordErrorCreated);
             recordErrorLogRepository.save(new RecordErrorLogEntity(recordEntity, Step.HARVEST_ZIP, Status.FAIL,
