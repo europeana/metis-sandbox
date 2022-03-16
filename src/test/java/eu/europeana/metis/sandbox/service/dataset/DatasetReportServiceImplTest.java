@@ -66,7 +66,7 @@ class DatasetReportServiceImplTest {
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
         var report = new ProgressInfoDto(
-                "A review URL will be generated when the dataset has finished processing",
+                "A review URL will be generated when the dataset has finished processing.",
                 5, 4L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
@@ -101,7 +101,7 @@ class DatasetReportServiceImplTest {
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var report = new ProgressInfoDto(
-                "A review URL will be generated when the dataset has finished processing",
+                "A review URL will be generated when the dataset has finished processing.",
                 5, 0L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
@@ -159,7 +159,7 @@ class DatasetReportServiceImplTest {
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
         var report = new ProgressInfoDto(
-                "All dataset records failed to be processed", 5, 5L,
+                "All dataset records failed to be processed.", 5, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false));
@@ -197,7 +197,7 @@ class DatasetReportServiceImplTest {
         when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
         var expected = new ProgressInfoDto(
-                "Dataset is empty", 0, 0L, List.of(),
+                "Dataset is empty.", 0, 0L, List.of(),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
         var report = service.getReport("1");
         assertReportEquals(expected, report);
@@ -222,6 +222,21 @@ class DatasetReportServiceImplTest {
     @Test
     void getReport_nullDatasetId_expectFail() {
         assertThrows(NullPointerException.class, () -> service.getReport(null));
+    }
+
+    @Test
+    void getReport_HarvestingDataset_expectSuccess() {
+        var datasetEntity = new DatasetEntity("test", -1, Language.NL, Country.NETHERLANDS, false);
+        datasetEntity.setDatasetId(1);
+        when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
+        when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
+
+        var expected = new ProgressInfoDto(
+            "Harvesting dataset identifiers and records.", -1, 0L, List.of(),
+            new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false));
+        var report = service.getReport("1");
+
+        assertReportEquals(expected, report);
     }
 
     private void assertReportEquals(ProgressInfoDto expected, ProgressInfoDto actual) {

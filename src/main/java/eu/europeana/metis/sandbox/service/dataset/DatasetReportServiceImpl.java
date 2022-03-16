@@ -38,9 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
   private static final int FIRST = 0;
-  private static final String EMPTY_DATASET = "Dataset is empty";
-  private static final String PROCESSING_MSG = "A review URL will be generated when the dataset has finished processing";
-  private static final String FINISH_ALL_ERRORS = "All dataset records failed to be processed";
+  private static final String EMPTY_DATASET = "Dataset is empty.";
+  private static final String HARVESTING = "Harvesting dataset identifiers and records.";
+  private static final String PROCESSING_MSG = "A review URL will be generated when the dataset has finished processing.";
+  private static final String FINISH_ALL_ERRORS = "All dataset records failed to be processed.";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
@@ -122,6 +123,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private String getPortalUrl(String portal, DatasetEntity dataset, long completedRecords,
       long failedRecords) {
     long recordsQty = dataset.getRecordsQuantity();
+    if (recordsQty == -1) {
+      return HARVESTING;
+    }
     if (recordsQty == 0) {
       return EMPTY_DATASET;
     }
