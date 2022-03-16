@@ -206,8 +206,7 @@ public class HarvestServiceImpl implements HarvestService {
         }
     }
 
-    //This method went from private to protected for testing purposes
-    protected RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
+    private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
             throws ServiceException {
         List<RecordError> recordErrors = new ArrayList<>();
         RecordEntity recordEntity = recordRepository.save(
