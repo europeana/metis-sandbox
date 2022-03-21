@@ -6,6 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Install ImageMagick
+        run: sudo apt install imagemagick
       - name: Checkout code
         uses: actions/checkout@v2
         with:
