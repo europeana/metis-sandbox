@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install ImageMagick
-        run: sudo apt install imagemagick
+      - name: Install ImageMagick & FFProbe
+        run: sudo apt install imagemagick ffprobe
       - name: Checkout code
         uses: actions/checkout@v2
         with:
