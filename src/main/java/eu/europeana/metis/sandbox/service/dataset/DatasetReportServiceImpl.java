@@ -212,7 +212,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
                 .map(ErrorLogView::getRecordId)
                 .map(recordEntity ->
                     String.format("%s | %s ", recordEntity.getId() == null ? "" : recordEntity.getId(),
-                        recordEntity.getProviderId() == null ? error : recordEntity.getProviderId()))
+                        recordEntity.getProviderId() == null ? "" : recordEntity.getProviderId()))
                 .sorted(String::compareTo)
                 .collect(toList())))));
 
