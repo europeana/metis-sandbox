@@ -60,8 +60,8 @@ class DatasetReportServiceImplTest {
         var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
         var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
         var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-        var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1 | providerId1 | europeanaId1", "2 | providerId2 | europeanaId2"));
-        var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3 | providerId3 | europeanaId3", "4 | providerId4 | europeanaId4"));
+        var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1 | providerId1 ", "2 | providerId2 "));
+        var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3 | providerId3 ", "4 | providerId4 "));
         var errors = List.of(error1, error2);
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
@@ -152,8 +152,8 @@ class DatasetReportServiceImplTest {
         var dataset = new DatasetEntity("dataset", 5, Language.NL, Country.NETHERLANDS, false);
         var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
         var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-        var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1 | providerId1 | europeanaId1", "2 | providerId2 | europeanaId2"));
-        var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3 | providerId3 | europeanaId3", "4 | providerId4 | europeanaId4", "5 | providerId5 | europeanaId5"));
+        var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1 | providerId1 ", "2 | providerId2 "));
+        var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3 | providerId3 ", "4 | providerId4 ", "5 | providerId5 "));
         var errors = List.of(error1, error2);
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
@@ -261,7 +261,7 @@ class DatasetReportServiceImplTest {
 
     private static RecordEntity getTestRecordEntity(final Long recordId) {
         RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
-                "providerId" + recordId.toString(), recordId.toString());
+                "providerId" + recordId, recordId.toString());
         recordEntity.setId(recordId);
         return recordEntity;
     }
