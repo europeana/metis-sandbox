@@ -8,7 +8,6 @@ jobs:
     steps:
       - name: Install ImageMagick
         run: sudo apt install imagemagick
-      - name: Install ffmpeg & ffprobe
       - name: Setup FFmpeg
         uses: FedericoCarboni/setup-ffmpeg@v1.1.0
       - name: Checkout code
