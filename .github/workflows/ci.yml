@@ -6,8 +6,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install ImageMagick & ffmpeg
-        run: sudo apt install imagemagick ffmpeg
+      - name: Install ImageMagick
+        run: sudo apt install imagemagick
+      - name: Install ffmpeg & ffprobe
+      - uses: actions/checkout@v2
+      - uses: FedericoCarboni/setup-ffmpeg@v1
+        id: setup-ffmpeg
+      - run: ffmpeg -i input.avi output.mkv
       - name: Checkout code
         uses: actions/checkout@v2
         with:
