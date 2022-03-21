@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,9 +39,12 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
 
   public MediaProcessingServiceImpl(
       ThumbnailStoreService thumbnailStoreService,
-      RdfSerializer rdfSerializer,
-      RdfDeserializer rdfDeserializer,
-      MediaExtractor mediaExtractor) {
+      @Qualifier("rdfSerializer")
+          RdfSerializer rdfSerializer,
+      @Qualifier("rdfDeserializer")
+          RdfDeserializer rdfDeserializer,
+      @Qualifier("mediaExtractor")
+          MediaExtractor mediaExtractor) {
     this.thumbnailStoreService = thumbnailStoreService;
     this.rdfSerializer = rdfSerializer;
     this.rdfDeserializer = rdfDeserializer;
