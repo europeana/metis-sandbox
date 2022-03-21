@@ -6,10 +6,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install ImageMagick
+      - name: Setup ImageMagick
         run: sudo apt install imagemagick
       - name: Setup FFmpeg
         uses: FedericoCarboni/setup-ffmpeg@v1.1.0
+      - name: Setup Ghostscript
+        run: sudo apt-get install ghostscript -y
       - name: Checkout code
         uses: actions/checkout@v2
         with:
