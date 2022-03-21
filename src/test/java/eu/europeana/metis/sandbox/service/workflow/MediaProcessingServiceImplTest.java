@@ -13,12 +13,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
-import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
-import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
@@ -45,12 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MediaProcessingServiceImplTest {
 
   @Mock
-  private RdfConverterFactory converterFactory;
-
-  @Mock
-  private MediaProcessorFactory processorFactory;
-
-  @Mock
   private ThumbnailStoreService thumbnailStoreService;
 
   @Mock
@@ -69,12 +60,11 @@ class MediaProcessingServiceImplTest {
   private MediaProcessingServiceImpl service;
 
   @Test
-  void processMedia_expectSuccess() throws RdfDeserializationException,
-      MediaProcessorException, MediaExtractionException, RdfSerializationException {
+  void processMedia_expectSuccess() throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
+                       .content(content).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -83,13 +73,10 @@ class MediaProcessingServiceImplTest {
     var thumbnail = mock(Thumbnail.class);
     var metadata = mock(ResourceMetadata.class);
 
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(converterFactory.createRdfSerializer()).thenReturn(serializer);
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenReturn(List.of(entry2));
-    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1, false)).thenReturn(extraction1);
     when(extractor.performMediaExtraction(entry2, true)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
@@ -113,59 +100,24 @@ class MediaProcessingServiceImplTest {
     verify(serializer).serialize(enrichedRdf);
   }
 
-  @Test
-  void processMedia_getRdfResourceEntries_expectFail()
-      throws MediaProcessorException {
-    var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
-
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(processorFactory.createMediaExtractor()).thenThrow(new MediaProcessorException("failed"));
-
-    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
-
-    verify(converterFactory).createRdfDeserializer();
-  }
-
-  @Test
-  void processMedia_getResourceExtractionResults_MediaProcessorException_expectFail()
-      throws MediaProcessorException {
-    var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
-
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(processorFactory.createMediaExtractor()).thenThrow(new MediaProcessorException(""));
-
-    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
-
-    verify(processorFactory).createMediaExtractor();
-  }
 
   @Test
   void processMedia_getResourceExtractionResults_MediaExtractionException_expectSuccess()
-      throws RdfDeserializationException, MediaProcessorException,
-      MediaExtractionException, RdfSerializationException {
+      throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
+                       .content(content).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
 
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
     when(extractor.performMediaExtraction(entry1, false)).thenThrow(new MediaExtractionException(""));
-    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
-    when(deserializer.getMainThumbnailResourceForMediaExtraction(content)).thenReturn(entry1);
 
+    when(deserializer.getMainThumbnailResourceForMediaExtraction(content)).thenReturn(entry1);
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
-    when(converterFactory.createRdfSerializer()).thenReturn(serializer);
 
     var result = service.processMedia(record);
 
@@ -179,23 +131,19 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getResourceExtractionResults_returnNull_expectSuccess()
-      throws RdfDeserializationException, MediaProcessorException,
-      MediaExtractionException, RdfSerializationException {
+      throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
+                       .content(content).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
 
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(converterFactory.createRdfSerializer()).thenReturn(serializer);
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenReturn(List.of(entry2));
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
-    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(null);
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn(content);
@@ -210,12 +158,11 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_storeThumbnails_expectSuccess()
-      throws RdfDeserializationException, MediaProcessorException,
-      MediaExtractionException, RdfSerializationException {
+      throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
+                       .content(content).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -224,12 +171,10 @@ class MediaProcessingServiceImplTest {
     var thumbnail = mock(Thumbnail.class);
     var metadata = mock(ResourceMetadata.class);
 
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenReturn(List.of(entry2));
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
-    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1, false)).thenReturn(extraction1);
     when(extractor.performMediaExtraction(entry2, true)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
@@ -237,10 +182,9 @@ class MediaProcessingServiceImplTest {
     when(extraction1.getMetadata()).thenReturn(metadata);
     when(extraction2.getMetadata()).thenReturn(metadata);
     doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnailStoreService)
-        .store(List.of(thumbnail), "1");
+                                                               .store(List.of(thumbnail), "1");
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
-    when(converterFactory.createRdfSerializer()).thenReturn(serializer);
 
     var result = service.processMedia(record);
 
@@ -259,10 +203,9 @@ class MediaProcessingServiceImplTest {
       throws RdfDeserializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
+                       .content(content).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
 
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
     when(deserializer.getRdfForResourceEnriching(content))
         .thenThrow(new RdfDeserializationException("", new Exception()));
 
@@ -273,12 +216,12 @@ class MediaProcessingServiceImplTest {
 
   @Test
   void processMedia_getOutputRdf_RdfSerializationException_expectFail()
-          throws RdfDeserializationException, MediaProcessorException, MediaExtractionException,
-          RdfSerializationException {
+      throws RdfDeserializationException, MediaExtractionException,
+      RdfSerializationException {
     var content = "this is the content".getBytes();
     var record = Record.builder().recordId(1L)
-        .content(content).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("1").build();
+                       .content(content).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
 
     var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
     var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
@@ -286,13 +229,10 @@ class MediaProcessingServiceImplTest {
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);
 
-    when(converterFactory.createRdfDeserializer()).thenReturn(deserializer);
-    when(converterFactory.createRdfSerializer()).thenReturn(serializer);
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenReturn(List.of(entry2));
-    when(processorFactory.createMediaExtractor()).thenReturn(extractor);
     when(extractor.performMediaExtraction(entry1, false)).thenReturn(extraction1);
     when(extractor.performMediaExtraction(entry2, true)).thenReturn(extraction2);
     when(extraction1.getThumbnails()).thenReturn(List.of(thumbnail));
