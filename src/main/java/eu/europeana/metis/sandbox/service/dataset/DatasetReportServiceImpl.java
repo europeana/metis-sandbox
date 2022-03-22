@@ -115,24 +115,24 @@ class DatasetReportServiceImpl implements DatasetReportService {
         stepsInfo, datasetInfoDto);
   }
 
-  private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
+  private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords,
+      Long failedRecords) {
     return getPortalUrl(portalPublishDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
-  private String getPortalUrl(String portal, DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    long recordsQty = dataset.getRecordsQuantity();
-    if (recordsQty == -1) {
+  private String getPortalUrl(String portal, DatasetEntity dataset, Long completedRecords,
+      Long failedRecords) {
+    Long recordsQty = dataset.getRecordsQuantity();
+    if (recordsQty == null) {
       return HARVESTING_IDENTIFIERS_MESSAGE;
     }
     if (recordsQty == 0) {
       return EMPTY_DATASET_MESSAGE;
     }
-    if (recordsQty != completedRecords) {
+    if (!recordsQty.equals(completedRecords)) {
       return PROCESSING_DATASET_MESSAGE;
     }
-    if (completedRecords == failedRecords) {
+    if (completedRecords.equals(failedRecords)) {
       return FINISH_ALL_ERRORS_MESSAGE;
     }
     var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
@@ -152,7 +152,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
-  private long getCompletedRecords(List<StepStatistic> stepStatistics) {
+  private Long getCompletedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
         .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
         .mapToLong(StepStatistic::getCount)

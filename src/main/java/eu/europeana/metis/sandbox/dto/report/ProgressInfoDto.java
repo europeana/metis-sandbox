@@ -15,7 +15,7 @@ public class ProgressInfoDto {
 
   public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
 
-  public enum Status {
+  enum Status {
     HARVESTING_IDENTIFIERS("harvesting identifiers"),
     COMPLETED("completed"),
     IN_PROGRESS("in progress");
@@ -38,10 +38,10 @@ public class ProgressInfoDto {
   private final Status status;
 
   @JsonProperty("total-records")
-  private final int totalRecords;
+  private final Long totalRecords;
 
   @JsonProperty("processed-records")
-  private final long processedRecords;
+  private final Long processedRecords;
 
   @JsonProperty("progress-by-step")
   private final List<ProgressByStepDto> progressByStep;
@@ -49,16 +49,16 @@ public class ProgressInfoDto {
   @JsonProperty("dataset-info")
   private final DatasetInfoDto datasetInfoDto;
 
-  public ProgressInfoDto(String portalPublishUrl, int totalRecords, long processedRecords,
+  public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
       List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
     
     this.processedRecords = processedRecords;
     if (totalRecords == this.processedRecords) {
       this.status = Status.COMPLETED;
       this.totalRecords = totalRecords;
-    } else if (totalRecords == -1) {
+    } else if (totalRecords == null) {
       this.status = Status.HARVESTING_IDENTIFIERS;
-      this.totalRecords = 0;
+      this.totalRecords = 0L;
     } else {
       this.status = Status.IN_PROGRESS;
       this.totalRecords = totalRecords;

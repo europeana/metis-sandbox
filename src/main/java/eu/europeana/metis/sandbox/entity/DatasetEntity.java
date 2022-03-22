@@ -25,7 +25,7 @@ public class DatasetEntity {
 
   private String datasetName;
 
-  private Integer recordsQuantity;
+  private Long recordsQuantity;
 
   @Column(insertable = false, updatable = false)
   private LocalDateTime createdDate;
@@ -40,7 +40,7 @@ public class DatasetEntity {
 
   private Boolean recordLimitExceeded;
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
+  public DatasetEntity(String datasetName, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
@@ -50,7 +50,7 @@ public class DatasetEntity {
 
   }
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country,
+  public DatasetEntity(String datasetName, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded, String xsltEdmExternalContent) {
     this(datasetName, recordsQuantity, language, country, recordLimitExceeded);
     this.xsltEdmExternalContent = xsltEdmExternalContent;
@@ -76,11 +76,11 @@ public class DatasetEntity {
     this.datasetName = datasetName;
   }
 
-  public Integer getRecordsQuantity() {
+  public Long getRecordsQuantity() {
     return recordsQuantity;
   }
 
-  public void setRecordsQuantity(Integer recordsQuantity) {
+  public void setRecordsQuantity(Long recordsQuantity) {
     this.recordsQuantity = recordsQuantity;
   }
 

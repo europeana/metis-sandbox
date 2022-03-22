@@ -316,7 +316,7 @@ class DatasetControllerTest {
         var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
                 Country.NETHERLANDS, false, false);
         var report = new ProgressInfoDto("https://metis-sandbox",
-                10, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
+                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
         when(datasetReportService.getReport("1")).thenReturn(report);
 
         mvc.perform(get("/dataset/{id}", "1"))

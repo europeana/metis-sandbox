@@ -81,7 +81,7 @@ class ProgressInfoDtoTest {
   @NotNull
   private static ProgressInfoDto getTestProgressInfoDto() {
     return new ProgressInfoDto("http://metis-sandbox",
-        5,
+        5L,
         2L,
         getProgressByStepDtoList(2, 1),
         new DatasetInfoDto("datasetId",
@@ -109,7 +109,7 @@ class ProgressInfoDtoTest {
   @NotNull
   private static ProgressInfoDto getTestHarvestingIdsInfoDto() {
     return new ProgressInfoDto("http://metis-sandbox",
-        -1,
+        null,
         0L,
         List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 0, 0, 0, List.of())),
         new DatasetInfoDto("datasetId",
@@ -124,7 +124,7 @@ class ProgressInfoDtoTest {
   @NotNull
   private static ProgressInfoDto getTestCompletedInfoDto() {
     return new ProgressInfoDto("http://metis-sandbox",
-        5,
+        5L,
         5L,
         getProgressByStepDtoList(5, 5),
         new DatasetInfoDto("datasetId",
