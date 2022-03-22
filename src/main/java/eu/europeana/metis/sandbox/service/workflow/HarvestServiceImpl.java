@@ -28,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -77,14 +77,14 @@ public class HarvestServiceImpl implements HarvestService {
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
       OaiHarvestData oaiHarvestData) {
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    datasetService.updateNumberOfTotalRecord(datasetId, -1);
+    datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         new OaiHarvest(oaiHarvestData.getUrl(),
             oaiHarvestData.getMetadataformat(),
             oaiHarvestData.getSetspec()))) {
 
-      AtomicInteger currentNumberOfIterations = new AtomicInteger();
+      AtomicLong currentNumberOfIterations = new AtomicLong();
 
       recordHeaderIterator.forEach(recordHeader -> {
         OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
@@ -104,7 +104,7 @@ public class HarvestServiceImpl implements HarvestService {
           return ReportingIteration.IterationResult.TERMINATE;
         }
 
-        recordInfoList.add(harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
+        recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData,
             recordDataEncapsulated));
 
         return ReportingIteration.IterationResult.CONTINUE;
@@ -118,7 +118,7 @@ public class HarvestServiceImpl implements HarvestService {
     return recordInfoList;
   }
 
-  private RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData,
+  private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
       Record.RecordBuilder recordToHarvest) {
 
     List<RecordError> recordErrors = new ArrayList<>();
@@ -159,10 +159,10 @@ public class HarvestServiceImpl implements HarvestService {
       Record.RecordBuilder recordDataEncapsulated) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    datasetService.updateNumberOfTotalRecord(datasetId, -1);
+    datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try {
-      AtomicInteger numberOfIterations = new AtomicInteger(0);
+      AtomicLong numberOfIterations = new AtomicLong(0);
       final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream,
           CompressedFileExtension.ZIP);
       iterator.forEach(path -> {

@@ -74,7 +74,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public void updateNumberOfTotalRecord(String datasetId, int numberOfRecords) {
+  public void updateNumberOfTotalRecord(String datasetId, Long numberOfRecords) {
     datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetId), numberOfRecords);
   }
 

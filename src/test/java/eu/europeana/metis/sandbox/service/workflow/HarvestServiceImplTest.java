@@ -96,7 +96,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2);
+    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
   }
 
   @Test
@@ -116,7 +116,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1);
+    assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
   }
 
   @Test
@@ -136,7 +136,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
-    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2);
+    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
   }
 
   @Test
@@ -156,7 +156,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
-    assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1);
+    assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
   }
 
   @Test
@@ -188,7 +188,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
+    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
 
   @Test
@@ -211,7 +211,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1);
+    assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1L);
   }
 
   @Test
@@ -234,7 +234,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
-    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
+    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
 
   @Test
@@ -257,7 +257,7 @@ public class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
-    assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1);
+    assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1L);
   }
 
   @Test
@@ -291,7 +291,7 @@ public class HarvestServiceImplTest {
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
+    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
 
   @Test
@@ -317,11 +317,11 @@ public class HarvestServiceImplTest {
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
 
-    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2);
+    assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
 
   private void assertHarvestProcess(RecordPublishService recordPublishService, int times, Step step,
-      int numberOfRecords) {
+      Long numberOfRecords) {
     verify(datasetService).updateNumberOfTotalRecord(eq("datasetId"), eq(numberOfRecords));
     assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecord().getDatasetId().equals("datasetId")));
     assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecord().getContent() != null));
@@ -331,13 +331,13 @@ public class HarvestServiceImplTest {
   }
 
   private void assertHarvestProcessWithXslt(RecordPublishService recordPublishService, int times, Step step,
-      int numberOfRecords) {
+      Long numberOfRecords) {
     verify(recordPublishService, times(times)).publishToTransformationToEdmExternalQueue(captorRecordInfo.capture(), eq(step));
     assertHarvestProcess(recordPublishService, times, step, numberOfRecords);
   }
 
   private void assertHarvestProcessWithOutXslt(RecordPublishService recordPublishService, int times, Step step,
-      int numberOfRecords) {
+      Long numberOfRecords) {
     verify(recordPublishService, times(times)).publishToHarvestQueue(captorRecordInfo.capture(), eq(step));
     assertHarvestProcess(recordPublishService, times, step, numberOfRecords);
   }
