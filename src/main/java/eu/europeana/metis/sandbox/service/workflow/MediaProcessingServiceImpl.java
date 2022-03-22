@@ -39,12 +39,9 @@ class MediaProcessingServiceImpl implements MediaProcessingService {
 
   public MediaProcessingServiceImpl(
       ThumbnailStoreService thumbnailStoreService,
-      @Qualifier("rdfSerializer")
-          RdfSerializer rdfSerializer,
-      @Qualifier("rdfDeserializer")
-          RdfDeserializer rdfDeserializer,
-      @Qualifier("mediaExtractor")
-          MediaExtractor mediaExtractor) {
+      RdfSerializer rdfSerializer,
+      RdfDeserializer rdfDeserializer,
+      MediaExtractor mediaExtractor) {
     this.thumbnailStoreService = thumbnailStoreService;
     this.rdfSerializer = rdfSerializer;
     this.rdfDeserializer = rdfDeserializer;
