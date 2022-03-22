@@ -51,14 +51,13 @@ public class ProgressInfoDto {
 
   public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
       List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
-    
     this.processedRecords = processedRecords;
-    if (totalRecords == this.processedRecords) {
-      this.status = Status.COMPLETED;
-      this.totalRecords = totalRecords;
-    } else if (totalRecords == null) {
+    if (totalRecords == null) {
       this.status = Status.HARVESTING_IDENTIFIERS;
       this.totalRecords = 0L;
+    } else if (totalRecords.equals(this.processedRecords)) {
+      this.status = Status.COMPLETED;
+      this.totalRecords = totalRecords;
     } else {
       this.status = Status.IN_PROGRESS;
       this.totalRecords = totalRecords;
