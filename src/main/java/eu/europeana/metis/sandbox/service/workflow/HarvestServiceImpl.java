@@ -55,14 +55,14 @@ public class HarvestServiceImpl implements HarvestService {
   private final RecordRepository recordRepository;
   private final RecordErrorLogRepository recordErrorLogRepository;
 
-
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
-      OaiHarvester oaiHarvester,
-      RecordPublishService recordPublishService,
-      DatasetService datasetService,
-      @Value("${sandbox.dataset.max-size}") int maxRecords,
-      RecordRepository recordRepository, RecordErrorLogRepository recordErrorLogRepository) {
+                            OaiHarvester oaiHarvester,
+                            RecordPublishService recordPublishService,
+                            DatasetService datasetService,
+                            @Value("${sandbox.dataset.max-size}") int maxRecords,
+                            RecordRepository recordRepository,
+                            RecordErrorLogRepository recordErrorLogRepository) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
@@ -111,7 +111,7 @@ public class HarvestServiceImpl implements HarvestService {
         }
 
         recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData,
-            recordDataEncapsulated));
+            recordDataEncapsulated, recordHeader.getOaiIdentifier()));
 
         return ReportingIteration.IterationResult.CONTINUE;
       });
@@ -125,7 +125,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest) {
+      Record.RecordBuilder recordToHarvest, String oaiIdentifier) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -136,6 +136,7 @@ public class HarvestServiceImpl implements HarvestService {
       RecordEntity recordEntity = recordRepository.save(
           new RecordEntity(null, null, datasetId));
       Record harvestedRecord = recordToHarvest
+          .providerId(oaiIdentifier)
           .content(oaiRecord.getRecord().readAllBytes())
           .recordId(recordEntity.getId())
           .build();
@@ -185,7 +186,7 @@ public class HarvestServiceImpl implements HarvestService {
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated));
+          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path));
 
           return ReportingIteration.IterationResult.CONTINUE;
 
@@ -213,7 +214,8 @@ public class HarvestServiceImpl implements HarvestService {
     return recordInfoList;
   }
 
-  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
+  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
+      Path path)
       throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordEntity recordEntity = recordRepository.save(
@@ -221,6 +223,7 @@ public class HarvestServiceImpl implements HarvestService {
 
     try {
       Record harvestedRecord = recordToHarvest
+          .providerId(path.toString())
           .content(new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes())
           .recordId(recordEntity.getId())
           .build();

@@ -27,6 +27,8 @@ spring:
     virtual-host:
     host: localhost
     port: 5672
+    username: sandbox
+    password: sandbox
     ssl:
       enabled:
       algorithm:
@@ -112,6 +114,7 @@ sandbox:
           routing-key: sandbox.record.#
           consumers: 2
           max-consumers: 2
+          prefetch: 1
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq

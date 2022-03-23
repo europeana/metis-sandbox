@@ -16,6 +16,7 @@ import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -28,7 +29,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -71,7 +75,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     //Create DatasetInfoDto from DatasetEntity
     DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-        dataset.getLanguage(), dataset.getCountry(), dataset.getRecordLimitExceeded(), StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
+        dataset.getLanguage(), dataset.getCountry(), dataset.getRecordLimitExceeded(),
+        StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;
@@ -154,26 +159,26 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private Long getCompletedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
-        .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
-        .mapToLong(StepStatistic::getCount)
-        .sum();
+                         .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
+                         .mapToLong(StepStatistic::getCount)
+                         .sum();
   }
 
   private long getFailedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
-        .filter(current -> current.getStatus() == Status.FAIL)
-        .mapToLong(StepStatistic::getCount)
-        .sum();
+                         .filter(current -> current.getStatus() == Status.FAIL)
+                         .mapToLong(StepStatistic::getCount)
+                         .sum();
   }
 
   private Map<Step, Map<Status, Long>> getStatisticsByStep(
       List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
-        .filter(x -> x.getStep() != Step.CLOSE)
-        .sorted(Comparator.comparingInt(stepStatistic -> stepStatistic.getStep().precedence()))
-        .collect(groupingBy(StepStatistic::getStep, LinkedHashMap::new,
-            groupingBy(StepStatistic::getStatus,
-                reducing(0L, StepStatistic::getCount, Long::sum))));
+                         .filter(x -> x.getStep() != Step.CLOSE)
+                         .sorted(Comparator.comparingInt(stepStatistic -> stepStatistic.getStep().precedence()))
+                         .collect(groupingBy(StepStatistic::getStep, LinkedHashMap::new,
+                             groupingBy(StepStatistic::getStatus,
+                                 reducing(0L, StepStatistic::getCount, Long::sum))));
   }
 
   private Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> getRecordErrorsByStep(
@@ -184,7 +189,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return errorsLog
         .stream()
         .sorted(Comparator.comparingInt((ErrorLogView e) -> e.getStep().precedence())
-            .thenComparing(x -> x.getRecordId().getId()))
+                          .thenComparing(x -> x.getRecordId().getId()))
         .collect(groupingBy(ErrorLogView::getStep, LinkedHashMap::new,
             groupingBy(ErrorLogView::getStatus,
                 groupingBy(ErrorLogView::getMessage))));
@@ -212,13 +217,19 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     statusMap.forEach((status, errorsMap) ->
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
-            new ErrorInfoDto(error, status, recordList.stream()
-                .map(ErrorLogView::getRecordId)
-                .map(recordEntity -> String.format("%s | %s | %s", recordEntity.getId(), recordEntity.getProviderId(), recordEntity.getEuropeanaId()))
-                .sorted(String::compareTo)
-                .collect(toList())))));
+            new ErrorInfoDto(error, status,
+                recordList.stream()
+                          .map(ErrorLogView::getRecordId)
+                          .map(DatasetReportServiceImpl::createMessageRecordError)
+                          .sorted(String::compareTo)
+                          .collect(toList())))));
 
     errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
     return errorInfoDtoList;
+  }
+
+  private static String createMessageRecordError(RecordEntity recordEntity) {
+    return Stream.of(recordEntity.getId().toString(), recordEntity.getProviderId()).filter(
+        Objects::nonNull).filter(id -> !id.isBlank()).collect(Collectors.joining(" | "));
   }
 }

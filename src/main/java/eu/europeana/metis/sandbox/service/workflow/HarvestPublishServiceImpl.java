@@ -33,7 +33,11 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     @Override
     public CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, String datasetName, String datasetId, Country country, Language language){
         try {
-            Record.RecordBuilder recordDataEncapsulated = Record.builder().datasetId(datasetId).datasetName(datasetName).country(country).language(language);
+            Record.RecordBuilder recordDataEncapsulated = Record.builder()
+                                                                .datasetId(datasetId)
+                                                                .datasetName(datasetName)
+                                                                .country(country)
+                                                                .language(language);
             return runHarvestZipAsync(file.getInputStream(), datasetId, recordDataEncapsulated);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + file.getName(), e);
@@ -44,7 +48,11 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     public CompletableFuture<Void> runHarvestHttpZipAsync(String url, String datasetName, String datasetId, Country country, Language language){
         try {
             InputStream input = new URL(url).openStream();
-            Record.RecordBuilder recordDataEncapsulated = Record.builder().datasetId(datasetId).datasetName(datasetName).country(country).language(language);
+            Record.RecordBuilder recordDataEncapsulated = Record.builder()
+                                                                .datasetId(datasetId)
+                                                                .datasetName(datasetName)
+                                                                .country(country)
+                                                                .language(language);
             return runHarvestZipAsync(input, datasetId, recordDataEncapsulated);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + url, e);
