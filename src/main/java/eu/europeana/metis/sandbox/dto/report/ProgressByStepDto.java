@@ -55,4 +55,44 @@ public class ProgressByStepDto {
   public List<ErrorInfoDto> getErrors() {
     return errors;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ProgressByStepDto)) {
+      return false;
+    }
+
+    ProgressByStepDto that = (ProgressByStepDto) o;
+
+    if (total != that.total) {
+      return false;
+    }
+    if (success != that.success) {
+      return false;
+    }
+    if (fail != that.fail) {
+      return false;
+    }
+    if (warn != that.warn) {
+      return false;
+    }
+    if (step != that.step) {
+      return false;
+    }
+    return errors.equals(that.errors);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = step.hashCode();
+    result = 31 * result + (int) (total ^ (total >>> 32));
+    result = 31 * result + (int) (success ^ (success >>> 32));
+    result = 31 * result + (int) (fail ^ (fail >>> 32));
+    result = 31 * result + (int) (warn ^ (warn >>> 32));
+    result = 31 * result + errors.hashCode();
+    return result;
+  }
 }

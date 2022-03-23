@@ -38,4 +38,32 @@ public class ErrorInfoDto {
   public String getErrorMessage() {
     return errorMessage;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ErrorInfoDto)) {
+      return false;
+    }
+
+    ErrorInfoDto that = (ErrorInfoDto) o;
+
+    if (!errorMessage.equals(that.errorMessage)) {
+      return false;
+    }
+    if (type != that.type) {
+      return false;
+    }
+    return recordIds.equals(that.recordIds);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = errorMessage.hashCode();
+    result = 31 * result + type.hashCode();
+    result = 31 * result + recordIds.hashCode();
+    return result;
+  }
 }

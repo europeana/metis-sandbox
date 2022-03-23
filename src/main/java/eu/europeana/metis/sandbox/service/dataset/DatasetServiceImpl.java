@@ -39,7 +39,7 @@ class DatasetServiceImpl implements DatasetService {
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
 
-    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, 0, language, country, false),
+    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, 0L, language, country, false),
             xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
@@ -74,7 +74,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public void updateNumberOfTotalRecord(String datasetId, int numberOfRecords) {
+  public void updateNumberOfTotalRecord(String datasetId, Long numberOfRecords) {
     datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetId), numberOfRecords);
   }
 

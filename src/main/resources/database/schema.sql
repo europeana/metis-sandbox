@@ -15,7 +15,7 @@ begin;
 create table if not exists dataset (
    dataset_id serial,
    dataset_name varchar(255) not null,
-   records_quantity integer not null,
+   records_quantity integer null,
    created_date timestamp with time zone default now(),
    country varchar(35) not null,
    language varchar(3) not null,

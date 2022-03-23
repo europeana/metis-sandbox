@@ -123,8 +123,8 @@ class DatasetServiceImplTest {
 
   @Test
   void updateNumberOfTotalRecord_expectSuccess(){
-    service.updateNumberOfTotalRecord("1", 10);
-    verify(datasetRepository).updateRecordsQuantity(1, 10);
+    service.updateNumberOfTotalRecord("1", 10L);
+    verify(datasetRepository).updateRecordsQuantity(1, 10L);
   }
 
   @Test

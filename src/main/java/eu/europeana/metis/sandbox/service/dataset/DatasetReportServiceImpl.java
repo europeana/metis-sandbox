@@ -38,9 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
   private static final int FIRST = 0;
-  private static final String EMPTY_DATASET = "Dataset is empty";
-  private static final String PROCESSING_MSG = "A review URL will be generated when the dataset has finished processing";
-  private static final String FINISH_ALL_ERRORS = "All dataset records failed to be processed";
+  private static final String EMPTY_DATASET_MESSAGE = "Dataset is empty.";
+  private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
+  private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
+  private static final String FINISH_ALL_ERRORS_MESSAGE = "All dataset records failed to be processed.";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
@@ -114,22 +115,25 @@ class DatasetReportServiceImpl implements DatasetReportService {
         stepsInfo, datasetInfoDto);
   }
 
-  private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
+  private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords,
+      Long failedRecords) {
     return getPortalUrl(portalPublishDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
-  private String getPortalUrl(String portal, DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    long recordsQty = dataset.getRecordsQuantity();
+  private String getPortalUrl(String portal, DatasetEntity dataset, Long completedRecords,
+      Long failedRecords) {
+    Long recordsQty = dataset.getRecordsQuantity();
+    if (recordsQty == null) {
+      return HARVESTING_IDENTIFIERS_MESSAGE;
+    }
     if (recordsQty == 0) {
-      return EMPTY_DATASET;
+      return EMPTY_DATASET_MESSAGE;
     }
-    if (recordsQty != completedRecords) {
-      return PROCESSING_MSG;
+    if (!recordsQty.equals(completedRecords)) {
+      return PROCESSING_DATASET_MESSAGE;
     }
-    if (completedRecords == failedRecords) {
-      return FINISH_ALL_ERRORS;
+    if (completedRecords.equals(failedRecords)) {
+      return FINISH_ALL_ERRORS_MESSAGE;
     }
     var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
     return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
@@ -148,7 +152,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
-  private long getCompletedRecords(List<StepStatistic> stepStatistics) {
+  private Long getCompletedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
         .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
         .mapToLong(StepStatistic::getCount)

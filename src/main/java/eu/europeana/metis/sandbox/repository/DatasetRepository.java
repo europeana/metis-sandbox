@@ -28,7 +28,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    */
   @Modifying
   @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
-  void updateRecordsQuantity(int datasetId, int quantity);
+  void updateRecordsQuantity(int datasetId, Long quantity);
 
   /**
    * Sets to true the boolean recordLimitExceeded

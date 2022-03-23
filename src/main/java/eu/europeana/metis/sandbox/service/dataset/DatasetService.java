@@ -50,7 +50,7 @@ public interface DatasetService {
    * @param datasetId The id of the dataset to update to
    * @param numberOfRecords The new value to update into the dataset
    */
-  void updateNumberOfTotalRecord(String datasetId, int numberOfRecords);
+  void updateNumberOfTotalRecord(String datasetId, Long numberOfRecords);
 
   /**
    * Sets to true the boolean recordLimitExceeded in the database
