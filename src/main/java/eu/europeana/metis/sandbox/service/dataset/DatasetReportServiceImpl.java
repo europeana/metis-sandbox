@@ -224,7 +224,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private static String createMessageRecordError(RecordEntity recordEntity){
 
-      return Stream.of(recordEntity.getId().toString(), recordEntity.getProviderId()).filter(
+      return Stream.of(recordEntity.getEuropeanaId(), recordEntity.getProviderId()).filter(
           Objects::nonNull).filter(id->!id.isBlank()).collect(Collectors.joining(" | "));
   }
 

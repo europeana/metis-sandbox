@@ -126,7 +126,7 @@ public class HarvestServiceImpl implements HarvestService {
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
       RecordEntity recordEntity = recordRepository.save(
-          new RecordEntity(null, null, datasetId));
+          new RecordEntity(null, oaiIdentifier, datasetId));
       Record harvestedRecord = recordToHarvest
           .providerId(oaiIdentifier)
           .content(oaiRecord.getRecord().readAllBytes())
@@ -203,7 +203,7 @@ public class HarvestServiceImpl implements HarvestService {
       throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordEntity recordEntity = recordRepository.save(
-        new RecordEntity(null, null, datasetId));
+        new RecordEntity(null, path.toString(), datasetId));
 
     try {
       Record harvestedRecord = recordToHarvest
