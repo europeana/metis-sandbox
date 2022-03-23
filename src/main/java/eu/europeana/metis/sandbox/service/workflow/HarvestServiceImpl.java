@@ -99,11 +99,11 @@ public class HarvestServiceImpl implements HarvestService {
         if (datasetService.isXsltPresent(datasetId)) {
           recordPublishService.publishToTransformationToEdmExternalQueue(
               harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+                  recordDataEncapsulated, recordHeader.getOaiIdentifier()), Step.HARVEST_OAI_PMH);
         } else {
           recordPublishService.publishToHarvestQueue(
               harvestOaiRecordHeader(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated), Step.HARVEST_OAI_PMH);
+                  recordDataEncapsulated, recordHeader.getOaiIdentifier()), Step.HARVEST_OAI_PMH);
         }
 
         return ReportingIteration.IterationResult.CONTINUE;
@@ -117,7 +117,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private RecordInfo harvestOaiRecordHeader(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest) {
+      Record.RecordBuilder recordToHarvest, String oaiIdentifier) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -128,6 +128,7 @@ public class HarvestServiceImpl implements HarvestService {
       RecordEntity recordEntity = recordRepository.save(
           new RecordEntity(null, null, datasetId));
       Record harvestedRecord = recordToHarvest
+          .providerId(oaiIdentifier)
           .content(oaiRecord.getRecord().readAllBytes())
           .recordId(recordEntity.getId())
           .build();
@@ -167,10 +168,10 @@ public class HarvestServiceImpl implements HarvestService {
 
           if (datasetService.isXsltPresent(datasetId)) {
             recordPublishService.publishToTransformationToEdmExternalQueue(
-                harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
+                harvestInputStream(content, datasetId, recordDataEncapsulated, path), Step.HARVEST_ZIP);
           } else {
             recordPublishService.publishToHarvestQueue(
-                harvestInputStream(content, datasetId, recordDataEncapsulated), Step.HARVEST_ZIP);
+                harvestInputStream(content, datasetId, recordDataEncapsulated, path), Step.HARVEST_ZIP);
           }
 
           return ReportingIteration.IterationResult.CONTINUE;
@@ -198,7 +199,7 @@ public class HarvestServiceImpl implements HarvestService {
     }
   }
 
-  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest)
+  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest, Path path)
       throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordEntity recordEntity = recordRepository.save(
@@ -206,6 +207,7 @@ public class HarvestServiceImpl implements HarvestService {
 
     try {
       Record harvestedRecord = recordToHarvest
+          .providerId(path.toString())
           .content(new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes())
           .recordId(recordEntity.getId())
           .build();

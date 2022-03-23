@@ -36,7 +36,6 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
             Record.RecordBuilder recordDataEncapsulated = Record.builder()
                                                                 .datasetId(datasetId)
                                                                 .datasetName(datasetName)
-                                                                .providerId(file.getOriginalFilename())
                                                                 .country(country)
                                                                 .language(language);
             return runHarvestZipAsync(file.getInputStream(), datasetId, recordDataEncapsulated);
@@ -52,7 +51,6 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
             Record.RecordBuilder recordDataEncapsulated = Record.builder()
                                                                 .datasetId(datasetId)
                                                                 .datasetName(datasetName)
-                                                                .providerId(url)
                                                                 .country(country)
                                                                 .language(language);
             return runHarvestZipAsync(input, datasetId, recordDataEncapsulated);
