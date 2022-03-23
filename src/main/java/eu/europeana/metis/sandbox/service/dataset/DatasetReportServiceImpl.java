@@ -16,6 +16,7 @@ import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -28,7 +29,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -210,13 +214,18 @@ class DatasetReportServiceImpl implements DatasetReportService {
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status, recordList.stream()
                 .map(ErrorLogView::getRecordId)
-                .map(recordEntity ->
-                    String.format("%s | %s ", recordEntity.getId() == null ? "" : recordEntity.getId(),
-                        recordEntity.getProviderId() == null ? "" : recordEntity.getProviderId()))
+                .map(DatasetReportServiceImpl::createMessageRecordError)
                 .sorted(String::compareTo)
                 .collect(toList())))));
 
     errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
     return errorInfoDtoList;
   }
+
+  private static String createMessageRecordError(RecordEntity recordEntity){
+
+      return Stream.of(recordEntity.getEuropeanaId(), recordEntity.getProviderId()).filter(
+          Objects::nonNull).filter(id->!id.isBlank()).collect(Collectors.joining(" | "));
+  }
+
 }
