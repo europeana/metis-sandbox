@@ -111,7 +111,7 @@ public class HarvestServiceImpl implements HarvestService {
         }
 
         recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData,
-            recordDataEncapsulated, recordHeader.getOaiIdentifier()));
+            recordDataEncapsulated));
 
         return ReportingIteration.IterationResult.CONTINUE;
       });
@@ -125,7 +125,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest, String oaiIdentifier) {
+      Record.RecordBuilder recordToHarvest) {
 
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -134,9 +134,9 @@ public class HarvestServiceImpl implements HarvestService {
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
       RecordEntity recordEntity = recordRepository.save(
-          new RecordEntity(null, null, datasetId));
+          new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId));
       Record harvestedRecord = recordToHarvest
-          .providerId(oaiIdentifier)
+          .providerId(oaiHarvestData.getOaiIdentifier())
           .content(oaiRecord.getRecord().readAllBytes())
           .recordId(recordEntity.getId())
           .build();
@@ -214,12 +214,11 @@ public class HarvestServiceImpl implements HarvestService {
     return recordInfoList;
   }
 
-  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
-      Path path)
+  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest, Path path)
       throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordEntity recordEntity = recordRepository.save(
-        new RecordEntity(null, null, datasetId));
+        new RecordEntity(null, path.toString(), datasetId));
 
     try {
       Record harvestedRecord = recordToHarvest

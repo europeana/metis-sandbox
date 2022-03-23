@@ -228,8 +228,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return errorInfoDtoList;
   }
 
-  private static String createMessageRecordError(RecordEntity recordEntity) {
-    return Stream.of(recordEntity.getId().toString(), recordEntity.getProviderId()).filter(
-        Objects::nonNull).filter(id -> !id.isBlank()).collect(Collectors.joining(" | "));
+  private static String createMessageRecordError(RecordEntity recordEntity){
+
+      return Stream.of(recordEntity.getEuropeanaId(), recordEntity.getProviderId()).filter(
+          Objects::nonNull).filter(id->!id.isBlank()).collect(Collectors.joining(" | "));
   }
+
 }
