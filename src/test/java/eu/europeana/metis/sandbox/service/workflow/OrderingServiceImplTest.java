@@ -10,6 +10,8 @@ import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+
+import java.io.File;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,8 +36,8 @@ class OrderingServiceImplTest {
 
   @Test
   void performOrdering_expectSuccess() throws IOException, TransformationException {
-    var input = testUtils.readFileToString("record/bad-order/record-input.xml");
-    var expected = testUtils.readFileToString("record/bad-order/record-expected.xml");
+    var input = testUtils.readFileToString("record"+File.separator+"bad-order"+File.separator+"record-input.xml");
+    var expected = testUtils.readFileToString("record"+File.separator+"bad-order"+File.separator+"record-expected.xml");
 
     when(orderObjectFactory.getObject()).thenReturn(xsltSorter);
     when(xsltSorter.transformToBytes(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))
@@ -53,7 +55,7 @@ class OrderingServiceImplTest {
 
   @Test
   void performOrdering_invalidXml_expectFail() throws IOException, TransformationException {
-    var input = testUtils.readFileToString("record/bad-order/record-input.xml");
+    var input = testUtils.readFileToString("record"+ File.separator+"bad-order"+File.separator+"record-input.xml");
 
     when(orderObjectFactory.getObject()).thenReturn(xsltSorter);
     when(xsltSorter.transformToBytes(any(byte[].class), nullable(EuropeanaGeneratedIdsMap.class)))

@@ -10,15 +10,15 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * Object that represents a record.
- * <br /><br />
- * Stores the record content as a byte[], do not
- * override the byte[] contents after object construction, we are not making a copy of it because it
- * is expensive and Record object is expected to be use as a non mutable object.
+ * Object that represents a record. <br /><br /> Stores the record content as a byte[], do not override the byte[] contents after
+ * object construction, we are not making a copy of it because it is expensive and Record object is expected to be use as a non
+ * mutable object.
  */
-public class Record {
+public final class Record {
 
-  private final String recordId;
+  private final Long recordId;
+  private String europeanaId;
+  private String providerId;
   private final String datasetId;
   private final String datasetName;
   private final Country country;
@@ -28,9 +28,12 @@ public class Record {
   //Suppress: Mutable members should not be stored or returned directly
   //byte[] coming from RecordBuilder is already a copy of the original byte[]
   @SuppressWarnings("squid:S2384")
-  private Record(String recordId, String datasetId, String datasetName,
+  private Record(Long recordId, String europeanaId, String providerId, String datasetId,
+      String datasetName,
       Country country, Language language, byte[] content) {
     this.recordId = recordId;
+    this.providerId = providerId;
+    this.europeanaId = europeanaId;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
     this.country = country;
@@ -41,17 +44,15 @@ public class Record {
   /**
    * Creates a record based on the provided record but replacing the content with the one provided
    *
-   * @param record  must not be null
+   * @param record must not be null
    * @param content must not be null. Xml representation of the record
    * @return record object
-   * @throws NullPointerException if any parameter is null
    */
   public static Record from(Record record, byte[] content) {
-    requireNonNull(record);
-    requireNonNull(content);
 
     return Record.builder()
         .recordId(record.getRecordId())
+        .europeanaId(record.getEuropeanaId())
         .datasetId(record.getDatasetId())
         .datasetName(record.getDatasetName())
         .content(content)
@@ -64,8 +65,24 @@ public class Record {
     return new RecordBuilder();
   }
 
-  public String getRecordId() {
+  public Long getRecordId() {
     return this.recordId;
+  }
+
+  public String getEuropeanaId() {
+    return this.europeanaId;
+  }
+
+  public void setEuropeanaId(String europeanaId) {
+    this.europeanaId = europeanaId;
+  }
+
+  public void setProviderId(String providerId) {
+    this.providerId = providerId;
+  }
+
+  public String getProviderId(){
+    return this.providerId;
   }
 
   public String getDatasetId() {
@@ -87,9 +104,8 @@ public class Record {
   /**
    * Content of the record
    *
-   * @implNote Overwriting this field contents after construction could cause problems. <br /> We
-   * are not making a copy of it because it is expensive and Record object is expected to be use as
-   * a non mutable object
+   * @implNote Overwriting this field contents after construction could cause problems. <br /> We are not making a copy of it
+   * because it is expensive and Record object is expected to be use as a non mutable object
    */
   //Suppress: Mutable members should not be stored or returned directly
   @SuppressWarnings("squid:S2384")
@@ -127,15 +143,27 @@ public class Record {
 
   public static class RecordBuilder {
 
-    private String recordId;
+    private Long recordId;
+    private String providerId;
+    private String europeanaId;
     private String datasetId;
     private String datasetName;
     private Country country;
     private Language language;
     private byte[] content;
 
-    public RecordBuilder recordId(String recordId) {
+    public RecordBuilder recordId(Long recordId) {
       this.recordId = recordId;
+      return this;
+    }
+
+    public RecordBuilder europeanaId(String europeanaId) {
+      this.europeanaId = europeanaId;
+      return this;
+    }
+
+    public RecordBuilder providerId(String providerId){
+      this.providerId = providerId;
       return this;
     }
 
@@ -166,12 +194,7 @@ public class Record {
     }
 
     public Record build() {
-      requireNonNull(recordId, "Record id must not be null");
-      requireNonNull(datasetId, "Dataset id must not be null");
-      requireNonNull(datasetName, "Dataset name id must not be null");
-      requireNonNull(country, "Country must not be null");
-      requireNonNull(language, "Language must not be null");
-      return new Record(recordId, datasetId, datasetName, country, language, content);
+      return new Record(recordId, europeanaId, providerId, datasetId, datasetName, country, language, content);
     }
   }
 }

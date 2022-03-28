@@ -6,11 +6,17 @@ import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
+import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.http.HttpHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
+import eu.europeana.metis.mediaprocessing.RdfDeserializer;
+import eu.europeana.metis.mediaprocessing.RdfSerializer;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import eu.europeana.metis.utils.ZipFileReader;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
@@ -20,6 +26,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -35,8 +43,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan("eu.europeana.validation.service")
 class SandboxConfig {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(SandboxConfig.class);
+
   @Value("${sandbox.rabbitmq.queues.record.created.queue}")
-  private String initialQueue;
+  private String createdQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  private String transformationToEdmExternalQueue;
 
   @Value("${sandbox.dataset.creation.threads.core-pool-size}")
   private Integer corePoolSize;
@@ -60,6 +73,12 @@ class SandboxConfig {
 
   private String defaultXsltUrl;
 
+  @Value("${sandbox.dataset.provider-record-url-template}")
+  private String providerRecordUrlTemplate;
+
+  @Value("${sandbox.portal.publish.record-base-url}")
+  private String portalPublishRecordBaseUrl;
+
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   XPathFactory xPathFactory() {
@@ -80,7 +99,7 @@ class SandboxConfig {
   }
 
   @Bean
-  Executor asyncDatasetPublishServiceTaskExecutor() {
+  Executor asyncServiceTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);
     executor.setMaxPoolSize(maxPoolSize);
@@ -89,14 +108,34 @@ class SandboxConfig {
     return executor;
   }
 
-  @Bean
-  String initialQueue() {
-    return initialQueue;
+  @Bean(name = "createdQueue")
+  String createdQueue() {
+    return createdQueue;
+  }
+
+  @Bean(name = "transformationToEdmExternalQueue")
+  String transformationToEdmExternalQueue() {
+    return transformationToEdmExternalQueue;
+  }
+
+  @Bean(name = "providerRecordUrlTemplate")
+  String providerRecordUrlTemplate() {
+    return providerRecordUrlTemplate;
+  }
+
+  @Bean(name = "portalPublishRecordBaseUrl")
+  String portalPublishRecordBaseUrl() {
+    return portalPublishRecordBaseUrl;
   }
 
   @Bean
-  ZipFileReader zipFileReader() {
-    return new ZipFileReader();
+  OaiHarvester oaiHarvester() {
+    return HarvesterFactory.createOaiHarvester();
+  }
+
+  @Bean
+  HttpHarvester httpHarvester() {
+    return HarvesterFactory.createHttpHarvester();
   }
 
   @Bean
@@ -116,14 +155,12 @@ class SandboxConfig {
 
   @Bean
   EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
-
     DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
     dereferencerProvider.setEnrichmentUrl(enrichmentServiceUrl);
     EnricherProvider enricherProvider = new EnricherProvider();
     enricherProvider.setEnrichmentUrl(enrichmentServiceUrl);
     return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
-
   }
 
   @Bean
@@ -134,6 +171,26 @@ class SandboxConfig {
   @Bean
   MediaProcessorFactory mediaProcessorFactory() {
     return new MediaProcessorFactory();
+  }
+
+  @Bean
+  MediaExtractor mediaExtractor() {
+    try {
+      return mediaProcessorFactory().createMediaExtractor();
+    } catch (MediaProcessorException mediaProcessorException) {
+      LOGGER.error("Unable to create media extractor", mediaProcessorException);
+      return null;
+    }
+  }
+
+  @Bean
+  RdfSerializer rdfSerializer() {
+    return rdfConverterFactory().createRdfSerializer();
+  }
+
+  @Bean
+  RdfDeserializer rdfDeserializer() {
+    return rdfConverterFactory().createRdfDeserializer();
   }
 
   @Bean

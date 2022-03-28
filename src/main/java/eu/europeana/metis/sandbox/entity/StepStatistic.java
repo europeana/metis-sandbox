@@ -13,9 +13,9 @@ public class StepStatistic {
 
   private final Status status;
 
-  private final long count;
+  private final Long count;
 
-  public StepStatistic(Step step, Status status, long count) {
+  public StepStatistic(Step step, Status status, Long count) {
     this.step = step;
     this.status = status;
     this.count = count;
@@ -29,7 +29,7 @@ public class StepStatistic {
     return status;
   }
 
-  public long getCount() {
+  public Long getCount() {
     return count;
   }
 }

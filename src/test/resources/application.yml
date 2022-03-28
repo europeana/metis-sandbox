@@ -6,10 +6,12 @@ info:
     repository: https://github.com/europeana/metis-sandbox
 
 spring:
-  profiles:
-    active: test
+  config:
+    activate:
+      on-profile: test
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
     hibernate:
       ddl-auto: none
   autoconfigure:
@@ -21,7 +23,25 @@ spring:
   servlet:
     multipart:
       max-file-size: 5MB
-
+  rabbitmq:
+    virtual-host:
+    host: localhost
+    port: 5672
+    username: sandbox
+    password: sandbox
+    ssl:
+      enabled:
+      algorithm:
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 2
+        prefetch: 1
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          multiplier: 2
+          max-attempts: 3
 sandbox:
   cors:
     mapping: '*'
@@ -43,14 +63,6 @@ sandbox:
   enrichment:
     dereference-url: http://metis-test
     enrichment-url: http://metis-test
-  preview:
-    mongo:
-      application-name: metis-sandbox-application-preview-test
-      db: metis-sandbox-test
-      hosts: localhost
-      ports: 27017
-    solr:
-      hosts: http://metis-test:8888/solr/metis_sandbox_test
   publish:
     mongo:
       application-name: metis-sandbox-application-publish-test
@@ -60,10 +72,9 @@ sandbox:
     solr:
       hosts: http://metis-test:8888/solr/metis_sandbox_test
   portal:
-    preview:
-      url: http://metis-test
     publish:
-      url: http://metis-test
+      dataset-base-url: http://metis-test
+      record-base-url: http://metis-test/item
   truststore:
     path:
     password:
@@ -88,6 +99,7 @@ sandbox:
         core-pool-size: 5
         max-pool-size: 5
         thread-prefix: sandbox-test-
+    provider-record-url-template: http://localhost:8080/dataset/{datasetId}/record?recordId={recordId}&recordIdType={recordIdType}
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed
@@ -100,11 +112,18 @@ sandbox:
           queue: sandbox.record.log
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
           routing-key: sandbox.record.#
-          consumers: 20
-          max-consumers: 40
+          consumers: 2
+          max-consumers: 2
+          prefetch: 1
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
+        transformation:
+          edm:
+            external:
+              queue: sandbox.record.transformation.edm.external
+              dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
+              auto-start: true
         ordered:
           queue: sandbox.record.ordered
           dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
@@ -127,9 +146,6 @@ sandbox:
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
-        previewed:
-          queue: sandbox.record.previewed
-          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
         published:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq

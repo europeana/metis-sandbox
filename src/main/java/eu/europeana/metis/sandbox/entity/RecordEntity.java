@@ -1,30 +1,65 @@
 package eu.europeana.metis.sandbox.entity;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import eu.europeana.metis.sandbox.domain.Record;
+import java.util.List;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
-@MappedSuperclass
-class RecordEntity {
+/**
+ * Entity to map to record table
+ */
+@Entity
+@Table(name = "record")
+public class RecordEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   protected Long id;
 
-  protected String recordId;
+  protected String europeanaId;
+
+  protected String providerId;
 
   protected String datasetId;
 
-  @Enumerated(EnumType.STRING)
-  protected Step step;
+  @OneToMany(mappedBy = "recordId")
+  private List<RecordLogEntity> recordLogEntity;
 
-  @Enumerated(EnumType.STRING)
-  protected Status status;
+  @OneToMany(mappedBy = "recordId")
+  private List<RecordErrorLogEntity> recordErrorLogEntity;
+
+  /**
+   * Parameterized constructor
+   *
+   * @param europeanaId the europeana id associated to the record
+   * @param providerId the id of the record provided
+   * @param datasetId the dataset id associated to the record
+   */
+  public RecordEntity(String europeanaId, String providerId, String datasetId) {
+    this.europeanaId = europeanaId;
+    this.providerId = providerId;
+    this.datasetId = datasetId;
+  }
+
+  /**
+   * Contructor
+   *
+   * @param recordInput the record
+   */
+  public RecordEntity(Record recordInput){
+    this.europeanaId = recordInput.getEuropeanaId();
+    this.providerId = recordInput.getProviderId();
+    this.datasetId = recordInput.getDatasetId();
+  }
+
+
+  public RecordEntity() {
+    // provide explicit no-args constructor as it is required for Hibernate
+  }
 
   public Long getId() {
     return id;
@@ -34,12 +69,20 @@ class RecordEntity {
     this.id = id;
   }
 
-  public String getRecordId() {
-    return recordId;
+  public String getEuropeanaId() {
+    return europeanaId;
   }
 
-  public void setRecordId(String recordId) {
-    this.recordId = recordId;
+  public void setEuropeanaId(String europeanaId) {
+    this.europeanaId = europeanaId;
+  }
+
+  public String getProviderId() {
+    return providerId;
+  }
+
+  public void setProviderId(String providerId) {
+    this.providerId = providerId;
   }
 
   public String getDatasetId() {
@@ -50,19 +93,21 @@ class RecordEntity {
     this.datasetId = datasetId;
   }
 
-  public Step getStep() {
-    return step;
+  public List<RecordLogEntity> getRecordLogEntity() {
+    return recordLogEntity;
   }
 
-  public void setStep(Step step) {
-    this.step = step;
+  public void setRecordLogEntity(
+      List<RecordLogEntity> recordLogEntity) {
+    this.recordLogEntity = recordLogEntity;
   }
 
-  public Status getStatus() {
-    return status;
+  public List<RecordErrorLogEntity> getRecordErrorLogEntity() {
+    return recordErrorLogEntity;
   }
 
-  public void setStatus(Status status) {
-    this.status = status;
+  public void setRecordErrorLogEntity(
+      List<RecordErrorLogEntity> recordErrorLogEntity) {
+    this.recordErrorLogEntity = recordErrorLogEntity;
   }
 }

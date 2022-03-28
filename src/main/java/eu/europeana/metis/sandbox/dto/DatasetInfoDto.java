@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -28,16 +26,22 @@ public class DatasetInfoDto {
   @JsonProperty("country")
   private final Country country;
 
-  public DatasetInfoDto(String datasetId, String datasetName,
-      LocalDateTime creationDate,
-      Language language, Country country) {
-    requireNonNull(datasetId, "Dataset ID must not be null");
-    requireNonNull(datasetName, "Dataset Name must not be null");
+  @JsonProperty("record-limit-exceeded")
+  private final boolean recordLimitExceeded;
+
+  @JsonProperty("transformed-to-edm-external")
+  private final boolean transformedToEdmExternal;
+
+  public DatasetInfoDto(String datasetId, String datasetName, LocalDateTime creationDate,
+      Language language, Country country, boolean recordLimitExceeded, boolean transformedToEdmExternal) {
+
     this.creationDate = creationDate;
     this.language = language;
     this.country = country;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
+    this.recordLimitExceeded = recordLimitExceeded;
+    this.transformedToEdmExternal = transformedToEdmExternal;
   }
 
   public String getDatasetId() {
@@ -60,4 +64,10 @@ public class DatasetInfoDto {
     return country;
   }
 
+  public boolean isRecordLimitExceeded() {
+    return recordLimitExceeded;
+  }
+  public boolean isTransformedToEdmExternal() {
+    return transformedToEdmExternal;
+  }
 }

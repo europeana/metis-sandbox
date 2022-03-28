@@ -4,63 +4,96 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.domain.Event;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import java.nio.charset.StandardCharsets;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
+
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 class RecordLogServiceImpl implements RecordLogService {
 
-  private final RecordLogRepository recordLogRepository;
-  private final RecordErrorLogRepository errorLogRepository;
+    private final RecordLogRepository recordLogRepository;
+    private final RecordErrorLogRepository recordErrorLogRepository;
+    private final RecordRepository recordRepository;
 
-  public RecordLogServiceImpl(RecordLogRepository recordLogRepository,
-      RecordErrorLogRepository errorLogRepository) {
-    this.recordLogRepository = recordLogRepository;
-    this.errorLogRepository = errorLogRepository;
-  }
-
-  @Override
-  @Transactional
-  public void logRecordEvent(Event recordEvent) {
-    requireNonNull(recordEvent, "Record event must not be null");
-
-    var record = recordEvent.getBody();
-    var recordErrors = recordEvent.getRecordErrors();
-
-    var recordLogEntity = new RecordLogEntity(record.getRecordId(), record.getDatasetId(),
-        recordEvent.getStep(), recordEvent.getStatus(), new String(record.getContent(), StandardCharsets.UTF_8));
-    var recordErrorLogEntities = recordErrors.stream()
-        .map(error -> new RecordErrorLogEntity(record.getRecordId(), record.getDatasetId(),
-            recordEvent.getStep(), recordEvent.getStatus(), error.getMessage(),
-            error.getStackTrace()))
-        .collect(toList());
-
-    try {
-      recordLogRepository.save(recordLogEntity);
-      errorLogRepository.saveAll(recordErrorLogEntities);
-    } catch (RuntimeException e) {
-      throw new ServiceException(
-          format("Error saving record log for record: [%s]. ", record.getRecordId()), e);
+    public RecordLogServiceImpl(RecordLogRepository recordLogRepository,
+                                RecordErrorLogRepository recordErrorLogRepository,
+                                RecordRepository recordRepository) {
+        this.recordLogRepository = recordLogRepository;
+        this.recordErrorLogRepository = recordErrorLogRepository;
+        this.recordRepository = recordRepository;
     }
-  }
 
-  @Override
-  @Transactional
-  public void remove(String datasetId) {
-    requireNonNull(datasetId, "Dataset id must not be null");
-    try {
-      errorLogRepository.deleteByDatasetId(datasetId);
-      recordLogRepository.deleteByDatasetId(datasetId);
-    } catch (RuntimeException e) {
-      throw new ServiceException(
-          format("Error removing records for dataset id: [%s]. ", datasetId), e);
+    @Override
+    @Transactional
+    public void logRecordEvent(RecordProcessEvent recordRecordProcessEvent) {
+        var record = recordRecordProcessEvent.getRecord();
+        var recordErrors = recordRecordProcessEvent.getRecordErrors();
+
+        RecordEntity recordEntity = recordRepository.getOne(record.getRecordId());
+        var recordLogEntity = new RecordLogEntity(recordEntity, new String(
+            recordRecordProcessEvent.getRecord().getContent()),
+                recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus());
+        var recordErrorLogEntities = recordErrors.stream()
+                .map(error -> new RecordErrorLogEntity(recordEntity,
+                        recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus(), error.getMessage(),
+                        error.getStackTrace()))
+                .collect(toList());
+        try {
+            recordLogRepository.save(recordLogEntity);
+            recordErrorLogRepository.saveAll(recordErrorLogEntities);
+        } catch (RuntimeException e) {
+            throw new ServiceException(
+                    format("Error saving record log for record: [%s]. ", record.getProviderId()), e);
+        }
     }
-  }
+
+    @Override
+    public String getProviderRecordString(String recordId, String datasetId)
+            throws NoRecordFoundException {
+        return Optional.ofNullable(getRecordLogEntity(recordId, datasetId)).map(RecordLogEntity::getContent)
+                .orElseThrow(() -> new NoRecordFoundException(
+                        String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId)));
+    }
+
+    @Override
+    public RecordLogEntity getRecordLogEntity(String recordId, String datasetId) {
+        final RecordLogEntity recordLogEntity;
+        recordLogEntity = recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep(recordId, datasetId, Step.MEDIA_PROCESS);
+        return recordLogEntity;
+    }
+
+    @Override
+    public RecordErrorLogEntity getRecordErrorLogEntity(String recordId, String datasetId) {
+        final RecordErrorLogEntity recordErrorLogEntity;
+        recordErrorLogEntity = recordErrorLogRepository.findRecordLogByRecordIdAndDatasetIdAndStep(recordId, datasetId,
+                Step.MEDIA_PROCESS);
+        return recordErrorLogEntity;
+    }
+
+    @Override
+    @Transactional
+    public void remove(String datasetId) {
+        requireNonNull(datasetId, "Dataset id must not be null");
+        try {
+            recordErrorLogRepository.deleteByDatasetId(datasetId);
+            recordLogRepository.deleteByDatasetId(datasetId);
+            recordRepository.deleteByDatasetId(datasetId);
+        } catch (RuntimeException e) {
+            throw new ServiceException(
+                    format("Error removing records for dataset id: [%s]. ", datasetId), e);
+        }
+    }
 }

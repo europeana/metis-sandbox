@@ -25,7 +25,7 @@ public class DatasetEntity {
 
   private String datasetName;
 
-  private Integer recordsQuantity;
+  private Long recordsQuantity;
 
   @Column(insertable = false, updatable = false)
   private LocalDateTime createdDate;
@@ -36,11 +36,24 @@ public class DatasetEntity {
   @Enumerated(EnumType.STRING)
   private Country country;
 
-  public DatasetEntity(String datasetName, Integer recordsQuantity, Language language, Country country) {
+  private String xsltEdmExternalContent;
+
+  private Boolean recordLimitExceeded;
+
+  public DatasetEntity(String datasetName, Long recordsQuantity, Language language, Country country,
+      Boolean recordLimitExceeded) {
     this.datasetName = datasetName;
     this.recordsQuantity = recordsQuantity;
     this.language = language;
     this.country = country;
+    this.recordLimitExceeded = recordLimitExceeded;
+
+  }
+
+  public DatasetEntity(String datasetName, Long recordsQuantity, Language language, Country country,
+      Boolean recordLimitExceeded, String xsltEdmExternalContent) {
+    this(datasetName, recordsQuantity, language, country, recordLimitExceeded);
+    this.xsltEdmExternalContent = xsltEdmExternalContent;
   }
 
   public DatasetEntity() {
@@ -63,11 +76,11 @@ public class DatasetEntity {
     this.datasetName = datasetName;
   }
 
-  public Integer getRecordsQuantity() {
+  public Long getRecordsQuantity() {
     return recordsQuantity;
   }
 
-  public void setRecordsQuantity(Integer recordsQuantity) {
+  public void setRecordsQuantity(Long recordsQuantity) {
     this.recordsQuantity = recordsQuantity;
   }
 
@@ -95,4 +108,18 @@ public class DatasetEntity {
     this.country = country;
   }
 
+  public Boolean getRecordLimitExceeded() {
+    return recordLimitExceeded;
+  }
+
+  public void setRecordLimitExceeded(Boolean hasReachedRecordLimit) {
+    this.recordLimitExceeded = hasReachedRecordLimit;
+  }
+  public String getXsltEdmExternalContent() {
+    return xsltEdmExternalContent;
+  }
+
+  public void setXsltEdmExternalContent(String xsltTransformerEdmExternal) {
+    this.xsltEdmExternalContent = xsltTransformerEdmExternal;
+  }
 }

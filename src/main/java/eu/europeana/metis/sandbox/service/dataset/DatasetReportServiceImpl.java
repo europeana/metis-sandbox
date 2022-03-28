@@ -12,10 +12,11 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -28,7 +29,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,17 +42,15 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
   private static final int FIRST = 0;
-  private static final String EMPTY_DATASET = "Dataset is empty";
-  private static final String PROCESSING_MSG = "A review URL will be generated when the dataset has finished processing";
-  private static final String FINISH_ALL_ERRORS = "All dataset records failed to be processed";
+  private static final String EMPTY_DATASET_MESSAGE = "Dataset is empty.";
+  private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
+  private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
+  private static final String FINISH_ALL_ERRORS_MESSAGE = "All dataset records failed to be processed.";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
 
-  @Value("${sandbox.portal.preview.url}")
-  private String portalPreviewUrl;
-
-  @Value("${sandbox.portal.publish.url}")
-  private String portalPublishUrl;
+  @Value("${sandbox.portal.publish.dataset-base-url}")
+  private String portalPublishDatasetUrl;
 
   private final DatasetRepository datasetRepository;
   private final RecordLogRepository recordLogRepository;
@@ -72,22 +75,22 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     //Create DatasetInfoDto from DatasetEntity
     DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-        dataset.getLanguage(), dataset.getCountry());
+        dataset.getLanguage(), dataset.getCountry(), dataset.getRecordLimitExceeded(),
+        StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
 
     // pull records and errors data for the dataset
     List<StepStatistic> stepStatistics;
     List<ErrorLogView> errorsLog;
     try {
       stepStatistics = recordLogRepository.getStepStatistics(datasetId);
-      errorsLog = errorLogRepository.getByDatasetId(datasetId);
+      errorsLog = errorLogRepository.getByRecordIdDatasetId(datasetId);
     } catch (RuntimeException exception) {
       throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
           exception);
     }
 
     if (stepStatistics.isEmpty()) {
-      return new ProgressInfoDto(getPreviewPortalUrl(dataset, 0L, 0L),
-          getPublishPortalUrl(dataset, 0L, 0L),
+      return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L, 0L),
           dataset.getRecordsQuantity(), 0L, List.of(),
           datasetInfoDto);
     }
@@ -112,33 +115,30 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordErrorsByStep));
 
     return new ProgressInfoDto(
-        getPreviewPortalUrl(dataset, completedRecords, failedRecords),
         getPublishPortalUrl(dataset, completedRecords, failedRecords),
         dataset.getRecordsQuantity(), completedRecords,
         stepsInfo, datasetInfoDto);
   }
 
-  private String getPreviewPortalUrl(DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    return getPortalUrl(portalPreviewUrl, dataset, completedRecords, failedRecords);
+  private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords,
+      Long failedRecords) {
+    return getPortalUrl(portalPublishDatasetUrl, dataset, completedRecords, failedRecords);
   }
 
-  private String getPublishPortalUrl(DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    return getPortalUrl(portalPublishUrl, dataset, completedRecords, failedRecords);
-  }
-
-  private String getPortalUrl(String portal, DatasetEntity dataset, long completedRecords,
-      long failedRecords) {
-    long recordsQty = dataset.getRecordsQuantity();
+  private String getPortalUrl(String portal, DatasetEntity dataset, Long completedRecords,
+      Long failedRecords) {
+    Long recordsQty = dataset.getRecordsQuantity();
+    if (recordsQty == null) {
+      return HARVESTING_IDENTIFIERS_MESSAGE;
+    }
     if (recordsQty == 0) {
-      return EMPTY_DATASET;
+      return EMPTY_DATASET_MESSAGE;
     }
-    if (recordsQty != completedRecords) {
-      return PROCESSING_MSG;
+    if (!recordsQty.equals(completedRecords)) {
+      return PROCESSING_DATASET_MESSAGE;
     }
-    if (completedRecords == failedRecords) {
-      return FINISH_ALL_ERRORS;
+    if (completedRecords.equals(failedRecords)) {
+      return FINISH_ALL_ERRORS_MESSAGE;
     }
     var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
     return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
@@ -150,35 +150,35 @@ class DatasetReportServiceImpl implements DatasetReportService {
     try {
       optionalDataset = datasetRepository.findById(Integer.valueOf(datasetId));
     } catch (RuntimeException exception) {
-      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
+      throw new ServiceException(format("Failed to get dataset with id: [%s]. ", datasetId),
           exception);
     }
 
     return optionalDataset.orElseThrow(() -> new InvalidDatasetException(datasetId));
   }
 
-  private long getCompletedRecords(List<StepStatistic> stepStatistics) {
+  private Long getCompletedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
-        .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
-        .mapToLong(StepStatistic::getCount)
-        .sum();
+                         .filter(current -> current.getStep() == Step.CLOSE || current.getStatus() == Status.FAIL)
+                         .mapToLong(StepStatistic::getCount)
+                         .sum();
   }
 
   private long getFailedRecords(List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
-        .filter(current -> current.getStatus() == Status.FAIL)
-        .mapToLong(StepStatistic::getCount)
-        .sum();
+                         .filter(current -> current.getStatus() == Status.FAIL)
+                         .mapToLong(StepStatistic::getCount)
+                         .sum();
   }
 
   private Map<Step, Map<Status, Long>> getStatisticsByStep(
       List<StepStatistic> stepStatistics) {
     return stepStatistics.stream()
-        .filter(x -> x.getStep() != Step.CLOSE)
-        .sorted(Comparator.comparingInt(stepStatistic -> stepStatistic.getStep().precedence()))
-        .collect(groupingBy(StepStatistic::getStep, LinkedHashMap::new,
-            groupingBy(StepStatistic::getStatus,
-                reducing(0L, StepStatistic::getCount, Long::sum))));
+                         .filter(x -> x.getStep() != Step.CLOSE)
+                         .sorted(Comparator.comparingInt(stepStatistic -> stepStatistic.getStep().precedence()))
+                         .collect(groupingBy(StepStatistic::getStep, LinkedHashMap::new,
+                             groupingBy(StepStatistic::getStatus,
+                                 reducing(0L, StepStatistic::getCount, Long::sum))));
   }
 
   private Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> getRecordErrorsByStep(
@@ -189,7 +189,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return errorsLog
         .stream()
         .sorted(Comparator.comparingInt((ErrorLogView e) -> e.getStep().precedence())
-            .thenComparing(ErrorLogView::getRecordId))
+                          .thenComparing(x -> x.getRecordId().getId()))
         .collect(groupingBy(ErrorLogView::getStep, LinkedHashMap::new,
             groupingBy(ErrorLogView::getStatus,
                 groupingBy(ErrorLogView::getMessage))));
@@ -217,12 +217,21 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     statusMap.forEach((status, errorsMap) ->
         errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
-            new ErrorInfoDto(error, status, recordList.stream()
-                .map(ErrorLogView::getRecordId)
-                .sorted(String::compareTo)
-                .collect(toList())))));
+            new ErrorInfoDto(error, status,
+                recordList.stream()
+                          .map(ErrorLogView::getRecordId)
+                          .map(DatasetReportServiceImpl::createMessageRecordError)
+                          .sorted(String::compareTo)
+                          .collect(toList())))));
 
     errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
     return errorInfoDtoList;
   }
+
+  private static String createMessageRecordError(RecordEntity recordEntity){
+
+      return Stream.of(recordEntity.getEuropeanaId(), recordEntity.getProviderId()).filter(
+          Objects::nonNull).filter(id->!id.isBlank()).collect(Collectors.joining(" | "));
+  }
+
 }

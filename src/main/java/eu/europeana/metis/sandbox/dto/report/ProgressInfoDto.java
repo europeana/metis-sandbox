@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.dto.report;
 
-import static java.util.Objects.requireNonNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
@@ -17,7 +15,8 @@ public class ProgressInfoDto {
 
   public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
 
-  private enum Status {
+  enum Status {
+    HARVESTING_IDENTIFIERS("harvesting identifiers"),
     COMPLETED("completed"),
     IN_PROGRESS("in progress");
 
@@ -33,19 +32,16 @@ public class ProgressInfoDto {
     }
   }
 
-  @JsonProperty("portal-preview")
-  private final String portalPreviewUrl;
-
   @JsonProperty("portal-publish")
   private final String portalPublishUrl;
 
   private final Status status;
 
   @JsonProperty("total-records")
-  private final long totalRecords;
+  private final Long totalRecords;
 
   @JsonProperty("processed-records")
-  private final long processedRecords;
+  private final Long processedRecords;
 
   @JsonProperty("progress-by-step")
   private final List<ProgressByStepDto> progressByStep;
@@ -53,25 +49,22 @@ public class ProgressInfoDto {
   @JsonProperty("dataset-info")
   private final DatasetInfoDto datasetInfoDto;
 
-  public ProgressInfoDto(String portalPreviewUrl, String portalPublishUrl,
-      int totalRecords,
-      long processedRecords, List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
-    requireNonNull(portalPreviewUrl, "Preview portal url must not be null");
-    requireNonNull(portalPublishUrl, "Publish portal url must not be null");
-    requireNonNull(progressByStep, "Progress by step must not be null");
-    requireNonNull(datasetInfoDto, "Dataset info must not be null");
-    this.totalRecords = totalRecords;
+  public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
+      List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
     this.processedRecords = processedRecords;
-    this.status =
-        this.totalRecords == this.processedRecords ? Status.COMPLETED : Status.IN_PROGRESS;
+    if (totalRecords == null) {
+      this.status = Status.HARVESTING_IDENTIFIERS;
+      this.totalRecords = 0L;
+    } else if (totalRecords.equals(this.processedRecords)) {
+      this.status = Status.COMPLETED;
+      this.totalRecords = totalRecords;
+    } else {
+      this.status = Status.IN_PROGRESS;
+      this.totalRecords = totalRecords;
+    }
     this.progressByStep = Collections.unmodifiableList(progressByStep);
-    this.portalPreviewUrl = portalPreviewUrl;
     this.portalPublishUrl = portalPublishUrl;
     this.datasetInfoDto = datasetInfoDto;
-  }
-
-  public String getPortalPreviewUrl() {
-    return portalPreviewUrl;
   }
 
   public String getPortalPublishUrl() {

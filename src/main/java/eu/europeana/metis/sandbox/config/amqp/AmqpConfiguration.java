@@ -14,10 +14,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Config for amqp, contains exchange, queues and dead letter queues definitions
- * as well as their bindings.
- * <br /><br />
- * If there is a need to add a new queue in the future here is the place to do it
+ * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their
+ * bindings. <br /><br /> If there is a need to add a new queue in the future here is the place to
+ * do it
  */
 @Configuration
 class AmqpConfiguration {
@@ -35,6 +34,12 @@ class AmqpConfiguration {
 
   @Value("${sandbox.rabbitmq.queues.record.created.dlq}")
   private String createdDlq;
+
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  private String transformationToEdmExternalQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.dlq}")
+  private String transformationToEdmExternalDlq;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.external.queue}")
   private String externalValidatedQueue;
@@ -72,12 +77,6 @@ class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
   private String mediaProcessedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.previewed.queue}")
-  private String previewedQueue;
-
-  @Value("${sandbox.rabbitmq.queues.record.previewed.dlq}")
-  private String previewedDlq;
-
   @Value("${sandbox.rabbitmq.queues.record.published.queue}")
   private String publishedQueue;
 
@@ -110,16 +109,25 @@ class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(createdDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(previewedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(
-            previewedDlq).build(),
-        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq).deadLetterRoutingKey(publishedDlq).build()
+        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(createdDlq).build(),
+        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(
+                transformationToEdmExternalDlq).build(),
+        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(externalValidatedDlq).build(),
+        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(transformedDlq).build(),
+        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(normalizedDlq).build(),
+        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(internalValidatedDlq).build(),
+        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(enrichedDlq).build(),
+        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(mediaProcessedDlq).build(),
+        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
+            .deadLetterRoutingKey(publishedDlq).build()
     );
   }
 
@@ -127,47 +135,48 @@ class AmqpConfiguration {
   Declarables deadQueues() {
     return new Declarables(
         QueueBuilder.durable(createdDlq).build(),
+        QueueBuilder.durable(transformationToEdmExternalDlq).build(),
         QueueBuilder.durable(externalValidatedDlq).build(),
         QueueBuilder.durable(transformedDlq).build(),
         QueueBuilder.durable(normalizedDlq).build(),
         QueueBuilder.durable(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedDlq).build(),
         QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(previewedDlq).build(),
         QueueBuilder.durable(publishedDlq).build()
     );
   }
 
   @Bean
   Declarables bindings() {
-    return getDeclarables(exchange, createdQueue, externalValidatedQueue, transformedQueue,
-        normalizedQueue, internalValidatedQueue, enrichedQueue, mediaProcessedQueue,
-        previewedQueue, publishedQueue);
+    return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue,
+        externalValidatedQueue, transformedQueue, normalizedQueue, internalValidatedQueue,
+        enrichedQueue, mediaProcessedQueue, publishedQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
-    return getDeclarables(exchangeDlq, createdDlq, externalValidatedDlq, transformedDlq,
-        normalizedDlq, internalValidatedDlq, enrichedDlq, mediaProcessedDlq,
-        previewedDlq, publishedDlq);
+    return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
+        externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
+        mediaProcessedDlq, publishedDlq);
   }
 
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
   private Declarables getDeclarables(String exchange, String created,
-      String externalValidated, String transformed, String normalized,
-      String internalValidated, String enriched, String mediaProcessed,
-      String previewed, String published) {
+      String transformationToEdmExternal, String externalValidated, String transformed,
+      String normalized, String internalValidated, String enriched, String mediaProcessed,
+      String published) {
     return new Declarables(
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
+        new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange,
+            transformationToEdmExternal, null),
         new Binding(externalValidated, DestinationType.QUEUE, exchange, externalValidated, null),
         new Binding(transformed, DestinationType.QUEUE, exchange, transformed, null),
         new Binding(normalized, DestinationType.QUEUE, exchange, normalized, null),
         new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
         new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
         new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
-        new Binding(previewed, DestinationType.QUEUE, exchange, previewed, null),
         new Binding(published, DestinationType.QUEUE, exchange, published, null)
     );
   }

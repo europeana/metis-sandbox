@@ -19,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectFactory;
 import org.xml.sax.InputSource;
 
+import java.io.File;
+
 @ExtendWith(MockitoExtension.class)
 class XmlRecordProcessorServiceImplTest {
 
@@ -38,38 +40,39 @@ class XmlRecordProcessorServiceImplTest {
 
   @Test
   void getRecordId_expectSuccess() throws Exception {
-    var xmlRecord = utils.readFileToBytes("record/valid-record.xml");
+
+    var xmlRecord = utils.readFileToBytes("record"+File.separator+"valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
-    String recordId = service.getRecordId(xmlRecord);
+    final String recordId = service.getProviderId(xmlRecord);
 
     assertEquals("URN:NBN:SI:doc-35SZSOCF", recordId);
   }
 
   @Test
   void getRecordId_nullRecord_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.getRecordId(null));
+    assertThrows(NullPointerException.class, () -> service.getProviderId(null));
   }
 
   @Test
   void getRecordId_recordParsingException_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToBytes("record/valid-record.xml");
+    var xmlRecord = utils.readFileToBytes("record"+File.separator+"valid-record.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
     when(xPathFactory.newXPath()).thenReturn(xPath);
     when(xPath.evaluate(any(String.class), any(InputSource.class)))
         .thenThrow(new XPathExpressionException("Fail here"));
 
-    assertThrows(RecordParsingException.class, () -> service.getRecordId(xmlRecord));
+    assertThrows(RecordParsingException.class, () -> service.getProviderId(xmlRecord));
   }
 
   @Test
   void getRecordId_recordMissingId_expectFail() throws Exception {
-    var xmlRecord = utils.readFileToBytes("record/record-missing-id.xml");
+    var xmlRecord = utils.readFileToBytes("record"+File.separator+"record-missing-id.xml");
 
     when(objectFactory.getObject()).thenReturn(xPathFactory);
 
-    assertThrows(IllegalArgumentException.class, () -> service.getRecordId(xmlRecord));
+    assertThrows(IllegalArgumentException.class, () -> service.getProviderId(xmlRecord));
   }
 }

@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.metis.sandbox.common.IndexEnvironment;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -27,72 +26,45 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class IndexingServiceImplTest {
 
   @Mock
-  private Indexer previewIndexer;
-
-  @Mock
   private Indexer publishIndexer;
 
   private IndexingServiceImpl service;
 
   @BeforeEach
   void init() {
-    service = new IndexingServiceImpl(previewIndexer, publishIndexer);
-  }
-
-  @Test
-  void indexPreview_expectSuccess() throws IndexingException {
-    var record = Record.builder().recordId("1")
-        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
-
-    service.index(record, IndexEnvironment.PREVIEW);
-    verify(previewIndexer).index(any(InputStream.class), any());
-  }
-
-  @Test
-  void indexPreview_IndexingIssue_expectFail() throws IndexingException {
-    var record = Record.builder().recordId("1")
-        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-        .datasetName("").datasetId("").build();
-
-    doThrow(new IndexerRelatedIndexingException("Failed"))
-        .when(previewIndexer).index(any(InputStream.class), any());
-    assertThrows(RecordProcessingException.class,
-        () -> service.index(record, IndexEnvironment.PREVIEW));
+    service = new IndexingServiceImpl(publishIndexer);
   }
 
   @Test
   void indexPublish_expectSuccess() throws IndexingException {
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
-    service.index(record, IndexEnvironment.PUBLISH);
+    service.index(record);
     verify(publishIndexer).index(any(InputStream.class), any());
   }
 
   @Test
   void indexPublish_IndexingIssue_expectFail() throws IndexingException {
-    var record = Record.builder().recordId("1")
+    var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(publishIndexer).index(any(InputStream.class), any());
     assertThrows(RecordProcessingException.class,
-        () -> service.index(record, IndexEnvironment.PUBLISH));
+        () -> service.index(record));
   }
 
   @Test
   void index_inputNull_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.index(null, IndexEnvironment.PUBLISH));
+    assertThrows(NullPointerException.class, () -> service.index(null));
   }
 
   @Test
   void remove_expectSuccess() throws IndexingException {
     service.remove("1");
-
-    verify(previewIndexer).removeAll("1", null);
     verify(publishIndexer).removeAll("1", null);
   }
 
@@ -111,7 +83,6 @@ class IndexingServiceImplTest {
   @Test
   void destroy_expectSuccess() throws IOException {
     service.destroy();
-    verify(previewIndexer).close();
     verify(publishIndexer).close();
   }
 }

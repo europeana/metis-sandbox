@@ -1,74 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF xmlns:adms="http://www.w3.org/ns/adms#"
-  xmlns:cc="http://creativecommons.org/ns#"
-  xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
-  xmlns:dc="http://purl.org/dc/elements/1.1/"
-  xmlns:dcat="http://www.w3.org/ns/dcat#"
-  xmlns:dcterms="http://purl.org/dc/terms/"
-  xmlns:doap="http://usefulinc.com/ns/doap#"
-  xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
-  xmlns:edm="http://www.europeana.eu/schemas/edm/"
-  xmlns:foaf="http://xmlns.com/foaf/0.1/"
-  xmlns:odrl="http://www.w3.org/ns/odrl/2/"
-  xmlns:ore="http://www.openarchives.org/ore/terms/"
-  xmlns:owl="http://www.w3.org/2002/07/owl#"
-  xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
-  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
-  xmlns:svcs="http://rdfs.org/sioc/services#"
-  xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#">
-  <edm:ProvidedCHO rdf:about="/27/URN_NBN_SI_doc_35SZSOCF"/>
-  <edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/fe3c97d7-f950-4632-87cf-64844b040e71/PDF">
-    <dcterms:extent>54405 KB</dcterms:extent>
-  </edm:WebResource>
-  <edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/8fa28f63-2af4-4189-9071-95026de84187/TEXT">
-    <dcterms:extent>138 KB</dcterms:extent>
-  </edm:WebResource>
-  <ore:Aggregation rdf:about="/aggregation/provider/27/URN_NBN_SI_doc_35SZSOCF">
-    <edm:aggregatedCHO rdf:resource="/27/URN_NBN_SI_doc_35SZSOCF"/>
-    <edm:dataProvider xml:lang="en">National and University Library of Slovenia</edm:dataProvider>
-    <edm:isShownAt rdf:resource="http://www.dlib.si/details/URN:NBN:SI:doc-35SZSOCF"/>
-    <edm:isShownBy rdf:resource="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/fe3c97d7-f950-4632-87cf-64844b040e71/PDF"/>
-    <edm:object rdf:resource="http://www.dlib.si/streamdb/URN:NBN:SI:doc-35SZSOCF/maxi/edm"/>
-    <edm:provider>Slovenian National E-content Aggregator</edm:provider>
-    <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
-  </ore:Aggregation>
-  <ore:Proxy rdf:about="/proxy/provider/27/URN_NBN_SI_doc_35SZSOCF">
-    <dc:creator>Stanič, Valentin</dc:creator>
-    <dc:description xml:lang="sl">
-      Perstavik nekterih zerkvenih in drugih pesem, h' molitvam in premishlovanjam sa sveto-léto 1826. - Str. 51-148
+         xmlns:cc="http://creativecommons.org/ns#"
+         xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:doap="http://usefulinc.com/ns/doap#"
+         xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:odrl="http://www.w3.org/ns/odrl/2/"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:svcs="http://rdfs.org/sioc/services#"
+         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+         xmlns:xs="http://www.w3.org/2001/XMLSchema">
+   <edm:ProvidedCHO rdf:about="/1/URN_NBN_SI_doc_35SZSOCF"/>
+   <edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/fe3c97d7-f950-4632-87cf-64844b040e71/PDF">
+      <dcterms:extent>54405 KB</dcterms:extent>
+   </edm:WebResource>
+   <edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/8fa28f63-2af4-4189-9071-95026de84187/TEXT">
+      <dcterms:extent>138 KB</dcterms:extent>
+   </edm:WebResource>
+   <ore:Aggregation rdf:about="/aggregation/provider/1/URN_NBN_SI_doc_35SZSOCF">
+      <edm:aggregatedCHO rdf:resource="/1/URN_NBN_SI_doc_35SZSOCF"/>
+      <edm:dataProvider xml:lang="en">National and University Library of Slovenia</edm:dataProvider>
+      <edm:isShownAt rdf:resource="http://www.dlib.si/details/URN:NBN:SI:doc-35SZSOCF"/>
+      <edm:isShownBy rdf:resource="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/fe3c97d7-f950-4632-87cf-64844b040e71/PDF"/>
+      <edm:object rdf:resource="http://www.dlib.si/streamdb/URN:NBN:SI:doc-35SZSOCF/maxi/edm"/>
+      <edm:provider>Slovenian National E-content Aggregator</edm:provider>
+      <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+   </ore:Aggregation>
+   <ore:Proxy rdf:about="/proxy/provider/1/URN_NBN_SI_doc_35SZSOCF">
+      <dc:creator>Stanič, Valentin</dc:creator>
+      <dc:description xml:lang="sl">
+      Perstavik nekterih zerkvenih in drugih pesem, h' molitvam in premishlovanjam sa sveto-léto
+      1826. - Str. 51-148
     </dc:description>
-    <dc:format xml:lang="sl">148 str., 12° (16 cm)</dc:format>
-    <dc:identifier>COBISSID:5081952</dc:identifier>
-    <dc:identifier>URN:URN:NBN:SI:doc-35SZSOCF</dc:identifier>
-    <dc:language>sl</dc:language>
-    <dc:publisher xml:lang="sl">per bukvah niemshkih şhol</dc:publisher>
-    <dc:source xml:lang="sl">knjige</dc:source>
-    <dc:subject xml:lang="sl">19. st.</dc:subject>
-    <dc:subject xml:lang="sl">cerkvene pesmarice</dc:subject>
-    <dc:subject xml:lang="sl">krščanska duhovnost</dc:subject>
-    <dc:subject xml:lang="sl">molitve</dc:subject>
-    <dc:subject xml:lang="sl">poezija</dc:subject>
-    <dc:title xml:lang="sl">
-      Molitve in premishlovanja per objiskovanju shtirih k' sadoblenju odpustika svetiga-leta odlozhenih zerkva; katerim je spredpostavljen kratki nauk od svetiga léta 1826; s' perstav'kam 41 zerkvenih ino drugih pesm sa kmete ino mlade ljudi
+      <dc:format xml:lang="sl">148 str., 12° (16 cm)</dc:format>
+      <dc:identifier>COBISSID:5081952</dc:identifier>
+      <dc:identifier>URN:URN:NBN:SI:doc-35SZSOCF</dc:identifier>
+      <dc:language>sl</dc:language>
+      <dc:publisher xml:lang="sl">per bukvah niemshkih şhol</dc:publisher>
+      <dc:source xml:lang="sl">knjige</dc:source>
+      <dc:subject xml:lang="sl">19. st.</dc:subject>
+      <dc:subject xml:lang="sl">cerkvene pesmarice</dc:subject>
+      <dc:subject xml:lang="sl">krščanska duhovnost</dc:subject>
+      <dc:subject xml:lang="sl">molitve</dc:subject>
+      <dc:subject xml:lang="sl">poezija</dc:subject>
+      <dc:title xml:lang="sl">
+      Molitve in premishlovanja per objiskovanju shtirih k' sadoblenju odpustika svetiga-leta
+      odlozhenih zerkva; katerim je spredpostavljen kratki nauk od svetiga léta 1826; s' perstav'kam
+      41 zerkvenih ino drugih pesm sa kmete ino mlade ljudi
     </dc:title>
-    <dc:type xml:lang="sl">knjige</dc:type>
-    <dcterms:issued>1826</dcterms:issued>
-    <ore:proxyFor rdf:resource="/27/URN_NBN_SI_doc_35SZSOCF"/>
-    <ore:proxyIn rdf:resource="/aggregation/provider/27/URN_NBN_SI_doc_35SZSOCF"/>
-    <edm:type>TEXT</edm:type>
-  </ore:Proxy>
-  <ore:Proxy rdf:about="/proxy/europeana/27/URN_NBN_SI_doc_35SZSOCF">
-    <dc:identifier>URN:NBN:SI:doc-35SZSOCF</dc:identifier>
-    <edm:europeanaProxy>true</edm:europeanaProxy>
-    <ore:proxyFor rdf:resource="/27/URN_NBN_SI_doc_35SZSOCF"/>
-    <ore:proxyIn rdf:resource="/aggregation/europeana/27/URN_NBN_SI_doc_35SZSOCF"/>
-  </ore:Proxy>
-  <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/27/URN_NBN_SI_doc_35SZSOCF">
-    <edm:aggregatedCHO rdf:resource="/27/URN_NBN_SI_doc_35SZSOCF"/>
-    <edm:datasetName>test_one</edm:datasetName>
-    <edm:country>Netherlands</edm:country>
-    <edm:language>nl</edm:language>
-  </edm:EuropeanaAggregation>
+      <dc:type xml:lang="sl">knjige</dc:type>
+      <dcterms:issued>1826</dcterms:issued>
+      <edm:europeanaProxy>false</edm:europeanaProxy>
+      <ore:proxyFor rdf:resource="/1/URN_NBN_SI_doc_35SZSOCF"/>
+      <ore:proxyIn rdf:resource="/aggregation/provider/1/URN_NBN_SI_doc_35SZSOCF"/>
+      <edm:type>TEXT</edm:type>
+   </ore:Proxy>
+   <ore:Proxy rdf:about="/proxy/europeana/1/URN_NBN_SI_doc_35SZSOCF">
+      <dc:identifier>URN:NBN:SI:doc-35SZSOCF</dc:identifier>
+      <edm:europeanaProxy>true</edm:europeanaProxy>
+      <ore:proxyFor rdf:resource="/1/URN_NBN_SI_doc_35SZSOCF"/>
+      <ore:proxyIn rdf:resource="/aggregation/europeana/1/URN_NBN_SI_doc_35SZSOCF"/>
+      <ore:lineage rdf:resource="/proxy/provider/1/URN_NBN_SI_doc_35SZSOCF"/>
+   </ore:Proxy>
+   <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/1/URN_NBN_SI_doc_35SZSOCF">
+      <edm:aggregatedCHO rdf:resource="/1/URN_NBN_SI_doc_35SZSOCF"/>
+      <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
+      <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
+      <edm:datasetName>1_One</edm:datasetName>
+      <edm:country>Italy</edm:country>
+      <edm:language>it</edm:language>
+   </edm:EuropeanaAggregation>
 </rdf:RDF>
+
