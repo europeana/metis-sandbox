@@ -21,8 +21,6 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
-import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
-import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
@@ -33,10 +31,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -56,10 +56,7 @@ public class HarvestServiceImpl implements HarvestService {
   private final RecordPublishService recordPublishService;
   private final DatasetService datasetService;
   private final int maxRecords;
-
   private final RecordRepository recordRepository;
-  private final RecordErrorLogRepository recordErrorLogRepository;
-  private final RecordLogRepository recordLogRepository;
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
@@ -67,17 +64,13 @@ public class HarvestServiceImpl implements HarvestService {
       RecordPublishService recordPublishService,
       DatasetService datasetService,
       @Value("${sandbox.dataset.max-size}") int maxRecords,
-      RecordRepository recordRepository,
-      RecordErrorLogRepository recordErrorLogRepository,
-      RecordLogRepository recordLogRepository) {
+      RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
     this.recordRepository = recordRepository;
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
-    this.recordErrorLogRepository = recordErrorLogRepository;
-    this.recordLogRepository = recordLogRepository;
   }
 
   @Override
@@ -90,7 +83,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
       OaiHarvestData oaiHarvestData) {
-    List<RecordInfo> recordInfoList = new ArrayList<>();
+    List<Optional<RecordInfo>> recordInfoList = new ArrayList<>();
     datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
@@ -98,7 +91,7 @@ public class HarvestServiceImpl implements HarvestService {
             oaiHarvestData.getMetadataformat(),
             oaiHarvestData.getSetspec()))) {
 
-      AtomicLong currentNumberOfIterations = new AtomicLong();
+      AtomicLong numberOfIterations = new AtomicLong();
 
       recordHeaderIterator.forEach(recordHeader -> {
             try {
@@ -111,36 +104,41 @@ public class HarvestServiceImpl implements HarvestService {
                 return ReportingIteration.IterationResult.CONTINUE;
               }
 
-              currentNumberOfIterations.getAndIncrement();
+              numberOfIterations.getAndIncrement();
 
-              if (currentNumberOfIterations.get() > maxRecords) {
+              if (numberOfIterations.get() > maxRecords) {
                 datasetService.setRecordLimitExceeded(datasetId);
-                currentNumberOfIterations.set(maxRecords);
+                numberOfIterations.set(maxRecords);
                 return ReportingIteration.IterationResult.TERMINATE;
               }
 
-              recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData,
-                  recordDataEncapsulated));
+              recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated, recordInfoList));
 
             } catch (RuntimeException harvestException) {
-              saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(), Step.HARVEST_OAI_PMH, harvestException);
+              saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(), Step.HARVEST_OAI_PMH,
+                  harvestException);
             }
             return ReportingIteration.IterationResult.CONTINUE;
           }
       );
 
-      datasetService.updateNumberOfTotalRecord(datasetId, currentNumberOfIterations.get());
+      //numberOfIterations.getAndSet(numberOfIterations.get() - recordInfoList.stream().filter(Optional::isEmpty).count());
+      datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
     }
 
-    return recordInfoList;
+    return recordInfoList.stream()
+                         .filter(Optional::isPresent)
+                         .map(Optional::get)
+                         .collect(Collectors.toList());
   }
 
-  private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest) {
-    RecordInfo recordInfo;
+  private Optional<RecordInfo> harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
+      Record.RecordBuilder recordToHarvest,
+      List<Optional<RecordInfo>> optionalList) {
+    Optional<RecordInfo> optionalRecordInfo;
     List<RecordError> recordErrors = new ArrayList<>();
     try {
       OaiRepository oaiRepository = new OaiRepository(oaiHarvestData.getUrl(),
@@ -148,21 +146,21 @@ public class HarvestServiceImpl implements HarvestService {
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
       RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId);
-
-      if (!isDuplicated(recordEntity, datasetId)) {
+      byte[] recordContent = oaiRecord.getRecord().readAllBytes();
+      if (!isDuplicatedByProviderId(recordEntity, datasetId)
+          && !isDuplicatedByContent(recordContent, optionalList)) {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
             .providerId(oaiHarvestData.getOaiIdentifier())
-            .content(oaiRecord.getRecord().readAllBytes())
+            .content(recordContent)
             .recordId(recordEntity.getId())
             .build();
-        recordInfo = new RecordInfo(harvestedRecord, recordErrors);
+        optionalRecordInfo = Optional.of(new RecordInfo(harvestedRecord, recordErrors));
       } else {
-        recordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
+        optionalRecordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
       }
 
-      return recordInfo;
-
+      return optionalRecordInfo;
     } catch (HarvesterException | IOException e) {
       LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
           oaiHarvestData.getOaiIdentifier(), e);
@@ -171,7 +169,7 @@ public class HarvestServiceImpl implements HarvestService {
           e.getMessage());
       recordErrors.add(recordErrorCreated);
       saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, new RuntimeException(e));
-      return new RecordInfo(recordToHarvest.build(), recordErrors);
+      return Optional.of(new RecordInfo(recordToHarvest.build(), recordErrors));
     }
   }
 
@@ -187,7 +185,7 @@ public class HarvestServiceImpl implements HarvestService {
   private List<RecordInfo> harvestInputStreamIdentifiers(InputStream inputStream, String datasetId,
       Record.RecordBuilder recordDataEncapsulated) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
-    List<RecordInfo> recordInfoList = new ArrayList<>();
+    List<Optional<RecordInfo>> recordInfoList = new ArrayList<>();
     datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try {
@@ -205,7 +203,7 @@ public class HarvestServiceImpl implements HarvestService {
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path));
+          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, recordInfoList));
 
           return ReportingIteration.IterationResult.CONTINUE;
 
@@ -217,7 +215,7 @@ public class HarvestServiceImpl implements HarvestService {
 
       // Attempt to delete the temporary iterator content.
       iterator.deleteIteratorContent();
-
+      //numberOfIterations.getAndSet(numberOfIterations.get() - recordInfoList.stream().filter(Optional::isEmpty).count());
       datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
       if (!exception.isEmpty()) {
@@ -230,31 +228,34 @@ public class HarvestServiceImpl implements HarvestService {
       closeStream(inputStream);
     }
 
-    return recordInfoList;
+    return recordInfoList.stream()
+                         .filter(Optional::isPresent)
+                         .map(Optional::get)
+                         .collect(Collectors.toList());
   }
 
-  private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
-      Path path)
+  private Optional<RecordInfo> harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
+      Path path, List<Optional<RecordInfo>> optionalList)
       throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
-    RecordInfo recordInfo;
+    Optional<RecordInfo> optionalRecordInfo;
     RecordEntity recordEntity = new RecordEntity(null, path.toString(), datasetId);
 
     try {
-      if (!isDuplicated(recordEntity, datasetId)) {
+      byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
+      if (!isDuplicatedByProviderId(recordEntity, datasetId)
+          && !isDuplicatedByContent(recordContent, optionalList)) {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
             .providerId(path.toString())
-            .content(new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes())
+            .content(recordContent)
             .recordId(recordEntity.getId())
             .build();
-        recordInfo = new RecordInfo(harvestedRecord, recordErrors);
+        optionalRecordInfo = Optional.of(new RecordInfo(harvestedRecord, recordErrors));
       } else {
-        recordInfo = handleDuplicated(path.toString(), Step.HARVEST_OAI_PMH, recordToHarvest);
+        optionalRecordInfo = handleDuplicated(path.toString(), Step.HARVEST_ZIP, recordToHarvest);
       }
-
-      return recordInfo;
-
+      return optionalRecordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}",
           recordEntity.getId(), e);
@@ -263,7 +264,7 @@ public class HarvestServiceImpl implements HarvestService {
           e.getMessage());
       recordErrors.add(recordErrorCreated);
       saveErrorWhileHarvesting(recordToHarvest, path.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
-      return new RecordInfo(recordToHarvest.build(), recordErrors);
+      return Optional.of(new RecordInfo(recordToHarvest.build(), recordErrors));
     }
   }
 
@@ -300,12 +301,10 @@ public class HarvestServiceImpl implements HarvestService {
       String providerIdWithError,
       Step step,
       RuntimeException harvest) {
-    String errorMessage;
-
-    errorMessage = "Error harvesting record: ";
-
-    RecordError recordErrorCreated = new RecordError(errorMessage + providerIdWithError,
-        findCause(harvest));
+    final String errorMessage = "Error harvesting record:";
+    final String causeMessage = "Cause: " + findCause(harvest);
+    RecordError recordErrorCreated = new RecordError(errorMessage + " " + providerIdWithError + " " + causeMessage,
+        causeMessage);
     try {
       RecordEntity recordEntity = new RecordEntity(recordDataEncapsulated
           .providerId(providerIdWithError)
@@ -335,26 +334,26 @@ public class HarvestServiceImpl implements HarvestService {
     }
   }
 
-  private boolean isDuplicated(RecordEntity recordEntity, String datasetId) {
+  private boolean isDuplicatedByProviderId(RecordEntity recordEntity, String datasetId) {
     RecordEntity recordFound = recordRepository.findByProviderIdAndDatasetId(recordEntity.getProviderId(), datasetId);
-    if (recordFound != null) {
-      LOGGER.info("record: {}", recordFound.getProviderId());
-      return true;
-    } else {
-      return false;
-    }
+    return recordFound != null;
   }
 
-  private RecordInfo handleDuplicated(String providerId,
-      Step step,
-      Record.RecordBuilder recordToHarvest) {
-    final String providerIdWithError = providerId + "-" + Instant.now().toEpochMilli();
+  private boolean isDuplicatedByContent(byte[] content, List<Optional<RecordInfo>> optionalList) {
+    Optional<RecordInfo> optionalRecordInfo = optionalList.stream()
+                                                          .filter(Optional::isPresent)
+                                                          .map(Optional::get)
+                                                          .filter(
+                                                              ri -> Arrays.equals(ri.getRecord()
+                                                                                    .getContent(),
+                                                                  content))
+                                                          .findFirst();
+    return optionalRecordInfo.isPresent();
+  }
 
-    RecordError recordErrorCreated = new RecordError(
-        "Duplicated record: " + providerId,
-        "Registering in database as: " + providerIdWithError);
-
+  private Optional<RecordInfo> handleDuplicated(String providerId, Step step, Record.RecordBuilder recordToHarvest) {
+    RecordError recordErrorCreated = new RecordError("Duplicated record", "Record already registered");
     saveErrorWhileHarvesting(recordToHarvest, providerId, step, new RuntimeException(recordErrorCreated.getMessage()));
-    return new RecordInfo(recordToHarvest.providerId(providerIdWithError).build(), List.of(recordErrorCreated));
+    return Optional.empty();
   }
 }
