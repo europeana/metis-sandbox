@@ -60,11 +60,11 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
-      OaiHarvester oaiHarvester,
-      RecordPublishService recordPublishService,
-      DatasetService datasetService,
-      @Value("${sandbox.dataset.max-size}") int maxRecords,
-      RecordRepository recordRepository) {
+                            OaiHarvester oaiHarvester,
+                            RecordPublishService recordPublishService,
+                            DatasetService datasetService,
+                            @Value("${sandbox.dataset.max-size}") int maxRecords,
+                            RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
@@ -122,7 +122,6 @@ public class HarvestServiceImpl implements HarvestService {
           }
       );
 
-      //numberOfIterations.getAndSet(numberOfIterations.get() - recordInfoList.stream().filter(Optional::isEmpty).count());
       datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
     } catch (HarvesterException | IOException e) {
@@ -215,7 +214,7 @@ public class HarvestServiceImpl implements HarvestService {
 
       // Attempt to delete the temporary iterator content.
       iterator.deleteIteratorContent();
-      //numberOfIterations.getAndSet(numberOfIterations.get() - recordInfoList.stream().filter(Optional::isEmpty).count());
+
       datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
       if (!exception.isEmpty()) {
