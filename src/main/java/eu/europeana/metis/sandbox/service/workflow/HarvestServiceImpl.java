@@ -129,14 +129,12 @@ public class HarvestServiceImpl implements HarvestService {
     }
 
     return recordInfoList.stream()
-                         .filter(Optional::isPresent)
-                         .map(Optional::get)
+                         .flatMap(Optional::stream)
                          .collect(Collectors.toList());
   }
 
   private Optional<RecordInfo> harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest,
-      List<Optional<RecordInfo>> optionalList) {
+      Record.RecordBuilder recordToHarvest, List<Optional<RecordInfo>> optionalRecordInfoList) {
     Optional<RecordInfo> optionalRecordInfo;
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -146,8 +144,11 @@ public class HarvestServiceImpl implements HarvestService {
           oaiHarvestData.getOaiIdentifier());
       RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId);
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
-      if (!isDuplicatedByProviderId(recordEntity, datasetId)
-          && !isDuplicatedByContent(recordContent, optionalList)) {
+
+      if (isDuplicatedByProviderId(recordEntity, datasetId)
+          || isDuplicatedByContent(recordContent, optionalRecordInfoList)) {
+        optionalRecordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
+      } else {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
             .providerId(oaiHarvestData.getOaiIdentifier())
@@ -155,8 +156,6 @@ public class HarvestServiceImpl implements HarvestService {
             .recordId(recordEntity.getId())
             .build();
         optionalRecordInfo = Optional.of(new RecordInfo(harvestedRecord, recordErrors));
-      } else {
-        optionalRecordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
       }
 
       return optionalRecordInfo;
@@ -168,13 +167,13 @@ public class HarvestServiceImpl implements HarvestService {
           e.getMessage());
       recordErrors.add(recordErrorCreated);
       saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, new RuntimeException(e));
+
       return Optional.of(new RecordInfo(recordToHarvest.build(), recordErrors));
     }
   }
 
   @Override
-  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated)
-      throws HarvesterException {
+  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated) throws HarvesterException {
     publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated),
         datasetId,
         "Error harvesting file records",
@@ -228,22 +227,23 @@ public class HarvestServiceImpl implements HarvestService {
     }
 
     return recordInfoList.stream()
-                         .filter(Optional::isPresent)
-                         .map(Optional::get)
+                         .flatMap(Optional::stream)
                          .collect(Collectors.toList());
   }
 
   private Optional<RecordInfo> harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
-      Path path, List<Optional<RecordInfo>> optionalList)
-      throws ServiceException {
+      Path path, List<Optional<RecordInfo>> optionalRecordInfoList) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     Optional<RecordInfo> optionalRecordInfo;
     RecordEntity recordEntity = new RecordEntity(null, path.toString(), datasetId);
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
-      if (!isDuplicatedByProviderId(recordEntity, datasetId)
-          && !isDuplicatedByContent(recordContent, optionalList)) {
+
+      if (isDuplicatedByProviderId(recordEntity, datasetId)
+          || isDuplicatedByContent(recordContent, optionalRecordInfoList)) {
+        optionalRecordInfo = handleDuplicated(path.toString(), Step.HARVEST_ZIP, recordToHarvest);
+      } else {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
             .providerId(path.toString())
@@ -251,9 +251,8 @@ public class HarvestServiceImpl implements HarvestService {
             .recordId(recordEntity.getId())
             .build();
         optionalRecordInfo = Optional.of(new RecordInfo(harvestedRecord, recordErrors));
-      } else {
-        optionalRecordInfo = handleDuplicated(path.toString(), Step.HARVEST_ZIP, recordToHarvest);
       }
+
       return optionalRecordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}",
@@ -263,6 +262,7 @@ public class HarvestServiceImpl implements HarvestService {
           e.getMessage());
       recordErrors.add(recordErrorCreated);
       saveErrorWhileHarvesting(recordToHarvest, path.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
+
       return Optional.of(new RecordInfo(recordToHarvest.build(), recordErrors));
     }
   }
@@ -340,8 +340,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   private boolean isDuplicatedByContent(byte[] content, List<Optional<RecordInfo>> optionalList) {
     Optional<RecordInfo> optionalRecordInfo = optionalList.stream()
-                                                          .filter(Optional::isPresent)
-                                                          .map(Optional::get)
+                                                          .flatMap(Optional::stream)
                                                           .filter(
                                                               ri -> Arrays.equals(ri.getRecord()
                                                                                     .getContent(),
