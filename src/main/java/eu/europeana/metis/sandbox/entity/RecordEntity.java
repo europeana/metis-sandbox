@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.domain.Record;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,10 +27,10 @@ public class RecordEntity {
 
   protected String datasetId;
 
-  @OneToMany(mappedBy = "recordId")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "recordId")
   private List<RecordLogEntity> recordLogEntity;
 
-  @OneToMany(mappedBy = "recordId")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "recordId")
   private List<RecordErrorLogEntity> recordErrorLogEntity;
 
   /**
