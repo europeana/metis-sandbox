@@ -52,6 +52,7 @@
     <version.log4j>2.17.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
     <version.wiremock>2.32.0</version.wiremock>
+    <version.commons.collections>3.2.2</version.commons.collections>
   </properties>
 
   <dependencies>
@@ -148,6 +149,12 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-pattern-analysis</artifactId>
+      <version>${version.metis}</version>
     </dependency>
 
     <dependency>
@@ -257,6 +264,12 @@
       <groupId>io.springfox</groupId>
       <artifactId>springfox-swagger-ui</artifactId>
       <version>${version.springfox}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>${version.commons.collections}</version>
     </dependency>
   </dependencies>
 

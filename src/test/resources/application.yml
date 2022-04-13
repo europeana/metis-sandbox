@@ -27,8 +27,8 @@ spring:
     virtual-host:
     host: localhost
     port: 5672
-    username: sandbox
-    password: sandbox
+    username: guest
+    password: guest
     ssl:
       enabled:
       algorithm:
