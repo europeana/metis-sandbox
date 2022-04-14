@@ -90,7 +90,7 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false));
+            false), "");
   }
 
   @NotNull
@@ -118,7 +118,7 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false));
+            false), "");
   }
 
   @NotNull
@@ -133,6 +133,6 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false));
+            false), "");
   }
 }
