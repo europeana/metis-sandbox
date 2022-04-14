@@ -81,7 +81,7 @@ sandbox:
   datasource:
     jdbcUrl: jdbc:h2:mem:sandbox
     driverClassName: org.h2.Driver
-    username: sandbox
+    username: sandbox_local
     password:
   s3:
     access-key:

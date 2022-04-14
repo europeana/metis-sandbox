@@ -14,7 +14,7 @@ import javax.persistence.Table;
 public class DatasetProblemPattern {
 
   @EmbeddedId
-  private DatasetProblemPatternId id;
+  private DatasetProblemPatternId datasetProblemPatternId;
   @MapsId("executionPointId")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "execution_point_id")
@@ -31,12 +31,12 @@ public class DatasetProblemPattern {
     this.executionPoint = executionPoint;
   }
 
-  public DatasetProblemPatternId getId() {
-    return id;
+  public DatasetProblemPatternId getDatasetProblemPatternId() {
+    return datasetProblemPatternId;
   }
 
-  public void setId(DatasetProblemPatternId id) {
-    this.id = id;
+  public void setDatasetProblemPatternId(DatasetProblemPatternId id) {
+    this.datasetProblemPatternId = id;
   }
 
   public Integer getRecordOccurences() {

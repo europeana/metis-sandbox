@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.entity.problempatterns;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.Column;
@@ -31,10 +31,22 @@ public class ExecutionPoint {
   private String executionStep;
 
   @Column(name = "execution_timestamp", nullable = false)
-  private OffsetDateTime executionTimestamp;
+  private LocalDateTime executionTimestamp;
 
   @OneToMany(mappedBy = "executionPoint")
   private Set<DatasetProblemPattern> datasetProblemPatterns = new LinkedHashSet<>();
+
+  @OneToMany(mappedBy = "executionPoint")
+  private Set<RecordProblemPattern> recordProblemPatterns = new LinkedHashSet<>();
+
+  public Set<RecordProblemPattern> getRecordProblemPatterns() {
+    return recordProblemPatterns;
+  }
+
+  public void setRecordProblemPatterns(
+      Set<RecordProblemPattern> recordProblemPatterns) {
+    this.recordProblemPatterns = recordProblemPatterns;
+  }
 
   public Set<DatasetProblemPattern> getDatasetProblemPatterns() {
     return datasetProblemPatterns;
@@ -44,11 +56,11 @@ public class ExecutionPoint {
     this.datasetProblemPatterns = datasetProblemPatterns;
   }
 
-  public OffsetDateTime getExecutionTimestamp() {
+  public LocalDateTime getExecutionTimestamp() {
     return executionTimestamp;
   }
 
-  public void setExecutionTimestamp(OffsetDateTime executionTimestamp) {
+  public void setExecutionTimestamp(LocalDateTime executionTimestamp) {
     this.executionTimestamp = executionTimestamp;
   }
 
