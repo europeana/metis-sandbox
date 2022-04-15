@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurenceRepository;
@@ -27,6 +28,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -37,6 +40,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @ComponentScan("eu.europeana.metis.sandbox.service.problempatterns")
+@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none"})
+@Sql("classpath:database/schema_problem_patterns.sql")
 class PatternAnalysisServiceImplTest {
 
   @Autowired
@@ -59,7 +64,7 @@ class PatternAnalysisServiceImplTest {
     final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
 
     final LocalDateTime nowP2 = LocalDateTime.now();
-    patternAnalysisService.generateRecordPatternAnalysis("1", "VALIDATION_EXTERNAL", nowP2, rdfRecordP2);
+    patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2);
     assertEquals(1, executionPointRepository.count());
     assertEquals(1, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
@@ -68,7 +73,7 @@ class PatternAnalysisServiceImplTest {
     //Same insertion should fail
     assertThrows(
         DataIntegrityViolationException.class,
-        () -> patternAnalysisService.generateRecordPatternAnalysis("1", "VALIDATION_EXTERNAL", nowP2, rdfRecordP2));
+        () -> patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2));
     assertEquals(1, executionPointRepository.count());
     assertEquals(1, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
@@ -81,15 +86,15 @@ class PatternAnalysisServiceImplTest {
     final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
 
     final LocalDateTime nowP6 = LocalDateTime.now();
-    patternAnalysisService.generateRecordPatternAnalysis("1", "VALIDATION_EXTERNAL", nowP6, rdfRecordP6);
+    patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP6, rdfRecordP6);
     assertEquals(2, executionPointRepository.count());
     assertEquals(2, datasetProblemPatternRepository.count());
     assertEquals(2, recordProblemPatternRepository.count());
     assertEquals(2, recordProblemPatternOccurenceRepository.count());
 
     //Get dataset pattern analysis and check results
-    final Optional<DatasetProblemPatternAnalysis> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis("1",
-        "VALIDATION_EXTERNAL", nowP6);
+    final Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis("1",
+        Step.VALIDATE_INTERNAL, nowP6);
     assertTrue(datasetPatternAnalysis.isPresent());
     assertEquals(1, datasetPatternAnalysis.get().getProblemPatternList().size());
     assertEquals(1, datasetPatternAnalysis.get().getProblemPatternList().get(0).getRecordAnalysisList().size());
@@ -100,8 +105,9 @@ class PatternAnalysisServiceImplTest {
         datasetPatternAnalysis.get().getProblemPatternList().get(0).getRecordAnalysisList().get(0).getProblemOccurenceList()
                               .get(0).getMessageReport()));
 
+    //Empty result
     assertTrue(patternAnalysisService.getDatasetPatternAnalysis("1",
-        "INVALID_STEP", nowP6).isEmpty());
+        Step.HARVEST_ZIP, nowP6).isEmpty());
 
     System.out.println();
 

@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static java.util.Objects.nonNull;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternId;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Transactional
-public class PatternAnalysisServiceImpl implements PatternAnalysisService {
+public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> {
 
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
@@ -48,11 +49,10 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService {
     this.executionPointRepository = executionPointRepository;
   }
 
-  private ExecutionPoint initializePatternAnalysisExecution(String executionStep, LocalDateTime executionTimestamp,
-      String datasetId) {
+  private ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep, LocalDateTime executionTimestamp) {
     final ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
-    executionPoint.setExecutionStep(executionStep);
+    executionPoint.setExecutionStep(executionStep.name());
     executionPoint.setDatasetId(datasetId);
     return this.executionPointRepository.save(executionPoint);
   }
@@ -90,21 +90,21 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService {
   }
 
   @Override
-  public void generateRecordPatternAnalysis(String datasetId, String executionStep, LocalDateTime executionTimestamp,
+  public void generateRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
       RDF rdfRecord) {
     final List<ProblemPattern> problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
     // TODO: 14/04/2022 This step could maybe be optimized by keeping an in memory cache of the execution
-    final ExecutionPoint executionPoint = initializePatternAnalysisExecution(executionStep, executionTimestamp, datasetId);
+    final ExecutionPoint executionPoint = initializePatternAnalysisExecution(datasetId, executionStep, executionTimestamp);
     insertPatternAnalysis(executionPoint, problemPatterns);
   }
 
   @Override
-  public void generateRecordPatternAnalysis(String datasetId, String executionStep, LocalDateTime executionTimestamp,
+  public void generateRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
       String rdfRecord) throws PatternAnalysisException {
     try {
       final List<ProblemPattern> problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
       // TODO: 14/04/2022 This step could maybe be optimized by keeping an in memory cache of the execution
-      final ExecutionPoint executionPoint = initializePatternAnalysisExecution(executionStep, executionTimestamp, datasetId);
+      final ExecutionPoint executionPoint = initializePatternAnalysisExecution(datasetId, executionStep, executionTimestamp);
       insertPatternAnalysis(executionPoint, problemPatterns);
     } catch (SerializationException e) {
       throw new PatternAnalysisException("Error during record analysis", e);
@@ -112,15 +112,15 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService {
   }
 
   @Override
-  public void finalizeDatasetPatternAnalysis(String datasetId, String executionStep, LocalDateTime executionTimestamp) {
+  public void finalizeDatasetPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp) {
 
   }
 
   @Override
-  public Optional<DatasetProblemPatternAnalysis> getDatasetPatternAnalysis(String datasetId, String executionStep,
+  public Optional<DatasetProblemPatternAnalysis<Step>> getDatasetPatternAnalysis(String datasetId, Step executionStep,
       LocalDateTime executionTimestamp) {
     final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
-        datasetId, executionStep, executionTimestamp);
+        datasetId, executionStep.name(), executionTimestamp);
     if (nonNull(executionPoint)) {
 
       final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
@@ -138,14 +138,13 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService {
             ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
             datasetProblemPattern.getRecordOccurences(), recordAnalyses));
       }
-      return Optional.of(new DatasetProblemPatternAnalysis(datasetId,
-          executionTimestamp, executionStep, problemPatterns));
+      return Optional.of(new DatasetProblemPatternAnalysis<Step>(datasetId, executionStep, executionTimestamp, problemPatterns));
     }
     return Optional.empty();
   }
 
   @Override
-  public List<ProblemPattern> getRecordPatternAnalysis(String datasetId, String executionStep, LocalDateTime executionTimestamp,
+  public List<ProblemPattern> getRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
       RDF rdfRecord) {
     return null;
   }
