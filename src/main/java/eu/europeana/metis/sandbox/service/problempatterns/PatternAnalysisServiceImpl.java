@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static java.util.Objects.nonNull;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
@@ -29,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +44,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final ProblemPatternAnalyzer problemPatternAnalyzer = new ProblemPatternAnalyzer();
-  private final int maxProblemPatternOccurences;
+  private final int maxProblemPatternOccurrences;
   private final int maxRecordsPerPattern;
 
   /**
@@ -70,35 +68,38 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
     this.recordProblemPatternRepository = recordProblemPatternRepository;
     this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
     this.maxRecordsPerPattern = maxRecordsPerPattern;
-    this.maxProblemPatternOccurences = maxProblemPatternOccurrences;
+    this.maxProblemPatternOccurrences = maxProblemPatternOccurrences;
   }
 
   private ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep,
       LocalDateTime executionTimestamp) {
-    // TODO: 14/04/2022 This step could maybe be optimized by keeping an in memory cache of the execution
-    final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
-        datasetId, executionStep.name(), executionTimestamp);
-    final ExecutionPoint savedExecutionPoint;
-    if (Objects.isNull(dbExecutionPoint)) {
-      final ExecutionPoint executionPoint = new ExecutionPoint();
-      executionPoint.setExecutionTimestamp(executionTimestamp);
-      executionPoint.setExecutionStep(executionStep.name());
-      executionPoint.setDatasetId(datasetId);
-      savedExecutionPoint = this.executionPointRepository.save(executionPoint);
+    synchronized (PatternAnalysisServiceImpl.class) {
+      // TODO: 14/04/2022 This step could maybe be optimized by keeping an in memory cache of the execution
+      final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
+          datasetId, executionStep.name(), executionTimestamp);
+      final ExecutionPoint savedExecutionPoint;
+      if (Objects.isNull(dbExecutionPoint)) {
+        final ExecutionPoint executionPoint = new ExecutionPoint();
+        executionPoint.setExecutionTimestamp(executionTimestamp);
+        executionPoint.setExecutionStep(executionStep.name());
+        executionPoint.setDatasetId(datasetId);
+        savedExecutionPoint = this.executionPointRepository.save(executionPoint);
 
-      //Initialize with zero all patterns
-      final List<DatasetProblemPattern> datasetProblemPatterns = Arrays.stream(ProblemPatternDescription.values()).map(Enum::name)
-                                                                       .map(patternId -> new DatasetProblemPattern(
-                                                                           new DatasetProblemPatternId(
-                                                                               savedExecutionPoint.getExecutionPointId(),
-                                                                               patternId), savedExecutionPoint, 0))
-                                                                       .collect(Collectors.toList());
-      datasetProblemPatternRepository.saveAll(datasetProblemPatterns);
-    } else {
-      savedExecutionPoint = dbExecutionPoint;
+        //Initialize with zero all patterns
+        final List<DatasetProblemPattern> datasetProblemPatterns = Arrays.stream(ProblemPatternDescription.values())
+                                                                         .map(Enum::name)
+                                                                         .map(patternId -> new DatasetProblemPattern(
+                                                                             new DatasetProblemPatternId(
+                                                                                 savedExecutionPoint.getExecutionPointId(),
+                                                                                 patternId), savedExecutionPoint, 0))
+                                                                         .collect(Collectors.toList());
+        datasetProblemPatternRepository.saveAll(datasetProblemPatterns);
+      } else {
+        savedExecutionPoint = dbExecutionPoint;
+      }
+
+      return savedExecutionPoint;
     }
-
-    return savedExecutionPoint;
   }
 
   private void insertPatternAnalysis(ExecutionPoint executionPoint, final List<ProblemPattern> problemPatterns) {
@@ -107,20 +108,20 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
         final DatasetProblemPatternId datasetProblemPatternId = new DatasetProblemPatternId(executionPoint.getExecutionPointId(),
             problemPattern.getProblemPatternDescription().getProblemPatternId().name());
         this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternId);
-        final Integer recordOccurences = this.datasetProblemPatternRepository.findByDatasetProblemPatternId(
+        final Integer recordOccurrences = this.datasetProblemPatternRepository.findByDatasetProblemPatternId(
             datasetProblemPatternId).getRecordOccurrences();
 
-        if (recordOccurences <= maxRecordsPerPattern) {
+        if (recordOccurrences <= maxRecordsPerPattern) {
           final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
           recordProblemPattern.setPatternId(problemPattern.getProblemPatternDescription().getProblemPatternId().name());
           recordProblemPattern.setRecordId(recordAnalysis.getRecordId());
           recordProblemPattern.setExecutionPoint(executionPoint);
           final RecordProblemPattern savedRecordProblemPattern = this.recordProblemPatternRepository.save(recordProblemPattern);
 
-          recordAnalysis.getProblemOccurrenceList().stream().limit(maxProblemPatternOccurences).forEach(problemOccurence -> {
+          recordAnalysis.getProblemOccurrenceList().stream().limit(maxProblemPatternOccurrences).forEach(problemOccurrence -> {
             final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
             recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
-            recordProblemPatternOccurrence.setMessageReport(problemOccurence.getMessageReport());
+            recordProblemPatternOccurrence.setMessageReport(problemOccurrence.getMessageReport());
             this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
           });
         }
@@ -170,24 +171,17 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
   }
 
   private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint) {
-    return constructProblemPatterns(executionPoint, x -> true);
-  }
-
-  private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint,
-      Predicate<RecordProblemPattern> recordProblemPatternPredicate) {
     final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
     for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
 
       final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
-      executionPoint.getRecordProblemPatterns().stream()
-                    .filter(recordProblemPatternPredicate)
-                    .forEach(recordProblemPattern -> {
-                      final ArrayList<ProblemOccurrence> problemOccurences = new ArrayList<>();
-                      for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
-                        problemOccurences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
-                      }
-                      recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurences));
-                    });
+      executionPoint.getRecordProblemPatterns().forEach(recordProblemPattern -> {
+        final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
+        for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+          problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
+        }
+        recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
+      });
       problemPatterns.add(new ProblemPattern(
           ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
           datasetProblemPattern.getRecordOccurrences(), recordAnalyses));
@@ -197,21 +191,9 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
 
   @Override
   @Transactional
+  // TODO: 15/04/2022 Check if first three parameters are needed or else remove from the interface as well.
   public List<ProblemPattern> getRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
       RDF rdfRecord) {
-    List<ProblemPattern> problemPatterns = new ArrayList<>();
-    final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
-        datasetId, executionStep.name(), executionTimestamp);
-    //Check if execution exists and there is data for the specific record id.
-    if (nonNull(executionPoint)) {
-      //construct only the ones that we are interested in
-      problemPatterns = constructProblemPatterns(executionPoint,
-          recordProblemPattern -> recordProblemPattern.getRecordId().equals(rdfRecord.getProvidedCHOList().get(0).getAbout()));
-    }
-    if (isEmpty(problemPatterns)) {
-      problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
-    }
-
-    return problemPatterns;
+    return problemPatternAnalyzer.analyzeRecord(rdfRecord);
   }
 }
