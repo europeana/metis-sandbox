@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
-import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurenceRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
-import eu.europeana.patternanalysis.PatternAnalysisException;
+import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
@@ -83,7 +83,7 @@ class PatternAnalysisServiceImplTest {
   @Resource
   private RecordProblemPatternRepository recordProblemPatternRepository;
   @Resource
-  private RecordProblemPatternOccurenceRepository recordProblemPatternOccurenceRepository;
+  private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
 
   PatternAnalysisServiceImplTest() throws IOException, SerializationException {
   }
@@ -102,7 +102,7 @@ class PatternAnalysisServiceImplTest {
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
-    assertEquals(1, recordProblemPatternOccurenceRepository.count());
+    assertEquals(1, recordProblemPatternOccurrenceRepository.count());
 
     //Same insertion should fail
     assertThrows(DataIntegrityViolationException.class,
@@ -110,7 +110,7 @@ class PatternAnalysisServiceImplTest {
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
-    assertEquals(1, recordProblemPatternOccurenceRepository.count());
+    assertEquals(1, recordProblemPatternOccurrenceRepository.count());
 
     //Insert another problem pattern
     final LocalDateTime nowP6 = LocalDateTime.now();
@@ -118,7 +118,7 @@ class PatternAnalysisServiceImplTest {
     assertEquals(2, executionPointRepository.count());
     assertEquals(2L * ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(2, recordProblemPatternRepository.count());
-    assertEquals(2, recordProblemPatternOccurenceRepository.count());
+    assertEquals(2, recordProblemPatternOccurrenceRepository.count());
 
     //Get dataset pattern analysis and check results
     final Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
@@ -132,8 +132,8 @@ class PatternAnalysisServiceImplTest {
                                                                   .orElseThrow();
 
     assertEquals(1, problemPatternP6.getRecordAnalysisList().size());
-    assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurenceList().size());
-    assertTrue(isNotBlank(problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurenceList().get(0).getMessageReport()));
+    assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurrenceList().size());
+    assertTrue(isNotBlank(problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getMessageReport()));
 
     //Empty result
     assertTrue(patternAnalysisService.getDatasetPatternAnalysis("1", Step.HARVEST_ZIP, nowP6).isEmpty());
@@ -141,23 +141,23 @@ class PatternAnalysisServiceImplTest {
 
   @Test
   void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
-    //We just want 1 occurence
+    //We just want 1 occurrence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurenceRepository, 1, 1);
+        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository, 1, 1);
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
     patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2MultipleOccurences);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
-    assertEquals(1, recordProblemPatternOccurenceRepository.count());
+    assertEquals(1, recordProblemPatternOccurrenceRepository.count());
   }
 
   @Test
   void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() {
     //We just want 1 record
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurenceRepository, 1, 1);
+        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository, 1, 1);
 
     final LocalDateTime nowP6 = LocalDateTime.now();
     patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP6, rdfRecordP6);
@@ -179,9 +179,9 @@ class PatternAnalysisServiceImplTest {
                                                                   .orElseThrow();
 
     assertEquals(1, problemPatternP6.getRecordAnalysisList().size());
-    assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurenceList().size());
-    assertTrue(isNotBlank(problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurenceList().get(0).getMessageReport()));
-    assertEquals(2, problemPatternP6.getRecordOccurences()); //We count more than what we store
+    assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurrenceList().size());
+    assertTrue(isNotBlank(problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getMessageReport()));
+    assertEquals(2, problemPatternP6.getRecordOccurrences()); //We count more than what we store
   }
 
   @Test
@@ -191,7 +191,7 @@ class PatternAnalysisServiceImplTest {
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
-    assertEquals(1, recordProblemPatternOccurenceRepository.count());
+    assertEquals(1, recordProblemPatternOccurrenceRepository.count());
 
     //Invalid String payload
     assertThrows(PatternAnalysisException.class,

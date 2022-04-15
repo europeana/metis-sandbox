@@ -40,16 +40,16 @@ public class RecordProblemPattern {
   private String patternId;
 
   @OneToMany(mappedBy = "recordProblemPattern", fetch = FetchType.EAGER)
-  private Set<RecordProblemPatternOccurence> recordProblemPatternOccurences = new LinkedHashSet<>();
+  private Set<RecordProblemPatternOccurrence> recordProblemPatternOccurrences = new LinkedHashSet<>();
 
-  public Set<RecordProblemPatternOccurence> getRecordProblemPatternOccurences() {
-    return new LinkedHashSet<>(recordProblemPatternOccurences);
+  public Set<RecordProblemPatternOccurrence> getRecordProblemPatternOccurences() {
+    return new LinkedHashSet<>(recordProblemPatternOccurrences);
   }
 
-  public void setRecordProblemPatternOccurences(
-      Set<RecordProblemPatternOccurence> recordProblemPatternOccurences) {
-    this.recordProblemPatternOccurences =
-        recordProblemPatternOccurences == null ? new LinkedHashSet<>() : new LinkedHashSet<>(recordProblemPatternOccurences);
+  public void setRecordProblemPatternOccurrences(
+      Set<RecordProblemPatternOccurrence> recordProblemPatternOccurrences) {
+    this.recordProblemPatternOccurrences =
+        recordProblemPatternOccurrences == null ? new LinkedHashSet<>() : new LinkedHashSet<>(recordProblemPatternOccurrences);
   }
 
   public String getPatternId() {
@@ -95,11 +95,11 @@ public class RecordProblemPattern {
     RecordProblemPattern that = (RecordProblemPattern) o;
     return Objects.equals(recordProblemPatternId, that.recordProblemPatternId) && Objects.equals(executionPoint,
         that.executionPoint) && Objects.equals(recordId, that.recordId) && Objects.equals(patternId,
-        that.patternId) && Objects.equals(recordProblemPatternOccurences, that.recordProblemPatternOccurences);
+        that.patternId) && Objects.equals(recordProblemPatternOccurrences, that.recordProblemPatternOccurrences);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(recordProblemPatternId, executionPoint, recordId, patternId, recordProblemPatternOccurences);
+    return Objects.hash(recordProblemPatternId, executionPoint, recordId, patternId, recordProblemPatternOccurrences);
   }
 }

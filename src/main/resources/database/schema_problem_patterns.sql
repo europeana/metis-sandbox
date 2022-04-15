@@ -24,7 +24,7 @@ create table problem_patterns.dataset_problem_pattern
 (
     execution_point_id int         not null,
     pattern_id         varchar(10) not null,
-    record_occurences  int         not null,
+    record_occurrences  int         not null,
     Primary Key (execution_point_id, pattern_id),
     Foreign Key (execution_point_id) References problem_patterns.execution_point (execution_point_id)
 );
@@ -40,12 +40,12 @@ create table problem_patterns.record_problem_pattern
     unique (execution_point_id, record_id, pattern_id)
 );
 
-create table problem_patterns.record_problem_pattern_occurence
+create table problem_patterns.record_problem_pattern_occurrence
 (
-    record_problem_pattern_occurence_id serial,
+    record_problem_pattern_occurrence_id serial,
     record_problem_pattern_id           int          not null,
     message_report                      varchar(255) not null,
-    Primary Key (record_problem_pattern_occurence_id),
+    Primary Key (record_problem_pattern_occurrence_id),
     Foreign Key (record_problem_pattern_id) References problem_patterns.record_problem_pattern (record_problem_pattern_id),
     unique (record_problem_pattern_id, message_report)
 );

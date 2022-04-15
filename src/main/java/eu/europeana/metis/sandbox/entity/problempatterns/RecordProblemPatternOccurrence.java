@@ -12,17 +12,17 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * Entity class for record problem pattern occurence.
+ * Entity class for record problem pattern occurrence.
  */
 @Entity
-@Table(schema = "problem_patterns", name = "record_problem_pattern_occurence", indexes = {
-    @Index(name = "record_problem_pattern_occure_record_problem_pattern_id_mes_key", columnList = "record_problem_pattern_id, message_report", unique = true)
+@Table(schema = "problem_patterns", name = "record_problem_pattern_occurrence", indexes = {
+    @Index(name = "record_problem_pattern_occurr_record_problem_pattern_id_mes_key", columnList = "record_problem_pattern_id, message_report", unique = true)
 })
-public class RecordProblemPatternOccurence {
+public class RecordProblemPatternOccurrence {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "record_problem_pattern_occurence_id", nullable = false)
+  @Column(name = "record_problem_pattern_occurrence_id", nullable = false)
   private Integer id;
 
   @ManyToOne(fetch = FetchType.EAGER, optional = false)

@@ -24,8 +24,8 @@ public class DatasetProblemPattern {
   @JoinColumn(name = "execution_point_id")
   private ExecutionPoint executionPoint;
 
-  @Column(name = "record_occurences", nullable = false)
-  private Integer recordOccurences;
+  @Column(name = "record_occurrences", nullable = false)
+  private Integer recordOccurrences;
 
   public DatasetProblemPattern() {
     //Required for JPA
@@ -36,13 +36,13 @@ public class DatasetProblemPattern {
    *
    * @param datasetProblemPatternId the dataset problem pattern id
    * @param executionPoint the execution point
-   * @param recordOccurences the record occurences
+   * @param recordOccurrences the record occurences
    */
   public DatasetProblemPattern(DatasetProblemPatternId datasetProblemPatternId,
-      ExecutionPoint executionPoint, Integer recordOccurences) {
+      ExecutionPoint executionPoint, Integer recordOccurrences) {
     this.datasetProblemPatternId = datasetProblemPatternId;
     this.executionPoint = executionPoint;
-    this.recordOccurences = recordOccurences;
+    this.recordOccurrences = recordOccurrences;
   }
 
   public ExecutionPoint getExecutionPoint() {
@@ -61,12 +61,12 @@ public class DatasetProblemPattern {
     this.datasetProblemPatternId = id;
   }
 
-  public Integer getRecordOccurences() {
-    return recordOccurences;
+  public Integer getRecordOccurrences() {
+    return recordOccurrences;
   }
 
-  public void setRecordOccurences(Integer recordOccurences) {
-    this.recordOccurences = recordOccurences;
+  public void setRecordOccurrences(Integer recordOccurences) {
+    this.recordOccurrences = recordOccurences;
   }
 
   @Override
@@ -79,11 +79,11 @@ public class DatasetProblemPattern {
     }
     DatasetProblemPattern that = (DatasetProblemPattern) o;
     return Objects.equals(datasetProblemPatternId, that.datasetProblemPatternId) && Objects.equals(
-        executionPoint, that.executionPoint) && Objects.equals(recordOccurences, that.recordOccurences);
+        executionPoint, that.executionPoint) && Objects.equals(recordOccurrences, that.recordOccurrences);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(datasetProblemPatternId, executionPoint, recordOccurences);
+    return Objects.hash(datasetProblemPatternId, executionPoint, recordOccurrences);
   }
 }

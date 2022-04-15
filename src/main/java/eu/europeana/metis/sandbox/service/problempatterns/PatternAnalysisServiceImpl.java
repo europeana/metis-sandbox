@@ -8,18 +8,18 @@ import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternId;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPattern;
-import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOccurence;
+import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOccurrence;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
-import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurenceRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
-import eu.europeana.patternanalysis.PatternAnalysisException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.ProblemPatternAnalyzer;
+import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
-import eu.europeana.patternanalysis.view.ProblemOccurence;
+import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
@@ -44,7 +44,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
   private final RecordProblemPatternRepository recordProblemPatternRepository;
-  private final RecordProblemPatternOccurenceRepository recordProblemPatternOccurenceRepository;
+  private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final ProblemPatternAnalyzer problemPatternAnalyzer = new ProblemPatternAnalyzer();
   private final int maxProblemPatternOccurences;
   private final int maxRecordsPerPattern;
@@ -55,22 +55,22 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
    * @param executionPointRepository the execution point repository
    * @param datasetProblemPatternRepository the dataset problem pattern repository
    * @param recordProblemPatternRepository the record problem pattern repository
-   * @param recordProblemPatternOccurenceRepository the record problem pattern occurence repository
+   * @param recordProblemPatternOccurrenceRepository the record problem pattern occurrence repository
    * @param maxRecordsPerPattern the max records per pattern allowed
-   * @param maxProblemPatternOccurences the max problem pattern occurences per record allowed
+   * @param maxProblemPatternOccurrences the max problem pattern occurrences per record allowed
    */
   public PatternAnalysisServiceImpl(ExecutionPointRepository executionPointRepository,
       DatasetProblemPatternRepository datasetProblemPatternRepository,
       RecordProblemPatternRepository recordProblemPatternRepository,
-      RecordProblemPatternOccurenceRepository recordProblemPatternOccurenceRepository,
+      RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
       @Value("${sandbox.problempatterns.max-records-per-pattern:10}") int maxRecordsPerPattern,
-      @Value("${sandbox.problempatterns.max-problem-pattern-occurences:10}") int maxProblemPatternOccurences) {
+      @Value("${sandbox.problempatterns.max-problem-pattern-occurrences:10}") int maxProblemPatternOccurrences) {
     this.executionPointRepository = executionPointRepository;
     this.datasetProblemPatternRepository = datasetProblemPatternRepository;
     this.recordProblemPatternRepository = recordProblemPatternRepository;
-    this.recordProblemPatternOccurenceRepository = recordProblemPatternOccurenceRepository;
+    this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
     this.maxRecordsPerPattern = maxRecordsPerPattern;
-    this.maxProblemPatternOccurences = maxProblemPatternOccurences;
+    this.maxProblemPatternOccurences = maxProblemPatternOccurrences;
   }
 
   private ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep,
@@ -108,7 +108,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
             problemPattern.getProblemPatternDescription().getProblemPatternId().name());
         this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternId);
         final Integer recordOccurences = this.datasetProblemPatternRepository.findByDatasetProblemPatternId(
-            datasetProblemPatternId).getRecordOccurences();
+            datasetProblemPatternId).getRecordOccurrences();
 
         if (recordOccurences <= maxRecordsPerPattern) {
           final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
@@ -117,11 +117,11 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
           recordProblemPattern.setExecutionPoint(executionPoint);
           final RecordProblemPattern savedRecordProblemPattern = this.recordProblemPatternRepository.save(recordProblemPattern);
 
-          recordAnalysis.getProblemOccurenceList().stream().limit(maxProblemPatternOccurences).forEach(problemOccurence -> {
-            final RecordProblemPatternOccurence recordProblemPatternOccurence = new RecordProblemPatternOccurence();
-            recordProblemPatternOccurence.setRecordProblemPattern(savedRecordProblemPattern);
-            recordProblemPatternOccurence.setMessageReport(problemOccurence.getMessageReport());
-            this.recordProblemPatternOccurenceRepository.save(recordProblemPatternOccurence);
+          recordAnalysis.getProblemOccurrenceList().stream().limit(maxProblemPatternOccurences).forEach(problemOccurence -> {
+            final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
+            recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
+            recordProblemPatternOccurrence.setMessageReport(problemOccurence.getMessageReport());
+            this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
           });
         }
       }
@@ -182,15 +182,15 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
       executionPoint.getRecordProblemPatterns().stream()
                     .filter(recordProblemPatternPredicate)
                     .forEach(recordProblemPattern -> {
-                      final ArrayList<ProblemOccurence> problemOccurences = new ArrayList<>();
-                      for (RecordProblemPatternOccurence recordProblemPatternOccurence : recordProblemPattern.getRecordProblemPatternOccurences()) {
-                        problemOccurences.add(new ProblemOccurence(recordProblemPatternOccurence.getMessageReport()));
+                      final ArrayList<ProblemOccurrence> problemOccurences = new ArrayList<>();
+                      for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+                        problemOccurences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
                       }
                       recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurences));
                     });
       problemPatterns.add(new ProblemPattern(
           ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
-          datasetProblemPattern.getRecordOccurences(), recordAnalyses));
+          datasetProblemPattern.getRecordOccurrences(), recordAnalyses));
     }
     return problemPatterns;
   }
