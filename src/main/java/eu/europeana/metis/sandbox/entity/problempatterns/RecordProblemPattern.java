@@ -15,7 +15,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "record_problem_pattern", indexes = {
+@Table(schema = "problem_patterns", name = "record_problem_pattern", indexes = {
     @Index(name = "record_problem_pattern_execution_point_id_record_id_pattern_key", columnList = "execution_point_id, record_id, pattern_id", unique = true)
 })
 public class RecordProblemPattern {

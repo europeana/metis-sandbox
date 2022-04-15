@@ -10,7 +10,7 @@ import javax.persistence.MapsId;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "dataset_problem_pattern")
+@Table(schema = "problem_patterns", name = "dataset_problem_pattern")
 public class DatasetProblemPattern {
 
   @EmbeddedId

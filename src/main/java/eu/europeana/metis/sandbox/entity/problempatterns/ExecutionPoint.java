@@ -13,7 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "execution_point", indexes = {
+@Table(schema = "problem_patterns", name = "execution_point", indexes = {
     @Index(name = "execution_point_dataset_id_execution_step_execution_timesta_key",
         columnList = "dataset_id, execution_step, execution_timestamp", unique = true)
 })
