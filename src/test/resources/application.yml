@@ -27,8 +27,8 @@ spring:
     virtual-host:
     host: localhost
     port: 5672
-    username: sandbox
-    password: sandbox
+    username: guest
+    password: guest
     ssl:
       enabled:
       algorithm:
@@ -81,7 +81,7 @@ sandbox:
   datasource:
     jdbcUrl: jdbc:h2:mem:sandbox
     driverClassName: org.h2.Driver
-    username: sandbox
+    username: sandbox_local
     password:
   s3:
     access-key:
