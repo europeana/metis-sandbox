@@ -15,6 +15,20 @@ public class DatasetProblemPatternId implements Serializable {
   @Column(name = "pattern_id", nullable = false, length = 10)
   private String patternId;
 
+  public DatasetProblemPatternId() {
+    //Required for JPA
+  }
+
+  /**
+   * Constructor with required parameters
+   * @param executionPointId the execution point id
+   * @param patternId the pattern id
+   */
+  public DatasetProblemPatternId(Integer executionPointId, String patternId) {
+    this.executionPointId = executionPointId;
+    this.patternId = patternId;
+  }
+
   public String getPatternId() {
     return patternId;
   }

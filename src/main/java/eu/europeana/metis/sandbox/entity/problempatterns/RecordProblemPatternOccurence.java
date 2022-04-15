@@ -22,7 +22,7 @@ public class RecordProblemPatternOccurence {
   @Column(name = "record_problem_pattern_occurence_id", nullable = false)
   private Integer id;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "record_problem_pattern_id", nullable = false)
   private RecordProblemPattern recordProblemPattern;
 

@@ -16,12 +16,30 @@ public class DatasetProblemPattern {
   @EmbeddedId
   private DatasetProblemPatternId datasetProblemPatternId;
   @MapsId("executionPointId")
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "execution_point_id")
   private ExecutionPoint executionPoint;
 
   @Column(name = "record_occurences", nullable = false)
   private Integer recordOccurences;
+
+  public DatasetProblemPattern() {
+    //Required for JPA
+  }
+
+  /**
+   * Constructor with required parameters.
+   *
+   * @param datasetProblemPatternId the dataset problem pattern id
+   * @param executionPoint the execution point
+   * @param recordOccurences the record occurences
+   */
+  public DatasetProblemPattern(DatasetProblemPatternId datasetProblemPatternId,
+      ExecutionPoint executionPoint, Integer recordOccurences) {
+    this.datasetProblemPatternId = datasetProblemPatternId;
+    this.executionPoint = executionPoint;
+    this.recordOccurences = recordOccurences;
+  }
 
   public ExecutionPoint getExecutionPoint() {
     return executionPoint;

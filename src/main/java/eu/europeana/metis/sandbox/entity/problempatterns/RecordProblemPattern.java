@@ -25,7 +25,7 @@ public class RecordProblemPattern {
   @Column(name = "record_problem_pattern_id", nullable = false)
   private Integer recordProblemPatternId;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "execution_point_id", nullable = false)
   private ExecutionPoint executionPoint;
 
@@ -35,7 +35,7 @@ public class RecordProblemPattern {
   @Column(name = "pattern_id", nullable = false, length = 10)
   private String patternId;
 
-  @OneToMany(mappedBy = "recordProblemPattern")
+  @OneToMany(mappedBy = "recordProblemPattern", fetch = FetchType.EAGER)
   private Set<RecordProblemPatternOccurence> recordProblemPatternOccurences = new LinkedHashSet<>();
 
   public Set<RecordProblemPatternOccurence> getRecordProblemPatternOccurences() {

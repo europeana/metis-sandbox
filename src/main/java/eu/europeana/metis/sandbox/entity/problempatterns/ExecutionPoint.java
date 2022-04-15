@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -33,10 +34,10 @@ public class ExecutionPoint {
   @Column(name = "execution_timestamp", nullable = false)
   private LocalDateTime executionTimestamp;
 
-  @OneToMany(mappedBy = "executionPoint")
+  @OneToMany(mappedBy = "executionPoint", fetch = FetchType.EAGER)
   private Set<DatasetProblemPattern> datasetProblemPatterns = new LinkedHashSet<>();
 
-  @OneToMany(mappedBy = "executionPoint")
+  @OneToMany(mappedBy = "executionPoint", fetch = FetchType.EAGER)
   private Set<RecordProblemPattern> recordProblemPatterns = new LinkedHashSet<>();
 
   public Set<RecordProblemPattern> getRecordProblemPatterns() {
