@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static java.util.Objects.nonNull;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
@@ -28,11 +29,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Problem pattern analysis service implementation.
+ */
 @Service
 public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> {
 
@@ -44,6 +49,16 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
   private final int maxProblemPatternOccurences;
   private final int maxRecordsPerPattern;
 
+  /**
+   * Constructor with required parameters.
+   *
+   * @param executionPointRepository the execution point repository
+   * @param datasetProblemPatternRepository the dataset problem pattern repository
+   * @param recordProblemPatternRepository the record problem pattern repository
+   * @param recordProblemPatternOccurenceRepository the record problem pattern occurence repository
+   * @param maxRecordsPerPattern the max records per pattern allowed
+   * @param maxProblemPatternOccurences the max problem pattern occurences per record allowed
+   */
   public PatternAnalysisServiceImpl(ExecutionPointRepository executionPointRepository,
       DatasetProblemPatternRepository datasetProblemPatternRepository,
       RecordProblemPatternRepository recordProblemPatternRepository,
@@ -148,31 +163,55 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
     final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
     if (nonNull(executionPoint)) {
-
-      final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
-      for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
-
-        final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
-        for (RecordProblemPattern recordProblemPattern : executionPoint.getRecordProblemPatterns()) {
-          final ArrayList<ProblemOccurence> problemOccurences = new ArrayList<>();
-          for (RecordProblemPatternOccurence recordProblemPatternOccurence : recordProblemPattern.getRecordProblemPatternOccurences()) {
-            problemOccurences.add(new ProblemOccurence(recordProblemPatternOccurence.getMessageReport()));
-          }
-          recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurences));
-        }
-        problemPatterns.add(new ProblemPattern(
-            ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
-            datasetProblemPattern.getRecordOccurences(), recordAnalyses));
-      }
+      final ArrayList<ProblemPattern> problemPatterns = constructProblemPatterns(executionPoint);
       return Optional.of(new DatasetProblemPatternAnalysis<>(datasetId, executionStep, executionTimestamp, problemPatterns));
     }
     return Optional.empty();
+  }
+
+  private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint) {
+    return constructProblemPatterns(executionPoint, x -> true);
+  }
+
+  private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint,
+      Predicate<RecordProblemPattern> recordProblemPatternPredicate) {
+    final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
+    for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
+
+      final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
+      executionPoint.getRecordProblemPatterns().stream()
+                    .filter(recordProblemPatternPredicate)
+                    .forEach(recordProblemPattern -> {
+                      final ArrayList<ProblemOccurence> problemOccurences = new ArrayList<>();
+                      for (RecordProblemPatternOccurence recordProblemPatternOccurence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+                        problemOccurences.add(new ProblemOccurence(recordProblemPatternOccurence.getMessageReport()));
+                      }
+                      recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurences));
+                    });
+      problemPatterns.add(new ProblemPattern(
+          ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
+          datasetProblemPattern.getRecordOccurences(), recordAnalyses));
+    }
+    return problemPatterns;
   }
 
   @Override
   @Transactional
   public List<ProblemPattern> getRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
       RDF rdfRecord) {
-    return null;
+    List<ProblemPattern> problemPatterns = new ArrayList<>();
+    final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
+        datasetId, executionStep.name(), executionTimestamp);
+    //Check if execution exists and there is data for the specific record id.
+    if (nonNull(executionPoint)) {
+      //construct only the ones that we are interested in
+      problemPatterns = constructProblemPatterns(executionPoint,
+          recordProblemPattern -> recordProblemPattern.getRecordId().equals(rdfRecord.getProvidedCHOList().get(0).getAbout()));
+    }
+    if (isEmpty(problemPatterns)) {
+      problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
+    }
+
+    return problemPatterns;
   }
 }

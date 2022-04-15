@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,21 +12,32 @@ import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepos
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
+import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
+import eu.europeana.patternanalysis.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
+import org.springframework.boot.logging.LogLevel;
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,15 +51,28 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @ExtendWith(SpringExtension.class)
 @Configuration
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = {EmbeddedMongoAutoConfiguration.class, MongoAutoConfiguration.class,
+    MongoDataAutoConfiguration.class})
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @ComponentScan("eu.europeana.metis.sandbox.service.problempatterns")
-@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none"})
-@Sql("classpath:database/schema_problem_patterns.sql")
+@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none"}) //We do not want hibernate creating the db
+@Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 class PatternAnalysisServiceImplTest {
+
+  final String rdfStringP2 = IOUtils.toString(
+      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"), StandardCharsets.UTF_8);
+  final String rdfStringP2MultipleOccurences = IOUtils.toString(
+      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2_multiple.xml"),
+      StandardCharsets.UTF_8);
+  final String rdfStringP6 = IOUtils.toString(
+      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P6.xml"), StandardCharsets.UTF_8);
+
+  final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
+  final RDF rdfRecordP2MultipleOccurences = new RdfConversionUtils().convertStringToRdf(rdfStringP2MultipleOccurences);
+  final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
 
   @Autowired
   private PatternAnalysisServiceImpl patternAnalysisService;
@@ -60,22 +85,18 @@ class PatternAnalysisServiceImplTest {
   @Resource
   private RecordProblemPatternOccurenceRepository recordProblemPatternOccurenceRepository;
 
-//  @BeforeEach
-//  void beforeEach() {
-//    recordProblemPatternOccurenceRepository.deleteAll();
-//    recordProblemPatternRepository.deleteAll();
-//    datasetProblemPatternRepository.deleteAll();
-//    executionPointRepository.deleteAll();
-//  }
+  PatternAnalysisServiceImplTest() throws IOException, SerializationException {
+  }
+
+  @BeforeAll
+  public static void setErrorLogging() {
+    //Disable debug logs
+    LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
+  }
 
   @Test
-  void generateRecordPatternAnalysisTest() throws Exception {
+  void generateRecordPatternAnalysisTest() {
     //Insert a problem pattern
-    String rdfStringP2 = IOUtils.toString(
-        new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"),
-        StandardCharsets.UTF_8);
-    final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
-
     final LocalDateTime nowP2 = LocalDateTime.now();
     patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2);
     assertEquals(1, executionPointRepository.count());
@@ -92,11 +113,6 @@ class PatternAnalysisServiceImplTest {
     assertEquals(1, recordProblemPatternOccurenceRepository.count());
 
     //Insert another problem pattern
-    String rdfStringP6 = IOUtils.toString(
-        new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P6.xml"),
-        StandardCharsets.UTF_8);
-    final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
-
     final LocalDateTime nowP6 = LocalDateTime.now();
     patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP6, rdfRecordP6);
     assertEquals(2, executionPointRepository.count());
@@ -124,17 +140,13 @@ class PatternAnalysisServiceImplTest {
   }
 
   @Test
-  void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() throws Exception {
+  void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
     //We just want 1 occurence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
         datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurenceRepository, 1, 1);
     //Insert a problem pattern
-    final String rdfStringP2 = IOUtils.toString(
-        new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2_multiple.xml"),
-        StandardCharsets.UTF_8);
-    final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
     final LocalDateTime nowP2 = LocalDateTime.now();
-    patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2);
+    patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2MultipleOccurences);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
@@ -142,15 +154,11 @@ class PatternAnalysisServiceImplTest {
   }
 
   @Test
-  void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() throws Exception {
+  void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() {
     //We just want 1 record
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
         datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurenceRepository, 1, 1);
 
-    String rdfStringP6 = IOUtils.toString(
-        new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P6.xml"),
-        StandardCharsets.UTF_8);
-    final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
     final LocalDateTime nowP6 = LocalDateTime.now();
     patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP6, rdfRecordP6);
 
@@ -174,5 +182,35 @@ class PatternAnalysisServiceImplTest {
     assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurenceList().size());
     assertTrue(isNotBlank(problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurenceList().get(0).getMessageReport()));
     assertEquals(2, problemPatternP6.getRecordOccurences()); //We count more than what we store
+  }
+
+  @Test
+  void generateRecordPatternAnalysis_StringPayloadTest() throws Exception {
+    final LocalDateTime nowP2 = LocalDateTime.now();
+    patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfStringP2);
+    assertEquals(1, executionPointRepository.count());
+    assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
+    assertEquals(1, recordProblemPatternRepository.count());
+    assertEquals(1, recordProblemPatternOccurenceRepository.count());
+
+    //Invalid String payload
+    assertThrows(PatternAnalysisException.class,
+        () -> patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, "Invalid String"));
+  }
+
+  @Test
+  void getRecordPatternAnalysisTest() {
+    final LocalDateTime nowP2 = LocalDateTime.now();
+    patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2);
+    //We should be getting this from the database
+    List<ProblemPattern> problemPatternsRecord1 = patternAnalysisService.getRecordPatternAnalysis("1",
+        Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2);
+    assertFalse(problemPatternsRecord1.isEmpty());
+
+    final LocalDateTime nowP6 = LocalDateTime.now();
+    //It does NOT exist in the database but we should get the on the fly version
+    List<ProblemPattern> problemPatternsRecord2 = patternAnalysisService.getRecordPatternAnalysis("1",
+        Step.VALIDATE_INTERNAL, nowP6, rdfRecordP6);
+    assertFalse(problemPatternsRecord2.isEmpty());
   }
 }

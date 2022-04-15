@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.entity.problempatterns;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +15,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+/**
+ * Entity class for record problem pattern.
+ */
 @Entity
 @Table(schema = "problem_patterns", name = "record_problem_pattern", indexes = {
     @Index(name = "record_problem_pattern_execution_point_id_record_id_pattern_key", columnList = "execution_point_id, record_id, pattern_id", unique = true)
@@ -39,12 +43,13 @@ public class RecordProblemPattern {
   private Set<RecordProblemPatternOccurence> recordProblemPatternOccurences = new LinkedHashSet<>();
 
   public Set<RecordProblemPatternOccurence> getRecordProblemPatternOccurences() {
-    return recordProblemPatternOccurences;
+    return new LinkedHashSet<>(recordProblemPatternOccurences);
   }
 
   public void setRecordProblemPatternOccurences(
       Set<RecordProblemPatternOccurence> recordProblemPatternOccurences) {
-    this.recordProblemPatternOccurences = recordProblemPatternOccurences;
+    this.recordProblemPatternOccurences =
+        recordProblemPatternOccurences == null ? new LinkedHashSet<>() : new LinkedHashSet<>(recordProblemPatternOccurences);
   }
 
   public String getPatternId() {
@@ -77,5 +82,24 @@ public class RecordProblemPattern {
 
   public void setRecordProblemPatternId(Integer id) {
     this.recordProblemPatternId = id;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RecordProblemPattern that = (RecordProblemPattern) o;
+    return Objects.equals(recordProblemPatternId, that.recordProblemPatternId) && Objects.equals(executionPoint,
+        that.executionPoint) && Objects.equals(recordId, that.recordId) && Objects.equals(patternId,
+        that.patternId) && Objects.equals(recordProblemPatternOccurences, that.recordProblemPatternOccurences);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(recordProblemPatternId, executionPoint, recordId, patternId, recordProblemPatternOccurences);
   }
 }

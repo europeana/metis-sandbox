@@ -13,6 +13,9 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+/**
+ * Entity class for exectuion point.
+ */
 @Entity
 @Table(schema = "problem_patterns", name = "execution_point", indexes = {
     @Index(name = "execution_point_dataset_id_execution_step_execution_timesta_key",
@@ -41,20 +44,22 @@ public class ExecutionPoint {
   private Set<RecordProblemPattern> recordProblemPatterns = new LinkedHashSet<>();
 
   public Set<RecordProblemPattern> getRecordProblemPatterns() {
-    return recordProblemPatterns;
+    return new LinkedHashSet<>(recordProblemPatterns);
   }
 
   public void setRecordProblemPatterns(
       Set<RecordProblemPattern> recordProblemPatterns) {
-    this.recordProblemPatterns = recordProblemPatterns;
+    this.recordProblemPatterns =
+        recordProblemPatterns == null ? new LinkedHashSet<>() : new LinkedHashSet<>(recordProblemPatterns);
   }
 
   public Set<DatasetProblemPattern> getDatasetProblemPatterns() {
-    return datasetProblemPatterns;
+    return new LinkedHashSet<>(datasetProblemPatterns);
   }
 
   public void setDatasetProblemPatterns(Set<DatasetProblemPattern> datasetProblemPatterns) {
-    this.datasetProblemPatterns = datasetProblemPatterns;
+    this.datasetProblemPatterns =
+        datasetProblemPatterns == null ? new LinkedHashSet<>() : new LinkedHashSet<>(datasetProblemPatterns);
   }
 
   public LocalDateTime getExecutionTimestamp() {

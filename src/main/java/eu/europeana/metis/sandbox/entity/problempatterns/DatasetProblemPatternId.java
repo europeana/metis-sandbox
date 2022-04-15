@@ -6,6 +6,9 @@ import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import org.hibernate.Hibernate;
 
+/**
+ * Composity id class for {@link DatasetProblemPattern}
+ */
 @Embeddable
 public class DatasetProblemPatternId implements Serializable {
 

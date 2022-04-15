@@ -11,6 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+/**
+ * Entity class for record problem pattern occurence.
+ */
 @Entity
 @Table(schema = "problem_patterns", name = "record_problem_pattern_occurence", indexes = {
     @Index(name = "record_problem_pattern_occure_record_problem_pattern_id_mes_key", columnList = "record_problem_pattern_id, message_report", unique = true)
