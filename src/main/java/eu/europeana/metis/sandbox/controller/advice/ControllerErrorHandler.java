@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.io.IOException;
+
 /**
  * Handles controller exceptions to report correct http status code to client
  */
@@ -86,6 +88,15 @@ class ControllerErrorHandler {
           SerializationException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
             HttpStatus.BAD_REQUEST, ex.getMessage());
+    LOGGER.error(ex.getMessage(), ex);
+    return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
+  }
+
+  @ExceptionHandler(IOException.class)
+  public ResponseEntity<Object> handleIOException(
+          IOException ex) {
+    var exceptionModel = new ExceptionModelDto(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
