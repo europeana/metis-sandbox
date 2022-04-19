@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
+import eu.europeana.metis.schema.convert.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -76,6 +77,15 @@ class ControllerErrorHandler {
       InvalidDatasetException ex) {
     var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST, ex.getMessage());
+    LOGGER.error(ex.getMessage(), ex);
+    return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
+  }
+
+  @ExceptionHandler(SerializationException.class)
+  public ResponseEntity<Object> handleSerializationException(
+          SerializationException ex) {
+    var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+            HttpStatus.BAD_REQUEST, ex.getMessage());
     LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
   }
