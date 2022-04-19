@@ -8,6 +8,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 /**
  * Consumes transformed events and performs internal validation to the contained record <br/>
  * Publishes the result in the internally validated queue
@@ -19,6 +21,8 @@ class InternalValidationExecutor extends StepExecutor {
 
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
   private String routingKey;
+  private boolean hasFirstRecordArrived = false;
+  private LocalDateTime firstTimestamp;
 
   public InternalValidationExecutor(AmqpTemplate amqpTemplate,
       InternalValidationService service) {
@@ -30,6 +34,10 @@ class InternalValidationExecutor extends StepExecutor {
       containerFactory = "internalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
   public void validateInternal(RecordProcessEvent input) {
-    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getRecord()));
+    if(!hasFirstRecordArrived) {
+      firstTimestamp = LocalDateTime.now();
+      hasFirstRecordArrived = true;
+    }
+    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getRecord(), firstTimestamp));
   }
 }

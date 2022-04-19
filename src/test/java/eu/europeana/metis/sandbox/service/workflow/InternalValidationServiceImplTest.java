@@ -45,7 +45,7 @@ class InternalValidationServiceImplTest {
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
-    var result = service.validate(record);
+    var result = service.validate(record, null);
 
     assertEquals(record, result.getRecord());
   }
@@ -64,11 +64,11 @@ class InternalValidationServiceImplTest {
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
-    assertThrows(RecordValidationException.class, () -> service.validate(record));
+    assertThrows(RecordValidationException.class, () -> service.validate(record, null));
   }
 
   @Test
   void validate_inputNull_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.validate(null));
+    assertThrows(NullPointerException.class, () -> service.validate(null, null));
   }
 }

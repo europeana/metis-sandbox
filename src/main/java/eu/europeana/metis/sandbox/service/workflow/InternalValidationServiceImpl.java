@@ -2,26 +2,38 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import static java.util.Objects.requireNonNull;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.patternanalysis.PatternAnalysisService;
+import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.service.ValidationExecutionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 @Service
 class InternalValidationServiceImpl implements InternalValidationService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationService.class);
+
   private static final String SCHEMA = "EDM-INTERNAL";
 
   private final ValidationExecutionService validator;
+  private final PatternAnalysisService<Step> patternAnalysisService;
 
   public InternalValidationServiceImpl(
-      ValidationExecutionService validator) {
+      ValidationExecutionService validator, PatternAnalysisService<Step> patternAnalysisService) {
     this.validator = validator;
+    this.patternAnalysisService = patternAnalysisService;
   }
 
   @Override
-  public RecordInfo validate(Record record) {
+  public RecordInfo validate(Record record, LocalDateTime timestamp) {
     requireNonNull(record, "Record must not be null");
 
     var content = record.getContentInputStream();
@@ -30,7 +42,12 @@ class InternalValidationServiceImpl implements InternalValidationService {
       throw new RecordValidationException(validationResult.getMessage(),
           validationResult.getRecordId(), validationResult.getNodeId());
     }
-
+    try {
+      patternAnalysisService.generateRecordPatternAnalysis(record.getDatasetId(), Step.VALIDATE_INTERNAL, timestamp,
+              new String(record.getContent(), StandardCharsets.UTF_8));
+    } catch (PatternAnalysisException e) {
+      LOGGER.error(String.format("An error occurred while processing pattern analysis with record id %s", record.getEuropeanaId()));
+    }
     return new RecordInfo(record);
   }
 }
