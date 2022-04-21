@@ -4,6 +4,7 @@ import eu.europeana.indexing.tiers.RecordTierCalculationViewGenerator;
 import eu.europeana.indexing.tiers.view.ProcessingError;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
@@ -39,7 +40,7 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
 
   @Override
   public RecordTierCalculationView calculateTiers(String recordId, String datasetId) throws NoRecordFoundException {
-    final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId);
+    final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.MEDIA_PROCESS);
     RecordTierCalculationView recordTierCalculationView;
     if (Objects.nonNull(recordLog)) {
       //Check if the record had failed

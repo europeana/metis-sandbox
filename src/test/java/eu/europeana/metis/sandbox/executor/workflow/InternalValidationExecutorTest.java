@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,6 +24,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
+
+import java.time.LocalDateTime;
 
 @ExtendWith(MockitoExtension.class)
 class InternalValidationExecutorTest {
@@ -48,10 +51,10 @@ class InternalValidationExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.SUCCESS);
 
-    when(service.validate(record, null)).thenReturn(new RecordInfo(record));
+    when(service.validate(eq(record), any(LocalDateTime.class))).thenReturn(new RecordInfo(record));
     consumer.validateInternal(recordEvent);
 
-    verify(service).validate(record, null);
+    verify(service).validate(eq(record), any(LocalDateTime.class));
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.VALIDATE_INTERNAL, captor.getValue().getStep());
@@ -81,11 +84,11 @@ class InternalValidationExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.SUCCESS);
 
-    when(service.validate(record, null)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.validate(eq(record), any(LocalDateTime.class))).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.validateInternal(recordEvent);
 
-    verify(service).validate(record, null);
+    verify(service).validate(eq(record), any(LocalDateTime.class));
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

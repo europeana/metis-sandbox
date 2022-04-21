@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -79,6 +78,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
       final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
           datasetId, executionStep.name(), executionTimestamp);
       final ExecutionPoint savedExecutionPoint;
+      //TODO: 21/04/2022 There could be synchronization issue in case of multi-thread while initializing ExecutionPoint.
+      //TODO: 21/04/2022 This synchronized block is not the best solution. We should figure out how to tackle this.
       if (Objects.isNull(dbExecutionPoint)) {
         final ExecutionPoint executionPoint = new ExecutionPoint();
         executionPoint.setExecutionTimestamp(executionTimestamp);
@@ -192,9 +193,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
 
   @Override
   @Transactional
-  // TODO: 15/04/2022 Check if first three parameters are needed or else remove from the interface as well.
-  public List<ProblemPattern> getRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
-      RDF rdfRecord) {
-    return problemPatternAnalyzer.analyzeRecord(rdfRecord);
+  public List<ProblemPattern> getRecordPatternAnalysis(RDF rdfRecord) {
+    List<ProblemPattern> result = problemPatternAnalyzer.analyzeRecord(rdfRecord);
+    return result == null ? new ArrayList<>() : result;
   }
 }
