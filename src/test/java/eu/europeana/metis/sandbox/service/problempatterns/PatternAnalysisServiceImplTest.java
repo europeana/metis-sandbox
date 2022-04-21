@@ -203,12 +203,12 @@ class PatternAnalysisServiceImplTest {
     final LocalDateTime nowP2 = LocalDateTime.now();
     patternAnalysisService.generateRecordPatternAnalysis("1", Step.VALIDATE_INTERNAL, nowP2, rdfRecordP2);
     //We should be getting this from the database
-    List<ProblemPattern> problemPatternsRecord1 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP2);
+    List<ProblemPattern> problemPatternsRecord1 = patternAnalysisService.getRecordPatternAnalysis("", null, null, rdfRecordP2);
     assertFalse(problemPatternsRecord1.isEmpty());
 
     final LocalDateTime nowP6 = LocalDateTime.now();
     //It does NOT exist in the database but we should get the on the fly version
-    List<ProblemPattern> problemPatternsRecord2 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP6);
+    List<ProblemPattern> problemPatternsRecord2 = patternAnalysisService.getRecordPatternAnalysis("", null, null, rdfRecordP6);
     assertFalse(problemPatternsRecord2.isEmpty());
   }
 }

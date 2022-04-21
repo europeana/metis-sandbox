@@ -77,7 +77,7 @@ public class PatternAnalysisController {
             @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
             @ApiParam(value = "The record content as a file", required = true) @RequestParam String recordId) throws SerializationException {
         String recordContent = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL).getContent();
-        return patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordContent));
+        return patternAnalysisService.getRecordPatternAnalysis(null, null, null, rdfConversionUtils.convertStringToRdf(recordContent));
 
     }
 
