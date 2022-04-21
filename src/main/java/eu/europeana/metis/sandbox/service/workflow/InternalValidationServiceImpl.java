@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @Service
 class InternalValidationServiceImpl implements InternalValidationService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationServiceImpl.class);
 
   private static final String SCHEMA = "EDM-INTERNAL";
 
@@ -33,21 +33,21 @@ class InternalValidationServiceImpl implements InternalValidationService {
   }
 
   @Override
-  public RecordInfo validate(Record record, LocalDateTime timestamp) {
-    requireNonNull(record, "Record must not be null");
+  public RecordInfo validate(Record recordToValidate, LocalDateTime timestamp) {
+    requireNonNull(recordToValidate, "Record must not be null");
 
-    var content = record.getContentInputStream();
+    var content = recordToValidate.getContentInputStream();
     var validationResult = validator.singleValidation(SCHEMA, null, null, content);
     if (!validationResult.isSuccess()) {
       throw new RecordValidationException(validationResult.getMessage(),
           validationResult.getRecordId(), validationResult.getNodeId());
     }
     try {
-      patternAnalysisService.generateRecordPatternAnalysis(record.getDatasetId(), Step.VALIDATE_INTERNAL, timestamp,
-              new String(record.getContent(), StandardCharsets.UTF_8));
+      patternAnalysisService.generateRecordPatternAnalysis(recordToValidate.getDatasetId(), Step.VALIDATE_INTERNAL, timestamp,
+              new String(recordToValidate.getContent(), StandardCharsets.UTF_8));
     } catch (PatternAnalysisException e) {
-      LOGGER.error(String.format("An error occurred while processing pattern analysis with record id %s", record.getEuropeanaId()));
+      LOGGER.error(String.format("An error occurred while processing pattern analysis with record id %s", recordToValidate.getEuropeanaId()));
     }
-    return new RecordInfo(record);
+    return new RecordInfo(recordToValidate);
   }
 }
