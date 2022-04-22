@@ -48,9 +48,12 @@ public class ProgressInfoDto {
 
   @JsonProperty("dataset-info")
   private final DatasetInfoDto datasetInfoDto;
+  
+  @JsonProperty("error-type")
+  private final String errorType;
 
   public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
-      List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
+                         List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto, String errorType) {
     this.processedRecords = processedRecords;
     if (totalRecords == null) {
       this.status = Status.HARVESTING_IDENTIFIERS;
@@ -63,8 +66,9 @@ public class ProgressInfoDto {
       this.totalRecords = totalRecords;
     }
     this.progressByStep = Collections.unmodifiableList(progressByStep);
-    this.portalPublishUrl = portalPublishUrl;
     this.datasetInfoDto = datasetInfoDto;
+    this.errorType = status == Status.COMPLETED ? errorType : "";
+    this.portalPublishUrl = this.errorType.isBlank() ? portalPublishUrl : "";
   }
 
   public String getPortalPublishUrl() {
@@ -89,5 +93,9 @@ public class ProgressInfoDto {
 
   public DatasetInfoDto getDatasetInfoDto() {
     return datasetInfoDto;
+  }
+
+  public String getErrorType() {
+    return errorType;
   }
 }
