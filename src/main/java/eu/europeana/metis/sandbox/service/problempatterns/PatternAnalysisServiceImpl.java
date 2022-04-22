@@ -193,7 +193,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
 
   @Override
   @Transactional
-  public List<ProblemPattern> getRecordPatternAnalysis(String datasetId, Step step, LocalDateTime localDateTime, RDF rdfRecord) {
+  public List<ProblemPattern> getRecordPatternAnalysis(RDF rdfRecord) {
     List<ProblemPattern> result = problemPatternAnalyzer.analyzeRecord(rdfRecord);
     return result == null ? new ArrayList<>() : result;
   }
