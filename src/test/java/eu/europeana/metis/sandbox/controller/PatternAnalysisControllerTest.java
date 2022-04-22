@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(PatternAnalysisController.class)
-public class PatternAnalysisControllerTest {
+class PatternAnalysisControllerTest {
 
     @Autowired
     private MockMvc mvc;
