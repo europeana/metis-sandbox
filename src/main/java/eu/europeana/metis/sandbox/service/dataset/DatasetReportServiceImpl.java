@@ -94,7 +94,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         if (stepStatistics.isEmpty()) {
             return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
                     dataset.getRecordsQuantity(), 0L, List.of(),
-                    datasetInfoDto, getErrorMessage(0L, 0L, dataset));
+                    datasetInfoDto, getErrorMessage(0L, 0L, dataset.getRecordsQuantity()));
         }
 
         // get qty of records completely processed
@@ -119,7 +119,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         return new ProgressInfoDto(
                 getPublishPortalUrl(dataset, completedRecords),
                 dataset.getRecordsQuantity(), completedRecords,
-                stepsInfo, datasetInfoDto, getErrorMessage(completedRecords, failedRecords, dataset));
+                stepsInfo, datasetInfoDto, getErrorMessage(completedRecords, failedRecords, dataset.getRecordsQuantity()));
     }
 
     private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords) {
@@ -140,11 +140,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
         return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
     }
 
-    private String getErrorMessage(Long completedRecords, Long failedRecords, DatasetEntity dataset) {
-        Long recordsQty = dataset.getRecordsQuantity();
-        if (recordsQty == null) {
+    private String getErrorMessage(Long completedRecords, Long failedRecords, Long recordsQuantity) {
+        if (recordsQuantity == null) {
             return "";
-        } else if (recordsQty == 0) {
+        } else if (recordsQuantity == 0) {
             return EMPTY_DATASET_MESSAGE;
         } else if (completedRecords.equals(failedRecords)) {
             return FINISH_ALL_ERRORS_MESSAGE;

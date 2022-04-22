@@ -135,4 +135,26 @@ class ProgressInfoDtoTest {
             false,
             false), "");
   }
+
+  @NotNull
+  private static ProgressInfoDto getTestErroTypeInfoDto() {
+    return new ProgressInfoDto("http://metis-sandbox",
+            5L,
+            5L,
+            getProgressByStepDtoList(5, 5),
+            new DatasetInfoDto("datasetId",
+                    "datasetName",
+                    LocalDateTime.parse("2022-03-14T22:50:22"),
+                    Language.HR,
+                    Country.CROATIA,
+                    false,
+                    false), "Error");
+  }
+
+  @Test
+  void getErrorType() {
+    progressInfoDto = getTestErroTypeInfoDto();
+    assertEquals( "Error", progressInfoDto.getErrorType());
+    assertEquals( "", progressInfoDto.getPortalPublishUrl());
+  }
 }
