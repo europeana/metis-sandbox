@@ -4,9 +4,6 @@ import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-
 
 public interface InternalValidationService {
 
@@ -19,11 +16,4 @@ public interface InternalValidationService {
    * @throws RecordValidationException if records fails at validation
    */
   RecordInfo validate(Record recordToValidate);
-
-  /**
-   * Method void to clean up the mapping regarding execution timestamp.
-   * Related to problem pattern analysis
-   * @return A copy of the map that was just cleaned
-   */
-  Map<String, LocalDateTime> cleanMappingExecutionTimestamp();
 }

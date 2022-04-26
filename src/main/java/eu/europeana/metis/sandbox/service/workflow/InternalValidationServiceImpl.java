@@ -6,6 +6,8 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.service.ValidationExecutionService;
@@ -15,8 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 @Service
 class InternalValidationServiceImpl implements InternalValidationService {
@@ -24,16 +25,16 @@ class InternalValidationServiceImpl implements InternalValidationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationServiceImpl.class);
     private static final String SCHEMA = "EDM-INTERNAL";
 
-    private Map<String,LocalDateTime> mapDatasetIdExecutionTimestamp;
-
     private final ValidationExecutionService validator;
     private final PatternAnalysisService<Step> patternAnalysisService;
+    private final ExecutionPointService executionPointService;
 
     public InternalValidationServiceImpl(
-            ValidationExecutionService validator, PatternAnalysisService<Step> patternAnalysisService) {
+            ValidationExecutionService validator, PatternAnalysisService<Step> patternAnalysisService,
+            ExecutionPointService executionPointService) {
         this.validator = validator;
         this.patternAnalysisService = patternAnalysisService;
-        mapDatasetIdExecutionTimestamp = new HashMap<>();
+        this.executionPointService = executionPointService;
     }
 
     @Override
@@ -54,26 +55,10 @@ class InternalValidationServiceImpl implements InternalValidationService {
         return new RecordInfo(recordToValidate);
     }
 
-    @Override
-    public Map<String,LocalDateTime> cleanMappingExecutionTimestamp() {
-        mapDatasetIdExecutionTimestamp = new HashMap<>();
-        return new HashMap<>(mapDatasetIdExecutionTimestamp);
-    }
-
     private void generateAnalysis(String datasetId, byte[] recordContent) throws PatternAnalysisException {
-        LocalDateTime timestamp;
-        if(mapDatasetIdExecutionTimestamp.containsKey(datasetId)){
-            timestamp = mapDatasetIdExecutionTimestamp.get(datasetId);
-        } else {
-            timestamp = LocalDateTime.now();
-            mapDatasetIdExecutionTimestamp.put(datasetId, timestamp);
-        }
+        Optional<ExecutionPoint> firstOccurrence = executionPointService.getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString());
+        LocalDateTime timestamp = firstOccurrence.isPresent() ? firstOccurrence.get().getExecutionTimestamp() : LocalDateTime.now();
         patternAnalysisService.generateRecordPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL, timestamp,
                 new String(recordContent, StandardCharsets.UTF_8));
-    }
-
-    //This setter is used for testing purposes
-    protected void setMapping(Map<String,LocalDateTime> mapping){
-        this.mapDatasetIdExecutionTimestamp = mapping;
     }
 }
