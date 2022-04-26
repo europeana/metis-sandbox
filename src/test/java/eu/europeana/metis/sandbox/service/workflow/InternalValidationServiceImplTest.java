@@ -122,6 +122,6 @@ class InternalValidationServiceImplTest {
     mapping.put("1",LocalDateTime.now());
     service.setMapping(mapping);
     Map<String,LocalDateTime> result = service.cleanMappingExecutionTimestamp();
-    assertEquals(result.size(), 0);
+    assertEquals(0, result.size());
   }
 }
