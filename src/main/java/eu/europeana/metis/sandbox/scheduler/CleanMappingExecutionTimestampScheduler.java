@@ -5,11 +5,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CleanMappingExecutionTimestamp {
+public class CleanMappingExecutionTimestampScheduler {
 
     private final InternalValidationService internalValidationService;
 
-    public CleanMappingExecutionTimestamp(InternalValidationService internalValidationService) {
+    public CleanMappingExecutionTimestampScheduler(InternalValidationService internalValidationService) {
         this.internalValidationService = internalValidationService;
     }
 

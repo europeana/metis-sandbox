@@ -4,7 +4,6 @@ import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 
-import java.time.LocalDateTime;
 
 public interface InternalValidationService {
 
