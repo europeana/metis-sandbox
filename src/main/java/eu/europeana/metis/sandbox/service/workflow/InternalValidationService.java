@@ -12,10 +12,15 @@ public interface InternalValidationService {
    * Validates the given record against EDM-INTERNAL schema
    *
    * @param recordToValidate must not be null
-   * @param timestamp the timestamp that validate has started
    * return {@link RecordInfo} containing record that is valid against EDM-INTERNAL schema
    * @throws NullPointerException      if record is null
    * @throws RecordValidationException if records fails at validation
    */
-  RecordInfo validate(Record recordToValidate, LocalDateTime timestamp);
+  RecordInfo validate(Record recordToValidate);
+
+  /**
+   * Method void to clean up the mapping regarding execution timestamp.
+   * Related to problem pattern analysis
+   */
+  void cleanMappingExecutionTimestamp();
 }

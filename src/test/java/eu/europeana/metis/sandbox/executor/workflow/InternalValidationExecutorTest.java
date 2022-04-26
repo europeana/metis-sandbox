@@ -51,10 +51,10 @@ class InternalValidationExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.SUCCESS);
 
-    when(service.validate(eq(record), any(LocalDateTime.class))).thenReturn(new RecordInfo(record));
+    when(service.validate(eq(record))).thenReturn(new RecordInfo(record));
     consumer.validateInternal(recordEvent);
 
-    verify(service).validate(eq(record), any(LocalDateTime.class));
+    verify(service).validate(eq(record));
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.VALIDATE_INTERNAL, captor.getValue().getStep());
@@ -71,7 +71,7 @@ class InternalValidationExecutorTest {
 
     consumer.validateInternal(recordEvent);
 
-    verify(service, never()).validate(record, null);
+    verify(service, never()).validate(record);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
@@ -84,11 +84,11 @@ class InternalValidationExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
         Status.SUCCESS);
 
-    when(service.validate(eq(record), any(LocalDateTime.class))).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.validate(eq(record))).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.validateInternal(recordEvent);
 
-    verify(service).validate(eq(record), any(LocalDateTime.class));
+    verify(service).validate(eq(record));
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

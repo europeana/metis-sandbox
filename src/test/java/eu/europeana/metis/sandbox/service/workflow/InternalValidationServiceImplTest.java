@@ -43,7 +43,6 @@ class InternalValidationServiceImplTest {
     var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
-    LocalDateTime timestamp = LocalDateTime.now();
 
     var validationResult = new ValidationResult();
     validationResult.setSuccess(true);
@@ -52,9 +51,9 @@ class InternalValidationServiceImplTest {
     when(validationExecutionService
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
-    doNothing().when(patternAnalysisService).generateRecordPatternAnalysis(eq("1"), eq(Step.VALIDATE_INTERNAL), eq(timestamp), anyString());
+    doNothing().when(patternAnalysisService).generateRecordPatternAnalysis(eq("1"), eq(Step.VALIDATE_INTERNAL), any(LocalDateTime.class), anyString());
 
-    var result = service.validate(record, timestamp);
+    var result = service.validate(record);
 
     assertEquals(record, result.getRecord());
   }
@@ -73,11 +72,11 @@ class InternalValidationServiceImplTest {
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
-    assertThrows(RecordValidationException.class, () -> service.validate(record, null));
+    assertThrows(RecordValidationException.class, () -> service.validate(record));
   }
 
   @Test
   void validate_inputNull_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.validate(null, null));
+    assertThrows(NullPointerException.class, () -> service.validate(null));
   }
 }

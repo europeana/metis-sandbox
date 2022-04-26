@@ -21,8 +21,6 @@ class InternalValidationExecutor extends StepExecutor {
 
   @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
   private String routingKey;
-  private boolean hasFirstRecordArrived = false;
-  private LocalDateTime firstTimestamp;
 
   public InternalValidationExecutor(AmqpTemplate amqpTemplate,
       InternalValidationService service) {
@@ -34,10 +32,6 @@ class InternalValidationExecutor extends StepExecutor {
       containerFactory = "internalValidationFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
   public void validateInternal(RecordProcessEvent input) {
-    if(!hasFirstRecordArrived) {
-      firstTimestamp = LocalDateTime.now();
-      hasFirstRecordArrived = true;
-    }
-    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getRecord(), firstTimestamp));
+    consume(routingKey, input, Step.VALIDATE_INTERNAL, () -> service.validate(input.getRecord()));
   }
 }

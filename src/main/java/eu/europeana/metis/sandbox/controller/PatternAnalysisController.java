@@ -32,7 +32,7 @@ public class PatternAnalysisController {
 
     public PatternAnalysisController(PatternAnalysisService<Step> patternAnalysisService,
                                      ExecutionPointService executionPointService,
-                                     RecordLogService recordLogService){
+                                     RecordLogService recordLogService) {
         this.patternAnalysisService = patternAnalysisService;
         this.executionPointService = executionPointService;
         this.recordLogService = recordLogService;
@@ -41,7 +41,7 @@ public class PatternAnalysisController {
     /**
      * Retrieves the pattern analysis from a given dataset
      *
-     * @param datasetId The id of the dataset to gather the pattern analysis
+     * @param datasetId          The id of the dataset to gather the pattern analysis
      * @param executionTimestamp The timestamp of when the analysis was executed
      * @return The pattern analysis of the dataset
      */
@@ -53,7 +53,7 @@ public class PatternAnalysisController {
     @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
     public DatasetProblemPatternAnalysisView<Step> getDatasetPatternAnalysis(
             @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
-            @ApiParam(value = "timestamp of when the step was executed", required = true) @RequestParam LocalDateTime executionTimestamp){
+            @ApiParam(value = "timestamp of when the step was executed", required = true) @RequestParam LocalDateTime executionTimestamp) {
         return new DatasetProblemPatternAnalysisView<>(patternAnalysisService.getDatasetPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL, executionTimestamp).orElse(
                 new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>())));
 
@@ -63,7 +63,7 @@ public class PatternAnalysisController {
      * Retrieved the pattern analysis from a given record
      *
      * @param datasetId The id of the dataset that the record belongs to
-     * @param recordId The record content as a String
+     * @param recordId  The record content as a String
      * @return A list with pattern problems that the record contains
      * @throws SerializationException if there's an issue with the record content
      */
@@ -109,11 +109,11 @@ public class PatternAnalysisController {
         @JsonProperty
         private final List<ProblemPattern> problemPatternList;
 
-        private DatasetProblemPatternAnalysisView( DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
+        private DatasetProblemPatternAnalysisView(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
             this.datasetId = datasetProblemPatternAnalysis.getDatasetId();
             this.executionStep = datasetProblemPatternAnalysis.getExecutionStep();
             this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
-        datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
+                    datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
             this.problemPatternList = datasetProblemPatternAnalysis.getProblemPatternList();
         }
     }

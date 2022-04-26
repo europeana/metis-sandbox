@@ -206,7 +206,6 @@ class PatternAnalysisServiceImplTest {
     List<ProblemPattern> problemPatternsRecord1 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP2);
     assertFalse(problemPatternsRecord1.isEmpty());
 
-    final LocalDateTime nowP6 = LocalDateTime.now();
     //It does NOT exist in the database but we should get the on the fly version
     List<ProblemPattern> problemPatternsRecord2 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP6);
     assertFalse(problemPatternsRecord2.isEmpty());
