@@ -24,7 +24,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationServiceImpl.class);
     private static final String SCHEMA = "EDM-INTERNAL";
 
-    private Map<String,LocalDateTime> mapDatasetIdExecutionTimestamp = new HashMap<>();
+    private Map<String,LocalDateTime> mapDatasetIdExecutionTimestamp;
 
     private final ValidationExecutionService validator;
     private final PatternAnalysisService<Step> patternAnalysisService;
@@ -33,6 +33,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
             ValidationExecutionService validator, PatternAnalysisService<Step> patternAnalysisService) {
         this.validator = validator;
         this.patternAnalysisService = patternAnalysisService;
+        mapDatasetIdExecutionTimestamp = new HashMap<>();
     }
 
     @Override
@@ -54,8 +55,9 @@ class InternalValidationServiceImpl implements InternalValidationService {
     }
 
     @Override
-    public void cleanMappingExecutionTimestamp() {
+    public Map<String,LocalDateTime> cleanMappingExecutionTimestamp() {
         mapDatasetIdExecutionTimestamp = new HashMap<>();
+        return new HashMap<>(mapDatasetIdExecutionTimestamp);
     }
 
     private void generateAnalysis(String datasetId, byte[] recordContent) throws PatternAnalysisException {
@@ -68,5 +70,10 @@ class InternalValidationServiceImpl implements InternalValidationService {
         }
         patternAnalysisService.generateRecordPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL, timestamp,
                 new String(recordContent, StandardCharsets.UTF_8));
+    }
+
+    //This setter is used for testing purposes
+    protected void setMapping(Map<String,LocalDateTime> mapping){
+        this.mapDatasetIdExecutionTimestamp = mapping;
     }
 }
