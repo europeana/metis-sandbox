@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
@@ -35,9 +36,10 @@ public interface RecordLogService {
    *
    * @param recordId the record id
    * @param datasetId the dataset id
+   * @param step the step that we want to get the record state
    * @return the record log entity
    */
-  RecordLogEntity getRecordLogEntity(String recordId, String datasetId);
+  RecordLogEntity getRecordLogEntity(String recordId, String datasetId, Step step);
 
   /**
    * Get a record error log entity from the database

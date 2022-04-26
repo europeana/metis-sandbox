@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:adms="http://www.w3.org/ns/adms#"
+         xmlns:cc="http://creativecommons.org/ns#"
+         xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:doap="http://usefulinc.com/ns/doap#"
+         xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:odrl="http://www.w3.org/ns/odrl/2/"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:svcs="http://rdfs.org/sioc/services#"
+         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+         xmlns:xs="http://www.w3.org/2001/XMLSchema">
+   <edm:ProvidedCHO rdf:about="/4/_urn_www_culture_si_images_pageid_11156"/>
+   <edm:WebResource rdf:about="https://www.new.culture.si/images/5/53/Res_Nullius_2011_Photo_Zula.JPG">
+      <dc:format>image/jpeg</dc:format>
+   </edm:WebResource>
+   <ore:Aggregation rdf:about="/aggregation/provider/4/_urn_www_culture_si_images_pageid_11156">
+      <edm:aggregatedCHO rdf:resource="/4/_urn_www_culture_si_images_pageid_11156"/>
+      <edm:dataProvider xml:lang="en">Culture.si Photo Library</edm:dataProvider>
+      <edm:isShownAt rdf:resource="https://www.culture.si/en/File:Res_Nullius_2011_Photo_Zula.JPG"/>
+      <edm:isShownBy rdf:resource="https://www.new.culture.si/images/5/53/Res_Nullius_2011_Photo_Zula.JPG"/>
+      <edm:object rdf:resource="https://www.new.culture.si/images/5/53/Res_Nullius_2011_Photo_Zula.JPG"/>
+      <edm:provider xml:lang="en">Slovenian National E-content Aggregator</edm:provider>
+      <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nd/4.0/"/>
+   </ore:Aggregation>
+   <ore:Proxy rdf:about="/proxy/provider/4/_urn_www_culture_si_images_pageid_11156">
+      <dc:creator xml:lang="en">Zula</dc:creator>
+      <dc:description xml:lang="en">Res Nullius group portrait, 2011</dc:description>
+      <dc:format>image/jpeg</dc:format>
+      <dc:identifier>https://www.culture.si/en/File:Res_Nullius_2011_Photo_Zula.JPG</dc:identifier>
+      <dc:publisher>www.culture.si</dc:publisher>
+      <dc:rights>CC BY-ND 4.0</dc:rights>
+      <dc:subject xml:lang="en">Res Nullius</dc:subject>
+      <dc:subject xml:lang="en">Group portraits</dc:subject>
+      <dc:subject xml:lang="en">Music</dc:subject>
+      <dc:subject xml:lang="en">Music groups, ensembles and orchestras</dc:subject>
+      <dc:subject xml:lang="en">Portraits</dc:subject>
+      <dc:subject xml:lang="en">Rock</dc:subject>
+      <dc:title xml:lang="en">Res Nullius 2011 Photo Zula</dc:title>
+      <dc:type xml:lang="en">Digital image</dc:type>
+      <edm:europeanaProxy>false</edm:europeanaProxy>
+      <ore:proxyFor rdf:resource="/4/_urn_www_culture_si_images_pageid_11156"/>
+      <ore:proxyIn rdf:resource="/aggregation/provider/4/_urn_www_culture_si_images_pageid_11156"/>
+      <edm:type>IMAGE</edm:type>
+   </ore:Proxy>
+   <ore:Proxy rdf:about="/proxy/europeana/4/_urn_www_culture_si_images_pageid_11156">
+      <dc:identifier>#urn:www.culture.si:images:pageid-11156</dc:identifier>
+      <edm:europeanaProxy>true</edm:europeanaProxy>
+      <ore:proxyFor rdf:resource="/4/_urn_www_culture_si_images_pageid_11156"/>
+      <ore:proxyIn rdf:resource="/aggregation/europeana/4/_urn_www_culture_si_images_pageid_11156"/>
+      <ore:lineage rdf:resource="/proxy/provider/4/_urn_www_culture_si_images_pageid_11156"/>
+   </ore:Proxy>
+   <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/4/_urn_www_culture_si_images_pageid_11156">
+      <edm:aggregatedCHO rdf:resource="/4/_urn_www_culture_si_images_pageid_11156"/>
+      <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
+      <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
+      <edm:datasetName>4_testing_p2_pattern</edm:datasetName>
+      <edm:country>Netherlands</edm:country>
+      <edm:language>nl</edm:language>
+   </edm:EuropeanaAggregation>
+</rdf:RDF>
+

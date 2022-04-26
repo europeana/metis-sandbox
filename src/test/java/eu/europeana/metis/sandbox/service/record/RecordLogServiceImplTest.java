@@ -141,13 +141,13 @@ class RecordLogServiceImplTest {
 
   @Test
   void getRecordLogEntity() {
-    service.getRecordLogEntity("recordId", "datasetId");
+    service.getRecordLogEntity("recordId", "datasetId", Step.MEDIA_PROCESS);
     verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
         Step.MEDIA_PROCESS);
     clearInvocations(recordLogRepository);
 
     //Case PROVIDER_ID
-    service.getRecordLogEntity("recordId", "datasetId");
+    service.getRecordLogEntity("recordId", "datasetId", Step.MEDIA_PROCESS);
     verify(recordLogRepository).findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
         Step.MEDIA_PROCESS);
   }

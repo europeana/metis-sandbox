@@ -60,7 +60,7 @@ class DatasetController {
       + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
-  private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
+  private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
 
   private final DatasetService datasetService;
@@ -103,7 +103,7 @@ class DatasetController {
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
-    checkArgument(namePattern.matcher(datasetName).matches(),
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
@@ -137,7 +137,7 @@ class DatasetController {
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
-    checkArgument(namePattern.matcher(datasetName).matches(),
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
@@ -174,7 +174,7 @@ class DatasetController {
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
-    checkArgument(namePattern.matcher(datasetName).matches(),
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);

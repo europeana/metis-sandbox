@@ -14,7 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
- * Entity class for exectuion point.
+ * Entity class for execution point.
  */
 @Entity
 @Table(schema = "problem_patterns", name = "execution_point", indexes = {
