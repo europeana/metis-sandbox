@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Problem pattern analysis service implementation.
@@ -73,35 +73,30 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
 
   private ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep,
       LocalDateTime executionTimestamp) {
-    synchronized (PatternAnalysisServiceImpl.class) {
-      // TODO: 14/04/2022 This step could maybe be optimized by keeping an in memory cache of the execution
-      final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
-          datasetId, executionStep.name(), executionTimestamp);
-      final ExecutionPoint savedExecutionPoint;
-      //TODO: 21/04/2022 There could be synchronization issue in case of multi-thread while initializing ExecutionPoint.
-      //TODO: 21/04/2022 This synchronized block is not the best solution. We should figure out how to tackle this.
-      if (Objects.isNull(dbExecutionPoint)) {
-        final ExecutionPoint executionPoint = new ExecutionPoint();
-        executionPoint.setExecutionTimestamp(executionTimestamp);
-        executionPoint.setExecutionStep(executionStep.name());
-        executionPoint.setDatasetId(datasetId);
-        savedExecutionPoint = this.executionPointRepository.save(executionPoint);
+    final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
+        datasetId, executionStep.name(), executionTimestamp);
+    final ExecutionPoint savedExecutionPoint;
+    if (Objects.isNull(dbExecutionPoint)) {
+      final ExecutionPoint executionPoint = new ExecutionPoint();
+      executionPoint.setExecutionTimestamp(executionTimestamp);
+      executionPoint.setExecutionStep(executionStep.name());
+      executionPoint.setDatasetId(datasetId);
+      savedExecutionPoint = this.executionPointRepository.save(executionPoint);
 
-        //Initialize with zero all patterns
-        final List<DatasetProblemPattern> datasetProblemPatterns = Arrays.stream(ProblemPatternDescription.values())
-                                                                         .map(Enum::name)
-                                                                         .map(patternId -> new DatasetProblemPattern(
-                                                                             new DatasetProblemPatternId(
-                                                                                 savedExecutionPoint.getExecutionPointId(),
-                                                                                 patternId), savedExecutionPoint, 0))
-                                                                         .collect(Collectors.toList());
-        datasetProblemPatternRepository.saveAll(datasetProblemPatterns);
-      } else {
-        savedExecutionPoint = dbExecutionPoint;
-      }
-
-      return savedExecutionPoint;
+      //Initialize with zero all patterns
+      final List<DatasetProblemPattern> datasetProblemPatterns = Arrays.stream(ProblemPatternDescription.values())
+                                                                       .map(Enum::name)
+                                                                       .map(patternId -> new DatasetProblemPattern(
+                                                                           new DatasetProblemPatternId(
+                                                                               savedExecutionPoint.getExecutionPointId(),
+                                                                               patternId), savedExecutionPoint, 0))
+                                                                       .collect(Collectors.toList());
+      datasetProblemPatternRepository.saveAll(datasetProblemPatterns);
+    } else {
+      savedExecutionPoint = dbExecutionPoint;
     }
+
+    return savedExecutionPoint;
   }
 
   private void insertPatternAnalysis(ExecutionPoint executionPoint, final List<ProblemPattern> problemPatterns) {
