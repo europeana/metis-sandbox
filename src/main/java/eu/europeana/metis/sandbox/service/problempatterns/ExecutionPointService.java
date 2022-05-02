@@ -28,12 +28,15 @@ public class ExecutionPointService {
     }
 
     /**
-     * Retrieves an execution point associated with dataset id and its execution step
+     * Retrieves an execution point associated with dataset id and its execution step.
+     * <p>
+     *   The sorting is descending so that we get the latest execution.
+     * </p>
      * @param datasetId The dataset id
      * @param executionStep The execution step as a string
      * @return An optional object wrapping the execution point
      */
     public Optional<ExecutionPoint> getExecutionPoint(String datasetId, String executionStep){
-        return executionPointRepository.findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestamp(datasetId, executionStep);
+        return executionPointRepository.findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc(datasetId, executionStep);
     }
 }

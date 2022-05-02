@@ -19,6 +19,7 @@ create table problem_patterns.execution_point
     Primary Key (execution_point_id),
     unique(dataset_id, execution_step, execution_timestamp)
 );
+create index on problem_patterns.execution_point (dataset_id, execution_step);
 
 create table problem_patterns.dataset_problem_pattern
 (
@@ -58,5 +59,4 @@ create table problem_patterns.record_problem_pattern_occurrence
 --     Primary Key (execution_point_id, record_id, title),
 --     Foreign Key (execution_point_id) References execution_point (execution_point_id)
 -- );
-create index on problem_patterns.execution_point (dataset_id, execution_step);
 commit;

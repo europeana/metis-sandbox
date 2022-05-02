@@ -34,7 +34,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   private final ValidationExecutionService validator;
   private final PatternAnalysisService<Step> patternAnalysisService;
   private final ExecutionPointService executionPointService;
-  //Keep maps in memory for
+  //Keep maps in memory for unique timestamps and locking between dataset ids
   private final Map<String, LocalDateTime> datasetIdTimestampMap = new ConcurrentHashMap<>();
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
   private final Period mapEvictionPeriod = Period.ofDays(1);

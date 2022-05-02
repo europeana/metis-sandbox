@@ -49,7 +49,7 @@ public class ExecutionPointServiceTest {
     void getExecutionPoint_expectSuccess(){
         executionPointService.getExecutionPoint("1", Step.VALIDATE_INTERNAL.toString());
         verify(executionPointRepository, times(1))
-                .findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestamp("1", Step.VALIDATE_INTERNAL.toString());
+                .findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc("1", Step.VALIDATE_INTERNAL.toString());
 
     }
 }
