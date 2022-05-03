@@ -22,8 +22,8 @@ public enum Country {
       "Iceland"), INDIA("India"), IRELAND("Ireland"), ITALY("Italy"), ISRAEL(
       "Israel"), JAPAN("Japan"), KAZAKHSTAN("Kazakhstan"), KOREA_REPUBLICOF(
       "Korea, Republic of"), LATVIA("Latvia"), LEBANON("Lebanon"), LIECHTENSTEIN(
-      "Liechtenstein"), LITHUANIA("Lithuania"), LUXEMBOURG("Luxembourg"), MACEDONIA(
-      "Macedonia"), MALTA("Malta"), MOLDOVA("Moldova"), MONACO("Monaco"), MONTENEGRO(
+      "Liechtenstein"), LITHUANIA("Lithuania"), LUXEMBOURG("Luxembourg"), NORTH_MACEDONIA(
+      "North Macedonia"), MALTA("Malta"), MOLDOVA("Moldova"), MONACO("Monaco"), MONTENEGRO(
       "Montenegro"), NETHERLANDS("Netherlands"), NORWAY("Norway"), POLAND(
       "Poland"), PORTUGAL("Portugal"), ROMANIA("Romania"), RUSSIA(
       "Russia"), SAN_MARINO("San Marino"), SERBIA("Serbia"), SLOVAKIA(
