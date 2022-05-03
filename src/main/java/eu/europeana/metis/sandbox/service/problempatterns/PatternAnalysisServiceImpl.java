@@ -4,7 +4,7 @@ import static java.util.Objects.nonNull;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
-import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternId;
+import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOccurrence;
@@ -90,7 +90,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
       final List<DatasetProblemPattern> datasetProblemPatterns = Arrays.stream(ProblemPatternDescription.values())
                                                                        .map(Enum::name)
                                                                        .map(patternId -> new DatasetProblemPattern(
-                                                                           new DatasetProblemPatternId(
+                                                                           new DatasetProblemPatternCompositeKey(
                                                                                savedExecutionPoint.getExecutionPointId(),
                                                                                patternId), savedExecutionPoint, 0))
                                                                        .collect(Collectors.toList());
@@ -105,12 +105,12 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   private void insertPatternAnalysis(ExecutionPoint executionPoint, final List<ProblemPattern> problemPatterns) {
     for (ProblemPattern problemPattern : problemPatterns) {
       for (RecordAnalysis recordAnalysis : problemPattern.getRecordAnalysisList()) {
-        final DatasetProblemPatternId datasetProblemPatternId = new DatasetProblemPatternId(executionPoint.getExecutionPointId(),
+        final DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey = new DatasetProblemPatternCompositeKey(executionPoint.getExecutionPointId(),
             problemPattern.getProblemPatternDescription().getProblemPatternId().name());
         // TODO: 03/05/2022 To make this thread safe, an upsert should be used instead of an update and get
-        this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternId);
-        final Integer recordOccurrences = this.datasetProblemPatternRepository.findByDatasetProblemPatternId(
-            datasetProblemPatternId).getRecordOccurrences();
+        this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternCompositeKey);
+        final Integer recordOccurrences = this.datasetProblemPatternRepository.findByDatasetProblemPatternCompositeKey(
+            datasetProblemPatternCompositeKey).getRecordOccurrences();
 
         if (recordOccurrences <= maxRecordsPerPattern) {
           final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
@@ -160,10 +160,10 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
 
       final ArrayList<RecordAnalysis> recordAnalyses = getRecordAnalysesForPatternId(executionPoint,
-          datasetProblemPattern.getDatasetProblemPatternId().getPatternId());
+          datasetProblemPattern.getDatasetProblemPatternCompositeKey().getPatternId());
       if (CollectionUtils.isNotEmpty(recordAnalyses)) {
         problemPatterns.add(new ProblemPattern(
-            ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
+            ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternCompositeKey().getPatternId()),
             datasetProblemPattern.getRecordOccurrences(), recordAnalyses));
       }
     }

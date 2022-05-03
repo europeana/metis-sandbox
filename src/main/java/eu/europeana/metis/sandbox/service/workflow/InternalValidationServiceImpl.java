@@ -30,6 +30,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationServiceImpl.class);
   private static final String SCHEMA = "EDM-INTERNAL";
+  private static final Period MAP_EVICTION_PERIOD = Period.ofDays(1);
 
   private final ValidationExecutionService validator;
   private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
@@ -37,7 +38,6 @@ class InternalValidationServiceImpl implements InternalValidationService {
   //Keep maps in memory for unique timestamps and locking between dataset ids
   private final Map<String, LocalDateTime> datasetIdTimestampMap = new ConcurrentHashMap<>();
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
-  private static final Period mapEvictionPeriod = Period.ofDays(1);
 
   public InternalValidationServiceImpl(ValidationExecutionService validator,
       PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
@@ -105,7 +105,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
         lock.lock();
         LOGGER.debug("Cleaning cache: {} lock, Locked", entry.getKey());
         if (datasetIdTimestampMap.get(entry.getKey()).isAfter(
-            LocalDateTime.now().minus(mapEvictionPeriod))) {
+            LocalDateTime.now().minus(MAP_EVICTION_PERIOD))) {
           datasetIdTimestampMap.remove(entry.getKey());
           datasetIdLocksMap.remove(entry.getKey());
         }
