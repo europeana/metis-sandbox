@@ -58,9 +58,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
           validationResult.getRecordId(), validationResult.getNodeId());
     }
     try {
-      LOGGER.info("Pattern analysis acquiring lock record id: {}", recordToValidate.getEuropeanaId());
       generateAnalysis(recordToValidate.getDatasetId(), recordToValidate.getContent());
-
     } catch (PatternAnalysisException e) {
       LOGGER.error("An error occurred while processing pattern analysis with record id {}", recordToValidate.getEuropeanaId());
     }
