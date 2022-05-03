@@ -137,7 +137,7 @@ class PatternAnalysisServiceImplTest {
     final Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
         "1", Step.VALIDATE_INTERNAL, nowP6);
     assertTrue(datasetPatternAnalysis.isPresent());
-    assertEquals(ProblemPatternDescription.values().length, datasetPatternAnalysis.get().getProblemPatternList().size());
+    assertEquals(1, datasetPatternAnalysis.get().getProblemPatternList().size());
     final ProblemPattern problemPatternP6 = datasetPatternAnalysis.get().getProblemPatternList().stream()
                                                                   .filter(problemPattern ->
                                                                       problemPattern.getProblemPatternDescription()
@@ -186,7 +186,7 @@ class PatternAnalysisServiceImplTest {
     final Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
         "1", Step.VALIDATE_INTERNAL, nowP6);
     assertTrue(datasetPatternAnalysis.isPresent());
-    assertEquals(ProblemPatternDescription.values().length, datasetPatternAnalysis.get().getProblemPatternList().size());
+    assertEquals(1, datasetPatternAnalysis.get().getProblemPatternList().size());
     final ProblemPattern problemPatternP6 = datasetPatternAnalysis.get().getProblemPatternList().stream()
                                                                   .filter(problemPattern ->
                                                                       problemPattern.getProblemPatternDescription()

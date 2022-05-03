@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -158,19 +159,30 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
     for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
 
-      final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
-      executionPoint.getRecordProblemPatterns().forEach(recordProblemPattern -> {
-        final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
-        for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
-          problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
-        }
-        recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
-      });
-      problemPatterns.add(new ProblemPattern(
-          ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
-          datasetProblemPattern.getRecordOccurrences(), recordAnalyses));
+      final ArrayList<RecordAnalysis> recordAnalyses = getRecordAnalyses(executionPoint, datasetProblemPattern);
+      if (CollectionUtils.isNotEmpty(recordAnalyses)) {
+        problemPatterns.add(new ProblemPattern(
+            ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
+            datasetProblemPattern.getRecordOccurrences(), recordAnalyses));
+      }
     }
     return problemPatterns;
+  }
+
+  private ArrayList<RecordAnalysis> getRecordAnalyses(ExecutionPoint executionPoint,
+      DatasetProblemPattern datasetProblemPattern) {
+    final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
+    executionPoint.getRecordProblemPatterns().forEach(recordProblemPattern -> {
+      final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
+      for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+        problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
+      }
+      //Select only the relevant ones
+      if (datasetProblemPattern.getDatasetProblemPatternId().getPatternId().equals(recordProblemPattern.getPatternId())) {
+        recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
+      }
+    });
+    return recordAnalyses;
   }
 
   @Override
