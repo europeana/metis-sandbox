@@ -37,7 +37,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   //Keep maps in memory for unique timestamps and locking between dataset ids
   private final Map<String, LocalDateTime> datasetIdTimestampMap = new ConcurrentHashMap<>();
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
-  private final Period mapEvictionPeriod = Period.ofDays(1);
+  private static final Period mapEvictionPeriod = Period.ofDays(1);
 
   public InternalValidationServiceImpl(ValidationExecutionService validator,
       PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
@@ -72,7 +72,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
     final ExecutionPoint executionPoint;
     try {
       lock.lock();
-      LOGGER.debug("{} lock, Locked", datasetId);
+      LOGGER.debug("Generate analysis: {} lock, Locked", datasetId);
       final LocalDateTime timestamp = datasetIdTimestampMap.computeIfAbsent(datasetId, s -> getLocalDateTime(datasetId));
       //We have to attempt initialization everytime because we don't have an entry point for the start of the step
       executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
@@ -81,7 +81,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
       patternAnalysisService.generateRecordPatternAnalysis(executionPoint, new String(recordContent, StandardCharsets.UTF_8));
     } finally {
       lock.unlock();
-      LOGGER.debug("{} lock, Unlocked", datasetId);
+      LOGGER.debug("Generate analysis: {} lock, Unlocked", datasetId);
     }
   }
 
@@ -103,13 +103,16 @@ class InternalValidationServiceImpl implements InternalValidationService {
       final Lock lock = entry.getValue();
       try {
         lock.lock();
+        LOGGER.debug("Cleaning cache: {} lock, Locked", entry.getKey());
         if (datasetIdTimestampMap.get(entry.getKey()).isAfter(
             LocalDateTime.now().minus(mapEvictionPeriod))) {
           datasetIdTimestampMap.remove(entry.getKey());
           datasetIdLocksMap.remove(entry.getKey());
         }
+        LOGGER.debug("Dataset id maps cache cleaned");
       } finally {
         lock.unlock();
+        LOGGER.debug("Cleaning cache: {} lock, Unlocked", entry.getKey());
       }
     }
   }

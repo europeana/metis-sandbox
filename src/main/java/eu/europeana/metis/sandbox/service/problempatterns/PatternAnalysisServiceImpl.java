@@ -159,7 +159,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
     for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
 
-      final ArrayList<RecordAnalysis> recordAnalyses = getRecordAnalyses(executionPoint, datasetProblemPattern);
+      final ArrayList<RecordAnalysis> recordAnalyses = getRecordAnalysesForPatternId(executionPoint,
+          datasetProblemPattern.getDatasetProblemPatternId().getPatternId());
       if (CollectionUtils.isNotEmpty(recordAnalyses)) {
         problemPatterns.add(new ProblemPattern(
             ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternId().getPatternId()),
@@ -169,8 +170,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     return problemPatterns;
   }
 
-  private ArrayList<RecordAnalysis> getRecordAnalyses(ExecutionPoint executionPoint,
-      DatasetProblemPattern datasetProblemPattern) {
+  private ArrayList<RecordAnalysis> getRecordAnalysesForPatternId(ExecutionPoint executionPoint,
+      String datasetProblemPatternId) {
     final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
     executionPoint.getRecordProblemPatterns().forEach(recordProblemPattern -> {
       final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
@@ -178,7 +179,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
         problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
       }
       //Select only the relevant ones
-      if (datasetProblemPattern.getDatasetProblemPatternId().getPatternId().equals(recordProblemPattern.getPatternId())) {
+      if (datasetProblemPatternId.equals(recordProblemPattern.getPatternId())) {
         recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
       }
     });
