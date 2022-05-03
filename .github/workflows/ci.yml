@@ -10,8 +10,8 @@ jobs:
         run: sudo apt install imagemagick
       - name: Setup FFmpeg
         uses: Iamshankhadeep/setup-ffmpeg@v1.1
-          with:
-            version: "4.1"
+        with:
+          version: "4.1"
       - name: Setup Ghostscript
         run: sudo apt-get install ghostscript -y
       - name: Checkout code
