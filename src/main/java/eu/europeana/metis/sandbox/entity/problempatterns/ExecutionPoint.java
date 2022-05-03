@@ -19,7 +19,8 @@ import javax.persistence.Table;
 @Entity
 @Table(schema = "problem_patterns", name = "execution_point", indexes = {
     @Index(name = "execution_point_dataset_id_execution_step_execution_timesta_key",
-        columnList = "dataset_id, execution_step, execution_timestamp", unique = true)
+        columnList = "dataset_id, execution_step, execution_timestamp", unique = true),
+    @Index(name = "execution_point_dataset_id_execution_step_idx", columnList = "dataset_id, execution_step")
 })
 public class ExecutionPoint {
 
@@ -42,6 +43,10 @@ public class ExecutionPoint {
 
   @OneToMany(mappedBy = "executionPoint", fetch = FetchType.EAGER)
   private Set<RecordProblemPattern> recordProblemPatterns = new LinkedHashSet<>();
+
+  public ExecutionPoint() {
+    //Required for JPA
+  }
 
   public Set<RecordProblemPattern> getRecordProblemPatterns() {
     return new LinkedHashSet<>(recordProblemPatterns);

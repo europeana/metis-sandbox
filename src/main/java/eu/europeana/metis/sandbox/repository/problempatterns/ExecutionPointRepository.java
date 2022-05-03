@@ -10,6 +10,6 @@ public interface ExecutionPointRepository extends JpaRepository<ExecutionPoint, 
 
   ExecutionPoint findByDatasetIdAndExecutionStepAndExecutionTimestamp(String datasetId, String executionStep, LocalDateTime executionTimestamp);
 
-  Optional<ExecutionPoint> findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestamp(String datasetId, String executionStep);
+  Optional<ExecutionPoint> findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc(String datasetId, String executionStep);
 
 }

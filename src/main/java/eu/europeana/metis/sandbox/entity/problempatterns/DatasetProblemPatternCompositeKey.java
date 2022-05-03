@@ -10,7 +10,7 @@ import org.hibernate.Hibernate;
  * Composite id class for {@link DatasetProblemPattern}
  */
 @Embeddable
-public class DatasetProblemPatternId implements Serializable {
+public class DatasetProblemPatternCompositeKey implements Serializable {
 
   private static final long serialVersionUID = -3985629933682270973L;
   @Column(name = "execution_point_id", nullable = false)
@@ -18,7 +18,7 @@ public class DatasetProblemPatternId implements Serializable {
   @Column(name = "pattern_id", nullable = false, length = 10)
   private String patternId;
 
-  public DatasetProblemPatternId() {
+  public DatasetProblemPatternCompositeKey() {
     //Required for JPA
   }
 
@@ -27,7 +27,7 @@ public class DatasetProblemPatternId implements Serializable {
    * @param executionPointId the execution point id
    * @param patternId the pattern id
    */
-  public DatasetProblemPatternId(Integer executionPointId, String patternId) {
+  public DatasetProblemPatternCompositeKey(Integer executionPointId, String patternId) {
     this.executionPointId = executionPointId;
     this.patternId = patternId;
   }
@@ -61,7 +61,7 @@ public class DatasetProblemPatternId implements Serializable {
     if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
       return false;
     }
-    DatasetProblemPatternId entity = (DatasetProblemPatternId) o;
+    DatasetProblemPatternCompositeKey entity = (DatasetProblemPatternCompositeKey) o;
     return Objects.equals(this.patternId, entity.patternId) &&
         Objects.equals(this.executionPointId, entity.executionPointId);
   }

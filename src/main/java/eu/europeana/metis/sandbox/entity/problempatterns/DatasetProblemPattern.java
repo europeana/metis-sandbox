@@ -18,7 +18,7 @@ import javax.persistence.Table;
 public class DatasetProblemPattern {
 
   @EmbeddedId
-  private DatasetProblemPatternId datasetProblemPatternId;
+  private DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey;
   @MapsId("executionPointId")
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "execution_point_id")
@@ -34,13 +34,13 @@ public class DatasetProblemPattern {
   /**
    * Constructor with required parameters.
    *
-   * @param datasetProblemPatternId the dataset problem pattern id
+   * @param datasetProblemPatternCompositeKey the dataset problem pattern id
    * @param executionPoint the execution point
    * @param recordOccurrences the record occurences
    */
-  public DatasetProblemPattern(DatasetProblemPatternId datasetProblemPatternId,
+  public DatasetProblemPattern(DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey,
       ExecutionPoint executionPoint, Integer recordOccurrences) {
-    this.datasetProblemPatternId = datasetProblemPatternId;
+    this.datasetProblemPatternCompositeKey = datasetProblemPatternCompositeKey;
     this.executionPoint = executionPoint;
     this.recordOccurrences = recordOccurrences;
   }
@@ -53,12 +53,12 @@ public class DatasetProblemPattern {
     this.executionPoint = executionPoint;
   }
 
-  public DatasetProblemPatternId getDatasetProblemPatternId() {
-    return datasetProblemPatternId;
+  public DatasetProblemPatternCompositeKey getDatasetProblemPatternCompositeKey() {
+    return datasetProblemPatternCompositeKey;
   }
 
-  public void setDatasetProblemPatternId(DatasetProblemPatternId id) {
-    this.datasetProblemPatternId = id;
+  public void setDatasetProblemPatternCompositeKey(DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey) {
+    this.datasetProblemPatternCompositeKey = datasetProblemPatternCompositeKey;
   }
 
   public Integer getRecordOccurrences() {
@@ -78,12 +78,12 @@ public class DatasetProblemPattern {
       return false;
     }
     DatasetProblemPattern that = (DatasetProblemPattern) o;
-    return Objects.equals(datasetProblemPatternId, that.datasetProblemPatternId) && Objects.equals(
+    return Objects.equals(datasetProblemPatternCompositeKey, that.datasetProblemPatternCompositeKey) && Objects.equals(
         executionPoint, that.executionPoint) && Objects.equals(recordOccurrences, that.recordOccurrences);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(datasetProblemPatternId, executionPoint, recordOccurrences);
+    return Objects.hash(datasetProblemPatternCompositeKey, executionPoint, recordOccurrences);
   }
 }

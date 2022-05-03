@@ -19,6 +19,7 @@ create table problem_patterns.execution_point
     Primary Key (execution_point_id),
     unique(dataset_id, execution_step, execution_timestamp)
 );
+create index on problem_patterns.execution_point (dataset_id, execution_step);
 
 create table problem_patterns.dataset_problem_pattern
 (
