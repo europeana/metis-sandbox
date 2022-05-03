@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Problem pattern analysis service implementation.
  */
 @Service
-public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> {
+public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, ExecutionPoint> {
 
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
@@ -71,7 +71,9 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
     this.maxProblemPatternOccurrences = maxProblemPatternOccurrences;
   }
 
-  private ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep,
+  @Override
+  @Transactional
+  public ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep,
       LocalDateTime executionTimestamp) {
     final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
@@ -104,6 +106,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
       for (RecordAnalysis recordAnalysis : problemPattern.getRecordAnalysisList()) {
         final DatasetProblemPatternId datasetProblemPatternId = new DatasetProblemPatternId(executionPoint.getExecutionPointId(),
             problemPattern.getProblemPatternDescription().getProblemPatternId().name());
+        // TODO: 03/05/2022 To make this thread safe, an upsert should be used instead of an update and get
         this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternId);
         final Integer recordOccurrences = this.datasetProblemPatternRepository.findByDatasetProblemPatternId(
             datasetProblemPatternId).getRecordOccurrences();
@@ -128,20 +131,17 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
 
   @Override
   @Transactional
-  public void generateRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
+  public void generateRecordPatternAnalysis(ExecutionPoint executionPoint,
       RDF rdfRecord) {
     final List<ProblemPattern> problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
-    final ExecutionPoint executionPoint = initializePatternAnalysisExecution(datasetId, executionStep, executionTimestamp);
     insertPatternAnalysis(executionPoint, problemPatterns);
   }
 
   @Override
   @Transactional
-  public void generateRecordPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp,
-      String rdfRecord) throws PatternAnalysisException {
+  public void generateRecordPatternAnalysis(ExecutionPoint executionPoint, String rdfRecord) throws PatternAnalysisException {
     try {
       final List<ProblemPattern> problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
-      final ExecutionPoint executionPoint = initializePatternAnalysisExecution(datasetId, executionStep, executionTimestamp);
       insertPatternAnalysis(executionPoint, problemPatterns);
     } catch (SerializationException e) {
       throw new PatternAnalysisException("Error during record analysis", e);
@@ -150,21 +150,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
 
   @Override
   @Transactional
-  public void finalizeDatasetPatternAnalysis(String datasetId, Step executionStep, LocalDateTime executionTimestamp) {
+  public void finalizeDatasetPatternAnalysis(ExecutionPoint executionPoint) {
     //This is currently meant to be implemented for the P1 with the titles which will come later on.
-  }
-
-  @Override
-  @Transactional
-  public Optional<DatasetProblemPatternAnalysis<Step>> getDatasetPatternAnalysis(String datasetId, Step executionStep,
-      LocalDateTime executionTimestamp) {
-    final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
-        datasetId, executionStep.name(), executionTimestamp);
-    if (nonNull(executionPoint)) {
-      final ArrayList<ProblemPattern> problemPatterns = constructProblemPatterns(executionPoint);
-      return Optional.of(new DatasetProblemPatternAnalysis<>(datasetId, executionStep, executionTimestamp, problemPatterns));
-    }
-    return Optional.empty();
   }
 
   private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint) {
@@ -184,6 +171,19 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step> 
           datasetProblemPattern.getRecordOccurrences(), recordAnalyses));
     }
     return problemPatterns;
+  }
+
+  @Override
+  @Transactional
+  public Optional<DatasetProblemPatternAnalysis<Step>> getDatasetPatternAnalysis(String datasetId, Step executionStep,
+      LocalDateTime executionTimestamp) {
+    final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
+        datasetId, executionStep.name(), executionTimestamp);
+    if (nonNull(executionPoint)) {
+      final ArrayList<ProblemPattern> problemPatterns = constructProblemPatterns(executionPoint);
+      return Optional.of(new DatasetProblemPatternAnalysis<>(datasetId, executionStep, executionTimestamp, problemPatterns));
+    }
+    return Optional.empty();
   }
 
   @Override

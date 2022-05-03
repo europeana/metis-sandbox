@@ -32,7 +32,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   private static final String SCHEMA = "EDM-INTERNAL";
 
   private final ValidationExecutionService validator;
-  private final PatternAnalysisService<Step> patternAnalysisService;
+  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   //Keep maps in memory for unique timestamps and locking between dataset ids
   private final Map<String, LocalDateTime> datasetIdTimestampMap = new ConcurrentHashMap<>();
@@ -40,7 +40,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   private final Period mapEvictionPeriod = Period.ofDays(1);
 
   public InternalValidationServiceImpl(ValidationExecutionService validator,
-      PatternAnalysisService<Step> patternAnalysisService,
+      PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService) {
     this.validator = validator;
     this.patternAnalysisService = patternAnalysisService;
@@ -69,19 +69,28 @@ class InternalValidationServiceImpl implements InternalValidationService {
 
   private void generateAnalysis(String datasetId, byte[] recordContent) throws PatternAnalysisException {
     final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> new ReentrantLock());
-    lock.lock();
+    final ExecutionPoint executionPoint;
     try {
-
+      lock.lock();
+      LOGGER.debug("{} lock, Locked", datasetId);
       final LocalDateTime timestamp = datasetIdTimestampMap.computeIfAbsent(datasetId, s -> getLocalDateTime(datasetId));
-      patternAnalysisService.generateRecordPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL, timestamp,
-          new String(recordContent, StandardCharsets.UTF_8));
+      //We have to attempt initialization everytime because we don't have an entry point for the start of the step
+      executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
+      // TODO: 03/05/2022 This needs to still be synchronized.
+      //  To fix this we'll need to do an upsert(with a spring jdbcTemplate perhaps) on the internal counter update in method insertPatternAnalysis
+      patternAnalysisService.generateRecordPatternAnalysis(executionPoint, new String(recordContent, StandardCharsets.UTF_8));
     } finally {
       lock.unlock();
+      LOGGER.debug("{} lock, Unlocked", datasetId);
     }
   }
 
   private LocalDateTime getLocalDateTime(String datasetId) {
-    Optional<ExecutionPoint> firstOccurrence = executionPointService.getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString());
+    //This only applies for sandbox, because the same id cannot have multiple executions.
+    //In metis for example this wouldn't work if there was already a valid execution of a step in the database
+    //while we are trying to run a new execution of the same step
+    Optional<ExecutionPoint> firstOccurrence = executionPointService.getExecutionPoint(datasetId,
+        Step.VALIDATE_INTERNAL.toString());
     return firstOccurrence.map(ExecutionPoint::getExecutionTimestamp).orElseGet(LocalDateTime::now);
   }
 
@@ -92,8 +101,8 @@ class InternalValidationServiceImpl implements InternalValidationService {
   private void cleanCache() {
     for (Entry<String, Lock> entry : datasetIdLocksMap.entrySet()) {
       final Lock lock = entry.getValue();
-      lock.lock();
       try {
+        lock.lock();
         if (datasetIdTimestampMap.get(entry.getKey()).isAfter(
             LocalDateTime.now().minus(mapEvictionPeriod))) {
           datasetIdTimestampMap.remove(entry.getKey());
