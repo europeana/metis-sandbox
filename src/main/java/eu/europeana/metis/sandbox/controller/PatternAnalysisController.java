@@ -76,16 +76,18 @@ public class PatternAnalysisController {
   @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-    Optional<ExecutionPoint> executionPointOptional = executionPointService.getExecutionPoint(datasetId,
+    DatasetProblemPatternAnalysis<Step> emptyAnalysisResult = new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>());
+    Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(datasetId,
         Step.VALIDATE_INTERNAL.toString());
-    if (executionPointOptional.isPresent()) {
-      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
-          patternAnalysisService.getDatasetPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL,
-              executionPointOptional.get().getExecutionTimestamp()).orElse(
-              new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>()))), HttpStatus.OK);
+    if (datasetExecutionPointOptional.isPresent()) {
+      Optional<DatasetProblemPatternAnalysis<Step>> optionalAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
+          datasetId, Step.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
+      return optionalAnalysis.map(analysis -> new ResponseEntity<>(
+                                 new DatasetProblemPatternAnalysisView<>(analysis), HttpStatus.OK))
+                             .orElseGet(() -> new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
+                                 emptyAnalysisResult), HttpStatus.NOT_FOUND));
     } else {
-      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
-          new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>())), HttpStatus.NOT_FOUND);
+      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(emptyAnalysisResult), HttpStatus.NOT_FOUND);
     }
   }
 
@@ -108,12 +110,14 @@ public class PatternAnalysisController {
       @ApiParam(value = "The record content as a file", required = true) @RequestParam String recordId)
       throws SerializationException {
     RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL);
-    if (recordLog != null) {
+    if (recordLog == null) {
+      // No record log is found
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    } else {
+      // record log is found
       return new ResponseEntity<>(
           patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent())),
           HttpStatus.OK);
-    } else {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
   }
 

@@ -103,7 +103,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.empty());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-       .andExpect(status().isOk())
+       .andExpect(status().isNotFound())
        .andExpect(jsonPath("$.datasetId", is("0")));
   }
 
