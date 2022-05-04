@@ -79,12 +79,12 @@ public class PatternAnalysisController {
     Optional<ExecutionPoint> executionPointOptional = executionPointService.getExecutionPoint(datasetId,
         Step.VALIDATE_INTERNAL.toString());
     if (executionPointOptional.isPresent()) {
-      return new ResponseEntity(new DatasetProblemPatternAnalysisView<>(
+      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
           patternAnalysisService.getDatasetPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL,
               executionPointOptional.get().getExecutionTimestamp()).orElse(
               new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>()))), HttpStatus.OK);
     } else {
-      return new ResponseEntity(new DatasetProblemPatternAnalysisView<>(
+      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
           new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>())), HttpStatus.NOT_FOUND);
     }
   }
@@ -109,11 +109,11 @@ public class PatternAnalysisController {
       throws SerializationException {
     RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL);
     if (recordLog != null) {
-      return new ResponseEntity(
+      return new ResponseEntity<>(
           patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent())),
           HttpStatus.OK);
     } else {
-      return new ResponseEntity(HttpStatus.NOT_FOUND);
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
   }
 
