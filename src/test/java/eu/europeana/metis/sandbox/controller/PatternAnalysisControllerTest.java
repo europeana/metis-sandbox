@@ -86,7 +86,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.empty());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-       .andExpect(status().isOk())
+       .andExpect(status().isNotFound())
        .andExpect(jsonPath("$.datasetId", is("0")));
   }
 
@@ -130,6 +130,15 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternId", is("P2")))
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("WARNING")))
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternQualityDimension", is("CONCISENESS")));
+  }
+
+  @Test
+  void getRecordPatternAnalysis_notFound_expectSuccess() throws Exception {
+    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
+        null);
+    mvc.perform(get("/pattern-analysis/{id}/get-record-pattern-analysis", "datasetId")
+           .param("recordId", "recordId"))
+       .andExpect(status().isNotFound());
   }
 
   @Test
