@@ -16,4 +16,7 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
 
   DatasetProblemPattern findByDatasetProblemPatternCompositeKey(DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey);
 
+  @Modifying
+  void deleteByExecutionPointDatasetId(String datasetId);
+
 }
