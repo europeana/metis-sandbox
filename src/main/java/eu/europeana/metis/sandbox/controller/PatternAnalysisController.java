@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -20,8 +21,10 @@ import io.swagger.annotations.ApiResponses;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,13 +74,22 @@ public class PatternAnalysisController {
       @ApiResponse(code = 404, message = "Dataset not found")
   })
   @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
-  public DatasetProblemPatternAnalysisView<Step> getDatasetPatternAnalysis(
-      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
-      @ApiParam(value = "timestamp of when the step was executed", required = true) @RequestParam LocalDateTime executionTimestamp) {
-    return new DatasetProblemPatternAnalysisView<>(
-        patternAnalysisService.getDatasetPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL, executionTimestamp).orElse(
-            new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>())));
-
+  public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
+      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+    DatasetProblemPatternAnalysis<Step> emptyAnalysisResult = new DatasetProblemPatternAnalysis<>("0", null, null,
+        new ArrayList<>());
+    Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(datasetId,
+        Step.VALIDATE_INTERNAL.toString());
+    if (datasetExecutionPointOptional.isPresent()) {
+      Optional<DatasetProblemPatternAnalysis<Step>> optionalAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
+          datasetId, Step.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
+      return optionalAnalysis.map(analysis -> new ResponseEntity<>(
+                                 new DatasetProblemPatternAnalysisView<>(analysis), HttpStatus.OK))
+                             .orElseGet(() -> new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
+                                 emptyAnalysisResult), HttpStatus.NOT_FOUND));
+    } else {
+      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(emptyAnalysisResult), HttpStatus.NOT_FOUND);
+    }
   }
 
   /**
@@ -94,13 +106,15 @@ public class PatternAnalysisController {
       @ApiResponse(code = 404, message = "Not able to retrieve the pattern analysis of record")
   })
   @GetMapping(value = "{id}/get-record-pattern-analysis", produces = APPLICATION_JSON_VALUE)
-  public List<ProblemPattern> getRecordPatternAnalysis(
+  public ResponseEntity<List<ProblemPattern>> getRecordPatternAnalysis(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
       @ApiParam(value = "The record content as a file", required = true) @RequestParam String recordId)
       throws SerializationException {
-    String recordContent = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL).getContent();
-    return patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordContent));
-
+    RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL);
+    return recordLog == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) :
+        new ResponseEntity<>(
+            patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent())),
+            HttpStatus.OK);
   }
 
   /**
