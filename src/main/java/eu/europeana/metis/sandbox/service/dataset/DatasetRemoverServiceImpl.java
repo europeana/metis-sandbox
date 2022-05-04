@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
@@ -18,16 +19,18 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final RecordLogService recordLogService;
   private final IndexingService indexingService;
   private final ThumbnailStoreService thumbnailStoreService;
+  private final RecordService recordService;
 
   DatasetRemoverServiceImpl(
-      DatasetService datasetService,
-      RecordLogService recordLogService,
-      IndexingService indexingService,
-      ThumbnailStoreService thumbnailStoreService) {
+          DatasetService datasetService,
+          RecordLogService recordLogService,
+          IndexingService indexingService,
+          ThumbnailStoreService thumbnailStoreService, RecordService recordService) {
     this.datasetService = datasetService;
     this.recordLogService = recordLogService;
     this.indexingService = indexingService;
     this.thumbnailStoreService = thumbnailStoreService;
+    this.recordService = recordService;
   }
 
   @Override
@@ -49,6 +52,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           // remove from sandbox
           LOGGER.debug("Remove record logs for dataset id: [{}]", dataset);
           recordLogService.remove(dataset);
+          LOGGER.debug("Remove record for dataset id: [{}]", dataset);
+          recordService.remove(dataset);
           datasetService.remove(dataset);
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
