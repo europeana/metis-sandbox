@@ -76,7 +76,8 @@ public class PatternAnalysisController {
   @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-    DatasetProblemPatternAnalysis<Step> emptyAnalysisResult = new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>());
+    DatasetProblemPatternAnalysis<Step> emptyAnalysisResult = new DatasetProblemPatternAnalysis<>("0", null, null,
+        new ArrayList<>());
     Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(datasetId,
         Step.VALIDATE_INTERNAL.toString());
     if (datasetExecutionPointOptional.isPresent()) {
@@ -110,15 +111,10 @@ public class PatternAnalysisController {
       @ApiParam(value = "The record content as a file", required = true) @RequestParam String recordId)
       throws SerializationException {
     RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL);
-    if (recordLog == null) {
-      // No record log is found
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } else {
-      // record log is found
-      return new ResponseEntity<>(
-          patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent())),
-          HttpStatus.OK);
-    }
+    return recordLog == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) :
+        new ResponseEntity<>(
+            patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent())),
+            HttpStatus.OK);
   }
 
   /**
