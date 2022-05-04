@@ -40,91 +40,109 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(PatternAnalysisController.class)
 class PatternAnalysisControllerTest {
 
-    @Autowired
-    private MockMvc mvc;
+  @Autowired
+  private MockMvc mvc;
 
-    @MockBean
-    private PatternAnalysisService<Step, ExecutionPoint> mockPatternAnalysisService;
+  @MockBean
+  private PatternAnalysisService<Step, ExecutionPoint> mockPatternAnalysisService;
 
-    @MockBean
-    private ExecutionPointService mockExecutionPointService;
+  @MockBean
+  private ExecutionPointService mockExecutionPointService;
 
-    @MockBean
-    private RecordLogService mockRecordLogService;
+  @MockBean
+  private RecordLogService mockRecordLogService;
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
-    @Test
-    void getDatasetAnalysis_expectSuccess() throws Exception {
+  @Test
+  void getDatasetAnalysis_expectSuccess() throws Exception {
+    LocalDateTime executionTimestamp = LocalDateTime.now();
+    ExecutionPoint executionPoint = new ExecutionPoint();
+    executionPoint.setExecutionTimestamp(executionTimestamp);
+    executionPoint.setDatasetId("datasetId");
+    executionPoint.setExecutionPointId(1);
+    List<ProblemPattern> problemPatternList = new ArrayList<>();
+    DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
+        new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+        .thenReturn(Optional.of(executionPoint));
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+        .thenReturn(Optional.of(datasetProblemPatternAnalysis));
 
-        LocalDateTime executionTimestamp = LocalDateTime.now();
-        List<ProblemPattern> problemPatternList = new ArrayList<>();
-        DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
-                new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.value())))
+       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
+  }
 
-        when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
-                .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+  @Test
+  void getDatasetAnalysis_getEmptyResult_expectSuccess() throws Exception {
+    LocalDateTime executionTimestamp = LocalDateTime.now();
+    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+        .thenReturn(Optional.empty());
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+        .thenReturn(Optional.empty());
 
-        mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId")
-                        .param("executionTimestamp", String.valueOf(executionTimestamp)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.datasetId", is("datasetId")))
-                .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.value())))
-                .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-                .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
-    }
+    mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.datasetId", is("0")));
+  }
 
-    @Test
-    void getDatasetAnalysis_getEmptyResult_expectSuccess() throws Exception {
+  @Test
+  void getDatasetAnalysis_executionPoint_getEmptyResult_expectSuccess() throws Exception {
+    LocalDateTime executionTimestamp = LocalDateTime.now();
+    ExecutionPoint executionPoint = new ExecutionPoint();
+    executionPoint.setExecutionTimestamp(executionTimestamp);
+    executionPoint.setDatasetId("datasetId");
+    executionPoint.setExecutionPointId(1);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+        .thenReturn(Optional.of(executionPoint));
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+        .thenReturn(Optional.empty());
 
-        LocalDateTime executionTimestamp = LocalDateTime.now();
-        when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
-                .thenReturn(Optional.empty());
+    mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.datasetId", is("0")));
+  }
 
-        mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId")
-                        .param("executionTimestamp", String.valueOf(executionTimestamp)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.datasetId", is("0")));
-    }
+  @Test
+  void getRecordPatternAnalysis_expectSuccess() throws Exception {
+    ProblemPattern problemPattern = new ProblemPattern(ProblemPatternDescription.P2, 0, new ArrayList<>());
+    RecordLogEntity mockRecordLogEntity = mock(RecordLogEntity.class);
+    List<ProblemPattern> problemPatternList = List.of(problemPattern);
+    String recordContent = IOUtils.toString(
+        new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem.xml"),
+        StandardCharsets.UTF_8);
 
-    @Test
-    void getRecordPatternAnalysis_expectSuccess() throws Exception {
+    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
+        mockRecordLogEntity);
+    when(mockRecordLogEntity.getContent()).thenReturn(recordContent);
+    when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
+        .thenReturn(problemPatternList);
 
+    mvc.perform(get("/pattern-analysis/{id}/get-record-pattern-analysis", "datasetId")
+           .param("recordId", "recordId"))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$[0].recordOccurrences", is(0)))
+       .andExpect(jsonPath("$[0].recordAnalysisList", is(Collections.EMPTY_LIST)))
+       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternId", is("P2")))
+       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("WARNING")))
+       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternQualityDimension", is("CONCISENESS")));
+  }
 
-        ProblemPattern problemPattern = new ProblemPattern(ProblemPatternDescription.P2, 0, new ArrayList<>());
-        RecordLogEntity mockRecordLogEntity = mock(RecordLogEntity.class);
-        List<ProblemPattern> problemPatternList = List.of(problemPattern);
-        String recordContent = IOUtils.toString(
-                new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem.xml"),
-                StandardCharsets.UTF_8);
+  @Test
+  void getAllExecutionTimestamps_expectSuccess() throws Exception {
+    when(mockExecutionPointService.getAllExecutionTimestamps()).thenReturn(
+        new HashSet<>(List.of(LocalDateTime.from(FORMATTER.parse("2022-04-19T15:53:57.377423")),
+            LocalDateTime.from(FORMATTER.parse("2022-04-21T12:19:35.339562")),
+            LocalDateTime.from(FORMATTER.parse("2022-04-19T15:44:10.634167")))));
 
-        when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(mockRecordLogEntity);
-        when(mockRecordLogEntity.getContent()).thenReturn(recordContent);
-        when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
-                .thenReturn(problemPatternList);
-
-        mvc.perform(get("/pattern-analysis/{id}/get-record-pattern-analysis", "datasetId")
-                        .param("recordId", "recordId"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].recordOccurrences", is(0)))
-                .andExpect(jsonPath("$[0].recordAnalysisList", is(Collections.EMPTY_LIST)))
-                .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternId", is("P2")))
-                .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("WARNING")))
-                .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternQualityDimension", is("CONCISENESS")));
-
-    }
-
-    @Test
-    void getAllExecutionTimestamps_expectSuccess() throws Exception {
-
-        when(mockExecutionPointService.getAllExecutionTimestamps()).thenReturn(new HashSet<>(List.of(LocalDateTime.from(FORMATTER.parse("2022-04-19T15:53:57.377423")),
-                LocalDateTime.from(FORMATTER.parse("2022-04-21T12:19:35.339562")),
-                LocalDateTime.from(FORMATTER.parse("2022-04-19T15:44:10.634167")))));
-
-        mvc.perform(get("/pattern-analysis/execution-timestamps"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0]", is("2022-04-19T15:53:57.377423")))
-                .andExpect(jsonPath("$[1]", is("2022-04-21T12:19:35.339562")))
-                .andExpect(jsonPath("$[2]", is("2022-04-19T15:44:10.634167")));
-    }
+    mvc.perform(get("/pattern-analysis/execution-timestamps"))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$[0]", is("2022-04-19T15:53:57.377423")))
+       .andExpect(jsonPath("$[1]", is("2022-04-21T12:19:35.339562")))
+       .andExpect(jsonPath("$[2]", is("2022-04-19T15:44:10.634167")));
+  }
 }

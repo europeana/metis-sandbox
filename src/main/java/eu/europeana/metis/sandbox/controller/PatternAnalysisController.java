@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiResponses;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,12 +73,17 @@ public class PatternAnalysisController {
   })
   @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
   public DatasetProblemPatternAnalysisView<Step> getDatasetPatternAnalysis(
-      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId,
-      @ApiParam(value = "timestamp of when the step was executed", required = true) @RequestParam LocalDateTime executionTimestamp) {
-    return new DatasetProblemPatternAnalysisView<>(
-        patternAnalysisService.getDatasetPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL, executionTimestamp).orElse(
-            new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>())));
-
+      @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+    Optional<ExecutionPoint> executionPointOptional = executionPointService.getExecutionPoint(datasetId,
+        Step.VALIDATE_INTERNAL.toString());
+    if (executionPointOptional.isPresent()) {
+      return new DatasetProblemPatternAnalysisView<>(
+          patternAnalysisService.getDatasetPatternAnalysis(datasetId, Step.VALIDATE_INTERNAL,
+              executionPointOptional.get().getExecutionTimestamp()).orElse(
+              new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>())));
+    } else {
+      return new DatasetProblemPatternAnalysisView<>(new DatasetProblemPatternAnalysis<>("0", null, null, new ArrayList<>()));
+    }
   }
 
   /**
