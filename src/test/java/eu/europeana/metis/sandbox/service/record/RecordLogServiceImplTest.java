@@ -100,13 +100,14 @@ class RecordLogServiceImplTest {
   @Test
   void remove_expectSuccess() {
     service.remove("1");
-    verify(recordRepository).deleteByDatasetId("1");
+    verify(errorLogRepository).deleteByRecordIdDatasetId("1");
+    verify(recordLogRepository).deleteByRecordIdDatasetId("1");
   }
 
   @Test
   void remove_errorOnDelete_expectFail() {
-    doThrow(new ServiceException("Failed", new Exception())).when(recordRepository)
-        .deleteByDatasetId("1");
+    doThrow(new ServiceException("Failed", new Exception())).when(recordLogRepository)
+        .deleteByRecordIdDatasetId("1");
     assertThrows(ServiceException.class, () -> service.remove("1"));
   }
 
