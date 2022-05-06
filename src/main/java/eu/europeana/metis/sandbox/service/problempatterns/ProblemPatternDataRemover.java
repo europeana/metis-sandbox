@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepos
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class ProblemPatternDataRemover {
@@ -24,6 +25,7 @@ public class ProblemPatternDataRemover {
         this.recordProblemPatternRepository = recordProblemPatternRepository;
     }
 
+    @Transactional
     public void removeProblemPatternDataFromDatasetId(String datasetId){
         recordProblemPatternOccurrenceRepository.deleteByRecordProblemPatternExecutionPointDatasetId(datasetId);
         recordProblemPatternRepository.deleteByExecutionPointDatasetId(datasetId);

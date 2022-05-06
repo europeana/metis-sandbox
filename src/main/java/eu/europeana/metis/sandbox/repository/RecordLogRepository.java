@@ -47,6 +47,5 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @param datasetId must not be null
    */
   @Modifying
-  @Query("delete from RecordLogEntity where recordId.datasetId = ?1")
-  void deleteByDatasetId(String datasetId);
+  void deleteByRecordIdDatasetId(String datasetId);
 }

@@ -88,9 +88,8 @@ class RecordLogServiceImpl implements RecordLogService {
     public void remove(String datasetId) {
         requireNonNull(datasetId, "Dataset id must not be null");
         try {
-            recordErrorLogRepository.deleteByDatasetId(datasetId);
-            recordLogRepository.deleteByDatasetId(datasetId);
-            recordRepository.deleteByDatasetId(datasetId);
+            recordErrorLogRepository.deleteByRecordIdDatasetId(datasetId);
+            recordLogRepository.deleteByRecordIdDatasetId(datasetId);
         } catch (RuntimeException e) {
             throw new ServiceException(
                     format("Error removing records for dataset id: [%s]. ", datasetId), e);
