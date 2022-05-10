@@ -29,4 +29,10 @@ public class RecordServiceImpl implements RecordService {
     recordRepository.updateEuropeanaIdAndProviderId(recordToUpdate.getRecordId(), europeanaId, providerId);
   }
 
+  @Override
+  @Transactional
+  public void remove(String datasetId){
+    recordRepository.deleteByDatasetId(datasetId);
+  }
+
 }
