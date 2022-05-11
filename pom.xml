@@ -98,6 +98,10 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -154,6 +158,23 @@
           <artifactId>stax2-api</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dspace</groupId>
+      <artifactId>xoai-service-provider</artifactId>
+      <version>4.2.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <version>${version.woodstox}</version>
     </dependency>
 
     <dependency>
