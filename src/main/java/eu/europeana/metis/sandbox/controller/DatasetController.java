@@ -256,7 +256,8 @@ class DatasetController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<CountryView> getAllCountries() {
-    return Arrays.stream(Country.values()).map(CountryView::new).collect(Collectors.toList());
+    return Country.getCountryListSortedByName().stream().map(CountryView::new)
+            .collect(Collectors.toList());
   }
 
   /**
