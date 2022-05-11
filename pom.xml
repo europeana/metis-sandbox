@@ -98,10 +98,6 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.codehaus.woodstox</groupId>
-          <artifactId>stax2-api</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
 
@@ -158,13 +154,6 @@
           <artifactId>stax2-api</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <!-- unify metis-harvesting & metis-media-service dependency-->
-    <dependency>
-      <groupId>org.codehaus.woodstox</groupId>
-      <artifactId>stax2-api</artifactId>
-      <version>${version.woodstox}</version>
     </dependency>
 
     <dependency>
