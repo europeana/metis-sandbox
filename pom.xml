@@ -125,9 +125,15 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
         <exclusion>
           <groupId>org.codehaus.woodstox</groupId>
           <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <!-- This is not really part of the library but we excluded just in case.-->
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -136,6 +142,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-media-service</artifactId>
       <version>${version.metis}</version>
+      <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
       <exclusions>
         <exclusion>
           <groupId>org.codehaus.woodstox</groupId>
@@ -157,6 +164,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
         <exclusion>
           <groupId>org.codehaus.woodstox</groupId>
           <artifactId>stax2-api</artifactId>
@@ -168,6 +176,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
        </exclusions>
     </dependency>
 
+    <!--
+    * Include specifically the stax2-api we want.
+    * We also add the woodstox-core library that is compatible with stax2-api.
+      This library is not specifically required by stax2-api, but we added since it was used from other libraries, just in case.
+    * These two libraries should be compatible with metis-harvesting, metis-media-service and metis-indexing
+    * The stax2-api, woodstox-core and woodstox-core-asl(older version of woodstox-core) are explicitly excluded from
+      the aforementioned metis libraries to avoid conflicts
+    -->
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
       <artifactId>stax2-api</artifactId>
