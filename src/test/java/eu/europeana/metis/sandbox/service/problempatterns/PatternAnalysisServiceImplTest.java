@@ -70,10 +70,13 @@ class PatternAnalysisServiceImplTest {
       StandardCharsets.UTF_8);
   final String rdfStringP6 = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P6.xml"), StandardCharsets.UTF_8);
+  final String rdfStringP12 = IOUtils.toString(
+      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P12.xml"), StandardCharsets.UTF_8);
 
   final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
   final RDF rdfRecordP2MultipleOccurrences = new RdfConversionUtils().convertStringToRdf(rdfStringP2MultipleOccurences);
   final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
+  final RDF rdfRecordP12 = new RdfConversionUtils().convertStringToRdf(rdfStringP12);
 
   @Autowired
   private PatternAnalysisServiceImpl patternAnalysisService;
@@ -226,5 +229,16 @@ class PatternAnalysisServiceImplTest {
     //It does NOT exist in the database but we should get the on the fly version
     List<ProblemPattern> problemPatternsRecord2 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP6);
     assertFalse(problemPatternsRecord2.isEmpty());
+  }
+
+  @Test
+  void generateRecordPatternAnalysis_P12_with_longer_than_varcharTest() {
+    final LocalDateTime now = LocalDateTime.now();
+    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, now);
+    patternAnalysisService.generateRecordPatternAnalysis(executionPoint, rdfRecordP12);
+    assertEquals(1, executionPointRepository.count());
+    assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
+    assertEquals(1, recordProblemPatternRepository.count());
+    assertEquals(2, recordProblemPatternOccurrenceRepository.count());
   }
 }
