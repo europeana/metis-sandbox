@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -88,6 +89,8 @@ class PatternAnalysisServiceImplTest {
   private RecordProblemPatternRepository recordProblemPatternRepository;
   @Resource
   private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
+  @Resource
+  private RecordTitleRepository recordTitleRepository;
 
   PatternAnalysisServiceImplTest() throws IOException, SerializationException {
   }
@@ -159,7 +162,8 @@ class PatternAnalysisServiceImplTest {
   void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
     //We just want 1 occurrence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository, 1, 1);
+        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
+        recordTitleRepository, 1, 1);
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP2);
@@ -174,7 +178,8 @@ class PatternAnalysisServiceImplTest {
   void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() {
     //We just want 1 record
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository, 1, 1);
+        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
+        recordTitleRepository, 1, 1);
 
     final LocalDateTime nowP6 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP6);
@@ -240,5 +245,8 @@ class PatternAnalysisServiceImplTest {
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
     assertEquals(1, recordProblemPatternRepository.count());
     assertEquals(2, recordProblemPatternOccurrenceRepository.count());
+
+    //Check titles
+    assertEquals(4, recordTitleRepository.count());
   }
 }

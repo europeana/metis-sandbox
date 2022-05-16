@@ -50,13 +50,13 @@ create table problem_patterns.record_problem_pattern_occurrence
     Foreign Key (record_problem_pattern_id) References problem_patterns.record_problem_pattern (record_problem_pattern_id),
     unique (record_problem_pattern_id, message_report)
 );
---
--- create table record_title
--- (
---     execution_point_id int          not null,
---     record_id          varchar(255) not null,
---     title              varchar(255) not null,
---     Primary Key (execution_point_id, record_id, title),
---     Foreign Key (execution_point_id) References execution_point (execution_point_id)
--- );
+
+create table problem_patterns.record_title
+(
+    execution_point_id int          not null,
+    record_id          varchar(255) not null,
+    title              varchar(255) not null,
+    Primary Key (execution_point_id, record_id, title),
+    Foreign Key (execution_point_id) References problem_patterns.execution_point (execution_point_id)
+);
 commit;

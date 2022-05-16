@@ -23,7 +23,8 @@ public class DatasetProblemPatternCompositeKey implements Serializable {
   }
 
   /**
-   * Constructor with required parameters
+   * Constructor with required parameters.
+   *
    * @param executionPointId the execution point id
    * @param patternId the pattern id
    */

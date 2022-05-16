@@ -36,7 +36,7 @@ public class DatasetProblemPattern {
    *
    * @param datasetProblemPatternCompositeKey the dataset problem pattern id
    * @param executionPoint the execution point
-   * @param recordOccurrences the record occurences
+   * @param recordOccurrences the record occurrences
    */
   public DatasetProblemPattern(DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey,
       ExecutionPoint executionPoint, Integer recordOccurrences) {

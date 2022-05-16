@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNullElseGet;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
@@ -8,10 +9,13 @@ import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCo
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOccurrence;
+import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
+import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.patternanalysis.PatternAnalysisService;
@@ -20,16 +24,20 @@ import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import eu.europeana.patternanalysis.view.ProblemPattern;
+import eu.europeana.patternanalysis.view.ProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,10 +48,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, ExecutionPoint> {
 
+  private static final int DEFAULT_MAX_CHARACTERS_TITLE_LENGTH = 255;
+
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
+  private final RecordTitleRepository recordTitleRepository;
   private final ProblemPatternAnalyzer problemPatternAnalyzer = new ProblemPatternAnalyzer();
   private final int maxProblemPatternOccurrences;
   private final int maxRecordsPerPattern;
@@ -55,6 +66,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
    * @param datasetProblemPatternRepository the dataset problem pattern repository
    * @param recordProblemPatternRepository the record problem pattern repository
    * @param recordProblemPatternOccurrenceRepository the record problem pattern occurrence repository
+   * @param recordTitleRepository the record title repository
    * @param maxRecordsPerPattern the max records per pattern allowed
    * @param maxProblemPatternOccurrences the max problem pattern occurrences per record allowed
    */
@@ -62,12 +74,14 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
       DatasetProblemPatternRepository datasetProblemPatternRepository,
       RecordProblemPatternRepository recordProblemPatternRepository,
       RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
+      RecordTitleRepository recordTitleRepository,
       @Value("${sandbox.problempatterns.max-records-per-pattern:10}") int maxRecordsPerPattern,
       @Value("${sandbox.problempatterns.max-problem-pattern-occurrences:10}") int maxProblemPatternOccurrences) {
     this.executionPointRepository = executionPointRepository;
     this.datasetProblemPatternRepository = datasetProblemPatternRepository;
     this.recordProblemPatternRepository = recordProblemPatternRepository;
     this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
+    this.recordTitleRepository = recordTitleRepository;
     this.maxRecordsPerPattern = maxRecordsPerPattern;
     this.maxProblemPatternOccurrences = maxProblemPatternOccurrences;
   }
@@ -102,10 +116,11 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     return savedExecutionPoint;
   }
 
-  private void insertPatternAnalysis(ExecutionPoint executionPoint, final List<ProblemPattern> problemPatterns) {
-    for (ProblemPattern problemPattern : problemPatterns) {
+  private void insertPatternAnalysis(ExecutionPoint executionPoint, final ProblemPatternAnalysis problemPatternAnalysis) {
+    for (ProblemPattern problemPattern : problemPatternAnalysis.getProblemPatterns()) {
       for (RecordAnalysis recordAnalysis : problemPattern.getRecordAnalysisList()) {
-        final DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey = new DatasetProblemPatternCompositeKey(executionPoint.getExecutionPointId(),
+        final DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey = new DatasetProblemPatternCompositeKey(
+            executionPoint.getExecutionPointId(),
             problemPattern.getProblemPatternDescription().getProblemPatternId().name());
         // TODO: 03/05/2022 To make this thread safe, an upsert should be used instead of an update and get
         this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternCompositeKey);
@@ -128,22 +143,30 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
         }
       }
     }
+
+    final Set<RecordTitle> recordTitles = new HashSet<>();
+    for (String title : problemPatternAnalysis.getTitles()) {
+      final RecordTitleCompositeKey recordTitleCompositeKey = new RecordTitleCompositeKey(executionPoint.getExecutionPointId(),
+          problemPatternAnalysis.getRdfAbout(), StringUtils.truncate(title, DEFAULT_MAX_CHARACTERS_TITLE_LENGTH));
+      recordTitles.add(new RecordTitle(recordTitleCompositeKey, executionPoint));
+    }
+    this.recordTitleRepository.saveAll(recordTitles);
   }
 
   @Override
   @Transactional
   public void generateRecordPatternAnalysis(ExecutionPoint executionPoint,
       RDF rdfRecord) {
-    final List<ProblemPattern> problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
-    insertPatternAnalysis(executionPoint, problemPatterns);
+    final ProblemPatternAnalysis problemPatternAnalysis = problemPatternAnalyzer.analyzeRecord(rdfRecord);
+    insertPatternAnalysis(executionPoint, problemPatternAnalysis);
   }
 
   @Override
   @Transactional
   public void generateRecordPatternAnalysis(ExecutionPoint executionPoint, String rdfRecord) throws PatternAnalysisException {
     try {
-      final List<ProblemPattern> problemPatterns = problemPatternAnalyzer.analyzeRecord(rdfRecord);
-      insertPatternAnalysis(executionPoint, problemPatterns);
+      final ProblemPatternAnalysis problemPatternAnalysis = problemPatternAnalyzer.analyzeRecord(rdfRecord);
+      insertPatternAnalysis(executionPoint, problemPatternAnalysis);
     } catch (SerializationException e) {
       throw new PatternAnalysisException("Error during record analysis", e);
     }
@@ -202,7 +225,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   @Override
   @Transactional
   public List<ProblemPattern> getRecordPatternAnalysis(RDF rdfRecord) {
-    List<ProblemPattern> result = problemPatternAnalyzer.analyzeRecord(rdfRecord);
-    return result == null ? new ArrayList<>() : result;
+    List<ProblemPattern> result = problemPatternAnalyzer.analyzeRecord(rdfRecord).getProblemPatterns();
+    return requireNonNullElseGet(result, ArrayList::new);
   }
 }
