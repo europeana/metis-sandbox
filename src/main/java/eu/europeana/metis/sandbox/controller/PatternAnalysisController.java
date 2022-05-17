@@ -4,13 +4,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
+import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import io.swagger.annotations.Api;
@@ -44,6 +47,7 @@ public class PatternAnalysisController {
   private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   private final RecordLogService recordLogService;
+  private final DatasetReportService datasetReportService;
   private final RdfConversionUtils rdfConversionUtils = new RdfConversionUtils();
 
   /**
@@ -52,20 +56,21 @@ public class PatternAnalysisController {
    * @param patternAnalysisService the pattern analysis service
    * @param executionPointService the execution point service
    * @param recordLogService the record log service
+   * @param datasetReportService the dataset report service
    */
   public PatternAnalysisController(PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService,
-      RecordLogService recordLogService) {
+      RecordLogService recordLogService, DatasetReportService datasetReportService) {
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
     this.recordLogService = recordLogService;
+    this.datasetReportService = datasetReportService;
   }
 
   /**
    * Retrieves the pattern analysis from a given dataset
    *
    * @param datasetId The id of the dataset to gather the pattern analysis
-   * @param executionTimestamp The timestamp of when the analysis was executed
    * @return The pattern analysis of the dataset
    */
   @ApiOperation("Retrieve pattern analysis from a dataset")
@@ -80,16 +85,24 @@ public class PatternAnalysisController {
         new ArrayList<>());
     Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(datasetId,
         Step.VALIDATE_INTERNAL.toString());
-    if (datasetExecutionPointOptional.isPresent()) {
+
+    return datasetExecutionPointOptional.map(executionPoint -> {
+      // TODO: 17/05/2022 This needs to be synchronized as well
+      if (datasetReportService.getReport(datasetId).getStatus() == Status.COMPLETED) {
+        try {
+          patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPointOptional.get());
+        } catch (PatternAnalysisException e) {
+          // TODO: 17/05/2022 log this or remove if not needed
+        }
+      }
+
       Optional<DatasetProblemPatternAnalysis<Step>> optionalAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
           datasetId, Step.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
       return optionalAnalysis.map(analysis -> new ResponseEntity<>(
                                  new DatasetProblemPatternAnalysisView<>(analysis), HttpStatus.OK))
                              .orElseGet(() -> new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(
                                  emptyAnalysisResult), HttpStatus.NOT_FOUND));
-    } else {
-      return new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(emptyAnalysisResult), HttpStatus.NOT_FOUND);
-    }
+    }).orElseGet(() -> new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(emptyAnalysisResult), HttpStatus.NOT_FOUND));
   }
 
   /**

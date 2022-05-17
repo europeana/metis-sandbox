@@ -27,12 +27,16 @@ import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -63,7 +67,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
   /**
    * Constructor with required parameters.
-   *  @param executionPointRepository the execution point repository
+   *
+   * @param executionPointRepository the execution point repository
    * @param datasetProblemPatternRepository the dataset problem pattern repository
    * @param recordProblemPatternRepository the record problem pattern repository
    * @param recordProblemPatternOccurrenceRepository the record problem pattern occurrence repository
@@ -179,7 +184,47 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   @Override
   @Transactional
   public void finalizeDatasetPatternAnalysis(ExecutionPoint executionPoint) {
+    //Remove redundant titles
     recordTitleJdbcRepository.deleteRedundantRecordTitles(executionPoint.getExecutionPointId());
+
+    //Insert global problem patterns to db
+    final List<RecordTitle> duplicateRecordTitles = recordTitleRepository.findAllByExecutionPoint(executionPoint);
+    final Map<String, List<RecordTitle>> groupedByTitle = duplicateRecordTitles.stream().collect(
+        Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle()));
+
+    //Titles are limited as well
+    int titleOccurrences = 0;
+    for (Entry<String, List<RecordTitle>> entry : groupedByTitle.entrySet()) {
+      final DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey = new DatasetProblemPatternCompositeKey(
+          executionPoint.getExecutionPointId(),
+          ProblemPatternId.P1.name());
+      // TODO: 17/05/2022 Update counter with entry.getValue().size()(to capture the full list size) and not like this
+      //      this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternCompositeKey);
+
+      if (titleOccurrences <= maxRecordsPerPattern) {
+        //For each title we will insert up to a max record problem pattern
+        entry.getValue().stream().limit(maxRecordsPerPattern).forEach(recordTitle -> {
+
+          final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
+          recordProblemPattern.setPatternId(ProblemPatternId.P1.name());
+          recordProblemPattern.setRecordId(recordTitle.getRecordTitleCompositeKey().getRecordId());
+          recordProblemPattern.setExecutionPoint(executionPoint);
+          final RecordProblemPattern savedRecordProblemPattern = this.recordProblemPatternRepository.save(recordProblemPattern);
+
+          final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
+          recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
+          // TODO: 17/05/2022 Perhaps move this to the analyzer from metis-framework and call a method to create this.
+          // This way the message report will be centralized
+          recordProblemPatternOccurrence.setMessageReport(
+              String.format("Systematic use of the same title: %s", recordTitle));
+          this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
+        });
+      }
+      titleOccurrences++;
+    }
+
+    //Remove remaining titles to avoid re-computation of titles
+    recordTitleRepository.deleteByExecutionPoint(executionPoint);
   }
 
   private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint) {
@@ -200,16 +245,36 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   private ArrayList<RecordAnalysis> getRecordAnalysesForPatternId(ExecutionPoint executionPoint,
       String datasetProblemPatternId) {
     final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
-    executionPoint.getRecordProblemPatterns().forEach(recordProblemPattern -> {
-      final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
-      for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
-        problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
+
+    final Map<String, List<String>> messageReportRecordIdsMap = new HashMap<>();
+    //Only select the specific one we need
+    executionPoint.getRecordProblemPatterns().stream()
+                  .filter(recordProblemPattern -> datasetProblemPatternId.equals(recordProblemPattern.getPatternId()))
+                  .forEach(recordProblemPattern -> {
+                    final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
+                    for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+                      //For P1 we need to collect the correct values first
+                      if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
+                        messageReportRecordIdsMap.computeIfAbsent(recordProblemPatternOccurrence.getMessageReport(),
+                                                     k -> new ArrayList<>())
+                                                 .add(recordProblemPattern.getRecordId());
+                      } else {
+                        problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
+                      }
+                    }
+                    recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
+                  });
+
+    if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
+      //Clear first, this is a special pattern
+      recordAnalyses.clear();
+      for (Entry<String, List<String>> entry : messageReportRecordIdsMap.entrySet()) {
+        //Add only the first recordId(there should always be at least one) and inside the problemOccurrence should contain a list of record ids
+        recordAnalyses.add(
+            new RecordAnalysis(entry.getValue().get(0), List.of(new ProblemOccurrence(entry.getKey(), entry.getValue()))));
       }
-      //Select only the relevant ones
-      if (datasetProblemPatternId.equals(recordProblemPattern.getPatternId())) {
-        recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
-      }
-    });
+    }
+
     return recordAnalyses;
   }
 
