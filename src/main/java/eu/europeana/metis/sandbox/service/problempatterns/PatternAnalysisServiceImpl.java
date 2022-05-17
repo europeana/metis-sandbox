@@ -15,6 +15,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -55,18 +56,19 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final RecordTitleRepository recordTitleRepository;
+  private final RecordTitleJdbcRepository recordTitleJdbcRepository;
   private final ProblemPatternAnalyzer problemPatternAnalyzer = new ProblemPatternAnalyzer();
   private final int maxProblemPatternOccurrences;
   private final int maxRecordsPerPattern;
 
   /**
    * Constructor with required parameters.
-   *
-   * @param executionPointRepository the execution point repository
+   *  @param executionPointRepository the execution point repository
    * @param datasetProblemPatternRepository the dataset problem pattern repository
    * @param recordProblemPatternRepository the record problem pattern repository
    * @param recordProblemPatternOccurrenceRepository the record problem pattern occurrence repository
    * @param recordTitleRepository the record title repository
+   * @param recordTitleJdbcRepository the record title jdbc repository
    * @param maxRecordsPerPattern the max records per pattern allowed
    * @param maxProblemPatternOccurrences the max problem pattern occurrences per record allowed
    */
@@ -75,6 +77,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
       RecordProblemPatternRepository recordProblemPatternRepository,
       RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
       RecordTitleRepository recordTitleRepository,
+      RecordTitleJdbcRepository recordTitleJdbcRepository,
       @Value("${sandbox.problempatterns.max-records-per-pattern:10}") int maxRecordsPerPattern,
       @Value("${sandbox.problempatterns.max-problem-pattern-occurrences:10}") int maxProblemPatternOccurrences) {
     this.executionPointRepository = executionPointRepository;
@@ -82,6 +85,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     this.recordProblemPatternRepository = recordProblemPatternRepository;
     this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
     this.recordTitleRepository = recordTitleRepository;
+    this.recordTitleJdbcRepository = recordTitleJdbcRepository;
     this.maxRecordsPerPattern = maxRecordsPerPattern;
     this.maxProblemPatternOccurrences = maxProblemPatternOccurrences;
   }
@@ -175,7 +179,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   @Override
   @Transactional
   public void finalizeDatasetPatternAnalysis(ExecutionPoint executionPoint) {
-    //This is currently meant to be implemented for the P1 with the titles which will come later on.
+    recordTitleJdbcRepository.deleteRedundantRecordTitles(executionPoint.getExecutionPointId());
   }
 
   private ArrayList<ProblemPattern> constructProblemPatterns(ExecutionPoint executionPoint) {
@@ -213,6 +217,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   @Transactional
   public Optional<DatasetProblemPatternAnalysis<Step>> getDatasetPatternAnalysis(String datasetId, Step executionStep,
       LocalDateTime executionTimestamp) {
+
     final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
     if (nonNull(executionPoint)) {

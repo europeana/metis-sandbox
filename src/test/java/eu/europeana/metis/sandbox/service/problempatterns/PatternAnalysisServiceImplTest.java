@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
@@ -91,6 +92,8 @@ class PatternAnalysisServiceImplTest {
   private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   @Resource
   private RecordTitleRepository recordTitleRepository;
+  @Resource
+  private RecordTitleJdbcRepository recordTitleJdbcRepository;
 
   PatternAnalysisServiceImplTest() throws IOException, SerializationException {
   }
@@ -163,7 +166,7 @@ class PatternAnalysisServiceImplTest {
     //We just want 1 occurrence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
         datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
-        recordTitleRepository, 1, 1);
+        recordTitleRepository, recordTitleJdbcRepository, 1, 1);
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP2);
@@ -179,7 +182,7 @@ class PatternAnalysisServiceImplTest {
     //We just want 1 record
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
         datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
-        recordTitleRepository, 1, 1);
+        recordTitleRepository, recordTitleJdbcRepository, 1, 1);
 
     final LocalDateTime nowP6 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP6);
