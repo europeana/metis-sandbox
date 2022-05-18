@@ -214,10 +214,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
           final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
           recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
-          // TODO: 17/05/2022 Perhaps move this to the analyzer from metis-framework and call a method to create this.
-          // This way the message report will be centralized
           recordProblemPatternOccurrence.setMessageReport(
-              String.format("Systematic use of the same title: %s", recordTitle));
+              problemPatternAnalyzer.abbreviateElement(recordTitle.getRecordTitleCompositeKey().getTitle()));
           this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
         });
       }
