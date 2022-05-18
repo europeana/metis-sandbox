@@ -41,9 +41,12 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -230,8 +233,10 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     final ArrayList<ProblemPattern> problemPatterns = new ArrayList<>();
     for (DatasetProblemPattern datasetProblemPattern : executionPoint.getDatasetProblemPatterns()) {
 
-      final ArrayList<RecordAnalysis> recordAnalyses = getRecordAnalysesForPatternId(executionPoint,
+      final ArrayList<RecordAnalysis> recordAnalyses = getNonGlobalRecordAnalysesForPatternId(executionPoint,
           datasetProblemPattern.getDatasetProblemPatternCompositeKey().getPatternId());
+      recordAnalyses.addAll(getGlobalRecordAnalysesForPatternId(executionPoint,
+          datasetProblemPattern.getDatasetProblemPatternCompositeKey().getPatternId()));
       if (CollectionUtils.isNotEmpty(recordAnalyses)) {
         problemPatterns.add(new ProblemPattern(
             ProblemPatternDescription.fromName(datasetProblemPattern.getDatasetProblemPatternCompositeKey().getPatternId()),
@@ -241,32 +246,39 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     return problemPatterns;
   }
 
-  private ArrayList<RecordAnalysis> getRecordAnalysesForPatternId(ExecutionPoint executionPoint,
+  private ArrayList<RecordAnalysis> getNonGlobalRecordAnalysesForPatternId(ExecutionPoint executionPoint,
+      String datasetProblemPatternId) {
+    final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
+
+    //Only select the specific one we need
+    getNonGlobalRecordProblemPatternStream(executionPoint, datasetProblemPatternId).forEach(recordProblemPattern -> {
+      final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
+      for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+        problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
+      }
+      recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
+    });
+    return recordAnalyses;
+  }
+
+  private ArrayList<RecordAnalysis> getGlobalRecordAnalysesForPatternId(ExecutionPoint executionPoint,
       String datasetProblemPatternId) {
     final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
 
     final Map<String, List<String>> messageReportRecordIdsMap = new HashMap<>();
     //Only select the specific one we need
-    executionPoint.getRecordProblemPatterns().stream()
-                  .filter(recordProblemPattern -> datasetProblemPatternId.equals(recordProblemPattern.getPatternId()))
-                  .forEach(recordProblemPattern -> {
-                    final ArrayList<ProblemOccurrence> problemOccurrences = new ArrayList<>();
-                    for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
-                      //For P1 we need to collect the correct values first
-                      if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
-                        messageReportRecordIdsMap.computeIfAbsent(recordProblemPatternOccurrence.getMessageReport(),
-                                                     k -> new ArrayList<>())
-                                                 .add(recordProblemPattern.getRecordId());
-                      } else {
-                        problemOccurrences.add(new ProblemOccurrence(recordProblemPatternOccurrence.getMessageReport()));
-                      }
-                    }
-                    recordAnalyses.add(new RecordAnalysis(recordProblemPattern.getRecordId(), problemOccurrences));
-                  });
+    getGlobalRecordProblemPatternStream(executionPoint, datasetProblemPatternId).forEach(recordProblemPattern -> {
+      for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
+        //For P1 we need to collect the correct values first
+        if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
+          messageReportRecordIdsMap.computeIfAbsent(recordProblemPatternOccurrence.getMessageReport(),
+                                       k -> new ArrayList<>())
+                                   .add(recordProblemPattern.getRecordId());
+        }
+      }
+    });
 
     if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
-      //Clear first, this is a special pattern
-      recordAnalyses.clear();
       for (Entry<String, List<String>> entry : messageReportRecordIdsMap.entrySet()) {
         //Add only the first recordId(there should always be at least one) and inside the problemOccurrence should contain a list of record ids
         recordAnalyses.add(
@@ -275,6 +287,31 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     }
 
     return recordAnalyses;
+  }
+
+  @NotNull
+  private Stream<RecordProblemPattern> getNonGlobalRecordProblemPatternStream(ExecutionPoint executionPoint,
+      String datasetProblemPatternId) {
+    return executionPoint.getRecordProblemPatterns().stream()
+                         .filter(recordProblemPattern -> datasetProblemPatternId.equals(recordProblemPattern.getPatternId()))
+                         .filter(getRecordProblemPatternPredicate(datasetProblemPatternId,
+                             ProblemPatternAnalyzer.nonGlobalProblemPatterns));
+  }
+
+  @NotNull
+  private Stream<RecordProblemPattern> getGlobalRecordProblemPatternStream(ExecutionPoint executionPoint,
+      String datasetProblemPatternId) {
+    return executionPoint.getRecordProblemPatterns().stream()
+                         .filter(recordProblemPattern -> datasetProblemPatternId.equals(recordProblemPattern.getPatternId()))
+                         .filter(getRecordProblemPatternPredicate(datasetProblemPatternId,
+                             ProblemPatternAnalyzer.globalProblemPatterns));
+  }
+
+  @NotNull
+  private Predicate<RecordProblemPattern> getRecordProblemPatternPredicate(String datasetProblemPatternId,
+      Set<ProblemPatternId> problemPatternIdSet) {
+    return recordProblemPattern -> problemPatternIdSet.stream().map(ProblemPatternId::name)
+                                                      .anyMatch(datasetProblemPatternId::equals);
   }
 
   @Override
