@@ -81,6 +81,7 @@ public class PatternAnalysisController {
   @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
       @ApiParam(value = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+
     DatasetProblemPatternAnalysis<Step> emptyAnalysisResult = new DatasetProblemPatternAnalysis<>("0", null, null,
         new ArrayList<>());
     Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(datasetId,

@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOccurrence;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -57,6 +58,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
+  private final DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final RecordTitleRepository recordTitleRepository;
@@ -70,6 +72,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
    *
    * @param executionPointRepository the execution point repository
    * @param datasetProblemPatternRepository the dataset problem pattern repository
+   * @param datasetProblemPatternJdbcRepository the dataset problem pattern jdbc repository
    * @param recordProblemPatternRepository the record problem pattern repository
    * @param recordProblemPatternOccurrenceRepository the record problem pattern occurrence repository
    * @param recordTitleRepository the record title repository
@@ -79,6 +82,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
    */
   public PatternAnalysisServiceImpl(ExecutionPointRepository executionPointRepository,
       DatasetProblemPatternRepository datasetProblemPatternRepository,
+      DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository,
       RecordProblemPatternRepository recordProblemPatternRepository,
       RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
       RecordTitleRepository recordTitleRepository,
@@ -87,6 +91,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
       @Value("${sandbox.problempatterns.max-problem-pattern-occurrences:10}") int maxProblemPatternOccurrences) {
     this.executionPointRepository = executionPointRepository;
     this.datasetProblemPatternRepository = datasetProblemPatternRepository;
+    this.datasetProblemPatternJdbcRepository = datasetProblemPatternJdbcRepository;
     this.recordProblemPatternRepository = recordProblemPatternRepository;
     this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
     this.recordTitleRepository = recordTitleRepository;
@@ -128,13 +133,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   private void insertPatternAnalysis(ExecutionPoint executionPoint, final ProblemPatternAnalysis problemPatternAnalysis) {
     for (ProblemPattern problemPattern : problemPatternAnalysis.getProblemPatterns()) {
       for (RecordAnalysis recordAnalysis : problemPattern.getRecordAnalysisList()) {
-        final DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey = new DatasetProblemPatternCompositeKey(
-            executionPoint.getExecutionPointId(),
-            problemPattern.getProblemPatternDescription().getProblemPatternId().name());
-        // TODO: 03/05/2022 To make this thread safe, an upsert should be used instead of an update and get
-        this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternCompositeKey);
-        final Integer recordOccurrences = this.datasetProblemPatternRepository.findByDatasetProblemPatternCompositeKey(
-            datasetProblemPatternCompositeKey).getRecordOccurrences();
+        final Integer recordOccurrences = datasetProblemPatternJdbcRepository.upsertUpdateCounter(
+            executionPoint.getExecutionPointId(), problemPattern.getProblemPatternDescription().getProblemPatternId().name(), 1);
 
         if (recordOccurrences <= maxRecordsPerPattern) {
           final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
@@ -191,15 +191,16 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     final List<RecordTitle> duplicateRecordTitles = recordTitleRepository.findAllByExecutionPoint(executionPoint);
     final Map<String, List<RecordTitle>> groupedByTitle = duplicateRecordTitles.stream().collect(
         Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle()));
+    final int recordOccurrences = Math.toIntExact(duplicateRecordTitles.stream().map(RecordTitle::getRecordTitleCompositeKey)
+                                                                       .map(RecordTitleCompositeKey::getRecordId).distinct()
+                                                                       .count());
+    //Update counter. Idempotent for 0 occurrences
+    datasetProblemPatternJdbcRepository.upsertUpdateCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
+        recordOccurrences);
 
     //Titles are limited as well
     int titleOccurrences = 0;
     for (Entry<String, List<RecordTitle>> entry : groupedByTitle.entrySet()) {
-      final DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey = new DatasetProblemPatternCompositeKey(
-          executionPoint.getExecutionPointId(),
-          ProblemPatternId.P1.name());
-      // TODO: 17/05/2022 Update counter with entry.getValue().size()(to capture the full list size) and not like this
-      //      this.datasetProblemPatternRepository.updateCounter(datasetProblemPatternCompositeKey);
 
       if (titleOccurrences <= maxRecordsPerPattern) {
         //For each title we will insert up to a max record problem pattern

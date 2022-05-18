@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -87,6 +88,8 @@ class PatternAnalysisServiceImplTest {
   @Resource
   private DatasetProblemPatternRepository datasetProblemPatternRepository;
   @Resource
+  private DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
+  @Resource
   private RecordProblemPatternRepository recordProblemPatternRepository;
   @Resource
   private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
@@ -165,7 +168,7 @@ class PatternAnalysisServiceImplTest {
   void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
     //We just want 1 occurrence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
+        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
         recordTitleRepository, recordTitleJdbcRepository, 1, 1);
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
@@ -181,7 +184,7 @@ class PatternAnalysisServiceImplTest {
   void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() {
     //We just want 1 record
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
+        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
         recordTitleRepository, recordTitleJdbcRepository, 1, 1);
 
     final LocalDateTime nowP6 = LocalDateTime.now();

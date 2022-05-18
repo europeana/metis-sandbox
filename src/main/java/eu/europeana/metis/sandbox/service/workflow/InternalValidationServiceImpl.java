@@ -74,13 +74,11 @@ class InternalValidationServiceImpl implements InternalValidationService {
       final LocalDateTime timestamp = datasetIdTimestampMap.computeIfAbsent(datasetId, s -> getLocalDateTime(datasetId));
       //We have to attempt initialization everytime because we don't have an entry point for the start of the step
       executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
-      // TODO: 03/05/2022 This needs to still be synchronized.
-      //  To fix this we'll need to do an upsert(with a spring jdbcTemplate perhaps) on the internal counter update in method insertPatternAnalysis
-      patternAnalysisService.generateRecordPatternAnalysis(executionPoint, new String(recordContent, StandardCharsets.UTF_8));
     } finally {
       lock.unlock();
       LOGGER.debug("Generate analysis: {} lock, Unlocked", datasetId);
     }
+    patternAnalysisService.generateRecordPatternAnalysis(executionPoint, new String(recordContent, StandardCharsets.UTF_8));
   }
 
   private LocalDateTime getLocalDateTime(String datasetId) {

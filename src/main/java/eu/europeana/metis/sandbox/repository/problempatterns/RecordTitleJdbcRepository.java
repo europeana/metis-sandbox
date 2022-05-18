@@ -31,7 +31,7 @@ public class RecordTitleJdbcRepository {
    *
    * @param executionPointId the execution point id
    */
-  public void deleteRedundantRecordTitles(Integer executionPointId) {
+  public void deleteRedundantRecordTitles(int executionPointId) {
     LOGGER.debug("Request removal of redundant titles for executionPointId: {}", executionPointId);
     final int removedItems = jdbcTemplate.update(getDeleteRedundantPreparedStatementCreator(executionPointId));
     LOGGER.debug("Removed {} items", removedItems);
@@ -45,7 +45,7 @@ public class RecordTitleJdbcRepository {
    * @return the prepared statement creator
    */
   @NotNull
-  private PreparedStatementCreator getDeleteRedundantPreparedStatementCreator(Integer executionPointId) {
+  private PreparedStatementCreator getDeleteRedundantPreparedStatementCreator(int executionPointId) {
     return connection -> {
       PreparedStatement deleteRedundantStatement = connection.prepareStatement(
           "delete "
