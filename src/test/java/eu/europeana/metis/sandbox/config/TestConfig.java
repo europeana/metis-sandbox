@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import com.github.fridujo.rabbitmq.mock.MockConnectionFactory;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
+import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("test")
 @Configuration
+@Disabled
 public class TestConfig {
 
   @Bean

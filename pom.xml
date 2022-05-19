@@ -242,31 +242,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
       <artifactId>log4j-core</artifactId>
       <version>${version.log4j}</version>
     </dependency>
-    <!-- Persistence -->
-<!--    <dependency>-->
-<!--      <groupId>com.h2database</groupId>-->
-<!--      <artifactId>h2</artifactId>-->
-<!--      <scope>runtime</scope>-->
-<!--    </dependency>-->
-
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <version>${version.testcontainers}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${version.testcontainers}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>${version.testcontainers}</version>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -296,17 +271,30 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- testcontainers -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>com.github.fridujo</groupId>
       <artifactId>rabbitmq-mock</artifactId>
       <version>1.0.14</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.github.hakky54</groupId>
-      <artifactId>logcaptor</artifactId>
-      <version>${version.logcaptor}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

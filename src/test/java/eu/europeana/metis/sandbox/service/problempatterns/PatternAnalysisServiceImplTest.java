@@ -61,9 +61,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @ComponentScan({"eu.europeana.metis.sandbox.service.problempatterns", "eu.europeana.metis.sandbox.repository.problempatterns"})
-@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none",
+@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none",//We do not want hibernate creating the db
     "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect"
-}) //We do not want hibernate creating the db
+})
 @Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
@@ -103,16 +103,11 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   PatternAnalysisServiceImplTest() throws IOException, SerializationException {
   }
 
-  @BeforeAll
-  public static void setErrorLogging() {
-    //Disable debug logs
-    LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
-  }
-
   @Test
   void initializePatternAnalysisExecution() {
     final LocalDateTime now = LocalDateTime.now();
-    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, now);
+    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        now);
     assertEquals(1, executionPoint.getExecutionPointId());
     assertEquals("1", executionPoint.getDatasetId());
     assertEquals(Step.VALIDATE_INTERNAL.name(), executionPoint.getExecutionStep());
@@ -123,7 +118,8 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   void generateRecordPatternAnalysisTest() {
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
-    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP2);
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP2);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -140,7 +136,8 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
 
     //Insert another problem pattern
     final LocalDateTime nowP6 = LocalDateTime.now();
-    final ExecutionPoint executionPoint2 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP6);
+    final ExecutionPoint executionPoint2 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP6);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint2, rdfRecordP6);
     assertEquals(2, executionPointRepository.count());
     assertEquals(2L * ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -170,11 +167,13 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
     //We just want 1 occurrence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
+        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository,
+        recordProblemPatternOccurrenceRepository,
         recordTitleRepository, recordTitleJdbcRepository, 1, 1);
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
-    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP2);
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP2);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2MultipleOccurrences);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -186,11 +185,13 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() {
     //We just want 1 record
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository, recordProblemPatternOccurrenceRepository,
+        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository,
+        recordProblemPatternOccurrenceRepository,
         recordTitleRepository, recordTitleJdbcRepository, 1, 1);
 
     final LocalDateTime nowP6 = LocalDateTime.now();
-    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP6);
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP6);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP6);
 
     //Update about to pretend a different record
@@ -218,7 +219,8 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   @Test
   void generateRecordPatternAnalysis_StringPayloadTest() throws Exception {
     final LocalDateTime nowP2 = LocalDateTime.now();
-    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP2);
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP2);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfStringP2);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -233,7 +235,8 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   @Test
   void getRecordPatternAnalysisTest() {
     final LocalDateTime nowP2 = LocalDateTime.now();
-    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, nowP2);
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP2);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
     //We should be getting this from the database
     List<ProblemPattern> problemPatternsRecord1 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP2);
@@ -247,7 +250,8 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   @Test
   void generateRecordPatternAnalysis_P12_with_longer_than_varcharTest() {
     final LocalDateTime now = LocalDateTime.now();
-    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL, now);
+    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        now);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint, rdfRecordP12);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());

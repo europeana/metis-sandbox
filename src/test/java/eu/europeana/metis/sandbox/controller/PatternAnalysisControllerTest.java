@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,8 +10,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -52,6 +55,9 @@ class PatternAnalysisControllerTest {
   @MockBean
   private RecordLogService mockRecordLogService;
 
+  @MockBean
+  private DatasetReportService mockDatasetReportService;
+
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
   @Test
@@ -68,6 +74,10 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+
+    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+    doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -101,6 +111,10 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.empty());
+
+    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+    doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isNotFound())

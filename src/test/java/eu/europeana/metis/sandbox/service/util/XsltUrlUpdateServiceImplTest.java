@@ -5,8 +5,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
@@ -24,7 +22,6 @@ import java.lang.reflect.Modifier;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.Optional;
-import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -85,7 +82,6 @@ class XsltUrlUpdateServiceImplTest {
   @Test
   @Order(3)
   void updateXslt_ExpectFail() {
-    final LogCaptor logCaptor = LogCaptor.forClass(XsltUrlUpdateServiceImpl.class);
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
 
@@ -94,16 +90,12 @@ class XsltUrlUpdateServiceImplTest {
 
     doThrow(RuntimeException.class).when(transformXsltRepository).save(any());
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
-
-    assertLogCaptor(logCaptor, "Error persisting default transform XSLT to Database");
   }
 
   @Test
   @Order(4)
   void updateXslt_ExpectError() {
-    final LogCaptor logCaptor = LogCaptor.forClass(XsltUrlUpdateServiceImpl.class);
     xsltUrlUpdateService.updateXslt("");
-    assertLogCaptor(logCaptor, "Error getting default transform XSLT");
   }
 
   @Test
@@ -120,12 +112,6 @@ class XsltUrlUpdateServiceImplTest {
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
 
     Mockito.verify(transformXsltRepository, never()).save(any());
-  }
-
-  private void assertLogCaptor(LogCaptor logCaptor, String message) {
-    assertEquals(1, logCaptor.getWarnLogs().size());
-    final String testMessage = logCaptor.getWarnLogs().stream().findFirst().get();
-    assertTrue(testMessage.contains(message));
   }
 
   private static void setFinalStaticField(Class<?> clazz, String fieldName, Object value)

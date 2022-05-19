@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.executor.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -14,10 +13,9 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import nl.altindag.log.LogCaptor;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -110,7 +108,6 @@ class StepExecutorTest {
 
   @Test
   void consumeEventStatusSuccessThrowsRabbitMQException_expectEventSuccess() {
-    final LogCaptor logCaptor = LogCaptor.forClass(StepExecutor.class);
     final String routingKey = "routingKey";
     final Long expectedRecordId = 2L;
     final Record myTestRecord = getTestRecord(expectedRecordId);
@@ -121,20 +118,12 @@ class StepExecutorTest {
         .convertAndSend(eq(routingKey), any(Object.class));
 
     stepExecutor.consume(routingKey, myEvent, Step.HARVEST_ZIP, () -> getRecordInfo());
-
-    assertLogCaptor(logCaptor);
   }
 
   private void assertRecordId_CreatedStepAndStatus(final Long RecordId, final Status status) {
     assertEquals(RecordId, captor.getValue().getRecord().getRecordId());
     assertEquals(Step.HARVEST_ZIP, captor.getValue().getStep());
     assertEquals(status, captor.getValue().getStatus());
-  }
-
-  private void assertLogCaptor(LogCaptor logCaptor) {
-    assertEquals(1, logCaptor.getErrorLogs().size());
-    final String testMessage = logCaptor.getErrorLogs().stream().findFirst().get();
-    assertTrue(testMessage.contains("Queue step execution error"));
   }
 
   @NotNull
