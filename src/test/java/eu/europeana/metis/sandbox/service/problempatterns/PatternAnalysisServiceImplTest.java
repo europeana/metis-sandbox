@@ -60,11 +60,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
-@ComponentScan("eu.europeana.metis.sandbox.service.problempatterns")
-@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none"}) //We do not want hibernate creating the db
+@ComponentScan({"eu.europeana.metis.sandbox.service.problempatterns", "eu.europeana.metis.sandbox.repository.problempatterns"})
+@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none",
+    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect"
+}) //We do not want hibernate creating the db
 @Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
-class PatternAnalysisServiceImplTest {
+class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
 
   final String rdfStringP2 = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"), StandardCharsets.UTF_8);

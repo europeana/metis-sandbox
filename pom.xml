@@ -57,8 +57,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.2.7</version.woodstox-core>
-  </properties>
-
+    <version.testcontainers>1.17.1</version.testcontainers></properties>
   <dependencies>
     <!-- Spring boot -->
     <dependency>
@@ -244,10 +243,29 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
       <version>${version.log4j}</version>
     </dependency>
     <!-- Persistence -->
+<!--    <dependency>-->
+<!--      <groupId>com.h2database</groupId>-->
+<!--      <artifactId>h2</artifactId>-->
+<!--      <scope>runtime</scope>-->
+<!--    </dependency>-->
+
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>runtime</scope>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
