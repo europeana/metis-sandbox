@@ -180,38 +180,32 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
     //Insert global problem patterns to db
     final List<RecordTitle> duplicateRecordTitles = recordTitleRepository.findAllByExecutionPoint(executionPoint);
-    final Map<String, List<RecordTitle>> groupedByTitle = duplicateRecordTitles.stream().collect(
-        Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle()));
-    final int recordOccurrences = Math.toIntExact(duplicateRecordTitles.stream().map(RecordTitle::getRecordTitleCompositeKey)
+    final Map<String, List<RecordTitle>> groupByRecordId = duplicateRecordTitles.stream().collect(
+        Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getRecordId()));
+    final int totalRecordOccurrences = Math.toIntExact(duplicateRecordTitles.stream().map(RecordTitle::getRecordTitleCompositeKey)
                                                                        .map(RecordTitleCompositeKey::getRecordId).distinct()
                                                                        .count());
     //Update counter. Idempotent for 0 occurrences
     datasetProblemPatternJdbcRepository.upsertUpdateCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
-        recordOccurrences);
+        totalRecordOccurrences);
 
-    //Titles are limited as well
-    int titleOccurrences = 0;
-    for (Entry<String, List<RecordTitle>> entry : groupedByTitle.entrySet()) {
+    //Max amount of records for the problem pattern
+    groupByRecordId.entrySet().stream().limit(maxRecordsPerPattern).forEach((entry) -> {
+      final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
+      recordProblemPattern.setPatternId(ProblemPatternId.P1.name());
+      recordProblemPattern.setRecordId(entry.getKey());
+      recordProblemPattern.setExecutionPoint(executionPoint);
+      final RecordProblemPattern savedRecordProblemPattern = this.recordProblemPatternRepository.save(recordProblemPattern);
 
-      if (titleOccurrences <= maxRecordsPerPattern) {
-        //For each title we will insert up to a max record problem pattern
-        entry.getValue().stream().limit(maxRecordsPerPattern).forEach(recordTitle -> {
-
-          final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
-          recordProblemPattern.setPatternId(ProblemPatternId.P1.name());
-          recordProblemPattern.setRecordId(recordTitle.getRecordTitleCompositeKey().getRecordId());
-          recordProblemPattern.setExecutionPoint(executionPoint);
-          final RecordProblemPattern savedRecordProblemPattern = this.recordProblemPatternRepository.save(recordProblemPattern);
-
-          final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
-          recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
-          recordProblemPatternOccurrence.setMessageReport(
-              problemPatternAnalyzer.abbreviateElement(recordTitle.getRecordTitleCompositeKey().getTitle()));
-          this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
-        });
-      }
-      titleOccurrences++;
-    }
+      //Max title occurrences per record
+      entry.getValue().stream().limit(maxRecordsPerPattern).forEach(recordTitle -> {
+        final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
+        recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
+        recordProblemPatternOccurrence.setMessageReport(
+            problemPatternAnalyzer.abbreviateElement(recordTitle.getRecordTitleCompositeKey().getTitle()));
+        this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
+      });
+    });
 
     //Remove remaining titles to avoid re-computation of titles
     recordTitleRepository.deleteByExecutionPoint(executionPoint);

@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
+import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -24,10 +26,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +66,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   final String rdfStringP2 = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"), StandardCharsets.UTF_8);
-  final String rdfStringP2MultipleOccurences = IOUtils.toString(
+  final String rdfStringP2MultipleOccurrences = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2_multiple.xml"),
       StandardCharsets.UTF_8);
   final String rdfStringP6 = IOUtils.toString(
@@ -71,7 +75,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P12.xml"), StandardCharsets.UTF_8);
 
   final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
-  final RDF rdfRecordP2MultipleOccurrences = new RdfConversionUtils().convertStringToRdf(rdfStringP2MultipleOccurences);
+  final RDF rdfRecordP2MultipleOccurrences = new RdfConversionUtils().convertStringToRdf(rdfStringP2MultipleOccurrences);
   final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
   final RDF rdfRecordP12 = new RdfConversionUtils().convertStringToRdf(rdfStringP12);
 
@@ -106,12 +110,20 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
   @Test
   void initializePatternAnalysisExecution() {
     final LocalDateTime now = LocalDateTime.now();
-    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
         now);
-    assertEquals(1, executionPoint.getExecutionPointId());
-    assertEquals("1", executionPoint.getDatasetId());
-    assertEquals(Step.VALIDATE_INTERNAL.name(), executionPoint.getExecutionStep());
-    assertEquals(now, executionPoint.getExecutionTimestamp());
+    assertEquals(1, executionPoint1.getExecutionPointId());
+    assertEquals("1", executionPoint1.getDatasetId());
+    assertEquals(Step.VALIDATE_INTERNAL.name(), executionPoint1.getExecutionStep());
+    assertEquals(now, executionPoint1.getExecutionTimestamp());
+
+    //Second time should give back the exact same object
+    final ExecutionPoint executionPoint2 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        now);
+    assertEquals(1, executionPoint2.getExecutionPointId());
+    assertEquals("1", executionPoint2.getDatasetId());
+    assertEquals(Step.VALIDATE_INTERNAL.name(), executionPoint2.getExecutionStep());
+    assertEquals(now, executionPoint2.getExecutionTimestamp());
   }
 
   @Test
@@ -149,11 +161,8 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
         "1", Step.VALIDATE_INTERNAL, nowP6);
     assertTrue(datasetPatternAnalysis.isPresent());
     assertEquals(1, datasetPatternAnalysis.get().getProblemPatternList().size());
-    final ProblemPattern problemPatternP6 = datasetPatternAnalysis.get().getProblemPatternList().stream()
-                                                                  .filter(problemPattern ->
-                                                                      problemPattern.getProblemPatternDescription()
-                                                                          == ProblemPatternDescription.P6).findFirst()
-                                                                  .orElseThrow();
+    final ProblemPattern problemPatternP6 = getProblemPatternFromDatasetPatternAnalysis(datasetPatternAnalysis,
+        ProblemPatternDescription.P6);
 
     assertEquals(1, problemPatternP6.getRecordAnalysisList().size());
     assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurrenceList().size());
@@ -198,11 +207,8 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
         "1", Step.VALIDATE_INTERNAL, nowP6);
     assertTrue(datasetPatternAnalysis.isPresent());
     assertEquals(1, datasetPatternAnalysis.get().getProblemPatternList().size());
-    final ProblemPattern problemPatternP6 = datasetPatternAnalysis.get().getProblemPatternList().stream()
-                                                                  .filter(problemPattern ->
-                                                                      problemPattern.getProblemPatternDescription()
-                                                                          == ProblemPatternDescription.P6).findFirst()
-                                                                  .orElseThrow();
+    final ProblemPattern problemPatternP6 = getProblemPatternFromDatasetPatternAnalysis(datasetPatternAnalysis,
+        ProblemPatternDescription.P6);
 
     assertEquals(1, problemPatternP6.getRecordAnalysisList().size());
     assertEquals(1, problemPatternP6.getRecordAnalysisList().get(0).getProblemOccurrenceList().size());
@@ -254,5 +260,74 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
     //Check titles
     assertEquals(4, recordTitleRepository.count());
+  }
+
+  @Test
+  void generateRecordPatternAnalysis_multipleRecords_and_global_patterns() throws SerializationException {
+    //Insert a problem pattern
+    final LocalDateTime nowP2 = LocalDateTime.now();
+    final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        nowP2);
+    patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
+
+    //Clone same item
+    final RDF rdfRecordP2Clone = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
+    rdfRecordP2Clone.getProvidedCHOList().get(0).setAbout(rdfRecordP2Clone.getProvidedCHOList().get(0).getAbout() + "Clone");
+    patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2Clone);
+
+    patternAnalysisService.finalizeDatasetPatternAnalysis(executionPoint1);
+
+    //Get dataset pattern analysis and check results
+    final Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
+        "1", Step.VALIDATE_INTERNAL, nowP2);
+    assertTrue(datasetPatternAnalysis.isPresent());
+    assertEquals(2, datasetPatternAnalysis.get().getProblemPatternList().size());
+    final ProblemPattern problemPatternP2 = getProblemPatternFromDatasetPatternAnalysis(datasetPatternAnalysis,
+        ProblemPatternDescription.P2);
+
+    assertEquals(2, problemPatternP2.getRecordAnalysisList().size());
+    assertEquals(1, problemPatternP2.getRecordAnalysisList().get(0).getProblemOccurrenceList().size());
+    assertTrue(isNotBlank(problemPatternP2.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getMessageReport()));
+
+    //Check global pattern
+    final ProblemPattern problemPatternP1 = getProblemPatternFromDatasetPatternAnalysis(datasetPatternAnalysis,
+        ProblemPatternDescription.P1);
+
+    assertEquals(2, problemPatternP1.getRecordAnalysisList().size());
+    assertEquals(2,
+        problemPatternP1.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getAffectedRecordIds().size());
+    assertTrue(isNotBlank(problemPatternP1.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getMessageReport()));
+  }
+
+  @Test
+  void finalizeDatasetPatternAnalysisTest() {
+    final LocalDateTime now = LocalDateTime.now();
+    final ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
+        now);
+
+    final RecordTitle recordTitle1A = new RecordTitle(
+        new RecordTitleCompositeKey(executionPoint.getExecutionPointId(), "recordId1", "titleA"), executionPoint);
+    final RecordTitle recordTitle2A = new RecordTitle(
+        new RecordTitleCompositeKey(executionPoint.getExecutionPointId(), "recordId2", "titleA"), executionPoint);
+    final RecordTitle recordTitle2B = new RecordTitle(
+        new RecordTitleCompositeKey(executionPoint.getExecutionPointId(), "recordId2", "titleB"), executionPoint);
+    recordTitleRepository.save(recordTitle1A);
+    recordTitleRepository.save(recordTitle2A);
+    recordTitleRepository.save(recordTitle2B);
+
+    patternAnalysisService.finalizeDatasetPatternAnalysis(executionPoint);
+    assertEquals(2, recordProblemPatternRepository.count());
+    assertEquals(2, recordProblemPatternOccurrenceRepository.count());
+    assertEquals(0, recordTitleRepository.count());
+  }
+
+  @NotNull
+  private ProblemPattern getProblemPatternFromDatasetPatternAnalysis(
+      Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis,
+      ProblemPatternDescription problemPatternDescription) {
+    return datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::getProblemPatternList).stream().flatMap(Collection::stream)
+                                 .filter(
+                                     problemPattern -> problemPattern.getProblemPatternDescription() == problemPatternDescription)
+                                 .findFirst().orElseThrow();
   }
 }
