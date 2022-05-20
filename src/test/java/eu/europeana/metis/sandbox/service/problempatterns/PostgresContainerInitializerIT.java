@@ -9,11 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @DirtiesContext
-public class PostgresContainerInitializer {
+public class PostgresContainerInitializerIT {
 
-//  @ClassRule
   @Container
-  public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:9.6")
+  public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:9.6")
       .withDatabaseName("test")
       .withUsername("test")
       .withPassword("test");

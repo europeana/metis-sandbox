@@ -30,18 +30,14 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.logging.LogLevel;
-import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -66,7 +62,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 })
 @Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
 @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
-class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
+class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   final String rdfStringP2 = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"), StandardCharsets.UTF_8);
@@ -100,7 +96,7 @@ class PatternAnalysisServiceImplTest extends PostgresContainerInitializer {
   @Resource
   private RecordTitleJdbcRepository recordTitleJdbcRepository;
 
-  PatternAnalysisServiceImplTest() throws IOException, SerializationException {
+  PatternAnalysisServiceImplIT() throws IOException, SerializationException {
   }
 
   @Test
