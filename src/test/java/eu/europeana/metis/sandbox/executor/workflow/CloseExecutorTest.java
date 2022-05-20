@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -41,9 +42,7 @@ class CloseExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     consumer.close(recordEvent);
-
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
-
     assertEquals(Step.CLOSE, captor.getValue().getStep());
   }
 
@@ -53,7 +52,6 @@ class CloseExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.FAIL);
 
     consumer.close(recordEvent);
-
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
@@ -62,17 +60,13 @@ class CloseExecutorTest {
     var record = getTestRecord();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
     final RuntimeException runtimeException = new AmqpException("Queue Failure");
-    doThrow(runtimeException)
-        .when(amqpTemplate)
-        .convertAndSend(any(), any(Object.class));
+    doThrow(runtimeException).when(amqpTemplate).convertAndSend(any(), any(Object.class));
 
-    consumer.close(recordEvent);
+    assertDoesNotThrow(() -> consumer.close(recordEvent));
   }
 
   private Record getTestRecord() {
-    return Record.builder()
-                 .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
-                 .content("".getBytes())
+    return Record.builder().datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("".getBytes())
                  .recordId(1L).build();
   }
 }
