@@ -27,32 +27,26 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = InternalValidationServiceImpl.class, properties = "clean-cache-interval:* * * * * ?")
+@ExtendWith(MockitoExtension.class)
 class InternalValidationServiceImplTest {
 
   private static final String SCHEMA = "EDM-INTERNAL";
 
-  @MockBean
+  @Mock
   private ValidationExecutionService validationExecutionService;
 
-  @MockBean
+  @Mock
   private PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
 
-  @MockBean
+  @Mock
   private ExecutionPointService executionPointService;
 
-  @Autowired
+  @InjectMocks
   private InternalValidationServiceImpl service;
-
-  @Autowired
-  private ScheduledAnnotationBeanPostProcessor postProcessor;
 
   @Test
   void validate_expectSuccess() throws PatternAnalysisException {
