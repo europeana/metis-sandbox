@@ -73,32 +73,20 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   /**
    * Constructor with required parameters.
    *
-   * @param executionPointRepository the execution point repository
-   * @param datasetProblemPatternRepository the dataset problem pattern repository
-   * @param datasetProblemPatternJdbcRepository the dataset problem pattern jdbc repository
-   * @param recordProblemPatternRepository the record problem pattern repository
-   * @param recordProblemPatternOccurrenceRepository the record problem pattern occurrence repository
-   * @param recordTitleRepository the record title repository
-   * @param recordTitleJdbcRepository the record title jdbc repository
+   * @param problemPatternsRepositories the problem patterns repositories wrapper
    * @param maxRecordsPerPattern the max records per pattern allowed
    * @param maxProblemPatternOccurrences the max problem pattern occurrences per record allowed
    */
-  public PatternAnalysisServiceImpl(ExecutionPointRepository executionPointRepository,
-      DatasetProblemPatternRepository datasetProblemPatternRepository,
-      DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository,
-      RecordProblemPatternRepository recordProblemPatternRepository,
-      RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
-      RecordTitleRepository recordTitleRepository,
-      RecordTitleJdbcRepository recordTitleJdbcRepository,
+  public PatternAnalysisServiceImpl(ProblemPatternsRepositories problemPatternsRepositories,
       @Value("${sandbox.problempatterns.max-records-per-pattern:10}") int maxRecordsPerPattern,
       @Value("${sandbox.problempatterns.max-problem-pattern-occurrences:10}") int maxProblemPatternOccurrences) {
-    this.executionPointRepository = executionPointRepository;
-    this.datasetProblemPatternRepository = datasetProblemPatternRepository;
-    this.datasetProblemPatternJdbcRepository = datasetProblemPatternJdbcRepository;
-    this.recordProblemPatternRepository = recordProblemPatternRepository;
-    this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
-    this.recordTitleRepository = recordTitleRepository;
-    this.recordTitleJdbcRepository = recordTitleJdbcRepository;
+    this.executionPointRepository = problemPatternsRepositories.getExecutionPointRepository();
+    this.datasetProblemPatternRepository = problemPatternsRepositories.getDatasetProblemPatternRepository();
+    this.datasetProblemPatternJdbcRepository = problemPatternsRepositories.getDatasetProblemPatternJdbcRepository();
+    this.recordProblemPatternRepository = problemPatternsRepositories.getRecordProblemPatternRepository();
+    this.recordProblemPatternOccurrenceRepository = problemPatternsRepositories.getRecordProblemPatternOccurrenceRepository();
+    this.recordTitleRepository = problemPatternsRepositories.getRecordTitleRepository();
+    this.recordTitleJdbcRepository = problemPatternsRepositories.getRecordTitleJdbcRepository();
     this.maxRecordsPerPattern = maxRecordsPerPattern;
     this.maxProblemPatternOccurrences = maxProblemPatternOccurrences;
   }

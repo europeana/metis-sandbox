@@ -8,12 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
-import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
-import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
@@ -81,22 +79,21 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   @Autowired
   private PatternAnalysisServiceImpl patternAnalysisService;
+  @Autowired
+  private ProblemPatternsRepositories problemPatternsRepositories;
   @Resource
   private ExecutionPointRepository executionPointRepository;
   @Resource
   private DatasetProblemPatternRepository datasetProblemPatternRepository;
-  @Resource
-  private DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
   @Resource
   private RecordProblemPatternRepository recordProblemPatternRepository;
   @Resource
   private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   @Resource
   private RecordTitleRepository recordTitleRepository;
-  @Resource
-  private RecordTitleJdbcRepository recordTitleJdbcRepository;
 
   PatternAnalysisServiceImplIT() throws IOException, SerializationException {
+    //Required for the RDFs initializations
   }
 
   @Test
@@ -162,10 +159,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
   @Test
   void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
     //We just want 1 occurrence
-    final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository,
-        recordProblemPatternOccurrenceRepository,
-        recordTitleRepository, recordTitleJdbcRepository, 1, 1);
+    final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(problemPatternsRepositories, 1, 1);
     //Insert a problem pattern
     final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
@@ -180,10 +174,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
   @Test
   void generateRecordPatternAnalysis_withTooManySamePatternRecordsTest() {
     //We just want 1 record
-    final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(executionPointRepository,
-        datasetProblemPatternRepository, datasetProblemPatternJdbcRepository, recordProblemPatternRepository,
-        recordProblemPatternOccurrenceRepository,
-        recordTitleRepository, recordTitleJdbcRepository, 1, 1);
+    final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(problemPatternsRepositories, 1, 1);
 
     final LocalDateTime nowP6 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
