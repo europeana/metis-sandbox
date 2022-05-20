@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +41,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -59,7 +58,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect"
 })
 @Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   final String rdfStringP2 = IOUtils.toString(
@@ -79,7 +77,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   @Autowired
   private PatternAnalysisServiceImpl patternAnalysisService;
-  @Autowired
+  @Resource
   private ProblemPatternsRepositories problemPatternsRepositories;
   @Resource
   private ExecutionPointRepository executionPointRepository;
@@ -91,6 +89,15 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
   private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   @Resource
   private RecordTitleRepository recordTitleRepository;
+
+  @BeforeEach
+  public void cleanup() {
+    executionPointRepository.deleteAll();
+    datasetProblemPatternRepository.deleteAll();
+    recordProblemPatternRepository.deleteAll();
+    recordProblemPatternOccurrenceRepository.deleteAll();
+    recordTitleRepository.deleteAll();
+  }
 
   PatternAnalysisServiceImplIT() throws IOException, SerializationException {
     //Required for the RDFs initializations
