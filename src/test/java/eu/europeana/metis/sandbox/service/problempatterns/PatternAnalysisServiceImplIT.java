@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,7 +43,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.TestPropertySource;
@@ -51,7 +51,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @ExtendWith(SpringExtension.class)
-@Configuration
 @EnableAutoConfiguration(exclude = {EmbeddedMongoAutoConfiguration.class, MongoAutoConfiguration.class,
     MongoDataAutoConfiguration.class})
 @EnableTransactionManagement
@@ -64,6 +63,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
 class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
+  final String rdfStringNoProblems = IOUtils.toString(
+      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_no_problem_patterns.xml"),
+      StandardCharsets.UTF_8);
   final String rdfStringP2 = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"), StandardCharsets.UTF_8);
   final String rdfStringP2MultipleOccurrences = IOUtils.toString(
@@ -74,6 +76,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
   final String rdfStringP12 = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P12.xml"), StandardCharsets.UTF_8);
 
+  final RDF rdfRecordNoProblems = new RdfConversionUtils().convertStringToRdf(rdfStringNoProblems);
   final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
   final RDF rdfRecordP2MultipleOccurrences = new RdfConversionUtils().convertStringToRdf(rdfStringP2MultipleOccurrences);
   final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
@@ -94,6 +97,10 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
   @Resource
   private RecordTitleRepository recordTitleRepository;
 
+  PatternAnalysisServiceImplIT() throws IOException, SerializationException {
+    //Required for the RDFs initializations
+  }
+
   @BeforeEach
   public void cleanup() {
     executionPointRepository.deleteAll();
@@ -101,10 +108,6 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
     recordProblemPatternRepository.deleteAll();
     recordProblemPatternOccurrenceRepository.deleteAll();
     recordTitleRepository.deleteAll();
-  }
-
-  PatternAnalysisServiceImplIT() throws IOException, SerializationException {
-    //Required for the RDFs initializations
   }
 
   @Test
@@ -245,6 +248,11 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
     //It does NOT exist in the database but we should get the on the fly version
     List<ProblemPattern> problemPatternsRecord2 = patternAnalysisService.getRecordPatternAnalysis(rdfRecordP6);
     assertFalse(problemPatternsRecord2.isEmpty());
+
+    //Verify that we get empty list with no problem patterns encountered
+    final List<ProblemPattern> recordPatternAnalysis = patternAnalysisService.getRecordPatternAnalysis(rdfRecordNoProblems);
+    assertNotNull(recordPatternAnalysis);
+    assertEquals(0, recordPatternAnalysis.size());
   }
 
   @Test
@@ -323,8 +331,7 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   @NotNull
   private ProblemPattern getProblemPatternFromDatasetPatternAnalysis(
-      Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis,
-      ProblemPatternDescription problemPatternDescription) {
+      Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis, ProblemPatternDescription problemPatternDescription) {
     return datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::getProblemPatternList).stream().flatMap(Collection::stream)
                                  .filter(
                                      problemPattern -> problemPattern.getProblemPatternDescription() == problemPatternDescription)

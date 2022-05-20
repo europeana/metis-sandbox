@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNullElseGet;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
@@ -183,14 +182,14 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
     final Map<String, List<RecordTitle>> groupByRecordId = duplicateRecordTitles.stream().collect(
         Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getRecordId()));
     final int totalRecordOccurrences = Math.toIntExact(duplicateRecordTitles.stream().map(RecordTitle::getRecordTitleCompositeKey)
-                                                                       .map(RecordTitleCompositeKey::getRecordId).distinct()
-                                                                       .count());
+                                                                            .map(RecordTitleCompositeKey::getRecordId).distinct()
+                                                                            .count());
     //Update counter. Idempotent for 0 occurrences
     datasetProblemPatternJdbcRepository.upsertUpdateCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
         totalRecordOccurrences);
 
     //Max amount of records for the problem pattern
-    groupByRecordId.entrySet().stream().limit(maxRecordsPerPattern).forEach((entry) -> {
+    groupByRecordId.entrySet().stream().limit(maxRecordsPerPattern).forEach(entry -> {
       final RecordProblemPattern recordProblemPattern = new RecordProblemPattern();
       recordProblemPattern.setPatternId(ProblemPatternId.P1.name());
       recordProblemPattern.setRecordId(entry.getKey());
@@ -313,7 +312,6 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   @Override
   @Transactional
   public List<ProblemPattern> getRecordPatternAnalysis(RDF rdfRecord) {
-    List<ProblemPattern> result = problemPatternAnalyzer.analyzeRecord(rdfRecord).getProblemPatterns();
-    return requireNonNullElseGet(result, ArrayList::new);
+    return problemPatternAnalyzer.analyzeRecord(rdfRecord).getProblemPatterns();
   }
 }
