@@ -47,7 +47,6 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
         recordTitles.stream().allMatch(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle().equals("titleA")));
 
     cleanUp();
-
   }
 
   private void insertValues() {

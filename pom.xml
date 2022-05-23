@@ -57,7 +57,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.2.7</version.woodstox-core>
-    <version.testcontainers>1.17.1</version.testcontainers></properties>
+    <version.testcontainers>1.17.2</version.testcontainers></properties>
   <dependencies>
     <!-- Spring boot -->
     <dependency>
