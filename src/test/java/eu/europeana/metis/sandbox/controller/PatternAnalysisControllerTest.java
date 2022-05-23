@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.controller;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,6 +19,7 @@ import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.patternanalysis.PatternAnalysisService;
+import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
@@ -78,6 +80,33 @@ class PatternAnalysisControllerTest {
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
+
+    mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.value())))
+       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
+  }
+
+  @Test
+  void getDatasetAnalysis_finalize_fail_expectSuccess() throws Exception {
+    LocalDateTime executionTimestamp = LocalDateTime.now();
+    ExecutionPoint executionPoint = new ExecutionPoint();
+    executionPoint.setExecutionTimestamp(executionTimestamp);
+    executionPoint.setDatasetId("datasetId");
+    executionPoint.setExecutionPointId(1);
+    List<ProblemPattern> problemPatternList = new ArrayList<>();
+    DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
+        new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+        .thenReturn(Optional.of(executionPoint));
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+        .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+
+    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+    doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
