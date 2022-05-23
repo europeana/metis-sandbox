@@ -19,6 +19,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleReposito
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
+import eu.europeana.metis.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
@@ -33,34 +34,24 @@ import java.util.Optional;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @ExtendWith(SpringExtension.class)
-@EnableAutoConfiguration(exclude = {EmbeddedMongoAutoConfiguration.class, MongoAutoConfiguration.class,
-    MongoDataAutoConfiguration.class})
+@EnableAutoConfiguration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @ComponentScan({"eu.europeana.metis.sandbox.service.problempatterns", "eu.europeana.metis.sandbox.repository.problempatterns"})
-@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none",//We do not want hibernate creating the db
-    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect"
-})
-@Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
 class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
 
   final String rdfStringNoProblems = IOUtils.toString(
@@ -101,13 +92,13 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
     //Required for the RDFs initializations
   }
 
-  @BeforeEach
+  @AfterEach
   public void cleanup() {
-    executionPointRepository.deleteAll();
-    datasetProblemPatternRepository.deleteAll();
-    recordProblemPatternRepository.deleteAll();
-    recordProblemPatternOccurrenceRepository.deleteAll();
     recordTitleRepository.deleteAll();
+    recordProblemPatternOccurrenceRepository.deleteAll();
+    recordProblemPatternRepository.deleteAll();
+    datasetProblemPatternRepository.deleteAll();
+    executionPointRepository.deleteAll();
   }
 
   @Test
