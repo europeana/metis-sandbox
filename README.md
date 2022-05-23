@@ -6,18 +6,47 @@
 ## Purpose
 Give a client (GLAM or aggregator) an environment to test their dataset before sending it to Europeana
 
-## Dependencies
-- [RabbitMQ](https://www.rabbitmq.com/) server available (check spring.rabbitmq in sample.application.yml for config example)
-- Storage like [H2](https://www.h2database.com/html/main.html) or [PostgreSQL](https://www.google.com/search?q=posgresql&rlz=1C5CHFA_enCR881NL888&oq=posgresql&aqs=chrome..69i57j69i59j0l6.1535j0j7&sourceid=chrome&ie=UTF-8) (check sandbox.datasource in sample.application.yml for config example)
-- S3 bucket available (check sandbox.s3 in sample.application.yml for config example)
+## Docker installation for testcontainers
 
-## Run Tests
+The project uses testcontainers for integration tests.   
+For that reason docker has to be part of the system where the integration tests are run and the files should have the correct permissions.  
+If docker is not present the integration tests could be skipped, check below.  
+Configuring docker:
 
-> mvn clean test
+Example installing docker:
+> sudo apt-get update  
+> sudo apt install apt-transport-https ca-certificates curl software-properties-common  
+> curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -  
+> sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"   
+> sudo apt install docker-ce
 
-## Run Application
+Check docker installation:
+> sudo systemctl status docker
 
-> mvn clean package
+Check user of intellij(or any other application that runs the tests)
+> ps aux | grep intellij
+
+Add user that runs intellij to the docker group(replace _<user>_ accordingly)
+> sudo usermod -aG docker <user>  
+
+If there is an error when running in intellij, the permissions of the socket file might be the problem. Update them:
+> sudo chmod a+rw /var/run/docker.sock   
+
+## Run/Build Application(Runs both unit and integration tests)
+
+> mvn clean verify
+
+## Skip integration tests
+
+> mvn clean verify -DskipITs
+
+## Skip unit tests and integration tests
+
+> mvn clean verify -DskipTests -DskipITs
+
+## Only run integration tests(compile all tests, skip unit tests)
+
+> mvn clean test-compile failsafe:integration-test
 
 That will generate a WAR file that you can deploy to a tomcat instance
 
@@ -47,6 +76,8 @@ Project created with:
 * [Postgresql](https://www.postgresql.org/)
 * [AWS S3](https://aws.amazon.com/s3/)
 * [Spring Fox](https://springfox.github.io/springfox/)
+* [Testcontainers](https://www.testcontainers.org/) 
+* [Docker](https://www.docker.com/)
 
 # Funding
 

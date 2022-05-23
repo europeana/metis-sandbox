@@ -372,7 +372,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
               <goal>test</goal>
             </goals>
             <configuration>
-              <skipTests>false</skipTests>
               <includes>
                 <include>**/*Test.java</include>
               </includes>
