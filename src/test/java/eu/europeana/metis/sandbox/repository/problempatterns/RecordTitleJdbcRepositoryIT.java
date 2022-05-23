@@ -2,6 +2,8 @@ package eu.europeana.metis.sandbox.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.jdbc.JdbcTestUtils.countRowsInTable;
+import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
@@ -22,7 +24,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(properties = "spring.main.lazy-initialization=true")
 class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
 
-  private static final String SQL_EXECUTION_POINT_COUNT = "SELECT count(*) from problem_patterns.execution_point";
   public static final String SQL_SELECT_RECORD_TITLES = "SELECT * FROM problem_patterns.record_title";
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -33,20 +34,23 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
   void deleteRedundantRecordTitlesTest() {
     insertValues();
 
-    Integer executionPointCount = jdbcTemplate.queryForObject(SQL_EXECUTION_POINT_COUNT, Integer.class);
+    int executionPointCount = countRowsInTable(jdbcTemplate,"problem_patterns.execution_point");
     List<RecordTitle> recordTitles = jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper());
 
     assertEquals(1, executionPointCount);
     assertEquals(5, recordTitles.size());
     recordTitleJdbcRepository.deleteRedundantRecordTitles(1);
-    executionPointCount = jdbcTemplate.queryForObject(SQL_EXECUTION_POINT_COUNT, Integer.class);
+    executionPointCount = countRowsInTable(jdbcTemplate,"problem_patterns.execution_point");
     recordTitles = jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper());
     assertEquals(2, recordTitles.size());
     assertEquals(1, executionPointCount);
     assertTrue(
         recordTitles.stream().allMatch(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle().equals("titleA")));
 
-    cleanUp();
+    //Cleanup
+    deleteFromTables(jdbcTemplate, "problem_patterns.record_title", "problem_patterns.execution_point");
+    assertEquals(0, countRowsInTable(jdbcTemplate,"problem_patterns.execution_point"));
+    assertEquals(0, jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper()).size());
   }
 
   private void insertValues() {
@@ -57,13 +61,6 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'Some ValueC');\n"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId2', 'titleA');\n"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId2', 'titleB');");
-  }
-
-  public void cleanUp() {
-    jdbcTemplate.execute("DELETE FROM problem_patterns.record_title");
-    jdbcTemplate.execute("DELETE FROM problem_patterns.execution_point");
-    assertEquals(0, jdbcTemplate.queryForObject(SQL_EXECUTION_POINT_COUNT, Integer.class));
-    assertEquals(0, jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper()).size());
   }
 
   static class RecordTitleRowMapper implements RowMapper<RecordTitle> {

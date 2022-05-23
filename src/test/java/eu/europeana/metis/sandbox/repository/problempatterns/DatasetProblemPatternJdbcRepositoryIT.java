@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
@@ -16,13 +17,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.jdbc.JdbcTestUtils;
 
 @ExtendWith(SpringExtension.class)
 //Only load what we are going to use. This is simpler than specifying all the autoconfigured classes
 @SpringBootTest(properties = "spring.main.lazy-initialization=true")
 class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializerIT {
 
-  private static final String SQL_EXECUTION_POINT_COUNT = "SELECT count(*) from problem_patterns.execution_point";
   public static final String SQL_SELECT_DATASET_PROBLEM_PATTERN = "SELECT * FROM problem_patterns.dataset_problem_pattern";
 
   @Autowired
@@ -67,7 +68,10 @@ class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializer
     assertEquals(2, problemPatterns.size());
     assertEquals(7, getOccurrences(problemPatterns, "P2"));
 
-    cleanUp();
+    //Cleanup
+    deleteFromTables(jdbcTemplate, "problem_patterns.dataset_problem_pattern", "problem_patterns.execution_point");
+    assertEquals(0, JdbcTestUtils.countRowsInTable(jdbcTemplate,"problem_patterns.execution_point"));
+    assertEquals(0, jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN, new DatasetProblemPatternRowMapper()).size());
   }
 
   @NotNull
@@ -81,13 +85,6 @@ class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializer
   private void insertValues() {
     jdbcTemplate.update(
         "INSERT INTO problem_patterns.execution_point (dataset_id, execution_step, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-01-01 10:10:10.100 +02:00');");
-  }
-
-  public void cleanUp() {
-    jdbcTemplate.execute("DELETE FROM problem_patterns.dataset_problem_pattern");
-    jdbcTemplate.execute("DELETE FROM problem_patterns.execution_point");
-    assertEquals(0, jdbcTemplate.queryForObject(SQL_EXECUTION_POINT_COUNT, Integer.class));
-    assertEquals(0, jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN, new DatasetProblemPatternRowMapper()).size());
   }
 
   static class DatasetProblemPatternRowMapper implements RowMapper<DatasetProblemPattern> {

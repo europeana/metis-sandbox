@@ -8,11 +8,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
  * This class is meant to be extended from integration unit test classes that require an underlying database.
- * <p>The container will be started and reused in all tests. Make sure that the tests are independent and purge any data that were
- * inserted from each test at the end of the test.
- * The annotations are propagated to all the classes that extend this class.</p>
+ * <p>The container will be started and reused in all tests. Make sure that the tests are independent and purge any data that
+ * were inserted from each test at the end of the test. The annotations are propagated to all the classes that extend this class.
+ * Furthermore the @Sql annotation will be executed for each test.</p>
  */
-@Sql("classpath:database/schema_problem_patterns.sql") //We want the sql script to create the db
+//We drop and re-create the db
+@Sql(scripts = {"classpath:database/schema_problem_patterns_drop.sql", "classpath:database/schema_problem_patterns.sql"})
 @TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none",//We do not want hibernate creating the db
     "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect"
 })
@@ -20,16 +21,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class PostgresContainerInitializerIT {
 
   static final PostgreSQLContainer<?> postgreSQLContainer;
+  public static final String POSTGRES_VERSION = "postgres:9.6";
 
   static {
-    postgreSQLContainer = new PostgreSQLContainer<>("postgres:9.6")
+    postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION)
         .withDatabaseName("test")
         .withUsername("test")
         .withPassword("test")
         .withReuse(true);
     postgreSQLContainer.start();
   }
-
 
   @DynamicPropertySource
   public static void properties(DynamicPropertyRegistry registry) {
