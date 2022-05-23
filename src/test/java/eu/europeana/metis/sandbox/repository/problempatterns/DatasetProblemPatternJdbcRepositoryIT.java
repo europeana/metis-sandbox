@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
-import eu.europeana.metis.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;

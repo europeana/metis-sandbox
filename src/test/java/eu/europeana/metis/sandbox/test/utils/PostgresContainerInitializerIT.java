@@ -1,4 +1,4 @@
-package eu.europeana.metis.test.utils;
+package eu.europeana.metis.sandbox.test.utils;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;

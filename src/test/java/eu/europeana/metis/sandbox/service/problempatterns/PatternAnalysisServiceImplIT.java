@@ -19,7 +19,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleReposito
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
-import eu.europeana.metis.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
