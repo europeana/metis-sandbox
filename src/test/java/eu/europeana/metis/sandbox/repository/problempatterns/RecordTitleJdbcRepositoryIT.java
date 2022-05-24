@@ -34,13 +34,13 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
   void deleteRedundantRecordTitlesTest() {
     insertValues();
 
-    int executionPointCount = countRowsInTable(jdbcTemplate,"problem_patterns.execution_point");
+    int executionPointCount = countRowsInTable(jdbcTemplate, "problem_patterns.execution_point");
     List<RecordTitle> recordTitles = jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper());
 
     assertEquals(1, executionPointCount);
     assertEquals(5, recordTitles.size());
     recordTitleJdbcRepository.deleteRedundantRecordTitles(1);
-    executionPointCount = countRowsInTable(jdbcTemplate,"problem_patterns.execution_point");
+    executionPointCount = countRowsInTable(jdbcTemplate, "problem_patterns.execution_point");
     recordTitles = jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper());
     assertEquals(2, recordTitles.size());
     assertEquals(1, executionPointCount);
@@ -49,7 +49,7 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
 
     //Cleanup
     deleteFromTables(jdbcTemplate, "problem_patterns.record_title", "problem_patterns.execution_point");
-    assertEquals(0, countRowsInTable(jdbcTemplate,"problem_patterns.execution_point"));
+    assertEquals(0, countRowsInTable(jdbcTemplate, "problem_patterns.execution_point"));
     assertEquals(0, jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper()).size());
   }
 
@@ -57,9 +57,9 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
     jdbcTemplate.update(
         "INSERT INTO problem_patterns.execution_point (dataset_id, execution_step, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-03-22 10:10:10.100 +02:00');"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'titleA');"
-            + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'titleS');\n"
-            + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'Some ValueC');\n"
-            + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId2', 'titleA');\n"
+            + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'titleS');"
+            + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'Some ValueC');"
+            + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId2', 'titleA');"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId2', 'titleB');");
   }
 

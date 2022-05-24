@@ -70,7 +70,7 @@ class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializer
 
     //Cleanup
     deleteFromTables(jdbcTemplate, "problem_patterns.dataset_problem_pattern", "problem_patterns.execution_point");
-    assertEquals(0, JdbcTestUtils.countRowsInTable(jdbcTemplate,"problem_patterns.execution_point"));
+    assertEquals(0, JdbcTestUtils.countRowsInTable(jdbcTemplate, "problem_patterns.execution_point"));
     assertEquals(0, jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN, new DatasetProblemPatternRowMapper()).size());
   }
 

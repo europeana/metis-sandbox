@@ -14,8 +14,6 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
   @Query("UPDATE DatasetProblemPattern dpp SET dpp.recordOccurrences = dpp.recordOccurrences + 1 WHERE dpp.datasetProblemPatternCompositeKey = ?1")
   void updateCounter(DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey);
 
-  DatasetProblemPattern findByDatasetProblemPatternCompositeKey(DatasetProblemPatternCompositeKey datasetProblemPatternCompositeKey);
-
   @Modifying
   void deleteByExecutionPointDatasetId(String datasetId);
 

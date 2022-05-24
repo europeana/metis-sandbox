@@ -1,8 +1,8 @@
-begin;
-drop table if exists dataset;
-drop table if exists record_log;
-drop table if exists record_error_log;
-drop table if exists record;
-drop table if exists thumbnail;
-drop table if exists default_transform_xslt;
-commit;
+BEGIN;
+DROP TABLE IF EXISTS dataset;
+DROP TABLE IF EXISTS record_log;
+DROP TABLE IF EXISTS record_error_log;
+DROP TABLE IF EXISTS record;
+DROP TABLE IF EXISTS thumbnail;
+DROP TABLE IF EXISTS default_transform_xslt;
+COMMIT;

@@ -174,7 +174,6 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   @Override
   @Transactional
   public void finalizeDatasetPatternAnalysis(ExecutionPoint executionPoint) {
-    //Remove redundant titles
     recordTitleJdbcRepository.deleteRedundantRecordTitles(executionPoint.getExecutionPointId());
 
     //Insert global problem patterns to db
