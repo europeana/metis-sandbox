@@ -24,7 +24,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 @SpringBootTest(properties = "spring.main.lazy-initialization=true")
 class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializerIT {
 
-  public static final String SQL_SELECT_DATASET_PROBLEM_PATTERN = "SELECT * FROM problem_patterns.dataset_problem_pattern";
+  public static final String SELECT_DATASET_PROBLEM_PATTERN_QUERY = "SELECT * FROM problem_patterns.dataset_problem_pattern";
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -36,34 +36,34 @@ class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializer
     insertValues();
 
     //Verify empty
-    List<DatasetProblemPattern> problemPatterns = jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN,
+    List<DatasetProblemPattern> problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
         new DatasetProblemPatternRowMapper());
     assertEquals(0, problemPatterns.size());
 
     //Upsert with 0
-    datasetProblemPatternJdbcRepository.upsertUpdateCounter(1, "P1", 0);
-    problemPatterns = jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN,
+    datasetProblemPatternJdbcRepository.upsertCounter(1, "P1", 0);
+    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
         new DatasetProblemPatternRowMapper());
     assertEquals(1, problemPatterns.size());
     assertEquals(0, getOccurrences(problemPatterns, "P1"));
 
     //Upsert with 1, different pattern
-    datasetProblemPatternJdbcRepository.upsertUpdateCounter(1, "P2", 1);
-    problemPatterns = jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN,
+    datasetProblemPatternJdbcRepository.upsertCounter(1, "P2", 1);
+    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
         new DatasetProblemPatternRowMapper());
     assertEquals(2, problemPatterns.size());
     assertEquals(1, getOccurrences(problemPatterns, "P2"));
 
     //Upsert with 1, same pattern
-    datasetProblemPatternJdbcRepository.upsertUpdateCounter(1, "P2", 1);
-    problemPatterns = jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN,
+    datasetProblemPatternJdbcRepository.upsertCounter(1, "P2", 1);
+    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
         new DatasetProblemPatternRowMapper());
     assertEquals(2, problemPatterns.size());
     assertEquals(2, getOccurrences(problemPatterns, "P2"));
 
     //Upsert with 5, same pattern
-    datasetProblemPatternJdbcRepository.upsertUpdateCounter(1, "P2", 5);
-    problemPatterns = jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN,
+    datasetProblemPatternJdbcRepository.upsertCounter(1, "P2", 5);
+    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
         new DatasetProblemPatternRowMapper());
     assertEquals(2, problemPatterns.size());
     assertEquals(7, getOccurrences(problemPatterns, "P2"));
@@ -71,7 +71,7 @@ class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializer
     //Cleanup
     deleteFromTables(jdbcTemplate, "problem_patterns.dataset_problem_pattern", "problem_patterns.execution_point");
     assertEquals(0, JdbcTestUtils.countRowsInTable(jdbcTemplate, "problem_patterns.execution_point"));
-    assertEquals(0, jdbcTemplate.query(SQL_SELECT_DATASET_PROBLEM_PATTERN, new DatasetProblemPatternRowMapper()).size());
+    assertEquals(0, jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY, new DatasetProblemPatternRowMapper()).size());
   }
 
   @NotNull

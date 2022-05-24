@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.repository.problempatterns;
 
+import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import org.jetbrains.annotations.NotNull;
@@ -9,10 +10,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Jdbc repository for {@link DatasetProblemPattern}
+ */
 @Repository
 public class DatasetProblemPatternJdbcRepository {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DatasetProblemPatternJdbcRepository.class);
+  public static final int INSERT_COUNTER_INDEX_POSITION = 3;
+  public static final int UPDATE_COUNTER_INDEX_POSITION = 4;
   private final JdbcTemplate jdbcTemplate;
 
   /**
@@ -24,9 +30,16 @@ public class DatasetProblemPatternJdbcRepository {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  public Integer upsertUpdateCounter(int executionPointId, String patternId, int incrementValue) {
+  /**
+   * Upserts(Insert or Update) the provided increment value to the counter field and gets the result.
+   * @param executionPointId the execution point id
+   * @param patternId the pattern id
+   * @param incrementValue the increment value
+   * @return the upserted counter
+   */
+  public Integer upsertCounter(int executionPointId, String patternId, int incrementValue) {
     final Integer counter = jdbcTemplate.execute(
-        getUpsertUpdateCounterPreparedStatementCreator(executionPointId, patternId, incrementValue), preparedStatement ->
+        getUpsertCounterPreparedStatementCreator(executionPointId, patternId, incrementValue), preparedStatement ->
         {
           //There should be exactly one row with one value returned
           try (final ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -39,7 +52,7 @@ public class DatasetProblemPatternJdbcRepository {
   }
 
   @NotNull
-  private PreparedStatementCreator getUpsertUpdateCounterPreparedStatementCreator(int executionPointId, String patternId,
+  private PreparedStatementCreator getUpsertCounterPreparedStatementCreator(int executionPointId, String patternId,
       int incrementValue) {
     return connection -> {
       PreparedStatement deleteRedundantStatement = connection.prepareStatement(
@@ -50,8 +63,8 @@ public class DatasetProblemPatternJdbcRepository {
               + "RETURNING record_occurrences");
       deleteRedundantStatement.setInt(1, executionPointId);
       deleteRedundantStatement.setString(2, patternId);
-      deleteRedundantStatement.setInt(3, incrementValue);
-      deleteRedundantStatement.setInt(4, incrementValue);
+      deleteRedundantStatement.setInt(INSERT_COUNTER_INDEX_POSITION, incrementValue);
+      deleteRedundantStatement.setInt(UPDATE_COUNTER_INDEX_POSITION, incrementValue);
       return deleteRedundantStatement;
     };
   }

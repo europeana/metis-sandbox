@@ -24,7 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(properties = "spring.main.lazy-initialization=true")
 class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
 
-  public static final String SQL_SELECT_RECORD_TITLES = "SELECT * FROM problem_patterns.record_title";
+  public static final String SELECT_RECORD_TITLES_QUERY = "SELECT * FROM problem_patterns.record_title";
   @Autowired
   private JdbcTemplate jdbcTemplate;
   @Autowired
@@ -35,13 +35,13 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
     insertValues();
 
     int executionPointCount = countRowsInTable(jdbcTemplate, "problem_patterns.execution_point");
-    List<RecordTitle> recordTitles = jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper());
+    List<RecordTitle> recordTitles = jdbcTemplate.query(SELECT_RECORD_TITLES_QUERY, new RecordTitleRowMapper());
 
     assertEquals(1, executionPointCount);
     assertEquals(5, recordTitles.size());
     recordTitleJdbcRepository.deleteRedundantRecordTitles(1);
     executionPointCount = countRowsInTable(jdbcTemplate, "problem_patterns.execution_point");
-    recordTitles = jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper());
+    recordTitles = jdbcTemplate.query(SELECT_RECORD_TITLES_QUERY, new RecordTitleRowMapper());
     assertEquals(2, recordTitles.size());
     assertEquals(1, executionPointCount);
     assertTrue(
@@ -50,7 +50,7 @@ class RecordTitleJdbcRepositoryIT extends PostgresContainerInitializerIT {
     //Cleanup
     deleteFromTables(jdbcTemplate, "problem_patterns.record_title", "problem_patterns.execution_point");
     assertEquals(0, countRowsInTable(jdbcTemplate, "problem_patterns.execution_point"));
-    assertEquals(0, jdbcTemplate.query(SQL_SELECT_RECORD_TITLES, new RecordTitleRowMapper()).size());
+    assertEquals(0, jdbcTemplate.query(SELECT_RECORD_TITLES_QUERY, new RecordTitleRowMapper()).size());
   }
 
   private void insertValues() {

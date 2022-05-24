@@ -123,7 +123,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
   private void insertPatternAnalysis(ExecutionPoint executionPoint, final ProblemPatternAnalysis problemPatternAnalysis) {
     for (ProblemPattern problemPattern : problemPatternAnalysis.getProblemPatterns()) {
       for (RecordAnalysis recordAnalysis : problemPattern.getRecordAnalysisList()) {
-        final Integer recordOccurrences = datasetProblemPatternJdbcRepository.upsertUpdateCounter(
+        final Integer recordOccurrences = datasetProblemPatternJdbcRepository.upsertCounter(
             executionPoint.getExecutionPointId(), problemPattern.getProblemPatternDescription().getProblemPatternId().name(), 1);
 
         if (recordOccurrences <= maxRecordsPerPattern) {
@@ -184,7 +184,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
                                                                             .map(RecordTitleCompositeKey::getRecordId).distinct()
                                                                             .count());
     //Update counter. Idempotent for 0 occurrences
-    datasetProblemPatternJdbcRepository.upsertUpdateCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
+    datasetProblemPatternJdbcRepository.upsertCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
         totalRecordOccurrences);
 
     //Max amount of records for the problem pattern
