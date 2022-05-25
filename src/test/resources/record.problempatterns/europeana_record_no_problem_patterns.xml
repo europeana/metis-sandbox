@@ -61,26 +61,9 @@
     <ore:lineage rdf:resource="/proxy/provider/1/12944"/>
   </ore:Proxy>
   <ore:Proxy rdf:about="/proxy/provider/1/12944">
-    <dc:creator>PYLYSER, JEAN-MARIE</dc:creator>
-    <dc:description xml:lang="en">Kuvva-yı Havaiyye Müfettişi Muzaffer'den Erkan-ı Harbiye-i Umumiye Riyaseti'ne yazılan 1339 (1924) senesinde Kuvva-yı Havaiyye inşaat ve tesisatı için ayrılan 150.000 lira ile yapılacak işleri anlatan 3 maddelik rapor Report, written by Inspector of Air Forces Muzaffer to the Chairmanship of the General Staff, comprised of 3 articles that explain the works to be done with 150,000 liras allocated for the construction and installation of the Air Force in 1339 (1924)</dc:description>
-    <dc:identifier>12944</dc:identifier>
-    <dc:language>nl</dc:language>
-    <dc:subject xml:lang="en">EFG1914</dc:subject>
-    <dc:subject xml:lang="en">World War I</dc:subject>
-    <dc:title xml:lang="nl">WESTVLAAMS FILMJOURNAAL - 164</dc:title>
-    <dc:title xml:lang="en">Erken Cumhuriyet'te havacılıkla ilgili Erkan-ı Harbiye-i Umumiye
-                      Riyaseti'ne, 13 Teşrin-i Evvel 1339 (13 Ekim 1923) To the Chairmanship of the General Staff concerning aviation during the
-                      Early Republican Period, 13 October 1339 (13 October 1923)</dc:title>
-    <dc:type xml:lang="en">Newsreel</dc:type>
-    <dc:type rdf:resource="http://vocab.getty.edu/aat/300263837"></dc:type>
-    <dc:type rdf:resource="http://vocab.getty.edu/aat/300136900"></dc:type>
-    <dcterms:created xml:lang="en">1984</dcterms:created>
-    <dcterms:spatial xml:lang="en">Belgium</dcterms:spatial>
-    <dcterms:spatial rdf:resource="http://sws.geonames.org/2802361/"></dcterms:spatial>
-    <edm:europeanaProxy>false</edm:europeanaProxy>
+    <dc:description>This description is more 50 charactersAAAAAAAAAAAAA</dc:description>
     <ore:proxyFor rdf:resource="/1/12944"/>
     <ore:proxyIn rdf:resource="/aggregation/provider/1/12944"/>
-    <edm:type>VIDEO</edm:type>
   </ore:Proxy>
   <ore:Proxy rdf:about="/proxy/provider/1/12944">
       <dc:creator>PYLYSER, JEAN-MARIE</dc:creator>

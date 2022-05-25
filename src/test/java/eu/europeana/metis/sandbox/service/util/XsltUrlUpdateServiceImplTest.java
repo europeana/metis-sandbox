@@ -1,12 +1,10 @@
 package eu.europeana.metis.sandbox.service.util;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
@@ -14,7 +12,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
@@ -24,7 +21,6 @@ import java.lang.reflect.Modifier;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.Optional;
-import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -85,25 +81,19 @@ class XsltUrlUpdateServiceImplTest {
   @Test
   @Order(3)
   void updateXslt_ExpectFail() {
-    final LogCaptor logCaptor = LogCaptor.forClass(XsltUrlUpdateServiceImpl.class);
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
-
         .withPort(12345)
-        .willReturn(aResponse().withFault(Fault.MALFORMED_RESPONSE_CHUNK)));
+        .willReturn(ok("1")));
 
     doThrow(RuntimeException.class).when(transformXsltRepository).save(any());
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
-
-    assertLogCaptor(logCaptor, "Error persisting default transform XSLT to Database");
+    assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst"));
   }
 
   @Test
   @Order(4)
   void updateXslt_ExpectError() {
-    final LogCaptor logCaptor = LogCaptor.forClass(XsltUrlUpdateServiceImpl.class);
-    xsltUrlUpdateService.updateXslt("");
-    assertLogCaptor(logCaptor, "Error getting default transform XSLT");
+    assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt(""));
   }
 
   @Test
@@ -120,12 +110,6 @@ class XsltUrlUpdateServiceImplTest {
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
 
     Mockito.verify(transformXsltRepository, never()).save(any());
-  }
-
-  private void assertLogCaptor(LogCaptor logCaptor, String message) {
-    assertEquals(1, logCaptor.getWarnLogs().size());
-    final String testMessage = logCaptor.getWarnLogs().stream().findFirst().get();
-    assertTrue(testMessage.contains(message));
   }
 
   private static void setFinalStaticField(Class<?> clazz, String fieldName, Object value)

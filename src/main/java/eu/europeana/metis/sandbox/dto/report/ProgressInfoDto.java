@@ -15,7 +15,7 @@ public class ProgressInfoDto {
 
   public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
 
-  enum Status {
+  public enum Status {
     HARVESTING_IDENTIFIERS("harvesting identifiers"),
     COMPLETED("completed"),
     IN_PROGRESS("in progress");

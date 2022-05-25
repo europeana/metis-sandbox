@@ -17,7 +17,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
   <packaging>war</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
-
   <!-- Github connection -->
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
@@ -44,11 +43,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.springfox>2.9.2</version.springfox>
     <version.metis>7-SNAPSHOT</version.metis>
     <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.2.11</version.postgresql>
+    <version.postgresql>42.3.3</version.postgresql>
     <version.aws.s3>1.11.762</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
+    <version.failsafe.plugin>2.22.1</version.failsafe.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.slf4j>1.7.30</version.slf4j>
     <version.log4j>2.17.1</version.log4j>
@@ -57,8 +57,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.2.7</version.woodstox-core>
-  </properties>
-
+    <version.testcontainers>1.17.2</version.testcontainers></properties>
   <dependencies>
     <!-- Spring boot -->
     <dependency>
@@ -243,12 +242,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
       <artifactId>log4j-core</artifactId>
       <version>${version.log4j}</version>
     </dependency>
-    <!-- Persistence -->
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>runtime</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -278,17 +271,30 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- testcontainers -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>com.github.fridujo</groupId>
       <artifactId>rabbitmq-mock</artifactId>
       <version>1.0.14</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.github.hakky54</groupId>
-      <artifactId>logcaptor</artifactId>
-      <version>${version.logcaptor}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -358,11 +364,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${version.surefire.plugin}</version>
-        <configuration>
-          <classpathDependencyExcludes>
-            <classpathDependencyExclude>org.apache.logging.log4j:log4j-slf4j-impl</classpathDependencyExclude>
-          </classpathDependencyExcludes>
-        </configuration>
         <executions>
           <execution>
             <id>unit-tests</id>
@@ -371,27 +372,31 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
               <goal>test</goal>
             </goals>
             <configuration>
-              <skipTests>false</skipTests>
               <includes>
                 <include>**/*Test.java</include>
               </includes>
             </configuration>
           </execution>
-          <execution>
-            <id>integration-tests</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <skipTests>false</skipTests>
-              <includes>
-                <include>**/*IT.*</include>
-              </includes>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${version.failsafe.plugin}</version>
+          <executions>
+            <execution>
+              <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+              </goals>
+              <configuration>
+                <includes>
+                  <include>**/*IT.java</include>
+                </includes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>

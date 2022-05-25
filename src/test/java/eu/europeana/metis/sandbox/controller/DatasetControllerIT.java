@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     classes = SandboxApplication.class)
 @AutoConfigureMockMvc
+@Disabled
 class DatasetControllerIT {
 
   private final TestUtils testUtils = new TestUtils();
