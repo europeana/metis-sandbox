@@ -6,7 +6,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -15,9 +14,7 @@ import javax.persistence.Table;
  * Entity class for record problem pattern occurrence.
  */
 @Entity
-@Table(schema = "problem_patterns", name = "record_problem_pattern_occurrence", indexes = {
-    @Index(name = "record_problem_pattern_occurr_record_problem_pattern_id_mes_key", columnList = "record_problem_pattern_id, message_report", unique = true)
-})
+@Table(schema = "problem_patterns", name = "record_problem_pattern_occurrence")
 public class RecordProblemPatternOccurrence {
 
   @Id

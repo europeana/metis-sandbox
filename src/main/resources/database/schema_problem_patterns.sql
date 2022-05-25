@@ -38,8 +38,7 @@ CREATE TABLE problem_patterns.record_problem_pattern_occurrence
     record_problem_pattern_id            INT          NOT NULL,
     message_report                       VARCHAR(255) NOT NULL,
     PRIMARY KEY (record_problem_pattern_occurrence_id),
-    FOREIGN KEY (record_problem_pattern_id) REFERENCES problem_patterns.record_problem_pattern (record_problem_pattern_id),
-    UNIQUE (record_problem_pattern_id, message_report)
+    FOREIGN KEY (record_problem_pattern_id) REFERENCES problem_patterns.record_problem_pattern (record_problem_pattern_id)
 );
 
 CREATE TABLE problem_patterns.record_title

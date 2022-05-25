@@ -70,6 +70,8 @@
     <dc:subject xml:lang="en">World War I</dc:subject>
     <dc:title xml:lang="nl">WESTVLAAMS FILMJOURNAAL - 164</dc:title>
     <dc:title>This title is more than 70 characters long AAAAAAAAAAAAAAAAAAAAAAAAAAAA</dc:title>
+    <!-- Also try having the exact same value, to verify duplicates -->
+    <dc:title>This title is more than 70 characters long AAAAAAAAAAAAAAAAAAAAAAAAAAAA</dc:title>
     <dc:title>This title is more than 255 characters long AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</dc:title>
     <!-- Unicode codes are counted as one character and should not be reported if they extend over the threshold-->
     <dc:title>This title is more than 70 characters long &#009;&#009;&#009;&#009;&#009;</dc:title>
