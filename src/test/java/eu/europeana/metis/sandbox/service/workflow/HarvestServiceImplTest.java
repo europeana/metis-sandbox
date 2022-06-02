@@ -185,8 +185,7 @@ class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream("inputStream".getBytes(StandardCharsets.UTF_8)), "datasetId",
         recordBuilderToTest);
-    verify(recordPublishService).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
-    assertTrue(captorRecordInfo.getValue().getErrors().get(0).getMessage().startsWith("Error harvesting file records:"));
+    verify(recordPublishService, times(0)).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
     verify(recordRepository, times(2)).save(any(RecordEntity.class));
   }
 
@@ -370,8 +369,7 @@ class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", recordBuilderToTest, oaiHarvestData);
 
-    verify(recordPublishService).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
-    assertTrue(captorRecordInfo.getValue().getErrors().get(0).getMessage().startsWith("Error harvesting OAI-PMH Record Header:"));
+    verify(recordPublishService, times(0)).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
     verify(recordRepository, times(1)).save(any(RecordEntity.class));
   }
 

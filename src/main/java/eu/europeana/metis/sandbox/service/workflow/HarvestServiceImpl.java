@@ -161,15 +161,9 @@ public class HarvestServiceImpl implements HarvestService {
 
       return recordInfo;
     } catch (HarvesterException | IOException e) {
-      LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}",
-          oaiHarvestData.getOaiIdentifier(), e);
-      RecordError recordErrorCreated = new RecordError(
-          "Error harvesting OAI-PMH Record Header:" + oaiHarvestData.getOaiIdentifier(),
-          e.getMessage());
-      recordErrors.add(recordErrorCreated);
+      LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}", oaiHarvestData.getOaiIdentifier(), e);
       saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, new RuntimeException(e));
-
-      return new RecordInfo(recordToHarvest.build(), recordErrors);
+      return null;
     }
   }
 
@@ -257,15 +251,9 @@ public class HarvestServiceImpl implements HarvestService {
 
       return recordInfo;
     } catch (RuntimeException | IOException e) {
-      LOGGER.error("Error harvesting file records: {} with exception {}",
-          recordEntity.getId(), e);
-      RecordError recordErrorCreated = new RecordError(
-          "Error harvesting file records:" + recordEntity.getId(),
-          e.getMessage());
-      recordErrors.add(recordErrorCreated);
+      LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
       saveErrorWhileHarvesting(recordToHarvest, path.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
-
-      return new RecordInfo(recordToHarvest.build(), recordErrors);
+      return null;
     }
   }
 
