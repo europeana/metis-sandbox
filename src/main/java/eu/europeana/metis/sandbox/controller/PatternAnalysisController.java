@@ -22,12 +22,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -182,6 +178,7 @@ public class PatternAnalysisController {
       this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
           datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
       this.problemPatternList = datasetProblemPatternAnalysis.getProblemPatternList();
+      problemPatternList.sort(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()));
     }
   }
 
