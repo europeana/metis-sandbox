@@ -367,7 +367,7 @@ class DatasetControllerTest {
         final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
         recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
         final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(recordTierCalculationSummary,
-                new ContentTierBreakdown(null, null, false, false, false, null), null);
+                new ContentTierBreakdown.Builder().build(), null);
         when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenReturn(recordTierCalculationView);
 
         mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
