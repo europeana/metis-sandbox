@@ -16,6 +16,7 @@ import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
+import eu.europeana.patternanalysis.view.RecordAnalysis;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -27,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -178,7 +180,20 @@ public class PatternAnalysisController {
       this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
           datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
       this.problemPatternList = datasetProblemPatternAnalysis.getProblemPatternList();
+      orderRecordListsInProblemPatternList();
       problemPatternList.sort(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()));
+    }
+
+    private void orderRecordListsInProblemPatternList(){
+      for(int i = 0; i < problemPatternList.size(); i++){
+        ProblemPattern elem = problemPatternList.get(i);
+        //Method getRecordAnalysisList returns a copy of the list, hence we couldn't sort the list directly
+        //We need to create a new ProblemPattern object with new sorted list and replace it in the problemPatternList
+        List<RecordAnalysis> test = elem.getRecordAnalysisList();
+        test.sort(Comparator.comparing(RecordAnalysis::getRecordId));
+        ProblemPattern another = new ProblemPattern(elem.getProblemPatternDescription(), elem.getRecordOccurrences(), test);
+        problemPatternList.set(i, another);
+      }
     }
   }
 
