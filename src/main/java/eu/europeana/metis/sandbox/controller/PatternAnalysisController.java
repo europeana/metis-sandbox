@@ -186,13 +186,14 @@ public class PatternAnalysisController {
 
     private void orderRecordListsInProblemPatternList(){
       for(int i = 0; i < problemPatternList.size(); i++){
-        ProblemPattern elem = problemPatternList.get(i);
+        ProblemPattern currentPattern = problemPatternList.get(i);
         //Method getRecordAnalysisList returns a copy of the list, hence we couldn't sort the list directly
         //We need to create a new ProblemPattern object with new sorted list and replace it in the problemPatternList
-        List<RecordAnalysis> test = elem.getRecordAnalysisList();
-        test.sort(Comparator.comparing(RecordAnalysis::getRecordId));
-        ProblemPattern another = new ProblemPattern(elem.getProblemPatternDescription(), elem.getRecordOccurrences(), test);
-        problemPatternList.set(i, another);
+        List<RecordAnalysis> recordAnalysisListToSort = currentPattern.getRecordAnalysisList();
+        recordAnalysisListToSort.sort(Comparator.comparing(RecordAnalysis::getRecordId));
+        ProblemPattern newProblemPattern = new ProblemPattern(currentPattern.getProblemPatternDescription(),
+                currentPattern.getRecordOccurrences(), recordAnalysisListToSort);
+        problemPatternList.set(i, newProblemPattern);
       }
     }
   }
