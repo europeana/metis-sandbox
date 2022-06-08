@@ -16,6 +16,7 @@ import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPattern;
+import eu.europeana.patternanalysis.view.RecordAnalysis;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -27,6 +28,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -177,8 +181,22 @@ public class PatternAnalysisController {
       this.executionStep = datasetProblemPatternAnalysis.getExecutionStep();
       this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
           datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
-      this.problemPatternList = datasetProblemPatternAnalysis.getProblemPatternList();
-      problemPatternList.sort(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()));
+      this.problemPatternList = getSortedProblemPatternList(datasetProblemPatternAnalysis);
+    }
+
+    @NotNull
+    private List<ProblemPattern> getSortedProblemPatternList(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
+      return datasetProblemPatternAnalysis
+              .getProblemPatternList()
+              .stream()
+              .map(currentPattern -> new ProblemPattern(currentPattern.getProblemPatternDescription(),
+                      currentPattern.getRecordOccurrences(),
+                      currentPattern.getRecordAnalysisList()
+                              .stream()
+                              .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
+                              .collect(Collectors.toList())))
+              .sorted(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()))
+              .collect(Collectors.toList());
     }
   }
 
