@@ -243,8 +243,4 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$[1]", is("2022-04-21T12:19:35.339562")))
        .andExpect(jsonPath("$[2]", is("2022-04-19T15:44:10.634167")));
   }
-
-  private String getExpectedResultAsString(){
-    return null;
-  }
 }
