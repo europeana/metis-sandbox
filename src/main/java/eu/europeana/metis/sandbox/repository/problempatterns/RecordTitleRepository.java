@@ -13,5 +13,6 @@ public interface RecordTitleRepository extends JpaRepository<RecordTitle, Record
 
   @Modifying
   void deleteByExecutionPoint(ExecutionPoint executionPoint);
-
+  @Modifying
+  void deleteByExecutionPointDatasetId(String datasetId);
 }
