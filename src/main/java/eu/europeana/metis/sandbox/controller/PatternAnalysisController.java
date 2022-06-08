@@ -28,7 +28,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -179,22 +181,22 @@ public class PatternAnalysisController {
       this.executionStep = datasetProblemPatternAnalysis.getExecutionStep();
       this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
           datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
-      this.problemPatternList = datasetProblemPatternAnalysis.getProblemPatternList();
-      orderRecordListsInProblemPatternList();
-      problemPatternList.sort(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()));
+      this.problemPatternList = getSortedProblemPatternList(datasetProblemPatternAnalysis);
     }
 
-    private void orderRecordListsInProblemPatternList(){
-      for(int i = 0; i < problemPatternList.size(); i++){
-        ProblemPattern currentPattern = problemPatternList.get(i);
-        //Method getRecordAnalysisList returns a copy of the list, hence we couldn't sort the list directly
-        //We need to create a new ProblemPattern object with new sorted list and replace it in the problemPatternList
-        List<RecordAnalysis> recordAnalysisListToSort = currentPattern.getRecordAnalysisList();
-        recordAnalysisListToSort.sort(Comparator.comparing(RecordAnalysis::getRecordId));
-        ProblemPattern newProblemPattern = new ProblemPattern(currentPattern.getProblemPatternDescription(),
-                currentPattern.getRecordOccurrences(), recordAnalysisListToSort);
-        problemPatternList.set(i, newProblemPattern);
-      }
+    @NotNull
+    private List<ProblemPattern> getSortedProblemPatternList(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
+      return datasetProblemPatternAnalysis
+              .getProblemPatternList()
+              .stream()
+              .map(currentPattern -> new ProblemPattern(currentPattern.getProblemPatternDescription(),
+                      currentPattern.getRecordOccurrences(),
+                      currentPattern.getRecordAnalysisList()
+                              .stream()
+                              .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
+                              .collect(Collectors.toList())))
+              .sorted(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()))
+              .collect(Collectors.toList());
     }
   }
 
