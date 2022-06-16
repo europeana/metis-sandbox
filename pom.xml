@@ -57,7 +57,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.2.7</version.woodstox-core>
-    <version.testcontainers>1.17.2</version.testcontainers></properties>
+    <version.testcontainers>1.17.2</version.testcontainers>
+    <version.awaitability>1.7.0</version.awaitability>
+    </properties>
   <dependencies>
     <!-- Spring boot -->
     <dependency>
@@ -290,11 +292,24 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
       <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>rabbitmq</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit-test</artifactId>
+      <version>2.4.5</version>
+      <scope>test</scope>
+    </dependency>
+
 
     <dependency>
-      <groupId>com.github.fridujo</groupId>
-      <artifactId>rabbitmq-mock</artifactId>
-      <version>1.0.14</version>
+      <groupId>com.jayway.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>${version.awaitability}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

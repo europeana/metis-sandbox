@@ -43,6 +43,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -52,7 +54,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @ComponentScan({"eu.europeana.metis.sandbox.service.problempatterns", "eu.europeana.metis.sandbox.repository.problempatterns"})
-class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
+class PatternAnalysisServiceImplIT {
+
+  @DynamicPropertySource
+  public static void dynamicProperties(DynamicPropertyRegistry registry) {
+    PostgresContainerInitializerIT.dynamicProperties(registry);
+    PostgresContainerInitializerIT.runScripts(List.of(
+        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+  }
 
   final String rdfStringNoProblems = IOUtils.toString(
       new FileInputStream("src/test/resources/record.problempatterns/europeana_record_no_problem_patterns.xml"),
@@ -106,7 +115,6 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
     final LocalDateTime now = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
         now);
-    assertEquals(1, executionPoint1.getExecutionPointId());
     assertEquals("1", executionPoint1.getDatasetId());
     assertEquals(Step.VALIDATE_INTERNAL.name(), executionPoint1.getExecutionStep());
     assertEquals(now, executionPoint1.getExecutionTimestamp());
@@ -114,7 +122,6 @@ class PatternAnalysisServiceImplIT extends PostgresContainerInitializerIT {
     //Second time should give back the exact same object
     final ExecutionPoint executionPoint2 = patternAnalysisService.initializePatternAnalysisExecution("1", Step.VALIDATE_INTERNAL,
         now);
-    assertEquals(1, executionPoint2.getExecutionPointId());
     assertEquals("1", executionPoint2.getDatasetId());
     assertEquals(Step.VALIDATE_INTERNAL.name(), executionPoint2.getExecutionStep());
     assertEquals(now, executionPoint2.getExecutionTimestamp());

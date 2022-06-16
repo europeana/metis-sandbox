@@ -14,3 +14,12 @@ services:
     volumes:
       - ./src/main/resources/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - ./src/main/resources/database/schema_problem_patterns.sql:/docker-entrypoint-initdb.d/schema_problem_patterns.sql
+  rabbitmq:
+    image: rabbitmq:3.9.12-management
+    environment:
+      - RABBIT_DEFAULT_VHOST=/
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - '5672:5672'
+      - '15672:15672'

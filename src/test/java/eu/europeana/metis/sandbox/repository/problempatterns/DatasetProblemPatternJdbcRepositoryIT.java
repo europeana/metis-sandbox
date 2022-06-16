@@ -18,6 +18,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
@@ -25,7 +27,14 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) //Do not allow JdbcTest to replace the Datasource
 @ContextConfiguration(classes = DatasetProblemPatternJdbcRepository.class)
-class DatasetProblemPatternJdbcRepositoryIT extends PostgresContainerInitializerIT {
+class DatasetProblemPatternJdbcRepositoryIT {
+
+  @DynamicPropertySource
+  public static void dynamicProperties(DynamicPropertyRegistry registry) {
+    PostgresContainerInitializerIT.dynamicProperties(registry);
+    PostgresContainerInitializerIT.runScripts(List.of(
+        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+  }
 
   public static final String SELECT_DATASET_PROBLEM_PATTERN_QUERY = "SELECT * FROM problem_patterns.dataset_problem_pattern";
 

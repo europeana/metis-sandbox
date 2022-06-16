@@ -36,6 +36,10 @@ class CloseExecutor {
     }
     try {
       RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord()), Step.CLOSE, Status.SUCCESS);
+      //Queue 'sandbox.record.published' sends a message to 'sandbox' exchange. The 'routingKey' is a label that indicates
+      //which queue receives the message. Queue 'sandbox.record.closed' does not exist. But by checking the config,
+      //we see that 'sandbox.record.log' listens to all queues with pattern 'sandbox.record.#', hence the message will
+      //go to 'sandbox.record.log' instead to the non-existing `sandbox.record.closed`
       amqpTemplate.convertAndSend(routingKey, output);
     } catch (RuntimeException closeException) {
       LOGGER.error("Close executor error", closeException);
