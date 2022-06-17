@@ -136,10 +136,6 @@ sandbox:
               queue: sandbox.record.transformation.edm.external
               dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
               auto-start: true
-        ordered:
-          queue: sandbox.record.ordered
-          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
-          auto-start: true
         validated:
           external:
             queue: sandbox.record.validated.external
