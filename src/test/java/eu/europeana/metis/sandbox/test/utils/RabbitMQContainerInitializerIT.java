@@ -19,9 +19,6 @@ public class RabbitMQContainerInitializerIT {
   static {
     rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION)
         .withVhost(VIRTUAL_HOST)
-        //        .withExchange("testExchange", "topic")
-        //        .withQueue("testQueue")
-        //        .withBinding("testExchange", "testQueue", new HashMap<>(), "testQueue", "queue")
         .withReuse(true);
 
     rabbitMQContainer.start();
