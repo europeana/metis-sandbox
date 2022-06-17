@@ -34,10 +34,6 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
   @Autowired
   private AmqpTemplate amqpTemplate;
 
-  private void assertDefaultQueueSendAndReceive(String routingKey) {
-    assertQueueSendAndReceive(amqpConfiguration.getExchange(), routingKey);
-  }
-
   @BeforeAll
   static void beforeAll() {
     final Record recordObject = Record.builder().recordId(100L).country(Country.GREECE).language(Language.EL)
@@ -78,6 +74,10 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
     assertEquals(recordProcessEvent.getRecord().getRecordId(), receivedRecordProcessEvent.getRecord().getRecordId());
     assertEquals(recordProcessEvent.getStep(), receivedRecordProcessEvent.getStep());
     assertEquals(recordProcessEvent.getStatus(), receivedRecordProcessEvent.getStatus());
+  }
+
+  private void assertDefaultQueueSendAndReceive(String routingKey) {
+    assertQueueSendAndReceive(amqpConfiguration.getExchange(), routingKey);
   }
 
   void assertDlqQueueSendAndReceive(String routingKey) {
