@@ -2,24 +2,33 @@ package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(XsltUrlUpdateServiceImpl.class);
-  private static final HttpClient httpClient = HttpClient.newBuilder().build();
+
   private final TransformXsltRepository transformXsltRepository;
+
+  private static final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_2)
+                                                  .followRedirects(Redirect.NORMAL)
+                                                  .connectTimeout(Duration.ofSeconds(1))
+                                                  .build();
 
   public XsltUrlUpdateServiceImpl(TransformXsltRepository transformXsltRepository) {
     this.transformXsltRepository = transformXsltRepository;
@@ -28,55 +37,43 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
   @Override
   public void updateXslt(String defaultXsltUrl) {
 
-    InputStream xsltStream = null;
-    HttpRequest httpRequest;
+    final HttpRequest request = HttpRequest.newBuilder()
+                                           .GET()
+                                           .uri(URI.create(defaultXsltUrl))
+                                           .build();
+
     try {
-      httpRequest = HttpRequest.newBuilder()
-                               .GET()
-                               .uri(URI.create(defaultXsltUrl))
-                               .build();
+      CompletableFuture<HttpResponse<String>> response =
+          httpClient.sendAsync(request, BodyHandlers.ofString());
 
-      xsltStream = httpClient.send(httpRequest, BodyHandlers.ofInputStream()).body();
-
-    } catch (IOException | InterruptedException e) {
-      // try to load resource as file
-      xsltStream = getClass().getClassLoader().getResourceAsStream(defaultXsltUrl);
-      Thread.currentThread().interrupt();
-    } catch (Exception e) {
-      LOGGER.warn("Error getting default transform XSLT ", e);
-    } finally {
-      if (xsltStream != null) {
-        saveDefaultXslt(xsltStream);
-        closeStream(xsltStream);
+      String responseBody = response.thenApply(HttpResponse::body).get();
+      int responseStatusCode = response.thenApply(HttpResponse::statusCode).get();
+      if (responseStatusCode == 200) {
+        // TODO: should the response body (xslt) be validated?
+        saveDefaultXslt(responseBody);
+      } else {
+        LOGGER.warn("Failed to update default transform XSLT from URL: {} \nResponse status code: {}", defaultXsltUrl,
+            responseStatusCode);
       }
+    } catch (RuntimeException | InterruptedException | ExecutionException e) {
+      LOGGER.error("Failed to update default transform XSLT from URL: {} \n{}", defaultXsltUrl, e);
     }
   }
 
-  private void saveDefaultXslt(InputStream xsltStream) {
+  private void saveDefaultXslt(String newTransformXslt) {
     try {
-      final String transformXslt = new String(xsltStream.readAllBytes(), StandardCharsets.UTF_8);
-      final var entity = transformXsltRepository.findById(1);
+      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc();
 
       if (entity.isPresent()) {
-        if (!(transformXslt.equals(entity.get().getTransformXslt()))) {
-          entity.get().setTransformXslt(transformXslt);
+        if (!(newTransformXslt.equals(entity.get().getTransformXslt()))) {
+          entity.get().setTransformXslt(newTransformXslt);
           transformXsltRepository.save(entity.get());
         }
       } else {
-        transformXsltRepository.save(new TransformXsltEntity(transformXslt));
+        transformXsltRepository.save(new TransformXsltEntity(newTransformXslt));
       }
-    } catch (RuntimeException | IOException e) {
-      LOGGER.warn("Error persisting default transform XSLT to Database", e);
-    }
-  }
-
-  private void closeStream(Closeable closeable) {
-    if (closeable != null) {
-      try {
-        closeable.close();
-      } catch (IOException e) {
-        LOGGER.error("Unable to close stream transform XSLT", e);
-      }
+    } catch (DataAccessException e) {
+      LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
     }
   }
 }

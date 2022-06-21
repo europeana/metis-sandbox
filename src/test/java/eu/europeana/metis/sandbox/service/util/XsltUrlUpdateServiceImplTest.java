@@ -5,8 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -54,66 +54,69 @@ class XsltUrlUpdateServiceImplTest {
   @Test
   @Order(1)
   void updateXslt_ExpectSuccess() {
+    //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
-        .willReturn(ok("1")));
-
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
-
+        .willReturn(ok("<xslt></xslt>")));
+    // when
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    // then
     Mockito.verify(transformXsltRepository, times(1)).save(any());
   }
 
   @Test
   @Order(2)
   void updateXslt_existent_ExpectSuccess() {
+    // given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
-        .willReturn(ok("1")));
-    when(transformXsltRepository.findById(anyInt())).thenReturn(Optional.of(new TransformXsltEntity()));
-
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
-
+        .willReturn(ok("<xslt></xslt>")));
+    // when
+    when(transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc()).thenReturn(Optional.of(new TransformXsltEntity()));
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    //then
     Mockito.verify(transformXsltRepository, times(1)).save(any());
   }
 
   @Test
   @Order(3)
   void updateXslt_ExpectFail() {
+    //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
-        .willReturn(ok("1")));
-
+        .willReturn(ok("<xslt></xslt>")));
+    // when
     doThrow(RuntimeException.class).when(transformXsltRepository).save(any());
-    assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst"));
+    // then
+    assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt"));
   }
 
   @Test
   @Order(4)
   void updateXslt_ExpectError() {
-    assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt(""));
+    assertThrows(IllegalArgumentException.class, () -> xsltUrlUpdateService.updateXslt(""));
   }
 
   @Test
   @Order(5)
-  void updateXslt_LoadAsFile_ExpectFail() throws IOException, ReflectiveOperationException, InterruptedException {
+  void updateXslt_LoadAsFile_ExpectFail() throws ReflectiveOperationException{
+    //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
-        .willReturn(ok("1")));
-    doThrow(IOException.class).when(httpClient).send(any(HttpRequest.class), any());
-
+        .willReturn(ok("<xslt></xslt>")));
+    // when
+    doThrow(IllegalArgumentException.class).when(httpClient).sendAsync(any(HttpRequest.class), any());
     setFinalStaticField(XsltUrlUpdateServiceImpl.class, "httpClient", httpClient);
-
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xlst");
-
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    // then
     Mockito.verify(transformXsltRepository, never()).save(any());
   }
 
-  private static void setFinalStaticField(Class<?> clazz, String fieldName, Object value)
-      throws ReflectiveOperationException {
+  private void setFinalStaticField(Class<?> clazz, String fieldName, Object value) throws ReflectiveOperationException {
 
     Field field = clazz.getDeclaredField(fieldName);
     field.setAccessible(true);
@@ -122,6 +125,6 @@ class XsltUrlUpdateServiceImplTest {
     modifiers.setAccessible(true);
     modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 
-    field.set(null, value);
+    field.set(fieldName, value);
   }
 }
