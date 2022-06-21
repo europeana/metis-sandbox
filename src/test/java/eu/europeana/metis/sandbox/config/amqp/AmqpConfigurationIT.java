@@ -1,8 +1,5 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
@@ -16,16 +13,22 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
 // TODO: 17/06/2022 FIX: This now reads the application.yml from src. Needs fixing
-// TODO: 17/06/2022 FIX: Check if we can test rerouting an error message from the queue to the dlq
+//TODO: Add @ActiveProfile (?)
 public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
 
   private static RecordProcessEvent recordProcessEvent;
@@ -66,6 +69,20 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
     assertDlqQueueSendAndReceive(amqpConfiguration.getPublishedDlq());
   }
 
+  @Test
+  void testReroutingToDlq() throws InterruptedException{
+    assertReroutingIntoDlq(amqpConfiguration.getCreatedQueue(), amqpConfiguration.getCreatedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getExternalValidatedQueue(), amqpConfiguration.getExternalValidatedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getTransformedQueue(), amqpConfiguration.getTransformedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getTransformationToEdmExternalQueue(), amqpConfiguration.getTransformationToEdmExternalDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getNormalizedQueue(), amqpConfiguration.getNormalizedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getInternalValidatedQueue(), amqpConfiguration.getInternalValidatedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getEnrichedQueue(), amqpConfiguration.getEnrichedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getMediaProcessedQueue(), amqpConfiguration.getMediaProcessedDlq());
+    assertReroutingIntoDlq(amqpConfiguration.getPublishedQueue(), amqpConfiguration.getPublishedDlq());
+
+  }
+
   void assertQueueSendAndReceive(String exchange, String routingKey) {
     amqpTemplate.convertAndSend(exchange, routingKey, recordProcessEvent);
     final Object receivedObject = amqpTemplate.receiveAndConvert(routingKey);
@@ -82,5 +99,17 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
 
   void assertDlqQueueSendAndReceive(String routingKey) {
     assertQueueSendAndReceive(amqpConfiguration.getExchangeDlq(), routingKey);
+  }
+
+  void assertReroutingIntoDlq(String routingKey, String routingKeyDlq) throws InterruptedException {
+    //Setting TTL for message to trigger putting it in dlq
+    MessageProperties properties = new MessageProperties();
+    properties.setExpiration("1");
+    Message messageToSend = new Message(recordProcessEvent.toString().getBytes(StandardCharsets.UTF_8), properties);
+    amqpTemplate.send(amqpConfiguration.getExchange(), routingKey, messageToSend);
+    //Make it wait for TTL to expire
+    Thread.sleep(100);
+    final Object receivedObject = amqpTemplate.receive(routingKeyDlq);
+    assertNotNull(receivedObject);
   }
 }
