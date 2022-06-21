@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
-// TODO: 17/06/2022 FIX: This now reads the application.yml from src. Needs fixing
+// TODO: 17/06/2022 FIX: This now reads the application.yml from src. If there is no application.yml, it uses value within @Value annotation. Needs fixing
 //TODO: Add @ActiveProfile (?)
 public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
 
@@ -102,14 +102,15 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
   }
 
   void assertReroutingIntoDlq(String routingKey, String routingKeyDlq) throws InterruptedException {
-    //Setting TTL for message to trigger putting it in dlq
+    //Setting TTL with bad conversion of message to trigger putting it in dlq
     MessageProperties properties = new MessageProperties();
     properties.setExpiration("1");
     Message messageToSend = new Message(recordProcessEvent.toString().getBytes(StandardCharsets.UTF_8), properties);
     amqpTemplate.send(amqpConfiguration.getExchange(), routingKey, messageToSend);
     //Make it wait for TTL to expire
     Thread.sleep(100);
-    final Object receivedObject = amqpTemplate.receive(routingKeyDlq);
-    assertNotNull(receivedObject);
+    final Message receivedMessage = amqpTemplate.receive(routingKeyDlq);
+    assertNotNull(receivedMessage);
+    assertArrayEquals(messageToSend.getBody(), receivedMessage.getBody());
   }
 }
