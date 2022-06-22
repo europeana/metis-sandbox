@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.*;
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
 // TODO: 17/06/2022 FIX: This now reads the application.yml from src. If there is no application.yml, it uses value within @Value annotation. Needs fixing
-//TODO: Add @ActiveProfile (?)
 public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
 
   private static RecordProcessEvent recordProcessEvent;
