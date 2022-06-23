@@ -18,7 +18,7 @@ public class XsltUrlUpdateScheduler {
     this.xsltUrlUpdateService = xsltUrlUpdateService;
   }
 
-  @Scheduled(cron = "${sandbox.transformation.xslt-update-frequency}")
+  @Scheduled(cron = "${sandbox.transformation.xslt-update-frequency:0 0 * * * *}")
   public void updateDefaultXsltUrl() {
     xsltUrlUpdateService.updateXslt(defaultXsltUrl);
   }

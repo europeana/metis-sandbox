@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.util;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -15,7 +16,6 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.http.HttpClient;
@@ -67,7 +67,7 @@ class XsltUrlUpdateServiceImplTest {
 
   @Test
   @Order(2)
-  void updateXslt_existent_ExpectSuccess() {
+  void updateXslt_Existent_ExpectSuccess() {
     // given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
@@ -102,7 +102,7 @@ class XsltUrlUpdateServiceImplTest {
 
   @Test
   @Order(5)
-  void updateXslt_LoadAsFile_ExpectFail() throws ReflectiveOperationException{
+  void updateXslt_LoadAsFile_ExpectFail() throws ReflectiveOperationException {
     //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
@@ -110,6 +110,36 @@ class XsltUrlUpdateServiceImplTest {
         .willReturn(ok("<xslt></xslt>")));
     // when
     doThrow(IllegalArgumentException.class).when(httpClient).sendAsync(any(HttpRequest.class), any());
+    setFinalStaticField(XsltUrlUpdateServiceImpl.class, "httpClient", httpClient);
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    // then
+    Mockito.verify(transformXsltRepository, never()).save(any());
+  }
+
+  @Test
+  @Order(6)
+  void updateXslt_LoadAsFile_ExpectNoUpdate() {
+    //given
+    wm.stubFor(get("/xslt")
+        .withHost(equalTo("document.domain"))
+        .withPort(12345)
+        .willReturn(notFound()));
+    // when
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    // then
+    Mockito.verify(transformXsltRepository, never()).save(any());
+  }
+
+  @Test
+  @Order(7)
+  void updateXslt_ExpectDataException() throws ReflectiveOperationException {
+    //given
+    wm.stubFor(get("/xslt")
+        .withHost(equalTo("document.domain"))
+        .withPort(12345)
+        .willReturn(ok("<xslt></xslt>")));
+    // when
+    doThrow(RuntimeException.class).when(httpClient).sendAsync(any(HttpRequest.class), any());
     setFinalStaticField(XsltUrlUpdateServiceImpl.class, "httpClient", httpClient);
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     // then
@@ -125,6 +155,6 @@ class XsltUrlUpdateServiceImplTest {
     modifiers.setAccessible(true);
     modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 
-    field.set(fieldName, value);
+    field.set(null, value);
   }
 }

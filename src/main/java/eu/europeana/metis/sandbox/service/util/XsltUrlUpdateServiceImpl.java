@@ -26,9 +26,9 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
   private final TransformXsltRepository transformXsltRepository;
 
   private static final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_2)
-                                                  .followRedirects(Redirect.NORMAL)
-                                                  .connectTimeout(Duration.ofSeconds(1))
-                                                  .build();
+                                                         .followRedirects(Redirect.NORMAL)
+                                                         .connectTimeout(Duration.ofSeconds(5))
+                                                         .build();
 
   public XsltUrlUpdateServiceImpl(TransformXsltRepository transformXsltRepository) {
     this.transformXsltRepository = transformXsltRepository;
@@ -41,7 +41,6 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
                                            .GET()
                                            .uri(URI.create(defaultXsltUrl))
                                            .build();
-
     try {
       CompletableFuture<HttpResponse<String>> response =
           httpClient.sendAsync(request, BodyHandlers.ofString());
@@ -57,6 +56,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
       }
     } catch (RuntimeException | InterruptedException | ExecutionException e) {
       LOGGER.error("Failed to update default transform XSLT from URL: {} \n{}", defaultXsltUrl, e);
+      Thread.currentThread().interrupt();
     }
   }
 
