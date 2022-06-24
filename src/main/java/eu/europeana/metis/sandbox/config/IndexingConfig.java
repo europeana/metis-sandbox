@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Profile;
 /**
  * Config to define publish indexer
  */
-@Profile("default")
+@Profile({"default","integration-test-profile"})
 @Configuration
 class IndexingConfig {
 
