@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -82,57 +81,22 @@ class XsltUrlUpdateServiceImplTest {
 
   @Test
   @Order(3)
-  void updateXslt_ExpectFail() {
+  void updateXslt_RepositorySave_RuntimeException_ExpectFail() {
     //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
         .willReturn(ok("<xslt></xslt>")));
     // when
-    doThrow(RuntimeException.class).when(transformXsltRepository).save(any());
+    when(transformXsltRepository.save(any())).thenThrow(RuntimeException.class);
     // then
+    assertThrows(RuntimeException.class, () -> transformXsltRepository.save(any()));
     assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt"));
   }
 
   @Test
   @Order(4)
-  void updateXslt_ExpectError() {
-    assertThrows(IllegalArgumentException.class, () -> xsltUrlUpdateService.updateXslt(""));
-  }
-
-  @Test
-  @Order(5)
-  void updateXslt_LoadAsFile_ExpectFail() throws ReflectiveOperationException {
-    //given
-    wm.stubFor(get("/xslt")
-        .withHost(equalTo("document.domain"))
-        .withPort(12345)
-        .willReturn(ok("<xslt></xslt>")));
-    // when
-    doThrow(IllegalArgumentException.class).when(httpClient).sendAsync(any(HttpRequest.class), any());
-    setFinalStaticField(XsltUrlUpdateServiceImpl.class, "httpClient", httpClient);
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
-    // then
-    Mockito.verify(transformXsltRepository, never()).save(any());
-  }
-
-  @Test
-  @Order(6)
-  void updateXslt_LoadAsFile_ExpectNoUpdate() {
-    //given
-    wm.stubFor(get("/xslt")
-        .withHost(equalTo("document.domain"))
-        .withPort(12345)
-        .willReturn(notFound()));
-    // when
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
-    // then
-    Mockito.verify(transformXsltRepository, never()).save(any());
-  }
-
-  @Test
-  @Order(7)
-  void updateXslt_ExpectRuntimeException() {
+  void updateXslt_RepositoryFind_RuntimeException_ExpectFail() {
     //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
@@ -145,6 +109,44 @@ class XsltUrlUpdateServiceImplTest {
     assertThrows(RuntimeException.class, () -> transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc());
     Mockito.verify(transformXsltRepository, never()).save(any());
   }
+
+  @Test
+  @Order(5)
+  void updateXslt_Service_IllegalArgumentException_ExpectFail() {
+
+    assertThrows(IllegalArgumentException.class, () -> xsltUrlUpdateService.updateXslt(""));
+  }
+
+  @Test
+  @Order(6)
+  void updateXslt_HttpClient_IllegalArgument_ExpectFail() throws ReflectiveOperationException {
+    //given
+    wm.stubFor(get("/xslt")
+        .withHost(equalTo("document.domain"))
+        .withPort(12345)
+        .willReturn(ok("<xslt></xslt>")));
+    // when
+    when(httpClient.sendAsync(any(HttpRequest.class), any())).thenThrow(IllegalArgumentException.class);
+    setFinalStaticField(XsltUrlUpdateServiceImpl.class, "httpClient", httpClient);
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    // then
+    Mockito.verify(transformXsltRepository, never()).save(any());
+  }
+
+  @Test
+  @Order(7)
+  void updateXslt_HttpClient_NotFound_ExpectNoUpdate() {
+    //given
+    wm.stubFor(get("/xslt")
+        .withHost(equalTo("document.domain"))
+        .withPort(12345)
+        .willReturn(notFound()));
+    // when
+    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    // then
+    Mockito.verify(transformXsltRepository, never()).save(any());
+  }
+
 
   private void setFinalStaticField(Class<?> clazz, String fieldName, Object value) throws ReflectiveOperationException {
 
