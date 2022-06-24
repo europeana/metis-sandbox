@@ -1,5 +1,9 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
@@ -9,28 +13,30 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.test.RabbitListenerTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.nio.charset.StandardCharsets;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
 // TODO: 17/06/2022 FIX: This now reads the application.yml from src. If there is no application.yml, it uses value within @Value annotation. Needs fixing
+@RabbitListenerTest
 public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
 
   private static RecordProcessEvent recordProcessEvent;
+  @Autowired
+  private ConnectionFactory connectionFactory;
   @Autowired
   private AmqpConfiguration amqpConfiguration;
   @Autowired
@@ -51,8 +57,8 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
     assertDefaultQueueSendAndReceive(amqpConfiguration.getExternalValidatedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getTransformedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getTransformationToEdmExternalQueue());
-    assertDefaultQueueSendAndReceive(amqpConfiguration.getNormalizedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getInternalValidatedQueue());
+    assertDefaultQueueSendAndReceive(amqpConfiguration.getNormalizedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getEnrichedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getMediaProcessedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getPublishedQueue());
@@ -61,25 +67,19 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
     assertDlqQueueSendAndReceive(amqpConfiguration.getExternalValidatedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getTransformedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getTransformationToEdmExternalDlq());
-    assertDlqQueueSendAndReceive(amqpConfiguration.getNormalizedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getInternalValidatedDlq());
+    assertDlqQueueSendAndReceive(amqpConfiguration.getNormalizedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getEnrichedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getMediaProcessedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getPublishedDlq());
   }
 
-  @Test
-  void testReroutingToDlq() throws InterruptedException{
-    assertReroutingIntoDlq(amqpConfiguration.getCreatedQueue(), amqpConfiguration.getCreatedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getExternalValidatedQueue(), amqpConfiguration.getExternalValidatedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getTransformedQueue(), amqpConfiguration.getTransformedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getTransformationToEdmExternalQueue(), amqpConfiguration.getTransformationToEdmExternalDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getNormalizedQueue(), amqpConfiguration.getNormalizedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getInternalValidatedQueue(), amqpConfiguration.getInternalValidatedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getEnrichedQueue(), amqpConfiguration.getEnrichedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getMediaProcessedQueue(), amqpConfiguration.getMediaProcessedDlq());
-    assertReroutingIntoDlq(amqpConfiguration.getPublishedQueue(), amqpConfiguration.getPublishedDlq());
+  private void assertDefaultQueueSendAndReceive(String routingKey) {
+    assertQueueSendAndReceive(amqpConfiguration.getExchange(), routingKey);
+  }
 
+  void assertDlqQueueSendAndReceive(String routingKey) {
+    assertQueueSendAndReceive(amqpConfiguration.getExchangeDlq(), routingKey);
   }
 
   void assertQueueSendAndReceive(String exchange, String routingKey) {
@@ -92,24 +92,58 @@ public class AmqpConfigurationIT extends RabbitMQContainerInitializerIT {
     assertEquals(recordProcessEvent.getStatus(), receivedRecordProcessEvent.getStatus());
   }
 
-  private void assertDefaultQueueSendAndReceive(String routingKey) {
-    assertQueueSendAndReceive(amqpConfiguration.getExchange(), routingKey);
+  @Test
+  void testRoutingToDlq() {
+    //Create and start all listener container throwing exception to force the dlq routing
+    AtomicInteger messagesCounter = new AtomicInteger();
+    final SimpleMessageListenerContainer throwingListenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+    throwingListenerContainer.setQueueNames(
+        amqpConfiguration.getCreatedQueue(),
+        amqpConfiguration.getExternalValidatedQueue(),
+        amqpConfiguration.getTransformedQueue(),
+        amqpConfiguration.getTransformationToEdmExternalQueue(),
+        amqpConfiguration.getInternalValidatedQueue(),
+        amqpConfiguration.getNormalizedQueue(),
+        amqpConfiguration.getEnrichedQueue(),
+        amqpConfiguration.getMediaProcessedQueue(),
+        amqpConfiguration.getPublishedQueue());
+    throwingListenerContainer.setDefaultRequeueRejected(false);
+    throwingListenerContainer.setMessageListener(message -> {
+      messagesCounter.getAndIncrement();
+      throw new RuntimeException("exception");
+    });
+    throwingListenerContainer.start();
+
+    //Send to all queues
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getCreatedQueue(), recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getExternalValidatedQueue(),
+        recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformedQueue(), recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformationToEdmExternalQueue(),
+        recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getInternalValidatedQueue(),
+        recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getNormalizedQueue(), recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getEnrichedQueue(), recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getMediaProcessedQueue(), recordProcessEvent);
+    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getPublishedQueue(), recordProcessEvent);
+
+    //Await and check all dlqs
+    awaitDqlMessages(amqpConfiguration.getCreatedDlq());
+    awaitDqlMessages(amqpConfiguration.getExternalValidatedDlq());
+    awaitDqlMessages(amqpConfiguration.getTransformedDlq());
+    awaitDqlMessages(amqpConfiguration.getTransformationToEdmExternalDlq());
+    awaitDqlMessages(amqpConfiguration.getInternalValidatedDlq());
+    awaitDqlMessages(amqpConfiguration.getNormalizedDlq());
+    awaitDqlMessages(amqpConfiguration.getEnrichedDlq());
+    awaitDqlMessages(amqpConfiguration.getMediaProcessedDlq());
+    awaitDqlMessages(amqpConfiguration.getPublishedDlq());
+
+    throwingListenerContainer.stop();
+    assertEquals(9, messagesCounter.get());
   }
 
-  void assertDlqQueueSendAndReceive(String routingKey) {
-    assertQueueSendAndReceive(amqpConfiguration.getExchangeDlq(), routingKey);
-  }
-
-  void assertReroutingIntoDlq(String routingKey, String routingKeyDlq) throws InterruptedException {
-    //Setting TTL with bad conversion of message to trigger putting it in dlq
-    MessageProperties properties = new MessageProperties();
-    properties.setExpiration("1");
-    Message messageToSend = new Message(recordProcessEvent.toString().getBytes(StandardCharsets.UTF_8), properties);
-    amqpTemplate.send(amqpConfiguration.getExchange(), routingKey, messageToSend);
-    //Make it wait for TTL to expire
-    Thread.sleep(100);
-    final Message receivedMessage = amqpTemplate.receive(routingKeyDlq);
-    assertNotNull(receivedMessage);
-    assertArrayEquals(messageToSend.getBody(), receivedMessage.getBody());
+  private void awaitDqlMessages(String routingKey) {
+    Awaitility.await().atMost(2, SECONDS).until(() -> amqpTemplate.receiveAndConvert(routingKey) != null);
   }
 }

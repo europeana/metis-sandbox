@@ -14,8 +14,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
  */
 //We drop and re-create the db
 @Sql(scripts = {"classpath:database/schema_problem_patterns_drop.sql", "classpath:database/schema_problem_patterns.sql"})
-@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=none",//We do not want hibernate creating the db
-    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect", "spring.datasource.driver-class-name=org.postgresql.Driver"
+@TestPropertySource(properties = {
+    "spring.jpa.hibernate.ddl-auto=none",//We do not want hibernate creating the db
+    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect",
+    "spring.datasource.driver-class-name=org.postgresql.Driver"
 })
 @SuppressWarnings("resource")
 public class PostgresContainerInitializerIT {
