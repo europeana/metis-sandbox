@@ -72,7 +72,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
       } else {
         transformXsltRepository.save(new TransformXsltEntity(newTransformXslt));
       }
-    } catch (DataAccessException e) {
+    } catch (RuntimeException e) {
       LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
     }
   }

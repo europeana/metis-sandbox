@@ -132,17 +132,17 @@ class XsltUrlUpdateServiceImplTest {
 
   @Test
   @Order(7)
-  void updateXslt_ExpectDataException() throws ReflectiveOperationException {
+  void updateXslt_ExpectRuntimeException() {
     //given
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
         .willReturn(ok("<xslt></xslt>")));
     // when
-    doThrow(RuntimeException.class).when(httpClient).sendAsync(any(HttpRequest.class), any());
-    setFinalStaticField(XsltUrlUpdateServiceImpl.class, "httpClient", httpClient);
+    when(transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc()).thenThrow(RuntimeException.class);
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     // then
+    assertThrows(RuntimeException.class, () -> transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc());
     Mockito.verify(transformXsltRepository, never()).save(any());
   }
 
@@ -155,6 +155,6 @@ class XsltUrlUpdateServiceImplTest {
     modifiers.setAccessible(true);
     modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 
-    field.set(null, value);
+    field.set(fieldName, value);
   }
 }
