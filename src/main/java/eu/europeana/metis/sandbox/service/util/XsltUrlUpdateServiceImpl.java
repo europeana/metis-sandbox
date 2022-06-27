@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
   private void saveDefaultXslt(InputStream xsltStream) {
     try {
-      final String transformXslt = new String(xsltStream.readAllBytes(), StandardCharsets.UTF_8);
+      final String transformXslt = IOUtils.toString(xsltStream, StandardCharsets.UTF_8);
       final var entity = transformXsltRepository.findById(1);
 
       if (entity.isPresent()) {

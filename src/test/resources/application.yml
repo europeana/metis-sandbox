@@ -1,0 +1,162 @@
+info:
+  app:
+    title: &name Metis Sandbox
+    description: Sandbox to process Datasets
+    version: 1.0.0
+    repository: https://github.com/europeana/metis-sandbox
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
+  application:
+    name: *name
+  servlet:
+    multipart:
+      max-file-size: 5MB
+  rabbitmq:
+    virtual-host:
+    host:
+    port:
+    username:
+    password:
+    ssl:
+      enabled: false
+      algorithm: TLSv1.2
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 2
+        prefetch: 1
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          multiplier: 2
+          max-attempts: 3
+  jpa:
+    database-platform:
+    open-in-view: false
+sandbox:
+  cors:
+    mapping: '*'
+  truststore:
+    path:
+    password:
+  datasource:
+    jdbcUrl:
+    driverClassName:
+    username:
+    password:
+    #MET-3929 connection leak detection
+    maximumPoolSize: 10           # this is the default we make it explicit in the config.
+    leakDetectionThreshold: 5000  # five second should be enough
+  dataset:
+    clean:
+      frequency: 0 0 0 * * ? # At 00:00:00am every day
+      days-to-preserve: 7
+    max-size: 1000
+    creation:
+      threads:
+        core-pool-size: 10
+        max-pool-size: 40
+        thread-prefix: sandbox-
+  validation:
+    edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
+    executor:
+      pool-size: 10
+    predefinedSchemas:
+      EDM-INTERNAL:
+        url:
+        rootLocation: EDM-INTERNAL.xsd
+        schematronLocation: schematron/schematron-internal.xsl
+      EDM-EXTERNAL:
+        url:
+        rootLocation: EDM.xsd
+        schematronLocation: schematron/schematron.xsl
+  transformation:
+    xslt-url: https://metis-core-rest-test.eanadev.org/datasets/xslt/default
+  enrichment:
+    dereference-url: http://metis-test
+    enrichment-url: http://metis-test
+  publish:
+    mongo:
+      application-name: metis-sandbox-application-publish-local
+      db: metis-sandbox-publish-test
+      hosts: localhost
+      ports: 27017
+    solr:
+      hosts: http://metis-test:8888/solr/metis_sandbox_test
+  s3:
+    access-key:
+    secret-key:
+    endpoint: some-uri
+    signing-region: eu
+    thumbnails-bucket: europeana-sandbox-thumbnails-test
+  portal:
+    publish:
+      dataset-base-url: "http://metis-test"
+      record-base-url: "http://metis-test/item"
+  rabbitmq:
+    routing-key:
+      closed: sandbox.record.closed
+    exchange:
+      name: sandbox
+      dlq: ${sandbox.rabbitmq.exchange.name}.dlq
+    queues:
+      record:
+        log:
+          queue: sandbox.record.log
+          dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
+          routing-key: sandbox.record.#
+          auto-start: true
+          consumers: 2
+          max-consumers: 2
+        created:
+          queue: sandbox.record.created
+          dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
+          auto-start: true
+        transformation:
+          edm:
+            external:
+              queue: sandbox.record.transformation.edm.external
+              dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
+              auto-start: true
+        ordered:
+          queue: sandbox.record.ordered
+          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
+          auto-start: true
+        validated:
+          external:
+            queue: sandbox.record.validated.external
+            dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
+            auto-start: true
+          internal:
+            queue: sandbox.record.validated.internal
+            dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
+            auto-start: true
+        transformed:
+          queue: sandbox.record.transformed
+          dlq: ${sandbox.rabbitmq.queues.record.transformed.queue}.dlq
+          auto-start: true
+        normalized:
+          queue: sandbox.record.normalized
+          dlq: ${sandbox.rabbitmq.queues.record.normalized.queue}.dlq
+          auto-start: true
+        enriched:
+          queue: sandbox.record.enriched
+          dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
+          auto-start: true
+        media:
+          queue: sandbox.record.media.processed
+          dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
+          auto-start: true
+        previewed:
+          queue: sandbox.record.previewed
+          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
+          auto-start: true
+        published:
+          queue: sandbox.record.published
+          dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
+          auto-start: true

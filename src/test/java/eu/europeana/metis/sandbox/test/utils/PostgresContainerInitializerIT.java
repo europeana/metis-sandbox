@@ -1,27 +1,21 @@
 package eu.europeana.metis.sandbox.test.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
- * This class is meant to be extended from integration unit test classes that require an underlying database.
+ * This class is meant to be extended or used directly without extending from integration unit test classes that require an
+ * underlying database.
  * <p>The container will be started and reused in all tests. Make sure that the tests are independent and purge any data that
- * were inserted from each test at the end of the test. The annotations are propagated to all the classes that extend this class.
- * Furthermore the @Sql annotation will be executed for each test.</p>
+ * were inserted from each test at the end of the test. </p>
  */
-//We drop and re-create the db
-@Sql(scripts = {"classpath:database/schema_problem_patterns_drop.sql", "classpath:database/schema_problem_patterns.sql"})
-@TestPropertySource(properties = {
-    "spring.jpa.hibernate.ddl-auto=none",//We do not want hibernate creating the db
-    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect",
-    "spring.datasource.driver-class-name=org.postgresql.Driver"
-})
 @SuppressWarnings("resource")
 public class PostgresContainerInitializerIT {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresContainerInitializerIT.class);
   static final PostgreSQLContainer<?> postgreSQLContainer;
   public static final String POSTGRES_VERSION = "postgres:9.6";
 
@@ -32,6 +26,15 @@ public class PostgresContainerInitializerIT {
         .withPassword("test")
         .withReuse(true);
     postgreSQLContainer.start();
+
+    logConfiguration();
+  }
+
+  private static void logConfiguration() {
+    LOGGER.info("Postgres container created:");
+    LOGGER.info("jdbcUrl: {}", postgreSQLContainer.getJdbcUrl());
+    LOGGER.info("Username: {}", postgreSQLContainer.getUsername());
+    LOGGER.info("Password: {}", postgreSQLContainer.getPassword());
   }
 
   @DynamicPropertySource
@@ -39,6 +42,18 @@ public class PostgresContainerInitializerIT {
     registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
     registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
     registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+
+    //Default settings. If we want to change behavior on specific test cases we should remove this block from here
+    registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
+    registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQL9Dialect");
+    registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+
+    // TODO: 27/06/2022 We should perhaps remove the specifics here and use the default spring configuration properties
+    //Sandbox specific datasource properties
+    registry.add("sandbox.datasource.jdbcUrl", postgreSQLContainer::getJdbcUrl);
+    registry.add("sandbox.datasource.username", postgreSQLContainer::getUsername);
+    registry.add("sandbox.datasource.password", postgreSQLContainer::getPassword);
+    registry.add("sandbox.datasource.driverClassName", () -> "org.postgresql.Driver");
   }
 
   private void close() {

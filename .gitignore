@@ -6,7 +6,7 @@
 
 # Properties
 *.properties
-**/application*.yml
+**/src/main/resources/application*.yml
 
 # BlueJ files
 *.ctxt

@@ -10,11 +10,11 @@ import org.testcontainers.containers.RabbitMQContainer;
 
 public class RabbitMQContainerInitializerIT {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMQContainerInitializerIT.class);
   //Use the *-management versions that contain the rabbitmqadmin cli command, otherwise the commands will fail.
   public static final String RABBITMQ_VERSION = "rabbitmq:3.9.12-management";
   public static final String VIRTUAL_HOST = "testVhost";
   public static final RabbitMQContainer rabbitMQContainer;
-  private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMQContainerInitializerIT.class);
 
   static {
     rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION)
@@ -22,9 +22,11 @@ public class RabbitMQContainerInitializerIT {
         .withReuse(true);
 
     rabbitMQContainer.start();
+
+    logConfiguration();
   }
 
-  public RabbitMQContainerInitializerIT() {
+  private static void logConfiguration() {
     LOGGER.info("Rabbitmq container created:");
     LOGGER.info("Host: {}", rabbitMQContainer.getHost());
     LOGGER.info("Amqp Port: {}", rabbitMQContainer.getAmqpPort());
