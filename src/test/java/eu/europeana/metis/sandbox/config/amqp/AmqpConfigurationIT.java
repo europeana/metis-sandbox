@@ -102,6 +102,8 @@ public class AmqpConfigurationIT {
   void testRoutingToDlq() {
     //Create and start all listener container throwing exception to force the dlq routing
     AtomicInteger messagesCounter = new AtomicInteger();
+    // TODO: 28/06/2022 Check if we can use a semaphore instead of awaitility.
+    // TODO: 28/06/2022 This seems fail in github at the moment
     final SimpleMessageListenerContainer throwingListenerContainer = new SimpleMessageListenerContainer(connectionFactory);
     throwingListenerContainer.setQueueNames(
         amqpConfiguration.getCreatedQueue(),

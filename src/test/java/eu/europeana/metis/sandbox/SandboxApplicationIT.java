@@ -22,6 +22,8 @@ class SandboxApplicationIT {
   // TODO: 27/06/2022 Mongo and Solr dbs should be fixed with relevant containers so that the
   //  eu.europeana.metis.sandbox.config.IndexingConfig.publishIndexer will not complain for IndexingServiceImpl
 
+  // TODO: 28/06/2022 Github actions seems to download the docker image everytime, check if there is a cache that we can apply.
+
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
     PostgresContainerInitializerIT.dynamicProperties(registry);
