@@ -120,36 +120,41 @@ public class AmqpConfigurationIT {
     });
     throwingListenerContainer.start();
 
-    //Send to all queues
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getCreatedQueue(), recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getExternalValidatedQueue(),
-        recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformedQueue(), recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformationToEdmExternalQueue(),
-        recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getInternalValidatedQueue(),
-        recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getNormalizedQueue(), recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getEnrichedQueue(), recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getMediaProcessedQueue(), recordProcessEvent);
-    amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getPublishedQueue(), recordProcessEvent);
+    try {
+      //Send to all queues
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getCreatedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getExternalValidatedQueue(),
+          recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformationToEdmExternalQueue(),
+          recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getInternalValidatedQueue(),
+          recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getNormalizedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getEnrichedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getMediaProcessedQueue(),
+          recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getPublishedQueue(), recordProcessEvent);
 
-    //Await and check all dlqs
-    awaitDqlMessages(amqpConfiguration.getCreatedDlq());
-    awaitDqlMessages(amqpConfiguration.getExternalValidatedDlq());
-    awaitDqlMessages(amqpConfiguration.getTransformedDlq());
-    awaitDqlMessages(amqpConfiguration.getTransformationToEdmExternalDlq());
-    awaitDqlMessages(amqpConfiguration.getInternalValidatedDlq());
-    awaitDqlMessages(amqpConfiguration.getNormalizedDlq());
-    awaitDqlMessages(amqpConfiguration.getEnrichedDlq());
-    awaitDqlMessages(amqpConfiguration.getMediaProcessedDlq());
-    awaitDqlMessages(amqpConfiguration.getPublishedDlq());
+      //Await and check all dlqs
+      awaitDqlMessages(amqpConfiguration.getCreatedDlq());
+      awaitDqlMessages(amqpConfiguration.getExternalValidatedDlq());
+      awaitDqlMessages(amqpConfiguration.getTransformedDlq());
+      awaitDqlMessages(amqpConfiguration.getTransformationToEdmExternalDlq());
+      awaitDqlMessages(amqpConfiguration.getInternalValidatedDlq());
+      awaitDqlMessages(amqpConfiguration.getNormalizedDlq());
+      awaitDqlMessages(amqpConfiguration.getEnrichedDlq());
+      awaitDqlMessages(amqpConfiguration.getMediaProcessedDlq());
+      awaitDqlMessages(amqpConfiguration.getPublishedDlq());
+    } finally {
+      //Stop if awaiting failed, so that other tests won't be impacted.
+      throwingListenerContainer.stop();
+    }
 
-    throwingListenerContainer.stop();
     assertEquals(9, messagesCounter.get());
   }
 
   private void awaitDqlMessages(String routingKey) {
-    Awaitility.await().atMost(2, SECONDS).until(() -> amqpTemplate.receiveAndConvert(routingKey) != null);
+    Awaitility.await().atMost(5, SECONDS).until(() -> amqpTemplate.receiveAndConvert(routingKey) != null);
   }
 }
