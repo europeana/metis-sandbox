@@ -8,7 +8,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.ext.ScriptUtils;
 import org.testcontainers.jdbc.JdbcDatabaseDelegate;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * This class is meant to be used directly without extending from integration unit test classes that require an underlying
@@ -26,13 +25,10 @@ public class PostgresContainerInitializerIT {
   public static final String POSTGRES_VERSION = "postgres:9.6";
 
   static {
-    //Enable configuration reuse to avoid the warning message in the console, even though the re-usability works without it.
-    TestcontainersConfiguration.getInstance().updateUserConfig("testcontainers.reuse.enable", "true");
     postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION)
         .withDatabaseName("test")
         .withUsername("test")
-        .withPassword("test")
-        .withReuse(true);
+        .withPassword("test");
     postgreSQLContainer.start();
 
     logConfiguration();

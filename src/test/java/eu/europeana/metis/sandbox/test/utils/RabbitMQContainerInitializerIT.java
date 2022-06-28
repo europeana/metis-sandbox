@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.RabbitMQContainer;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 public class RabbitMQContainerInitializerIT {
 
@@ -17,12 +16,8 @@ public class RabbitMQContainerInitializerIT {
   public static final RabbitMQContainer rabbitMQContainer;
 
   static {
-    //Enable configuration reuse to avoid the warning message in the console, even though the re-usability works without it.
-    TestcontainersConfiguration.getInstance().updateUserConfig("testcontainers.reuse.enable", "true");
     rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION)
-        .withVhost(VIRTUAL_HOST)
-        .withReuse(true);
-
+        .withVhost(VIRTUAL_HOST);
     rabbitMQContainer.start();
 
     logConfiguration();
