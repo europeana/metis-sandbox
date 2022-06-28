@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
+import javax.annotation.PostConstruct;
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
 import org.springframework.amqp.core.Declarables;
@@ -17,72 +19,75 @@ import org.springframework.context.annotation.Configuration;
  * is a need to add a new queue in the future here is the place to do it
  */
 @Configuration
-public class AmqpConfiguration {
+class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
+  private final AmqpAdmin amqpAdmin;
 
-  @Value("${sandbox.rabbitmq.exchange.name}")
+  @Value("${sandbox.rabbitmq.exchange.name:#{null}}")
   private String exchange;
 
-  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  @Value("${sandbox.rabbitmq.exchange.dlq:#{null}}")
   private String exchangeDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.created.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.created.queue:#{null}}")
   private String createdQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.created.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.created.dlq:#{null}}")
   private String createdDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue:#{null}}")
   private String transformationToEdmExternalQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.dlq:#{null}}")
   private String transformationToEdmExternalDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.validated.external.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.queue:#{null}}")
   private String externalValidatedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.validated.external.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.dlq:#{null}}")
   private String externalValidatedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformed.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.transformed.queue:#{null}}")
   private String transformedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformed.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.transformed.dlq:#{null}}")
   private String transformedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.normalized.queue:#{null}}")
   private String normalizedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.normalized.dlq:#{null}}")
   private String normalizedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.internal.queue:#{null}}")
   private String internalValidatedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.validated.internal.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.internal.dlq:#{null}}")
   private String internalValidatedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.enriched.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.enriched.queue:#{null}}")
   private String enrichedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.enriched.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.enriched.dlq:#{null}}")
   private String enrichedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.media.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.media.queue:#{null}}")
   private String mediaProcessedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.media.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.media.dlq:#{null}}")
   private String mediaProcessedDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.published.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.published.queue:#{null}}")
   private String publishedQueue;
 
-  @Value("${sandbox.rabbitmq.queues.record.published.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.published.dlq:#{null}}")
   private String publishedDlq;
 
-  public AmqpConfiguration(MessageConverter messageConverter) {
+
+  public AmqpConfiguration(MessageConverter messageConverter, AmqpAdmin amqpAdmin) {
     this.messageConverter = messageConverter;
+    this.amqpAdmin = amqpAdmin;
   }
 
   @Bean
@@ -101,10 +106,6 @@ public class AmqpConfiguration {
     rabbitTemplate.setMessageConverter(messageConverter);
     rabbitTemplate.setExchange(exchange);
     return rabbitTemplate;
-  }
-
-  public String getExchange() {
-    return exchange;
   }
 
   @Bean
@@ -138,6 +139,7 @@ public class AmqpConfiguration {
 
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
+
   @SuppressWarnings("squid:S107")
   private Declarables getDeclarables(String exchange, String created,
       String transformationToEdmExternal, String externalValidated, String transformed,
@@ -180,6 +182,16 @@ public class AmqpConfiguration {
         QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(publishedDlq).build()
     );
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    //This will create the exchanges/queues on startup instead of waiting for first connection request
+    amqpAdmin.initialize();
+  }
+
+  public String getExchange() {
+    return exchange;
   }
 
   public String getExchangeDlq() {

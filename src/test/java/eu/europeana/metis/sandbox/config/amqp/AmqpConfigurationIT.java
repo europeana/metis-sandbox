@@ -4,6 +4,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
@@ -27,12 +28,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
-// TODO: 17/06/2022 FIX: This now reads the application.yml from src. If there is no application.yml, it uses value within @Value annotation. Needs fixing
 @RabbitListenerTest
 public class AmqpConfigurationIT {
 
