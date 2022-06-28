@@ -36,18 +36,5 @@ class SandboxApplicationIT {
     assertNotNull(applicationContext);
     assertNotNull(applicationContext.getBean(DataSource.class));
     assertNotNull(applicationContext.getBean(AmqpTemplate.class));
-
-    System.out.println(applicationContext.getDisplayName());
-    System.out.println(applicationContext.getId());
-
-    System.out.println(applicationContext.getEnvironment().getProperty("spring.jpa.hibernate.ddl-auto"));
-    System.out.println(applicationContext.getEnvironment().getProperty("spring.datasource.url"));
-    System.out.println(applicationContext.getEnvironment().getProperty("spring.datasource.driver-class-name"));
-    System.out.println(applicationContext.getEnvironment().getProperty("spring.datasource.driverClassName"));
-    System.out.println(applicationContext.getEnvironment().getProperty("sandbox.datasource.driverClassName"));
-    System.out.println(applicationContext.getEnvironment().getProperty("sandbox.datasource.driverClassName"));
-    System.out.println(applicationContext.getEnvironment().getProperty("sandbox.datasource.jdbcUrl"));
-
-    System.out.println();
   }
 }
