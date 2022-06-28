@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import java.util.List;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,23 +13,20 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@Sql(scripts = {"classpath:database/schema_drop.sql", "classpath:database/schema.sql"})
-@Sql(scripts = {"classpath:database/schema_problem_patterns_drop.sql", "classpath:database/schema_problem_patterns.sql"})
 class SandboxApplicationIT {
   // TODO: 27/06/2022 Mongo and Solr dbs should be fixed with relevant containers so that the
   //  eu.europeana.metis.sandbox.config.IndexingConfig.publishIndexer will not complain for IndexingServiceImpl
 
-  // TODO: 27/06/2022 Fix the default xslt initialization in eu.europeana.metis.sandbox.scheduler.XsltUrlUpdateScheduler.init.
-  // The configuration tries to insert to the db before the above Sql script it ran therefore it fails not finding the relevant table in the db
-
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgresContainerInitializerIT.properties(registry);
+    PostgresContainerInitializerIT.dynamicProperties(registry);
+    PostgresContainerInitializerIT.runScripts(List.of(
+        "database/schema_drop.sql", "database/schema.sql",
+        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
   }
 

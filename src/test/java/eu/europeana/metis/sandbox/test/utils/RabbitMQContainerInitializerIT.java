@@ -4,7 +4,6 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.RabbitMQContainer;
 
@@ -45,7 +44,6 @@ public class RabbitMQContainerInitializerIT {
     LOGGER.info("Admin password: {}", rabbitMQContainer.getAdminPassword());
   }
 
-  @DynamicPropertySource
   public static void properties(DynamicPropertyRegistry registry) {
     registry.add("spring.rabbitmq.host", rabbitMQContainer::getHost);
     registry.add("spring.rabbitmq.port", rabbitMQContainer::getAmqpPort);
