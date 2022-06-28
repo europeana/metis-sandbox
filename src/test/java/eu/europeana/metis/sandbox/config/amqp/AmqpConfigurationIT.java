@@ -36,8 +36,6 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
 @RabbitListenerTest
 public class AmqpConfigurationIT {
 
-  // TODO: 27/06/2022 If the container is not actually present the tests are successful somehow
-
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
     RabbitMQContainerInitializerIT.properties(registry);
