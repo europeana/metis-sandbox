@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
 import org.springframework.amqp.core.Declarables;
@@ -97,11 +96,11 @@ public class AmqpConfiguration {
   }
 
   @Bean
-  AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
-    var amqpTemplate = new RabbitTemplate(connectionFactory);
-    amqpTemplate.setMessageConverter(messageConverter);
-    amqpTemplate.setExchange(exchange);
-    return amqpTemplate;
+  public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+    RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+    rabbitTemplate.setMessageConverter(messageConverter);
+    rabbitTemplate.setExchange(exchange);
+    return rabbitTemplate;
   }
 
   public String getExchange() {
