@@ -6,11 +6,13 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Parent class for all consumer steps, generalizes the consumers action
@@ -19,6 +21,9 @@ class StepExecutor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StepExecutor.class);
   private final AmqpTemplate amqpTemplate;
+
+  @Autowired
+  private MetricsService metricsService;
 
   StepExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
@@ -45,6 +50,11 @@ class StepExecutor {
       amqpTemplate.convertAndSend(routingKey, output);
     } catch (RuntimeException rabbitException) {
       LOGGER.error("Queue step execution error", rabbitException);
+    }
+    try {
+      metricsService.processMetrics(recordInfoSupplier.get().getRecord().getDatasetId(), step);
+    } catch (RuntimeException metricsException) {
+      LOGGER.error("Metrics process error", metricsException);
     }
   }
 
