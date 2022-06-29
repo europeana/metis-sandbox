@@ -16,8 +16,10 @@ import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -47,6 +49,8 @@ public class AmqpConfigurationIT {
   private AmqpConfiguration amqpConfiguration;
   @Autowired
   private AmqpTemplate amqpTemplate;
+  @Autowired
+  private AmqpAdmin amqpAdmin;
 
   @BeforeAll
   static void beforeAll() {
@@ -55,6 +59,29 @@ public class AmqpConfigurationIT {
     final RecordInfo recordInfo = new RecordInfo(recordObject);
     //Step value doesn't matter in this test
     recordProcessEvent = new RecordProcessEvent(recordInfo, Step.PUBLISH, Status.SUCCESS);
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    amqpAdmin.purgeQueue(amqpConfiguration.getCreatedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getExternalValidatedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getTransformedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getTransformationToEdmExternalQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getInternalValidatedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getNormalizedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getEnrichedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getMediaProcessedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getPublishedQueue());
+
+    amqpAdmin.purgeQueue(amqpConfiguration.getCreatedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getExternalValidatedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getTransformedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getTransformationToEdmExternalDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getInternalValidatedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getNormalizedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getEnrichedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getMediaProcessedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getPublishedDlq());
   }
 
   @Test
