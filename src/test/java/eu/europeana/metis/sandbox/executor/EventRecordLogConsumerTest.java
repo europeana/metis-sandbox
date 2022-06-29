@@ -2,7 +2,9 @@ package eu.europeana.metis.sandbox.executor;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import eu.europeana.metis.sandbox.common.Status;
@@ -13,6 +15,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class EventRecordLogConsumerTest {
+
+  @Mock
+  private MetricsService metricsService;
 
   @Mock
   private RecordLogService recordLogService;
@@ -40,6 +46,7 @@ class EventRecordLogConsumerTest {
     consumer.logRecord(recordEvent);
 
     verify(recordLogService).logRecordEvent(any(RecordProcessEvent.class));
+    verify(metricsService).processMetrics(anyString());
   }
 
   @Test
@@ -55,5 +62,6 @@ class EventRecordLogConsumerTest {
     assertThrows(RecordProcessingException.class, () -> consumer.logRecord(recordEvent));
 
     verify(recordLogService).logRecordEvent(any(RecordProcessEvent.class));
+    verify(metricsService, never()).processMetrics(anyString());
   }
 }

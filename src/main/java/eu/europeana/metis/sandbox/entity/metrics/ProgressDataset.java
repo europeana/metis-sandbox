@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.checkerframework.checker.units.qual.C;
 
 /**
  * Entity class for keep track of metrics of datasets
@@ -20,39 +21,50 @@ public class ProgressDataset {
   private Long metricId;
 
   @Column(name = "dataset_id", nullable = false)
-  private Integer datasetId;
+  private Long datasetId;
 
-  @Column(name = "total", nullable = false)
-  private Integer total;
+  @Column(name = "total_records", nullable = false)
+  private Long total;
 
-  @Column(name = "processed", nullable = false)
-  private Integer processed;
+  @Column(name = "processed_records", nullable = false)
+  private Long processed;
+
+  @Column(name="status", nullable = false)
+  private String status;
 
   public ProgressDataset() {
     //Required for JPA
   }
 
-  public Integer getDatasetId() {
+  public Long getDatasetId() {
     return datasetId;
   }
 
-  public void setDatasetId(Integer datasetId) {
+  public void setDatasetId(Long datasetId) {
     this.datasetId = datasetId;
   }
 
-  public Integer getTotal() {
+  public Long getTotal() {
     return total;
   }
 
-  public void setTotal(Integer total) {
+  public void setTotal(Long total) {
     this.total = total;
   }
 
-  public Integer getProcessed() {
+  public Long getProcessed() {
     return processed;
   }
 
-  public void setProcessed(Integer processed) {
+  public void setProcessed(Long processed) {
     this.processed = processed;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
   }
 }

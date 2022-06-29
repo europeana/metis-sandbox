@@ -22,9 +22,6 @@ class StepExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(StepExecutor.class);
   private final AmqpTemplate amqpTemplate;
 
-  @Autowired
-  private MetricsService metricsService;
-
   StepExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
@@ -50,11 +47,6 @@ class StepExecutor {
       amqpTemplate.convertAndSend(routingKey, output);
     } catch (RuntimeException rabbitException) {
       LOGGER.error("Queue step execution error", rabbitException);
-    }
-    try {
-      metricsService.processMetrics(recordInfoSupplier.get().getRecord().getDatasetId(), step);
-    } catch (RuntimeException metricsException) {
-      LOGGER.error("Metrics process error", metricsException);
     }
   }
 
