@@ -21,10 +21,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.test.RabbitListenerTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -32,7 +32,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
-@RabbitListenerTest
+@ActiveProfiles("amqpconfiguration-test") // Use profile to avoid interfering queue listeners from other contexts
 public class AmqpConfigurationIT {
 
   @DynamicPropertySource
@@ -102,8 +102,6 @@ public class AmqpConfigurationIT {
   void testRoutingToDlq() {
     //Create and start all listener container throwing exception to force the dlq routing
     AtomicInteger messagesCounter = new AtomicInteger();
-    // TODO: 28/06/2022 Check if we can use a semaphore instead of awaitility.
-    // TODO: 28/06/2022 This seems fail in github at the moment
     final SimpleMessageListenerContainer throwingListenerContainer = new SimpleMessageListenerContainer(connectionFactory);
     throwingListenerContainer.setQueueNames(
         amqpConfiguration.getCreatedQueue(),
@@ -139,15 +137,15 @@ public class AmqpConfigurationIT {
       amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getPublishedQueue(), recordProcessEvent);
 
       //Await and check all dlqs
-      awaitDqlMessages(amqpConfiguration.getCreatedDlq());
-      awaitDqlMessages(amqpConfiguration.getExternalValidatedDlq());
-      awaitDqlMessages(amqpConfiguration.getTransformedDlq());
-      awaitDqlMessages(amqpConfiguration.getTransformationToEdmExternalDlq());
-      awaitDqlMessages(amqpConfiguration.getInternalValidatedDlq());
-      awaitDqlMessages(amqpConfiguration.getNormalizedDlq());
-      awaitDqlMessages(amqpConfiguration.getEnrichedDlq());
-      awaitDqlMessages(amqpConfiguration.getMediaProcessedDlq());
-      awaitDqlMessages(amqpConfiguration.getPublishedDlq());
+      awaitDlqMessages(amqpConfiguration.getCreatedDlq());
+      awaitDlqMessages(amqpConfiguration.getExternalValidatedDlq());
+      awaitDlqMessages(amqpConfiguration.getTransformedDlq());
+      awaitDlqMessages(amqpConfiguration.getTransformationToEdmExternalDlq());
+      awaitDlqMessages(amqpConfiguration.getInternalValidatedDlq());
+      awaitDlqMessages(amqpConfiguration.getNormalizedDlq());
+      awaitDlqMessages(amqpConfiguration.getEnrichedDlq());
+      awaitDlqMessages(amqpConfiguration.getMediaProcessedDlq());
+      awaitDlqMessages(amqpConfiguration.getPublishedDlq());
     } finally {
       //Stop if awaiting failed, so that other tests won't be impacted.
       throwingListenerContainer.stop();
@@ -156,7 +154,7 @@ public class AmqpConfigurationIT {
     assertEquals(9, messagesCounter.get());
   }
 
-  private void awaitDqlMessages(String routingKey) {
-    Awaitility.await().atMost(5, SECONDS).until(() -> amqpTemplate.receiveAndConvert(routingKey) != null);
+  private void awaitDlqMessages(String routingKey) {
+    Awaitility.await().atMost(2, SECONDS).until(() -> amqpTemplate.receiveAndConvert(routingKey) != null);
   }
 }
