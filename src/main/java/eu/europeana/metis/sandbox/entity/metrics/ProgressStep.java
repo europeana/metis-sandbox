@@ -17,8 +17,8 @@ public class ProgressStep {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long metric_id;
 
-  @Column(name = "dataset_id", nullable = false)
-  private Long datasetId;
+  @Column(name = "dataset_id", nullable = false, length = 20)
+  private String datasetId;
 
   @Column(name = "step", nullable = false)
   private String step;
@@ -35,11 +35,11 @@ public class ProgressStep {
   @Column(name = "warn", nullable = false)
   private Long warn;
 
-  public Long getDatasetId() {
+  public String getDatasetId() {
     return datasetId;
   }
 
-  public void setDatasetId(Long datasetId) {
+  public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
   }
 

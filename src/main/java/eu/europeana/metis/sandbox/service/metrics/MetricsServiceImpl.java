@@ -1,19 +1,21 @@
 package eu.europeana.metis.sandbox.service.metrics;
 
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.MetricsException;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.metrics.ProgressDataset;
 import eu.europeana.metis.sandbox.entity.metrics.ProgressStep;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.metrics.ProgressDatasetRepository;
 import eu.europeana.metis.sandbox.repository.metrics.ProgressStepRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,7 @@ public class MetricsServiceImpl implements MetricsService {
   @Override
   public DatasetMetrics datasetMetrics() {
     Map<String, Object> metricsMap = new ConcurrentHashMap<>();
-    metricsMap.put("DatasetCount", datasetRepository.count());
+    metricsMap.put("DatasetCount", progressDatasetRepository.count());
     DatasetMetrics datasetMetrics = new DatasetMetrics();
     datasetMetrics.setDatasetMetricsMap(metricsMap);
     return datasetMetrics;
@@ -58,9 +60,13 @@ public class MetricsServiceImpl implements MetricsService {
         lock.lock();
         LOGGER.debug("process metrics dataset-id:{} lock, Locked", datasetId);
         LOGGER.debug("Report processed:{} total:{}", report.getProcessedRecords(), report.getTotalRecords());
-        saveMetricsProgressByStep(datasetId, report);
-        saveMetricsProgressDataset(datasetId, report);
-      } catch (RuntimeException e) {
+        if (datasetDoesntExists(datasetId)) {
+          saveMetricsProgressByStep(datasetId, report);
+          Optional<DatasetEntity> datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId));
+          LocalDateTime startTimeStamp = datasetEntity.isPresent() ? datasetEntity.get().getCreatedDate() : LocalDateTime.now();
+          saveMetricsProgressDataset(datasetId, report, startTimeStamp, LocalDateTime.now());
+        }
+      } catch (MetricsException e) {
         LOGGER.error("Something went wrong during acquiring metrics", e);
       } finally {
         lock.unlock();
@@ -75,7 +81,7 @@ public class MetricsServiceImpl implements MetricsService {
           LOGGER.debug("step:{} total:{} success:{} fail:{} warn: {}", item.getStep().value(), item.getTotal(),
               item.getSuccess(), item.getFail(), item.getWarn());
           ProgressStep progressStep = new ProgressStep();
-          progressStep.setDatasetId(Long.valueOf(datasetId));
+          progressStep.setDatasetId(datasetId);
           progressStep.setStep(item.getStep().value());
           progressStep.setSuccess(item.getSuccess());
           progressStep.setFail(item.getFail());
@@ -86,12 +92,24 @@ public class MetricsServiceImpl implements MetricsService {
     );
   }
 
-  private void saveMetricsProgressDataset(String datasetId, ProgressInfoDto report) {
+  private void saveMetricsProgressDataset(String datasetId,
+      ProgressInfoDto report,
+      LocalDateTime startTimeStamp,
+      LocalDateTime endTimeStamp) {
+
     ProgressDataset progressDataset = new ProgressDataset();
-    progressDataset.setDatasetId(Long.valueOf(datasetId));
-    progressDataset.setProcessed(report.getProcessedRecords());
-    progressDataset.setTotal(report.getTotalRecords());
+    progressDataset.setDatasetId(datasetId);
+    progressDataset.setProcessedRecords(report.getProcessedRecords());
+    progressDataset.setTotalRecords(report.getTotalRecords());
     progressDataset.setStatus(report.getStatus().value());
+    progressDataset.setStartTimeStamp(startTimeStamp);
+    progressDataset.setEndTimeStamp(endTimeStamp);
+
     progressDatasetRepository.save(progressDataset);
+  }
+
+  private boolean datasetDoesntExists(String datasetId) {
+      ProgressDataset progressDataset = progressDatasetRepository.findByDatasetId(datasetId);
+      return progressDataset == null;
   }
 }

@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS metrics.progress_per_dataset
     dataset_id        VARCHAR(20) NOT NULL,
     total_records     INT         NOT NULL,
     processed_records INT         NOT NULL,
-    status            VARCHAR(30) NOT NULL
+    status            VARCHAR(30) NOT NULL,
+    start_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_timestamp TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS metrics.progress_per_step
