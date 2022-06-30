@@ -6,24 +6,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,7 +26,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,14 +35,10 @@ import org.springframework.util.MultiValueMap;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SandboxApplication.class)
-@AutoConfigureMockMvc
 class DatasetControllerIT {
 
   private final TestUtils testUtils = new TestUtils();
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
-
-  @Autowired
-  private MockMvc mvc;
 
   @Value("${local.server.port}")
   private int port;
@@ -85,22 +75,37 @@ class DatasetControllerIT {
                     new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
-
+    //TODO: How to know the correct dataset-id?
+    assertTrue(response.getBody().contains("\"dataset-id\":"));
   }
 
-//  @Test
-//  public void harvestDatasetWithUrl_expectStatus_accepted() throws Exception {
-//
-//    Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
-//    assertTrue(Files.exists(datasetPath));
-//
-//    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-//            .param("country", ITALY.xmlValue())
-//            .param("language", IT.xmlValue())
-//            .param("url", datasetPath.toUri().toString()))
-//        .andExpect(status().isAccepted());
-//  }
+  //TODO: Create harvestDatasetWithFile scenario with xslt file included
+
+  @Test
+  public void harvestDatasetWithUrl_expectStatus_accepted() {
+
+    Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+    assertTrue(Files.exists(datasetPath));
+
+    HttpHeaders requestHeaders = new HttpHeaders();
+    //As a request it is possible to upload a xsltFile, even if we don't want to include it,
+    //hence we set content ty as multipart_form_data
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, String> body
+            = new LinkedMultiValueMap<>();
+    body.add("url", datasetPath.toUri().toString());
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    ResponseEntity<String> response =
+            testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByUrl",
+                    new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+
+    assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+    assertNotNull(response.getBody());
+    //TODO: How to know the correct dataset-id?
+    assertTrue(response.getBody().contains("\"dataset-id\":"));
+  }
 //
 //  // TODO: This sort of integration test should be addressed differently,
 //  //  with wiremock or pointing to a local URL repository
