@@ -89,56 +89,56 @@ class DatasetControllerIT {
 
   }
 
-  @Test
-  public void harvestDatasetWithUrl_expectStatus_accepted() throws Exception {
-
-    Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
-    assertTrue(Files.exists(datasetPath));
-
-    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue())
-            .param("url", datasetPath.toUri().toString()))
-        .andExpect(status().isAccepted());
-  }
-
-  // TODO: This sort of integration test should be addressed differently,
-  //  with wiremock or pointing to a local URL repository
-  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
-
-    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue())
-            .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf")
-            .param("incremental", "false"))
-        .andExpect(status().isAccepted());
-  }
-
-  @Test
-  public void retrieveDataset_expectStatus_ok() throws Exception {
-    mvc.perform(get("/dataset/{id}", "1"))
-        .andExpect(status().isOk());
-  }
-
-  private static Stream<Arguments> provideZipTestFiles() {
-    return Stream.of(
-        Arguments.of("dataset-one", "dataset-valid-with-corrupt-record.zip"),
-        Arguments.of("dataset-two", "dataset-with-corrupt-records.zip"));
-  }
-
-  @ParameterizedTest
-  @MethodSource("provideZipTestFiles")
-  public void harvestDatasetWithFile_withCorruptRecords_expectStatus_accepted(final String datasetName, final String fileName)
-      throws Exception {
-    MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        testUtils.readFileToBytes("zip" + File.separator + fileName));
-
-    mvc.perform(multipart("/dataset/{name}/harvestByFile", datasetName)
-            .file(dataset)
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue()))
-        .andExpect(status().isAccepted());
-  }
+//  @Test
+//  public void harvestDatasetWithUrl_expectStatus_accepted() throws Exception {
+//
+//    Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
+//    assertTrue(Files.exists(datasetPath));
+//
+//    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+//            .param("country", ITALY.xmlValue())
+//            .param("language", IT.xmlValue())
+//            .param("url", datasetPath.toUri().toString()))
+//        .andExpect(status().isAccepted());
+//  }
+//
+//  // TODO: This sort of integration test should be addressed differently,
+//  //  with wiremock or pointing to a local URL repository
+//  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+//
+//    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+//            .param("country", ITALY.xmlValue())
+//            .param("language", IT.xmlValue())
+//            .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
+//            .param("setspec", "1073")
+//            .param("metadataformat", "rdf")
+//            .param("incremental", "false"))
+//        .andExpect(status().isAccepted());
+//  }
+//
+//  @Test
+//  public void retrieveDataset_expectStatus_ok() throws Exception {
+//    mvc.perform(get("/dataset/{id}", "1"))
+//        .andExpect(status().isOk());
+//  }
+//
+//  private static Stream<Arguments> provideZipTestFiles() {
+//    return Stream.of(
+//        Arguments.of("dataset-one", "dataset-valid-with-corrupt-record.zip"),
+//        Arguments.of("dataset-two", "dataset-with-corrupt-records.zip"));
+//  }
+//
+//  @ParameterizedTest
+//  @MethodSource("provideZipTestFiles")
+//  public void harvestDatasetWithFile_withCorruptRecords_expectStatus_accepted(final String datasetName, final String fileName)
+//      throws Exception {
+//    MockMultipartFile dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+//        testUtils.readFileToBytes("zip" + File.separator + fileName));
+//
+//    mvc.perform(multipart("/dataset/{name}/harvestByFile", datasetName)
+//            .file(dataset)
+//            .param("country", ITALY.xmlValue())
+//            .param("language", IT.xmlValue()))
+//        .andExpect(status().isAccepted());
+//  }
 }
