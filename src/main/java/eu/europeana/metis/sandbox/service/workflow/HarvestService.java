@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.workflow;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.domain.Record;
-
 import java.io.InputStream;
 
 

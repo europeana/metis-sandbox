@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
@@ -14,23 +14,6 @@ import java.util.List;
 public class ProgressInfoDto {
 
   public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
-
-  public enum Status {
-    HARVESTING_IDENTIFIERS("harvesting identifiers"),
-    COMPLETED("completed"),
-    IN_PROGRESS("in progress");
-
-    private final String value;
-
-    Status(String value) {
-      this.value = value;
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-  }
 
   @JsonProperty("portal-publish")
   private final String portalPublishUrl;

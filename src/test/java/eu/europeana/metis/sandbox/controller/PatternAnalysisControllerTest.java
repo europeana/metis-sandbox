@@ -86,7 +86,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.value())))
+       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
   }
@@ -122,7 +122,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.datasetId", is("datasetId")))
-            .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.value())))
+            .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
             .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
             .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
                     is(ProblemPatternDescription.ProblemPatternId.P2.toString())))
@@ -157,7 +157,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.value())))
+       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
   }
