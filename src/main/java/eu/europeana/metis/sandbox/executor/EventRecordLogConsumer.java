@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.executor;
 
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -8,9 +7,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes all events
- * <br/>
- * Save events to persistence store
+ * Consumes all events <br/> Save events to persistence store
  */
 @Component
 class EventRecordLogConsumer {
@@ -18,6 +15,7 @@ class EventRecordLogConsumer {
   private final RecordLogService recordLogService;
 
   private final MetricsService metricsService;
+
   public EventRecordLogConsumer(RecordLogService recordLogService, MetricsService metricsService) {
     this.recordLogService = recordLogService;
     this.metricsService = metricsService;

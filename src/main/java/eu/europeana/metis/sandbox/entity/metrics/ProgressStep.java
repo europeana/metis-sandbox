@@ -15,7 +15,7 @@ import javax.persistence.Table;
 public class ProgressStep {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long metric_id;
+  private Long metricId;
 
   @Column(name = "dataset_id", nullable = false, length = 20)
   private String datasetId;

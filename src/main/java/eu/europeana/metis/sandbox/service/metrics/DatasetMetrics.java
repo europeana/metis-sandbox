@@ -8,6 +8,7 @@ import java.util.Map;
 
 @JsonInclude(Include.NON_EMPTY)
 public class DatasetMetrics {
+
   private Map<String, Object> datasetMetricsMap;
 
   @JsonAnyGetter
@@ -15,6 +16,7 @@ public class DatasetMetrics {
     return datasetMetricsMap;
   }
 
+  @JsonAnySetter
   public void setDatasetMetricsMap(Map<String, Object> datasetMetricsMap) {
     this.datasetMetricsMap = datasetMetricsMap;
   }
