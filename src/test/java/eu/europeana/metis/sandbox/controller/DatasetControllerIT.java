@@ -78,7 +78,33 @@ class DatasetControllerIT {
     assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
   }
 
-  //TODO: Create harvestDatasetWithFile scenario with xslt file included
+  @Test
+  public void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
+    FileSystemResource dataset = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "dataset-valid-with-xslt-file.zip");
+    FileSystemResource xsltFile = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "xslt-file.xslt");
+
+
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body
+            = new LinkedMultiValueMap<>();
+    body.add("dataset", dataset);
+    body.add("xsltFile", xsltFile);
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+
+    ResponseEntity<String> response =
+            testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
+                    new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+    assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
+  }
 
   @Test
   public void harvestDatasetWithUrl_expectStatus_accepted() {
@@ -105,7 +131,33 @@ class DatasetControllerIT {
     assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
   }
 
-  //TODO: Create harvestDatasetWithFile scenario with xslt file included
+  @Test
+  public void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
+
+    Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-with-xslt-file.zip");
+    assertTrue(Files.exists(datasetPath));
+    FileSystemResource xsltFile = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "xslt-file.xslt");
+
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body
+            = new LinkedMultiValueMap<>();
+    body.add("url", datasetPath.toUri().toString());
+    body.add("xsltFile", xsltFile);
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    ResponseEntity<String> response =
+            testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByUrl",
+                    new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+
+    assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
+  }
+
 
 //
   // TODO: This sort of integration test should be addressed differently,
@@ -145,7 +197,8 @@ class DatasetControllerIT {
     assertNotNull(response.getBody());
 
 
-//TODO use dataset id retrieved from call
+    //TODO use dataset id retrieved from call
+    //TODO wait for it to be completed?
     ResponseEntity<String> getDatasetResponse =
             testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, "1");
 
