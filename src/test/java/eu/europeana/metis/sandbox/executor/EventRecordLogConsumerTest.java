@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.common.exception.MetricsException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -75,11 +74,11 @@ class EventRecordLogConsumerTest {
                        .recordId(1L).build();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
-    doThrow(new MetricsException("1", new Exception("Error Message")))
+    doThrow(new RuntimeException("1", new Exception("Error Message")))
         .when(metricsService)
         .processMetrics(anyString());
 
-    assertThrows(MetricsException.class, () -> consumer.logRecord(recordEvent));
+    assertThrows(RuntimeException.class, () -> consumer.logRecord(recordEvent));
 
     verify(recordLogService).logRecordEvent(any(RecordProcessEvent.class));
     verify(metricsService).processMetrics(anyString());
