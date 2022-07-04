@@ -12,8 +12,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,8 +42,12 @@ class DatasetControllerIT {
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
     PostgresContainerInitializerIT.dynamicProperties(registry);
-    PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop.sql", "database/schema.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
+  }
+
+  @BeforeEach
+  void cleanUpPostgres(){
+    PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop.sql", "database/schema.sql"));
   }
 
   private String getBaseUrl() {
@@ -68,7 +75,7 @@ class DatasetControllerIT {
                     new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().contains("\"dataset-id\""));
+    assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
   }
 
   //TODO: Create harvestDatasetWithFile scenario with xslt file included
@@ -95,7 +102,7 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().contains("\"dataset-id\""));
+    assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
   }
 
   //TODO: Create harvestDatasetWithFile scenario with xslt file included
@@ -147,6 +154,30 @@ class DatasetControllerIT {
     assertTrue(getDatasetResponse.getBody().contains("\"status\":"));
 
 
+  }
+
+  @Test
+  void getAllCountries_expectSuccess(){
+    ResponseEntity<String> response =
+            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/countries", String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+
+    List<Country> countries = Country.getCountryListSortedByName();
+    countries.forEach(country -> assertTrue(response.getBody().contains(country.xmlValue())));
+  }
+
+  @Test
+  void getAllLanguages_expectSuccess(){
+    ResponseEntity<String> response =
+            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/languages", String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+
+    List<Language> languages = Language.getLanguageListSortedByName();
+    languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
 
 }
