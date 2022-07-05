@@ -49,7 +49,7 @@ management:
     enabled-by-default: false
     web:
       exposure:
-        include: ["health", "info", "loggers", "metrics", "mappings", "scheduledtasks"]
+        include: ["health", "info", "loggers", "metrics", "scheduledtasks"]
 
   endpoint:
     health: # Shows application health information.
