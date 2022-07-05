@@ -64,9 +64,6 @@ management:
     metrics: # Shows ‘metrics’ information for the current application.
       enabled: true
 
-    mappings: # Displays a collated list of all @RequestMapping paths.
-      enabled: true
-
     scheduledtasks: # Displays the scheduled tasks in your application.
       enabled: true
 
