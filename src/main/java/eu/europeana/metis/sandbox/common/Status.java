@@ -7,11 +7,7 @@ package eu.europeana.metis.sandbox.common;
 public enum Status {
   SUCCESS("Success"),
   FAIL("Error"),
-  WARN("Warning"),
-  HARVESTING_IDENTIFIERS("Harvesting Identifiers"),
-  COMPLETED("Completed"),
-  IN_PROGRESS("In Progress");
-
+  WARN("Warning");
   private final String value;
 
   Status(String value) {
