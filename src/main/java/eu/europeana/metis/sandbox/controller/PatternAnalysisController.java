@@ -23,13 +23,17 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,9 +105,8 @@ public class PatternAnalysisController {
                                               datasetId, Step.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
                                         }).map(analysis -> new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(analysis), HttpStatus.OK))
                                         .orElseGet(() -> new ResponseEntity<>(
-                                            new DatasetProblemPatternAnalysisView<>(
-                                                new DatasetProblemPatternAnalysis<>("0", null, null,
-                                                    new ArrayList<>())), HttpStatus.NOT_FOUND));
+                                            DatasetProblemPatternAnalysisView.getEmptyDatasetProblemPatternAnalysisView(),
+                                            HttpStatus.NOT_FOUND));
   }
 
   private void finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {
@@ -184,19 +187,24 @@ public class PatternAnalysisController {
       this.problemPatternList = getSortedProblemPatternList(datasetProblemPatternAnalysis);
     }
 
+    private static <T> DatasetProblemPatternAnalysisView<T> getEmptyDatasetProblemPatternAnalysisView() {
+      return new DatasetProblemPatternAnalysisView<>(new DatasetProblemPatternAnalysis<>("0", null, null,
+          new ArrayList<>()));
+    }
+
     @NotNull
     private List<ProblemPattern> getSortedProblemPatternList(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
       return datasetProblemPatternAnalysis
-              .getProblemPatternList()
-              .stream()
-              .map(currentPattern -> new ProblemPattern(currentPattern.getProblemPatternDescription(),
-                      currentPattern.getRecordOccurrences(),
-                      currentPattern.getRecordAnalysisList()
-                              .stream()
-                              .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
-                              .collect(Collectors.toList())))
-              .sorted(Comparator.comparing(elem -> elem.getProblemPatternDescription().getProblemPatternId()))
-              .collect(Collectors.toList());
+          .getProblemPatternList()
+          .stream()
+          .map(problemPattern -> new ProblemPattern(problemPattern.getProblemPatternDescription(),
+              problemPattern.getRecordOccurrences(),
+              problemPattern.getRecordAnalysisList()
+                            .stream()
+                            .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
+                            .collect(Collectors.toList())))
+          .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
+          .collect(Collectors.toList());
     }
   }
 
