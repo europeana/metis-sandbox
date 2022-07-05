@@ -65,7 +65,6 @@ public class ProgressInfoDto {
       this.value = value;
     }
 
-    @JsonValue
     public String value() {
       return value;
     }
