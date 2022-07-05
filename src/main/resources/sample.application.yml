@@ -41,6 +41,33 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: ["health", "info", "loggers", "metrics", "mappings", "scheduledtasks", "sandbox-metrics"]
+
+  endpoint:
+    health: # Shows application health information.
+      enabled: true
+
+    info: # Displays arbitrary application info.
+      enabled: true
+
+    loggers: # Shows and modifies the configuration of loggers in the application.
+      enabled: true
+
+    metrics: # Shows ‘metrics’ information for the current application.
+      enabled: true
+
+    mappings: # Displays a collated list of all @RequestMapping paths.
+      enabled: true
+
+    scheduledtasks: # Displays the scheduled tasks in your application.
+      enabled: true
+
 sandbox:
   cors:
     mapping: '*'
