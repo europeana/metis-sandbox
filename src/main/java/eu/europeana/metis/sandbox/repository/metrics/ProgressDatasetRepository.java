@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.repository.metrics;
 
-import eu.europeana.metis.sandbox.entity.metrics.ProgressDataset;
+import eu.europeana.metis.sandbox.entity.metrics.ProgressDatasetEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProgressDatasetRepository extends JpaRepository<ProgressDataset, Integer> {
+public interface ProgressDatasetRepository extends JpaRepository<ProgressDatasetEntity, Integer> {
 
-  ProgressDataset findByDatasetId(String datasetId);
+  ProgressDatasetEntity findByDatasetId(String datasetId);
 }

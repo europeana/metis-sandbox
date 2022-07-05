@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.repository.metrics;
 
-import eu.europeana.metis.sandbox.entity.metrics.ProgressStep;
+import eu.europeana.metis.sandbox.entity.metrics.ProgressStepEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProgressStepRepository extends JpaRepository<ProgressStep, Integer> {
+public interface ProgressStepRepository extends JpaRepository<ProgressStepEntity, Integer> {
 
-  ProgressStep findByDatasetIdAndStep(String datasetId, String step);
+  ProgressStepEntity findByDatasetIdAndStep(String datasetId, String step);
 }

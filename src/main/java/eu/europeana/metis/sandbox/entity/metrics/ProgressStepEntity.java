@@ -12,7 +12,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(schema="metrics", name="progress_per_step")
-public class ProgressStep {
+public class ProgressStepEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long metricId;

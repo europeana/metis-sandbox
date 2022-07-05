@@ -3,8 +3,8 @@ package eu.europeana.metis.sandbox.service.metrics;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.metrics.ProgressDataset;
-import eu.europeana.metis.sandbox.entity.metrics.ProgressStep;
+import eu.europeana.metis.sandbox.entity.metrics.ProgressDatasetEntity;
+import eu.europeana.metis.sandbox.entity.metrics.ProgressStepEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.metrics.ProgressDatasetRepository;
 import eu.europeana.metis.sandbox.repository.metrics.ProgressStepRepository;
@@ -93,65 +93,66 @@ public class MetricsServiceImpl implements MetricsService {
           LOGGER.debug("step:{} total:{} success:{} fail:{} warn: {}",
               item.getStep().value(), item.getTotal(),
               item.getSuccess(), item.getFail(), item.getWarn());
-          ProgressStep progressStep = findStepProgress(datasetId, item.getStep());
-          if (progressStep == null) {
-            progressStep = new ProgressStep();
-            progressStep.setDatasetId(datasetId);
-            progressStep.setStep(item.getStep().value());
+          ProgressStepEntity progressStepEntity = findProgressStep(datasetId, item.getStep());
+          if (progressStepEntity == null) {
+            progressStepEntity = new ProgressStepEntity();
+            progressStepEntity.setDatasetId(datasetId);
+            progressStepEntity.setStep(item.getStep().value());
           }
-          progressStep.setSuccess(item.getSuccess());
-          progressStep.setFail(item.getFail());
-          progressStep.setWarn(item.getWarn());
-          progressStep.setTotal(item.getTotal());
-          progressStepRepository.save(progressStep);
+          progressStepEntity.setSuccess(item.getSuccess());
+          progressStepEntity.setFail(item.getFail());
+          progressStepEntity.setWarn(item.getWarn());
+          progressStepEntity.setTotal(item.getTotal());
+          progressStepRepository.save(progressStepEntity);
         }
     );
   }
 
   private void saveMetricsProgressDataset(String datasetId, ProgressInfoDto report) {
-    ProgressDataset progressDataset = findProgressDataset(datasetId);
-    if (progressDataset == null) {
+    ProgressDatasetEntity progressDatasetEntity = findProgressDataset(datasetId);
+    if (progressDatasetEntity == null) {
       Optional<DatasetEntity> datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId));
       LocalDateTime startTimeStamp = datasetEntity.isPresent() ? datasetEntity.get().getCreatedDate() : LocalDateTime.now();
-      progressDataset = new ProgressDataset();
-      progressDataset.setDatasetId(datasetId);
-      progressDataset.setStartTimeStamp(startTimeStamp);
+      progressDatasetEntity = new ProgressDatasetEntity();
+      progressDatasetEntity.setDatasetId(datasetId);
+      progressDatasetEntity.setStartTimeStamp(startTimeStamp);
     } else {
-      progressDataset = progressDatasetRepository.findByDatasetId(datasetId);
+      progressDatasetEntity = progressDatasetRepository.findByDatasetId(datasetId);
     }
-    progressDataset.setProcessedRecords(report.getProcessedRecords());
-    progressDataset.setTotalRecords(report.getTotalRecords());
-    progressDataset.setStatus(report.getStatus().value());
-    progressDataset.setEndTimeStamp(LocalDateTime.now());
-    progressDatasetRepository.save(progressDataset);
+    progressDatasetEntity.setProcessedRecords(report.getProcessedRecords());
+    progressDatasetEntity.setTotalRecords(report.getTotalRecords());
+    progressDatasetEntity.setStatus(report.getStatus().value());
+    progressDatasetEntity.setEndTimeStamp(LocalDateTime.now());
+    progressDatasetRepository.save(progressDatasetEntity);
   }
 
-  private ProgressDataset findProgressDataset(String datasetId) {
-    ProgressDataset progressDataset = progressDatasetRepository.findByDatasetId(datasetId);
-    return progressDataset;
+  private ProgressDatasetEntity findProgressDataset(String datasetId) {
+    return progressDatasetRepository.findByDatasetId(datasetId);
   }
 
-  private ProgressStep findStepProgress(String datasetId, Step step) {
-    ProgressStep progressStep = progressStepRepository.findByDatasetIdAndStep(datasetId, step.value());
-    return progressStep;
+  private ProgressStepEntity findProgressStep(String datasetId, Step step) {
+    return progressStepRepository.findByDatasetIdAndStep(datasetId, step.value());
   }
 
   private void getProgressDatasetMetrics(Map<String, Object> metricsMap) {
-    List<ProgressDataset> progressDatasets = progressDatasetRepository.findAll();
+    List<ProgressDatasetEntity> progressDatasetEntities = progressDatasetRepository.findAll();
 
-    LongSummaryStatistics totalStatistics = progressDatasets.stream()
-                                                            .mapToLong(ProgressDataset::getTotalRecords)
-                                                            .summaryStatistics();
+    LongSummaryStatistics totalStatistics =
+        progressDatasetEntities.stream()
+                               .mapToLong(ProgressDatasetEntity::getTotalRecords)
+                               .summaryStatistics();
 
-    LongSummaryStatistics processedStatistics = progressDatasets.stream()
-                                                                .mapToLong(ProgressDataset::getProcessedRecords)
-                                                                .summaryStatistics();
+    LongSummaryStatistics processedStatistics =
+        progressDatasetEntities.stream()
+                               .mapToLong(ProgressDatasetEntity::getProcessedRecords)
+                               .summaryStatistics();
 
-    LongSummaryStatistics durationStatistics = progressDatasets.stream()
-                                                               .mapToLong(
-                                                                   item -> Duration.between(item.getStartTimeStamp(),
-                                                                       item.getEndTimeStamp()).toSeconds())
-                                                               .summaryStatistics();
+    LongSummaryStatistics durationStatistics =
+        progressDatasetEntities.stream()
+                               .mapToLong(
+                                   item -> Duration.between(item.getStartTimeStamp(),
+                                       item.getEndTimeStamp()).toSeconds())
+                               .summaryStatistics();
     Map<String, Object> master = new HashMap<>();
     addMetricToOverview(totalStatistics, master, "TotalRecords");
     addMetricToOverview(processedStatistics, master, "ProcessedRecords");
@@ -161,47 +162,54 @@ public class MetricsServiceImpl implements MetricsService {
   }
 
   private void getProgressStepMetrics(Map<String, Object> metricsMap) {
-    List<ProgressStep> progressSteps = progressStepRepository.findAll();
+    List<ProgressStepEntity> progressStepEntities = progressStepRepository.findAll();
     Map<String, Object> stepCategory = new HashMap<>();
-    stepMetrics(stepCategory, progressSteps, Step.HARVEST_ZIP);
-    stepMetrics(stepCategory, progressSteps, Step.HARVEST_OAI_PMH);
-    stepMetrics(stepCategory, progressSteps, Step.VALIDATE_EXTERNAL);
-    stepMetrics(stepCategory, progressSteps, Step.TRANSFORM);
-    stepMetrics(stepCategory, progressSteps, Step.VALIDATE_INTERNAL);
-    stepMetrics(stepCategory, progressSteps, Step.NORMALIZE);
-    stepMetrics(stepCategory, progressSteps, Step.ENRICH);
-    stepMetrics(stepCategory, progressSteps, Step.MEDIA_PROCESS);
-    stepMetrics(stepCategory, progressSteps, Step.PUBLISH);
+    stepMetrics(stepCategory, progressStepEntities, Step.HARVEST_ZIP);
+    stepMetrics(stepCategory, progressStepEntities, Step.HARVEST_OAI_PMH);
+    stepMetrics(stepCategory, progressStepEntities, Step.VALIDATE_EXTERNAL);
+    stepMetrics(stepCategory, progressStepEntities, Step.TRANSFORM);
+    stepMetrics(stepCategory, progressStepEntities, Step.VALIDATE_INTERNAL);
+    stepMetrics(stepCategory, progressStepEntities, Step.NORMALIZE);
+    stepMetrics(stepCategory, progressStepEntities, Step.ENRICH);
+    stepMetrics(stepCategory, progressStepEntities, Step.MEDIA_PROCESS);
+    stepMetrics(stepCategory, progressStepEntities, Step.PUBLISH);
     metricsMap.put("MetricsByStep", stepCategory);
   }
 
-  private void stepMetrics(Map<String, Object> category, List<ProgressStep> progressSteps, Step step) {
-    LongSummaryStatistics totalHarvestZipStatistics = progressSteps.stream()
-                                                                   .filter(progressStep -> progressStep.getStep().equals(
-                                                                       step.value()))
-                                                                   .mapToLong(ProgressStep::getTotal)
-                                                                   .summaryStatistics();
-    LongSummaryStatistics successHarvestZipStatistics = progressSteps.stream()
-                                                                     .filter(progressStep -> progressStep.getStep().equals(
-                                                                         step.value()))
-                                                                     .mapToLong(ProgressStep::getSuccess)
-                                                                     .summaryStatistics();
-    LongSummaryStatistics failHarvestZipStatistics = progressSteps.stream()
-                                                                  .filter(progressStep -> progressStep.getStep().equals(
-                                                                      step.value()))
-                                                                  .mapToLong(ProgressStep::getFail)
-                                                                  .summaryStatistics();
-    LongSummaryStatistics warnHarvestZipStatistics = progressSteps.stream()
-                                                                  .filter(progressStep -> progressStep.getStep().equals(
-                                                                      step.value()))
-                                                                  .mapToLong(ProgressStep::getWarn)
-                                                                  .summaryStatistics();
+  private void stepMetrics(Map<String, Object> category, List<ProgressStepEntity> progressStepEntities, Step step) {
+    LongSummaryStatistics totalStepStatistics =
+        progressStepEntities.stream()
+                            .filter(progressStepEntity ->
+                                progressStepEntity.getStep().equals(step.value()))
+                            .mapToLong(ProgressStepEntity::getTotal)
+                            .summaryStatistics();
+
+    LongSummaryStatistics successStepStatistics =
+        progressStepEntities.stream()
+                            .filter(progressStepEntity ->
+                                progressStepEntity.getStep().equals(step.value()))
+                            .mapToLong(ProgressStepEntity::getSuccess)
+                            .summaryStatistics();
+
+    LongSummaryStatistics failStepStatistics =
+        progressStepEntities.stream()
+                            .filter(progressStepEntity ->
+                                progressStepEntity.getStep().equals(step.value()))
+                            .mapToLong(ProgressStepEntity::getFail)
+                            .summaryStatistics();
+
+    LongSummaryStatistics warnStepStatistics =
+        progressStepEntities.stream()
+                            .filter(progressStepEntity ->
+                                progressStepEntity.getStep().equals(step.value()))
+                            .mapToLong(ProgressStepEntity::getWarn)
+                            .summaryStatistics();
 
     Map<String, Object> master = new HashMap<>();
-    addMetricToOverview(totalHarvestZipStatistics, master, "TotalRecords");
-    addMetricToOverview(successHarvestZipStatistics, master, "SuccessRecords");
-    addMetricToOverview(failHarvestZipStatistics, master, "FailRecords");
-    addMetricToOverview(warnHarvestZipStatistics, master, "WarnRecords");
+    addMetricToOverview(totalStepStatistics, master, "TotalRecords");
+    addMetricToOverview(successStepStatistics, master, "SuccessRecords");
+    addMetricToOverview(failStepStatistics, master, "FailRecords");
+    addMetricToOverview(warnStepStatistics, master, "WarnRecords");
     category.put(step.value(), master);
   }
 

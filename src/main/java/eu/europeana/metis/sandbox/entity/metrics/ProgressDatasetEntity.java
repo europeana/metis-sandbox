@@ -13,7 +13,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(schema = "metrics", name = "progress_per_dataset")
-public class ProgressDataset {
+public class ProgressDatasetEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class ProgressDataset {
   @Column(name="end_timestamp", nullable = false)
   private LocalDateTime endTimeStamp;
 
-  public ProgressDataset() {
+  public ProgressDatasetEntity() {
     //Required for JPA
   }
 

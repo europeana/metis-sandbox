@@ -18,8 +18,8 @@ import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.metrics.ProgressDataset;
-import eu.europeana.metis.sandbox.entity.metrics.ProgressStep;
+import eu.europeana.metis.sandbox.entity.metrics.ProgressDatasetEntity;
+import eu.europeana.metis.sandbox.entity.metrics.ProgressStepEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.metrics.ProgressDatasetRepository;
 import eu.europeana.metis.sandbox.repository.metrics.ProgressStepRepository;
@@ -78,8 +78,8 @@ class MetricsServiceImplTest {
 
     verify(datasetRepository).findById(any());
     verify(datasetReportService).getReport(anyString());
-    verify(progressDatasetRepository).save(any(ProgressDataset.class));
-    verify(progressStepRepository, times(8)).save(any(ProgressStep.class));
+    verify(progressDatasetRepository).save(any(ProgressDatasetEntity.class));
+    verify(progressStepRepository, times(8)).save(any(ProgressStepEntity.class));
   }
 
   @Test
@@ -99,9 +99,9 @@ class MetricsServiceImplTest {
     metricsService.processMetrics("1");
 
     verify(datasetRepository, never()).findById(any());
-    verify(progressDatasetRepository).save(any(ProgressDataset.class));
+    verify(progressDatasetRepository).save(any(ProgressDatasetEntity.class));
     verify(progressStepRepository, times(8)).findByDatasetIdAndStep(anyString(), anyString());
-    verify(progressStepRepository, times(8)).save(any(ProgressStep.class));
+    verify(progressStepRepository, times(8)).save(any(ProgressStepEntity.class));
   }
 
   @Test
@@ -112,9 +112,9 @@ class MetricsServiceImplTest {
     metricsService.processMetrics("1");
 
     verify(datasetReportService).getReport(anyString());
-    verify(progressDatasetRepository, never()).save(any(ProgressDataset.class));
+    verify(progressDatasetRepository, never()).save(any(ProgressDatasetEntity.class));
     verify(progressStepRepository, never()).findByDatasetIdAndStep(anyString(), anyString());
-    verify(progressStepRepository, never()).save(any(ProgressStep.class));
+    verify(progressStepRepository, never()).save(any(ProgressStepEntity.class));
   }
 
   private void verifyMetrics(DatasetMetrics datasetMetrics) {
@@ -136,20 +136,20 @@ class MetricsServiceImplTest {
     assertTrue(((Map<String, Object>) datasetMetrics.getDatasetMetricsMap().get("MetricsByStep")).containsKey(Step.PUBLISH.value()));
   }
 
-  private List<ProgressDataset> getProgressDatasetRepository() {
+  private List<ProgressDatasetEntity> getProgressDatasetRepository() {
     return List.of(getProgressDataset());
   }
 
   @NotNull
-  private ProgressDataset getProgressDataset() {
-    ProgressDataset progressDataset = new ProgressDataset();
-    progressDataset.setDatasetId("1");
-    progressDataset.setProcessedRecords(40L);
-    progressDataset.setTotalRecords(100L);
-    progressDataset.setStatus("in progress");
-    progressDataset.setStartTimeStamp(LocalDateTime.now().minusSeconds(10));
-    progressDataset.setEndTimeStamp(LocalDateTime.now().minusSeconds(10));
-    return progressDataset;
+  private ProgressDatasetEntity getProgressDataset() {
+    ProgressDatasetEntity progressDatasetEntity = new ProgressDatasetEntity();
+    progressDatasetEntity.setDatasetId("1");
+    progressDatasetEntity.setProcessedRecords(40L);
+    progressDatasetEntity.setTotalRecords(100L);
+    progressDatasetEntity.setStatus("in progress");
+    progressDatasetEntity.setStartTimeStamp(LocalDateTime.now().minusSeconds(10));
+    progressDatasetEntity.setEndTimeStamp(LocalDateTime.now().minusSeconds(10));
+    return progressDatasetEntity;
   }
 
   @NotNull
@@ -158,37 +158,37 @@ class MetricsServiceImplTest {
   }
 
   @NotNull
-  private List<ProgressStep> getProgressStepRepository() {
+  private List<ProgressStepEntity> getProgressStepRepository() {
     return List.of(
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.HARVEST_ZIP.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.VALIDATE_EXTERNAL.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.TRANSFORM.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.VALIDATE_INTERNAL.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.NORMALIZE.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.ENRICH.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.MEDIA_PROCESS.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }},
-        new ProgressStep() {{
+        new ProgressStepEntity() {{
           setStep(Step.PUBLISH.value()); setSuccess(100L); setTotal(100L);
           setWarn(0L); setFail(0L); setDatasetId("1");
         }}
