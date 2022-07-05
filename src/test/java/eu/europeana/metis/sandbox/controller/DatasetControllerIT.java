@@ -17,17 +17,21 @@ import java.util.List;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.scheduler.XsltUrlUpdateScheduler;
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -38,6 +42,9 @@ class DatasetControllerIT {
 
   private final TestUtils testUtils = new TestUtils();
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
+
+  @Autowired
+  private XsltUrlUpdateScheduler xsltUrlUpdateScheduler;
 
   @Value("${local.server.port}")
   private int port;
@@ -51,6 +58,8 @@ class DatasetControllerIT {
   @BeforeEach
   void cleanUpPostgres(){
     PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop.sql", "database/schema.sql"));
+    xsltUrlUpdateScheduler.updateDefaultXsltUrl();
+    System.out.println("testing");
   }
 
   private String getBaseUrl() {
@@ -176,24 +185,24 @@ class DatasetControllerIT {
   }
 
   @Test
-  void computeRecordTierCalculation_expectedSuccess() {
-//    FileSystemResource dataset = new FileSystemResource(
-//            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-//                    File.separator + "dataset-valid.zip");
-//    ResponseEntity<String> responseHarvestingDataset = makeHarvestingByFile(dataset, null);
-//    assertEquals(HttpStatus.ACCEPTED, responseHarvestingDataset.getStatusCode());
-//    assertNotNull(responseHarvestingDataset.getBody());
-//
-//    Awaitility.await().atMost(1, MINUTES).until(() -> testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
-//            String.class, "1", "URN:NBN:SI:doc-35SZSOCF").getStatusCode() != HttpStatus.NOT_FOUND);
-//
-//    ResponseEntity<String> response =
-//            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
-//                    String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF");
-//
-//
-//    assertEquals(HttpStatus.OK, response.getStatusCode());
-//    assertNotNull(response.getBody());
+  void computeRecordTierCalculation_expectedSuccess() throws InterruptedException {
+    FileSystemResource dataset = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "dataset-valid.zip");
+    ResponseEntity<String> responseHarvestingDataset = makeHarvestingByFile(dataset, null);
+    assertEquals(HttpStatus.ACCEPTED, responseHarvestingDataset.getStatusCode());
+    assertNotNull(responseHarvestingDataset.getBody());
+
+//    Awaitility.await().atMost(10, SECONDS).until(() -> testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
+//            String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF").getStatusCode() != HttpStatus.NOT_FOUND);
+    Thread.sleep(10000);
+    ResponseEntity<String> response =
+            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
+                    String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF");
+
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
 
   }
 
