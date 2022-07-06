@@ -71,6 +71,7 @@ class SandboxConfig {
   @Value("${sandbox.validation.edm-sorter-url}")
   private String edmSorterUrl;
 
+  @Value("${sandbox.transformation.xslt-url}")
   private String defaultXsltUrl;
 
   @Value("${sandbox.portal.publish.record-base-url}")
@@ -189,14 +190,6 @@ class SandboxConfig {
   @ConfigurationProperties(prefix = "sandbox.validation")
   Schema schema() {
     return new Schema();
-  }
-
-  @Value("${sandbox.transformation.xslt-url}")
-  void setDefaultXsltUrl(String defaultXsltUrl) {
-    if (defaultXsltUrl == null || defaultXsltUrl.isEmpty()) {
-      throw new IllegalArgumentException("defaultXsltUrl not provided");
-    }
-    this.defaultXsltUrl = defaultXsltUrl;
   }
 
   private Properties schemaProperties() {

@@ -18,8 +18,7 @@ public class XsltUrlUpdateScheduler {
     this.xsltUrlUpdateService = xsltUrlUpdateService;
   }
 
-  // "0 0 * * * *" = every hour of every day.
-  @Scheduled(cron = "0 0 * * * *")
+  @Scheduled(cron = "${sandbox.transformation.xslt-update-frequency:0 0 * * * *}")
   public void updateDefaultXsltUrl() {
     xsltUrlUpdateService.updateXslt(defaultXsltUrl);
   }
