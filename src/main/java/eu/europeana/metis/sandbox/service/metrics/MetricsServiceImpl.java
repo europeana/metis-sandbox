@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
+import java.util.function.ToLongFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.endpoint.annotation.DeleteOperation;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 public class MetricsServiceImpl implements MetricsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MetricsServiceImpl.class);
+
   private final Map<String, Lock> metricsLocksMap = new ConcurrentHashMap<>();
 
   private final DatasetRepository datasetRepository;
@@ -55,9 +58,10 @@ public class MetricsServiceImpl implements MetricsService {
   @Override
   public DatasetMetrics datasetMetrics() {
     Map<String, Object> metricsMap = new ConcurrentHashMap<>();
-    getProgressDatasetMetrics(metricsMap);
-    getProgressStepMetrics(metricsMap);
     DatasetMetrics datasetMetrics = new DatasetMetrics();
+
+    metricsMap.putAll(getMapProgressDatasetMetrics());
+    metricsMap.putAll(getMapProgressStepMetrics());
     datasetMetrics.setDatasetMetricsMap(metricsMap);
     return datasetMetrics;
   }
@@ -93,7 +97,7 @@ public class MetricsServiceImpl implements MetricsService {
           LOGGER.debug("step:{} total:{} success:{} fail:{} warn: {}",
               item.getStep().value(), item.getTotal(),
               item.getSuccess(), item.getFail(), item.getWarn());
-          ProgressStepEntity progressStepEntity = findProgressStep(datasetId, item.getStep());
+          ProgressStepEntity progressStepEntity = progressStepRepository.findByDatasetIdAndStep(datasetId, item.getStep().value());
           if (progressStepEntity == null) {
             progressStepEntity = new ProgressStepEntity();
             progressStepEntity.setDatasetId(datasetId);
@@ -109,15 +113,13 @@ public class MetricsServiceImpl implements MetricsService {
   }
 
   private void saveMetricsProgressDataset(String datasetId, ProgressInfoDto report) {
-    ProgressDatasetEntity progressDatasetEntity = findProgressDataset(datasetId);
+    ProgressDatasetEntity progressDatasetEntity = progressDatasetRepository.findByDatasetId(datasetId);
     if (progressDatasetEntity == null) {
       Optional<DatasetEntity> datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId));
       LocalDateTime startTimeStamp = datasetEntity.isPresent() ? datasetEntity.get().getCreatedDate() : LocalDateTime.now();
       progressDatasetEntity = new ProgressDatasetEntity();
       progressDatasetEntity.setDatasetId(datasetId);
       progressDatasetEntity.setStartTimeStamp(startTimeStamp);
-    } else {
-      progressDatasetEntity = progressDatasetRepository.findByDatasetId(datasetId);
     }
     progressDatasetEntity.setProcessedRecords(report.getProcessedRecords());
     progressDatasetEntity.setTotalRecords(report.getTotalRecords());
@@ -126,101 +128,96 @@ public class MetricsServiceImpl implements MetricsService {
     progressDatasetRepository.save(progressDatasetEntity);
   }
 
-  private ProgressDatasetEntity findProgressDataset(String datasetId) {
-    return progressDatasetRepository.findByDatasetId(datasetId);
-  }
-
-  private ProgressStepEntity findProgressStep(String datasetId, Step step) {
-    return progressStepRepository.findByDatasetIdAndStep(datasetId, step.value());
-  }
-
-  private void getProgressDatasetMetrics(Map<String, Object> metricsMap) {
+  private Map<String, Object> getMapProgressDatasetMetrics() {
+    Map<String, Object> progressDatasetMetricsMap = new HashMap<>();
     List<ProgressDatasetEntity> progressDatasetEntities = progressDatasetRepository.findAll();
 
     LongSummaryStatistics totalStatistics =
-        progressDatasetEntities.stream()
-                               .mapToLong(ProgressDatasetEntity::getTotalRecords)
-                               .summaryStatistics();
+        calcDatasetStatistics(progressDatasetEntities, ProgressDatasetEntity::getTotalRecords);
 
     LongSummaryStatistics processedStatistics =
-        progressDatasetEntities.stream()
-                               .mapToLong(ProgressDatasetEntity::getProcessedRecords)
-                               .summaryStatistics();
+        calcDatasetStatistics(progressDatasetEntities, ProgressDatasetEntity::getProcessedRecords);
 
     LongSummaryStatistics durationStatistics =
-        progressDatasetEntities.stream()
-                               .mapToLong(
-                                   item -> Duration.between(item.getStartTimeStamp(),
-                                       item.getEndTimeStamp()).toSeconds())
-                               .summaryStatistics();
+        calcDatasetStatistics(progressDatasetEntities, item -> Duration.between(item.getStartTimeStamp(),
+            item.getEndTimeStamp()).toSeconds());
+
     Map<String, Object> master = new HashMap<>();
-    addMetricToOverview(totalStatistics, master, "TotalRecords");
-    addMetricToOverview(processedStatistics, master, "ProcessedRecords");
-    addMetricToOverview(durationStatistics, master, "Duration");
+    master.putAll(getStatisticsFromCategory(totalStatistics, "TotalRecords"));
+    master.putAll(getStatisticsFromCategory(processedStatistics, "ProcessedRecords"));
+    master.putAll(getStatisticsFromCategory(durationStatistics, "Duration"));
     master.put("DatasetCount", progressDatasetRepository.count());
-    metricsMap.put("MetricsByDataset", master);
+    progressDatasetMetricsMap.put("MetricsByDataset", master);
+    return progressDatasetMetricsMap;
   }
 
-  private void getProgressStepMetrics(Map<String, Object> metricsMap) {
+  private Map<String, Object> getMapProgressStepMetrics() {
+    Map<String, Object> progressStepMetrics = new HashMap<>();
     List<ProgressStepEntity> progressStepEntities = progressStepRepository.findAll();
     Map<String, Object> stepCategory = new HashMap<>();
-    stepMetrics(stepCategory, progressStepEntities, Step.HARVEST_ZIP);
-    stepMetrics(stepCategory, progressStepEntities, Step.HARVEST_OAI_PMH);
-    stepMetrics(stepCategory, progressStepEntities, Step.VALIDATE_EXTERNAL);
-    stepMetrics(stepCategory, progressStepEntities, Step.TRANSFORM);
-    stepMetrics(stepCategory, progressStepEntities, Step.VALIDATE_INTERNAL);
-    stepMetrics(stepCategory, progressStepEntities, Step.NORMALIZE);
-    stepMetrics(stepCategory, progressStepEntities, Step.ENRICH);
-    stepMetrics(stepCategory, progressStepEntities, Step.MEDIA_PROCESS);
-    stepMetrics(stepCategory, progressStepEntities, Step.PUBLISH);
-    metricsMap.put("MetricsByStep", stepCategory);
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.HARVEST_ZIP));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.HARVEST_OAI_PMH));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.VALIDATE_EXTERNAL));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.TRANSFORM));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.VALIDATE_INTERNAL));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.NORMALIZE));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.ENRICH));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.MEDIA_PROCESS));
+    stepCategory.putAll(getMetricsFromStep(progressStepEntities, Step.PUBLISH));
+    progressStepMetrics.put("MetricsByStep", stepCategory);
+    return progressStepMetrics;
   }
 
-  private void stepMetrics(Map<String, Object> category, List<ProgressStepEntity> progressStepEntities, Step step) {
+  private Map<String, Object> getMetricsFromStep(List<ProgressStepEntity> progressStepEntities, Step step) {
+    Map<String, Object> category = new HashMap<>();
     LongSummaryStatistics totalStepStatistics =
-        progressStepEntities.stream()
-                            .filter(progressStepEntity ->
-                                progressStepEntity.getStep().equals(step.value()))
-                            .mapToLong(ProgressStepEntity::getTotal)
-                            .summaryStatistics();
+        calcStepStatistics(progressStepEntities, filterStep(step), ProgressStepEntity::getTotal);
 
     LongSummaryStatistics successStepStatistics =
-        progressStepEntities.stream()
-                            .filter(progressStepEntity ->
-                                progressStepEntity.getStep().equals(step.value()))
-                            .mapToLong(ProgressStepEntity::getSuccess)
-                            .summaryStatistics();
+        calcStepStatistics(progressStepEntities, filterStep(step), ProgressStepEntity::getSuccess);
 
     LongSummaryStatistics failStepStatistics =
-        progressStepEntities.stream()
-                            .filter(progressStepEntity ->
-                                progressStepEntity.getStep().equals(step.value()))
-                            .mapToLong(ProgressStepEntity::getFail)
-                            .summaryStatistics();
+        calcStepStatistics(progressStepEntities, filterStep(step), ProgressStepEntity::getFail);
 
     LongSummaryStatistics warnStepStatistics =
-        progressStepEntities.stream()
-                            .filter(progressStepEntity ->
-                                progressStepEntity.getStep().equals(step.value()))
-                            .mapToLong(ProgressStepEntity::getWarn)
-                            .summaryStatistics();
+        calcStepStatistics(progressStepEntities, filterStep(step), ProgressStepEntity::getWarn);
 
     Map<String, Object> master = new HashMap<>();
-    addMetricToOverview(totalStepStatistics, master, "TotalRecords");
-    addMetricToOverview(successStepStatistics, master, "SuccessRecords");
-    addMetricToOverview(failStepStatistics, master, "FailRecords");
-    addMetricToOverview(warnStepStatistics, master, "WarnRecords");
+    master.putAll(getStatisticsFromCategory(totalStepStatistics, "TotalRecords"));
+    master.putAll(getStatisticsFromCategory(successStepStatistics, "SuccessRecords"));
+    master.putAll(getStatisticsFromCategory(failStepStatistics, "FailRecords"));
+    master.putAll(getStatisticsFromCategory(warnStepStatistics, "WarnRecords"));
     category.put(step.value(), master);
+    return category;
   }
 
-  private void addMetricToOverview(LongSummaryStatistics summaryStatistics,
-      Map<String, Object> master,
-      String category) {
+  private LongSummaryStatistics calcStepStatistics(List<ProgressStepEntity> stepEntities,
+      Predicate<ProgressStepEntity> predicate, ToLongFunction<ProgressStepEntity> getNumber) {
+    return stepEntities.stream()
+                       .filter(predicate)
+                       .mapToLong(getNumber)
+                       .summaryStatistics();
+  }
+
+  private LongSummaryStatistics calcDatasetStatistics(List<ProgressDatasetEntity> datasetEntities,
+      ToLongFunction<ProgressDatasetEntity> getNumber) {
+    return datasetEntities.stream()
+                          .mapToLong(getNumber)
+                          .summaryStatistics();
+  }
+
+  private Predicate<ProgressStepEntity> filterStep(Step step) {
+    return stepEntity -> stepEntity.getStep().equals(step.value());
+  }
+
+  private Map<String, Object> getStatisticsFromCategory(LongSummaryStatistics summaryStatistics, String category) {
+    Map<String, Object> master = new HashMap<>();
     Map<String, Object> detail = new HashMap<>();
     detail.put("Average", summaryStatistics.getAverage());
     detail.put("Min", summaryStatistics.getMin());
     detail.put("Max", summaryStatistics.getMax());
     detail.put("Sum", summaryStatistics.getSum());
     master.put(category, detail);
+    return master;
   }
 }
