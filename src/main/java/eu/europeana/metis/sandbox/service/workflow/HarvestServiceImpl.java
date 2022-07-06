@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -61,11 +62,11 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
-                            OaiHarvester oaiHarvester,
-                            RecordPublishService recordPublishService,
-                            DatasetService datasetService,
-                            @Value("${sandbox.dataset.max-size}") int maxRecords,
-                            RecordRepository recordRepository) {
+      OaiHarvester oaiHarvester,
+      RecordPublishService recordPublishService,
+      DatasetService datasetService,
+      @Value("${sandbox.dataset.max-size}") int maxRecords,
+      RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
@@ -83,7 +84,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
-      OaiHarvestData oaiHarvestData) {
+      @NotNull OaiHarvestData oaiHarvestData) {
     List<RecordInfo> recordInfoList = new ArrayList<>();
     datasetService.updateNumberOfTotalRecord(datasetId, null);
 
@@ -169,7 +170,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   @Override
   public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated)
-      throws HarvesterException {
+      throws ServiceException {
     publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated),
         datasetId,
         "Error harvesting file records",
@@ -260,7 +261,7 @@ public class HarvestServiceImpl implements HarvestService {
   private void publishHarvestedRecords(final List<RecordInfo> recordInfoList,
       final String datasetId,
       final String exceptionMessage,
-      final Step processStep) {
+      final Step processStep) throws ServiceException {
     try {
       if (datasetService.isXsltPresent(datasetId)) {
         recordInfoList.parallelStream()

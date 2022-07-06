@@ -1,12 +1,14 @@
 package eu.europeana.metis.sandbox.dto.report;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,15 +33,15 @@ class ProgressInfoDtoTest {
 
   private static Stream<Arguments> provideStatus() {
     return Stream.of(
-        Arguments.of(getTestHarvestingIdsInfoDto(), ProgressInfoDto.Status.HARVESTING_IDENTIFIERS),
-        Arguments.of(getTestProgressInfoDto(), ProgressInfoDto.Status.IN_PROGRESS),
-        Arguments.of(getTestCompletedInfoDto(), ProgressInfoDto.Status.COMPLETED)
+        Arguments.of(getTestHarvestingIdsInfoDto(), Status.HARVESTING_IDENTIFIERS),
+        Arguments.of(getTestProgressInfoDto(), Status.IN_PROGRESS),
+        Arguments.of(getTestCompletedInfoDto(), Status.COMPLETED)
     );
   }
 
   @ParameterizedTest
   @MethodSource("provideStatus")
-  void getStatus(ProgressInfoDto progressInfoDto, ProgressInfoDto.Status expectedStatus) {
+  void getStatus(ProgressInfoDto progressInfoDto, Status expectedStatus) {
     assertEquals(expectedStatus, progressInfoDto.getStatus());
   }
 
@@ -61,8 +63,7 @@ class ProgressInfoDtoTest {
   void getProgressByStep() {
     progressInfoDto = getTestProgressInfoDto();
     final List<ProgressByStepDto> expectedProgressByStepDtoList = getProgressByStepDtoList(2, 1);
-    assertTrue(progressInfoDto.getProgressByStep().stream()
-                              .allMatch(progressByStepDto -> expectedProgressByStepDtoList.contains(progressByStepDto)));
+    assertTrue(expectedProgressByStepDtoList.containsAll(progressInfoDto.getProgressByStep()));
   }
 
   @Test
@@ -74,8 +75,8 @@ class ProgressInfoDtoTest {
     assertEquals(LocalDateTime.parse("2022-03-14T22:50:22"), progressInfoDto.getDatasetInfoDto().getCreationDate());
     assertEquals(Country.CROATIA, progressInfoDto.getDatasetInfoDto().getCountry());
     assertEquals(Language.HR, progressInfoDto.getDatasetInfoDto().getLanguage());
-    assertEquals(false, progressInfoDto.getDatasetInfoDto().isRecordLimitExceeded());
-    assertEquals(false, progressInfoDto.getDatasetInfoDto().isTransformedToEdmExternal());
+    assertFalse(progressInfoDto.getDatasetInfoDto().isRecordLimitExceeded());
+    assertFalse(progressInfoDto.getDatasetInfoDto().isTransformedToEdmExternal());
   }
 
   @NotNull

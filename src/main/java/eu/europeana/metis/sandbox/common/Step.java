@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.common;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /**
  * Enum to represent a record event workflow step
  */
@@ -26,7 +24,6 @@ public enum Step {
     this.precedence = precedence;
   }
 
-  @JsonValue
   public String value() {
     return value;
   }
