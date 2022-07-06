@@ -322,7 +322,7 @@ class DatasetControllerTest {
         mvc.perform(get("/dataset/{id}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status",
-                        is("Completed")))
+                        is("COMPLETED")))
                 .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
                         is(message1)))
                 .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
