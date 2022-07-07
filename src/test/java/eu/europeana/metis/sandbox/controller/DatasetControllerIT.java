@@ -17,9 +17,9 @@ import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -34,7 +34,7 @@ class DatasetControllerIT {
 
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
-  @Value("${local.server.port}")
+  @LocalServerPort
   private int port;
 
   @DynamicPropertySource
@@ -69,12 +69,12 @@ class DatasetControllerIT {
     FileSystemResource dataset = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid-with-xslt-file.zip");
-    FileSystemResource xsltFile = new FileSystemResource(
+    FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "xslt-file.xslt");
+                    File.separator + "xslt-file-for-transformation-to-edm-external-test.xslt");
 
 
-    ResponseEntity<String> response = makeHarvestingByFile(dataset, xsltFile);
+    ResponseEntity<String> response = makeHarvestingByFile(dataset, xsltFileForTransformationToEdmExternal);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
     assertTrue(response.getBody().contains("\"dataset-id\":\"1\""));
@@ -110,16 +110,16 @@ class DatasetControllerIT {
 
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-with-xslt-file.zip");
     assertTrue(Files.exists(datasetPath));
-    FileSystemResource xsltFile = new FileSystemResource(
+    FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "xslt-file.xslt");
+                    File.separator + "xslt-file-for-transformation-to-edm-external-test.xslt");
 
     HttpHeaders requestHeaders = new HttpHeaders();
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
     MultiValueMap<String, Object> body
             = new LinkedMultiValueMap<>();
     body.add("url", datasetPath.toUri().toString());
-    body.add("xsltFile", xsltFile);
+    body.add("xsltFile", xsltFileForTransformationToEdmExternal);
     body.add("country", ITALY.xmlValue());
     body.add("language", IT.xmlValue());
 
@@ -164,17 +164,16 @@ class DatasetControllerIT {
   }
 
   @Test
-  void computeRecordTierCalculation_expectedSuccess() throws InterruptedException {
+  void computeRecordTierCalculation_expectedSuccess() {
     FileSystemResource dataset = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid.zip");
     makeHarvestingByFile(dataset, null);
 
 //    TODO: The commented code block is more appropriate when it comes to waiting for something, but the condition is currently failing.
-//     Instead we are using Thread.sleep(). We are leaving it commented so we can use it later when issue is fixed
+//     We are leaving it commented so we can use it later when issue is fixed
 //     Awaitility.await().atMost(10, SECONDS).until(() -> testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
 //     String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF").getStatusCode() != HttpStatus.NOT_FOUND);
-    Thread.sleep(10000);
     ResponseEntity<String> response =
             testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
                     String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF");
@@ -186,14 +185,14 @@ class DatasetControllerIT {
   }
 
   @Test
-  void getRecord_expectedSuccess() throws InterruptedException {
+  void getRecord_expectedSuccess() {
     FileSystemResource dataset = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid.zip");
     makeHarvestingByFile(dataset, null);
 
     // TODO The explanation written previously also applies here
-    Thread.sleep(10000);
+
     ResponseEntity<String> response =
             testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record?recordId={recordId}", String.class,
                     "1", "1/URN_NBN_SI_doc_35SZSOCF");
