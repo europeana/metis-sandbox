@@ -19,16 +19,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class RecordLogConfiguration {
 
-  @Value("${sandbox.rabbitmq.queues.record.log.queue}")
+  @Value("${sandbox.rabbitmq.queues.record.log.queue:#{null}}")
   private String queue;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.dlq}")
+  @Value("${sandbox.rabbitmq.queues.record.log.dlq:#{null}}")
   private String dlq;
 
-  @Value("${sandbox.rabbitmq.exchange.dlq}")
+  @Value("${sandbox.rabbitmq.exchange.dlq:#{null}}")
   private String exchangeDlq;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.routing-key}")
+  @Value("${sandbox.rabbitmq.queues.record.log.routing-key:#{null}}")
   private String routingKey;
 
   @Value("${sandbox.rabbitmq.queues.record.log.consumers:2}")

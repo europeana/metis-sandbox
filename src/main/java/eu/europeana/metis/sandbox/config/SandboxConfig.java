@@ -15,6 +15,9 @@ import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
+import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.normalization.NormalizerFactory;
@@ -94,6 +97,11 @@ class SandboxConfig {
   XsltTransformer xsltTransformer(String datasetName, String edmCountry, String edmLanguage)
       throws TransformationException {
     return new XsltTransformer(defaultXsltUrl, datasetName, edmCountry, edmLanguage);
+  }
+
+  @Bean
+  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository) {
+    return new XsltUrlUpdateServiceImpl(transformXsltRepository);
   }
 
   @Bean

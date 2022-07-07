@@ -4,10 +4,7 @@ info:
     description: Sandbox to process Datasets
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
-
 spring:
-  profiles:
-    active: default
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
@@ -20,14 +17,14 @@ spring:
     multipart:
       max-file-size: 5MB
   rabbitmq:
-    virtual-host: sandbox-develop
-    host: localhost
-    port: 5672
-    username: sandbox
-    password: sandbox
+    virtual-host:
+    host:
+    port:
+    username:
+    password:
     ssl:
-      enabled:
-      algorithm:
+      enabled: false
+      algorithm: TLSv1.2
     listener:
       simple:
         concurrency: 2
@@ -39,34 +36,8 @@ spring:
           multiplier: 2
           max-attempts: 3
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform:
     open-in-view: false
-
-# spring boot actuator see documentation at
-# https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/
-management:
-  endpoints:
-    enabled-by-default: false
-    web:
-      exposure:
-        include: ["health", "info", "loggers", "metrics", "scheduledtasks"]
-
-  endpoint:
-    health: # Shows application health information.
-      enabled: true
-
-    info: # Displays arbitrary application info.
-      enabled: true
-
-    loggers: # Shows and modifies the configuration of loggers in the application.
-      enabled: true
-
-    metrics: # Shows ‘metrics’ information for the current application.
-      enabled: true
-
-    scheduledtasks: # Displays the scheduled tasks in your application.
-      enabled: true
-
 sandbox:
   cors:
     mapping: '*'
@@ -74,10 +45,11 @@ sandbox:
     path:
     password:
   datasource:
-    jdbcUrl: jdbc:postgresql://localhost:5432/sandbox
-    driverClassName: org.postgresql.Driver
-    username: sandbox
+    jdbcUrl:
+    driverClassName:
+    username:
     password:
+    #MET-3929 connection leak detection
     maximumPoolSize: 10           # this is the default we make it explicit in the config.
     leakDetectionThreshold: 5000  # five second should be enough
   dataset:
@@ -97,46 +69,35 @@ sandbox:
     predefinedSchemas:
       EDM-INTERNAL:
         url:
-        rootLocation:
-        schematronLocation:
+        rootLocation: EDM-INTERNAL.xsd
+        schematronLocation: schematron/schematron-internal.xsl
       EDM-EXTERNAL:
         url:
-        rootLocation:
-        schematronLocation:
+        rootLocation: EDM.xsd
+        schematronLocation: schematron/schematron.xsl
   transformation:
-    xslt-url:
+    xslt-url: https://metis-core-rest-test.eanadev.org/datasets/xslt/default
   enrichment:
-    dereference-url:
-    enrichment-url:
+    dereference-url: http://metis-test
+    enrichment-url: http://metis-test
   publish:
     mongo:
-      application-name:
-      db:
-      hosts:
-      ports:
-      authentication-db:
-      username:
-      password:
-      ssl-enable:
+      application-name: metis-sandbox-application-publish-local
+      db: metis-sandbox-publish-test
+      hosts: localhost
+      ports: 27017
     solr:
-      hosts:
-      zookeeper:
-        hosts:
-        ports:
-        chroot:
-        default:
-          collection:
-        timeout:
+      hosts: http://metis-test:8888/solr/metis_sandbox_test
   s3:
     access-key:
     secret-key:
-    endpoint:
-    signing-region:
-    thumbnails-bucket:
+    endpoint: some-uri
+    signing-region: eu
+    thumbnails-bucket: europeana-sandbox-thumbnails-test
   portal:
     publish:
-      dataset-base-url:
-      record-base-url:
+      dataset-base-url: "http://metis-test"
+      record-base-url: "http://metis-test/item"
   rabbitmq:
     routing-key:
       closed: sandbox.record.closed
@@ -162,6 +123,10 @@ sandbox:
               queue: sandbox.record.transformation.edm.external
               dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
               auto-start: true
+        ordered:
+          queue: sandbox.record.ordered
+          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
+          auto-start: true
         validated:
           external:
             queue: sandbox.record.validated.external
@@ -186,6 +151,10 @@ sandbox:
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
+          auto-start: true
+        previewed:
+          queue: sandbox.record.previewed
+          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
           auto-start: true
         published:
           queue: sandbox.record.published
