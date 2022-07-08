@@ -42,6 +42,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -119,7 +120,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromURL_withoutXsltFile_expectSuccess() throws Exception {
 
-        String url = "zip" + File.separator + "dataset-valid.zip";
+        String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
 
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
@@ -133,9 +134,9 @@ class DatasetControllerTest {
     }
 
     @Test
-    void processDatasetFromURL_withtXsltFile_expectSuccess() throws Exception {
+    void processDatasetFromURL_withXsltFile_expectSuccess() throws Exception {
 
-        final String url = "zip" + File.separator + "dataset-valid.zip";
+        final String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
 
 
         MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
