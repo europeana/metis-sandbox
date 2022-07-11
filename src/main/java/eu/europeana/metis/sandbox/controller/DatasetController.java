@@ -25,8 +25,6 @@ import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -141,7 +139,7 @@ class DatasetController {
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
-      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) throws MalformedURLException {
+      @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
