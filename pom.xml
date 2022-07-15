@@ -44,7 +44,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.metis>7-SNAPSHOT</version.metis>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.3.3</version.postgresql>
-    <version.aws.s3>1.11.762</version.aws.s3>
+    <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
