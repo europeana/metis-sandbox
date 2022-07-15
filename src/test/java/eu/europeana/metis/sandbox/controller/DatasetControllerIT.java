@@ -40,6 +40,9 @@ class DatasetControllerIT {
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
     PostgresContainerInitializerIT.dynamicProperties(registry);
+    PostgresContainerInitializerIT.runScripts(List.of(
+        "database/schema_drop.sql", "database/schema.sql",
+        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
   }
 

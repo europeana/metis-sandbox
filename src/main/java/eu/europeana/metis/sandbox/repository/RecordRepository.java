@@ -42,7 +42,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * Get metrics by step for a given time using custom query
    *
    * @return metrics Dataset Statistics
-   * @see StepStatistic
+   * @see DatasetStatistic
    */
   @Query(value = "SELECT new eu.europeana.metis.sandbox.entity.DatasetStatistic(re.datasetId, COUNT(re)) "
       + "FROM RecordEntity re "
