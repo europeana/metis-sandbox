@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.entity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 
 /**
- * POJO used by {@link RecordRepository} in method getStepStatistics, to map query results
+ * POJO used by {@link RecordRepository} in method getDatasetStatistics, to map query results
  */
 public class DatasetStatistic {
 

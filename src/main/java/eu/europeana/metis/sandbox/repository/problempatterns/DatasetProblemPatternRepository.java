@@ -21,7 +21,7 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
   void deleteByExecutionPointDatasetId(String datasetId);
 
   /**
-   * Get metrics by step for a given time using custom query
+   * Get metrics by problem pattern ocurrences for a given time using custom query
    *
    * @return metrics Dataset Problem Pattern Statistics
    * @see DatasetProblemPatternStatistic

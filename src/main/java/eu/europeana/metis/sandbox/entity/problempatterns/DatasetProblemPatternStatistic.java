@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.entity.problempatterns;
 
 /**
- * POJO used by {@link DatasetProblemPattern} in method getStepStatistics, to map query results
+ * POJO used by {@link DatasetProblemPattern} in method getProblemPatternStatistics, to map query results
  */
 public class DatasetProblemPatternStatistic {
 

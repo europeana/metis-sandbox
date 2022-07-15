@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetStatistic;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.entity.StepStatistic;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -39,7 +38,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
   RecordEntity findByProviderIdAndDatasetId(String providerId, String datasetId);
 
   /**
-   * Get metrics by step for a given time using custom query
+   * Get metrics by dataset for a given time using custom query
    *
    * @return metrics Dataset Statistics
    * @see DatasetStatistic

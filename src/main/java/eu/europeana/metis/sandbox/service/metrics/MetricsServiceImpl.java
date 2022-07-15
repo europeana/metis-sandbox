@@ -27,6 +27,8 @@ public class MetricsServiceImpl implements MetricsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MetricsServiceImpl.class);
   private static final String METRICS_NAMESPACE = "sandbox.metrics.dataset";
+  public static final String BASE_UNIT_RECORD = "record";
+  public static final String BASE_UNIT_DATASET = "Dataset";
   private final RecordRepository recordRepository;
   private final RecordLogRepository recordLogRepository;
   private final DatasetProblemPatternRepository problemPatternRepository;
@@ -97,8 +99,8 @@ public class MetricsServiceImpl implements MetricsService {
   void initMetrics() {
     try {
       processMetrics();
-      buildGauge("count", "Dataset count", "Dataset", this::getDatasetCount);
-      buildGauge("totalrecords", "Total of Records", "record", this::getTotalRecords);
+      buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
+      buildGauge("totalrecords", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
       for (Status status : Status.values()) {
         buildStepGauge(Step.HARVEST_ZIP, status);
         buildStepGauge(Step.HARVEST_OAI_PMH, status);
@@ -129,7 +131,7 @@ public class MetricsServiceImpl implements MetricsService {
   private void buildStepGauge(Step step, Status status) {
     Gauge.builder(getMetricName(step, status), () -> getTotalRecords(step, status))
          .description(step.name() + " processed records with status " + status.name())
-         .baseUnit("record")
+         .baseUnit(BASE_UNIT_RECORD)
          .register(meterRegistry);
   }
 
@@ -137,7 +139,7 @@ public class MetricsServiceImpl implements MetricsService {
     Gauge.builder(getMetricName(patternId), () -> getTotalOcurrences(patternId))
          .description("processed records with problem pattern " + patternId.name() + ":"
              + ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle())
-         .baseUnit("record")
+         .baseUnit(BASE_UNIT_RECORD)
          .register(meterRegistry);
   }
 
