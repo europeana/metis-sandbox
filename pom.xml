@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.3.0.RELEASE</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <groupId>eu.europeana.metis</groupId>
@@ -59,7 +59,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version.woodstox-core>6.2.7</version.woodstox-core>
     <version.testcontainers>1.17.2</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
-    </properties>
+    <version.micrometer>1.9.1</version.micrometer>
+    <version.apm>1.33.0</version.apm>
+  </properties>
   <dependencies>
     <!-- Spring boot -->
     <dependency>
@@ -178,7 +180,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
           <groupId>org.codehaus.woodstox</groupId>
           <artifactId>woodstox-core-asl</artifactId>
         </exclusion>
-       </exclusions>
+      </exclusions>
     </dependency>
 
     <!--
@@ -340,6 +342,23 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
       <artifactId>commons-collections</artifactId>
       <version>${version.commons.collections}</version>
     </dependency>
+
+    <!--Metrics-->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <version>${version.micrometer}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-elastic</artifactId>
+      <version>${version.micrometer}</version>
+    </dependency>
+    <dependency>
+      <groupId>co.elastic.apm</groupId>
+      <artifactId>apm-agent-attach</artifactId>
+      <version>${version.apm}</version>
+    </dependency>
   </dependencies>
 
   <repositories>
@@ -398,24 +417,24 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
           </execution>
         </executions>
       </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${version.failsafe.plugin}</version>
-          <executions>
-            <execution>
-              <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-              </goals>
-              <configuration>
-                <includes>
-                  <include>**/*IT.java</include>
-                </includes>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${version.failsafe.plugin}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/*IT.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>

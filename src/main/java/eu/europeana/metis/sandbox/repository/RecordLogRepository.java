@@ -28,6 +28,17 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   List<StepStatistic> getStepStatistics(String datasetId);
 
   /**
+   * Get metrics by step for a given time using custom query
+   *
+   * @return metrics Step Statistics
+   * @see StepStatistic
+   */
+  @Query( value = "SELECT new eu.europeana.metis.sandbox.entity.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+      + "FROM RecordLogEntity rle "
+      + "GROUP BY rle.step, rle.status")
+  List<StepStatistic> getMetricStepStatistics();
+
+  /**
    * Get record given a record id, dataset id and step.
    * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
    * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
