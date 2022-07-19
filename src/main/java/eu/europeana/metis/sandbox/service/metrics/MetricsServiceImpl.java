@@ -50,6 +50,7 @@ public class MetricsServiceImpl implements MetricsService {
     this.recordLogRepository = recordLogRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
+    ElasticConfig.setConfigurationResource("application.yml");
     Map<String, String> metricsMap = ElasticConfig.loadAndGetConfig();
     if (metricsMap.containsKey("enabled")) {
       metricsEnabled = Boolean.parseBoolean(metricsMap.get("enabled"));
