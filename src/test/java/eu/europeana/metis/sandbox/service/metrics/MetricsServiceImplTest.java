@@ -8,9 +8,9 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.entity.DatasetStatistic;
-import eu.europeana.metis.sandbox.entity.StepStatistic;
-import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
@@ -47,11 +47,11 @@ class MetricsServiceImplTest {
     verify(recordRepository, times(2)).getMetricDatasetStatistics();
     verify(recordLogRepository, times(2)).getMetricStepStatistics();
     verify(problemPatternRepository, times(2)).getMetricProblemPatternStatistics();
-    assertEquals(40, meterRegistry.getMeters().size());
+    assertEquals(43, meterRegistry.getMeters().size());
   }
 
   @Test
-  void processMetrics() {
+  void processMetrics() throws InterruptedException {
     when(recordRepository.getMetricDatasetStatistics()).thenReturn(List.of(new DatasetStatistic("1", 10L)));
     when(recordLogRepository.getMetricStepStatistics()).thenReturn(
         List.of(new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 10L)));
@@ -60,6 +60,9 @@ class MetricsServiceImplTest {
 
     metricsService.processMetrics();
 
+    assertEquals(1L, meterRegistry.get("sandbox.metrics.dataset.count").gauge().value());
+    assertEquals(10L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
+    assertEquals(5L, meterRegistry.get("sandbox.metrics.dataset.p2").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
 
@@ -69,7 +72,7 @@ class MetricsServiceImplTest {
     metricsService.processMetrics();
 
     assertEquals(0L, metricsService.getTotalRecords());
-
+    assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.count").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
 
@@ -79,7 +82,7 @@ class MetricsServiceImplTest {
     metricsService.processMetrics();
 
     assertEquals(0L, metricsService.getTotalRecords(Step.HARVEST_ZIP, Status.SUCCESS));
-
+    assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
 
@@ -88,8 +91,8 @@ class MetricsServiceImplTest {
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(null);
     metricsService.processMetrics();
 
-    assertEquals(0L, metricsService.getTotalOcurrences(ProblemPatternId.P2));
-
+    assertEquals(0L, metricsService.getTotalOccurrences(ProblemPatternId.P2));
+    assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.p2").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
 
@@ -101,11 +104,12 @@ class MetricsServiceImplTest {
         List.of(new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 10L)));
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(List.of(
         new DatasetProblemPatternStatistic(ProblemPatternId.P2.name(), 5L)));
+
     metricsService.processMetrics();
 
     assertEquals(10L, metricsService.getTotalRecords(Step.HARVEST_ZIP, Status.SUCCESS));
     assertEquals(2L, metricsService.getDatasetCount());
-    assertEquals(5L, metricsService.getTotalOcurrences(ProblemPatternId.P2));
+    assertEquals(5L, metricsService.getTotalOccurrences(ProblemPatternId.P2));
     assertRepositoriesAndMeterRegistry();
   }
 

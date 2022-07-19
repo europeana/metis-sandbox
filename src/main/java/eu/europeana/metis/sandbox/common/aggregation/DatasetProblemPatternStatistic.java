@@ -1,4 +1,6 @@
-package eu.europeana.metis.sandbox.entity.problempatterns;
+package eu.europeana.metis.sandbox.common.aggregation;
+
+import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 
 /**
  * POJO used by {@link DatasetProblemPattern} in method getProblemPatternStatistics, to map query results

@@ -2,23 +2,25 @@ package eu.europeana.metis.sandbox.service.metrics;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.entity.DatasetStatistic;
-import eu.europeana.metis.sandbox.entity.StepStatistic;
-import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
+import eu.europeana.metis.sandbox.config.ElasticConfig;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import eu.europeana.patternanalysis.view.ProblemPatternDescription.*;
 
 /**
  * Metrics Service implementation class
@@ -28,7 +30,7 @@ public class MetricsServiceImpl implements MetricsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MetricsServiceImpl.class);
   private static final String METRICS_NAMESPACE = "sandbox.metrics.dataset";
-  public static final String BASE_UNIT_RECORD = "record";
+  public static final String BASE_UNIT_RECORD = "Record";
   public static final String BASE_UNIT_DATASET = "Dataset";
   private final RecordRepository recordRepository;
   private final RecordLogRepository recordLogRepository;
@@ -37,8 +39,7 @@ public class MetricsServiceImpl implements MetricsService {
   private List<DatasetStatistic> datasetStatistics;
   private List<StepStatistic> stepStatistics;
   private List<DatasetProblemPatternStatistic> problemPatternStatistics;
-  @Value("${elastic.apm.enabled}")
-  private Boolean metricsEnabled;
+  private boolean metricsEnabled;
 
   public MetricsServiceImpl(
       RecordRepository recordRepository,
@@ -49,13 +50,17 @@ public class MetricsServiceImpl implements MetricsService {
     this.recordLogRepository = recordLogRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
+    Map<String, String> metricsMap = ElasticConfig.loadAndGetConfig();
+    if (metricsMap.containsKey("enabled")) {
+      metricsEnabled = Boolean.parseBoolean(metricsMap.get("enabled"));
+    }
     initMetrics();
   }
 
   @Scheduled(cron = "${" + METRICS_NAMESPACE + ".frequency:*/5 * * * * *")
   @Override
   public void processMetrics() {
-    if (metricsEnabled) {
+    if (Boolean.TRUE.equals(metricsEnabled)) {
       datasetStatistics = recordRepository.getMetricDatasetStatistics();
       stepStatistics = recordLogRepository.getMetricStepStatistics();
       problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
@@ -64,98 +69,71 @@ public class MetricsServiceImpl implements MetricsService {
   }
 
   Long getDatasetCount() {
-    if (datasetStatistics == null || datasetStatistics.isEmpty()) {
-      return 0L;
-    } else {
-      return (long) datasetStatistics.size();
-    }
+    return datasetStatistics == null || datasetStatistics.isEmpty() ? 0L : datasetStatistics.size();
   }
 
   Long getTotalRecords() {
-    if (datasetStatistics == null || datasetStatistics.isEmpty()) {
-      return 0L;
-    } else {
-      return datasetStatistics.stream().mapToLong(DatasetStatistic::getCount).sum();
-    }
+    return datasetStatistics == null || datasetStatistics.isEmpty() ? 0L
+        : datasetStatistics.stream().mapToLong(DatasetStatistic::getCount).sum();
   }
 
-  Long getTotalOcurrences(ProblemPatternId problemPatternId) {
-    if (problemPatternStatistics == null || problemPatternStatistics.isEmpty()) {
-      return 0L;
-    } else {
-      return problemPatternStatistics
-          .stream()
-          .filter(pattern -> pattern.getPatternId().equals(problemPatternId.name()))
-          .mapToLong(DatasetProblemPatternStatistic::getCount).sum();
-    }
+  Long getTotalOccurrences(ProblemPatternId problemPatternId) {
+    return problemPatternStatistics == null || problemPatternStatistics.isEmpty() ? 0L
+        : problemPatternStatistics
+            .stream()
+            .filter(pattern -> pattern.getPatternId().equals(problemPatternId.name()))
+            .mapToLong(DatasetProblemPatternStatistic::getCount).sum();
   }
 
   Long getTotalRecords(Step step, Status status) {
-    if (stepStatistics == null || stepStatistics.isEmpty()) {
-      return 0L;
-    } else {
-      return stepStatistics.stream()
-                           .filter(stepStatistic -> stepStatistic.getStep().equals(step) &&
-                               stepStatistic.getStatus().equals(status))
-                           .mapToLong(StepStatistic::getCount).sum();
-    }
+    return stepStatistics == null || stepStatistics.isEmpty() ? 0L
+        : stepStatistics.stream()
+                        .filter(stepStatistic -> stepStatistic.getStep().equals(step) &&
+                            stepStatistic.getStatus().equals(status))
+                        .mapToLong(StepStatistic::getCount).sum();
   }
 
-  void initMetrics() {
+  private void initMetrics() {
     try {
       processMetrics();
       buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
-      buildGauge("totalrecords", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
-      for (Status status : Status.values()) {
-        buildStepGauge(Step.HARVEST_ZIP, status);
-        buildStepGauge(Step.HARVEST_OAI_PMH, status);
-        buildStepGauge(Step.TRANSFORM_TO_EDM_EXTERNAL, status);
-        buildStepGauge(Step.VALIDATE_EXTERNAL, status);
-        buildStepGauge(Step.TRANSFORM, status);
-        buildStepGauge(Step.VALIDATE_INTERNAL, status);
-        buildStepGauge(Step.NORMALIZE, status);
-        buildStepGauge(Step.ENRICH, status);
-        buildStepGauge(Step.MEDIA_PROCESS, status);
-        buildStepGauge(Step.PUBLISH, status);
+      buildGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
+      for(Step step: Step.values()) {
+        for (Status status : Status.values()) {
+          buildGauge(getStepMetricName(step, status),
+              step.name() + " processed records with status " + status.name(),
+              BASE_UNIT_RECORD,
+              () -> getTotalRecords(step, status));
+        }
       }
       for (ProblemPatternId patternId : ProblemPatternId.values()) {
-        buildPatternGauge(patternId);
+        buildGauge(getPatternMetricName(patternId),
+            "processed records with problem pattern " + patternId.name() + ":"
+                + ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle(),
+            BASE_UNIT_RECORD,
+            () -> getTotalOccurrences(patternId));
       }
     } catch (RuntimeException ex) {
       LOGGER.error("Unable to init metrics", ex);
     }
   }
 
-  private void buildGauge(String metricName, String description, String units, Supplier<Number> f) {
-    Gauge.builder(getMetricName(metricName), f)
+  private void buildGauge(String metricName, String description, String units, Supplier<Number> gaugeFunction) {
+    Gauge.builder(getMetricName(metricName), gaugeFunction)
          .description(description)
          .baseUnit(units)
          .register(meterRegistry);
   }
 
-  private void buildStepGauge(Step step, Status status) {
-    Gauge.builder(getMetricName(step, status), () -> getTotalRecords(step, status))
-         .description(step.name() + " processed records with status " + status.name())
-         .baseUnit(BASE_UNIT_RECORD)
-         .register(meterRegistry);
-  }
-
-  private void buildPatternGauge(ProblemPatternId patternId) {
-    Gauge.builder(getMetricName(patternId), () -> getTotalOcurrences(patternId))
-         .description("processed records with problem pattern " + patternId.name() + ":"
-             + ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle())
-         .baseUnit(BASE_UNIT_RECORD)
-         .register(meterRegistry);
-  }
-
-  public String getMetricName(String name) {
+  private String getMetricName(String name) {
     return METRICS_NAMESPACE + "." + name;
   }
 
-  public String getMetricName(Step step, Status status) {
-    return METRICS_NAMESPACE + "." + step.name().toLowerCase() + "." + status.name().toLowerCase();
+  private String getStepMetricName(Step step, Status status) {
+    return step.name().toLowerCase(Locale.US) + "." + status.name().toLowerCase(Locale.US);
   }
-  public String getMetricName(ProblemPatternId patternId) {
-    return METRICS_NAMESPACE + "." + patternId.name().toLowerCase();
+
+  private String getPatternMetricName(ProblemPatternId patternId) {
+    return patternId.name().toLowerCase(Locale.US);
   }
 }

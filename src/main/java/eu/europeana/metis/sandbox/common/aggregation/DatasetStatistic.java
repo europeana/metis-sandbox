@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.entity;
+package eu.europeana.metis.sandbox.common.aggregation;
 
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 

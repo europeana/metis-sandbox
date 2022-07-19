@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.repository;
 
-import eu.europeana.metis.sandbox.entity.DatasetStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,7 +43,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @return metrics Dataset Statistics
    * @see DatasetStatistic
    */
-  @Query(value = "SELECT new eu.europeana.metis.sandbox.entity.DatasetStatistic(re.datasetId, COUNT(re)) "
+  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic(re.datasetId, COUNT(re)) "
       + "FROM RecordEntity re "
       + "GROUP BY re.datasetId")
   List<DatasetStatistic> getMetricDatasetStatistics();
