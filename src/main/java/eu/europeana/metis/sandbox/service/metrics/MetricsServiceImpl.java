@@ -68,16 +68,16 @@ public class MetricsServiceImpl implements MetricsService {
     }
   }
 
-  Long getDatasetCount() {
+  private Long getDatasetCount() {
     return datasetStatistics == null || datasetStatistics.isEmpty() ? 0L : datasetStatistics.size();
   }
 
-  Long getTotalRecords() {
+  private Long getTotalRecords() {
     return datasetStatistics == null || datasetStatistics.isEmpty() ? 0L
         : datasetStatistics.stream().mapToLong(DatasetStatistic::getCount).sum();
   }
 
-  Long getTotalOccurrences(ProblemPatternId problemPatternId) {
+  private Long getTotalOccurrences(ProblemPatternId problemPatternId) {
     return problemPatternStatistics == null || problemPatternStatistics.isEmpty() ? 0L
         : problemPatternStatistics
             .stream()
@@ -85,7 +85,7 @@ public class MetricsServiceImpl implements MetricsService {
             .mapToLong(DatasetProblemPatternStatistic::getCount).sum();
   }
 
-  Long getTotalRecords(Step step, Status status) {
+  private Long getTotalRecords(Step step, Status status) {
     return stepStatistics == null || stepStatistics.isEmpty() ? 0L
         : stepStatistics.stream()
                         .filter(stepStatistic -> stepStatistic.getStep().equals(step) &&

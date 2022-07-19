@@ -5,6 +5,7 @@ import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static org.junit.jupiter.api.Assertions.*;
 
 import eu.europeana.metis.sandbox.SandboxApplication;
+import eu.europeana.metis.sandbox.config.ElasticConfig;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,6 +45,7 @@ class DatasetControllerIT {
         "database/schema_drop.sql", "database/schema.sql",
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
+    ElasticConfig.setConfigurationResource("application.yml");
   }
 
   @BeforeEach

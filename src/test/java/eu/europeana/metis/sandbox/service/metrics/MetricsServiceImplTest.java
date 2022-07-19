@@ -51,7 +51,7 @@ class MetricsServiceImplTest {
   }
 
   @Test
-  void processMetrics() throws InterruptedException {
+  void processMetrics() {
     when(recordRepository.getMetricDatasetStatistics()).thenReturn(List.of(new DatasetStatistic("1", 10L)));
     when(recordLogRepository.getMetricStepStatistics()).thenReturn(
         List.of(new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 10L)));
@@ -71,7 +71,6 @@ class MetricsServiceImplTest {
     when(recordRepository.getMetricDatasetStatistics()).thenReturn(null);
     metricsService.processMetrics();
 
-    assertEquals(0L, metricsService.getTotalRecords());
     assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.count").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
@@ -81,7 +80,6 @@ class MetricsServiceImplTest {
     when(recordLogRepository.getMetricStepStatistics()).thenReturn(null);
     metricsService.processMetrics();
 
-    assertEquals(0L, metricsService.getTotalRecords(Step.HARVEST_ZIP, Status.SUCCESS));
     assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
@@ -91,7 +89,6 @@ class MetricsServiceImplTest {
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(null);
     metricsService.processMetrics();
 
-    assertEquals(0L, metricsService.getTotalOccurrences(ProblemPatternId.P2));
     assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.p2").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
@@ -107,9 +104,9 @@ class MetricsServiceImplTest {
 
     metricsService.processMetrics();
 
-    assertEquals(10L, metricsService.getTotalRecords(Step.HARVEST_ZIP, Status.SUCCESS));
-    assertEquals(2L, metricsService.getDatasetCount());
-    assertEquals(5L, metricsService.getTotalOccurrences(ProblemPatternId.P2));
+    assertEquals(2L, meterRegistry.get("sandbox.metrics.dataset.count").gauge().value());
+    assertEquals(10L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
+    assertEquals(5L, meterRegistry.get("sandbox.metrics.dataset.p2").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
 
