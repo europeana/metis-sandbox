@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.*;
@@ -36,6 +37,8 @@ public class MetricsServiceImpl implements MetricsService {
   private List<DatasetStatistic> datasetStatistics;
   private List<StepStatistic> stepStatistics;
   private List<DatasetProblemPatternStatistic> problemPatternStatistics;
+  @Value("${elastic.apm.enabled}")
+  private Boolean metricsEnabled;
 
   public MetricsServiceImpl(
       RecordRepository recordRepository,
@@ -52,10 +55,12 @@ public class MetricsServiceImpl implements MetricsService {
   @Scheduled(cron = "${" + METRICS_NAMESPACE + ".frequency:*/5 * * * * *")
   @Override
   public void processMetrics() {
-    datasetStatistics = recordRepository.getMetricDatasetStatistics();
-    stepStatistics = recordLogRepository.getMetricStepStatistics();
-    problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
-    LOGGER.debug("metrics report retrieval");
+    if (metricsEnabled) {
+      datasetStatistics = recordRepository.getMetricDatasetStatistics();
+      stepStatistics = recordLogRepository.getMetricStepStatistics();
+      problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
+      LOGGER.debug("metrics report retrieval");
+    }
   }
 
   Long getDatasetCount() {
