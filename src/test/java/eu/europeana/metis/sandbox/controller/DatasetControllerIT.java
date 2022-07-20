@@ -2,27 +2,31 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.SandboxApplication;
-import eu.europeana.metis.sandbox.config.ElasticConfig;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
@@ -45,11 +49,10 @@ class DatasetControllerIT {
         "database/schema_drop.sql", "database/schema.sql",
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
-    ElasticConfig.setConfigurationResource("application.yml");
   }
 
   @BeforeEach
-  void cleanUpPostgres(){
+  void cleanUpPostgres() {
     PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop.sql", "database/schema.sql"));
   }
 
@@ -60,8 +63,8 @@ class DatasetControllerIT {
   @Test
   public void harvestDatasetWithFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid.zip");
 
     ResponseEntity<String> response = makeHarvestingByFile(dataset, null);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
@@ -72,12 +75,11 @@ class DatasetControllerIT {
   @Test
   public void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid-with-xslt-file.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid-with-xslt-file.zip");
     FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "xslt-file-for-transformation-to-edm-external-test.xslt");
-
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "xslt-file-for-transformation-to-edm-external-test.xslt");
 
     ResponseEntity<String> response = makeHarvestingByFile(dataset, xsltFileForTransformationToEdmExternal);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
@@ -96,14 +98,14 @@ class DatasetControllerIT {
     //hence we set content ty as multipart_form_data
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
     MultiValueMap<String, String> body
-            = new LinkedMultiValueMap<>();
+        = new LinkedMultiValueMap<>();
     body.add("url", datasetPath.toUri().toString());
     body.add("country", ITALY.xmlValue());
     body.add("language", IT.xmlValue());
 
     ResponseEntity<String> response =
-            testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByUrl",
-                    new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+        testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByUrl",
+            new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
@@ -116,21 +118,21 @@ class DatasetControllerIT {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-with-xslt-file.zip");
     assertTrue(Files.exists(datasetPath));
     FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "xslt-file-for-transformation-to-edm-external-test.xslt");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "xslt-file-for-transformation-to-edm-external-test.xslt");
 
     HttpHeaders requestHeaders = new HttpHeaders();
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
     MultiValueMap<String, Object> body
-            = new LinkedMultiValueMap<>();
+        = new LinkedMultiValueMap<>();
     body.add("url", datasetPath.toUri().toString());
     body.add("xsltFile", xsltFileForTransformationToEdmExternal);
     body.add("country", ITALY.xmlValue());
     body.add("language", IT.xmlValue());
 
     ResponseEntity<String> response =
-            testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByUrl",
-                    new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+        testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByUrl",
+            new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
@@ -138,30 +140,30 @@ class DatasetControllerIT {
   }
 
 
-//
+  //
   // TODO: This sort of integration test should be addressed differently,
   //  with wiremock or pointing to a local URL repository. Creating a test container for OAI-PMH would best
-//  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
-//
-//    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-//            .param("country", ITALY.xmlValue())
-//            .param("language", IT.xmlValue())
-//            .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
-//            .param("setspec", "1073")
-//            .param("metadataformat", "rdf")
-//            .param("incremental", "false"))
-//        .andExpect(status().isAccepted());
-//  }
-//
+  //  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+  //
+  //    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+  //            .param("country", ITALY.xmlValue())
+  //            .param("language", IT.xmlValue())
+  //            .param("url", new URI("http://panic.image.ntua.gr:9000/efg/oai").toString())
+  //            .param("setspec", "1073")
+  //            .param("metadataformat", "rdf")
+  //            .param("incremental", "false"))
+  //        .andExpect(status().isAccepted());
+  //  }
+  //
   @Test
   public void retrieveDataset_expectStatus_ok() {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid.zip");
     makeHarvestingByFile(dataset, null);
 
     ResponseEntity<String> getDatasetResponse =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, "1");
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, "1");
 
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
@@ -171,17 +173,17 @@ class DatasetControllerIT {
   @Test
   void computeRecordTierCalculation_expectedSuccess() {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid.zip");
     makeHarvestingByFile(dataset, null);
 
-//    TODO: The commented code block is more appropriate when it comes to waiting for something, but the condition is currently failing.
-//     We are leaving it commented so we can use it later when issue is fixed
-//     Awaitility.await().atMost(10, SECONDS).until(() -> testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
-//     String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF").getStatusCode() != HttpStatus.NOT_FOUND);
+    //    TODO: The commented code block is more appropriate when it comes to waiting for something, but the condition is currently failing.
+    //     We are leaving it commented so we can use it later when issue is fixed
+    //     Awaitility.await().atMost(10, SECONDS).until(() -> testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
+    //     String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF").getStatusCode() != HttpStatus.NOT_FOUND);
     ResponseEntity<String> response =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
-                    String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF");
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
+            String.class, "1", "1/URN_NBN_SI_doc_35SZSOCF");
 
     //TODO the status should be OK. We're leaving like this so the build is successful
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -192,23 +194,23 @@ class DatasetControllerIT {
   @Test
   void getRecord_expectedSuccess() {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid.zip");
     makeHarvestingByFile(dataset, null);
 
     // TODO The explanation written previously also applies here
 
     ResponseEntity<String> response =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record?recordId={recordId}", String.class,
-                    "1", "1/URN_NBN_SI_doc_35SZSOCF");
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record?recordId={recordId}", String.class,
+            "1", "1/URN_NBN_SI_doc_35SZSOCF");
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
   }
 
   @Test
-  void getAllCountries_expectSuccess(){
+  void getAllCountries_expectSuccess() {
     ResponseEntity<String> response =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/countries", String.class);
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/countries", String.class);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
@@ -218,9 +220,9 @@ class DatasetControllerIT {
   }
 
   @Test
-  void getAllLanguages_expectSuccess(){
+  void getAllLanguages_expectSuccess() {
     ResponseEntity<String> response =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/languages", String.class);
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/languages", String.class);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
@@ -229,22 +231,22 @@ class DatasetControllerIT {
     languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
 
-  private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile){
+  private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
 
     HttpHeaders requestHeaders = new HttpHeaders();
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
     MultiValueMap<String, Object> body
-            = new LinkedMultiValueMap<>();
+        = new LinkedMultiValueMap<>();
     body.add("dataset", dataset);
     body.add("country", ITALY.xmlValue());
     body.add("language", IT.xmlValue());
 
-    if(xsltFile != null){
+    if (xsltFile != null) {
       body.add("xsltFile", xsltFile);
     }
 
     return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
-            new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
   }
 
 }

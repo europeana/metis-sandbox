@@ -1,64 +1,46 @@
 package eu.europeana.metis.sandbox.config;
 
-import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 
 import co.elastic.apm.attach.ElasticApmAttacher;
-import eu.europeana.metis.sandbox.common.exception.ElasticConfigurationException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.springframework.boot.env.YamlPropertySourceLoader;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
+import java.util.Objects;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
+@ConfigurationProperties(prefix = "elastic")
 public class ElasticConfig {
 
-  private static final String ELASTIC_KEY_ROOT = "elastic.apm.";
-  private static String configurationResource = "application.yml";
+  private static final Logger LOGGER = LoggerFactory.getLogger(ElasticConfig.class);
+  private static final String NEW_LINE_TAB = "\n\t";
+  private final Map<String, String> apmProperties = new HashMap<>();
 
-  private ElasticConfig() {
-    //Not to be instantiated
+  /**
+   * The name of this method has to be as the key in the application.yml
+   * elastic:
+   *  apm:
+   *    ...
+   *
+   * @return map of elastic apm agent properties
+   */
+  public Map<String, String> getApm() {
+    return this.apmProperties;
   }
 
-  public static void setConfigurationResource(String configurationResource) {
-    ElasticConfig.configurationResource = configurationResource;
+  @Override
+  public String toString() {
+    return NEW_LINE_TAB + apmProperties.entrySet().stream().map(Objects::toString)
+                                       .collect(joining(NEW_LINE_TAB));
   }
 
-  public static Map<String, String> loadAndGetConfig() {
-    Map<String, String> properties;
-    try {
-      YamlPropertySourceLoader propertySourceLoader = new YamlPropertySourceLoader();
-      Resource resource = new InputStreamResource(requireNonNull(ElasticConfig.class
-          .getClassLoader()
-          .getResourceAsStream(configurationResource)));
-      List<PropertySource<?>> propertySourceList = propertySourceLoader.load(configurationResource, resource);
-      Map<String, Object> temp = new HashMap<>();
-      for (PropertySource<?> source : propertySourceList) {
-        temp.putAll(((MapPropertySource) source).getSource());
-      }
-      properties = temp.entrySet().stream()
-                       .filter(x -> x.getKey().contains(ELASTIC_KEY_ROOT))
-                       .collect(Collectors
-                           .toMap(x -> x.getKey().replace(ELASTIC_KEY_ROOT, ""),
-                               x -> String.valueOf(x.getValue())));
-    } catch (Exception e) {
-      throw new ElasticConfigurationException("Properties configuration", e);
-    }
-    return properties;
-  }
-
-  public static boolean loadAttacher() {
-    try {
-      ElasticApmAttacher.attach(ElasticConfig.loadAndGetConfig());
-      return true;
-    } catch (ElasticConfigurationException configurationException) {
-      Map<String, String> disabledConfig = new HashMap<>();
-      disabledConfig.put("enabled", "false");
-      ElasticApmAttacher.attach(disabledConfig);
-      return false;
-    }
+  @PostConstruct
+  public void attachApmAgent() {
+    LOGGER.debug("{}", this);
+    ElasticApmAttacher.attach(this.apmProperties);
   }
 }

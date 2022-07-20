@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import eu.europeana.metis.sandbox.config.ElasticConfig;
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import java.util.List;
@@ -28,11 +27,10 @@ class SandboxApplicationIT {
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
     PostgresContainerInitializerIT.dynamicProperties(registry);
-    PostgresContainerInitializerIT.runScripts(List.of(
-        "database/schema_drop.sql", "database/schema.sql",
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+    PostgresContainerInitializerIT.runScripts(
+        List.of("database/schema_drop.sql", "database/schema.sql", "database/schema_problem_patterns_drop.sql",
+            "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
-    ElasticConfig.setConfigurationResource("application.yml");
   }
 
   @Test

@@ -5,7 +5,6 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
-import eu.europeana.metis.sandbox.config.ElasticConfig;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
@@ -15,17 +14,14 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 /**
  * Metrics Service implementation class
  */
-@Service
+
 public class MetricsServiceImpl implements MetricsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MetricsServiceImpl.class);
@@ -39,7 +35,6 @@ public class MetricsServiceImpl implements MetricsService {
   private List<DatasetStatistic> datasetStatistics;
   private List<StepStatistic> stepStatistics;
   private List<DatasetProblemPatternStatistic> problemPatternStatistics;
-  private boolean metricsEnabled;
 
   public MetricsServiceImpl(
       RecordRepository recordRepository,
@@ -50,23 +45,15 @@ public class MetricsServiceImpl implements MetricsService {
     this.recordLogRepository = recordLogRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
-    ElasticConfig.setConfigurationResource("application.yml");
-    Map<String, String> metricsMap = ElasticConfig.loadAndGetConfig();
-    if (metricsMap.containsKey("enabled")) {
-      metricsEnabled = Boolean.parseBoolean(metricsMap.get("enabled"));
-    }
     initMetrics();
   }
 
-  @Scheduled(cron = "${" + METRICS_NAMESPACE + ".frequency:*/5 * * * * *")
   @Override
   public void processMetrics() {
-    if (Boolean.TRUE.equals(metricsEnabled)) {
-      datasetStatistics = recordRepository.getMetricDatasetStatistics();
-      stepStatistics = recordLogRepository.getMetricStepStatistics();
-      problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
-      LOGGER.debug("metrics report retrieval");
-    }
+    datasetStatistics = recordRepository.getMetricDatasetStatistics();
+    stepStatistics = recordLogRepository.getMetricStepStatistics();
+    problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
+    LOGGER.debug("metrics report retrieval");
   }
 
   private Long getDatasetCount() {
@@ -99,7 +86,7 @@ public class MetricsServiceImpl implements MetricsService {
       processMetrics();
       buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
       buildGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
-      for(Step step: Step.values()) {
+      for (Step step : Step.values()) {
         for (Status status : Status.values()) {
           buildGauge(getStepMetricName(step, status),
               step.name() + " processed records with status " + status.name(),
