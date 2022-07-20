@@ -63,15 +63,15 @@ class RecordLogServiceImpl implements RecordLogService {
     @Override
     public String getProviderRecordString(String recordId, String datasetId)
             throws NoRecordFoundException {
-        return Optional.ofNullable(getRecordLogEntity(recordId, datasetId)).map(RecordLogEntity::getContent)
+        return Optional.ofNullable(getRecordLogEntity(recordId, datasetId, Step.MEDIA_PROCESS)).map(RecordLogEntity::getContent)
                 .orElseThrow(() -> new NoRecordFoundException(
                         String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId)));
     }
 
     @Override
-    public RecordLogEntity getRecordLogEntity(String recordId, String datasetId) {
+    public RecordLogEntity getRecordLogEntity(String recordId, String datasetId, Step step) {
         final RecordLogEntity recordLogEntity;
-        recordLogEntity = recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep(recordId, datasetId, Step.MEDIA_PROCESS);
+        recordLogEntity = recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep(recordId, datasetId, step);
         return recordLogEntity;
     }
 
@@ -88,9 +88,8 @@ class RecordLogServiceImpl implements RecordLogService {
     public void remove(String datasetId) {
         requireNonNull(datasetId, "Dataset id must not be null");
         try {
-            recordErrorLogRepository.deleteByDatasetId(datasetId);
-            recordLogRepository.deleteByDatasetId(datasetId);
-            recordRepository.deleteByDatasetId(datasetId);
+            recordErrorLogRepository.deleteByRecordIdDatasetId(datasetId);
+            recordLogRepository.deleteByRecordIdDatasetId(datasetId);
         } catch (RuntimeException e) {
             throw new ServiceException(
                     format("Error removing records for dataset id: [%s]. ", datasetId), e);

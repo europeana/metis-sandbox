@@ -27,6 +27,7 @@ class MvcConfig implements WebMvcConfigurer {
   public void addFormatters(FormatterRegistry registry) {
     registry.addConverter(new StringToCountryConverter());
     registry.addConverter(new StringToLanguageConverter());
+    registry.addConverter(new StringToTimestampConverter());
   }
 
   @Override

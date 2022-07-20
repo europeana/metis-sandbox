@@ -42,6 +42,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -119,7 +120,7 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromURL_withoutXsltFile_expectSuccess() throws Exception {
 
-        String url = "zip" + File.separator + "dataset-valid.zip";
+        String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
 
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
@@ -133,9 +134,9 @@ class DatasetControllerTest {
     }
 
     @Test
-    void processDatasetFromURL_withtXsltFile_expectSuccess() throws Exception {
+    void processDatasetFromURL_withXsltFile_expectSuccess() throws Exception {
 
-        final String url = "zip" + File.separator + "dataset-valid.zip";
+        final String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
 
 
         MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
@@ -316,13 +317,13 @@ class DatasetControllerTest {
         var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
                 Country.NETHERLANDS, false, false);
         var report = new ProgressInfoDto("https://metis-sandbox",
-                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto);
+                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "");
         when(datasetReportService.getReport("1")).thenReturn(report);
 
         mvc.perform(get("/dataset/{id}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status",
-                        is("completed")))
+                        is("COMPLETED")))
                 .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
                         is(message1)))
                 .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
@@ -367,7 +368,7 @@ class DatasetControllerTest {
         final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
         recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
         final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(recordTierCalculationSummary,
-                new ContentTierBreakdown(null, null, false, false, false, null), null);
+                new ContentTierBreakdown.Builder().build(), null);
         when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenReturn(recordTierCalculationView);
 
         mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)

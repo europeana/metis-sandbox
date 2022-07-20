@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.executor.workflow;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -13,7 +13,6 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
-import nl.altindag.log.LogCaptor;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,9 +42,7 @@ class CloseExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     consumer.close(recordEvent);
-
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
-
     assertEquals(Step.CLOSE, captor.getValue().getStep());
   }
 
@@ -55,35 +52,21 @@ class CloseExecutorTest {
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.FAIL);
 
     consumer.close(recordEvent);
-
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void close_exception_expectLogError() {
-    final LogCaptor logCaptor = LogCaptor.forClass(CloseExecutor.class);
     var record = getTestRecord();
     var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
     final RuntimeException runtimeException = new AmqpException("Queue Failure");
-    doThrow(runtimeException)
-        .when(amqpTemplate)
-        .convertAndSend(any(), any(Object.class));
+    doThrow(runtimeException).when(amqpTemplate).convertAndSend(any(), any(Object.class));
 
-    consumer.close(recordEvent);
-
-    assertLogCaptor(logCaptor);
+    assertDoesNotThrow(() -> consumer.close(recordEvent));
   }
 
   private Record getTestRecord() {
-    return Record.builder()
-                 .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
-                 .content("".getBytes())
+    return Record.builder().datasetId("").datasetName("").country(Country.ITALY).language(Language.IT).content("".getBytes())
                  .recordId(1L).build();
-  }
-
-  private void assertLogCaptor(LogCaptor logCaptor) {
-    assertEquals(1, logCaptor.getErrorLogs().size());
-    final String testMessage = logCaptor.getErrorLogs().stream().findFirst().get();
-    assertTrue(testMessage.contains("Close executor error"));
   }
 }

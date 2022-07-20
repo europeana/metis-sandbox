@@ -15,23 +15,6 @@ public class ProgressInfoDto {
 
   public static final String PROGRESS_SWAGGER_MODEL_NAME = "ProgressInfo";
 
-  enum Status {
-    HARVESTING_IDENTIFIERS("harvesting identifiers"),
-    COMPLETED("completed"),
-    IN_PROGRESS("in progress");
-
-    private final String value;
-
-    Status(String value) {
-      this.value = value;
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-  }
-
   @JsonProperty("portal-publish")
   private final String portalPublishUrl;
 
@@ -49,8 +32,11 @@ public class ProgressInfoDto {
   @JsonProperty("dataset-info")
   private final DatasetInfoDto datasetInfoDto;
 
+  @JsonProperty("error-type")
+  private final String errorType;
+
   public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
-      List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto) {
+      List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto, String errorType) {
     this.processedRecords = processedRecords;
     if (totalRecords == null) {
       this.status = Status.HARVESTING_IDENTIFIERS;
@@ -63,8 +49,25 @@ public class ProgressInfoDto {
       this.totalRecords = totalRecords;
     }
     this.progressByStep = Collections.unmodifiableList(progressByStep);
-    this.portalPublishUrl = portalPublishUrl;
     this.datasetInfoDto = datasetInfoDto;
+    this.errorType = status == Status.COMPLETED ? errorType : "";
+    this.portalPublishUrl = this.errorType.isBlank() ? portalPublishUrl : "";
+  }
+
+  public enum Status {
+    HARVESTING_IDENTIFIERS("Harvesting Identifiers"),
+    COMPLETED("Completed"),
+    IN_PROGRESS("In Progress");
+
+    private final String value;
+
+    Status(String value) {
+      this.value = value;
+    }
+
+    public String value() {
+      return value;
+    }
   }
 
   public String getPortalPublishUrl() {
@@ -89,5 +92,9 @@ public class ProgressInfoDto {
 
   public DatasetInfoDto getDatasetInfoDto() {
     return datasetInfoDto;
+  }
+
+  public String getErrorType() {
+    return errorType;
   }
 }

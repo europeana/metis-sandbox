@@ -25,11 +25,12 @@ import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,7 +61,8 @@ class DatasetController {
       + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
-  private static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9_-]+");
+  private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
+  private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
 
 
   private final DatasetService datasetService;
@@ -68,6 +70,7 @@ class DatasetController {
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
   private final HarvestPublishService harvestPublishService;
+  private final UrlValidator urlValidator;
 
   public DatasetController(DatasetService datasetService,
       DatasetReportService reportService,
@@ -79,6 +82,7 @@ class DatasetController {
     this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
     this.harvestPublishService = harvestPublishService;
+    urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   }
 
   /**
@@ -103,7 +107,7 @@ class DatasetController {
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
-    checkArgument(namePattern.matcher(datasetName).matches(),
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
@@ -137,8 +141,10 @@ class DatasetController {
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
-    checkArgument(namePattern.matcher(datasetName).matches(),
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
+
+    checkArgument(urlValidator.isValid(url),"The provided url is invalid. Please provide a valid url.");
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
             xsltInputStream);
@@ -174,8 +180,9 @@ class DatasetController {
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
-    checkArgument(namePattern.matcher(datasetName).matches(),
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
         "dataset name can only include letters, numbers, _ or - characters");
+    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
@@ -256,7 +263,8 @@ class DatasetController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<CountryView> getAllCountries() {
-    return Arrays.stream(Country.values()).map(CountryView::new).collect(Collectors.toList());
+    return Country.getCountryListSortedByName().stream().map(CountryView::new)
+            .collect(Collectors.toList());
   }
 
   /**

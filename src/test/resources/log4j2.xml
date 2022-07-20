@@ -11,19 +11,13 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="eu.europeana" level="warn">
+    <Logger name="org.springframework" level="warn" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="eu.europeana.metis.sandbox" level="info">
+    <Logger name="org.hibernate" level="error" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.springframework" level="warn">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.hibernate" level="error">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.mongo.driver.connection" level="error">
+    <Logger name="org.mongo.driver.connection" level="error" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Root level="info">

@@ -11,4 +11,10 @@ public interface RecordService {
    */
   void setEuropeanaIdAndProviderId(Record recordToUpdate);
 
+  /**
+   * Deletes all records that are associated to a given dataset id
+   * @param datasetId The id of the dataset
+   */
+  void remove(String datasetId);
+
 }

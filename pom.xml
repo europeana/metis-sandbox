@@ -11,16 +11,15 @@
 
   <groupId>eu.europeana.metis</groupId>
   <artifactId>metis-sandbox</artifactId>
-  <version>2</version>
+  <version>3</version>
   <packaging>war</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
-
   <!-- Github connection -->
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
     <url>https://github.com/europeana/metis-sandbox</url>
-    <tag>v2</tag>
+    <tag>v3</tag>
     <developerConnection>scm:git:https://github.com/europeana/metis-sandbox</developerConnection>
   </scm>
 
@@ -40,20 +39,25 @@
   <properties>
     <version.java>11</version.java>
     <version.springfox>2.9.2</version.springfox>
-    <version.metis>7-SNAPSHOT</version.metis>
+    <version.metis>7</version.metis>
     <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.2.11</version.postgresql>
+    <version.postgresql>42.3.3</version.postgresql>
     <version.aws.s3>1.11.762</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
+    <version.failsafe.plugin>2.22.1</version.failsafe.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.slf4j>1.7.30</version.slf4j>
     <version.log4j>2.17.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
     <version.wiremock>2.32.0</version.wiremock>
-  </properties>
-
+    <version.commons.collections>3.2.2</version.commons.collections>
+    <version.stax2-api>4.2</version.stax2-api>
+    <version.woodstox-core>6.2.7</version.woodstox-core>
+    <version.testcontainers>1.17.2</version.testcontainers>
+    <version.awaitability>1.7.0</version.awaitability>
+    </properties>
   <dependencies>
     <!-- Spring boot -->
     <dependency>
@@ -79,24 +83,16 @@
       <artifactId>spring-boot-starter-tomcat</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
 
     <!-- Europeana -->
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-transformation-service</artifactId>
       <version>${version.metis}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-harvesting</artifactId>
-      <version>${version.metis}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -125,15 +121,39 @@
 
     <dependency>
       <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-harvesting</artifactId>
+      <version>${version.metis}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <!-- This is not really part of the library but we excluded just in case.-->
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-media-service</artifactId>
       <version>${version.metis}</version>
-      <!--			This is excluded because the transitive dependency org.dspace:xoai-service-provider from metis-harvesting dependency-->
-      <!--			contains and older version of org.codehaus.woodstox:stax2-api:jar:3.0.4.-->
-      <!--			This could cause other issues since media depends on a newer version, so we'll have to keep that in mind.-->
+      <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
       <exclusions>
         <exclusion>
           <groupId>org.codehaus.woodstox</groupId>
           <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -147,7 +167,41 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
-      </exclusions>
+        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>woodstox-core-asl</artifactId>
+        </exclusion>
+       </exclusions>
+    </dependency>
+
+    <!--
+    * Include specifically the stax2-api we want.
+    * We also add the woodstox-core library that is compatible with stax2-api.
+      This library is not specifically required by stax2-api, but we added since it was used from other libraries, just in case.
+    * These two libraries should be compatible with metis-harvesting, metis-media-service and metis-indexing
+    * The stax2-api, woodstox-core and woodstox-core-asl(older version of woodstox-core) are explicitly excluded from
+      the aforementioned metis libraries to avoid conflicts
+    -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <version>${version.stax2-api}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.woodstox</groupId>
+      <artifactId>woodstox-core</artifactId>
+      <version>${version.woodstox-core}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-pattern-analysis</artifactId>
+      <version>${version.metis}</version>
     </dependency>
 
     <dependency>
@@ -192,12 +246,6 @@
       <artifactId>log4j-core</artifactId>
       <version>${version.log4j}</version>
     </dependency>
-    <!-- Persistence -->
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>runtime</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -227,17 +275,43 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    <!-- testcontainers -->
     <dependency>
-      <groupId>com.github.fridujo</groupId>
-      <artifactId>rabbitmq-mock</artifactId>
-      <version>1.0.14</version>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.github.hakky54</groupId>
-      <artifactId>logcaptor</artifactId>
-      <version>${version.logcaptor}</version>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>rabbitmq</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit-test</artifactId>
+      <version>2.4.5</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <dependency>
+      <groupId>com.jayway.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>${version.awaitability}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -257,6 +331,12 @@
       <groupId>io.springfox</groupId>
       <artifactId>springfox-swagger-ui</artifactId>
       <version>${version.springfox}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>${version.commons.collections}</version>
     </dependency>
   </dependencies>
 
@@ -301,11 +381,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${version.surefire.plugin}</version>
-        <configuration>
-          <classpathDependencyExcludes>
-            <classpathDependencyExclude>org.apache.logging.log4j:log4j-slf4j-impl</classpathDependencyExclude>
-          </classpathDependencyExcludes>
-        </configuration>
         <executions>
           <execution>
             <id>unit-tests</id>
@@ -314,27 +389,31 @@
               <goal>test</goal>
             </goals>
             <configuration>
-              <skipTests>false</skipTests>
               <includes>
                 <include>**/*Test.java</include>
               </includes>
             </configuration>
           </execution>
-          <execution>
-            <id>integration-tests</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <skipTests>false</skipTests>
-              <includes>
-                <include>**/*IT.*</include>
-              </includes>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${version.failsafe.plugin}</version>
+          <executions>
+            <execution>
+              <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+              </goals>
+              <configuration>
+                <includes>
+                  <include>**/*IT.java</include>
+                </includes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>

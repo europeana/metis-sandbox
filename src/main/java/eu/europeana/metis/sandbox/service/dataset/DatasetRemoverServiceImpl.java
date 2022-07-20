@@ -1,7 +1,9 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
@@ -18,16 +20,22 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final RecordLogService recordLogService;
   private final IndexingService indexingService;
   private final ThumbnailStoreService thumbnailStoreService;
+  private final RecordService recordService;
+  private final ProblemPatternDataRemover problemPatternDataRemover;
 
   DatasetRemoverServiceImpl(
-      DatasetService datasetService,
-      RecordLogService recordLogService,
-      IndexingService indexingService,
-      ThumbnailStoreService thumbnailStoreService) {
+          DatasetService datasetService,
+          RecordLogService recordLogService,
+          IndexingService indexingService,
+          ThumbnailStoreService thumbnailStoreService,
+          RecordService recordService,
+          ProblemPatternDataRemover problemPatternDataRemover) {
     this.datasetService = datasetService;
     this.recordLogService = recordLogService;
     this.indexingService = indexingService;
     this.thumbnailStoreService = thumbnailStoreService;
+    this.recordService = recordService;
+    this.problemPatternDataRemover = problemPatternDataRemover;
   }
 
   @Override
@@ -49,6 +57,10 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           // remove from sandbox
           LOGGER.debug("Remove record logs for dataset id: [{}]", dataset);
           recordLogService.remove(dataset);
+          LOGGER.debug("Remove records for dataset id: [{}]", dataset);
+          recordService.remove(dataset);
+          LOGGER.debug("Remove problem pattern data associated with dataset id: [{}]", dataset);
+          problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
           datasetService.remove(dataset);
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);

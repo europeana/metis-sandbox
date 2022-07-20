@@ -2,6 +2,10 @@ package eu.europeana.metis.sandbox.common.locale;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 /**
  * Enum to represent countries available to add to a dataset process
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -22,8 +26,8 @@ public enum Country {
       "Iceland"), INDIA("India"), IRELAND("Ireland"), ITALY("Italy"), ISRAEL(
       "Israel"), JAPAN("Japan"), KAZAKHSTAN("Kazakhstan"), KOREA_REPUBLICOF(
       "Korea, Republic of"), LATVIA("Latvia"), LEBANON("Lebanon"), LIECHTENSTEIN(
-      "Liechtenstein"), LITHUANIA("Lithuania"), LUXEMBOURG("Luxembourg"), MACEDONIA(
-      "Macedonia"), MALTA("Malta"), MOLDOVA("Moldova"), MONACO("Monaco"), MONTENEGRO(
+      "Liechtenstein"), LITHUANIA("Lithuania"), LUXEMBOURG("Luxembourg"), NORTH_MACEDONIA(
+      "North Macedonia"), MALTA("Malta"), MOLDOVA("Moldova"), MONACO("Monaco"), MONTENEGRO(
       "Montenegro"), NETHERLANDS("Netherlands"), NORWAY("Norway"), POLAND(
       "Poland"), PORTUGAL("Portugal"), ROMANIA("Romania"), RUSSIA(
       "Russia"), SAN_MARINO("San Marino"), SERBIA("Serbia"), SLOVAKIA(
@@ -40,6 +44,18 @@ public enum Country {
   @JsonValue
   public String xmlValue() {
     return value;
+  }
+
+  /**
+   * Provides the countries sorted by the name field
+   *
+   * @return the list of countries sorted
+   */
+  public static List<Country> getCountryListSortedByName() {
+    List<Country> countries = Arrays
+            .asList(Country.values());
+    countries.sort(Comparator.comparing(Country::xmlValue));
+    return countries;
   }
 
 }

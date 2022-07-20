@@ -27,4 +27,11 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
   @Query("delete from RecordEntity where datasetId = ?1")
   void deleteByDatasetId(String datasetId);
 
+  /**
+   * Find record by provider id
+   *
+   * @param providerId the provider id value to search
+   */
+  @Query("select re from RecordEntity re where re.providerId = ?1 and re.datasetId = ?2")
+  RecordEntity findByProviderIdAndDatasetId(String providerId, String datasetId);
 }

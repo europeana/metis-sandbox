@@ -1,0 +1,33 @@
+sandbox:
+  rabbitmq:
+    routing-key:
+      closed: sandbox.record.closed-amqpconfiguration-test
+    exchange:
+      name: sandbox-amqpconfiguration-test
+    queues:
+      record:
+        created:
+          queue: sandbox.record.created-amqpconfiguration-test
+        transformation:
+          edm:
+            external:
+              queue: sandbox.record.transformation.edm.external-amqpconfiguration-test
+        ordered:
+          queue: sandbox.record.ordered-amqpconfiguration-test
+        validated:
+          external:
+            queue: sandbox.record.validated.external-amqpconfiguration-test
+          internal:
+            queue: sandbox.record.validated.internal-amqpconfiguration-test
+        transformed:
+          queue: sandbox.record.transformed-amqpconfiguration-test
+        normalized:
+          queue: sandbox.record.normalized-amqpconfiguration-test
+        enriched:
+          queue: sandbox.record.enriched-amqpconfiguration-test
+        media:
+          queue: sandbox.record.media.processed-amqpconfiguration-test
+        previewed:
+          queue: sandbox.record.previewed-amqpconfiguration-test
+        published:
+          queue: sandbox.record.published-amqpconfiguration-test

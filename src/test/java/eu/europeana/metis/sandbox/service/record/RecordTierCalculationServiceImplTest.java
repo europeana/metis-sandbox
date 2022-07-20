@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +51,7 @@ class RecordTierCalculationServiceImplTest {
     final Step mediaProcessStep = Step.MEDIA_PROCESS;
     final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep, Status.SUCCESS);
     recordEntity.setId(recordId);
-    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId)).thenReturn(recordLogEntity);
+    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId, Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
 
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
@@ -62,7 +63,7 @@ class RecordTierCalculationServiceImplTest {
 
   @Test
   void calculateTiers_NoRecordFoundException(){
-    when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString())).thenReturn(null);
+    when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString(), any(Step.class))).thenReturn(null);
     assertThrows(NoRecordFoundException.class, ()->recordTierCalculationService.calculateTiers("recordId", "datasetId"));
   }
 }

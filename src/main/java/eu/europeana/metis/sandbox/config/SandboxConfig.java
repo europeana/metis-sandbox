@@ -15,6 +15,9 @@ import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
+import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.normalization.NormalizerFactory;
@@ -71,10 +74,8 @@ class SandboxConfig {
   @Value("${sandbox.validation.edm-sorter-url}")
   private String edmSorterUrl;
 
+  @Value("${sandbox.transformation.xslt-url}")
   private String defaultXsltUrl;
-
-  @Value("${sandbox.dataset.provider-record-url-template}")
-  private String providerRecordUrlTemplate;
 
   @Value("${sandbox.portal.publish.record-base-url}")
   private String portalPublishRecordBaseUrl;
@@ -99,6 +100,11 @@ class SandboxConfig {
   }
 
   @Bean
+  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository) {
+    return new XsltUrlUpdateServiceImpl(transformXsltRepository);
+  }
+
+  @Bean
   Executor asyncServiceTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);
@@ -116,11 +122,6 @@ class SandboxConfig {
   @Bean(name = "transformationToEdmExternalQueue")
   String transformationToEdmExternalQueue() {
     return transformationToEdmExternalQueue;
-  }
-
-  @Bean(name = "providerRecordUrlTemplate")
-  String providerRecordUrlTemplate() {
-    return providerRecordUrlTemplate;
   }
 
   @Bean(name = "portalPublishRecordBaseUrl")
@@ -197,14 +198,6 @@ class SandboxConfig {
   @ConfigurationProperties(prefix = "sandbox.validation")
   Schema schema() {
     return new Schema();
-  }
-
-  @Value("${sandbox.transformation.xslt-url}")
-  void setDefaultXsltUrl(String defaultXsltUrl) {
-    if (defaultXsltUrl == null || defaultXsltUrl.isEmpty()) {
-      throw new IllegalArgumentException("defaultXsltUrl not provided");
-    }
-    this.defaultXsltUrl = defaultXsltUrl;
   }
 
   private Properties schemaProperties() {
