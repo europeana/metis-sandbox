@@ -194,3 +194,16 @@ sandbox:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
           auto-start: true
+elastic:
+  apm:
+    service_name: metis-sandbox-rest-dev
+    application_packages: org.europeana,eu.europeana.metis.sandbox
+    server_url: http://localhost:8200
+    capture_body: all
+    capture_headers: true
+    metrics_interval: 5s
+    environment: dev
+    hostname: localhost
+    enabled: true
+    recording: true
+    instrument: true
