@@ -1,38 +1,20 @@
 package eu.europeana.metis.sandbox.config;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.europeana.metis.sandbox.SandboxApplication;
-import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = SandboxApplication.class)
+/**
+ * Test the configuration for elastic apm agent warning: it will display a message that the Elastic APM server is not available
+ * (Connection Refused) unless you configure a http://localhost:8200 (see properties file)
+ */
+@SpringBootTest(classes = ElasticConfig.class)
+@EnableConfigurationProperties
 class ElasticConfigTest {
-
-  @DynamicPropertySource
-  public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgresContainerInitializerIT.dynamicProperties(registry);
-    PostgresContainerInitializerIT.runScripts(List.of(
-        "database/schema_drop.sql", "database/schema.sql",
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
-    RabbitMQContainerInitializerIT.properties(registry);
-  }
-
-  @BeforeEach
-  void cleanUpPostgres() {
-    PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop.sql", "database/schema.sql"));
-  }
 
   @Autowired
   ElasticConfig elasticConfig;
@@ -53,5 +35,4 @@ class ElasticConfigTest {
     assertTrue(map.containsKey("recording"));
     assertTrue(map.containsKey("instrument"));
   }
-
 }

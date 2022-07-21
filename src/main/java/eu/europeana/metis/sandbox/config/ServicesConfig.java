@@ -6,7 +6,6 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.metrics.MetricsServiceImpl;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -16,8 +15,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableScheduling
 public class ServicesConfig {
 
-  @Value("${elastic.apm.enabled}")
-  private Boolean metricsEnabled;
   private MetricsService metricsService;
 
   @Bean
@@ -30,10 +27,8 @@ public class ServicesConfig {
     return metricsService;
   }
 
-  @Scheduled(cron = "${sandbox.metrics.dataset.frequency:*/5 * * * * *")
+  @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *")
   void metricsReport() {
-    if (Boolean.TRUE.equals(metricsEnabled)) {
-      metricsService.processMetrics();
-    }
+    metricsService.processMetrics();
   }
 }

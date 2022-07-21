@@ -62,6 +62,8 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+  metrics:
+    frequency: '*/5 * * * * *' # every five seconds.
   validation:
     edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
     executor:
