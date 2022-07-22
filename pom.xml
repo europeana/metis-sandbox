@@ -13,7 +13,7 @@
 
   <groupId>eu.europeana.metis</groupId>
   <artifactId>metis-sandbox</artifactId>
-  <version>3-SNAPSHOT</version>
+  <version>4-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
@@ -41,7 +41,7 @@
   <properties>
     <version.java>11</version.java>
     <version.springfox>2.9.2</version.springfox>
-    <version.metis>7-SNAPSHOT</version.metis>
+    <version.metis>7</version.metis>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.3.3</version.postgresql>
     <version.aws.s3>1.11.762</version.aws.s3>
