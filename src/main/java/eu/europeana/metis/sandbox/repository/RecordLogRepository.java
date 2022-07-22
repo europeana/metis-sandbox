@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
-import eu.europeana.metis.sandbox.entity.StepStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,11 +21,22 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @return statistics for the given dataset
    * @see StepStatistic
    */
-  @Query( value = "SELECT new eu.europeana.metis.sandbox.entity.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+  @Query( value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(rle)) "
       + "FROM RecordLogEntity rle "
       + "WHERE rle.recordId.datasetId = ?1 "
       + "GROUP BY rle.step, rle.status")
   List<StepStatistic> getStepStatistics(String datasetId);
+
+  /**
+   * Get metrics by step for a given time using custom query
+   *
+   * @return metrics Step Statistics
+   * @see StepStatistic
+   */
+  @Query( value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+      + "FROM RecordLogEntity rle "
+      + "GROUP BY rle.step, rle.status")
+  List<StepStatistic> getMetricStepStatistics();
 
   /**
    * Get record given a record id, dataset id and step.

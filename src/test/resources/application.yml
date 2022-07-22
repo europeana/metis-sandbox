@@ -62,6 +62,8 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+  metrics:
+    frequency: '*/5 * * * * *' # every five seconds.
   validation:
     edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
     executor:
@@ -160,3 +162,17 @@ sandbox:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
           auto-start: true
+
+elastic:
+  apm:
+    service_name: metis-sandbox-rest-dev
+    application_packages: org.europeana,eu.europeana.metis.sandbox
+    server_url: http://localhost:8200
+    capture_body: all
+    capture_headers: true
+    metrics_interval: 5s
+    environment: dev
+    hostname: localhost
+    enabled: true
+    recording: true
+    instrument: true
