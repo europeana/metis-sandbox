@@ -7,8 +7,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -16,11 +19,15 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import java.io.IOException;
 import java.io.InputStream;
+
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 @ExtendWith(MockitoExtension.class)
 class IndexingServiceImplTest {
@@ -30,9 +37,12 @@ class IndexingServiceImplTest {
 
   private IndexingServiceImpl service;
 
+  @Mock
+  private RecordService recordService;
+
   @BeforeEach
   void init() {
-    service = new IndexingServiceImpl(publishIndexer);
+    service = new IndexingServiceImpl(publishIndexer, recordService);
   }
 
   @Test
@@ -40,6 +50,10 @@ class IndexingServiceImplTest {
     var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
+    Pair<MediaTier, MetadataTier> mock = new ImmutablePair<>(MediaTier.T1, MetadataTier.TA);
+
+    when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
+            .thenReturn(mock);
 
     service.index(record);
     verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());

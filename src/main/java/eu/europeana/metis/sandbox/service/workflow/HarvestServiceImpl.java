@@ -144,7 +144,7 @@ public class HarvestServiceImpl implements HarvestService {
           oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
-      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId);
+      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
       if (isDuplicatedByProviderId(recordEntity, datasetId)
@@ -232,7 +232,7 @@ public class HarvestServiceImpl implements HarvestService {
       Path path, List<RecordInfo> recordInfoList) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
-    RecordEntity recordEntity = new RecordEntity(null, path.toString(), datasetId);
+    RecordEntity recordEntity = new RecordEntity(null, path.toString(), datasetId, "", "");
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();

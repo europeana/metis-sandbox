@@ -278,7 +278,7 @@ class DatasetReportServiceImplTest {
 
     private static RecordEntity getTestRecordEntity(final Long recordId) {
         RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
-                "providerId" + recordId, recordId.toString());
+                "providerId" + recordId, recordId.toString(), "", "");
         recordEntity.setId(recordId);
         return recordEntity;
     }

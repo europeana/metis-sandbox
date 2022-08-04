@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexingProperties;
+import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.Date;
 import javax.annotation.PreDestroy;
 
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +24,11 @@ import org.springframework.stereotype.Service;
 class IndexingServiceImpl implements IndexingService {
 
   private final Indexer publishIndexer;
+  private final RecordService recordService;
 
-  public IndexingServiceImpl(Indexer publishIndexer) {
+  public IndexingServiceImpl(Indexer publishIndexer, RecordService recordService) {
     this.publishIndexer = publishIndexer;
+    this.recordService = recordService;
   }
 
   @Override
@@ -39,10 +43,12 @@ class IndexingServiceImpl implements IndexingService {
       throw new RecordProcessingException(recordToIndex.getProviderId(), ex);
     }
 
-//TODO:    if(tierCalculations == null || (tierCalculations.getLeft() == null && tierCalculations.getRight() == null)){
-//      throw new RecordProcessingException(recordToIndex.getProviderId(), new IndexerRelatedIndexingException(
-//              String.format("Something wrong with tier calculations with record %s", recordToIndex.getProviderId())));
-//    }
+    if(tierCalculations == null || (tierCalculations.getLeft() == null && tierCalculations.getRight() == null)){
+      throw new RecordProcessingException(recordToIndex.getProviderId(), new IndexerRelatedIndexingException(
+              String.format("Something wrong with tier calculations with record %s", recordToIndex.getProviderId())));
+    }
+
+    recordService.setContentTierAndMetadataTier(recordToIndex, tierCalculations.getLeft(), tierCalculations.getRight());
 
     return new RecordInfo(recordToIndex);
   }
