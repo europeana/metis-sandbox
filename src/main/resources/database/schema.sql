@@ -15,9 +15,11 @@ CREATE TABLE IF NOT EXISTS dataset
 CREATE TABLE IF NOT EXISTS record
 (
     id           BIGSERIAL,
-    europeana_id VARCHAR(255) NULL,
-    provider_id  VARCHAR(255) NULL,
-    dataset_id   VARCHAR(100) NOT NULL,
+    europeana_id  VARCHAR(255) NULL,
+    provider_id   VARCHAR(255) NULL,
+    dataset_id    VARCHAR(100) NOT NULL,
+    content_tier  VARCHAR(3) NULL,
+    metadata_tier VARCHAR(3) NULL,
     PRIMARY KEY (id),
     UNIQUE (europeana_id, dataset_id),
     UNIQUE (provider_id, dataset_id)
@@ -67,5 +69,6 @@ CREATE TABLE IF NOT EXISTS default_transform_xslt
 CREATE INDEX ON record_log (record_id);
 CREATE INDEX ON record_error_log (record_id);
 CREATE INDEX ON record (dataset_id, europeana_id, provider_id);
+CREATE INDEX ON record (dataset_id, content_tier, metadata_tier);
 CREATE INDEX ON thumbnail (dataset_id);
 COMMIT;

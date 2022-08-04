@@ -42,7 +42,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     service.index(record);
-    verify(publishIndexer).index(any(InputStream.class), any());
+    verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
   }
 
   @Test
@@ -52,7 +52,7 @@ class IndexingServiceImplTest {
         .datasetName("").datasetId("").build();
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
-        .when(publishIndexer).index(any(InputStream.class), any());
+        .when(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
     assertThrows(RecordProcessingException.class,
         () -> service.index(record));
   }
