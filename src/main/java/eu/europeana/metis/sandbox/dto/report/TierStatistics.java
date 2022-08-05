@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +31,6 @@ public class TierStatistics {
     }
 
     public List<String> getListRecordIds() {
-        return listRecordIds.isEmpty() ? Collections.emptyList() : new ArrayList<>(listRecordIds);
+        return listRecordIds.isEmpty() ? Collections.emptyList() : Collections.unmodifiableList(listRecordIds);
     }
 }

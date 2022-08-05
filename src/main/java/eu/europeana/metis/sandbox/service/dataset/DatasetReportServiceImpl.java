@@ -51,6 +51,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private static final String FINISH_ALL_ERRORS_MESSAGE = "All dataset records failed to be processed.";
     private static final String SEPARATOR = "_";
     private static final String SUFFIX = "*";
+    private static final int LIMIT_NUMBER_OF_RECORD_SAMPLES = 10;
 
     @Value("${sandbox.portal.publish.dataset-base-url}")
     private String portalPublishDatasetUrl;
@@ -120,12 +121,22 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
                 recordErrorsByStep));
 
+        // get list of records with content tier 0
         List<String> listOfRecordsIdsWithContentZero = recordRepository.findByDatasetIdAndContentTier(datasetId, MediaTier.T0.toString());
+        // get list of records with metadata tier 0
         List<String> listOfRecordsIdsWithMetadataZero = recordRepository.findByDatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString());
+
+        // encapsulate values into TierStatistics. Cut list of record ids into limit number
         TierStatistics contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
-                new TierStatistics(listOfRecordsIdsWithContentZero.size(), listOfRecordsIdsWithContentZero);
+                new TierStatistics(listOfRecordsIdsWithContentZero.size(),
+                        listOfRecordsIdsWithContentZero.stream().limit(LIMIT_NUMBER_OF_RECORD_SAMPLES).collect(Collectors.toUnmodifiableList()));
+
+        // encapsulate values into TierStatistics. Cut list of record ids into limit number
         TierStatistics metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
-                new TierStatistics(listOfRecordsIdsWithMetadataZero.size(), listOfRecordsIdsWithMetadataZero);
+                new TierStatistics(listOfRecordsIdsWithMetadataZero.size(),
+                        listOfRecordsIdsWithMetadataZero.stream().limit(LIMIT_NUMBER_OF_RECORD_SAMPLES).collect(Collectors.toUnmodifiableList()));
+
+        // encapsulate values into TiersZeroInfo
         TiersZeroInfo tiersZeroInfo = contentTierInfo == null && metadataTierInfo == null ? null :
                 new TiersZeroInfo(contentTierInfo, metadataTierInfo);
 
