@@ -6,8 +6,7 @@ import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.indexing.tiers.model.MediaTier;
-import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -17,7 +16,6 @@ import java.util.Date;
 import javax.annotation.PreDestroy;
 
 import eu.europeana.metis.sandbox.service.record.RecordService;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,7 +32,7 @@ class IndexingServiceImpl implements IndexingService {
   @Override
   public RecordInfo index(Record recordToIndex) {
     requireNonNull(recordToIndex, "Record must not be null");
-    Pair<MediaTier, MetadataTier> tierCalculations;
+    TierResults tierCalculations;
 
     try {
       tierCalculations = publishIndexer.indexAndGetTierCalculations(recordToIndex.getContentInputStream(),
@@ -43,12 +41,12 @@ class IndexingServiceImpl implements IndexingService {
       throw new RecordProcessingException(recordToIndex.getProviderId(), ex);
     }
 
-    if(tierCalculations == null || (tierCalculations.getLeft() == null && tierCalculations.getRight() == null)){
+    if(tierCalculations == null || (tierCalculations.getMediaTier() == null && tierCalculations.getMetadataTier() == null)){
       throw new RecordProcessingException(recordToIndex.getProviderId(), new IndexerRelatedIndexingException(
-              String.format("Something wrong with tier calculations with record %s", recordToIndex.getProviderId())));
+              String.format("Something went wrong with tier calculations with record %s", recordToIndex.getProviderId())));
     }
 
-    recordService.setContentTierAndMetadataTier(recordToIndex, tierCalculations.getLeft(), tierCalculations.getRight());
+    recordService.setContentTierAndMetadataTier(recordToIndex, tierCalculations.getMediaTier(), tierCalculations.getMetadataTier());
 
     return new RecordInfo(recordToIndex);
   }

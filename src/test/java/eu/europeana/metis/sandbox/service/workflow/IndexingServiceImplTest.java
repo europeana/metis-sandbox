@@ -12,6 +12,7 @@ import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -26,8 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 @ExtendWith(MockitoExtension.class)
 class IndexingServiceImplTest {
@@ -50,7 +49,7 @@ class IndexingServiceImplTest {
     var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
-    Pair<MediaTier, MetadataTier> mock = new ImmutablePair<>(MediaTier.T1, MetadataTier.TA);
+    TierResults mock = new TierResults(MediaTier.T1, MetadataTier.TA);
 
     when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
             .thenReturn(mock);
