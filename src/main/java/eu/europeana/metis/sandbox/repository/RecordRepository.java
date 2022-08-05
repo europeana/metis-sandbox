@@ -58,4 +58,22 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
       + "FROM RecordEntity re "
       + "GROUP BY re.datasetId")
   List<DatasetStatistic> getMetricDatasetStatistics();
+
+  /**
+   * Find provider ids by dataset id and content tier value
+   *
+   * @param datasetId The id of the dataset the records belong to
+   * @param contentTier The value of the content tier to look for
+   */
+  @Query("select re.europeanaId from RecordEntity re where re.contentTier = ?2 and re.datasetId = ?1")
+  List<String> findByDatasetIdAndContentTier(String datasetId, String contentTier);
+
+  /**
+   * Find provider ids by dataset id and content tier value
+   *
+   * @param datasetId The id of the dataset the records belong to
+   * @param metadataTier The value of the metadata tier to look for
+   */
+  @Query("select re.europeanaId from RecordEntity re where re.metadataTier = ?2 and re.datasetId = ?1")
+  List<String> findByDatasetIdAndMetadataTier(String datasetId, String metadataTier);
 }

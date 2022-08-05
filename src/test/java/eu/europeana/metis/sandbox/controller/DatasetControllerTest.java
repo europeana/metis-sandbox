@@ -29,9 +29,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.*;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -44,6 +42,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -316,8 +315,10 @@ class DatasetControllerTest {
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
         var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
                 Country.NETHERLANDS, false, false);
+        var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
+                new TierStatistics(0, Collections.emptyList()));
         var report = new ProgressInfoDto("https://metis-sandbox",
-                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "");
+                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", tiersZeroInfo);
         when(datasetReportService.getReport("1")).thenReturn(report);
 
         mvc.perform(get("/dataset/{id}", "1"))

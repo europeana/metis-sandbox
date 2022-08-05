@@ -70,7 +70,7 @@ class DatasetReportServiceImplTest {
                 5L, 4L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "");
+                        false, false), "", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1L);
@@ -104,7 +104,7 @@ class DatasetReportServiceImplTest {
                 "A review URL will be generated when the dataset has finished processing.",
                 5L, 0L,
                 List.of(createProgress, externalProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "");
+                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -130,7 +130,7 @@ class DatasetReportServiceImplTest {
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5L, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "");
+                        false, false), "", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -162,7 +162,7 @@ class DatasetReportServiceImplTest {
                 "", 5L, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "All dataset records failed to be processed.");
+                        false, false), "All dataset records failed to be processed.", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5L);
@@ -199,7 +199,7 @@ class DatasetReportServiceImplTest {
         var expected = new ProgressInfoDto(
                 "", 0L, 0L, List.of(),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
-                "Dataset is empty.");
+                "Dataset is empty.", null);
         var report = service.getReport("1");
         assertReportEquals(expected, report);
     }
@@ -234,7 +234,7 @@ class DatasetReportServiceImplTest {
 
         var expected = new ProgressInfoDto(
             "Harvesting dataset identifiers and records.", null, 0L, List.of(),
-            new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "");
+            new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", null);
         var report = service.getReport("1");
 
         assertReportEquals(expected, report);

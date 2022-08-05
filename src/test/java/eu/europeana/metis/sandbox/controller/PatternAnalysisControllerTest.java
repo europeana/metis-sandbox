@@ -80,7 +80,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -116,7 +116,7 @@ class PatternAnalysisControllerTest {
             .thenReturn(Optional.of(datasetProblemPatternAnalysis));
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-            new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+            new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -151,7 +151,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
     doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -188,7 +188,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.empty());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, ""));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))

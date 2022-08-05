@@ -7,14 +7,14 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.*;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -57,14 +58,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private final DatasetRepository datasetRepository;
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository errorLogRepository;
+    private final RecordRepository recordRepository;
 
     public DatasetReportServiceImpl(
             DatasetRepository datasetRepository,
             RecordLogRepository recordLogRepository,
-            RecordErrorLogRepository errorLogRepository) {
+            RecordErrorLogRepository errorLogRepository,
+            RecordRepository recordRepository) {
         this.datasetRepository = datasetRepository;
         this.recordLogRepository = recordLogRepository;
         this.errorLogRepository = errorLogRepository;
+        this.recordRepository = recordRepository;
     }
 
     @Override
@@ -94,7 +98,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         if (stepStatistics.isEmpty()) {
             return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
                     dataset.getRecordsQuantity(), 0L, List.of(),
-                    datasetInfoDto, getErrorMessage(0L, 0L, dataset.getRecordsQuantity()));
+                    datasetInfoDto, getErrorMessage(0L, 0L, dataset.getRecordsQuantity()), null);
         }
 
         // get qty of records completely processed
@@ -116,10 +120,20 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
                 recordErrorsByStep));
 
+        List<String> listOfRecordsIdsWithContentZero = recordRepository.findByDatasetIdAndContentTier(datasetId, MediaTier.T0.toString());
+        List<String> listOfRecordsIdsWithMetadataZero = recordRepository.findByDatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString());
+        TierStatistics contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
+                new TierStatistics(listOfRecordsIdsWithContentZero.size(), listOfRecordsIdsWithContentZero);
+        TierStatistics metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
+                new TierStatistics(listOfRecordsIdsWithMetadataZero.size(), listOfRecordsIdsWithMetadataZero);
+        TiersZeroInfo tiersZeroInfo = contentTierInfo == null && metadataTierInfo == null ? null :
+                new TiersZeroInfo(contentTierInfo, metadataTierInfo);
+
         return new ProgressInfoDto(
                 getPublishPortalUrl(dataset, completedRecords),
                 dataset.getRecordsQuantity(), completedRecords,
-                stepsInfo, datasetInfoDto, getErrorMessage(completedRecords, failedRecords, dataset.getRecordsQuantity()));
+                stepsInfo, datasetInfoDto, getErrorMessage(completedRecords, failedRecords, dataset.getRecordsQuantity()),
+                tiersZeroInfo);
     }
 
     private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords) {

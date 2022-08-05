@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.dto.report;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
@@ -35,9 +35,15 @@ public class ProgressInfoDto {
   @JsonProperty("error-type")
   private final String errorType;
 
+  @JsonProperty("tier-zero-info")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private final TiersZeroInfo tiersZeroInfo;
+
   public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
-      List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto, String errorType) {
+                         List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto, String errorType,
+                         TiersZeroInfo tiersZeroInfo) {
     this.processedRecords = processedRecords;
+    this.tiersZeroInfo = tiersZeroInfo;
     if (totalRecords == null) {
       this.status = Status.HARVESTING_IDENTIFIERS;
       this.totalRecords = 0L;
@@ -96,5 +102,9 @@ public class ProgressInfoDto {
 
   public String getErrorType() {
     return errorType;
+  }
+
+  public TiersZeroInfo getTiersZeroInfo() {
+    return tiersZeroInfo;
   }
 }
