@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.dto.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -32,5 +33,22 @@ public class TierStatistics {
 
     public List<String> getListRecordIds() {
         return listRecordIds.isEmpty() ? Collections.emptyList() : Collections.unmodifiableList(listRecordIds);
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o == this){
+            return true;
+        }
+
+        if(!(o instanceof TierStatistics)){
+            return false;
+        }
+
+        TierStatistics other = (TierStatistics) o;
+
+        return this.totalNumberOfRecords == other.totalNumberOfRecords &&
+                this.listRecordIds.size() == other.totalNumberOfRecords &&
+                new HashSet<>(this.listRecordIds).containsAll(other.listRecordIds);
     }
 }

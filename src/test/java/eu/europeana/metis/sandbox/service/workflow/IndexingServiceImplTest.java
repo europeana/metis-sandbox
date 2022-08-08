@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -56,6 +57,7 @@ class IndexingServiceImplTest {
 
     service.index(record);
     verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
+    verify(recordService).setContentTierAndMetadataTier(record, MediaTier.T1, MetadataTier.TA);
   }
 
   @Test
@@ -68,6 +70,17 @@ class IndexingServiceImplTest {
         .when(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
     assertThrows(RecordProcessingException.class,
         () -> service.index(record));
+  }
+
+  @Test
+  void indexPublish_TierCalculationIssue_expectFail() {
+    var record = Record.builder().recordId(1L)
+            .content("".getBytes()).language(Language.IT).country(Country.ITALY)
+            .datasetName("").datasetId("").build();
+
+    RecordProcessingException exception = assertThrows(RecordProcessingException.class,
+            () -> service.index(record));
+    assertTrue(exception.getReportMessage().contains("Something went wrong with tier calculations with record"));
   }
 
   @Test

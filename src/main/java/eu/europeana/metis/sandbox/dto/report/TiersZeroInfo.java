@@ -3,6 +3,8 @@ package eu.europeana.metis.sandbox.dto.report;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashSet;
+
 /**
  * Class to encapsulate the all statistics information related to content and metadata tier
  *
@@ -32,6 +34,22 @@ public class TiersZeroInfo {
 
     public TierStatistics getMetadataTier() {
         return metadataTier;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o == this){
+            return true;
+        }
+
+        if(!(o instanceof TiersZeroInfo)){
+            return false;
+        }
+
+        TiersZeroInfo other = (TiersZeroInfo) o;
+
+        return this.contentTier.equals(other.contentTier) &&
+                this.metadataTier.equals(other.metadataTier);
     }
 
 

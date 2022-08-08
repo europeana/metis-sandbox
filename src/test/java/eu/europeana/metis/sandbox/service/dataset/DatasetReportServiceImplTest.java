@@ -6,15 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.*;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -22,6 +22,7 @@ import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,6 +46,9 @@ class DatasetReportServiceImplTest {
 
     @Mock
     private RecordErrorLogRepository errorLogRepository;
+
+    @Mock
+    private RecordRepository recordRepository;
 
     @InjectMocks
     private DatasetReportServiceImpl service;
@@ -125,22 +129,29 @@ class DatasetReportServiceImplTest {
         var dataset = new DatasetEntity("dataset", 5L, Language.NL, Country.NETHERLANDS, false);
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
-
+        var publishProgress = new ProgressByStepDto(Step.PUBLISH, 5, 0, 0, List.of());
+        var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(2, List.of("providerId1", "providerId2")),
+                new TierStatistics(3, List.of("providerId1", "providerId2", "provider3")));
         var report = new ProgressInfoDto(
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5L, 5L,
-                List.of(createProgress, externalProgress),
+                List.of(createProgress, externalProgress, publishProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "", null);
+                        false, false), "", tiersZeroInfo);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
+        var recordViewPublish = new StepStatistic(Step.PUBLISH, Status.SUCCESS, 5L);
         var recordViewClose = new StepStatistic(Step.CLOSE, Status.SUCCESS, 5L);
 
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(
-                List.of(recordViewCreate, recordViewExternal, recordViewClose));
+                List.of(recordViewCreate, recordViewExternal, recordViewPublish, recordViewClose));
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of());
+        when(recordRepository.findByDatasetIdAndContentTier("1", MediaTier.T0.toString()))
+                .thenReturn(List.of("providerId1", "providerId2"));
+        when(recordRepository.findByDatasetIdAndMetadataTier("1", MetadataTier.T0.toString()))
+                .thenReturn(List.of("providerId1", "providerId2", "provider3"));
 
         var result = service.getReport("1");
 
@@ -246,6 +257,7 @@ class DatasetReportServiceImplTest {
         assertEquals(expected.getTotalRecords(), actual.getTotalRecords());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getErrorType(), actual.getErrorType());
+        assertEquals(expected.getTiersZeroInfo(), actual.getTiersZeroInfo());
 
         var progressByStepExpected = expected.getProgressByStep();
         var progressByStepActual = actual.getProgressByStep();
