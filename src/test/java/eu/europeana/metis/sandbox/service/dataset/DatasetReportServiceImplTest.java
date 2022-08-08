@@ -149,9 +149,9 @@ class DatasetReportServiceImplTest {
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of());
         when(recordRepository.findByDatasetIdAndContentTier("1", MediaTier.T0.toString()))
-                .thenReturn(List.of("providerId1", "providerId2"));
+                .thenReturn(List.of("europeanaId1", "europeanaId2"));
         when(recordRepository.findByDatasetIdAndMetadataTier("1", MetadataTier.T0.toString()))
-                .thenReturn(List.of("providerId1", "providerId2", "provider3"));
+                .thenReturn(List.of("europeanaId1", "europeanaId2", "europeana3"));
 
         var result = service.getReport("1");
 
