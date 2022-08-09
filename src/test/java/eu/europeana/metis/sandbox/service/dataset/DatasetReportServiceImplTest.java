@@ -130,8 +130,8 @@ class DatasetReportServiceImplTest {
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var publishProgress = new ProgressByStepDto(Step.PUBLISH, 5, 0, 0, List.of());
-        var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(2, List.of("providerId1", "providerId2")),
-                new TierStatistics(3, List.of("providerId1", "providerId2", "provider3")));
+        var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(2, List.of("europeanaId1", "europeanaId2")),
+                new TierStatistics(3, List.of("europeanaId1", "europeanaId2", "europeanaId3")));
         var report = new ProgressInfoDto(
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5L, 5L,
                 List.of(createProgress, externalProgress, publishProgress),
@@ -151,7 +151,7 @@ class DatasetReportServiceImplTest {
         when(recordRepository.findByDatasetIdAndContentTier("1", MediaTier.T0.toString()))
                 .thenReturn(List.of("europeanaId1", "europeanaId2"));
         when(recordRepository.findByDatasetIdAndMetadataTier("1", MetadataTier.T0.toString()))
-                .thenReturn(List.of("europeanaId1", "europeanaId2", "europeana3"));
+                .thenReturn(List.of("europeanaId1", "europeanaId2", "europeanaId3"));
 
         var result = service.getReport("1");
 

@@ -33,6 +33,7 @@ public class ProgressInfoDto {
   private final DatasetInfoDto datasetInfoDto;
 
   @JsonProperty("error-type")
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private final String errorType;
 
   @JsonProperty("tier-zero-info")
