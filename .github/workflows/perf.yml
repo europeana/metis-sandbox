@@ -2,6 +2,8 @@ name: performance
 
 on:
   workflow_dispatch:
+    branches:
+      - feat/MET-4627_MET-4629_jmeter_performance_tests
     inputs:
       users:
         description: 'Amount of users (threads)'
