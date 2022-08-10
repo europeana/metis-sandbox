@@ -1,0 +1,57 @@
+name: performance
+
+on:
+  workflow_dispatch:
+    branches:
+      - feat/*
+      - develop
+    inputs:
+      users:
+        description: 'Amount of users (threads)'
+        required: true
+        default: 1
+      rampUp:
+        description: 'Ramp up period (in seconds)'
+        required: true
+        default: 5
+      loopCount:
+        description: 'Amount of runs'
+        required: true
+        default: 1
+      scenario:
+        type: choice
+        description: 'Scenario to run'
+        required: true
+        options:
+          - scenario-1-harvest-file
+          - scenario-2-harvest-oaipmh
+          - scenario-3-harvest-file-and-oaipmh
+jobs:
+  performance-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: Set up jmeter 5.5
+        run: |
+          java -version
+          wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
+          unzip apache-jmeter-5.5.zip
+          cd apache-jmeter-5.5.zip
+          ./jmeter -v
+          pwd
+      - uses: actions/checkout@v2
+      - name: Locate the files
+        run: |
+          pwd
+          ls
+      - name: run scenario ${{github.event.inputs.scenario}}
+        run: |          
+          uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
+          scenario=$GITHUB_WORKSPACE+'/'+${{ github.event.inputs.scenario }}+'.jmx'
+          echo $scenario
+          echo $uuid_arr
