@@ -67,7 +67,7 @@ jobs:
       - name: scenario
         run: |          
           uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
-          scenario=$GITHUB_WORKSPACE'/'src/main/resources/performance/${{ github.event.inputs.scenario }}'.jmx'
+          scenario=$GITHUB_WORKSPACE/src/main/resources/performance/${{ github.event.inputs.scenario }}.jmx
           test_report=$GITHUB_WORKSPACE/test_report/${uuid_arr[4]}
           export SCENARIO=$scenario
           export TEST_REPORT=$test_report
@@ -83,16 +83,7 @@ jobs:
           pwd
           ls
           cd apache-jmeter-5.5/bin
-          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT \ 
-          -Jusers=${{ github.event.inputs.users }} \
-          -Jrampup=${{ github.event.inputs.rampUp }} \
-          -Jloopcount=${{ github.event.inputs.loopCount }} \
-          -Jhost=${{ secrets.ACCEPTANCE_API_ENDPOINT }} \
-          -Jport=443 \
-          -Jfileurl=${{ github.event.inputs.fileUrl}} \
-          -Joaiurl=${{ github.event.inputs.fileOaiPmh}} \
-          -Jsetspec=${{ github.event.inputs.setSpec}} \
-          -Jmetadataformat=${{ github.event.inputs.metaDataFormat}}
+          jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT -Jusers=${{ github.event.inputs.users }} -Jrampup=${{ github.event.inputs.rampUp }} -Jloopcount=${{ github.event.inputs.loopCount }} -Jhost=${{ secrets.ACCEPTANCE_API_ENDPOINT }} -Jport=443 -Jfileurl=${{ github.event.inputs.fileUrl}} -Joaiurl=${{ github.event.inputs.fileOaiPmh}} -Jsetspec=${{ github.event.inputs.setSpec}} -Jmetadataformat=${{ github.event.inputs.metaDataFormat}}
       - name: Upload JMeter Test Results
         uses: actions/upload-artifact@v3
         with:
