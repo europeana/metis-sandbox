@@ -51,6 +51,7 @@ jobs:
       - name: scenario
         run: |          
           uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
-          scenario=$GITHUB_WORKSPACE+'/'+${{ github.event.inputs.scenario }}+'.jmx'
+          scenario=$GITHUB_WORKSPACE'/'src/main/resources/performance/${{ github.event.inputs.scenario }}'.jmx'
           echo $scenario
           echo $uuid_arr
+          cat $scenario
