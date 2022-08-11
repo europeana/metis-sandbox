@@ -43,9 +43,8 @@ jobs:
           unzip apache-jmeter-5.5.zip
           cd apache-jmeter-5.5.zip
           ./jmeter -v
-          pwd
-      - name: Locate the files
-        uses: actions/checkout@v2      
+          pwd      
+      - uses: actions/checkout@v3      
         run: |
           pwd
           ls
