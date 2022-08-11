@@ -75,7 +75,11 @@ jobs:
           echo "SCENARIO=$SCENARIO" >> $GITHUB_ENV
           echo "TEST_REPORT=$TEST_REPORT" >> $GITHUB_ENV
           echo "UUID=$UUID" >> $GITHUB_ENV
-          cd $GITHUB_WORKSPACE/apache-jmeter-5.5/bin
+          pwd
+          cd $GITHUB_WORKSPACE
+          pwd
+          ls
+          cd apache-jmeter-5.5/bin
           ./jmeter -n -t $scenario -l ${{ github.event.inputs.scenario }}'.csv' -e -o $test_report \ 
           -Jusers=${{ github.event.inputs.users }} \
           -Jrampup=${{ github.event.inputs.rampUp }} \
