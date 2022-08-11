@@ -72,15 +72,18 @@ jobs:
           export SCENARIO=$scenario
           export TEST_REPORT=$test_report
           export UUID=${uuid_arr[4]}
-          echo "SCENARIO=$SCENARIO" >> $GITHUB_ENV
+          echo "SCENARIO=$SCENARIO" >> $GITHUB_ENV          
           echo "TEST_REPORT=$TEST_REPORT" >> $GITHUB_ENV
           echo "UUID=$UUID" >> $GITHUB_ENV
+          echo $SCENARIO
+          echo $TEST_REPORT
+          echo $UUID
           pwd
           cd $GITHUB_WORKSPACE
           pwd
           ls
           cd apache-jmeter-5.5/bin
-          ./jmeter -n -t $scenario -l ${{ github.event.inputs.scenario }}'.csv' -e -o $test_report \ 
+          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}'.csv' -e -o $TEST_REPORT \ 
           -Jusers=${{ github.event.inputs.users }} \
           -Jrampup=${{ github.event.inputs.rampUp }} \
           -Jloopcount=${{ github.event.inputs.loopCount }} \
