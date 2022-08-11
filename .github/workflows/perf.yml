@@ -72,9 +72,9 @@ jobs:
           export SCENARIO=$scenario
           export TEST_REPORT=$test_report
           export UUID=${uuid_arr[4]}
-          echo "::set-env name=SCENARIO::$SCENARIO"
-          echo "::set-env name=TEST_REPORT::$TEST_REPORT"
-          echo "::set-env name=UUID::$UUID"
+          echo "SCENARIO=$SCENARIO" >> $GITHUB_ENV
+          echo "TEST_REPORT=$TEST_REPORT" >> $GITHUB_ENV
+          echo "UUID=$UUID" >> $GITHUB_ENV
           cd $GITHUB_WORKSPACE/apache-jmeter-5.5/bin
           ./jmeter -n -t $scenario -l ${{ github.event.inputs.scenario }}'.csv' -e -o $test_report \ 
           -Jusers=${{ github.event.inputs.users }} \
@@ -89,5 +89,5 @@ jobs:
       - name: Upload JMeter Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: test_$UUID
-          path: test_report
+          name: test_${{ env.UUID }}
+          path: ${{ env.TEST_REPORT }}
