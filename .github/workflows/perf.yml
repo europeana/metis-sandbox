@@ -41,14 +41,15 @@ jobs:
           java -version
           wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
           unzip apache-jmeter-5.5.zip
+          pwd
           cd apache-jmeter-5.5.zip
           ./jmeter -v
-          pwd      
-      - uses: actions/checkout@v3      
-        run: |
           pwd
-          ls
-      - name: run scenario ${{github.event.inputs.scenario}}
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: scenario
         run: |          
           uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
           scenario=$GITHUB_WORKSPACE+'/'+${{ github.event.inputs.scenario }}+'.jmx'
