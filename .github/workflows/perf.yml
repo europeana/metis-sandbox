@@ -83,7 +83,7 @@ jobs:
           pwd
           ls
           cd apache-jmeter-5.5/bin
-          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}'.csv' -e -o $TEST_REPORT \ 
+          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT \ 
           -Jusers=${{ github.event.inputs.users }} \
           -Jrampup=${{ github.event.inputs.rampUp }} \
           -Jloopcount=${{ github.event.inputs.loopCount }} \
