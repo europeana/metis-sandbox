@@ -31,11 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: maven
+        run: |
+          sudo add-apt-repository ppa:openjdk-r/ppa -y
+          sudo apt-get update -y
+          sudo apt install openjdk-11-jdk -y
       - name: Set up jmeter 5.5
         run: |
           java -version
