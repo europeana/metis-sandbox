@@ -25,8 +25,8 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Change this value according to the environment.</stringProp>
           </elementProp>
-          <elementProp name="fileurl" elementType="Argument">
-            <stringProp name="Argument.name">fileurl</stringProp>
+          <elementProp name="oaiurl" elementType="Argument">
+            <stringProp name="Argument.name">oaiurl</stringProp>
             <stringProp name="Argument.value">http://metis-repository-rest-test.eanadev.org/repository/oai</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Update this with the subject of test.</stringProp>
@@ -139,7 +139,7 @@
               </elementProp>
               <elementProp name="url" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${fileurl}</stringProp>
+                <stringProp name="Argument.value">${oaiurl}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">url</stringProp>

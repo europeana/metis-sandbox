@@ -18,6 +18,22 @@ on:
         description: 'Amount of runs'
         required: true
         default: 1
+      fileUrl:
+        description: 'Harvest file'
+        required: false
+        default: ''
+      fileOaiPmh:
+        description: 'Harvest OAI PMH'
+        required: false
+        default: ''
+      setSpec:
+        description: 'Set specification'
+        required: false
+        default: ''
+      metaDataFormat:
+        description: 'Metadata format'
+        required: false
+        default: ''
       scenario:
         type: choice
         description: 'Scenario to run'
@@ -52,6 +68,26 @@ jobs:
         run: |          
           uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
           scenario=$GITHUB_WORKSPACE'/'src/main/resources/performance/${{ github.event.inputs.scenario }}'.jmx'
-          echo $scenario
-          echo $uuid_arr
-          cat $scenario
+          test_report=$GITHUB_WORKSPACE/test_report/${uuid_arr[4]}
+          export SCENARIO=$scenario
+          export TEST_REPORT=$test_report
+          export UUID=${uuid_arr[4]}
+          echo "::set-env name=SCENARIO::$SCENARIO"
+          echo "::set-env name=TEST_REPORT::$TEST_REPORT"
+          echo "::set-env name=UUID::$UUID"
+          cd $GITHUB_WORKSPACE/apache-jmeter-5.5/bin
+          ./jmeter -n -t $scenario -l ${{ github.event.inputs.scenario }}'.csv' -e -o $test_report \ 
+          -Jusers=${{ github.event.inputs.users }} \
+          -Jrampup=${{ github.event.inputs.rampUp }} \
+          -Jloopcount=${{ github.event.inputs.loopCount }} \
+          -Jhost=${{ secrets.ACCEPTANCE_API_ENDPOINT }} \
+          -Jport=443 \
+          -Jfileurl=${{ github.event.inputs.fileUrl}} \
+          -Joaiurl=${{ github.event.inputs.fileOaiPmh}} \
+          -Jsetspec=${{ github.event.inputs.setSpec}} \
+          -Jmetadataformat=${{ github.event.inputs.metaDataFormat}}
+      - name: Upload JMeter Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test_$UUID
+          path: test_report
