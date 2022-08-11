@@ -41,7 +41,7 @@ jobs:
           wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
           unzip apache-jmeter-5.5.zip
           pwd
-          cd apache-jmeter-5.5.zip
+          cd apache-jmeter-5.5/bin
           ./jmeter -v
           pwd
       - name: Checkout code
