@@ -127,11 +127,11 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${host}</stringProp>
-          <stringProp name="HTTPSampler.port">${port}</stringProp>
-          <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,${host})}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port,${port})}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${__P(protocol,${protocol})}</stringProp>
           <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
-          <stringProp name="HTTPSampler.path">${apipath}</stringProp>
+          <stringProp name="HTTPSampler.path">${__P(apipath,${apipath})}</stringProp>
           <stringProp name="TestPlan.comments">Defaults on api requests</stringProp>
           <stringProp name="HTTPSampler.concurrentPool">4</stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
@@ -157,7 +157,7 @@
               </elementProp>
               <elementProp name="url" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${fileurl}</stringProp>
+                <stringProp name="Argument.value">${__P(fileurl,${fileurl})}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">url</stringProp>
@@ -244,21 +244,21 @@ vars.put(&quot;stepFile&quot;,&quot;N/A&quot;);</stringProp>
               </elementProp>
               <elementProp name="url" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                <stringProp name="Argument.value">${oaiurl}</stringProp>
+                <stringProp name="Argument.value">${__P(oaiurl,${oaiurl})}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">url</stringProp>
               </elementProp>
               <elementProp name="metadataformat" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">${metadataformat}</stringProp>
+                <stringProp name="Argument.value">${__P(metadataformat,${metadataformat})}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">metadataformat</stringProp>
               </elementProp>
               <elementProp name="setspec" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">${setspec}</stringProp>
+                <stringProp name="Argument.value">${__P(setspec,${setspec})}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">setspec</stringProp>
@@ -475,8 +475,8 @@ vars.put(&quot;stepOAI&quot;,&quot;N/A&quot;);</stringProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Variables pré-définies" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${host}</stringProp>
-          <stringProp name="HTTPSampler.port">${port}</stringProp>
+          <stringProp name="HTTPSampler.domain"></stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path">/pattern-analysis/${datasetIdFile}/get-dataset-pattern-analysis</stringProp>
@@ -507,8 +507,8 @@ vars.put(&quot;stepOAI&quot;,&quot;N/A&quot;);</stringProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Variables pré-définies" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${host}</stringProp>
-          <stringProp name="HTTPSampler.port">${port}</stringProp>
+          <stringProp name="HTTPSampler.domain"></stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path">/pattern-analysis/${datasetIdOAI}/get-dataset-pattern-analysis</stringProp>
