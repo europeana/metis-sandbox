@@ -6,6 +6,18 @@ on:
       - feat/*
       - develop
     inputs:
+      protocol:
+        type: choice
+        description: 'Protocol'
+        required: true
+        options:
+          - http
+          - https
+        default: https
+      port:
+        description: 'Port number'
+        required: true
+        default: 443
       users:
         description: 'Amount of users (threads)'
         required: true
@@ -83,7 +95,8 @@ jobs:
           pwd
           ls
           cd apache-jmeter-5.5/bin
-          jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT -Jusers=${{ github.event.inputs.users }} -Jrampup=${{ github.event.inputs.rampUp }} -Jloopcount=${{ github.event.inputs.loopCount }} -Jhost=${{ secrets.ACCEPTANCE_API_ENDPOINT }} -Jport=443 -Jfileurl=${{ github.event.inputs.fileUrl}} -Joaiurl=${{ github.event.inputs.fileOaiPmh}} -Jsetspec=${{ github.event.inputs.setSpec}} -Jmetadataformat=${{ github.event.inputs.metaDataFormat}}
+          ls
+          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT -Jusers=${{ github.event.inputs.users }} -Jrampup=${{ github.event.inputs.rampUp }} -Jloopcount=${{ github.event.inputs.loopCount }} -Jhost=${{ secrets.ACCEPTANCE_API_ENDPOINT }} -Jport=${{ github.event.inputs.port }} -Jfileurl=${{ github.event.inputs.fileUrl }} -Joaiurl=${{ github.event.inputs.fileOaiPmh}} -Jsetspec=${{ github.event.inputs.setSpec }} -Jmetadataformat=${{ github.event.inputs.metaDataFormat }} -Japipath=${{ secrets.ACCEPTANCE_API_PATH }} -Jprotocol=${{ github.event.inputs.protocol }}
       - name: Upload JMeter Test Results
         uses: actions/upload-artifact@v3
         with:
