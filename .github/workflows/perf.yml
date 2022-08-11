@@ -46,11 +46,15 @@ jobs:
   performance-tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Set up JDK 11
         run: |
           sudo add-apt-repository ppa:openjdk-r/ppa -y
           sudo apt-get update -y
-          sudo apt install openjdk-11-jdk -y
+          sudo apt install openjdk-11-jdk -y                
       - name: Set up jmeter 5.5
         run: |
           java -version
@@ -59,11 +63,7 @@ jobs:
           pwd
           cd apache-jmeter-5.5/bin
           ./jmeter -v
-          pwd
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+          pwd      
       - name: scenario
         run: |          
           uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
