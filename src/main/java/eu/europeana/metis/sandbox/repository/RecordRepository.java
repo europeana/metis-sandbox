@@ -65,7 +65,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @param datasetId The id of the dataset the records belong to
    * @param contentTier The value of the content tier to look for
    */
-  @Query("select re.europeanaId from RecordEntity re where re.contentTier = ?2 and re.datasetId = ?1 order by re.europeanaId asc")
+  @Query("SELECT re.europeanaId FROM RecordEntity re WHERE re.datasetId = ?1 AND re.contentTier = ?2 ORDER BY re.europeanaId ASC")
   List<String> findByDatasetIdAndContentTier(String datasetId, String contentTier);
 
   /**
@@ -74,6 +74,6 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @param datasetId The id of the dataset the records belong to
    * @param metadataTier The value of the metadata tier to look for
    */
-  @Query("select re.europeanaId from RecordEntity re where re.metadataTier = ?2 and re.datasetId = ?1 order by re.europeanaId asc")
+  @Query("SELECT re.europeanaId FROM RecordEntity re WHERE re.datasetId = ?1 AND re.metadataTier = ?2 ORDER BY re.europeanaId ASC")
   List<String> findByDatasetIdAndMetadataTier(String datasetId, String metadataTier);
 }

@@ -63,8 +63,8 @@ public class RecordEntity {
     this.europeanaId = recordInput.getEuropeanaId();
     this.providerId = recordInput.getProviderId();
     this.datasetId = recordInput.getDatasetId();
-    contentTier = "";
-    metadataTier = "";
+    this.contentTier = "";
+    this.metadataTier = "";
   }
 
 

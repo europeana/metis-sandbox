@@ -36,6 +36,8 @@ class IndexingServiceImpl implements IndexingService {
 
     try {
       tierCalculations = publishIndexer.indexAndGetTierCalculations(recordToIndex.getContentInputStream(),
+              //TODO: Refactor object IndexingProperties constructor to make it readable
+              //TODO: "Too many different boolean parameters indicates many possibilities to create this object."
               new IndexingProperties(new Date(), false, null, false, true));
     } catch (IndexingException ex) {
       throw new RecordProcessingException(recordToIndex.getProviderId(), ex);

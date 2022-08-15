@@ -14,7 +14,11 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.*;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.TierStatistics;
+import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -121,7 +125,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
                 recordErrorsByStep));
 
-        // prepare object TiersZeroInfo
         TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
 
         return new ProgressInfoDto(

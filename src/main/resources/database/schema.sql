@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS default_transform_xslt
 CREATE INDEX ON record_log (record_id);
 CREATE INDEX ON record_error_log (record_id);
 CREATE INDEX ON record (dataset_id, europeana_id, provider_id);
-CREATE INDEX ON record (dataset_id, content_tier, metadata_tier);
+CREATE INDEX ON record (dataset_id, content_tier);
+CREATE INDEX ON record (dataset_id, metadata_tier);
 CREATE INDEX ON thumbnail (dataset_id);
 COMMIT;
