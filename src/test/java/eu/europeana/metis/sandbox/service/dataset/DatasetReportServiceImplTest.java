@@ -1,8 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertLinesMatch;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -155,6 +153,10 @@ class DatasetReportServiceImplTest {
                 .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
                         new RecordEntity("europeanaId2", "providerId2", "1", "0", "0"),
                         new RecordEntity("europeanaId3", "providerId2", "1", "0", "0")));
+        when(recordRepository.getRecordWithDatasetIdAndContentTierCount("1", MediaTier.T0.toString()))
+                .thenReturn(2);
+        when(recordRepository.getRecordWithDatasetIdAndMetadataTierCount("1", MetadataTier.T0.toString()))
+                .thenReturn(3);
 
         var result = service.getReport("1");
 
