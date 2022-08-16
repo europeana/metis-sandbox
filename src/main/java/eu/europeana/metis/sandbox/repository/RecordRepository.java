@@ -60,20 +60,39 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
   List<DatasetStatistic> getMetricDatasetStatistics();
 
   /**
-   * Find provider ids by dataset id and content tier value
+   * Find records by dataset id and content tier value
    *
    * @param datasetId The id of the dataset the records belong to
    * @param contentTier The value of the content tier to look for
    */
-  @Query("SELECT re.europeanaId FROM RecordEntity re WHERE re.datasetId = ?1 AND re.contentTier = ?2 ORDER BY re.europeanaId ASC")
-  List<String> findByDatasetIdAndContentTier(String datasetId, String contentTier);
+//  @Query("SELECT re.europeanaId FROM RecordEntity re WHERE re.datasetId = ?1 AND re.contentTier = ?2 ORDER BY re.europeanaId ASC")
+  List<RecordEntity> findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc(String datasetId, String contentTier);
 
   /**
-   * Find provider ids by dataset id and content tier value
+   * Find records by dataset id and metadata tier value
    *
    * @param datasetId The id of the dataset the records belong to
    * @param metadataTier The value of the metadata tier to look for
    */
-  @Query("SELECT re.europeanaId FROM RecordEntity re WHERE re.datasetId = ?1 AND re.metadataTier = ?2 ORDER BY re.europeanaId ASC")
-  List<String> findByDatasetIdAndMetadataTier(String datasetId, String metadataTier);
+//  @Query("SELECT re.europeanaId FROM RecordEntity re WHERE re.datasetId = ?1 AND re.metadataTier = ?2 ORDER BY re.europeanaId ASC")
+  List<RecordEntity> findTop10ByDatasetIdAndMetadataTierOrderByEuropeanaIdAsc(String datasetId, String metadataTier);
+
+  /**
+   * Count records by dataset id and content tier value
+   *
+   * @param datasetId The id of the dataset the records belong to
+   * @param contentTier The value of the content tier to look for
+   */
+  @Query("SELECT COUNT(re) FROM RecordEntity re WHERE re.datasetId = ?1 AND re.contentTier = ?2")
+  int getRecordWithDatasetIdAndContentTierCount(String datasetId, String contentTier);
+
+  /**
+   * Count records by dataset id and metadata tier value
+   *
+   * @param datasetId The id of the dataset the records belong to
+   * @param metadataTier The value of the metadata tier to look for
+   */
+  @Query("SELECT COUNT(re) FROM RecordEntity re WHERE re.datasetId = ?1 AND re.metadataTier = ?2")
+  int getRecordWithDatasetIdAndMetadataTierCount(String datasetId, String metadataTier);
+
 }

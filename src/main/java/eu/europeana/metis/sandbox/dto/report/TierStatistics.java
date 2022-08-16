@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class to encapsulate the statistics information related to a tier
@@ -52,6 +53,6 @@ public class TierStatistics {
 
     @Override
     public int hashCode(){
-        return totalNumberOfRecords + listRecordIds.hashCode();
+        return Objects.hash(totalNumberOfRecords, listRecordIds);
     }
 }
