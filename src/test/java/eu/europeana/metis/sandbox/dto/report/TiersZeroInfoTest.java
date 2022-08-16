@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 /**
  * Unit tests for {@link TiersZeroInfo}
  */
-class TierZeroInfoTest {
+class TiersZeroInfoTest {
 
     @Test
     void getContentTierTest_expectSuccess(){
@@ -39,9 +39,11 @@ class TierZeroInfoTest {
         TiersZeroInfo tiersZeroInfo1 = new TiersZeroInfo(contentTier1, metadataTier1);
         TiersZeroInfo tiersZeroInfo2 = new TiersZeroInfo(contentTier1, metadataTier1);
         TiersZeroInfo tiersZeroInfo3 = new TiersZeroInfo(contentTier2, metadataTier2);
+        assertTrue(tiersZeroInfo1.equals(tiersZeroInfo1));
         assertTrue(tiersZeroInfo1.equals(tiersZeroInfo2));
         assertFalse(tiersZeroInfo1.equals(tiersZeroInfo3));
         assertFalse(tiersZeroInfo2.equals(tiersZeroInfo3));
+        assertFalse(tiersZeroInfo1.equals(new TierStatistics(1, List.of("1"))));
     }
 
     @Test

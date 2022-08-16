@@ -31,9 +31,11 @@ class TierStatisticsTest {
         TierStatistics tierStatistics1 = new TierStatistics(2, List.of("1","2"));
         TierStatistics tierStatistics2 = new TierStatistics(2, List.of("1","2"));
         TierStatistics tierStatistics3 = new TierStatistics(4, List.of("1","2","3","4"));
+        assertTrue(tierStatistics1.equals(tierStatistics1));
         assertTrue(tierStatistics1.equals(tierStatistics2));
         assertFalse(tierStatistics1.equals(tierStatistics3));
         assertFalse(tierStatistics2.equals(tierStatistics3));
+        assertFalse(tierStatistics1.equals(new TiersZeroInfo(tierStatistics1, tierStatistics2)));
     }
 
     @Test
