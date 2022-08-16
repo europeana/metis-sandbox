@@ -89,10 +89,10 @@ class ProgressInfoDtoTest {
   @Test
   void getTiersZeroInfoTest(){
     progressInfoDto = getTestCompletedInfoDto();
-    assertEquals(progressInfoDto.getTiersZeroInfo().getContentTier().getTotalNumberOfRecords(), 2);
+    assertEquals(2, progressInfoDto.getTiersZeroInfo().getContentTier().getTotalNumberOfRecords());
     assertEquals(progressInfoDto.getTiersZeroInfo().getContentTier().getListRecordIds(),
             List.of("europeanaId1", "europeanaId2"));
-    assertEquals(progressInfoDto.getTiersZeroInfo().getMetadataTier().getTotalNumberOfRecords(), 4);
+    assertEquals(4, progressInfoDto.getTiersZeroInfo().getMetadataTier().getTotalNumberOfRecords());
     assertEquals(progressInfoDto.getTiersZeroInfo().getMetadataTier().getListRecordIds(),
             List.of("europeanaId1", "europeanaId2","europeanaId3", "europeanaId4"));
 

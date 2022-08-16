@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.dto.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
