@@ -47,7 +47,9 @@ class RecordTierCalculationServiceImplTest {
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
     final String providerId = "providerId";
-    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId);
+    final String contentTier = "contentTier";
+    final String metadataTier = "metadataTier";
+    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId, contentTier, metadataTier);
     final Step mediaProcessStep = Step.MEDIA_PROCESS;
     final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep, Status.SUCCESS);
     recordEntity.setId(recordId);

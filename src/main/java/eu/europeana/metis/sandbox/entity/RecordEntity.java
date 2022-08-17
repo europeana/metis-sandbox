@@ -27,6 +27,10 @@ public class RecordEntity {
 
   protected String datasetId;
 
+  protected String contentTier;
+
+  protected String metadataTier;
+
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "recordId")
   private List<RecordLogEntity> recordLogEntity;
 
@@ -39,15 +43,19 @@ public class RecordEntity {
    * @param europeanaId the europeana id associated to the record
    * @param providerId the id of the record provided
    * @param datasetId the dataset id associated to the record
+   * @param contentTier the value of the content tier of the record
+   * @param metadataTier the value of the metadata tier of the record
    */
-  public RecordEntity(String europeanaId, String providerId, String datasetId) {
+  public RecordEntity(String europeanaId, String providerId, String datasetId, String contentTier, String metadataTier) {
     this.europeanaId = europeanaId;
     this.providerId = providerId;
     this.datasetId = datasetId;
+    this.contentTier = contentTier;
+    this.metadataTier = metadataTier;
   }
 
   /**
-   * Contructor
+   * Constructor
    *
    * @param recordInput the record
    */
@@ -55,6 +63,8 @@ public class RecordEntity {
     this.europeanaId = recordInput.getEuropeanaId();
     this.providerId = recordInput.getProviderId();
     this.datasetId = recordInput.getDatasetId();
+    this.contentTier = "";
+    this.metadataTier = "";
   }
 
 
@@ -92,6 +102,22 @@ public class RecordEntity {
 
   public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
+  }
+
+  public String getContentTier() {
+    return contentTier;
+  }
+
+  public void setContentTier(String contentTier) {
+    this.contentTier = contentTier;
+  }
+
+  public String getMetadataTier() {
+    return metadataTier;
+  }
+
+  public void setMetadataTier(String metadataTier) {
+    this.metadataTier = metadataTier;
   }
 
   public List<RecordLogEntity> getRecordLogEntity() {

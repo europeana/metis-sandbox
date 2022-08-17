@@ -1,20 +1,18 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertLinesMatch;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.*;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -22,6 +20,7 @@ import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,6 +44,9 @@ class DatasetReportServiceImplTest {
 
     @Mock
     private RecordErrorLogRepository errorLogRepository;
+
+    @Mock
+    private RecordRepository recordRepository;
 
     @InjectMocks
     private DatasetReportServiceImpl service;
@@ -70,7 +72,7 @@ class DatasetReportServiceImplTest {
                 5L, 4L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "");
+                        false, false), "", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1L);
@@ -104,7 +106,7 @@ class DatasetReportServiceImplTest {
                 "A review URL will be generated when the dataset has finished processing.",
                 5L, 0L,
                 List.of(createProgress, externalProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "");
+                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -125,22 +127,36 @@ class DatasetReportServiceImplTest {
         var dataset = new DatasetEntity("dataset", 5L, Language.NL, Country.NETHERLANDS, false);
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
-
+        var publishProgress = new ProgressByStepDto(Step.PUBLISH, 5, 0, 0, List.of());
+        var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(2, List.of("europeanaId1", "europeanaId2")),
+                new TierStatistics(3, List.of("europeanaId1", "europeanaId2", "europeanaId3")));
         var report = new ProgressInfoDto(
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5L, 5L,
-                List.of(createProgress, externalProgress),
+                List.of(createProgress, externalProgress, publishProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "");
+                        false, false), "", tiersZeroInfo);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
+        var recordViewPublish = new StepStatistic(Step.PUBLISH, Status.SUCCESS, 5L);
         var recordViewClose = new StepStatistic(Step.CLOSE, Status.SUCCESS, 5L);
 
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(
-                List.of(recordViewCreate, recordViewExternal, recordViewClose));
+                List.of(recordViewCreate, recordViewExternal, recordViewPublish, recordViewClose));
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of());
+        when(recordRepository.findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc("1", MediaTier.T0.toString()))
+                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
+                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0")));
+        when(recordRepository.findTop10ByDatasetIdAndMetadataTierOrderByEuropeanaIdAsc("1", MetadataTier.T0.toString()))
+                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
+                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0"),
+                        new RecordEntity("europeanaId3", "providerId2", "1", "0", "0")));
+        when(recordRepository.getRecordWithDatasetIdAndContentTierCount("1", MediaTier.T0.toString()))
+                .thenReturn(2);
+        when(recordRepository.getRecordWithDatasetIdAndMetadataTierCount("1", MetadataTier.T0.toString()))
+                .thenReturn(3);
 
         var result = service.getReport("1");
 
@@ -162,7 +178,7 @@ class DatasetReportServiceImplTest {
                 "", 5L, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "All dataset records failed to be processed.");
+                        false, false), "All dataset records failed to be processed.", null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5L);
@@ -199,7 +215,7 @@ class DatasetReportServiceImplTest {
         var expected = new ProgressInfoDto(
                 "", 0L, 0L, List.of(),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
-                "Dataset is empty.");
+                "Dataset is empty.", null);
         var report = service.getReport("1");
         assertReportEquals(expected, report);
     }
@@ -234,7 +250,7 @@ class DatasetReportServiceImplTest {
 
         var expected = new ProgressInfoDto(
             "Harvesting dataset identifiers and records.", null, 0L, List.of(),
-            new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "");
+            new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", null);
         var report = service.getReport("1");
 
         assertReportEquals(expected, report);
@@ -246,6 +262,7 @@ class DatasetReportServiceImplTest {
         assertEquals(expected.getTotalRecords(), actual.getTotalRecords());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getErrorType(), actual.getErrorType());
+        assertEquals(expected.getTiersZeroInfo(), actual.getTiersZeroInfo());
 
         var progressByStepExpected = expected.getProgressByStep();
         var progressByStepActual = actual.getProgressByStep();
@@ -278,7 +295,7 @@ class DatasetReportServiceImplTest {
 
     private static RecordEntity getTestRecordEntity(final Long recordId) {
         RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
-                "providerId" + recordId, recordId.toString());
+                "providerId" + recordId, recordId.toString(), "", "");
         recordEntity.setId(recordId);
         return recordEntity;
     }

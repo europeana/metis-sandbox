@@ -7,6 +7,8 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -15,6 +17,8 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.TierStatistics;
+import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -35,6 +39,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import eu.europeana.metis.sandbox.repository.RecordRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -57,14 +62,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private final DatasetRepository datasetRepository;
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository errorLogRepository;
+    private final RecordRepository recordRepository;
 
     public DatasetReportServiceImpl(
             DatasetRepository datasetRepository,
             RecordLogRepository recordLogRepository,
-            RecordErrorLogRepository errorLogRepository) {
+            RecordErrorLogRepository errorLogRepository,
+            RecordRepository recordRepository) {
         this.datasetRepository = datasetRepository;
         this.recordLogRepository = recordLogRepository;
         this.errorLogRepository = errorLogRepository;
+        this.recordRepository = recordRepository;
     }
 
     @Override
@@ -94,7 +102,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         if (stepStatistics.isEmpty()) {
             return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
                     dataset.getRecordsQuantity(), 0L, List.of(),
-                    datasetInfoDto, getErrorMessage(0L, 0L, dataset.getRecordsQuantity()));
+                    datasetInfoDto, getErrorMessage(0L, 0L, dataset.getRecordsQuantity()), null);
         }
 
         // get qty of records completely processed
@@ -116,10 +124,13 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
                 recordErrorsByStep));
 
+        TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
+
         return new ProgressInfoDto(
                 getPublishPortalUrl(dataset, completedRecords),
                 dataset.getRecordsQuantity(), completedRecords,
-                stepsInfo, datasetInfoDto, getErrorMessage(completedRecords, failedRecords, dataset.getRecordsQuantity()));
+                stepsInfo, datasetInfoDto, getErrorMessage(completedRecords, failedRecords, dataset.getRecordsQuantity()),
+                tiersZeroInfo);
     }
 
     private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords) {
@@ -238,9 +249,31 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     private static String createMessageRecordError(RecordEntity recordEntity) {
-
         return Stream.of(recordEntity.getEuropeanaId(), recordEntity.getProviderId()).filter(
                 Objects::nonNull).filter(id -> !id.isBlank()).collect(Collectors.joining(" | "));
+    }
+
+    private TiersZeroInfo prepareTiersInfo(String datasetId){
+        // get list of records with content tier 0
+        List<String> listOfRecordsIdsWithContentZero = recordRepository.findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc(datasetId, MediaTier.T0.toString())
+                .stream().map(RecordEntity::getEuropeanaId).collect(Collectors.toUnmodifiableList());
+        // get list of records with metadata tier 0
+        List<String> listOfRecordsIdsWithMetadataZero = recordRepository.findTop10ByDatasetIdAndMetadataTierOrderByEuropeanaIdAsc(datasetId, MetadataTier.T0.toString())
+                .stream().map(RecordEntity::getEuropeanaId).collect(Collectors.toUnmodifiableList());
+
+        // encapsulate values into TierStatistics. Cut list of record ids into limit number
+        TierStatistics contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
+                new TierStatistics(recordRepository.getRecordWithDatasetIdAndContentTierCount(datasetId, MediaTier.T0.toString()),
+                        listOfRecordsIdsWithContentZero);
+
+        // encapsulate values into TierStatistics. Cut list of record ids into limit number
+        TierStatistics metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
+                new TierStatistics(recordRepository.getRecordWithDatasetIdAndMetadataTierCount(datasetId, MetadataTier.T0.toString()),
+                        listOfRecordsIdsWithMetadataZero);
+
+        // encapsulate values into TiersZeroInfo
+        return contentTierInfo == null && metadataTierInfo == null ? null :
+                new TiersZeroInfo(contentTierInfo, metadataTierInfo);
     }
 
 }
