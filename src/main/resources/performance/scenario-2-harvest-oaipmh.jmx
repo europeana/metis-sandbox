@@ -257,7 +257,7 @@ vars.put(&quot;step&quot;,&quot;N/A&quot;);</stringProp>
           </HTTPSamplerProxy>
           <hashTree>
             <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
-              <stringProp name="ConstantTimer.delay">500</stringProp>
+              <stringProp name="ConstantTimer.delay">2000</stringProp>
             </ConstantTimer>
             <hashTree/>
             <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Get dataset status and step" enabled="true">
@@ -290,7 +290,7 @@ vars.put(&quot;step&quot;,&quot;N/A&quot;);</stringProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
-            <stringProp name="ConstantTimer.delay">500</stringProp>
+            <stringProp name="ConstantTimer.delay">2000</stringProp>
           </ConstantTimer>
           <hashTree/>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Get Dataset Status" enabled="true">
