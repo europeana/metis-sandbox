@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -21,9 +22,8 @@ import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
-import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
-import eu.europeana.patternanalysis.view.ProblemPattern;
-import eu.europeana.patternanalysis.view.ProblemPatternDescription;
+import eu.europeana.patternanalysis.view.*;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
+
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -321,6 +322,40 @@ class PatternAnalysisServiceImplIT {
         problemPatternP1.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getAffectedRecordIds().size());
     assertTrue(isNotBlank(problemPatternP1.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0).getMessageReport()));
   }
+
+  @Test
+  void generateRecordPatternAnalysis_duplicatedIgnoringCaseTitle() throws SerializationException, IOException {
+    //Insert a problem pattern
+    final LocalDateTime nowP1 = LocalDateTime.now();
+    final RDF rdfRecords1 = new RdfConversionUtils().convertStringToRdf(IOUtils.toString(new FileInputStream(
+            "src/test/resources/record.problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
+    final RDF rdfRecords2 = new RdfConversionUtils().convertStringToRdf(IOUtils.toString(new FileInputStream(
+            "src/test/resources/record.problempatterns/P1_uppercase_title.xml"), StandardCharsets.UTF_8));
+
+
+    final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution("1",
+            Step.VALIDATE_INTERNAL,
+            nowP1);
+    patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecords1);
+    patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecords2);
+    patternAnalysisServiceImpl.finalizeDatasetPatternAnalysis(executionPoint1);
+
+
+    //Get dataset pattern analysis and check results
+    final DatasetProblemPatternAnalysis<Step> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
+            "1", Step.VALIDATE_INTERNAL, nowP1).orElseThrow();
+    assertThat(datasetPatternAnalysis.getProblemPatternList()).hasSize(1);
+    List<RecordAnalysis> recordAnalysisList = datasetPatternAnalysis.getProblemPatternList().get(0).getRecordAnalysisList();
+    assertThat(recordAnalysisList).hasSize(1);
+    RecordAnalysis recordAnalysis = recordAnalysisList.get(0);
+    assertThat(recordAnalysis.getRecordId()).isIn("/21/_providedCHO_MHC_EMC_10_ms_06", "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
+    assertThat(recordAnalysis.getProblemOccurrenceList()).hasSize(1);
+    ProblemOccurrence occurrence = recordAnalysis.getProblemOccurrenceList().get(0);
+    assertThat(occurrence.getMessageReport()).isIn("LOWERCASE or UPPERCASE title","lowercase or uppercase title");
+    assertThat(occurrence.getAffectedRecordIds()).containsExactlyInAnyOrder("/21/_providedCHO_MHC_EMC_10_ms_06",
+            "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
+  }
+
 
   @Test
   void finalizeDatasetPatternAnalysisTest() {
