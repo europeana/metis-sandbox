@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -243,7 +242,7 @@ class DatasetController {
       @ApiResponse(code = 200, message = "String representation of record"),
       @ApiResponse(code = 404, message = "Record not found")
   })
-  @GetMapping(value = "{id}/record")
+  @GetMapping(value = "{id}/record", produces = "application/rdf+xml")
   public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId)
       throws NoRecordFoundException {
     return recordLogService.getProviderRecordString(recordId, datasetId);

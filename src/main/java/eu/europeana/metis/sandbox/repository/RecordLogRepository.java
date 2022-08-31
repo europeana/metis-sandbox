@@ -1,9 +1,10 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
+import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -51,6 +52,21 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
           "AND rle.recordId.datasetId = ?2 AND rle.step = ?3 ")
   RecordLogEntity findRecordLogByRecordIdDatasetIdAndStep(String recordId, String datasetId, Step step);
+
+
+  /**
+   * Get set of records given a record id, dataset id and steps.
+   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
+   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
+   *
+   * @param recordId the record id
+   * @param datasetId the dataset id
+   * @param steps the steps
+   * @return set of record logs
+   */
+  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
+      "AND rle.recordId.datasetId = ?2 AND rle.step IN ?3")
+  Set<RecordLogEntity> findRecordLogByRecordIdDatasetIdAndStepIn(String recordId, String datasetId, Set<Step> steps);
 
   /**
    * Delete records that belong to the given dataset id
