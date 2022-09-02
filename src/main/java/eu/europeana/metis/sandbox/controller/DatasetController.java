@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +63,7 @@ class DatasetController {
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
   private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
 
+  private static final String APPLICATION_RDF_XML = "application/rdf+xml";
 
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
@@ -243,7 +243,7 @@ class DatasetController {
       @ApiResponse(code = 200, message = "String representation of record"),
       @ApiResponse(code = 404, message = "Record not found")
   })
-  @GetMapping(value = "{id}/record")
+  @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
   public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId)
       throws NoRecordFoundException {
     return recordLogService.getProviderRecordString(recordId, datasetId);

@@ -14,15 +14,15 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-
-import java.util.Optional;
-
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
 class RecordLogServiceImpl implements RecordLogService {
+
+    private static final Set<Step> HARVEST_STEPS = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
 
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository recordErrorLogRepository;
@@ -63,9 +63,15 @@ class RecordLogServiceImpl implements RecordLogService {
     @Override
     public String getProviderRecordString(String recordId, String datasetId)
             throws NoRecordFoundException {
-        return Optional.ofNullable(getRecordLogEntity(recordId, datasetId, Step.MEDIA_PROCESS)).map(RecordLogEntity::getContent)
-                .orElseThrow(() -> new NoRecordFoundException(
-                        String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId)));
+
+        return getRecordLogEntities(recordId, datasetId, HARVEST_STEPS)
+            .stream().findFirst()
+            .map(RecordLogEntity::getContent)
+            .orElseThrow(
+                () -> new NoRecordFoundException(
+                    String.format(
+                        "Record not found for recordId: %s, datasetId: %s",
+                        recordId, datasetId)));
     }
 
     @Override
@@ -73,6 +79,11 @@ class RecordLogServiceImpl implements RecordLogService {
         final RecordLogEntity recordLogEntity;
         recordLogEntity = recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep(recordId, datasetId, step);
         return recordLogEntity;
+    }
+
+    @Override
+    public Set<RecordLogEntity> getRecordLogEntities(String recordId, String datasetId, Set<Step> steps) {
+        return recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn(recordId, datasetId, steps);
     }
 
     @Override
