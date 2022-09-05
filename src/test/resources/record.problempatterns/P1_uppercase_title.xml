@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:adms="http://www.w3.org/ns/adms#"
+         xmlns:cc="http://creativecommons.org/ns#"
+         xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:doap="http://usefulinc.com/ns/doap#"
+         xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:odrl="http://www.w3.org/ns/odrl/2/"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:svcs="http://rdfs.org/sioc/services#"
+         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+         xmlns:xs="http://www.w3.org/2001/XMLSchema">
+   <edm:ProvidedCHO rdf:about="/21/_providedCHO_MHC_EMC_10_ms_06"/>
+   <edm:WebResource rdf:about="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/2411/default.jpg">
+      <dc:description xml:lang="en">1</dc:description>
+      <dc:rights>All images and materials are for viewing purposes and users may not copy, reproduce, distribute in any form, perform, alter, adapt or add to materials in whatsoever form without express written consent of Koç University. Any educational and academic uses which are permitted under the compliance to the relevant laws must credit the Author and Koç University. For more information, contact us at: digitalresources@ku.edu.tr&#xD;
+      </dc:rights>
+      <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-nd/3.0/"/>
+   </edm:WebResource>
+   <ore:Aggregation rdf:about="/aggregation/provider/21/_providedCHO_MHC_EMC_10_ms_06">
+      <edm:aggregatedCHO rdf:resource="/21/_providedCHO_MHC_EMC_10_ms_06"/>
+      <edm:dataProvider>Koç Üniversitesi Suna Kıraç Kütüphanesi</edm:dataProvider>
+      <edm:hasView rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/2412/default.jpg"/>
+      <edm:isShownAt rdf:resource="http://cdm21054.contentdm.oclc.org/cdm/ref/collection/MHC/id/2413"/>
+      <edm:isShownBy rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/2411/default.jpg"/>
+      <edm:object rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/2411/default.jpg"/>
+      <edm:provider>Archives Portal Europe</edm:provider>
+      <dc:rights>All images and materials are for viewing purposes and users may not copy, reproduce, distribute in any form, perform, alter, adapt or add to materials in whatsoever form without express written consent of Koç University. Any educational and academic uses which are permitted under the compliance to the relevant laws must credit the Author and Koç University. For more information, contact us at: digitalresources@ku.edu.tr&#xD;
+      </dc:rights>
+      <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-nd/3.0/"/>
+   </ore:Aggregation>
+   <ore:Proxy rdf:about="/proxy/provider/21/_providedCHO_MHC_EMC_10_ms_06">
+      <dc:creator>Muzaffer Bey</dc:creator>
+      <dc:date>1921</dc:date>
+      <dc:description xml:lang="en">Müdafaa-yı Milliye Vekili namına Müsteşar Muavini'den Konya'da Cenub Cephesi Erkan-ı Harbiye Riyaseti'ne ve Harbiye Dairesi Reisi Mustafa'dan Sevkiyat ve Nakliyat Müdiriyet-i Umumisi'ne gönderilen İtalya'dan satın alınan cephanelerin ülkeye getirilmesiyle ilgili bilgileri içeren belge</dc:description>
+      <dc:format xml:lang="en">jpeg</dc:format>
+      <dc:identifier>EMC_10_ms_06</dc:identifier>
+      <dc:language>ota</dc:language>
+      <dc:subject xml:lang="en">War of Independence, Turkey, 1918-1923</dc:subject>
+      <dc:subject rdf:resource="https://id.loc.gov/authorities/subjects/sh85138830"/>
+      <dc:subject xml:lang="en">Armies</dc:subject>
+      <dc:subject rdf:resource="https://id.loc.gov/authorities/subjects/sh85007309"/>
+      <dc:subject xml:lang="en">Supplies</dc:subject>
+      <dc:subject rdf:resource="https://id.loc.gov/authorities/subjects/sh85085299"/>
+      <dc:subject xml:lang="en">Finances</dc:subject>
+      <dc:subject rdf:resource="https://id.loc.gov/authorities/subjects/sh85048256"/>
+      <dc:title xml:lang="en">LOWERCASE or UPPERCASE title</dc:title>
+      <dc:type rdf:resource="http://vocab.getty.edu/aat/300379505"/>
+      <dc:type xml:lang="en">text Rapor Report</dc:type>
+      <dcterms:created>1921</dcterms:created>
+      <dcterms:isPartOf rdf:resource="#providedCHO_MHC"/>
+      <dcterms:spatial xml:lang="en">Turkey (nation) Türkiye</dcterms:spatial>
+      <dcterms:spatial rdf:resource="http://vocab.getty.edu/page/tgn/1000144"/>
+      <edm:isNextInSequence rdf:resource="#providedCHO_MHC_EMC_10_ms_05"/>
+      <edm:europeanaProxy>false</edm:europeanaProxy>
+      <ore:proxyFor rdf:resource="/21/_providedCHO_MHC_EMC_10_ms_06"/>
+      <ore:proxyIn rdf:resource="/aggregation/provider/21/_providedCHO_MHC_EMC_10_ms_06"/>
+      <edm:type>IMAGE</edm:type>
+   </ore:Proxy>
+   <ore:Proxy rdf:about="/proxy/europeana/21/_providedCHO_MHC_EMC_10_ms_06">
+      <dc:identifier>#providedCHO_MHC_EMC_10_ms_06</dc:identifier>
+      <edm:europeanaProxy>true</edm:europeanaProxy>
+      <ore:proxyFor rdf:resource="/21/_providedCHO_MHC_EMC_10_ms_06"/>
+      <ore:proxyIn rdf:resource="/aggregation/europeana/21/_providedCHO_MHC_EMC_10_ms_06"/>
+      <ore:lineage rdf:resource="/proxy/provider/21/_providedCHO_MHC_EMC_10_ms_06"/>
+   </ore:Proxy>
+   <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/21/_providedCHO_MHC_EMC_10_ms_06">
+      <edm:aggregatedCHO rdf:resource="/21/_providedCHO_MHC_EMC_10_ms_06"/>
+      <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
+      <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
+      <edm:datasetName>21_duplicated_different_case</edm:datasetName>
+      <edm:country>Europe</edm:country>
+      <edm:language>mul</edm:language>
+   </edm:EuropeanaAggregation>
+</rdf:RDF>
