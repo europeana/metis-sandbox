@@ -232,18 +232,20 @@ public class HarvestServiceImpl implements HarvestService {
       Path path, List<RecordInfo> recordInfoList) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
-    RecordEntity recordEntity = new RecordEntity(null, path.toString(), datasetId, "", "");
+    int pathNameCount = path.getNameCount();
+    Path tmpProviderId = pathNameCount >= 2 ? path.subpath(pathNameCount - 2, pathNameCount) : path.getFileName();
+    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId.toString(), datasetId, "", "");
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
       if (isDuplicatedByProviderId(recordEntity, datasetId)
           || isDuplicatedByContent(recordContent, recordInfoList)) {
-        recordInfo = handleDuplicated(path.toString(), Step.HARVEST_ZIP, recordToHarvest);
+        recordInfo = handleDuplicated(tmpProviderId.toString(), Step.HARVEST_ZIP, recordToHarvest);
       } else {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
-            .providerId(path.toString())
+            .providerId(tmpProviderId.toString())
             .content(recordContent)
             .recordId(recordEntity.getId())
             .build();
@@ -253,7 +255,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, path.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
   }
