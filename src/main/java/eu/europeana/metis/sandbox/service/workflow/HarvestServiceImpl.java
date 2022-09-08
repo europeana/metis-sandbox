@@ -333,12 +333,21 @@ public class HarvestServiceImpl implements HarvestService {
 
   private boolean isDuplicatedByContent(byte[] content, List<RecordInfo> recordInfoList) {
     String providerId = xmlRecordProcessorService.getProviderId(content);
-    return recordInfoList.stream()
-                         .filter(Objects::nonNull)
-                         .anyMatch(recordInfo ->
-                             providerId.equals(
-                                 xmlRecordProcessorService.getProviderId(recordInfo.getRecord().getContent()))
-                         );
+    if (providerId == null) {
+      return false;
+    } else {
+      return recordInfoList
+          .stream()
+          .filter(Objects::nonNull)
+          .anyMatch(recordInfo ->
+              providerId.equals(
+                  xmlRecordProcessorService.getProviderId(
+                      recordInfo
+                      .getRecord()
+                      .getContent())
+              )
+          );
+    }
   }
 
   private RecordInfo handleDuplicated(String providerId, Step step, Record.RecordBuilder recordToHarvest) {
