@@ -37,7 +37,7 @@ class StepExecutor {
       output = new RecordProcessEvent(recordInfo, step, status);
     } catch (RecordProcessingException ex) {
       output = createFailEvent(input, step, ex);
-    } catch (RuntimeException ex) {
+    } catch (Exception ex) {
       //Also catch runtime exceptions to avoid losing the message or thread
       output = createFailEvent(input, step, new RecordProcessingException(Long.toString(input.getRecord().getRecordId()), ex));
     }

@@ -34,6 +34,8 @@ class EnrichmentServiceImpl implements EnrichmentService {
     } catch (EnrichmentException|DereferenceException|SerializationException e) {
       result = record.getContent();
       recordErrors.add(new RecordError(new RecordProcessingException(record.getProviderId(), e)));
+    } catch (Exception e) {
+      throw new RecordProcessingException(record.getProviderId(), e);
     }
 
     return new RecordInfo(Record.from(record, result), recordErrors);
