@@ -2,10 +2,12 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -16,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,7 +57,7 @@ class DatasetControllerIT {
 
   @BeforeEach
   void cleanUpPostgres() {
-    PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop.sql", "database/schema.sql"));
+    PostgresContainerInitializerIT.runScripts(List.of("database/schema_drop_except_transform_xslt.sql", "database/schema.sql"));
   }
 
   private String getBaseUrl() {
@@ -159,8 +163,12 @@ class DatasetControllerIT {
   public void retrieveDataset_expectStatus_ok() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-            File.separator + "dataset-valid.zip");
+            File.separator + "dataset-valid-small.zip");
     makeHarvestingByFile(dataset, null);
+
+    // Give time for the full harvesting to happen
+    Awaitility.await().atMost(100, SECONDS).until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+            String.class, "1").getBody()).contains("COMPLETED"));
 
     ResponseEntity<String> getDatasetResponse =
         testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, "1");

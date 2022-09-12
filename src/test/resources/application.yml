@@ -70,18 +70,18 @@ sandbox:
       pool-size: 10
     predefinedSchemas:
       EDM-INTERNAL:
-        url:
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220513.zip
         rootLocation: EDM-INTERNAL.xsd
         schematronLocation: schematron/schematron-internal.xsl
       EDM-EXTERNAL:
-        url:
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220513.zip
         rootLocation: EDM.xsd
         schematronLocation: schematron/schematron.xsl
   transformation:
     xslt-url: https://metis-core-rest-test.eanadev.org/datasets/xslt/default
   enrichment:
-    dereference-url: http://metis-test
-    enrichment-url: http://metis-test
+    dereference-url: https://metis-dereference-rest-test.eanadev.org
+    enrichment-url: https://metis-enrichment-rest-test.eanadev.org
   publish:
     mongo:
       application-name: metis-sandbox-application-publish-local
