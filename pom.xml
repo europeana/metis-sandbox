@@ -57,7 +57,7 @@
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.2.7</version.woodstox-core>
-    <version.testcontainers>1.17.2</version.testcontainers>
+    <version.testcontainers>1.17.3</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.9.1</version.micrometer>
     <version.apm>1.33.0</version.apm>
@@ -289,6 +289,12 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mongodb</artifactId>
       <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>

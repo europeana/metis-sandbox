@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,6 +12,7 @@ import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.test.utils.MongoDBContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
 import java.io.File;
@@ -53,6 +55,7 @@ class DatasetControllerIT {
         "database/schema_drop.sql", "database/schema.sql",
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
+    MongoDBContainerInitializerIT.dynamicProperties(registry);
   }
 
   @BeforeEach
@@ -167,7 +170,7 @@ class DatasetControllerIT {
     makeHarvestingByFile(dataset, null);
 
     // Give time for the full harvesting to happen
-    Awaitility.await().atMost(100, SECONDS).until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+    Awaitility.await().atMost(2, MINUTES).until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
             String.class, "1").getBody()).contains("COMPLETED"));
 
     ResponseEntity<String> getDatasetResponse =
