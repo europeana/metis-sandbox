@@ -207,9 +207,9 @@ class HarvestServiceImplTest {
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(
         addDuplicatedRecordsToHttpIterator(prepareMockListForHttpIterator()));
 
-    RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+    RecordEntity recordEntity1 = new RecordEntity("", "src/test/resources/zip/Record1.xml", "datasetId", "", "");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+    RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "");
     recordEntity1.setId(2L);
 
     when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -217,7 +217,8 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
-    when(recordRepository.findByProviderIdAndDatasetId("src/test/resources/zip/Record2.xml", "datasetId"))
+    when(recordRepository.findByProviderIdAndDatasetId(
+        generateHarvestProviderIdFromTemporaryPath("src/test/resources/zip/Record2.xml"), "datasetId"))
         .thenReturn(null)
         .thenReturn(recordEntity2);
 
@@ -241,7 +242,9 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
-    when(recordRepository.findByProviderIdAndDatasetId(eq("src/test/resources/zip/Record2.xml"), eq("datasetId")))
+    when(recordRepository.findByProviderIdAndDatasetId(eq(
+        generateHarvestProviderIdFromTemporaryPath("src/test/resources/zip/Record2.xml")
+        ), eq("datasetId")))
         .thenReturn(null)
         .thenReturn(recordEntity2);
 
@@ -581,5 +584,12 @@ class HarvestServiceImplTest {
     final OaiRecordHeader element3 = new OaiRecordHeader("oaiIdentifier3", false, datestamp);
     iteratorList.addAll(List.of(element1, element2, element3));
     return iteratorList;
+  }
+
+  private String generateHarvestProviderIdFromTemporaryPath(String value) {
+    Path path = Paths.get(value);
+    int pathNameCount = path.getNameCount();
+    Path tmpProviderId = pathNameCount >= 2 ? path.subpath(pathNameCount - 2, pathNameCount) : path.getFileName();
+    return tmpProviderId.toString();
   }
 }
