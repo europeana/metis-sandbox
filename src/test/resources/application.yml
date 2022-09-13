@@ -89,7 +89,7 @@ sandbox:
       hosts:
       ports:
     solr:
-      hosts: http://metis-test:8888/solr/metis_sandbox_test
+      hosts:
   s3:
     access-key:
     secret-key:

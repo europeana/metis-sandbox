@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.controller;
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
+import eu.europeana.metis.sandbox.test.utils.SolrContainerInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,6 +56,7 @@ class DatasetControllerIT {
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
     MongoDBContainerInitializerIT.dynamicProperties(registry);
+    SolrContainerInitializer.dynamicProperties(registry);
   }
 
   @BeforeEach
