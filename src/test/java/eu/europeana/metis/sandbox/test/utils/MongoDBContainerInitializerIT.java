@@ -10,7 +10,6 @@ public class MongoDBContainerInitializerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBContainerInitializerIT.class);
     static final MongoDBContainer mongoDBContainer;
     public static final String MONGO_VERSION = "mongo:5.0.12";
-//    public static final int MONGO_PORT = 49180;
 
     static {
         mongoDBContainer = new MongoDBContainer(MONGO_VERSION);
@@ -24,17 +23,21 @@ public class MongoDBContainerInitializerIT {
         LOGGER.info("Url: {}", mongoDBContainer.getReplicaSetUrl());
         LOGGER.info("Host: {}", mongoDBContainer.getHost());
         LOGGER.info("Port: {}", mongoDBContainer.getFirstMappedPort());
-        LOGGER.info("Container Info: {}", mongoDBContainer.getContainerInfo());
 
     }
 
     public static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.url", mongoDBContainer::getReplicaSetUrl);
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
         registry.add("spring.data.mongodb.port", mongoDBContainer::getFirstMappedPort);
         registry.add("spring.data.mongodb.host", mongoDBContainer::getHost);
         registry.add("spring.data.mongodb.db", () -> "test");
-        registry.add("spring.data.mongodb.username", () -> "admin");
-        registry.add("spring.data.mongodb.password", () -> "admin");
+
+        // TODO: 13/09/2022 We should perhaps remove the specifics here and use the default spring configuration properties
+        //Sandbox specific datasource properties
+        registry.add("sandbox.publish.mongo.application-name", () -> "mongo-testcontainer-test");
+        registry.add("sandbox.publish.mongo.db", () -> "test");
+        registry.add("sandbox.publish.mongo.hosts", mongoDBContainer::getHost);
+        registry.add("sandbox.publish.mongo.ports", mongoDBContainer::getFirstMappedPort);
 
     }
 

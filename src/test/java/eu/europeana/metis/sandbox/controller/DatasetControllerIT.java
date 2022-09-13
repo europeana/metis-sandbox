@@ -170,7 +170,7 @@ class DatasetControllerIT {
     makeHarvestingByFile(dataset, null);
 
     // Give time for the full harvesting to happen
-    Awaitility.await().atMost(2, MINUTES).until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+    Awaitility.await().atMost(3, MINUTES).until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
             String.class, "1").getBody()).contains("COMPLETED"));
 
     ResponseEntity<String> getDatasetResponse =
