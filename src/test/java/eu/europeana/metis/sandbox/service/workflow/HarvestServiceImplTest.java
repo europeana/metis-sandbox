@@ -13,7 +13,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.harvesting.HarvesterException;
-import eu.europeana.metis.utils.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
@@ -34,6 +33,8 @@ import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
+import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -74,10 +75,13 @@ class HarvestServiceImplTest {
   @Mock
   private RecordRepository recordRepository;
 
+  @Mock
+  private XmlRecordProcessorService xmlRecordProcessorService;
+
   @BeforeEach
   void setUp() {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1000,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
   }
 
   @Test
@@ -103,7 +107,7 @@ class HarvestServiceImplTest {
   @Test
   void harvest_exceedingRecordLimitWithoutXslt_ExpectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
 
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
@@ -143,7 +147,7 @@ class HarvestServiceImplTest {
   @Test
   void harvest_exceedingRecordLimitWithXslt_ExpectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
 
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
@@ -227,9 +231,9 @@ class HarvestServiceImplTest {
     HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(
         addDuplicatedRecordsToHttpIterator(prepareMockListForHttpIterator()));
 
-    RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+    RecordEntity recordEntity1 = new RecordEntity("", "src/test/resources/zip/Record1.xml", "datasetId", "", "");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+    RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "");
     recordEntity1.setId(2L);
 
     when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -237,10 +241,9 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
-    when(recordRepository.findByProviderIdAndDatasetId("src/test/resources/zip/Record2.xml", "datasetId"))
+    when(recordRepository.findByProviderIdAndDatasetId(eq("src/test/resources/zip/Record2.xml"), eq("datasetId")))
         .thenReturn(null)
-        .thenReturn(null)
-        .thenReturn(null);
+        .thenReturn(recordEntity2);
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
@@ -273,7 +276,7 @@ class HarvestServiceImplTest {
   @Test
   void harvestOaiPmh_exceedingLimitWithoutXslt_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
@@ -319,7 +322,7 @@ class HarvestServiceImplTest {
   @Test
   void harvestOaiPmh_exceedingLimitWithXslt_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 1,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
@@ -376,7 +379,7 @@ class HarvestServiceImplTest {
   @Test
   void runHarvestOaiAsync_withoutXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 2,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
@@ -402,7 +405,7 @@ class HarvestServiceImplTest {
   @Test
   void runHarvestOaiAsync_withXsltSkipDeletedRecords_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 2,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
@@ -428,7 +431,7 @@ class HarvestServiceImplTest {
   @Test
   void harvestOaiPmh_duplicatedById_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 5,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
@@ -467,7 +470,7 @@ class HarvestServiceImplTest {
   @Test
   void harvestOaiPmh_duplicatedByContent_expectSuccess() throws HarvesterException {
     harvestService = new HarvestServiceImpl(httpHarvester, oaiHarvester, recordPublishService, datasetService, 5,
-        recordRepository);
+        recordRepository, xmlRecordProcessorService);
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
 
     OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(
@@ -495,7 +498,10 @@ class HarvestServiceImplTest {
         .thenReturn(null);
 
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
-
+    when(xmlRecordProcessorService.getProviderId(any())).thenReturn(null)
+                                                        .thenReturn(null)
+                                                        .thenReturn("oaiIdentifier1")
+                                                        .thenReturn("oaiIdentifier2");
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
