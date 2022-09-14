@@ -6,9 +6,9 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.containers.SolrContainer;
 import org.testcontainers.utility.DockerImageName;
 
-public class SolrContainerInitializer {
+public class SolrContainerInitializerIT {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SolrContainerInitializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SolrContainerInitializerIT.class);
     static final SolrContainer solrContainer;
     public static final String SOLR_VERSION = "solr:9.0.0";
     public static final String SOLR_COLLECTION_NAME = "solr_publish_test";

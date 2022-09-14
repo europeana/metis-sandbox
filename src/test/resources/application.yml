@@ -93,9 +93,9 @@ sandbox:
   s3:
     access-key:
     secret-key:
-    endpoint: some-uri
-    signing-region: eu
-    thumbnails-bucket: europeana-sandbox-thumbnails-test
+    endpoint:
+    signing-region:
+    thumbnails-bucket:
   portal:
     publish:
       dataset-base-url: "http://metis-test"

@@ -11,9 +11,8 @@ import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.test.utils.MongoDBContainerInitializerIT;
-import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.*;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +20,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
-import eu.europeana.metis.sandbox.test.utils.SolrContainerInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,7 +54,8 @@ class DatasetControllerIT {
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
     MongoDBContainerInitializerIT.dynamicProperties(registry);
-    SolrContainerInitializer.dynamicProperties(registry);
+    SolrContainerInitializerIT.dynamicProperties(registry);
+    S3ContainerInitializerIT.dynamicProperties(registry);
   }
 
   @BeforeEach
