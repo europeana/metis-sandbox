@@ -79,6 +79,25 @@ class ProgressInfoDtoTest {
     assertFalse(progressInfoDto.getDatasetInfoDto().isTransformedToEdmExternal());
   }
 
+  @Test
+  void getErrorType() {
+    progressInfoDto = getTestErrorTypeInfoDto();
+    assertEquals( "Error", progressInfoDto.getErrorType());
+    assertEquals( "", progressInfoDto.getPortalPublishUrl());
+  }
+
+  @Test
+  void getTiersZeroInfoTest(){
+    progressInfoDto = getTestCompletedInfoDto();
+    assertEquals(2, progressInfoDto.getTiersZeroInfo().getContentTier().getTotalNumberOfRecords());
+    assertEquals(progressInfoDto.getTiersZeroInfo().getContentTier().getListRecordIds(),
+            List.of("europeanaId1", "europeanaId2"));
+    assertEquals(4, progressInfoDto.getTiersZeroInfo().getMetadataTier().getTotalNumberOfRecords());
+    assertEquals(progressInfoDto.getTiersZeroInfo().getMetadataTier().getListRecordIds(),
+            List.of("europeanaId1", "europeanaId2","europeanaId3", "europeanaId4"));
+
+  }
+
   @NotNull
   private static ProgressInfoDto getTestProgressInfoDto() {
     return new ProgressInfoDto("http://metis-sandbox",
@@ -91,7 +110,7 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false), "");
+            false), "", null);
   }
 
   @NotNull
@@ -119,7 +138,7 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false), "");
+            false), "", null);
   }
 
   @NotNull
@@ -134,11 +153,13 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false), "");
+            false),
+            "",
+            getTiersZeroInfo());
   }
 
   @NotNull
-  private static ProgressInfoDto getTestErroTypeInfoDto() {
+  private static ProgressInfoDto getTestErrorTypeInfoDto() {
     return new ProgressInfoDto("http://metis-sandbox",
             5L,
             5L,
@@ -149,13 +170,17 @@ class ProgressInfoDtoTest {
                     Language.HR,
                     Country.CROATIA,
                     false,
-                    false), "Error");
+                    false),
+            "Error",
+            null);
   }
 
-  @Test
-  void getErrorType() {
-    progressInfoDto = getTestErroTypeInfoDto();
-    assertEquals( "Error", progressInfoDto.getErrorType());
-    assertEquals( "", progressInfoDto.getPortalPublishUrl());
+  @NotNull
+  private static TiersZeroInfo getTiersZeroInfo(){
+    TierStatistics contentTier = new TierStatistics(2, List.of("europeanaId1", "europeanaId2"));
+    TierStatistics metadataTier = new TierStatistics(4, List.of("europeanaId1", "europeanaId2","europeanaId3", "europeanaId4"));
+
+    return new TiersZeroInfo(contentTier, metadataTier);
   }
+
 }

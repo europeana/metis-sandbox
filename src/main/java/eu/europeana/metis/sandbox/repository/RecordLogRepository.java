@@ -1,9 +1,10 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
-import eu.europeana.metis.sandbox.entity.StepStatistic;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,11 +22,22 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @return statistics for the given dataset
    * @see StepStatistic
    */
-  @Query( value = "SELECT new eu.europeana.metis.sandbox.entity.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+  @Query( value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(rle)) "
       + "FROM RecordLogEntity rle "
       + "WHERE rle.recordId.datasetId = ?1 "
       + "GROUP BY rle.step, rle.status")
   List<StepStatistic> getStepStatistics(String datasetId);
+
+  /**
+   * Get metrics by step for a given time using custom query
+   *
+   * @return metrics Step Statistics
+   * @see StepStatistic
+   */
+  @Query( value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+      + "FROM RecordLogEntity rle "
+      + "GROUP BY rle.step, rle.status")
+  List<StepStatistic> getMetricStepStatistics();
 
   /**
    * Get record given a record id, dataset id and step.
@@ -40,6 +52,21 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
           "AND rle.recordId.datasetId = ?2 AND rle.step = ?3 ")
   RecordLogEntity findRecordLogByRecordIdDatasetIdAndStep(String recordId, String datasetId, Step step);
+
+
+  /**
+   * Get set of records given a record id, dataset id and steps.
+   * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
+   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
+   *
+   * @param recordId the record id
+   * @param datasetId the dataset id
+   * @param steps the steps
+   * @return set of record logs
+   */
+  @Query("SELECT rle FROM RecordLogEntity rle WHERE (rle.recordId.providerId = ?1 OR rle.recordId.europeanaId= ?1) " +
+      "AND rle.recordId.datasetId = ?2 AND rle.step IN ?3")
+  Set<RecordLogEntity> findRecordLogByRecordIdDatasetIdAndStepIn(String recordId, String datasetId, Set<Step> steps);
 
   /**
    * Delete records that belong to the given dataset id

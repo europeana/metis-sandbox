@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
@@ -27,6 +29,13 @@ public class RecordServiceImpl implements RecordService {
     recordToUpdate.setEuropeanaId(europeanaId);
     recordToUpdate.setProviderId(providerId);
     recordRepository.updateEuropeanaIdAndProviderId(recordToUpdate.getRecordId(), europeanaId, providerId);
+  }
+
+  @Override
+  @Transactional
+  public void setContentTierAndMetadataTier(Record recordToUpdate, MediaTier contentTier, MetadataTier metadataTier) {
+    recordRepository.updateContentTierAndMetadataTier(recordToUpdate.getRecordId(), contentTier.toString(),
+            metadataTier.toString());
   }
 
   @Override

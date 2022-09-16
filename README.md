@@ -76,6 +76,28 @@ You can check how the endpoints work using Swagger-UI in path
 
 `{your-host}/metis-sandbox/swagger-ui.html#/dataset-controller/processDatasetUsingPOST`
 
+### Performance tests
+In the action sections of metis-sandbox repository now exists a new action called performance.
+![performance github action](./doc/performance-action.png)
+1. Click here to enter the option.
+2. In this section you enable the parameters.
+3. Parameter section.
+   - a. **http or https protocol.** Now is by default https. The test run in the acceptance environment. need to update ACCEPTANCE_API_ENDPOINT and ACCEPTANCE_API_PATH in the secrets section of metis sandbox repository. To change the url.
+   - b. **Port.** Now is by default 443.
+   - c. **Amount of users (threads).** Amount of users running at the same time.
+   - d. **Ramp up period (in seconds).** time in between to spawn new users.
+   - e. **Amount of runs.** how many times we want to run the test.
+   - f. **Harvest file.** Write here the url where the file will be harvested. This apply to scenario1 and scenario 3.
+   - g. **Harvest OAI PMH.** Write here the url of OAI endpoint. This apply to scenario 2 and scenario 3.
+   - h. **Set specification.** Write the specification of the OAI PMH data set.
+   - i. **Metadata format.** Write the formate of the OAI PMH data set.
+   - j. **Scenario to run.** Choose the scenario you want to run.
+     - **Scenario 1**: Harvest file. parameter **f** is required.
+     - **Scenario 2**: Harvest OAI-PMH. parameter **g, h, i** are required.
+     - **Scenario 3**: Scenario1 + Scenario2 together. **f, g, h, i** are required.
+4. Run the workflow scenario.
+5. See the results of every run.
+> Note: At this moment performance tests are limited run in acceptance environment.
 ## Technologies
 Project created with:
 

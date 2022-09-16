@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
-import eu.europeana.metis.harvesting.http.CompressedFileExtension;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
@@ -24,6 +23,8 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
+import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,10 +33,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
@@ -59,6 +58,7 @@ public class HarvestServiceImpl implements HarvestService {
   private final DatasetService datasetService;
   private final int maxRecords;
   private final RecordRepository recordRepository;
+  private final XmlRecordProcessorService xmlRecordProcessorService;
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
@@ -66,13 +66,15 @@ public class HarvestServiceImpl implements HarvestService {
       RecordPublishService recordPublishService,
       DatasetService datasetService,
       @Value("${sandbox.dataset.max-size}") int maxRecords,
-      RecordRepository recordRepository) {
+      RecordRepository recordRepository,
+      XmlRecordProcessorService xmlRecordProcessorService) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
     this.recordRepository = recordRepository;
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
+    this.xmlRecordProcessorService = xmlRecordProcessorService;
   }
 
   @Override
@@ -144,7 +146,7 @@ public class HarvestServiceImpl implements HarvestService {
           oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
-      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId);
+      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
       if (isDuplicatedByProviderId(recordEntity, datasetId)
@@ -232,18 +234,20 @@ public class HarvestServiceImpl implements HarvestService {
       Path path, List<RecordInfo> recordInfoList) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
-    RecordEntity recordEntity = new RecordEntity(null, path.toString(), datasetId);
+    int pathNameCount = path.getNameCount();
+    Path tmpProviderId = pathNameCount >= 2 ? path.subpath(pathNameCount - 2, pathNameCount) : path.getFileName();
+    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId.toString(), datasetId, "", "");
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
       if (isDuplicatedByProviderId(recordEntity, datasetId)
           || isDuplicatedByContent(recordContent, recordInfoList)) {
-        recordInfo = handleDuplicated(path.toString(), Step.HARVEST_ZIP, recordToHarvest);
+        recordInfo = handleDuplicated(tmpProviderId.toString(), Step.HARVEST_ZIP, recordToHarvest);
       } else {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
-            .providerId(path.toString())
+            .providerId(tmpProviderId.toString())
             .content(recordContent)
             .recordId(recordEntity.getId())
             .build();
@@ -253,7 +257,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, path.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
   }
@@ -330,15 +334,22 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private boolean isDuplicatedByContent(byte[] content, List<RecordInfo> recordInfoList) {
-    Optional<RecordInfo> optionalRecordInfo = recordInfoList.stream()
-                                                            .filter(Objects::nonNull)
-                                                            .filter(
-                                                                recordInfo -> Arrays.equals(
-                                                                    recordInfo.getRecord()
-                                                                              .getContent(),
-                                                                    content))
-                                                            .findFirst();
-    return optionalRecordInfo.isPresent();
+    String providerId = xmlRecordProcessorService.getProviderId(content);
+    if (providerId == null) {
+      return false;
+    } else {
+      return recordInfoList
+          .stream()
+          .filter(Objects::nonNull)
+          .anyMatch(recordInfo ->
+              providerId.equals(
+                  xmlRecordProcessorService.getProviderId(
+                      recordInfo
+                      .getRecord()
+                      .getContent())
+              )
+          );
+    }
   }
 
   private RecordInfo handleDuplicated(String providerId, Step step, Record.RecordBuilder recordToHarvest) {

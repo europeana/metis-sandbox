@@ -57,7 +57,7 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
   private Optional<Record> getOptionalRecordFromProcessorService(DatasetMetadata datasetMetadata, byte[] recordContent) {
     try {
-      final RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId()));
+      final RecordEntity recordEntity = recordRepository.save(new RecordEntity(null, null, datasetMetadata.getDatasetId(), "", ""));
       final Long recordId = recordEntity.getId();
       return Optional.of(Record.builder()
                                .recordId(recordId)

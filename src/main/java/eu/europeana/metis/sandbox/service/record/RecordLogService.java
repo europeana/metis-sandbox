@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
+import java.util.Set;
 
 /**
  * Service handling functionality regarding record logs and errors.
@@ -40,6 +41,17 @@ public interface RecordLogService {
    * @return the record log entity
    */
   RecordLogEntity getRecordLogEntity(String recordId, String datasetId, Step step);
+
+
+  /**
+   * Get a record log entities from the database
+   *
+   * @param recordId the record id
+   * @param datasetId the dataset id
+   * @param steps the steps that we want to get the record state
+   * @return the record log entities
+   */
+  public Set<RecordLogEntity> getRecordLogEntities(String recordId, String datasetId, Set<Step> steps);
 
   /**
    * Get a record error log entity from the database

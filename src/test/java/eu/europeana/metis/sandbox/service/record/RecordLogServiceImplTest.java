@@ -24,6 +24,8 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
+import java.util.Collections;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -120,22 +122,22 @@ class RecordLogServiceImplTest {
   void getProviderRecordString_expectSuccess() throws Exception {
     final RecordLogEntity recordLogEntity = new RecordLogEntity();
     recordLogEntity.setContent("content");
-    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
-        Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
+    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(recordLogEntity));
     assertNotNull(service.getProviderRecordString("recordId", "datasetId"));
   }
 
   @Test
   void getProviderRecordString_expectFail() {
     //Case null entity
-    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
-        Step.MEDIA_PROCESS)).thenReturn(null);
+    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Collections.emptySet());
     assertThrows(NoRecordFoundException.class,
         () -> service.getProviderRecordString("recordId", "datasetId"));
 
     //Case null content
-    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStep("recordId", "datasetId",
-        Step.MEDIA_PROCESS)).thenReturn(new RecordLogEntity());
+    when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(new RecordLogEntity()));
     assertThrows(NoRecordFoundException.class,
         () -> service.getProviderRecordString("recordId", "datasetId"));
   }

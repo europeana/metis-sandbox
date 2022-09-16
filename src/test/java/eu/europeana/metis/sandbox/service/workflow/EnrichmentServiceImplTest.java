@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -63,4 +64,17 @@ class EnrichmentServiceImplTest {
   void enrich_inputNull_expectFail() {
     assertThrows(NullPointerException.class, () -> service.enrich(null));
   }
+
+  @Test
+  void enrich_withException_expectFail() throws DereferenceException, SerializationException, EnrichmentException {
+    var content = "This is the content";
+    var record = Record.builder().recordId(1L)
+                       .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
+                       .datasetName("").datasetId("1").build();
+    when(enrichmentWorker.process(any(InputStream.class)))
+        .thenThrow(new RuntimeException());
+
+    assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+  }
+
 }

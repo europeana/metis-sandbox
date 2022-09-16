@@ -178,8 +178,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
     //Insert global problem patterns to db
     final List<RecordTitle> duplicateRecordTitles = recordTitleRepository.findAllByExecutionPoint(executionPoint);
-    final Map<String, List<RecordTitle>> groupByTitle = duplicateRecordTitles.stream().collect(
-        Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle()));
+    final Map<String, List<RecordTitle>> groupByTitleToUpperCase = duplicateRecordTitles.stream().collect(
+        Collectors.groupingBy(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle().toUpperCase()));
 
     final int totalRecordOccurrences = Math.toIntExact(duplicateRecordTitles.stream().map(RecordTitle::getRecordTitleCompositeKey)
                                                                             .map(RecordTitleCompositeKey::getRecordId).distinct()
@@ -189,7 +189,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
         totalRecordOccurrences);
 
     Map<String, RecordProblemPattern> recordIdsInserted = new HashMap<>();
-    groupByTitle.entrySet().stream().limit(maxRecordsPerPattern).forEach(entry ->
+    groupByTitleToUpperCase.entrySet().stream().limit(maxRecordsPerPattern).forEach(entry ->
         entry.getValue().stream().limit(maxRecordsPerPattern).forEach(recordTitle -> {
           RecordProblemPattern savedRecordProblemPattern = recordIdsInserted.get(
               recordTitle.getRecordTitleCompositeKey().getRecordId());
@@ -204,7 +204,8 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
           final RecordProblemPatternOccurrence recordProblemPatternOccurrence = new RecordProblemPatternOccurrence();
           recordProblemPatternOccurrence.setRecordProblemPattern(savedRecordProblemPattern);
-          recordProblemPatternOccurrence.setMessageReport(problemPatternAnalyzer.abbreviateElement(entry.getKey()));
+          String currentRecordTitle = recordTitle.getRecordTitleCompositeKey().getTitle();
+          recordProblemPatternOccurrence.setMessageReport(problemPatternAnalyzer.abbreviateElement(currentRecordTitle));
           this.recordProblemPatternOccurrenceRepository.save(recordProblemPatternOccurrence);
         })
     );
@@ -249,24 +250,31 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
       String datasetProblemPatternId) {
     final ArrayList<RecordAnalysis> recordAnalyses = new ArrayList<>();
 
-    final Map<String, List<String>> messageReportRecordIdsMap = new HashMap<>();
+    final Map<String, List<RecordProblemPatternOccurrence>> messageReportInUpperCaseOccurrencesMap = new HashMap<>();
     //Only select the specific one we need
     getGlobalRecordProblemPatternStream(executionPoint, datasetProblemPatternId).forEach(recordProblemPattern -> {
       for (RecordProblemPatternOccurrence recordProblemPatternOccurrence : recordProblemPattern.getRecordProblemPatternOccurences()) {
         //For P1 we need to collect the correct values first
         if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
-          messageReportRecordIdsMap.computeIfAbsent(recordProblemPatternOccurrence.getMessageReport(),
+          messageReportInUpperCaseOccurrencesMap.computeIfAbsent(recordProblemPatternOccurrence.getMessageReport().toUpperCase(),
                                        k -> new ArrayList<>())
-                                   .add(recordProblemPattern.getRecordId());
+                                   .add(recordProblemPatternOccurrence);
         }
       }
     });
 
     if (datasetProblemPatternId.equals(ProblemPatternId.P1.name())) {
-      for (Entry<String, List<String>> entry : messageReportRecordIdsMap.entrySet()) {
+      for (Entry<String, List<RecordProblemPatternOccurrence>> entry : messageReportInUpperCaseOccurrencesMap.entrySet()) {
+        List<String> recordIds = entry.getValue().stream()
+                .map(RecordProblemPatternOccurrence::getRecordProblemPattern)
+                .map(RecordProblemPattern::getRecordId)
+                .collect(Collectors.toList());
+        //Get first message report, they could differ only by case
+        String firstMessageReport = entry.getValue().get(0).getMessageReport();
         //Add only the first recordId(there should always be at least one) and inside the problemOccurrence should contain a list of record ids
+        String firstRecordId = entry.getValue().get(0).getRecordProblemPattern().getRecordId();
         recordAnalyses.add(
-            new RecordAnalysis(entry.getValue().get(0), List.of(new ProblemOccurrence(entry.getKey(), entry.getValue()))));
+            new RecordAnalysis(firstRecordId, List.of(new ProblemOccurrence(firstMessageReport, recordIds))));
       }
     }
 
