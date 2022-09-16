@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -300,8 +301,9 @@ class DatasetControllerIT {
   }
 
   private String removeCreationDate(String body){
-    StringBuilder sb = new StringBuilder(body);
-    return sb.replace(700, 745, "").toString();
+    JSONObject jsonObject = new JSONObject(body);
+    jsonObject.getJSONObject("dataset-info").remove("creation-date");
+    return jsonObject.toString();
   }
 
 }
