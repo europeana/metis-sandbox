@@ -2,7 +2,11 @@ package eu.europeana.metis.sandbox;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import eu.europeana.metis.sandbox.test.utils.*;
+import eu.europeana.metis.sandbox.test.utils.MongoDBContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.S3ContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.SolrContainerInitializerIT;
 
 import java.util.List;
 import javax.sql.DataSource;

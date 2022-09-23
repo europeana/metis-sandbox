@@ -8,7 +8,7 @@ import org.testcontainers.containers.MongoDBContainer;
 public class MongoDBContainerInitializerIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBContainerInitializerIT.class);
-    static final MongoDBContainer mongoDBContainer;
+    private static final MongoDBContainer mongoDBContainer;
     public static final String MONGO_VERSION = "mongo:5.0.12";
 
     static {

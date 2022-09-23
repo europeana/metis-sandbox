@@ -11,7 +11,11 @@ import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.test.utils.*;
+import eu.europeana.metis.sandbox.test.utils.MongoDBContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.S3ContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.SolrContainerInitializerIT;
 
 import java.io.File;
 import java.io.IOException;

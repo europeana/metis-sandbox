@@ -13,8 +13,8 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 public class S3ContainerInitializerIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ContainerInitializerIT.class);
-    static final LocalStackContainer s3Container;
-    static final AmazonS3 s3Client;
+    private static final LocalStackContainer s3Container;
+    private static final AmazonS3 s3Client;
     public static final String S3_VERSION = "localstack/localstack:1.1.0";
     public static final String BUCKET_NAME = "test-thumbnails-bucket";
 

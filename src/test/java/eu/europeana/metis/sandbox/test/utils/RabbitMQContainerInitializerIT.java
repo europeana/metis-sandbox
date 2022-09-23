@@ -13,7 +13,7 @@ public class RabbitMQContainerInitializerIT {
   //Use the *-management versions that contain the rabbitmqadmin cli command, otherwise the commands will fail.
   public static final String RABBITMQ_VERSION = "rabbitmq:3.9.12-management";
   public static final String VIRTUAL_HOST = "testVhost";
-  public static final RabbitMQContainer rabbitMQContainer;
+  private static final RabbitMQContainer rabbitMQContainer;
 
   static {
     rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION)

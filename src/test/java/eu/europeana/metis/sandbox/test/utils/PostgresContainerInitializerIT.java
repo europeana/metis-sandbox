@@ -21,7 +21,7 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 public class PostgresContainerInitializerIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresContainerInitializerIT.class);
-  static final PostgreSQLContainer<?> postgreSQLContainer;
+  private static final PostgreSQLContainer<?> postgreSQLContainer;
   public static final String POSTGRES_VERSION = "postgres:9.6";
 
   static {
