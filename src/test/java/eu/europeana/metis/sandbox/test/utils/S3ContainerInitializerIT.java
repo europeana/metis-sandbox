@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.test.utils;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.slf4j.Logger;
@@ -25,8 +26,9 @@ public class S3ContainerInitializerIT {
 
         s3Client = AmazonS3ClientBuilder
                 .standard()
-                .withEndpointConfiguration(s3Container.getEndpointConfiguration(S3))
-                .withCredentials(s3Container.getDefaultCredentialsProvider())
+                .withEndpointConfiguration(
+                        new AwsClientBuilder.EndpointConfiguration(s3Container.getEndpointOverride(S3).toString(),
+                                s3Container.getRegion()))
                 .build();
         s3Client.createBucket(BUCKET_NAME);
 
@@ -35,17 +37,18 @@ public class S3ContainerInitializerIT {
 
     private static void logConfiguration() {
         LOGGER.info("S3 service container created:");
-        LOGGER.info("Access Key Id: {}", s3Container.getAccessKey());
-        LOGGER.info("Secret Key: {}", s3Container.getSecretKey());
-        LOGGER.info("Endpoint: {}", s3Container.getEndpointConfiguration(S3).getServiceEndpoint());
-        LOGGER.info("Signing Region: {}", s3Container.getEndpointConfiguration(S3).getSigningRegion());
+        if(!s3Container.getAccessKey().isBlank() && !s3Container.getSecretKey().isBlank()){
+            LOGGER.info("Access key and Secret key were loaded");
+        }
+        LOGGER.info("Endpoint: {}", s3Container.getEndpointOverride(S3));
+        LOGGER.info("Signing Region: {}", s3Container.getRegion());
     }
 
     public static void dynamicProperties(DynamicPropertyRegistry registry) {
 
         registry.add("spring.aws.accessKeyId", s3Container::getAccessKey);
         registry.add("spring.aws.secretKey", s3Container::getSecretKey);
-        registry.add("spring.s3.endpoint", () -> s3Container.getEndpointConfiguration(S3).getServiceEndpoint());
+        registry.add("spring.s3.endpoint", () -> s3Container.getEndpointOverride(S3));
         registry.add("spring.s3.region", s3Container::getRegion);
         registry.add("spring.s3.bucket", () -> BUCKET_NAME);
 
@@ -53,7 +56,7 @@ public class S3ContainerInitializerIT {
         //Sandbox specific datasource properties
         registry.add("sandbox.s3.access-key", s3Container::getAccessKey);
         registry.add("sandbox.s3.secret-key", s3Container::getSecretKey);
-        registry.add("sandbox.s3.endpoint", () -> s3Container.getEndpointConfiguration(S3).getServiceEndpoint());
+        registry.add("sandbox.s3.endpoint", () -> s3Container.getEndpointOverride(S3));
         registry.add("sandbox.s3.signing-region", s3Container::getRegion);
         registry.add("sandbox.s3.thumbnails-bucket", () -> BUCKET_NAME);
 
