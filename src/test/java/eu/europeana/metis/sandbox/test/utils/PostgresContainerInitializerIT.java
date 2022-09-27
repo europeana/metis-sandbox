@@ -21,7 +21,7 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 public class PostgresContainerInitializerIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresContainerInitializerIT.class);
-  static final PostgreSQLContainer<?> postgreSQLContainer;
+  private static final PostgreSQLContainer<?> postgreSQLContainer;
   public static final String POSTGRES_VERSION = "postgres:9.6";
 
   static {
@@ -37,8 +37,10 @@ public class PostgresContainerInitializerIT {
   private static void logConfiguration() {
     LOGGER.info("Postgres container created:");
     LOGGER.info("jdbcUrl: {}", postgreSQLContainer.getJdbcUrl());
-    LOGGER.info("Username: {}", postgreSQLContainer.getUsername());
-    LOGGER.info("Password: {}", postgreSQLContainer.getPassword());
+
+    if(!postgreSQLContainer.getUsername().isBlank() && !postgreSQLContainer.getPassword().isBlank()) {
+      LOGGER.info("Username and password were loaded");
+    }
   }
 
   public static void dynamicProperties(DynamicPropertyRegistry registry) {

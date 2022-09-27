@@ -2,10 +2,15 @@ package eu.europeana.metis.sandbox;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import eu.europeana.metis.sandbox.test.utils.MongoDBContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.S3ContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.SolrContainerInitializerIT;
+
 import java.util.List;
 import javax.sql.DataSource;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -31,6 +36,10 @@ class SandboxApplicationIT {
         List.of("database/schema_drop.sql", "database/schema.sql", "database/schema_problem_patterns_drop.sql",
             "database/schema_problem_patterns.sql"));
     RabbitMQContainerInitializerIT.properties(registry);
+    MongoDBContainerInitializerIT.dynamicProperties(registry);
+    SolrContainerInitializerIT.dynamicProperties(registry);
+    S3ContainerInitializerIT.dynamicProperties(registry);
+
   }
 
   @Test

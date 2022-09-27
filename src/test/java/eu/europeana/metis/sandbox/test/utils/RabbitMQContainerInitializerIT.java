@@ -13,7 +13,7 @@ public class RabbitMQContainerInitializerIT {
   //Use the *-management versions that contain the rabbitmqadmin cli command, otherwise the commands will fail.
   public static final String RABBITMQ_VERSION = "rabbitmq:3.9.12-management";
   public static final String VIRTUAL_HOST = "testVhost";
-  public static final RabbitMQContainer rabbitMQContainer;
+  private static final RabbitMQContainer rabbitMQContainer;
 
   static {
     rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION)
@@ -38,8 +38,11 @@ public class RabbitMQContainerInitializerIT {
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
-    LOGGER.info("Admin username: {}", rabbitMQContainer.getAdminUsername());
-    LOGGER.info("Admin password: {}", rabbitMQContainer.getAdminPassword());
+
+    if(!rabbitMQContainer.getAdminUsername().isBlank() && !rabbitMQContainer.getAdminPassword().isBlank()) {
+      LOGGER.info("Admin username and password were loaded");
+    }
+
   }
 
   public static void properties(DynamicPropertyRegistry registry) {
