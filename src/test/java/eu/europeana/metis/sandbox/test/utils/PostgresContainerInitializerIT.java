@@ -37,8 +37,10 @@ public class PostgresContainerInitializerIT {
   private static void logConfiguration() {
     LOGGER.info("Postgres container created:");
     LOGGER.info("jdbcUrl: {}", postgreSQLContainer.getJdbcUrl());
-    LOGGER.info("Username: {}", postgreSQLContainer.getUsername());
-    LOGGER.info("Password: {}", postgreSQLContainer.getPassword());
+
+    if(!postgreSQLContainer.getUsername().isBlank() && !postgreSQLContainer.getPassword().isBlank()) {
+      LOGGER.info("Username and password were loaded");
+    }
   }
 
   public static void dynamicProperties(DynamicPropertyRegistry registry) {

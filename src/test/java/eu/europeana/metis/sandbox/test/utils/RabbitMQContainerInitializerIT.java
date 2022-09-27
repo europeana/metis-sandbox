@@ -38,8 +38,11 @@ public class RabbitMQContainerInitializerIT {
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
-    LOGGER.info("Admin username: {}", rabbitMQContainer.getAdminUsername());
-    LOGGER.info("Admin password: {}", rabbitMQContainer.getAdminPassword());
+
+    if(!rabbitMQContainer.getAdminUsername().isBlank() && !rabbitMQContainer.getAdminPassword().isBlank()) {
+      LOGGER.info("Admin username and password were loaded");
+    }
+
   }
 
   public static void properties(DynamicPropertyRegistry registry) {
