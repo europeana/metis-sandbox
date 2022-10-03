@@ -109,7 +109,10 @@ sandbox:
     xslt-url:
   enrichment:
     dereference-url:
-    enrichment-url:
+    enrichment-properties:
+      entity-management-url:
+      entity-api-url:
+      entity-api-key:
   publish:
     mongo:
       application-name:

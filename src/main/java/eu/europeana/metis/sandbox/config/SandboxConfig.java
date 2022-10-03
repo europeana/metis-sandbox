@@ -66,8 +66,14 @@ class SandboxConfig {
   @Value("${sandbox.enrichment.dereference-url}")
   private String dereferenceServiceUrl;
 
-  @Value("${sandbox.enrichment.enrichment-url}")
-  private String enrichmentServiceUrl;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
+  private String entityManagementUrl;
+
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
+  private String entityApiUrl;
+
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-key}")
+  private String entityApiKey;
 
   //TODO: 04-03-2021 We should remove this configuration once
   //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
@@ -158,9 +164,9 @@ class SandboxConfig {
   EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
     DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
-    dereferencerProvider.setEnrichmentUrl(enrichmentServiceUrl);
+    dereferencerProvider.setPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
     EnricherProvider enricherProvider = new EnricherProvider();
-    enricherProvider.setEnrichmentUrl(enrichmentServiceUrl);
+    enricherProvider.setPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
     return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
   }
 

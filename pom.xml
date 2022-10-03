@@ -39,8 +39,8 @@
   <properties>
     <version.java>11</version.java>
     <version.springfox>2.9.2</version.springfox>
-    <version.metis>8-SNAPSHOT</version.metis>
-    <version.europeana>2.15.3</version.europeana>
+    <version.metis>9-SNAPSHOT</version.metis>
+    <version.europeana>2.15.8-SNAPSHOT</version.europeana>
     <version.postgresql>42.3.3</version.postgresql>
     <version.aws.s3>1.11.762</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
