@@ -6,6 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup latest updates
+        run: sudo apt update
       - name: Setup ImageMagick
         run: sudo apt install imagemagick
       - name: Setup FFmpeg
