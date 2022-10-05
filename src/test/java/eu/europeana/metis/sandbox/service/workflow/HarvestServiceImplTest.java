@@ -98,7 +98,8 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF")
+                                                                    .thenReturn("URN:NBN:SI:doc-B1HM2TA6");
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
     assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
@@ -118,7 +119,7 @@ class HarvestServiceImplTest {
         httpIterator);
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF");
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
     assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
@@ -138,7 +139,8 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(true);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF")
+                                                                    .thenReturn("URN:NBN:SI:doc-B1HM2TA6");
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
     assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
@@ -158,7 +160,7 @@ class HarvestServiceImplTest {
         httpIterator);
     when(datasetService.isXsltPresent("datasetId")).thenReturn(true);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF");
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
     assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
@@ -186,7 +188,7 @@ class HarvestServiceImplTest {
     when(recordBuilderToTest.build()).thenThrow(RuntimeException.class)
                                      .thenReturn(Record.builder().datasetName("datasetName").datasetId("datasetId")
                                                        .language(Language.NL).country(Country.NETHERLANDS).build());
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF");
     harvestService.harvest(new ByteArrayInputStream("inputStream".getBytes(StandardCharsets.UTF_8)), "datasetId",
         recordBuilderToTest);
     verify(recordPublishService, times(0)).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
@@ -221,7 +223,8 @@ class HarvestServiceImplTest {
         generateHarvestProviderIdFromTemporaryPath("src/test/resources/zip/Record2.xml"), "datasetId"))
         .thenReturn(null)
         .thenReturn(recordEntity2);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF")
+                                                                    .thenReturn("URN:NBN:SI:doc-B1HM2TA6");
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
     assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 3L);
@@ -236,7 +239,8 @@ class HarvestServiceImplTest {
     recordEntity1.setId(1L);
     RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "");
     recordEntity1.setId(2L);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("URN:NBN:SI:doc-35SZSOCF")
+                                                                    .thenReturn("URN:NBN:SI:doc-B1HM2TA6");
     when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
         httpIterator);
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
@@ -244,7 +248,7 @@ class HarvestServiceImplTest {
                                                         .thenReturn(recordEntity2);
     when(recordRepository.findByProviderIdAndDatasetId(eq(
         generateHarvestProviderIdFromTemporaryPath("src/test/resources/zip/Record2.xml")
-        ), eq("datasetId")))
+    ), eq("datasetId")))
         .thenReturn(null)
         .thenReturn(recordEntity2);
 
@@ -264,7 +268,8 @@ class HarvestServiceImplTest {
     recordEntity1.setId(1L);
     RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
     recordEntity2.setId(2L);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
     when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
@@ -287,7 +292,8 @@ class HarvestServiceImplTest {
     OaiRecord mockOaiRecord = mock(OaiRecord.class);
     RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
     recordEntity.setId(1L);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
     when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
@@ -310,7 +316,8 @@ class HarvestServiceImplTest {
     recordEntity1.setId(1L);
     RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
     recordEntity2.setId(2L);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
     when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
@@ -333,7 +340,8 @@ class HarvestServiceImplTest {
     OaiRecord mockOaiRecord = mock(OaiRecord.class);
     RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
     recordEntity.setId(1L);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
     when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
@@ -393,6 +401,8 @@ class HarvestServiceImplTest {
     when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
     RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
     recordEntity.setId(1L);
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
@@ -419,6 +429,8 @@ class HarvestServiceImplTest {
     when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
     RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
     recordEntity.setId(1L);
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
     when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
@@ -462,7 +474,9 @@ class HarvestServiceImplTest {
         .thenReturn(null);
 
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
-
+    when(xmlRecordProcessorService.getProviderId(any(byte[].class))).thenReturn("OAI15a3c446d450")
+                                                                    .thenReturn("OAI128d7fa22558")
+                                                                    .thenReturn("OAI0cb1ef0339fe");
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
@@ -501,10 +515,13 @@ class HarvestServiceImplTest {
         .thenReturn(null);
 
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
-    when(xmlRecordProcessorService.getProviderId(any())).thenReturn(null)
-                                                        .thenReturn(null)
-                                                        .thenReturn("oaiIdentifier1")
-                                                        .thenReturn("oaiIdentifier2");
+    ByteArrayInputStream inputStream1 = new ByteArrayInputStream("record1".getBytes(StandardCharsets.UTF_8));
+    ByteArrayInputStream inputStream2 = new ByteArrayInputStream("record2".getBytes(StandardCharsets.UTF_8));
+    ByteArrayInputStream inputStream3 = new ByteArrayInputStream("record3".getBytes(StandardCharsets.UTF_8));
+    when(xmlRecordProcessorService.getProviderId(inputStream1.readAllBytes())).thenReturn("OAI15a3c446d450");
+    when(xmlRecordProcessorService.getProviderId(inputStream2.readAllBytes())).thenReturn("OAI128d7fa22558");
+    when(xmlRecordProcessorService.getProviderId(inputStream3.readAllBytes())).thenReturn("OAI0cb1ef0339fe");
+
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
