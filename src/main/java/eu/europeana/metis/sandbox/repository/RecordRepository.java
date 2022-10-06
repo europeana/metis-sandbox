@@ -37,7 +37,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @param datasetId must not be null
    */
   @Modifying
-  @Query("delete from RecordEntity where datasetId = ?1")
+  @Query("DELETE FROM RecordEntity WHERE datasetId = ?1")
   void deleteByDatasetId(String datasetId);
 
   /**
@@ -45,8 +45,17 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    *
    * @param providerId the provider id value to search
    */
-  @Query("select re from RecordEntity re where re.providerId = ?1 and re.datasetId = ?2")
+  @Query("SELECT re FROM RecordEntity re WHERE re.providerId = ?1 AND re.datasetId = ?2")
   RecordEntity findByProviderIdAndDatasetId(String providerId, String datasetId);
+
+  /**
+   * Find record by europeana id
+   *
+   * @param europeanaId the europeana identifier value to search
+   */
+  @Query("SELECT re FROM RecordEntity re WHERE re.europeanaId = ?1 AND re.datasetId = ?2")
+  RecordEntity findByEuropeanaIdAndDatasetId(String europeanaId, String datasetId);
+
 
   /**
    * Get metrics by dataset for a given time using custom query
