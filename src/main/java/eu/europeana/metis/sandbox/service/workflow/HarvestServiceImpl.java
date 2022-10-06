@@ -23,7 +23,6 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
-import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -58,7 +57,6 @@ public class HarvestServiceImpl implements HarvestService {
   private final DatasetService datasetService;
   private final int maxRecords;
   private final RecordRepository recordRepository;
-  private final XmlRecordProcessorService xmlRecordProcessorService;
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
@@ -66,15 +64,13 @@ public class HarvestServiceImpl implements HarvestService {
       RecordPublishService recordPublishService,
       DatasetService datasetService,
       @Value("${sandbox.dataset.max-size}") int maxRecords,
-      RecordRepository recordRepository,
-      XmlRecordProcessorService xmlRecordProcessorService) {
+      RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
     this.recordRepository = recordRepository;
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
-    this.xmlRecordProcessorService = xmlRecordProcessorService;
   }
 
   @Override
@@ -116,7 +112,7 @@ public class HarvestServiceImpl implements HarvestService {
                 return ReportingIteration.IterationResult.TERMINATE;
               }
 
-              recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated, recordInfoList));
+              recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated));
 
             } catch (RuntimeException harvestException) {
               saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(), Step.HARVEST_OAI_PMH,
@@ -137,8 +133,7 @@ public class HarvestServiceImpl implements HarvestService {
                          .collect(Collectors.toList());
   }
 
-  private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest, List<RecordInfo> recordInfoList) {
+  private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest) {
     RecordInfo recordInfo;
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -149,8 +144,7 @@ public class HarvestServiceImpl implements HarvestService {
       RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
-      if (isDuplicatedByProviderId(recordEntity, datasetId)
-          || isDuplicatedByContent(recordContent, recordInfoList)) {
+      if (isDuplicatedByProviderId(recordEntity, datasetId)) {
         recordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
       } else {
         recordEntity = recordRepository.save(recordEntity);
@@ -200,7 +194,7 @@ public class HarvestServiceImpl implements HarvestService {
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, recordInfoList));
+          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path));
 
           return ReportingIteration.IterationResult.CONTINUE;
 
@@ -231,7 +225,7 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
-      Path path, List<RecordInfo> recordInfoList) throws ServiceException {
+      Path path) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
     int pathNameCount = path.getNameCount();
@@ -241,8 +235,7 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
-      if (isDuplicatedByProviderId(recordEntity, datasetId)
-          || isDuplicatedByContent(recordContent, recordInfoList)) {
+      if (isDuplicatedByProviderId(recordEntity, datasetId)) {
         recordInfo = handleDuplicated(tmpProviderId.toString(), Step.HARVEST_ZIP, recordToHarvest);
       } else {
         recordEntity = recordRepository.save(recordEntity);
@@ -331,25 +324,6 @@ public class HarvestServiceImpl implements HarvestService {
   private boolean isDuplicatedByProviderId(RecordEntity recordEntity, String datasetId) {
     RecordEntity recordFound = recordRepository.findByProviderIdAndDatasetId(recordEntity.getProviderId(), datasetId);
     return recordFound != null;
-  }
-
-  private boolean isDuplicatedByContent(byte[] content, List<RecordInfo> recordInfoList) {
-    String providerId = xmlRecordProcessorService.getProviderId(content);
-    if (providerId == null) {
-      return false;
-    } else {
-      return recordInfoList
-          .stream()
-          .filter(Objects::nonNull)
-          .anyMatch(recordInfo ->
-              providerId.equals(
-                  xmlRecordProcessorService.getProviderId(
-                      recordInfo
-                      .getRecord()
-                      .getContent())
-              )
-          );
-    }
   }
 
   private RecordInfo handleDuplicated(String providerId, Step step, Record.RecordBuilder recordToHarvest) {
