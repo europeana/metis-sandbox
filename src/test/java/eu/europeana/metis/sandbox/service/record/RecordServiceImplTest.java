@@ -76,7 +76,7 @@ class RecordServiceImplTest {
           recordService.setEuropeanaIdAndProviderId(record);
         }
     );
-    assertEquals("ProviderId: providerId and EuropeanaId: /1/providerId are duplicated.", recordDuplicatedException.getMessage());
+    assertEquals("ProviderId: providerId | EuropeanaId: /1/providerId is duplicated.", recordDuplicatedException.getMessage());
     verify(recordRepository, never()).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
     assertNull(record.getProviderId());
     assertNull(record.getEuropeanaId());

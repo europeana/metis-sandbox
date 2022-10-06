@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -26,7 +27,7 @@ public class RecordServiceImpl implements RecordService {
   }
 
   @Override
-  @Transactional
+  @Transactional(isolation = Isolation.READ_UNCOMMITTED)
   public void setEuropeanaIdAndProviderId(Record recordToUpdate) {
     final String datasetId = recordToUpdate.getDatasetId();
     final String providerId = xmlRecordProcessorService.getProviderId(recordToUpdate.getContent());
@@ -40,7 +41,7 @@ public class RecordServiceImpl implements RecordService {
       recordToUpdate.setProviderId(providerId);
       recordRepository.updateEuropeanaIdAndProviderId(recordToUpdate.getRecordId(), europeanaId, providerId);
     } else if (recordEntityProviderCheck != null && recordEntityEuropeanaCheck != null) {
-      throw new RecordDuplicatedException("ProviderId: " + providerId + " and EuropeanaId: " + europeanaId + " are duplicated.");
+      throw new RecordDuplicatedException("ProviderId: " + providerId + " | EuropeanaId: " + europeanaId + " is duplicated.");
     } else if (recordEntityProviderCheck != null) {
       throw new RecordDuplicatedException("ProviderId: " + providerId + " is duplicated.");
     } else if (recordEntityEuropeanaCheck != null) {
