@@ -164,9 +164,9 @@ class SandboxConfig {
   EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
     DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
-    dereferencerProvider.setPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
+    dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
     EnricherProvider enricherProvider = new EnricherProvider();
-    enricherProvider.setPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
+    enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
     return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
   }
 
