@@ -39,7 +39,7 @@
   <properties>
     <version.java>11</version.java>
     <version.springfox>2.9.2</version.springfox>
-    <version.metis>8-SNAPSHOT</version.metis>
+    <version.metis>9-SNAPSHOT</version.metis>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.3.3</version.postgresql>
     <version.aws.s3>1.11.762</version.aws.s3>
@@ -62,6 +62,10 @@
   </properties>
   <dependencies>
     <!-- Spring boot -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-amqp</artifactId>
