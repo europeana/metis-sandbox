@@ -29,7 +29,7 @@ public class RecordServiceImpl implements RecordService {
   }
 
   @Override
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional
   public void setEuropeanaIdAndProviderId(Record recordToUpdate) {
     final String datasetId = recordToUpdate.getDatasetId();
     final String providerId = xmlRecordProcessorService.getProviderId(recordToUpdate.getContent());
