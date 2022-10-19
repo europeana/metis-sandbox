@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,14 +48,15 @@ class RecordServiceImplTest {
   void setEuropeanaIdAndProviderId_expectSuccess() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     Record record = getRecord(content);
-
+    final String datasetId = "1";
     final String providerId = "providerId";
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
+    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(),anyString(),anyString(),anyString())).thenReturn(1);
     recordService.setEuropeanaIdAndProviderId(record);
 
-    verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
+    verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
     assertEquals(providerId, record.getProviderId());
     assertEquals(europeanaId, record.getEuropeanaId());
   }
@@ -65,61 +65,18 @@ class RecordServiceImplTest {
   void setEuropeanaIdAndProviderId_expectProviderAndEuropeanaIdRecordDuplicatedException() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     Record record = getRecord(content);
-
+    final String datasetId = "1";
     final String providerId = "providerId";
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.findByProviderIdAndDatasetId(anyString(), anyString())).thenReturn(new RecordEntity());
-    when(recordRepository.findByEuropeanaIdAndDatasetId(anyString(), anyString())).thenReturn(new RecordEntity());
+    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(),anyString(),anyString(),anyString())).thenReturn(0);
     RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
           recordService.setEuropeanaIdAndProviderId(record);
         }
     );
     assertEquals("ProviderId: providerId | EuropeanaId: /1/providerId is duplicated.", recordDuplicatedException.getMessage());
-    verify(recordRepository, never()).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
-    assertNull(record.getProviderId());
-    assertNull(record.getEuropeanaId());
-  }
-
-  @Test
-  void setEuropeanaIdAndProviderId_expectProviderIdRecordDuplicatedException() {
-    final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-    Record record = getRecord(content);
-
-    final String providerId = "providerId";
-    final String europeanaId = "/1/providerId";
-
-    when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.findByProviderIdAndDatasetId(anyString(), anyString())).thenReturn(new RecordEntity());
-    when(recordRepository.findByEuropeanaIdAndDatasetId(anyString(), anyString())).thenReturn(null);
-    RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
-          recordService.setEuropeanaIdAndProviderId(record);
-        }
-    );
-    assertEquals("ProviderId: providerId is duplicated.", recordDuplicatedException.getMessage());
-    verify(recordRepository, never()).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
-    assertNull(record.getProviderId());
-    assertNull(record.getEuropeanaId());
-  }
-
-  @Test
-  void setEuropeanaIdAndProviderId_expectEuropeanaIdRecordDuplicatedException() {
-    final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-    Record record = getRecord(content);
-
-    final String providerId = "providerId";
-    final String europeanaId = "/1/providerId";
-
-    when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.findByProviderIdAndDatasetId(anyString(), anyString())).thenReturn(null);
-    when(recordRepository.findByEuropeanaIdAndDatasetId(anyString(), anyString())).thenReturn(new RecordEntity());
-    RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
-          recordService.setEuropeanaIdAndProviderId(record);
-        }
-    );
-    assertEquals("EuropeanaId: /1/providerId is duplicated.", recordDuplicatedException.getMessage());
-    verify(recordRepository, never()).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId);
+    verify(recordRepository, times(1)).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
     assertNull(record.getProviderId());
     assertNull(record.getEuropeanaId());
   }
