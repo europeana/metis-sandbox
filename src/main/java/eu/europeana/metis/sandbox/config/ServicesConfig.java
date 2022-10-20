@@ -27,7 +27,7 @@ public class ServicesConfig {
     return metricsService;
   }
 
-  @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *")
+  @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *}")
   void metricsReport() {
     metricsService.processMetrics();
   }
