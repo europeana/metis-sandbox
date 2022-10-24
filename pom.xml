@@ -60,6 +60,8 @@
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.9.1</version.micrometer>
     <version.apm>1.33.0</version.apm>
+    <version.netty>4.1.74.Final</version.netty>
+    <version.reactor>3.4.24</version.reactor>
   </properties>
   <dependencies>
     <!-- Spring boot -->
@@ -152,57 +154,57 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http2</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-resolver-dns</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-dns</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-common</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-buffer</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-transport</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-resolver</artifactId>
-      <version>4.1.74.Final</version>
+      <version>${version.netty}</version>
     </dependency>
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.4.24</version>
+      <version>${version.reactor}</version>
     </dependency>
     <!-- end of client entity api entities -->
 
