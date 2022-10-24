@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.record;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
@@ -10,7 +11,6 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -37,10 +37,16 @@ public class RecordServiceImpl implements RecordService {
 
     final int updatedRecords = recordRepository.updateEuropeanaIdAndProviderId(recordToUpdate.getRecordId(), europeanaId, providerId, datasetId);
     if (updatedRecords == 0) {
+      LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
       throw new RecordDuplicatedException("ProviderId: " + providerId + " | EuropeanaId: " + europeanaId + " is duplicated.");
-    } else {
+    } else if (updatedRecords == 1) {
+      LOGGER.debug("Setting ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
       recordToUpdate.setEuropeanaId(europeanaId);
       recordToUpdate.setProviderId(providerId);
+    } else {
+      LOGGER.debug("Primary key in record table is corruped (dataset_id,provider_id,europeana_id)");
+      throw new ServiceException("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)"
+          + ". providerId & europeanaId updated multiple times", null);
     }
   }
 

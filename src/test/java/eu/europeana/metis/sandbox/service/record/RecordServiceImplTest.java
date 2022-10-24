@@ -13,10 +13,10 @@ import static org.mockito.Mockito.when;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import java.nio.charset.StandardCharsets;
@@ -53,12 +53,32 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(),anyString(),anyString(),anyString())).thenReturn(1);
+    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(), anyString(), anyString(), anyString())).thenReturn(1);
     recordService.setEuropeanaIdAndProviderId(record);
 
     verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
     assertEquals(providerId, record.getProviderId());
     assertEquals(europeanaId, record.getEuropeanaId());
+  }
+
+  @Test
+  void setEuropeanaIdAndProviderId_expectServiceExpection() {
+    final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
+    Record record = getRecord(content);
+    final String datasetId = "1";
+    final String providerId = "providerId";
+    final String europeanaId = "/1/providerId";
+
+    when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
+    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(), anyString(), anyString(), anyString())).thenReturn(2);
+    ServiceException serviceException = assertThrows(ServiceException.class, () -> recordService.setEuropeanaIdAndProviderId(record));
+
+    assertEquals("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)."
+            +" providerId & europeanaId updated multiple times",
+        serviceException.getMessage());
+    verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
+    assertEquals(null, record.getProviderId());
+    assertEquals(null, record.getEuropeanaId());
   }
 
   @Test
@@ -70,7 +90,7 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(),anyString(),anyString(),anyString())).thenReturn(0);
+    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
     RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
           recordService.setEuropeanaIdAndProviderId(record);
         }

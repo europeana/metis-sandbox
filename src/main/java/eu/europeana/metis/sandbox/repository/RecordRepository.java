@@ -19,7 +19,8 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
   @Modifying
   @Query(value ="UPDATE record rec SET europeana_id=?2, provider_id=?3 "
       + " WHERE rec.id= ?1 "
-      + " AND NOT EXISTS ( SELECT 1 FROM record dc WHERE rec.dataset_id=dc.dataset_id AND (dc.europeana_id=?2 AND dc.provider_id=?3))", nativeQuery = true)
+      + " AND NOT EXISTS ( SELECT 1 FROM record dc WHERE "
+      + " rec.dataset_id=dc.dataset_id AND dc.dataset_id=?4 AND dc.europeana_id=?2 AND dc.provider_id=?3)", nativeQuery = true)
   int updateEuropeanaIdAndProviderId(Long recordId, String europeanaId, String providerId, String datasetId);
 
   /**
