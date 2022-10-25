@@ -55,7 +55,7 @@
     <version.wiremock>2.32.0</version.wiremock>
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
-    <version.woodstox-core>6.2.7</version.woodstox-core>
+    <version.woodstox-core>6.4.0</version.woodstox-core>
     <version.testcontainers>1.17.3</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.9.1</version.micrometer>
