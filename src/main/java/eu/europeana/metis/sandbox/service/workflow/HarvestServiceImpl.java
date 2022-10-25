@@ -334,7 +334,8 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private String createTemporaryIdFromPath(String extractedDirectory, Path pathToRelativize){
-    return !extractedDirectory.isBlank() ? Paths.get(extractedDirectory).relativize(pathToRelativize).toString() :
-            pathToRelativize.getFileName().toString();
+    return extractedDirectory.isBlank() ? pathToRelativize.getFileName().toString() : 
+            Paths.get(extractedDirectory).relativize(pathToRelativize).toString();
+
   }
 }
