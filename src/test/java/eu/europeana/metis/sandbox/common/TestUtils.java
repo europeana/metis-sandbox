@@ -63,6 +63,11 @@ public class TestUtils {
     }
 
     @Override
+    public String getExtractedDirectory() {
+      return extractedDirectory.get(0).subpath(0,3).toString();
+    }
+
+    @Override
     public void deleteIteratorContent() {
     }
 

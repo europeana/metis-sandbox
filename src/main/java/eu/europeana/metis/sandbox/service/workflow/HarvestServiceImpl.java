@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -183,6 +184,7 @@ public class HarvestServiceImpl implements HarvestService {
       AtomicLong numberOfIterations = new AtomicLong(0);
       final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream,
           CompressedFileExtension.ZIP);
+      final String extractedDirectoryFromIterator = iterator.getExtractedDirectory();
       iterator.forEach(path -> {
         try (InputStream content = Files.newInputStream(path)) {
 
@@ -194,7 +196,7 @@ public class HarvestServiceImpl implements HarvestService {
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path));
+          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, extractedDirectoryFromIterator));
 
           return ReportingIteration.IterationResult.CONTINUE;
 
@@ -225,22 +227,21 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
-      Path path) throws ServiceException {
+      Path path, String extractedDirectoryFromIterator) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
-    int pathNameCount = path.getNameCount();
-    Path tmpProviderId = pathNameCount >= 2 ? path.subpath(pathNameCount - 2, pathNameCount) : path.getFileName();
-    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId.toString(), datasetId, "", "");
+    String tmpProviderId = createTemporaryIdFromPath(extractedDirectoryFromIterator, path);
+    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId, datasetId, "", "");
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
       if (isDuplicatedByProviderId(recordEntity, datasetId)) {
-        recordInfo = handleDuplicated(tmpProviderId.toString(), Step.HARVEST_ZIP, recordToHarvest);
+        recordInfo = handleDuplicated(tmpProviderId, Step.HARVEST_ZIP, recordToHarvest);
       } else {
         recordEntity = recordRepository.save(recordEntity);
         Record harvestedRecord = recordToHarvest
-            .providerId(tmpProviderId.toString())
+            .providerId(tmpProviderId)
             .content(recordContent)
             .recordId(recordEntity.getId())
             .build();
@@ -250,7 +251,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
   }
@@ -330,5 +331,11 @@ public class HarvestServiceImpl implements HarvestService {
     RecordError recordErrorCreated = new RecordError("Duplicated record", "Record already registered");
     saveErrorWhileHarvesting(recordToHarvest, providerId, step, new RuntimeException(recordErrorCreated.getMessage()));
     return null;
+  }
+
+  private String createTemporaryIdFromPath(String extractedDirectory, Path pathToRelativize){
+    return extractedDirectory.isBlank() ? pathToRelativize.getFileName().toString() : 
+            Paths.get(extractedDirectory).relativize(pathToRelativize).toString();
+
   }
 }
