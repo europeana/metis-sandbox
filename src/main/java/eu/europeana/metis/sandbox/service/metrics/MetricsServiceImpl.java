@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
+import eu.europeana.metis.sandbox.config.amqp.AmqpConfiguration;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
@@ -17,6 +18,8 @@ import java.util.Locale;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.QueueInformation;
 
 /**
  * Metrics Service implementation class
@@ -35,16 +38,18 @@ public class MetricsServiceImpl implements MetricsService {
   private List<DatasetStatistic> datasetStatistics;
   private List<StepStatistic> stepStatistics;
   private List<DatasetProblemPatternStatistic> problemPatternStatistics;
-
+  private AmqpConfiguration amqpConfiguration;
   public MetricsServiceImpl(
       RecordRepository recordRepository,
       RecordLogRepository recordLogRepository,
       DatasetProblemPatternRepository problemPatternRepository,
-      MeterRegistry meterRegistry) {
+      MeterRegistry meterRegistry,
+      AmqpConfiguration amqpConfiguration) {
     this.recordRepository = recordRepository;
     this.recordLogRepository = recordLogRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
+    this.amqpConfiguration = amqpConfiguration;
     initMetrics();
   }
 
@@ -83,9 +88,11 @@ public class MetricsServiceImpl implements MetricsService {
 
   private void initMetrics() {
     try {
+      AmqpAdmin amqpAdmin = amqpConfiguration.getAmqpAdmin();
       processMetrics();
       buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
       buildGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
+      //TODO: Add total messages
       for (Step step : Step.values()) {
         for (Status status : Status.values()) {
           buildGauge(getStepMetricName(step, status),
@@ -100,6 +107,15 @@ public class MetricsServiceImpl implements MetricsService {
                 + ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle(),
             BASE_UNIT_RECORD,
             () -> getTotalOccurrences(patternId));
+      }
+
+      for (String queue : amqpConfiguration.getQueuesNames()){
+        QueueInformation queueInformation = amqpAdmin.getQueueInfo(queue);
+        if(queueInformation != null) {
+          LOGGER.info("Queue " + queue + " has " + queueInformation.getMessageCount() + " messages");
+        } else {
+          LOGGER.info("There's no such " + queue);
+        }
       }
     } catch (RuntimeException ex) {
       LOGGER.error("Unable to init metrics", ex);
