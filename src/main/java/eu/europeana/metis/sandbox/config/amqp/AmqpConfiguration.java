@@ -276,13 +276,10 @@ public class AmqpConfiguration {
     return amqpAdmin;
   }
 
-  public List<String> getQueuesNames(){
-    return List.of(createdQueue, transformationToEdmExternalQueue, externalValidatedQueue, transformedQueue, internalValidatedQueue,
-            normalizedQueue, enrichedQueue, mediaProcessedQueue, publishedQueue);
-  }
-
-  public List<String> getDlqQueuesNames(){
-    return List.of(createdDlq, transformationToEdmExternalDlq, externalValidatedDlq, transformedDlq, internalValidatedDlq,
-            normalizedDlq, enrichedDlq, mediaProcessedDlq, publishedDlq);
+  public List<String> getAllQueuesNames(){
+    return List.of(createdQueue, createdDlq, transformationToEdmExternalQueue, transformationToEdmExternalDlq,
+            externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
+            internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
+            mediaProcessedDlq, publishedQueue, publishedDlq);
   }
 }

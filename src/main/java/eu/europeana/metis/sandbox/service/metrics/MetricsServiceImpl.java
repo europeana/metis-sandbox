@@ -16,6 +16,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpAdmin;
@@ -31,6 +32,7 @@ public class MetricsServiceImpl implements MetricsService {
   private static final String METRICS_NAMESPACE = "sandbox.metrics.dataset";
   public static final String BASE_UNIT_RECORD = "Record";
   public static final String BASE_UNIT_DATASET = "Dataset";
+  public static final String BASE_UNIT_MESSAGE = "Message";
   private final RecordRepository recordRepository;
   private final RecordLogRepository recordLogRepository;
   private final DatasetProblemPatternRepository problemPatternRepository;
@@ -38,7 +40,8 @@ public class MetricsServiceImpl implements MetricsService {
   private List<DatasetStatistic> datasetStatistics;
   private List<StepStatistic> stepStatistics;
   private List<DatasetProblemPatternStatistic> problemPatternStatistics;
-  private AmqpConfiguration amqpConfiguration;
+  private final AmqpConfiguration amqpConfiguration;
+  private final AmqpAdmin amqpAdmin;
   public MetricsServiceImpl(
       RecordRepository recordRepository,
       RecordLogRepository recordLogRepository,
@@ -50,6 +53,7 @@ public class MetricsServiceImpl implements MetricsService {
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
     this.amqpConfiguration = amqpConfiguration;
+    this.amqpAdmin = amqpConfiguration.getAmqpAdmin();
     initMetrics();
   }
 
@@ -88,16 +92,15 @@ public class MetricsServiceImpl implements MetricsService {
 
   private void initMetrics() {
     try {
-      AmqpAdmin amqpAdmin = amqpConfiguration.getAmqpAdmin();
+
       processMetrics();
       buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
-      buildGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
-      //TODO: Add total messages
+      buildGauge("total_records", "Total of Records", BASE_UNIT_MESSAGE, this::getTotalRecords);
       for (Step step : Step.values()) {
         for (Status status : Status.values()) {
           buildGauge(getStepMetricName(step, status),
               step.name() + " processed records with status " + status.name(),
-              BASE_UNIT_RECORD,
+                  BASE_UNIT_RECORD,
               () -> getTotalRecords(step, status));
         }
       }
@@ -105,16 +108,17 @@ public class MetricsServiceImpl implements MetricsService {
         buildGauge(getPatternMetricName(patternId),
             "processed records with problem pattern " + patternId.name() + ":"
                 + ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle(),
-            BASE_UNIT_RECORD,
+                BASE_UNIT_RECORD,
             () -> getTotalOccurrences(patternId));
       }
 
-      for (String queue : amqpConfiguration.getQueuesNames()){
+      for (String queue : amqpConfiguration.getAllQueuesNames()){
         QueueInformation queueInformation = amqpAdmin.getQueueInfo(queue);
         if(queueInformation != null) {
-          LOGGER.info("Queue " + queue + " has " + queueInformation.getMessageCount() + " messages");
-        } else {
-          LOGGER.info("There's no such " + queue);
+          buildGauge(getQueueMetricsName(queue),
+                  "messages in queue " + queue,
+                  BASE_UNIT_RECORD,
+                  queueInformation::getMessageCount);
         }
       }
     } catch (RuntimeException ex) {
@@ -139,5 +143,9 @@ public class MetricsServiceImpl implements MetricsService {
 
   private String getPatternMetricName(ProblemPatternId patternId) {
     return patternId.name().toLowerCase(Locale.US);
+  }
+
+  private String getQueueMetricsName(String queueName){
+    return queueName.toLowerCase(Locale.US).replace("record", "metrics.queue");
   }
 }
