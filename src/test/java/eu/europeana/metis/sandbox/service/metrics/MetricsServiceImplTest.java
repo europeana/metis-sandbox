@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
+import eu.europeana.metis.sandbox.config.amqp.AmqpConfiguration;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
@@ -37,6 +38,8 @@ class MetricsServiceImplTest {
   private RecordLogRepository recordLogRepository;
   @Mock
   private DatasetProblemPatternRepository problemPatternRepository;
+  @Mock
+  private AmqpConfiguration amqpConfiguration;
   @Spy
   private MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
