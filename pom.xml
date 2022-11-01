@@ -42,8 +42,8 @@
     <version.springfox>2.9.2</version.springfox>
     <version.metis>9-SNAPSHOT</version.metis>
     <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.3.3</version.postgresql>
-    <version.aws.s3>1.11.762</version.aws.s3>
+    <version.postgresql>42.3.7</version.postgresql>
+    <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
@@ -55,8 +55,8 @@
     <version.wiremock>2.32.0</version.wiremock>
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
-    <version.woodstox-core>6.2.7</version.woodstox-core>
-    <version.testcontainers>1.17.3</version.testcontainers>
+    <version.woodstox-core>6.4.0</version.woodstox-core>
+    <version.testcontainers>1.17.5</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.9.1</version.micrometer>
     <version.apm>1.33.0</version.apm>
