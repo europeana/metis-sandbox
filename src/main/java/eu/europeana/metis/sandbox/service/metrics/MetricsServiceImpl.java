@@ -118,8 +118,8 @@ public class MetricsServiceImpl implements MetricsService {
     try {
 
       processMetrics();
-      buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
-      buildGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
+      buildGauge(getMetricName("count"), "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
+      buildGauge(getMetricName("total_records"), "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
       for (Step step : Step.values()) {
         for (Status status : Status.values()) {
           buildGauge(getMetricName(getStepMetricName(step, status)),
