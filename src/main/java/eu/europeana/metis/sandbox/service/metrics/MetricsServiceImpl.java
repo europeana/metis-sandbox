@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic;
+import eu.europeana.metis.sandbox.common.aggregation.QueueStatistic;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.config.amqp.AmqpConfiguration;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
@@ -13,6 +14,8 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -40,6 +43,7 @@ public class MetricsServiceImpl implements MetricsService {
   private List<DatasetStatistic> datasetStatistics;
   private List<StepStatistic> stepStatistics;
   private List<DatasetProblemPatternStatistic> problemPatternStatistics;
+  private List<QueueStatistic> queueStatistics;
   private final AmqpConfiguration amqpConfiguration;
   private final AmqpAdmin amqpAdmin;
   public MetricsServiceImpl(
@@ -62,6 +66,7 @@ public class MetricsServiceImpl implements MetricsService {
     datasetStatistics = recordRepository.getMetricDatasetStatistics();
     stepStatistics = recordLogRepository.getMetricStepStatistics();
     problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
+    queueStatistics = refreshQueueStatisticsList();
     LOGGER.debug("metrics report retrieval");
   }
 
@@ -90,22 +95,41 @@ public class MetricsServiceImpl implements MetricsService {
                         .mapToLong(StepStatistic::getCount).sum();
   }
 
+  private Long getTotalMessagesFromQueue(String queueName){
+    return queueStatistics == null || queueStatistics.isEmpty() ? 0L :
+            queueStatistics.stream().filter(queueStatistic -> queueStatistic.getQueueName().equals(queueName))
+                    .findFirst().orElse(new QueueStatistic("none", 0L)).getCountMessages();
+  }
+
+  private List<QueueStatistic> refreshQueueStatisticsList(){
+    List<QueueStatistic> newList = new ArrayList<>();
+    for (String queue : amqpConfiguration.getAllQueuesNames()){
+      QueueInformation queueInformation = amqpAdmin.getQueueInfo(queue);
+      if(queueInformation == null){
+        LOGGER.error("No such queue " + queue + " exists");
+      } else {
+        newList.add(new QueueStatistic(queue, (long) queueInformation.getMessageCount()));
+      }
+    }
+    return newList;
+  }
+
   private void initMetrics() {
     try {
 
       processMetrics();
       buildGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
-      buildGauge("total_records", "Total of Records", BASE_UNIT_MESSAGE, this::getTotalRecords);
+      buildGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
       for (Step step : Step.values()) {
         for (Status status : Status.values()) {
-          buildGauge(getStepMetricName(step, status),
+          buildGauge(getMetricName(getStepMetricName(step, status)),
               step.name() + " processed records with status " + status.name(),
                   BASE_UNIT_RECORD,
               () -> getTotalRecords(step, status));
         }
       }
       for (ProblemPatternId patternId : ProblemPatternId.values()) {
-        buildGauge(getPatternMetricName(patternId),
+        buildGauge(getMetricName(getPatternMetricName(patternId)),
             "processed records with problem pattern " + patternId.name() + ":"
                 + ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle(),
                 BASE_UNIT_RECORD,
@@ -113,13 +137,11 @@ public class MetricsServiceImpl implements MetricsService {
       }
 
       for (String queue : amqpConfiguration.getAllQueuesNames()){
-        QueueInformation queueInformation = amqpAdmin.getQueueInfo(queue);
-        if(queueInformation != null) {
           buildGauge(getQueueMetricsName(queue),
                   "messages in queue " + queue,
-                  BASE_UNIT_RECORD,
-                  queueInformation::getMessageCount);
-        }
+                  BASE_UNIT_MESSAGE,
+                  () -> getTotalMessagesFromQueue(queue));
+
       }
     } catch (RuntimeException ex) {
       LOGGER.error("Unable to init metrics", ex);
@@ -127,7 +149,7 @@ public class MetricsServiceImpl implements MetricsService {
   }
 
   private void buildGauge(String metricName, String description, String units, Supplier<Number> gaugeFunction) {
-    Gauge.builder(getMetricName(metricName), gaugeFunction)
+    Gauge.builder(metricName, gaugeFunction)
          .description(description)
          .baseUnit(units)
          .register(meterRegistry);
