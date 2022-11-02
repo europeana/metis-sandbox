@@ -176,6 +176,6 @@ elastic:
     metrics_interval: 5s
     environment: dev
     hostname: localhost
-    enabled: true
+    enabled: false
     recording: true
     instrument: true

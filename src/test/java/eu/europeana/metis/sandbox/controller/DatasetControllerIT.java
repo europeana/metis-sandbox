@@ -120,8 +120,7 @@ class DatasetControllerIT {
     //As a request it is possible to upload a xsltFile, even if we don't want to include it,
     //hence we set content ty as multipart_form_data
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-    MultiValueMap<String, String> body
-        = new LinkedMultiValueMap<>();
+    MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
     body.add("url", datasetPath.toUri().toString());
     body.add("country", ITALY.xmlValue());
     body.add("language", IT.xmlValue());
