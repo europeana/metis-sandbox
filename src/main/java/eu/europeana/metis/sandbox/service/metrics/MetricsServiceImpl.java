@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +52,14 @@ public class MetricsServiceImpl implements MetricsService {
       RecordLogRepository recordLogRepository,
       DatasetProblemPatternRepository problemPatternRepository,
       MeterRegistry meterRegistry,
-      AmqpConfiguration amqpConfiguration) {
+      AmqpConfiguration amqpConfiguration,
+      AmqpAdmin amqpAdmin) {
     this.recordRepository = recordRepository;
     this.recordLogRepository = recordLogRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
     this.amqpConfiguration = amqpConfiguration;
-    this.amqpAdmin = amqpConfiguration.getAmqpAdmin();
+    this.amqpAdmin = amqpAdmin;
     initMetrics();
   }
 
@@ -98,7 +100,7 @@ public class MetricsServiceImpl implements MetricsService {
   private Long getTotalMessagesFromQueue(String queueName){
     return queueStatistics == null || queueStatistics.isEmpty() ? 0L :
             queueStatistics.stream().filter(queueStatistic -> queueStatistic.getQueueName().equals(queueName))
-                    .findFirst().orElse(new QueueStatistic("none", 0L)).getCountMessages();
+                    .collect(Collectors.toList()).get(0).getCountMessages();
   }
 
   private List<QueueStatistic> refreshQueueStatisticsList(){

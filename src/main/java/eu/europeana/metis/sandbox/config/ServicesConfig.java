@@ -26,7 +26,7 @@ public class ServicesConfig {
       MeterRegistry meterRegistry,
       AmqpConfiguration amqpConfiguration) {
     metricsService = new MetricsServiceImpl(recordRepository, recordLogRepository, problemPatternRepository,
-            meterRegistry, amqpConfiguration);
+            meterRegistry, amqpConfiguration, amqpConfiguration.getAmqpAdmin());
     return metricsService;
   }
 
