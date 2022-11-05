@@ -13,7 +13,9 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +41,8 @@ public class AmqpConfigurationIT {
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    RabbitMQContainerInitializerIT.properties(registry);
+    RabbitMQContainerIT rabbitMQ = (RabbitMQContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.RABBITMQ);
+    rabbitMQ.dynamicProperties(registry);
   }
 
   private static RecordProcessEvent recordProcessEvent;

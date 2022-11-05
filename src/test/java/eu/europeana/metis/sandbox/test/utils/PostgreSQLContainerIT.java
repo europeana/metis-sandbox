@@ -4,17 +4,29 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.ext.ScriptUtils;
 import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 
-public class PostgreSQLContainer extends TestContainerIT {
+/**
+ * This class is meant to be used with the factory object for integration unit test classes that require an underlying a
+ * database.
+ * <p>An approach is to use the {@link DynamicPropertySource} annotation and then pass the registry to the method
+ * {@link #dynamicProperties(DynamicPropertyRegistry)}</p>
+ * <p>The container will be started and reused in local test classes.
+ * Make sure that the tests are independent and purge any data that were inserted from each test at the end of the test. </p>
+ */
+public class PostgreSQLContainerIT extends TestContainer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLContainer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLContainerIT.class);
 
-  private static org.testcontainers.containers.PostgreSQLContainer<?> postgreSQLContainer;
+  private static PostgreSQLContainer<?> postgreSQLContainer;
 
-  public PostgreSQLContainer(String version) {
-    postgreSQLContainer = new org.testcontainers.containers.PostgreSQLContainer<>(version)
+  public static final String POSTGRES_VERSION = "postgres:14.5";
+
+  public PostgreSQLContainerIT() {
+    postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION)
         .withDatabaseName("test")
         .withUsername("test")
         .withPassword("test");

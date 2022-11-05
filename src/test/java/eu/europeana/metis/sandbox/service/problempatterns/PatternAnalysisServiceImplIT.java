@@ -17,7 +17,9 @@ import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepos
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
-import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.PostgreSQLContainerIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -60,9 +62,9 @@ class PatternAnalysisServiceImplIT {
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgresContainerInitializerIT.dynamicProperties(registry);
-    PostgresContainerInitializerIT.runScripts(List.of(
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+    PostgreSQLContainerIT postgresql= (PostgreSQLContainerIT)TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
+    postgresql.dynamicProperties(registry);
+    postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
   }
 
   final String rdfStringNoProblems = IOUtils.toString(
