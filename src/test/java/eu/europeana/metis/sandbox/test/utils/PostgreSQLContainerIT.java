@@ -4,28 +4,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.ext.ScriptUtils;
 import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 
-/**
- * This class is meant to be used directly without extending from integration unit test classes that require an underlying
- * database.
- * <p>An approach is to use the {@link DynamicPropertySource} annotation and then pass the registry to the method
- * {@link #dynamicProperties(DynamicPropertyRegistry)}</p>
- * <p>The container will be started and reused in all tests. Make sure that the tests are independent and purge any data that
- * were inserted from each test at the end of the test. </p>
- */
-@SuppressWarnings("resource")
-public class PostgresContainerInitializerIT {
+public class PostgreSQLContainer extends TestContainerIT {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresContainerInitializerIT.class);
-  private static final PostgreSQLContainer<?> postgreSQLContainer;
-  public static final String POSTGRES_VERSION = "postgres:9.6";
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLContainer.class);
 
-  static {
-    postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION)
+  private static org.testcontainers.containers.PostgreSQLContainer<?> postgreSQLContainer;
+
+  public PostgreSQLContainer(String version) {
+    postgreSQLContainer = new org.testcontainers.containers.PostgreSQLContainer<>(version)
         .withDatabaseName("test")
         .withUsername("test")
         .withPassword("test");
@@ -34,16 +23,18 @@ public class PostgresContainerInitializerIT {
     logConfiguration();
   }
 
-  private static void logConfiguration() {
+  @Override
+  public void logConfiguration() {
     LOGGER.info("Postgres container created:");
     LOGGER.info("jdbcUrl: {}", postgreSQLContainer.getJdbcUrl());
 
-    if(!postgreSQLContainer.getUsername().isBlank() && !postgreSQLContainer.getPassword().isBlank()) {
+    if (!postgreSQLContainer.getUsername().isBlank() && !postgreSQLContainer.getPassword().isBlank()) {
       LOGGER.info("Username and password were loaded");
     }
   }
 
-  public static void dynamicProperties(DynamicPropertyRegistry registry) {
+  @Override
+  public void dynamicProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
     registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
     registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
@@ -68,14 +59,9 @@ public class PostgresContainerInitializerIT {
    *
    * @param sqlScriptsInOrder the scripts to run in order
    */
-  public static void runScripts(List<String> sqlScriptsInOrder) {
+  public void runScripts(List<String> sqlScriptsInOrder) {
     var containerDelegate = new JdbcDatabaseDelegate(postgreSQLContainer, "");
     sqlScriptsInOrder.forEach(sqlScript -> ScriptUtils.runInitScript(containerDelegate, sqlScript));
 
   }
-
-  private void close() {
-    //We do not close the container, Ryuk will handle closing at the end of all the unit tests.
-  }
-
 }
