@@ -23,7 +23,7 @@ public class PostgreSQLContainerIT extends TestContainer {
 
   private static PostgreSQLContainer<?> postgreSQLContainer;
 
-  public static final String POSTGRES_VERSION = "postgres:14.5";
+  public static final String POSTGRES_VERSION = "postgres:14-alpine";
 
   public PostgreSQLContainerIT() {
     postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION)

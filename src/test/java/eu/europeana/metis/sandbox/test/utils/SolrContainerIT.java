@@ -10,7 +10,7 @@ public class SolrContainerIT extends TestContainer {
   private static final Logger LOGGER = LoggerFactory.getLogger(SolrContainerIT.class);
 
   private static SolrContainer solrContainer;
-  public static final String SOLR_VERSION = "solr:7.7.3";
+  public static final String SOLR_VERSION = "solr:7.7.3-alpine";
   public static final String SOLR_COLLECTION_NAME = "solr_publish_test";
 
   public SolrContainerIT() {
