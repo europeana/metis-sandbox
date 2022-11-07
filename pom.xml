@@ -42,7 +42,7 @@
     <version.springfox>2.9.2</version.springfox>
     <version.metis>9-SNAPSHOT</version.metis>
     <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.3.7</version.postgresql>
+    <version.postgresql>42.5.0</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>

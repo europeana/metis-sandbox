@@ -11,7 +11,7 @@ public class RabbitMQContainerInitializerIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMQContainerInitializerIT.class);
   //Use the *-management versions that contain the rabbitmqadmin cli command, otherwise the commands will fail.
-  public static final String RABBITMQ_VERSION = "rabbitmq:3.11.2-management-alpine";
+  public static final String RABBITMQ_VERSION = "rabbitmq:3.9.12-management-alpine";
   public static final String VIRTUAL_HOST = "testVhost";
   private static final RabbitMQContainer rabbitMQContainer;
 
