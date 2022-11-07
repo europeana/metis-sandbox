@@ -14,12 +14,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 /**
  * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their bindings. <br /><br /> If there
  * is a need to add a new queue in the future here is the place to do it
  */
 @Configuration
-class AmqpConfiguration {
+public class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
   private final AmqpAdmin amqpAdmin;
@@ -268,5 +270,16 @@ class AmqpConfiguration {
 
   public String getPublishedDlq() {
     return publishedDlq;
+  }
+
+  public AmqpAdmin getAmqpAdmin(){
+    return amqpAdmin;
+  }
+
+  public List<String> getAllQueuesNames(){
+    return List.of(createdQueue, createdDlq, transformationToEdmExternalQueue, transformationToEdmExternalDlq,
+            externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
+            internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
+            mediaProcessedDlq, publishedQueue, publishedDlq);
   }
 }

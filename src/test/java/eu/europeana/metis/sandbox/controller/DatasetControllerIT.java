@@ -301,7 +301,7 @@ class DatasetControllerIT {
         new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
   }
 
-  private String removeCreationDate(String body) {
+  private String removeCreationDate(String body){
     JSONObject jsonObject = new JSONObject(body);
     jsonObject.getJSONObject("dataset-info").remove("creation-date");
     return jsonObject.toString();
