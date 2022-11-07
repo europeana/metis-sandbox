@@ -16,15 +16,18 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.QueueInformation;
+import org.springframework.amqp.core.*;
 
 /**
  * Unit tests for {@link MetricsServiceImpl} class
@@ -40,8 +43,6 @@ class MetricsServiceImplTest {
   private DatasetProblemPatternRepository problemPatternRepository;
   @Spy
   private AmqpConfiguration amqpConfiguration = new AmqpConfigurationMockClass();
-  @Mock
-  private AmqpAdmin amqpAdmin;
   @Spy
   private MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
@@ -63,7 +64,6 @@ class MetricsServiceImplTest {
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(List.of(
         new DatasetProblemPatternStatistic(ProblemPatternId.P2.name(), 5L)));
     when(amqpConfiguration.getAllQueuesNames()).thenReturn(List.of("sandbox.record.created"));
-    when(amqpAdmin.getQueueInfo("sandbox.record.created")).thenReturn(new QueueInformation("sandbox.record.created", 10, 1));
 
     metricsService.processMetrics();
 
@@ -110,7 +110,6 @@ class MetricsServiceImplTest {
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(List.of(
         new DatasetProblemPatternStatistic(ProblemPatternId.P2.name(), 5L)));
     when(amqpConfiguration.getAllQueuesNames()).thenReturn(List.of("sandbox.record.created"));
-    when(amqpAdmin.getQueueInfo("sandbox.record.created")).thenReturn(new QueueInformation("sandbox.record.created", 10, 1));
 
     metricsService.processMetrics();
 
@@ -159,6 +158,77 @@ class MetricsServiceImplTest {
               "sandbox.record.transformed", "sandbox.record.transformed.dlq", "sandbox.record.normalized", "sandbox.record.normalized.dlq",
               "sandbox.record.enriched", "sandbox.record.enriched.dlq", "sandbox.record.media.processed", "sandbox.record.media.processed.dlq",
               "sandbox.record.published", "sandbox.record.published.dlq");
+    }
+
+    @Override
+    public AmqpAdmin getAmqpAdmin(){
+      return new AmqpAdminMockClass();
+    }
+
+    private static class AmqpAdminMockClass implements AmqpAdmin{
+
+      private final Map<String, QueueInformation> queuesProperties =
+              Map.of("sandbox.record.created", new QueueInformation("sandbox.record.created", 10, 1));
+
+      @Override
+      public void declareExchange(Exchange exchange) {
+
+      }
+
+      @Override
+      public boolean deleteExchange(String exchangeName) {
+        return false;
+      }
+
+      @Override
+      public Queue declareQueue() {
+        return null;
+      }
+
+      @Override
+      public String declareQueue(Queue queue) {
+        return null;
+      }
+
+      @Override
+      public boolean deleteQueue(String queueName) {
+        return false;
+      }
+
+      @Override
+      public void deleteQueue(String queueName, boolean unused, boolean empty) {
+
+      }
+
+      @Override
+      public void purgeQueue(String queueName, boolean noWait) {
+
+      }
+
+      @Override
+      public int purgeQueue(String queueName) {
+        return 0;
+      }
+
+      @Override
+      public void declareBinding(Binding binding) {
+
+      }
+
+      @Override
+      public void removeBinding(Binding binding) {
+
+      }
+
+      @Override
+      public Properties getQueueProperties(String queueName) {
+        return null;
+      }
+
+      @Override
+      public QueueInformation getQueueInfo(String queueName) {
+        return queuesProperties.get(queueName);
+      }
     }
   }
 }

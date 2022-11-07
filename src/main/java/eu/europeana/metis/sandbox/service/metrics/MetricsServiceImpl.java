@@ -52,14 +52,13 @@ public class MetricsServiceImpl implements MetricsService {
       RecordLogRepository recordLogRepository,
       DatasetProblemPatternRepository problemPatternRepository,
       MeterRegistry meterRegistry,
-      AmqpConfiguration amqpConfiguration,
-      AmqpAdmin amqpAdmin) {
+      AmqpConfiguration amqpConfiguration) {
     this.recordRepository = recordRepository;
     this.recordLogRepository = recordLogRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
     this.amqpConfiguration = amqpConfiguration;
-    this.amqpAdmin = amqpAdmin;
+    this.amqpAdmin = amqpConfiguration.getAmqpAdmin();
     initMetrics();
   }
 
