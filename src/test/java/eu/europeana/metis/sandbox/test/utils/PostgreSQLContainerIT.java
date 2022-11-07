@@ -74,6 +74,5 @@ public class PostgreSQLContainerIT extends TestContainer {
   public void runScripts(List<String> sqlScriptsInOrder) {
     var containerDelegate = new JdbcDatabaseDelegate(postgreSQLContainer, "");
     sqlScriptsInOrder.forEach(sqlScript -> ScriptUtils.runInitScript(containerDelegate, sqlScript));
-
   }
 }

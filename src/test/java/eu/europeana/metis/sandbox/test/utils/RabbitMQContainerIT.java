@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.test.utils;
 
 import java.io.IOException;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -51,5 +52,10 @@ public class RabbitMQContainerIT extends TestContainer {
     registry.add("spring.rabbitmq.username", rabbitMQContainer::getAdminUsername);
     registry.add("spring.rabbitmq.password", rabbitMQContainer::getAdminPassword);
     registry.add("spring.rabbitmq.virtual-host", VIRTUAL_HOST::toString);
+  }
+
+  @Override
+  public void runScripts(List<String> scripts) {
+    //nothing to do at this moment
   }
 }

@@ -15,7 +15,7 @@ public class TestContainerFactoryIT {
       case S3:
         return new S3ContainerIT();
       default:
-        return null;
+        throw new IllegalArgumentException("Pass a valid container type");
     }
   }
 }

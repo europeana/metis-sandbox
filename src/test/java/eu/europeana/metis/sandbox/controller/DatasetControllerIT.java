@@ -15,11 +15,7 @@ import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.test.utils.MongoDBContainerIT;
-import eu.europeana.metis.sandbox.test.utils.PostgreSQLContainerIT;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQContainerIT;
-import eu.europeana.metis.sandbox.test.utils.S3ContainerIT;
-import eu.europeana.metis.sandbox.test.utils.SolrContainerIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainer;
 import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.io.File;
@@ -58,17 +54,17 @@ class DatasetControllerIT {
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgreSQLContainerIT postgresql = (PostgreSQLContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
+    TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
     postgresql.dynamicProperties(registry);
     postgresql.runScripts(List.of("database/schema_drop_except_transform_xslt.sql", "database/schema.sql"));
     postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
-    RabbitMQContainerIT rabbitMQ = (RabbitMQContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.RABBITMQ);
+    TestContainer rabbitMQ = TestContainerFactoryIT.getContainer(TestContainerType.RABBITMQ);
     rabbitMQ.dynamicProperties(registry);
-    MongoDBContainerIT mongoDBContainerIT = (MongoDBContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.MONGO);
+    TestContainer mongoDBContainerIT = TestContainerFactoryIT.getContainer(TestContainerType.MONGO);
     mongoDBContainerIT.dynamicProperties(registry);
-    SolrContainerIT solrContainerIT = (SolrContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.SOLR);
+    TestContainer solrContainerIT = TestContainerFactoryIT.getContainer(TestContainerType.SOLR);
     solrContainerIT.dynamicProperties(registry);
-    S3ContainerIT s3ContainerIT = (S3ContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.S3);
+    TestContainer s3ContainerIT = TestContainerFactoryIT.getContainer(TestContainerType.S3);
     s3ContainerIT.dynamicProperties(registry);
   }
 
@@ -88,11 +84,6 @@ class DatasetControllerIT {
     assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
-
-    // Give time for harvesting to finish to not affect other tests
-    Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                  String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
   }
 
   @Test
@@ -110,10 +101,6 @@ class DatasetControllerIT {
     assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
-    // Give time for harvesting to finish to not affect other tests
-    Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                  String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
   }
 
   @Test
@@ -139,11 +126,6 @@ class DatasetControllerIT {
     assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
-
-    // Give time for harvesting to finish to not affect other tests
-    Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                  String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
   }
 
   @Test
@@ -173,10 +155,6 @@ class DatasetControllerIT {
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
 
-    // Give time for harvesting to finish to not affect other tests
-    Awaitility.await().atMost(15, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                  String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
   }
 
 
@@ -253,12 +231,6 @@ class DatasetControllerIT {
     assertJson(expectedContentTierJson(StringUtils.deleteWhitespace(tierCalculationResponseContent),
             "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6"),
         StringUtils.deleteWhitespace(response.getBody()));
-
-    // Give time for harvesting to finish to not affect other tests
-    Awaitility.await().atMost(7, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                  String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
-
   }
 
   @Test
@@ -285,11 +257,6 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(StringUtils.deleteWhitespace(getRecordBodyContent), StringUtils.deleteWhitespace(response.getBody()));
-
-    // Give time for harvesting to finish to not affect other tests
-    Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                  String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
   }
 
   @Test

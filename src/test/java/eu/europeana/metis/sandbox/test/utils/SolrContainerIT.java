@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.test.utils;
 
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -38,5 +39,10 @@ public class SolrContainerIT extends TestContainer {
     // TODO: 13/09/2022 We should perhaps remove the specifics here and use the default spring configuration properties
     //Sandbox specific datasource properties
     registry.add("sandbox.publish.solr.hosts", () -> solrUrlHost);
+  }
+
+  @Override
+  public void runScripts(List<String> scripts) {
+    //nothing to do at this moment
   }
 }

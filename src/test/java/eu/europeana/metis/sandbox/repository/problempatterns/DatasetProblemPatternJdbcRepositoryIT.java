@@ -6,6 +6,7 @@ import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
 import eu.europeana.metis.sandbox.test.utils.PostgreSQLContainerIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainer;
 import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.sql.ResultSet;
@@ -33,7 +34,7 @@ class DatasetProblemPatternJdbcRepositoryIT {
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgreSQLContainerIT postgresql = (PostgreSQLContainerIT) TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
+    TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
     postgresql.dynamicProperties(registry);
     postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
   }

@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.test.utils;
 
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -38,5 +39,10 @@ public class MongoDBContainerIT extends TestContainer {
     registry.add("sandbox.publish.mongo.db", () -> "test");
     registry.add("sandbox.publish.mongo.hosts", mongoDBContainer::getHost);
     registry.add("sandbox.publish.mongo.ports", mongoDBContainer::getFirstMappedPort);
+  }
+
+  @Override
+  public void runScripts(List<String> scripts) {
+    //nothing to do at this moment
   }
 }

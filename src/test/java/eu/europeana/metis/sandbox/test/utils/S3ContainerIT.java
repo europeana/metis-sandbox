@@ -5,6 +5,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -59,5 +60,10 @@ public class S3ContainerIT extends TestContainer {
     registry.add("sandbox.s3.endpoint", () -> s3Container.getEndpointOverride(S3));
     registry.add("sandbox.s3.signing-region", s3Container::getRegion);
     registry.add("sandbox.s3.thumbnails-bucket", () -> BUCKET_NAME);
+  }
+
+  @Override
+  public void runScripts(List<String> scripts) {
+    //nothing to do at this moment
   }
 }
