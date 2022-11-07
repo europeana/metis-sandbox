@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -207,7 +209,7 @@ class DatasetControllerIT {
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
-    assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent), StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())));
+    assertJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())));
 
   }
 
@@ -229,7 +231,7 @@ class DatasetControllerIT {
             String.class, "1", "/1/URN_NBN_SI_doc_B1HM2TA6");
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(StringUtils.deleteWhitespace(tierCalculationResponseContent), StringUtils.deleteWhitespace(response.getBody()));
+    assertJson(StringUtils.deleteWhitespace(tierCalculationResponseContent), StringUtils.deleteWhitespace(response.getBody()));
 
     // Give time for harvesting to finish to not affect other tests
     Awaitility.await().atMost(7, MINUTES).until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
@@ -310,4 +312,8 @@ class DatasetControllerIT {
     return jsonObject.toString();
   }
 
+  private void assertJson(String expected, String actual) throws JsonProcessingException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    assertTrue(objectMapper.readTree(expected).equals(objectMapper.readTree(actual)));
+  }
 }

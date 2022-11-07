@@ -22,7 +22,7 @@ public class PostgresContainerInitializerIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresContainerInitializerIT.class);
   private static final PostgreSQLContainer<?> postgreSQLContainer;
-  public static final String POSTGRES_VERSION = "postgres:9.6";
+  public static final String POSTGRES_VERSION = "postgres:14-alpine";
 
   static {
     postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION)
