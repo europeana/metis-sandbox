@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
+import eu.europeana.metis.sandbox.config.amqp.AmqpConfiguration;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
@@ -22,8 +23,10 @@ public class ServicesConfig {
       RecordRepository recordRepository,
       RecordLogRepository recordLogRepository,
       DatasetProblemPatternRepository problemPatternRepository,
-      MeterRegistry meterRegistry) {
-    metricsService = new MetricsServiceImpl(recordRepository, recordLogRepository, problemPatternRepository, meterRegistry);
+      MeterRegistry meterRegistry,
+      AmqpConfiguration amqpConfiguration) {
+    metricsService = new MetricsServiceImpl(recordRepository, recordLogRepository, problemPatternRepository,
+            meterRegistry, amqpConfiguration);
     return metricsService;
   }
 
