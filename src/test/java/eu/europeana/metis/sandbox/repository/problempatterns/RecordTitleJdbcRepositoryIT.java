@@ -7,7 +7,10 @@ import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
-import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.PostgreSQLContainerIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainer;
+import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -31,9 +34,9 @@ class RecordTitleJdbcRepositoryIT {
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgresContainerInitializerIT.dynamicProperties(registry);
-    PostgresContainerInitializerIT.runScripts(List.of(
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+    TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
+    postgresql.dynamicProperties(registry);
+    postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
   }
 
   public static final String SELECT_RECORD_TITLES_QUERY = "SELECT * FROM problem_patterns.record_title";

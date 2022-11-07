@@ -77,7 +77,7 @@ public class HarvestPublishServiceImplTest {
     @Test
     void runHttpHarvestAsync_expectFail()  {
         assertThrows(ServiceException.class, () ->
-                asyncHarvestPublishService.runHarvestHttpZipAsync("http://fake-url.com", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL));
+                asyncHarvestPublishService.runHarvestHttpZipAsync("http://myfake-test-url.com", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL));
 
     }
 
