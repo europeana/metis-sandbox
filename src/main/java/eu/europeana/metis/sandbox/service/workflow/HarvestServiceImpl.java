@@ -85,6 +85,8 @@ public class HarvestServiceImpl implements HarvestService {
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
       @NotNull OaiHarvestData oaiHarvestData) {
     List<RecordInfo> recordInfoList = new ArrayList<>();
+    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
     datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
@@ -108,6 +110,8 @@ public class HarvestServiceImpl implements HarvestService {
               numberOfIterations.getAndIncrement();
 
               if (numberOfIterations.get() > maxRecords) {
+                //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+                //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
                 datasetService.setRecordLimitExceeded(datasetId);
                 numberOfIterations.set(maxRecords);
                 return ReportingIteration.IterationResult.TERMINATE;
@@ -122,7 +126,8 @@ public class HarvestServiceImpl implements HarvestService {
             return ReportingIteration.IterationResult.CONTINUE;
           }
       );
-
+      //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+      //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
       datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
     } catch (HarvesterException | IOException e) {
@@ -178,6 +183,8 @@ public class HarvestServiceImpl implements HarvestService {
       Record.RecordBuilder recordDataEncapsulated) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
+    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
     datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try {
@@ -191,6 +198,8 @@ public class HarvestServiceImpl implements HarvestService {
           numberOfIterations.getAndIncrement();
 
           if (numberOfIterations.get() > maxRecords) {
+            //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+            //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
             datasetService.setRecordLimitExceeded(datasetId);
             numberOfIterations.set(maxRecords);
             return ReportingIteration.IterationResult.TERMINATE;
@@ -209,6 +218,8 @@ public class HarvestServiceImpl implements HarvestService {
       // Attempt to delete the temporary iterator content.
       iterator.deleteIteratorContent();
 
+      //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+      //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
       datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
       if (!exception.isEmpty()) {
