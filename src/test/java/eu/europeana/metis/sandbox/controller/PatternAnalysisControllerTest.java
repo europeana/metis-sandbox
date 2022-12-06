@@ -245,7 +245,7 @@ class PatternAnalysisControllerTest {
   }
 
   @Test
-  void getCleanMessageReportP7AndSortedOutput() throws Exception {
+  void getDatasetAnalysis_withCleanMessageReportP7AndSorted_expectSuccess() throws Exception {
     LocalDateTime executionTimestamp = LocalDateTime.now();
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
@@ -286,7 +286,7 @@ class PatternAnalysisControllerTest {
   }
 
   @Test
-  void getCleanMessageReportP7AndSortedOutputByRecordPatternAnalysis() throws Exception {
+  void getRecordPatternAnalysis_withCleanMessageReportP7AndSorted_expectSuccess() throws Exception {
     RecordLogEntity mockRecordLogEntity = mock(RecordLogEntity.class);
     List<ProblemPattern> problemPatternList = new ArrayList<>();
     RecordAnalysis recordAnalysis1 = new RecordAnalysis("recordId1", List.of(new ProblemOccurrence("text1", List.of())));

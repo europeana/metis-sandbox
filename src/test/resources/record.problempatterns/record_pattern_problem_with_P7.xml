@@ -24,7 +24,6 @@
     <edm:hasView rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/1951/default.jpg"/>
     <edm:isShownBy rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/1950/default.jpg"/>
     <edm:object rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/1950/default.jpg"/>
-
     <edm:provider>Archives Portal Europe</edm:provider>
     <dc:rights>All images and materials are for viewing purposes and users may not copy, reproduce, distribute in any form, perform, alter, adapt or add to materials in whatsoever form without express written consent of Koç University. Any educational and academic uses which are permitted under the compliance to the relevant laws must credit the Author and Koç University. For more information, contact us at: digitalresources@ku.edu.tr&#xD;
     </dc:rights>
