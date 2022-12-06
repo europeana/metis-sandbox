@@ -15,7 +15,9 @@ import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
+import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import eu.europeana.patternanalysis.view.ProblemPattern;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -146,7 +148,12 @@ public class PatternAnalysisController {
     RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.VALIDATE_INTERNAL);
     return recordLog == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) :
         new ResponseEntity<>(
-            patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent())),
+            patternAnalysisService.getRecordPatternAnalysis(rdfConversionUtils.convertStringToRdf(recordLog.getContent()))
+                                  .stream()
+                                  .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
+                                  .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
+                                  .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
+                                  .collect(Collectors.toList()),
             HttpStatus.OK);
   }
 
@@ -197,14 +204,40 @@ public class PatternAnalysisController {
       return datasetProblemPatternAnalysis
           .getProblemPatternList()
           .stream()
-          .map(problemPattern -> new ProblemPattern(problemPattern.getProblemPatternDescription(),
-              problemPattern.getRecordOccurrences(),
-              problemPattern.getRecordAnalysisList()
-                            .stream()
-                            .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
-                            .collect(Collectors.toList())))
+          .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
+          .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
           .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
           .collect(Collectors.toList());
+    }
+  }
+
+  private static final class DatasetProblemPatternAnalysisFilter {
+    public static ProblemPattern sortRecordAnalysisByRecordId(ProblemPattern problemPattern) {
+      return new ProblemPattern(problemPattern.getProblemPatternDescription(),
+          problemPattern.getRecordOccurrences(),
+          problemPattern.getRecordAnalysisList()
+                        .stream()
+                        .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
+                        .collect(Collectors.toList()));
+    }
+
+    public static ProblemPattern cleanMessageReportForP7TitleIsEnough(ProblemPattern problemPattern) {
+      if (problemPattern.getProblemPatternDescription().getProblemPatternId().equals(ProblemPatternId.P7))
+      {
+        return new ProblemPattern(problemPattern.getProblemPatternDescription(),
+            problemPattern.getRecordOccurrences(),
+            problemPattern.getRecordAnalysisList()
+                          .stream()
+                          .map( recordAnalysis -> new RecordAnalysis(recordAnalysis.getRecordId(),
+                              recordAnalysis.getProblemOccurrenceList()
+                                            .stream()
+                                            .map( problemOccurrence -> new ProblemOccurrence("", problemOccurrence.getAffectedRecordIds()))
+                                            .collect(Collectors.toList())
+                          ))
+                          .collect(Collectors.toList()));
+      } else {
+        return problemPattern;
+      }
     }
   }
 

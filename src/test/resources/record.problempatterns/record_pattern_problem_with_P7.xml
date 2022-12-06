@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:adms="http://www.w3.org/ns/adms#"
+  xmlns:cc="http://creativecommons.org/ns#"
+  xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:dcat="http://www.w3.org/ns/dcat#"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:doap="http://usefulinc.com/ns/doap#"
+  xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
+  xmlns:edm="http://www.europeana.eu/schemas/edm/"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:odrl="http://www.w3.org/ns/odrl/2/"
+  xmlns:ore="http://www.openarchives.org/ore/terms/"
+  xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:svcs="http://rdfs.org/sioc/services#"
+  xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#">
+  <ore:Aggregation rdf:about="#aggregation_MHC_EMC_08_ms_01_jpg">
+    <edm:aggregatedCHO rdf:resource="#providedCHO_MHC_EMC_08_ms_01_jpg"/>
+    <edm:dataProvider>Koç Üniversitesi Suna Kıraç Kütüphanesi</edm:dataProvider>
+    <edm:hasView rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/1951/default.jpg"/>
+    <edm:isShownBy rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/1950/default.jpg"/>
+    <edm:object rdf:resource="https://cdm21054.contentdm.oclc.org/digital/api/singleitem/image/MHC/1950/default.jpg"/>
+
+    <edm:provider>Archives Portal Europe</edm:provider>
+    <dc:rights>All images and materials are for viewing purposes and users may not copy, reproduce, distribute in any form, perform, alter, adapt or add to materials in whatsoever form without express written consent of Koç University. Any educational and academic uses which are permitted under the compliance to the relevant laws must credit the Author and Koç University. For more information, contact us at: digitalresources@ku.edu.tr&#xD;
+    </dc:rights>
+    <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-nd/3.0/"/>
+  </ore:Aggregation>
+</rdf:RDF>
