@@ -28,9 +28,9 @@ public class RecordJdbcRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Integer upsertRecord(long recordId, String europeanaId, String providerId, String datasetId) {
+    public Integer updateRecord(long recordId, String europeanaId, String providerId, String datasetId) {
         final Integer result = jdbcTemplate.execute(
-                getUpsertIdIfExists(recordId, europeanaId, providerId, datasetId), preparedStatement ->
+                updateRecordIfNoConflict(recordId, europeanaId, providerId, datasetId), preparedStatement ->
                 {
                     try{
                        return preparedStatement.executeUpdate();
@@ -47,20 +47,21 @@ public class RecordJdbcRepository {
     }
 
     @NotNull
-    private PreparedStatementCreator getUpsertIdIfExists(long recordId, String europeanaId, String providerId, String datasetId) {
+    private PreparedStatementCreator updateRecordIfNoConflict(long recordId, String europeanaId, String providerId, String datasetId) {
         return connection -> {
             PreparedStatement statement = connection.prepareStatement(
                     "UPDATE record rec "
                             + "SET (europeana_id, provider_id) = (?, ?) "
                             + "WHERE rec.id = ? AND rec.dataset_id =? "
                             + "AND NOT EXISTS ("
-                            + "SELECT * FROM record other WHERE other.provider_id = ? AND other.dataset_id = ?)");
+                            + "SELECT * FROM record other WHERE other.europeana_id =? AND other.provider_id = ? "
+                            + "AND rec.dataset_id = other.dataset_id)");
             statement.setString(1, europeanaId);
             statement.setString(2, providerId);
             statement.setLong(3, recordId);
             statement.setString(4, datasetId);
-            statement.setString(5, providerId);
-            statement.setString(6, datasetId);
+            statement.setString(5, europeanaId);
+            statement.setString(6, providerId);
             return statement;
         };
     }

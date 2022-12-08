@@ -57,7 +57,7 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordJdbcRepository.upsertRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(1);
+    when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(1);
     recordService.setEuropeanaIdAndProviderId(record);
 
     assertEquals(providerId, record.getProviderId());
@@ -73,7 +73,7 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordJdbcRepository.upsertRecord(1, europeanaId, providerId, datasetId)).thenReturn(-1);
+    when(recordJdbcRepository.updateRecord(1, europeanaId, providerId, datasetId)).thenReturn(-1);
     ServiceException serviceException = assertThrows(ServiceException.class, () ->
             recordService.setEuropeanaIdAndProviderId(record));
 
@@ -93,7 +93,7 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordJdbcRepository.upsertRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
+    when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
     RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
           recordService.setEuropeanaIdAndProviderId(record);
         }
