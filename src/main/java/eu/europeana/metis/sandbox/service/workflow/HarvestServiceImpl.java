@@ -147,9 +147,6 @@ public class HarvestServiceImpl implements HarvestService {
       RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
-//      if (isDuplicatedByProviderId(recordEntity, datasetId)) {
-//        recordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
-//      } else {
       recordEntity = recordRepository.save(recordEntity);
       Record harvestedRecord = recordToHarvest
               .providerId(oaiHarvestData.getOaiIdentifier())
@@ -157,7 +154,6 @@ public class HarvestServiceImpl implements HarvestService {
               .recordId(recordEntity.getId())
               .build();
         recordInfo = new RecordInfo(harvestedRecord, recordErrors);
-//      }
 
       return recordInfo;
     } catch (HarvesterException | IOException e) {
@@ -241,9 +237,6 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
-//      if (isDuplicatedByProviderId(recordEntity, datasetId)) {
-//        recordInfo = handleDuplicated(tmpProviderId, Step.HARVEST_ZIP, recordToHarvest);
-//      } else {
       recordEntity = recordRepository.save(recordEntity);
       Record harvestedRecord = recordToHarvest
               .providerId(tmpProviderId)
@@ -251,7 +244,6 @@ public class HarvestServiceImpl implements HarvestService {
               .recordId(recordEntity.getId())
               .build();
       recordInfo = new RecordInfo(harvestedRecord, recordErrors);
-//      }
 
       return recordInfo;
     } catch (RuntimeException | IOException e) {

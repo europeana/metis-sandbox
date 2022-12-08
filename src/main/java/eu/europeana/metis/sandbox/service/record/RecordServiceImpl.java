@@ -62,7 +62,7 @@ public class RecordServiceImpl implements RecordService {
     if (updatedRecords == 0) {
       LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
       throw new RecordDuplicatedException(
-              String.format("Duplicated record has been found: ProviderId: %s | EuropeanaId: {%s", providerId, europeanaId),
+              String.format("Duplicated record has been found: ProviderId: %s | EuropeanaId: %s", providerId, europeanaId),
               String.valueOf(recordToUpdate.getRecordId()), providerId, europeanaId);
 
     } else if(updatedRecords == -1) {
@@ -72,7 +72,6 @@ public class RecordServiceImpl implements RecordService {
 
     } else {
       LOGGER.debug("Setting ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
-      recordRepository.updateEuropeanaIdAndProviderId(recordToUpdate.getRecordId(), europeanaId, providerId, datasetId);
       recordToUpdate.setEuropeanaId(europeanaId);
       recordToUpdate.setProviderId(providerId);
     }
