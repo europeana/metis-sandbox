@@ -57,8 +57,7 @@ public class RecordServiceImpl implements RecordService {
     recordRepository.deleteByDatasetId(datasetId);
   }
 
-  private void handleUpdateQueryResult(int updatedRecords, String providerId, String europeanaId, String datasetId,
-                                       Record recordToUpdate){
+  private void handleUpdateQueryResult(int updatedRecords, String providerId, String europeanaId, Record recordToUpdate){
     if (updatedRecords == 0) {
       LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
       throw new RecordDuplicatedException(
