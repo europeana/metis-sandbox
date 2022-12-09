@@ -40,7 +40,7 @@ public class RecordServiceImpl implements RecordService {
     final String europeanaId = EuropeanaIdCreator.constructEuropeanaIdString(providerId, datasetId);
 
     final int updatedRecords = recordJdbcRepository.updateRecord(recordToUpdate.getRecordId(), europeanaId, providerId, datasetId);
-    handleUpdateQueryResult(updatedRecords, providerId, europeanaId, datasetId, recordToUpdate);
+    handleUpdateQueryResult(updatedRecords, providerId, europeanaId, recordToUpdate);
 
   }
 
