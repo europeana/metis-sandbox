@@ -98,7 +98,8 @@ class RecordServiceImplTest {
           recordService.setEuropeanaIdAndProviderId(record);
         }
     );
-    assertEquals("ProviderId: providerId | EuropeanaId: /1/providerId is duplicated.", recordDuplicatedException.getMessage());
+    assertEquals("Duplicated record has been found: ProviderId: providerId | EuropeanaId: /1/providerId",
+            recordDuplicatedException.getMessage());
     assertNull(record.getProviderId());
     assertNull(record.getEuropeanaId());
   }
