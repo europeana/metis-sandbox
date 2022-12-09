@@ -61,8 +61,7 @@ public class RecordServiceImpl implements RecordService {
     if (updatedRecords == 0) {
       LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
       throw new RecordDuplicatedException(
-              String.format("Duplicated record has been found: ProviderId: %s | EuropeanaId: %s", providerId, europeanaId),
-              String.valueOf(recordToUpdate.getRecordId()), providerId, europeanaId);
+              String.format("Duplicated record has been found: ProviderId: %s | EuropeanaId: %s", providerId, europeanaId));
 
     } else if(updatedRecords == -1) {
       LOGGER.debug("Primary key in record table is corrupted (dataset_id,provider_id,europeana_id)");
