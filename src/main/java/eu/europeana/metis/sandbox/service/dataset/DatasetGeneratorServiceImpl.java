@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -68,7 +69,8 @@ class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
                                .content(recordContent)
                                .build());
     } catch (RuntimeException processorServiceException) {
-      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordContent), processorServiceException);
+      LOGGER.error("Failed to get record from processor service {} :: {} ", new String(recordContent, StandardCharsets.UTF_8),
+              processorServiceException);
       return Optional.empty();
     }
   }
