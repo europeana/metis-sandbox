@@ -287,6 +287,7 @@ class DatasetController {
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
     if (xslt != null && !xslt.isEmpty()) {
+      checkArgument(Objects.nonNull(xslt.getContentType()), "Something went wrong checking file's content type.");
       checkArgument(Objects.requireNonNull(xslt.getContentType()).contains("xml") ||
               xslt.getContentType().contains("xslt"),
           "The given xslt file should be a single xml file.");
