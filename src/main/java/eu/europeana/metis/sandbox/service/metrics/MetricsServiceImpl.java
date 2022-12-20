@@ -91,8 +91,8 @@ public class MetricsServiceImpl implements MetricsService {
   private Long getTotalRecords(Step step, Status status) {
     return stepStatistics == null || stepStatistics.isEmpty() ? 0L
         : stepStatistics.stream()
-                        .filter(stepStatistic -> stepStatistic.getStep().equals(step) &&
-                            stepStatistic.getStatus().equals(status))
+                        .filter(stepStatistic -> stepStatistic.getStep() == step &&
+                            stepStatistic.getStatus() == status)
                         .mapToLong(StepStatistic::getCount).sum();
   }
 

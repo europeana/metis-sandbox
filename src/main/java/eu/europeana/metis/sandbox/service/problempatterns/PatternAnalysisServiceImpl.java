@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static java.util.Objects.nonNull;
 
+import com.google.common.collect.Sets;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
@@ -33,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -143,7 +143,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
       }
     }
 
-    final Set<RecordTitle> recordTitles = new HashSet<>();
+    final Set<RecordTitle> recordTitles = Sets.newHashSetWithExpectedSize(problemPatternAnalysis.getTitles().size());
     for (String title : problemPatternAnalysis.getTitles()) {
       final RecordTitleCompositeKey recordTitleCompositeKey = new RecordTitleCompositeKey(executionPoint.getExecutionPointId(),
           problemPatternAnalysis.getRdfAbout(), StringUtils.truncate(title, DEFAULT_MAX_CHARACTERS_TITLE_LENGTH));

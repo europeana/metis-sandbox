@@ -60,6 +60,7 @@ class DatasetController {
       + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">"
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
+  private static final String MESSAGE_FOR_DATASET_VALID_NAME = "dataset name can only include letters, numbers, _ or - characters";
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
   private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
 
@@ -89,10 +90,10 @@ class DatasetController {
    * POST API calls for harvesting and processing the records given a zip file
    *
    * @param datasetName the given name of the dataset to be processed
-   * @param country     the given country from which the records refer to
-   * @param language    the given language that the records contain
-   * @param dataset     the given dataset itself to be processed as a zip file
-   * @param xsltFile    the xslt file used for transformation to edm external
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param dataset the given dataset itself to be processed as a zip file
+   * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing a file")
@@ -107,8 +108,7 @@ class DatasetController {
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
-        "dataset name can only include letters, numbers, _ or - characters");
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
@@ -122,10 +122,10 @@ class DatasetController {
    * POST API calls for harvesting and processing the records given a URL of a zip file
    *
    * @param datasetName the given name of the dataset to be processed
-   * @param country     the given country from which the records refer to
-   * @param language    the given language that the records contain
-   * @param url         the given dataset itself to be processed as a URL of a zip file
-   * @param xsltFile    the xslt file used for transformation to edm external
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param url the given dataset itself to be processed as a URL of a zip file
+   * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing an URL")
@@ -141,13 +141,12 @@ class DatasetController {
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
-        "dataset name can only include letters, numbers, _ or - characters");
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
 
-    checkArgument(urlValidator.isValid(url),"The provided url is invalid. Please provide a valid url.");
+    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
-            xsltInputStream);
+        xsltInputStream);
     harvestPublishService.runHarvestHttpZipAsync(url, datasetName, createdDatasetId, country, language);
     return new DatasetIdDto(createdDatasetId);
   }
@@ -155,15 +154,14 @@ class DatasetController {
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
    *
-   * @param datasetName    the given name of the dataset to be processed
-   * @param country        the given country from which the records refer to
-   * @param language       the given language that the records contain
-   * @param url            the given URL of the OAI-PMH repository to be processed
-   * @param setspec        forms a unique identifier for the set within the repository, it must be
-   *                       unique for each set.
-   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
-   *                       requests issued to the repository
-   * @param xsltFile       the xslt file used for transformation to edm external
+   * @param datasetName the given name of the dataset to be processed
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param url the given URL of the OAI-PMH repository to be processed
+   * @param setspec forms a unique identifier for the set within the repository, it must be unique for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH requests issued to the
+   * repository
+   * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
@@ -180,8 +178,7 @@ class DatasetController {
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(),
-        "dataset name can only include letters, numbers, _ or - characters");
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
     checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
@@ -214,7 +211,7 @@ class DatasetController {
    * GET API returns the generated tier calculation view for a stored record.
    *
    * @param datasetId the dataset id
-   * @param recordId  the record id
+   * @param recordId the record id
    * @return the record tier calculation view
    * @throws NoRecordFoundException if record was not found
    */
@@ -234,7 +231,7 @@ class DatasetController {
    * GET API returns the string representation of the stored record.
    *
    * @param datasetId the dataset id
-   * @param recordId  the record id
+   * @param recordId the record id
    * @return the string representation of the stored record
    * @throws NoRecordFoundException if record was not found
    */
@@ -264,7 +261,7 @@ class DatasetController {
   @ResponseBody
   public List<CountryView> getAllCountries() {
     return Country.getCountryListSortedByName().stream().map(CountryView::new)
-            .collect(Collectors.toList());
+                  .collect(Collectors.toList());
   }
 
   /**
@@ -287,6 +284,7 @@ class DatasetController {
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
     if (xslt != null && !xslt.isEmpty()) {
+      checkArgument(Objects.nonNull(xslt.getContentType()), "Something went wrong checking file's content type.");
       checkArgument(Objects.requireNonNull(xslt.getContentType()).contains("xml") ||
               xslt.getContentType().contains("xslt"),
           "The given xslt file should be a single xml file.");

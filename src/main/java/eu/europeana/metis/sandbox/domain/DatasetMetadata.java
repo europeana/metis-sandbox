@@ -75,8 +75,6 @@ public final class DatasetMetadata {
     private Country country;
     private Language language;
 
-    private DatasetMetadataBuilder() {
-    }
 
     /**
      * Sets the {@code datasetId} and returns a reference to this Builder enabling method chaining.
