@@ -85,9 +85,6 @@ public class HarvestServiceImpl implements HarvestService {
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
       @NotNull OaiHarvestData oaiHarvestData) {
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-    datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         new OaiHarvest(oaiHarvestData.getUrl(),
@@ -150,17 +147,13 @@ public class HarvestServiceImpl implements HarvestService {
       RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
-      if (isDuplicatedByProviderId(recordEntity, datasetId)) {
-        recordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
-      } else {
-        recordEntity = recordRepository.save(recordEntity);
-        Record harvestedRecord = recordToHarvest
-            .providerId(oaiHarvestData.getOaiIdentifier())
-            .content(recordContent)
-            .recordId(recordEntity.getId())
-            .build();
+      recordEntity = recordRepository.save(recordEntity);
+      Record harvestedRecord = recordToHarvest
+              .providerId(oaiHarvestData.getOaiIdentifier())
+              .content(recordContent)
+              .recordId(recordEntity.getId())
+              .build();
         recordInfo = new RecordInfo(harvestedRecord, recordErrors);
-      }
 
       return recordInfo;
     } catch (HarvesterException | IOException e) {
@@ -183,9 +176,6 @@ public class HarvestServiceImpl implements HarvestService {
       Record.RecordBuilder recordDataEncapsulated) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-    datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try {
       AtomicLong numberOfIterations = new AtomicLong(0);
@@ -247,17 +237,13 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
-      if (isDuplicatedByProviderId(recordEntity, datasetId)) {
-        recordInfo = handleDuplicated(tmpProviderId, Step.HARVEST_ZIP, recordToHarvest);
-      } else {
-        recordEntity = recordRepository.save(recordEntity);
-        Record harvestedRecord = recordToHarvest
-            .providerId(tmpProviderId)
-            .content(recordContent)
-            .recordId(recordEntity.getId())
-            .build();
-        recordInfo = new RecordInfo(harvestedRecord, recordErrors);
-      }
+      recordEntity = recordRepository.save(recordEntity);
+      Record harvestedRecord = recordToHarvest
+              .providerId(tmpProviderId)
+              .content(recordContent)
+              .recordId(recordEntity.getId())
+              .build();
+      recordInfo = new RecordInfo(harvestedRecord, recordErrors);
 
       return recordInfo;
     } catch (RuntimeException | IOException e) {
@@ -331,17 +317,6 @@ public class HarvestServiceImpl implements HarvestService {
     } else {
       return findCause(throwable.getCause());
     }
-  }
-
-  private boolean isDuplicatedByProviderId(RecordEntity recordEntity, String datasetId) {
-    RecordEntity recordFound = recordRepository.findByProviderIdAndDatasetId(recordEntity.getProviderId(), datasetId);
-    return recordFound != null;
-  }
-
-  private RecordInfo handleDuplicated(String providerId, Step step, Record.RecordBuilder recordToHarvest) {
-    RecordError recordErrorCreated = new RecordError("Duplicated record", "Record already registered");
-    saveErrorWhileHarvesting(recordToHarvest, providerId, step, new RuntimeException(recordErrorCreated.getMessage()));
-    return null;
   }
 
   private String createTemporaryIdFromPath(String extractedDirectory, Path pathToRelativize){

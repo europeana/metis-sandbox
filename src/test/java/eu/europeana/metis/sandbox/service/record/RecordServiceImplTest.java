@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.repository.RecordJdbcRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,9 @@ class RecordServiceImplTest {
   @Mock
   private XmlRecordProcessorService xmlRecordProcessorService;
 
+  @Mock
+  private RecordJdbcRepository recordJdbcRepository;
+
   @InjectMocks
   private RecordServiceImpl recordService;
 
@@ -53,10 +57,9 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(), anyString(), anyString(), anyString())).thenReturn(1);
+    when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(1);
     recordService.setEuropeanaIdAndProviderId(record);
 
-    verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
     assertEquals(providerId, record.getProviderId());
     assertEquals(europeanaId, record.getEuropeanaId());
   }
@@ -70,13 +73,13 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(), anyString(), anyString(), anyString())).thenReturn(2);
-    ServiceException serviceException = assertThrows(ServiceException.class, () -> recordService.setEuropeanaIdAndProviderId(record));
+    when(recordJdbcRepository.updateRecord(1, europeanaId, providerId, datasetId)).thenReturn(-1);
+    ServiceException serviceException = assertThrows(ServiceException.class, () ->
+            recordService.setEuropeanaIdAndProviderId(record));
 
     assertEquals("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)."
             +" providerId & europeanaId updated multiple times",
         serviceException.getMessage());
-    verify(recordRepository).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
     assertEquals(null, record.getProviderId());
     assertEquals(null, record.getEuropeanaId());
   }
@@ -90,13 +93,13 @@ class RecordServiceImplTest {
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
-    when(recordRepository.updateEuropeanaIdAndProviderId(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
+    when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
     RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
           recordService.setEuropeanaIdAndProviderId(record);
         }
     );
-    assertEquals("ProviderId: providerId | EuropeanaId: /1/providerId is duplicated.", recordDuplicatedException.getMessage());
-    verify(recordRepository, times(1)).updateEuropeanaIdAndProviderId(1L, europeanaId, providerId, datasetId);
+    assertEquals("Duplicated record has been found: ProviderId: providerId | EuropeanaId: /1/providerId",
+            recordDuplicatedException.getMessage());
     assertNull(record.getProviderId());
     assertNull(record.getEuropeanaId());
   }

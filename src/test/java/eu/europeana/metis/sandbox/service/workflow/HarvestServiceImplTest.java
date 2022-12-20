@@ -221,7 +221,7 @@ class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 3L);
+    assertHarvestProcessWithOutXslt(recordPublishService, 3, Step.HARVEST_ZIP, 3L);
   }
 
   @Test
@@ -247,7 +247,7 @@ class HarvestServiceImplTest {
 
     harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 3L);
+    assertHarvestProcessWithOutXslt(recordPublishService, 3, Step.HARVEST_ZIP, 3L);
   }
 
   @Test
@@ -464,7 +464,7 @@ class HarvestServiceImplTest {
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
 
-    assertHarvestProcessWithOutXslt(recordPublishService, 3, Step.HARVEST_OAI_PMH, 5L);
+    assertHarvestProcessWithOutXslt(recordPublishService, 5, Step.HARVEST_OAI_PMH, 5L);
   }
 
   private void assertHarvestProcess(RecordPublishService recordPublishService, int times, Step step,

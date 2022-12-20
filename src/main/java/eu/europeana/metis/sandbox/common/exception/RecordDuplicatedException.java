@@ -11,7 +11,6 @@ public class RecordDuplicatedException extends ServiceException {
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
-   * @param cause of the exception
    */
   public RecordDuplicatedException(String message) {
     super(message, null);
