@@ -27,7 +27,21 @@ public class RecordJdbcRepository {
     public RecordJdbcRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
+    /**
+     *
+     *
+     * @param recordId
+     * @param europeanaId
+     * @param providerId
+     */
+    /**
+     * Update record with new values for europeana id and provider id
+     * @param recordId the id of the record to update
+     * @param europeanaId the europeana id value to update with
+     * @param providerId the provider id value to update with
+     * @param datasetId the dataset
+     * @return amount of records updated
+     */
     public Integer updateRecord(long recordId, String europeanaId, String providerId, String datasetId) {
         final Integer result = jdbcTemplate.execute(
                 updateRecordIfNoConflict(recordId, europeanaId, providerId, datasetId), preparedStatement ->

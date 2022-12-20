@@ -10,17 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
 
   /**
-   * Update record with new values for europeana id and provider id
-   *
-   * @param recordId the id of the record to update
-   * @param europeanaId the europeana id value to update with
-   * @param providerId the provider id value to update with
-   */
-  @Modifying
-  @Query("UPDATE RecordEntity rec SET rec.europeanaId = ?2, rec.providerId=?3 WHERE rec.id= ?1 AND rec.datasetId= ?4")
-  void updateEuropeanaIdAndProviderId(Long recordId, String europeanaId, String providerId, String datasetId);
-
-  /**
    * Update record with new values for content tier and metadata tier
    *
    * @param recordId the id of the record to update

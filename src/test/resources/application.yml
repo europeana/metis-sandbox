@@ -78,7 +78,7 @@ sandbox:
         rootLocation: EDM.xsd
         schematronLocation: schematron/schematron.xsl
   transformation:
-    xslt-url: https://metis-core-rest-test.eanadev.org/datasets/xslt/default
+    xslt-url: https://metis-core-rest.test.eanadev.org/datasets/xslt/default
   enrichment:
     dereference-url: https://metis-dereference-rest-test.eanadev.org
     enrichment-properties:

@@ -41,14 +41,12 @@ public class RecordServiceImpl implements RecordService {
 
     final int updatedRecords = recordJdbcRepository.updateRecord(recordToUpdate.getRecordId(), europeanaId, providerId, datasetId);
     handleUpdateQueryResult(updatedRecords, providerId, europeanaId, recordToUpdate);
-
   }
 
   @Override
   @Transactional
   public void setContentTierAndMetadataTier(Record recordToUpdate, MediaTier contentTier, MetadataTier metadataTier) {
-    recordRepository.updateContentTierAndMetadataTier(recordToUpdate.getRecordId(), contentTier.toString(),
-        metadataTier.toString());
+    recordRepository.updateContentTierAndMetadataTier(recordToUpdate.getRecordId(), contentTier.toString(), metadataTier.toString());
   }
 
   @Override
