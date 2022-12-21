@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -284,10 +283,12 @@ class DatasetController {
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
     if (xslt != null && !xslt.isEmpty()) {
-      checkArgument(Objects.nonNull(xslt.getContentType()), "Something went wrong checking file's content type.");
-      checkArgument(Objects.requireNonNull(xslt.getContentType()).contains("xml") ||
-              xslt.getContentType().contains("xslt"),
-          "The given xslt file should be a single xml file.");
+      final String contentType = xslt.getContentType();
+      if (contentType == null) {
+        throw new IllegalArgumentException("Something went wrong checking file's content type.");
+      } else if (!contentType.contains("xml")) {
+        throw new IllegalArgumentException("The given xslt file should be a single xml file.");
+      }
       try {
         return new ByteArrayInputStream(xslt.getBytes());
       } catch (IOException e) {
