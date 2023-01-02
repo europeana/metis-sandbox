@@ -94,7 +94,7 @@ class EnrichmentServiceImplTest {
         ProcessedResult<byte[]> processedResult = new ProcessedResult<>(content.getBytes(), reports);
         when(enrichmentWorker.process(any(InputStream.class)))
                 .thenReturn(processedResult);
-        RecordProcessingException expectedException = assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+        assertThrows(RecordProcessingException.class, () -> service.enrich(record));
     }
 
 }
