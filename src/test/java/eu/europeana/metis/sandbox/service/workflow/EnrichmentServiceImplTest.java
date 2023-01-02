@@ -82,4 +82,19 @@ class EnrichmentServiceImplTest {
         assertThrows(RecordProcessingException.class, () -> service.enrich(record));
     }
 
+    @Test
+    void enrich_withErrorTypeReport_expectFail() {
+        var content = "This is the content";
+        var record = Record.builder().recordId(1L)
+                .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
+                .datasetName("").datasetId("1").build();
+        Report report = Report.buildEnrichmentError();
+        HashSet<Report> reports = new HashSet<>();
+        reports.add(report);
+        ProcessedResult<byte[]> processedResult = new ProcessedResult<>(content.getBytes(), reports);
+        when(enrichmentWorker.process(any(InputStream.class)))
+                .thenReturn(processedResult);
+        RecordProcessingException expectedException = assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+    }
+
 }
