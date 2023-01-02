@@ -55,7 +55,7 @@ class EnrichmentServiceImpl implements EnrichmentService {
     }
 
     private String handleErrorMessage(Report report) {
-        return String.format(report.getMessage() + " Value: " + report.getValue());
+        return String.format(report.getMessage() + " Value: %s", report.getValue());
     }
 
     private Exception handleRecordStopException(Optional<Report> report) {
