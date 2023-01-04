@@ -4,11 +4,7 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
-import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
-import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
-import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
+import eu.europeana.metis.harvesting.oaipmh.*;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -35,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
@@ -51,6 +48,8 @@ import org.springframework.stereotype.Service;
 public class HarvestServiceImpl implements HarvestService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
+
+  private static final int NUMBER_OF_RECORDS_TO_STEP_INTO = 10;
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
@@ -91,28 +90,14 @@ public class HarvestServiceImpl implements HarvestService {
             oaiHarvestData.getMetadataformat(),
             oaiHarvestData.getSetspec()))) {
 
-      AtomicLong numberOfIterations = new AtomicLong();
+      List<OaiRecordHeader> filteredIterator = filterHeaders(recordHeaderIterator, datasetId);
 
-      recordHeaderIterator.forEach(recordHeader -> {
+      filteredIterator.forEach(recordHeader -> {
             try {
               OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
                   oaiHarvestData.getSetspec(),
                   oaiHarvestData.getMetadataformat(),
                   recordHeader.getOaiIdentifier());
-
-              if (recordHeader.isDeleted()) {
-                return ReportingIteration.IterationResult.CONTINUE;
-              }
-
-              numberOfIterations.getAndIncrement();
-
-              if (numberOfIterations.get() > maxRecords) {
-                //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-                //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-                datasetService.setRecordLimitExceeded(datasetId);
-                numberOfIterations.set(maxRecords);
-                return ReportingIteration.IterationResult.TERMINATE;
-              }
 
               recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated));
 
@@ -120,12 +105,11 @@ public class HarvestServiceImpl implements HarvestService {
               saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(), Step.HARVEST_OAI_PMH,
                   harvestException);
             }
-            return ReportingIteration.IterationResult.CONTINUE;
           }
       );
       //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
       //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-      datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
+      datasetService.updateNumberOfTotalRecord(datasetId, (long) filteredIterator.size());
 
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
@@ -251,6 +235,37 @@ public class HarvestServiceImpl implements HarvestService {
       saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
+  }
+
+  private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId) throws HarvesterException {
+
+    List<OaiRecordHeader> result = new ArrayList<>();
+
+    AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
+    AtomicInteger currentIndex = new AtomicInteger();
+    AtomicInteger nextIndexToSelect = new AtomicInteger();
+
+    iteratorToFilter.forEach(oaiRecordHeader -> {
+      if(numberOfSelectedHeaders.get() >= maxRecords){
+        //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+        //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+        datasetService.setRecordLimitExceeded(datasetId);
+        return ReportingIteration.IterationResult.TERMINATE;
+      }
+      if(currentIndex.get() == nextIndexToSelect.get()){
+        if(oaiRecordHeader.isDeleted()){
+          nextIndexToSelect.getAndIncrement();
+        } else {
+          result.add(oaiRecordHeader);
+          nextIndexToSelect.addAndGet(NUMBER_OF_RECORDS_TO_STEP_INTO);
+          numberOfSelectedHeaders.getAndIncrement();
+        }
+      }
+      currentIndex.getAndIncrement();
+      return ReportingIteration.IterationResult.CONTINUE;
+    });
+
+    return result;
   }
 
   private void publishHarvestedRecords(final List<RecordInfo> recordInfoList,
