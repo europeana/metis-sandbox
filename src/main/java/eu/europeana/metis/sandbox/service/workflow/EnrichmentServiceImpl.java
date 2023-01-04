@@ -34,9 +34,7 @@ class EnrichmentServiceImpl implements EnrichmentService {
         requireNonNull(record, "Record must not be null");
 
         List<RecordError> recordErrors = new LinkedList<>();
-        ProcessedResult<byte[]> result;
-
-        result = enrichmentWorker.process(record.getContentInputStream());
+        ProcessedResult<byte[]> result = enrichmentWorker.process(record.getContentInputStream());
         Set<Report> reports = result.getReport();
 
         if (result.getRecordStatus().equals(ProcessedResult.RecordStatus.STOP)) {
