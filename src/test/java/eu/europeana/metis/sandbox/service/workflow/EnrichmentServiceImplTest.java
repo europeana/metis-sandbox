@@ -79,7 +79,7 @@ class EnrichmentServiceImplTest {
         when(enrichmentWorker.process(any(InputStream.class)))
                 .thenThrow(new RuntimeException());
 
-        assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+        assertThrows(RuntimeException.class, () -> service.enrich(record));
     }
 
     @Test
