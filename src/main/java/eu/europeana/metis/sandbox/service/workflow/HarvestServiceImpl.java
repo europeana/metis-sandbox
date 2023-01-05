@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.io.IOUtils;
@@ -49,7 +48,7 @@ public class HarvestServiceImpl implements HarvestService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
 
-  private static final int NUMBER_OF_RECORDS_TO_STEP_INTO = 10;
+  private static final int NUMBER_OF_RECORDS_TO_STEP_INTO = 5;
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
@@ -120,6 +119,44 @@ public class HarvestServiceImpl implements HarvestService {
                          .collect(Collectors.toList());
   }
 
+  private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId) throws HarvesterException {
+
+    List<OaiRecordHeader> result = new ArrayList<>();
+
+    AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
+    AtomicInteger currentIndex = new AtomicInteger();
+    AtomicInteger nextIndexToSelect = new AtomicInteger();
+
+    iteratorToFilter.forEach(oaiRecordHeader -> {
+      if(numberOfSelectedHeaders.get() >= maxRecords){
+        //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+        //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+        datasetService.setRecordLimitExceeded(datasetId);
+        return ReportingIteration.IterationResult.TERMINATE;
+      }
+
+      if(currentIndex.get() > maxRecords){
+        // This indicates that the dataset has more than max number of records,
+        // but the number of selected records has not reached max, therefore it continues
+        datasetService.setRecordLimitExceeded(datasetId);
+      }
+
+      if(currentIndex.get() == nextIndexToSelect.get()){
+        if(oaiRecordHeader.isDeleted()){
+          nextIndexToSelect.getAndIncrement();
+        } else {
+          result.add(oaiRecordHeader);
+          nextIndexToSelect.addAndGet(NUMBER_OF_RECORDS_TO_STEP_INTO);
+          numberOfSelectedHeaders.getAndIncrement();
+        }
+      }
+      currentIndex.getAndIncrement();
+      return ReportingIteration.IterationResult.CONTINUE;
+    });
+
+    return result;
+  }
+
   private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest) {
     RecordInfo recordInfo;
     List<RecordError> recordErrors = new ArrayList<>();
@@ -162,25 +199,31 @@ public class HarvestServiceImpl implements HarvestService {
     List<RecordInfo> recordInfoList = new ArrayList<>();
 
     try {
-      AtomicLong numberOfIterations = new AtomicLong(0);
+      AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
+      AtomicInteger currentIndex = new AtomicInteger();
+      AtomicInteger nextIndexToSelect = new AtomicInteger();
+
       final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream,
           CompressedFileExtension.ZIP);
       final String extractedDirectoryFromIterator = iterator.getExtractedDirectory();
       iterator.forEach(path -> {
         try (InputStream content = Files.newInputStream(path)) {
 
-          numberOfIterations.getAndIncrement();
-
-          if (numberOfIterations.get() > maxRecords) {
+          if (numberOfSelectedHeaders.get() >= maxRecords) {
             //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
             //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
             datasetService.setRecordLimitExceeded(datasetId);
-            numberOfIterations.set(maxRecords);
+            numberOfSelectedHeaders.set(maxRecords);
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, extractedDirectoryFromIterator));
+          if(currentIndex.get() == nextIndexToSelect.get()){
+            recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, extractedDirectoryFromIterator));
+            nextIndexToSelect.addAndGet(NUMBER_OF_RECORDS_TO_STEP_INTO);
+            numberOfSelectedHeaders.incrementAndGet();
+          }
 
+          currentIndex.incrementAndGet();
           return ReportingIteration.IterationResult.CONTINUE;
 
         } catch (IOException | RuntimeException e) {
@@ -194,7 +237,7 @@ public class HarvestServiceImpl implements HarvestService {
 
       //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
       //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-      datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
+      datasetService.updateNumberOfTotalRecord(datasetId, (long) numberOfSelectedHeaders.get());
 
       if (!exception.isEmpty()) {
         throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
@@ -235,37 +278,6 @@ public class HarvestServiceImpl implements HarvestService {
       saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
-  }
-
-  private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId) throws HarvesterException {
-
-    List<OaiRecordHeader> result = new ArrayList<>();
-
-    AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
-    AtomicInteger currentIndex = new AtomicInteger();
-    AtomicInteger nextIndexToSelect = new AtomicInteger();
-
-    iteratorToFilter.forEach(oaiRecordHeader -> {
-      if(numberOfSelectedHeaders.get() >= maxRecords){
-        //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-        //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-        datasetService.setRecordLimitExceeded(datasetId);
-        return ReportingIteration.IterationResult.TERMINATE;
-      }
-      if(currentIndex.get() == nextIndexToSelect.get()){
-        if(oaiRecordHeader.isDeleted()){
-          nextIndexToSelect.getAndIncrement();
-        } else {
-          result.add(oaiRecordHeader);
-          nextIndexToSelect.addAndGet(NUMBER_OF_RECORDS_TO_STEP_INTO);
-          numberOfSelectedHeaders.getAndIncrement();
-        }
-      }
-      currentIndex.getAndIncrement();
-      return ReportingIteration.IterationResult.CONTINUE;
-    });
-
-    return result;
   }
 
   private void publishHarvestedRecords(final List<RecordInfo> recordInfoList,
