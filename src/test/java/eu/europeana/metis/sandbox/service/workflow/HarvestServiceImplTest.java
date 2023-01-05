@@ -396,7 +396,7 @@ class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
-    verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
+    verify(datasetService, times(1)).setRecordLimitExceeded("datasetId");
 
     assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
@@ -422,7 +422,7 @@ class HarvestServiceImplTest {
 
     harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
-    verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
+    verify(datasetService, times(1)).setRecordLimitExceeded("datasetId");
 
     assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }

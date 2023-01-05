@@ -52,7 +52,7 @@ public class HarvestPublishServiceImplTest {
                 Files.newInputStream(dataSetPath));
         asyncHarvestPublishService.runHarvestZipAsync(datasetFile, "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null);
 
-        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), null);
+        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(null));
 
     }
 
@@ -72,7 +72,7 @@ public class HarvestPublishServiceImplTest {
     @Test
     void runHttpHarvestAsync_expectSuccess() throws HarvesterException {
         asyncHarvestPublishService.runHarvestHttpZipAsync("http://ftp.eanadev.org/uploads/Hauenstein-0.zip", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null);
-        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), null);
+        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(null));
 
     }
 
@@ -87,7 +87,7 @@ public class HarvestPublishServiceImplTest {
     void runHarvestOaiAsync_expectSuccess() {
         asyncHarvestPublishService.runHarvestOaiPmhAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null,
                 new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier"));
-        verify(harvestService, times(1)).harvestOaiPmh(eq("datasetId"), any(Record.RecordBuilder.class), any(OaiHarvestData.class), null);
+        verify(harvestService, times(1)).harvestOaiPmh(eq("datasetId"), any(Record.RecordBuilder.class), any(OaiHarvestData.class), eq(null));
 
     }
 
