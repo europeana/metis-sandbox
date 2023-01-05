@@ -105,13 +105,14 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "step size to apply in record selection") @RequestParam(required = false) Integer stepsize,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
-    harvestPublishService.runHarvestZipAsync(dataset, datasetName, createdDatasetId, country, language);
+    harvestPublishService.runHarvestZipAsync(dataset, datasetName, createdDatasetId, country, language, stepsize);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -137,6 +138,7 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "step size to apply in record selection") @RequestParam(required = false) Integer stepsize,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
@@ -146,7 +148,7 @@ class DatasetController {
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    harvestPublishService.runHarvestHttpZipAsync(url, datasetName, createdDatasetId, country, language);
+    harvestPublishService.runHarvestHttpZipAsync(url, datasetName, createdDatasetId, country, language, stepsize);
     return new DatasetIdDto(createdDatasetId);
   }
 
@@ -173,6 +175,7 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "step size to apply in record selection") @RequestParam(required = false) Integer stepsize,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
@@ -183,7 +186,7 @@ class DatasetController {
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    harvestPublishService.runHarvestOaiPmhAsync(datasetName, createdDatasetId, country, language,
+    harvestPublishService.runHarvestOaiPmhAsync(datasetName, createdDatasetId, country, language, stepsize,
         new OaiHarvestData(url, setspec, metadataformat, ""));
 
     return new DatasetIdDto(createdDatasetId);

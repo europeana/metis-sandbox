@@ -254,7 +254,7 @@ class DatasetControllerTest {
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
                 .thenReturn("12345");
         doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
-                .runHarvestOaiPmhAsync(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
+                .runHarvestOaiPmhAsync(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT), eq(null),
                         any(OaiHarvestData.class));
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")

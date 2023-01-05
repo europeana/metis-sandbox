@@ -18,11 +18,13 @@ public interface HarvestPublishService {
      * @param datasetId The id of the dataset to harvest
      * @param country The country of the dataset to be harvested
      * @param language The language of the dataset to be harvested
+     * @param stepSize The step size to apply into the record selection
      * @return A HarvestContent object containing the content of the harvest and a bollean indicating
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
      */
-    CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, String datasetName, String datasetId, Country country, Language language);
+    CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, String datasetName, String datasetId, Country country,
+                                               Language language, Integer stepSize);
 
     /**
      * Start the harvest of an url asynchronously on the given URL {@link String}
@@ -32,11 +34,13 @@ public interface HarvestPublishService {
      * @param datasetId The id of the dataset to harvest
      * @param country The country of the dataset to be harvested
      * @param language The language of the dataset to be harvested
+     * @param stepSize The step size to apply in record selection
      * @return A HarvestContent object containing the content of the harvest and a boolean indicating
      * if it reached the max number of records
      * @throws ServiceException if error processing URL, if URL timeout, if records are empty
      */
-    CompletableFuture<Void> runHarvestHttpZipAsync(String url, String datasetName, String datasetId, Country country, Language language);
+    CompletableFuture<Void> runHarvestHttpZipAsync(String url, String datasetName, String datasetId, Country country,
+                                                   Language language, Integer stepSize);
 
     /**
      * Async publish to message broker for further processing. This will send messages to 'harvestOai`
@@ -46,9 +50,10 @@ public interface HarvestPublishService {
      * @param datasetId      The id of the dataset to be harvested
      * @param country        The country of the dataset to be harvested
      * @param language       The language of the dataset to be harvested
+     * @param stepSize       The step size to apply into record selection
      * @param oaiHarvestData And object that encapsulates the data necessary for OAI-PMH harvesting
      * @return {@link CompletableFuture} of the process
      */
     CompletableFuture<Void> runHarvestOaiPmhAsync(String datasetName, String datasetId, Country country,
-                                               Language language, OaiHarvestData oaiHarvestData);
+                                               Language language, Integer stepSize, OaiHarvestData oaiHarvestData);
 }

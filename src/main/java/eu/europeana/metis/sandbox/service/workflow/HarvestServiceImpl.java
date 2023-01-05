@@ -47,8 +47,7 @@ import org.springframework.stereotype.Service;
 public class HarvestServiceImpl implements HarvestService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
-
-  private static final int NUMBER_OF_RECORDS_TO_STEP_INTO = 5;
+  private static final int DEFAULT_STEP_SIZE = 1;
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
@@ -73,15 +72,15 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public void harvestOaiPmh(String datasetId, Record.RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData) {
-    publishHarvestedRecords(harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData),
+  public void harvestOaiPmh(String datasetId, RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData, Integer stepSize) {
+    publishHarvestedRecords(harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData, stepSize),
         datasetId,
         "Error harvesting OAI-PMH records",
         Step.HARVEST_OAI_PMH);
   }
 
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
-      @NotNull OaiHarvestData oaiHarvestData) {
+      @NotNull OaiHarvestData oaiHarvestData, Integer stepSize) {
     List<RecordInfo> recordInfoList = new ArrayList<>();
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
@@ -89,7 +88,7 @@ public class HarvestServiceImpl implements HarvestService {
             oaiHarvestData.getMetadataformat(),
             oaiHarvestData.getSetspec()))) {
 
-      List<OaiRecordHeader> filteredIterator = filterHeaders(recordHeaderIterator, datasetId);
+      List<OaiRecordHeader> filteredIterator = filterHeaders(recordHeaderIterator, datasetId, stepSize);
 
       filteredIterator.forEach(recordHeader -> {
             try {
@@ -119,10 +118,11 @@ public class HarvestServiceImpl implements HarvestService {
                          .collect(Collectors.toList());
   }
 
-  private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId) throws HarvesterException {
+  private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId,
+                                              Integer stepSize) throws HarvesterException {
 
     List<OaiRecordHeader> result = new ArrayList<>();
-
+    int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
     AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
     AtomicInteger currentIndex = new AtomicInteger();
     AtomicInteger nextIndexToSelect = new AtomicInteger();
@@ -135,18 +135,12 @@ public class HarvestServiceImpl implements HarvestService {
         return ReportingIteration.IterationResult.TERMINATE;
       }
 
-      if(currentIndex.get() > maxRecords){
-        // This indicates that the dataset has more than max number of records,
-        // but the number of selected records has not reached max, therefore it continues
-        datasetService.setRecordLimitExceeded(datasetId);
-      }
-
       if(currentIndex.get() == nextIndexToSelect.get()){
         if(oaiRecordHeader.isDeleted()){
           nextIndexToSelect.getAndIncrement();
         } else {
           result.add(oaiRecordHeader);
-          nextIndexToSelect.addAndGet(NUMBER_OF_RECORDS_TO_STEP_INTO);
+          nextIndexToSelect.addAndGet(numberOfRecordsToStepInto);
           numberOfSelectedHeaders.getAndIncrement();
         }
       }
@@ -185,18 +179,19 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated)
+  public void harvest(InputStream inputStream, String datasetId, RecordBuilder recordDataEncapsulated, Integer stepSize)
       throws ServiceException {
-    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated),
+    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated, stepSize),
         datasetId,
         "Error harvesting file records",
         Step.HARVEST_ZIP);
   }
 
   private List<RecordInfo> harvestInputStreamIdentifiers(InputStream inputStream, String datasetId,
-      Record.RecordBuilder recordDataEncapsulated) {
+      Record.RecordBuilder recordDataEncapsulated, Integer stepSize) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
+    int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
 
     try {
       AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
@@ -219,7 +214,7 @@ public class HarvestServiceImpl implements HarvestService {
 
           if(currentIndex.get() == nextIndexToSelect.get()){
             recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, extractedDirectoryFromIterator));
-            nextIndexToSelect.addAndGet(NUMBER_OF_RECORDS_TO_STEP_INTO);
+            nextIndexToSelect.addAndGet(numberOfRecordsToStepInto);
             numberOfSelectedHeaders.incrementAndGet();
           }
 

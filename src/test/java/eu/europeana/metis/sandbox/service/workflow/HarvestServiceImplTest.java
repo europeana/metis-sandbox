@@ -33,7 +33,6 @@ import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
-import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -96,7 +95,7 @@ class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
 
-    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
+    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
 
     assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
   }
@@ -116,7 +115,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
 
-    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
+    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
 
     assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
   }
@@ -136,7 +135,7 @@ class HarvestServiceImplTest {
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                                                         .thenReturn(recordEntity2);
 
-    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
+    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
 
     assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
   }
@@ -156,7 +155,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent("datasetId")).thenReturn(true);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
 
-    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
+    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
 
     assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
   }
@@ -185,7 +184,7 @@ class HarvestServiceImplTest {
                                                        .language(Language.NL).country(Country.NETHERLANDS).build());
 
     harvestService.harvest(new ByteArrayInputStream("inputStream".getBytes(StandardCharsets.UTF_8)), "datasetId",
-        recordBuilderToTest);
+        recordBuilderToTest, null);
     verify(recordPublishService, times(0)).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
     verify(recordRepository, times(2)).save(any(RecordEntity.class));
   }
@@ -196,7 +195,7 @@ class HarvestServiceImplTest {
         HarvesterException.class);
 
     assertThrows(ServiceException.class,
-        () -> harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord()));
+        () -> harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null));
   }
 
   @Test
@@ -219,7 +218,7 @@ class HarvestServiceImplTest {
         .thenReturn(null)
         .thenReturn(recordEntity2);
 
-    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
+    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
 
     assertHarvestProcessWithOutXslt(recordPublishService, 3, Step.HARVEST_ZIP, 3L);
   }
@@ -245,7 +244,7 @@ class HarvestServiceImplTest {
         .thenReturn(null)
         .thenReturn(recordEntity2);
 
-    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord());
+    harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
 
     assertHarvestProcessWithOutXslt(recordPublishService, 3, Step.HARVEST_ZIP, 3L);
   }
@@ -268,7 +267,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1).thenReturn(recordEntity2);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     assertHarvestProcessWithOutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
@@ -291,7 +290,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     assertHarvestProcessWithOutXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1L);
   }
@@ -314,7 +313,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1).thenReturn(recordEntity2);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
   }
@@ -337,7 +336,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_OAI_PMH, 1L);
   }
@@ -347,7 +346,7 @@ class HarvestServiceImplTest {
     OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
     when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenThrow(HarvesterException.class);
     assertThrows(ServiceException.class,
-        () -> harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData));
+        () -> harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null));
   }
 
   @Test
@@ -370,7 +369,7 @@ class HarvestServiceImplTest {
     Record.RecordBuilder recordBuilderToTest = spy(Record.builder().datasetName("datasetName").datasetId("datasetId")
                                                          .language(Language.NL).country(Country.NETHERLANDS));
 
-    harvestService.harvestOaiPmh("datasetId", recordBuilderToTest, oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", recordBuilderToTest, oaiHarvestData, null);
 
     verify(recordPublishService, times(0)).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
     verify(recordRepository, times(1)).save(any(RecordEntity.class));
@@ -395,7 +394,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent(anyString())).thenReturn(false);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
 
@@ -421,7 +420,7 @@ class HarvestServiceImplTest {
     when(datasetService.isXsltPresent(anyString())).thenReturn(true);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
 
@@ -460,7 +459,7 @@ class HarvestServiceImplTest {
 
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity);
 
-    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData);
+    harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, null);
 
     verify(datasetService, times(0)).setRecordLimitExceeded("datasetId");
 

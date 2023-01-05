@@ -30,21 +30,23 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     }
 
     @Override
-    public CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, String datasetName, String datasetId, Country country, Language language){
+    public CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, String datasetName, String datasetId, Country country,
+                                                      Language language, Integer stepSize){
         try {
             Record.RecordBuilder recordDataEncapsulated = Record.builder()
                                                                 .datasetId(datasetId)
                                                                 .datasetName(datasetName)
                                                                 .country(country)
                                                                 .language(language);
-            return runHarvestZipAsync(file.getInputStream(), datasetId, recordDataEncapsulated);
+            return runHarvestZipAsync(file.getInputStream(), datasetId, recordDataEncapsulated, stepSize);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + file.getName(), e);
         }
     }
 
     @Override
-    public CompletableFuture<Void> runHarvestHttpZipAsync(String url, String datasetName, String datasetId, Country country, Language language){
+    public CompletableFuture<Void> runHarvestHttpZipAsync(String url, String datasetName, String datasetId, Country country,
+                                                          Language language, Integer stepSize){
         try {
             InputStream input = new URL(url).openStream();
             Record.RecordBuilder recordDataEncapsulated = Record.builder()
@@ -52,16 +54,17 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                                                                 .datasetName(datasetName)
                                                                 .country(country)
                                                                 .language(language);
-            return runHarvestZipAsync(input, datasetId, recordDataEncapsulated);
+            return runHarvestZipAsync(input, datasetId, recordDataEncapsulated, stepSize);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + url, e);
         }
     }
 
-    private CompletableFuture<Void> runHarvestZipAsync(InputStream inputStreamToHarvest, String datasetId, Record.RecordBuilder recordDataEncapsulated) {
+    private CompletableFuture<Void> runHarvestZipAsync(InputStream inputStreamToHarvest, String datasetId,
+                                                       Record.RecordBuilder recordDataEncapsulated, Integer stepSize) {
         return CompletableFuture.runAsync(() -> {
             try {
-                harvestService.harvest(inputStreamToHarvest, datasetId, recordDataEncapsulated);
+                harvestService.harvest(inputStreamToHarvest, datasetId, recordDataEncapsulated, stepSize);
             } catch (HarvesterException e) {
                 throw new ServiceException("Error harvesting records for dataset" + datasetId, e);
             }
@@ -76,9 +79,10 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
 
     @Override
     public CompletableFuture<Void> runHarvestOaiPmhAsync(String datasetName, String datasetId,
-                                                      Country country, Language language, OaiHarvestData oaiHarvestData) {
+                                                         Country country, Language language, Integer stepSize,
+                                                         OaiHarvestData oaiHarvestData) {
         Record.RecordBuilder recordDataEncapsulated = Record.builder().country(country).language(language).datasetName(datasetName).datasetId(datasetId);
         return CompletableFuture.runAsync(
-                () -> harvestService.harvestOaiPmh(datasetId, recordDataEncapsulated, oaiHarvestData), asyncServiceTaskExecutor);
+                () -> harvestService.harvestOaiPmh(datasetId, recordDataEncapsulated, oaiHarvestData, stepSize), asyncServiceTaskExecutor);
     }
 }
