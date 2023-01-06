@@ -50,9 +50,9 @@ public class HarvestPublishServiceImplTest {
         Path dataSetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid.zip");
         MockMultipartFile datasetFile = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
                 Files.newInputStream(dataSetPath));
-        asyncHarvestPublishService.runHarvestZipAsync(datasetFile, "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null);
+        asyncHarvestPublishService.runHarvestZipAsync(datasetFile, "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, 5);
 
-        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(null));
+        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5));
 
     }
 
@@ -65,29 +65,29 @@ public class HarvestPublishServiceImplTest {
         when(datasetFile.getInputStream()).thenThrow(new IOException("error test"));
 
         assertThrows(ServiceException.class, () ->
-                asyncHarvestPublishService.runHarvestZipAsync(datasetFile, "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null));
+                asyncHarvestPublishService.runHarvestZipAsync(datasetFile, "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, 5));
 
     }
 
     @Test
     void runHttpHarvestAsync_expectSuccess() throws HarvesterException {
-        asyncHarvestPublishService.runHarvestHttpZipAsync("http://ftp.eanadev.org/uploads/Hauenstein-0.zip", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null);
-        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(null));
+        asyncHarvestPublishService.runHarvestHttpZipAsync("http://ftp.eanadev.org/uploads/Hauenstein-0.zip", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, 5);
+        verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5));
 
     }
 
     @Test
     void runHttpHarvestAsync_expectFail() {
         assertThrows(ServiceException.class, () ->
-                asyncHarvestPublishService.runHarvestHttpZipAsync("http://myfake-test-url.com", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null));
+                asyncHarvestPublishService.runHarvestHttpZipAsync("http://myfake-test-url.com", "datasetName", "datasetId", Country.NETHERLANDS, Language.NL, 5));
 
     }
 
     @Test
     void runHarvestOaiAsync_expectSuccess() {
-        asyncHarvestPublishService.runHarvestOaiPmhAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, null,
+        asyncHarvestPublishService.runHarvestOaiPmhAsync("datasetName", "datasetId", Country.NETHERLANDS, Language.NL, 5,
                 new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier"));
-        verify(harvestService, times(1)).harvestOaiPmh(eq("datasetId"), any(Record.RecordBuilder.class), any(OaiHarvestData.class), eq(null));
+        verify(harvestService, times(1)).harvestOaiPmh(eq("datasetId"), any(Record.RecordBuilder.class), any(OaiHarvestData.class), eq(5));
 
     }
 

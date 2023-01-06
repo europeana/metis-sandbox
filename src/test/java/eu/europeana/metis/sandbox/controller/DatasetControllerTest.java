@@ -93,7 +93,8 @@ class DatasetControllerTest {
         mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
                         .file(mockMultipart)
                         .param("country", ITALY.name())
-                        .param("language", IT.name()))
+                        .param("language", IT.name())
+                        .param("stepsize","2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -115,7 +116,8 @@ class DatasetControllerTest {
                         .file(mockMultipart)
                         .file(xsltMock)
                         .param("country", ITALY.name())
-                        .param("language", IT.name()))
+                        .param("language", IT.name())
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -131,7 +133,8 @@ class DatasetControllerTest {
         mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
                         .param("country", ITALY.name())
                         .param("language", IT.name())
-                        .param("url", url))
+                        .param("url", url)
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -153,7 +156,8 @@ class DatasetControllerTest {
                         .file(xsltMock)
                         .param("country", ITALY.name())
                         .param("language", IT.name())
-                        .param("url", url))
+                        .param("url", url)
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -171,7 +175,8 @@ class DatasetControllerTest {
                         .param("language", IT.xmlValue())
                         .param("url", url)
                         .param("setspec", "1073")
-                        .param("metadataformat", "rdf"))
+                        .param("metadataformat", "rdf")
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -194,7 +199,8 @@ class DatasetControllerTest {
                         .param("language", IT.xmlValue())
                         .param("url", url)
                         .param("setspec", "1073")
-                        .param("metadataformat", "rdf"))
+                        .param("metadataformat", "rdf")
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
