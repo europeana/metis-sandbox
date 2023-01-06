@@ -149,6 +149,32 @@ class HarvestServiceImplTest {
     }
 
     @Test
+    void harvest_withStepSize_expectFail() throws HarvesterException {
+        HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIteratorStepSizeTest());
+
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity1.setId(1L);
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity2.setId(2L);
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity3.setId(3L);
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity4.setId(4L);
+
+        when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
+                httpIterator);
+        when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
+        when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
+                .thenReturn(recordEntity2)
+                .thenReturn(recordEntity3)
+                .thenReturn(recordEntity4);
+
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 10);
+
+        verify(datasetService, times(0)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
+    }
+
+    @Test
     void harvest_notExceedingRecordLimitWithXslt_expectSuccess() throws HarvesterException {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
@@ -384,6 +410,37 @@ class HarvestServiceImplTest {
         harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, 2);
 
         assertHarvestProcessWithoutXslt(recordPublishService, 2, Step.HARVEST_OAI_PMH, 2L);
+    }
+
+    @Test
+    void harvestOaiPmh_withStepSize_expectFail() throws HarvesterException {
+        OaiHarvestData oaiHarvestData = new OaiHarvestData("url", "setspec", "metadaformat", "oaiIdentifier");
+
+        OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIteratorStepSizeTest());
+
+        OaiRecord mockOaiRecord = mock(OaiRecord.class);
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity1.setId(1L);
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity2.setId(2L);
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity3.setId(3L);
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        recordEntity4.setId(4L);
+
+        when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
+        when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
+        when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+        when(datasetService.isXsltPresent(anyString())).thenReturn(false);
+        when(recordRepository.save(any(RecordEntity.class)))
+                .thenReturn(recordEntity1)
+                .thenReturn(recordEntity2)
+                .thenReturn(recordEntity3)
+                .thenReturn(recordEntity4);
+
+        harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, 10);
+
+        verify(datasetService, times(0)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
     }
 
     @Test

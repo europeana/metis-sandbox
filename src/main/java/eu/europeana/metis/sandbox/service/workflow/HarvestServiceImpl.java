@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,7 +89,11 @@ public class HarvestServiceImpl implements HarvestService {
             oaiHarvestData.getMetadataformat(),
             oaiHarvestData.getSetspec()))) {
 
-      List<OaiRecordHeader> filteredIterator = filterHeaders(recordHeaderIterator, datasetId, stepSize);
+      List<OaiRecordHeader> filteredIterator = filterHeaders(recordHeaderIterator, datasetId, stepSize, recordDataEncapsulated);
+
+      if(filteredIterator.isEmpty()){
+        return Collections.emptyList();
+      }
 
       filteredIterator.forEach(recordHeader -> {
             try {
@@ -100,7 +105,8 @@ public class HarvestServiceImpl implements HarvestService {
               recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated));
 
             } catch (RuntimeException harvestException) {
-              saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(), Step.HARVEST_OAI_PMH,
+              saveErrorWhileHarvesting(recordDataEncapsulated, "record " + recordHeader.getOaiIdentifier(),
+                      Step.HARVEST_OAI_PMH,
                   harvestException);
             }
           }
@@ -119,10 +125,11 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId,
-                                              Integer stepSize) throws HarvesterException {
+                                              Integer stepSize, Record.RecordBuilder recordDataEncapsulated)
+          throws HarvesterException {
 
     List<OaiRecordHeader> result = new ArrayList<>();
-    int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
+    final int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
     AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
     AtomicInteger currentIndex = new AtomicInteger();
     AtomicInteger nextIndexToSelect = new AtomicInteger();
@@ -147,6 +154,12 @@ public class HarvestServiceImpl implements HarvestService {
       currentIndex.getAndIncrement();
       return ReportingIteration.IterationResult.CONTINUE;
     });
+
+    if(result.size() == 1 && currentIndex.get() < nextIndexToSelect.get()){
+      saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_OAI_PMH,
+              new IllegalArgumentException("Step size bigger than dataset size"));
+      return Collections.emptyList();
+    }
 
     return result;
   }
@@ -173,7 +186,8 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (HarvesterException | IOException e) {
       LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}", oaiHarvestData.getOaiIdentifier(), e);
-      saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, "record " + oaiHarvestData.getOaiIdentifier(),
+              Step.HARVEST_OAI_PMH, new RuntimeException(e));
       return null;
     }
   }
@@ -191,7 +205,7 @@ public class HarvestServiceImpl implements HarvestService {
       Record.RecordBuilder recordDataEncapsulated, Integer stepSize) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
+    final int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
 
     try {
       AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
@@ -229,6 +243,12 @@ public class HarvestServiceImpl implements HarvestService {
 
       // Attempt to delete the temporary iterator content.
       iterator.deleteIteratorContent();
+
+      if(recordInfoList.size() == 1 && currentIndex.get() < nextIndexToSelect.get()){
+        saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_ZIP,
+                new IllegalArgumentException("Step size is bigger than dataset size"));
+        return Collections.emptyList();
+      }
 
       //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
       //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
@@ -270,7 +290,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, "record " + tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
   }
@@ -308,7 +328,7 @@ public class HarvestServiceImpl implements HarvestService {
       String providerIdWithError,
       Step step,
       RuntimeException harvest) {
-    final String errorMessage = "Error harvesting record:";
+    final String errorMessage = "Error while harvesting ";
     final String causeMessage = "Cause: " + findCause(harvest);
     RecordError recordErrorCreated = new RecordError(errorMessage + " " + providerIdWithError + " " + causeMessage,
         causeMessage);
