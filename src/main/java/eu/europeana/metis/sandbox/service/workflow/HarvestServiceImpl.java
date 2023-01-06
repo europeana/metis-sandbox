@@ -105,7 +105,7 @@ public class HarvestServiceImpl implements HarvestService {
               recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated));
 
             } catch (RuntimeException harvestException) {
-              saveErrorWhileHarvesting(recordDataEncapsulated, "record " + recordHeader.getOaiIdentifier(),
+              saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(),
                       Step.HARVEST_OAI_PMH,
                   harvestException);
             }
@@ -186,7 +186,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (HarvesterException | IOException e) {
       LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}", oaiHarvestData.getOaiIdentifier(), e);
-      saveErrorWhileHarvesting(recordToHarvest, "record " + oaiHarvestData.getOaiIdentifier(),
+      saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(),
               Step.HARVEST_OAI_PMH, new RuntimeException(e));
       return null;
     }
@@ -290,7 +290,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, "record " + tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
   }
