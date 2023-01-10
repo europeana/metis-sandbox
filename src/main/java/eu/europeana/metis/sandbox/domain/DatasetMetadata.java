@@ -12,12 +12,14 @@ public final class DatasetMetadata {
   private final String datasetName;
   private final Country country;
   private final Language language;
+  private final Integer stepSize;
 
   private DatasetMetadata(DatasetMetadataBuilder datasetMetadataBuilder) {
     this.datasetId = datasetMetadataBuilder.datasetId;
     this.datasetName = datasetMetadataBuilder.datasetName;
     this.country = datasetMetadataBuilder.country;
     this.language = datasetMetadataBuilder.language;
+    this.stepSize = datasetMetadataBuilder.stepSize;
   }
 
   /**
@@ -66,6 +68,15 @@ public final class DatasetMetadata {
   }
 
   /**
+   * Return the value of step size
+   *
+   * @return the step size value as an Integer
+   */
+  public Integer getStepSize() {
+    return stepSize;
+  }
+
+  /**
    * {@code DatasetMetadata} builder static inner class.
    */
   public static final class DatasetMetadataBuilder {
@@ -74,6 +85,7 @@ public final class DatasetMetadata {
     private String datasetName;
     private Country country;
     private Language language;
+    private Integer stepSize;
 
 
     /**
@@ -117,6 +129,11 @@ public final class DatasetMetadata {
      */
     public DatasetMetadataBuilder withLanguage(Language language) {
       this.language = language;
+      return this;
+    }
+
+    public DatasetMetadataBuilder withStepSize(Integer stepSize){
+      this.stepSize = stepSize;
       return this;
     }
 

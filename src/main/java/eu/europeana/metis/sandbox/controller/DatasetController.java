@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -60,6 +61,7 @@ class DatasetController {
       + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + "</span>.";
 
   private static final String MESSAGE_FOR_DATASET_VALID_NAME = "dataset name can only include letters, numbers, _ or - characters";
+  private static final String MESSAGE_FOR_STEP_SIZE_VALID_VALUE = "Step size must be a number higher than zero";
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
   private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
 
@@ -105,13 +107,24 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "step size to apply in record selection") @RequestParam(required = false) Integer stepsize,
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+    if(stepsize != null) {
+      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    }
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
-    harvestPublishService.runHarvestZipAsync(dataset, datasetName, createdDatasetId, country, language);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+            .withDatasetId(createdDatasetId)
+            .withDatasetName(datasetName)
+            .withCountry(country)
+            .withLanguage(language)
+            .withStepSize(stepsize)
+            .build();
+    harvestPublishService.runHarvestZipAsync(dataset, datasetMetadata);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -137,16 +150,27 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "step size to apply in record selection") @RequestParam(required = false) Integer stepsize,
       @ApiParam(value = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+    if(stepsize != null) {
+      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    }
 
     checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    harvestPublishService.runHarvestHttpZipAsync(url, datasetName, createdDatasetId, country, language);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+            .withDatasetId(createdDatasetId)
+            .withDatasetName(datasetName)
+            .withCountry(country)
+            .withLanguage(language)
+            .withStepSize(stepsize)
+            .build();
+    harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata);
     return new DatasetIdDto(createdDatasetId);
   }
 
@@ -173,17 +197,28 @@ class DatasetController {
       @ApiParam(value = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @ApiParam(value = "country of the dataset", required = true, defaultValue = "Netherlands") @RequestParam Country country,
       @ApiParam(value = "language of the dataset", required = true, defaultValue = "Dutch") @RequestParam Language language,
+      @ApiParam(value = "step size to apply in record selection") @RequestParam(required = false) Integer stepsize,
       @ApiParam(value = "dataset URL records", required = true) @RequestParam String url,
       @ApiParam(value = "dataset specification", required = true) @RequestParam String setspec,
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+    if(stepsize != null) {
+      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    }
     checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
-    harvestPublishService.runHarvestOaiPmhAsync(datasetName, createdDatasetId, country, language,
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+            .withDatasetId(createdDatasetId)
+            .withDatasetName(datasetName)
+            .withCountry(country)
+            .withLanguage(language)
+            .withStepSize(stepsize)
+            .build();
+    harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
         new OaiHarvestData(url, setspec, metadataformat, ""));
 
     return new DatasetIdDto(createdDatasetId);
