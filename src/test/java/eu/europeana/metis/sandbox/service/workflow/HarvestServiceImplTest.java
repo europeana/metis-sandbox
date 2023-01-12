@@ -171,7 +171,7 @@ class HarvestServiceImplTest {
 
         harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 10);
 
-        verify(datasetService, times(0)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
+        verify(datasetService, times(1)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
     }
 
     @Test
@@ -440,7 +440,7 @@ class HarvestServiceImplTest {
 
         harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, 10);
 
-        verify(datasetService, times(0)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
+        verify(datasetService, times(1)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
     }
 
     @Test

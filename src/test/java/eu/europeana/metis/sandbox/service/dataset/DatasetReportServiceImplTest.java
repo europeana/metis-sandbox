@@ -221,6 +221,22 @@ class DatasetReportServiceImplTest {
     }
 
     @Test
+    void getReport_retrieveStepSizeError_expectSuccess() {
+        var datasetEntity = new DatasetEntity("test", 0L, Language.NL, Country.NETHERLANDS, false);
+        StepStatistic failedStatistic = new StepStatistic(Step.HARVEST_ZIP, Status.FAIL, 1L);
+        datasetEntity.setDatasetId(1);
+        when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
+        when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of(failedStatistic));
+
+        var expected = new ProgressInfoDto(
+                "", 0L, 0L, List.of(),
+                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
+                "Step size bigger than the dataset size.", null);
+        var report = service.getReport("1");
+        assertReportEquals(expected, report);
+    }
+
+    @Test
     void getReport_failToRetrieveDataset_expectFail() {
         when(datasetRepository.findById(1))
                 .thenThrow(new RuntimeException("failed", new Exception()));
