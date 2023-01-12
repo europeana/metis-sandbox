@@ -116,9 +116,6 @@ public class HarvestServiceImpl implements HarvestService {
             }
           }
       );
-      //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-      //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-      datasetService.updateNumberOfTotalRecord(datasetId, (long) recordInfoList.size());
 
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
@@ -159,6 +156,10 @@ public class HarvestServiceImpl implements HarvestService {
       currentIndex.getAndIncrement();
       return ReportingIteration.IterationResult.CONTINUE;
     });
+
+    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+    datasetService.updateNumberOfTotalRecord(datasetId, (long) result.size());
 
     if(isStepSizeBiggerThanDatasetSize(result.size(), currentIndex.get(), nextIndexToSelect.get(), numberOfRecordsToStepInto)){
       saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_OAI_PMH,
@@ -249,15 +250,15 @@ public class HarvestServiceImpl implements HarvestService {
       // Attempt to delete the temporary iterator content.
       iterator.deleteIteratorContent();
 
+      //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+      //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+      datasetService.updateNumberOfTotalRecord(datasetId, (long) numberOfSelectedHeaders.get());
+
       if(isStepSizeBiggerThanDatasetSize(recordInfoList.size(), currentIndex.get(), nextIndexToSelect.get(), numberOfRecordsToStepInto)){
         saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_ZIP,
                 new IllegalArgumentException("Step size is bigger than dataset size"));
         return Collections.emptyList();
       }
-
-      //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-      //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-      datasetService.updateNumberOfTotalRecord(datasetId, (long) numberOfSelectedHeaders.get());
 
       if (!exception.isEmpty()) {
         throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
@@ -373,6 +374,6 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex, int nextIndexToSelect, int stepSize){
-    return datasetSize == 0 && currentIndex <= nextIndexToSelect && nextIndexToSelect < stepSize;
+    return datasetSize == 0 && currentIndex > 0 && currentIndex <= nextIndexToSelect && nextIndexToSelect < stepSize;
   }
 }
