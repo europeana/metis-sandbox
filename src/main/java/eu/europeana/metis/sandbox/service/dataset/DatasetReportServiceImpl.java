@@ -49,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
     private static final int FIRST = 0;
-    private static final String STEP_SIZE_BIGGER_THAN_DATASET = "Step size bigger than the dataset size.";
+    private static final String STEP_SIZE_BIGGER_THAN_DATASET = "Step size value bigger than the dataset size.";
     private static final String EMPTY_DATASET_MESSAGE = "Dataset is empty.";
     private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
     private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";

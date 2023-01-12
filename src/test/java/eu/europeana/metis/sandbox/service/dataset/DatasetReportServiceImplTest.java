@@ -231,7 +231,7 @@ class DatasetReportServiceImplTest {
         var expected = new ProgressInfoDto(
                 "", 0L, 0L, List.of(),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
-                "Step size bigger than the dataset size.", null);
+                "Step size value bigger than the dataset size.", null);
         var report = service.getReport("1");
         assertReportEquals(expected, report);
     }
