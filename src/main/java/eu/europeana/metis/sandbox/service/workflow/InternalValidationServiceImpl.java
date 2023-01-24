@@ -20,9 +20,9 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -39,13 +39,16 @@ class InternalValidationServiceImpl implements InternalValidationService {
   //Keep maps in memory for unique timestamps and locking between dataset ids
   private final Map<String, LocalDateTime> datasetIdTimestampMap = new ConcurrentHashMap<>();
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
+  private final LockRegistry lockRegistry;
 
   public InternalValidationServiceImpl(ValidationExecutionService validator,
       PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
-      ExecutionPointService executionPointService) {
+      ExecutionPointService executionPointService,
+      LockRegistry lockRegistry) {
     this.validator = validator;
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
+    this.lockRegistry = lockRegistry;
   }
 
   @Override
@@ -68,7 +71,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   }
 
   private void generateAnalysis(String datasetId, byte[] recordContent) throws PatternAnalysisException {
-    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> new ReentrantLock());
+    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("generateAnalysis_" + datasetId));
     final ExecutionPoint executionPoint;
     try {
       lock.lock();

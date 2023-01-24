@@ -58,6 +58,7 @@ class DatasetControllerIT {
     postgresql.dynamicProperties(registry);
     postgresql.runScripts(List.of("database/schema_drop_except_transform_xslt.sql", "database/schema.sql"));
     postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+    postgresql.runScripts(List.of("database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql"));
     TestContainer rabbitMQ = TestContainerFactoryIT.getContainer(TestContainerType.RABBITMQ);
     rabbitMQ.dynamicProperties(registry);
     TestContainer mongoDBContainerIT = TestContainerFactoryIT.getContainer(TestContainerType.MONGO);
