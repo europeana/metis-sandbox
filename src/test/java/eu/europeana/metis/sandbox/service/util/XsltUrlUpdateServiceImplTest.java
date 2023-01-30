@@ -8,6 +8,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -20,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.integration.support.locks.LockRegistry;
 
 @ExtendWith({MockitoExtension.class})
 @TestMethodOrder(OrderAnnotation.class)
@@ -40,6 +43,9 @@ class XsltUrlUpdateServiceImplTest {
 
   @Mock
   private HttpClient httpClient;
+
+  @Mock
+  private LockRegistry lockRegistry;
 
   @InjectMocks
   private XsltUrlUpdateServiceImpl xsltUrlUpdateService;
@@ -54,6 +60,7 @@ class XsltUrlUpdateServiceImplTest {
   @Order(1)
   void updateXslt_ExpectSuccess() {
     //given
+    when(lockRegistry.obtain(any())).thenReturn(mock(Lock.class));
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
@@ -68,6 +75,7 @@ class XsltUrlUpdateServiceImplTest {
   @Order(2)
   void updateXslt_Existent_ExpectSuccess() {
     // given
+    when(lockRegistry.obtain(any())).thenReturn(mock(Lock.class));
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
@@ -83,6 +91,7 @@ class XsltUrlUpdateServiceImplTest {
   @Order(3)
   void updateXslt_RepositorySave_RuntimeException_ExpectFail() {
     //given
+    when(lockRegistry.obtain(any())).thenReturn(mock(Lock.class));
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
@@ -98,6 +107,7 @@ class XsltUrlUpdateServiceImplTest {
   @Order(4)
   void updateXslt_RepositoryFind_RuntimeException_ExpectFail() {
     //given
+    when(lockRegistry.obtain(any())).thenReturn(mock(Lock.class));
     wm.stubFor(get("/xslt")
         .withHost(equalTo("document.domain"))
         .withPort(12345)
@@ -113,7 +123,6 @@ class XsltUrlUpdateServiceImplTest {
   @Test
   @Order(5)
   void updateXslt_Service_IllegalArgumentException_ExpectFail() {
-
     assertThrows(IllegalArgumentException.class, () -> xsltUrlUpdateService.updateXslt(""));
   }
 
@@ -147,9 +156,7 @@ class XsltUrlUpdateServiceImplTest {
     Mockito.verify(transformXsltRepository, never()).save(any());
   }
 
-
   private void setFinalStaticField(Class<?> clazz, String fieldName, Object value) throws ReflectiveOperationException {
-
     Field field = clazz.getDeclaredField(fieldName);
     field.setAccessible(true);
 
