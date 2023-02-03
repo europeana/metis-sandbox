@@ -95,19 +95,6 @@ class PatternAnalysisServiceImplIT {
 
   @TestConfiguration
   static class Config {
-
-    @Bean
-    public DefaultLockRepository defaultLockRepository2(DataSource dataSource) {
-      DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource);
-      defaultLockRepository.setPrefix("integration.int_");
-      return defaultLockRepository;
-    }
-
-    @Bean
-    public JdbcLockRegistry jdbcLockRegistry2(LockRepository repository) {
-      return new JdbcLockRegistry(repository);
-    }
-
     @Bean
     PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2(ProblemPatternsRepositories problemPatternsRepositories) {
       return new PatternAnalysisServiceImpl(problemPatternsRepositories, 2, 2);
