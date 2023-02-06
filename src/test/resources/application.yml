@@ -80,7 +80,7 @@ sandbox:
   transformation:
     xslt-url: https://metis-core-rest.test.eanadev.org/datasets/xslt/default
   enrichment:
-    dereference-url: https://metis-dereference-rest-test.eanadev.org
+    dereference-url: https://metis-dereference-rest.test.eanadev.org
     enrichment-properties:
       entity-management-url: https://entity-management-test.eanadev.org/entity
       entity-api-url: https://entity-api-v2-test.eanadev.org/entity

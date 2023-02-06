@@ -25,11 +25,13 @@ import eu.europeana.validation.service.ValidationExecutionService;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.integration.support.locks.LockRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class InternalValidationServiceImplTest {
@@ -44,6 +46,9 @@ class InternalValidationServiceImplTest {
 
   @Mock
   private ExecutionPointService executionPointService;
+
+  @Mock
+  private LockRegistry lockRegistry;
 
   @InjectMocks
   private InternalValidationServiceImpl service;
@@ -62,6 +67,7 @@ class InternalValidationServiceImplTest {
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
     when(executionPointService.getExecutionPoint("1", Step.VALIDATE_INTERNAL.toString())).thenReturn(Optional.empty());
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
     when(patternAnalysisService.initializePatternAnalysisExecution(anyString(), any(Step.class),
         any(LocalDateTime.class))).thenReturn(new ExecutionPoint());
     doNothing().when(patternAnalysisService).generateRecordPatternAnalysis(any(ExecutionPoint.class), anyString());
@@ -102,6 +108,7 @@ class InternalValidationServiceImplTest {
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
     when(executionPointService.getExecutionPoint("1", Step.VALIDATE_INTERNAL.toString())).thenReturn(Optional.empty());
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
     when(patternAnalysisService.initializePatternAnalysisExecution(anyString(), any(Step.class),
         any(LocalDateTime.class))).thenReturn(new ExecutionPoint());
     doThrow(new PatternAnalysisException("Error", null)).when(patternAnalysisService)

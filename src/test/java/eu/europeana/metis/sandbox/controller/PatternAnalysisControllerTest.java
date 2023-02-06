@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -34,12 +35,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -62,6 +65,9 @@ class PatternAnalysisControllerTest {
   @MockBean
   private DatasetReportService mockDatasetReportService;
 
+  @MockBean
+  private LockRegistry lockRegistry;
+
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
   @Test
@@ -78,6 +84,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
@@ -114,6 +121,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
@@ -149,6 +157,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
@@ -186,6 +195,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.empty());
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
@@ -265,6 +275,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(executionPoint));
     when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
