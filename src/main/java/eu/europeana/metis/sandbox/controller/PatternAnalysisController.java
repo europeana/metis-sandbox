@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,7 +67,7 @@ public class PatternAnalysisController {
   private final DatasetReportService datasetReportService;
   private final RdfConversionUtils rdfConversionUtils = new RdfConversionUtils();
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
-
+  private final LockRegistry lockRegistry;
   /**
    * Constructor with required parameters.
    *
@@ -77,11 +78,13 @@ public class PatternAnalysisController {
    */
   public PatternAnalysisController(PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService,
-      RecordLogService recordLogService, DatasetReportService datasetReportService) {
+      RecordLogService recordLogService, DatasetReportService datasetReportService,
+      LockRegistry lockRegistry) {
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
     this.recordLogService = recordLogService;
     this.datasetReportService = datasetReportService;
+    this.lockRegistry = lockRegistry;
   }
 
   /**
@@ -113,7 +116,7 @@ public class PatternAnalysisController {
 
   private void finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {
     if (datasetReportService.getReport(datasetId).getStatus() == Status.COMPLETED) {
-      final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> new ReentrantLock());
+      final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("finalizePatternAnalysis_" + datasetId));
       try {
         lock.lock();
         LOGGER.debug("Finalize analysis: {} lock, Locked", datasetId);
