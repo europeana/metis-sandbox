@@ -30,7 +30,8 @@ class SandboxApplicationIT {
     TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
     postgresql.dynamicProperties(registry);
     postgresql.runScripts(List.of("database/schema_drop.sql", "database/schema.sql", "database/schema_problem_patterns_drop.sql",
-        "database/schema_problem_patterns.sql"));
+        "database/schema_problem_patterns.sql",
+        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql"));
     TestContainer rabbitMQ = TestContainerFactoryIT.getContainer(TestContainerType.RABBITMQ);
     rabbitMQ.dynamicProperties(registry);
     TestContainer mongoDBContainerIT = TestContainerFactoryIT.getContainer(TestContainerType.MONGO);
