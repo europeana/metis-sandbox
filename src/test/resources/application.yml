@@ -70,32 +70,35 @@ sandbox:
       pool-size: 10
     predefinedSchemas:
       EDM-INTERNAL:
-        url:
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip
         rootLocation: EDM-INTERNAL.xsd
         schematronLocation: schematron/schematron-internal.xsl
       EDM-EXTERNAL:
-        url:
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip
         rootLocation: EDM.xsd
         schematronLocation: schematron/schematron.xsl
   transformation:
-    xslt-url: https://metis-core-rest-test.eanadev.org/datasets/xslt/default
+    xslt-url: https://metis-core-rest.test.eanadev.org/datasets/xslt/default
   enrichment:
-    dereference-url: http://metis-test
-    enrichment-url: http://metis-test
+    dereference-url: https://metis-dereference-rest.test.eanadev.org
+    enrichment-properties:
+      entity-management-url: https://entity-management-test.eanadev.org/entity
+      entity-api-url: https://entity-api-v2-test.eanadev.org/entity
+      entity-api-key: api2demo
   publish:
     mongo:
-      application-name: metis-sandbox-application-publish-local
-      db: metis-sandbox-publish-test
-      hosts: localhost
-      ports: 27017
+      application-name:
+      db:
+      hosts:
+      ports:
     solr:
-      hosts: http://metis-test:8888/solr/metis_sandbox_test
+      hosts:
   s3:
     access-key:
     secret-key:
-    endpoint: some-uri
-    signing-region: eu
-    thumbnails-bucket: europeana-sandbox-thumbnails-test
+    endpoint:
+    signing-region:
+    thumbnails-bucket:
   portal:
     publish:
       dataset-base-url: "http://metis-test"
@@ -173,6 +176,6 @@ elastic:
     metrics_interval: 5s
     environment: dev
     hostname: localhost
-    enabled: true
+    enabled: false
     recording: true
     instrument: true

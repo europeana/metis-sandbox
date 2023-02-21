@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
     private static final int FIRST = 0;
+    private static final String STEP_SIZE_BIGGER_THAN_DATASET = "Step size value bigger than the dataset size.";
     private static final String EMPTY_DATASET_MESSAGE = "Dataset is empty.";
     private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
     private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
@@ -99,17 +100,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
                     exception);
         }
 
-        if (stepStatistics.isEmpty()) {
-            return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
-                    dataset.getRecordsQuantity(), 0L, List.of(),
-                    datasetInfoDto, getErrorMessage(0L, 0L, dataset.getRecordsQuantity()), null);
-        }
-
         // get qty of records completely processed
         long completedRecords = getCompletedRecords(stepStatistics);
 
         // get qty of records that failed
         long failedRecords = getFailedRecords(stepStatistics);
+
+        if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))) {
+            return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
+                    dataset.getRecordsQuantity(), 0L, List.of(),
+                    datasetInfoDto, getErrorMessage(0L, failedRecords, dataset.getRecordsQuantity()), null);
+        }
 
         // get records processed by step
         Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(
@@ -154,10 +155,13 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private String getErrorMessage(Long completedRecords, Long failedRecords, Long recordsQuantity) {
         if (recordsQuantity == null) {
             return "";
+        } else if(completedRecords == 0 && recordsQuantity == 0 && failedRecords > 0) {
+            return STEP_SIZE_BIGGER_THAN_DATASET;
         } else if (recordsQuantity == 0) {
             return EMPTY_DATASET_MESSAGE;
         } else if (completedRecords.equals(failedRecords)) {
             return FINISH_ALL_ERRORS_MESSAGE;
+
         } else {
             return "";
         }

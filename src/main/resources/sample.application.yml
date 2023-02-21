@@ -41,6 +41,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+  integration:
+    defaultlockrepository:
+      prefix: integration.int_
+      ttl: 10000
+      region: DEFAULT
 
 # spring boot actuator see documentation at
 # https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/
@@ -109,7 +114,10 @@ sandbox:
     xslt-url:
   enrichment:
     dereference-url:
-    enrichment-url:
+    enrichment-properties:
+      entity-management-url:
+      entity-api-url:
+      entity-api-key:
   publish:
     mongo:
       application-name:

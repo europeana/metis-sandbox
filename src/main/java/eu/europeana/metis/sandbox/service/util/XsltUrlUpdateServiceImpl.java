@@ -13,8 +13,10 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,13 +26,17 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
   private final TransformXsltRepository transformXsltRepository;
 
+  private final LockRegistry lockRegistry;
+
   private static final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_2)
                                                          .followRedirects(Redirect.NORMAL)
                                                          .connectTimeout(Duration.ofSeconds(5))
                                                          .build();
 
-  public XsltUrlUpdateServiceImpl(TransformXsltRepository transformXsltRepository) {
+  public XsltUrlUpdateServiceImpl(TransformXsltRepository transformXsltRepository,
+      LockRegistry lockRegistry) {
     this.transformXsltRepository = transformXsltRepository;
+    this.lockRegistry = lockRegistry;
   }
 
   @Override
@@ -60,7 +66,10 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
   }
 
   private void saveDefaultXslt(String newTransformXslt) {
+    final Lock lock = lockRegistry.obtain("saveDefaultXslt");
     try {
+      lock.lock();
+      LOGGER.info("Save default xslt lock, Locked");
       final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc();
 
       if (entity.isPresent()) {
@@ -73,6 +82,9 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
       }
     } catch (RuntimeException e) {
       LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
+    } finally {
+      LOGGER.info("Save default xslt lock, Unlocked");
+      lock.unlock();
     }
   }
 }

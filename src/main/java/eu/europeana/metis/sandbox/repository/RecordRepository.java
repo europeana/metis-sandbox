@@ -10,17 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
 
   /**
-   * Update record with new values for europeana id and provider id
-   *
-   * @param recordId the id of the record to update
-   * @param europeanaId the europeana id value to update with
-   * @param providerId the provider id value to update with
-   */
-  @Modifying
-  @Query("UPDATE RecordEntity rec SET rec.europeanaId = ?2, rec.providerId = ?3 WHERE rec.id = ?1")
-  void updateEuropeanaIdAndProviderId(Long recordId, String europeanaId, String providerId);
-
-  /**
    * Update record with new values for content tier and metadata tier
    *
    * @param recordId the id of the record to update
@@ -37,7 +26,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @param datasetId must not be null
    */
   @Modifying
-  @Query("delete from RecordEntity where datasetId = ?1")
+  @Query("DELETE FROM RecordEntity WHERE datasetId = ?1")
   void deleteByDatasetId(String datasetId);
 
   /**
@@ -45,8 +34,17 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    *
    * @param providerId the provider id value to search
    */
-  @Query("select re from RecordEntity re where re.providerId = ?1 and re.datasetId = ?2")
+  @Query("SELECT re FROM RecordEntity re WHERE re.providerId = ?1 AND re.datasetId = ?2")
   RecordEntity findByProviderIdAndDatasetId(String providerId, String datasetId);
+
+  /**
+   * Find record by europeana id
+   *
+   * @param europeanaId the europeana identifier value to search
+   */
+  @Query("SELECT re FROM RecordEntity re WHERE re.europeanaId = ?1 AND re.datasetId = ?2")
+  RecordEntity findByEuropeanaIdAndDatasetId(String europeanaId, String datasetId);
+
 
   /**
    * Get metrics by dataset for a given time using custom query

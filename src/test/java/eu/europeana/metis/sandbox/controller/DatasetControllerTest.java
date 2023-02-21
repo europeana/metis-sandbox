@@ -28,6 +28,7 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -93,7 +94,8 @@ class DatasetControllerTest {
         mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
                         .file(mockMultipart)
                         .param("country", ITALY.name())
-                        .param("language", IT.name()))
+                        .param("language", IT.name())
+                        .param("stepsize","2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -115,7 +117,8 @@ class DatasetControllerTest {
                         .file(mockMultipart)
                         .file(xsltMock)
                         .param("country", ITALY.name())
-                        .param("language", IT.name()))
+                        .param("language", IT.name())
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -131,7 +134,8 @@ class DatasetControllerTest {
         mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
                         .param("country", ITALY.name())
                         .param("language", IT.name())
-                        .param("url", url))
+                        .param("url", url)
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -153,7 +157,8 @@ class DatasetControllerTest {
                         .file(xsltMock)
                         .param("country", ITALY.name())
                         .param("language", IT.name())
-                        .param("url", url))
+                        .param("url", url)
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -171,7 +176,8 @@ class DatasetControllerTest {
                         .param("language", IT.xmlValue())
                         .param("url", url)
                         .param("setspec", "1073")
-                        .param("metadataformat", "rdf"))
+                        .param("metadataformat", "rdf")
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -194,7 +200,8 @@ class DatasetControllerTest {
                         .param("language", IT.xmlValue())
                         .param("url", url)
                         .param("setspec", "1073")
-                        .param("metadataformat", "rdf"))
+                        .param("metadataformat", "rdf")
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
     }
@@ -215,6 +222,22 @@ class DatasetControllerTest {
     }
 
     @Test
+    void processDatasetFromFile_invalidStepSize_expectFail() throws Exception {
+
+        var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+                "<test></test>".getBytes());
+
+        mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                        .file(dataset)
+                        .param("country", ITALY.name())
+                        .param("language", IT.name())
+                        .param("stepsize", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message",
+                        is("Step size must be a number higher than zero")));
+    }
+
+    @Test
     void processDatasetFromURL_invalidName_expectFail() throws Exception {
 
         final String url = "zip" + File.separator + "dataset-valid.zip";
@@ -227,6 +250,22 @@ class DatasetControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message",
                         is("dataset name can only include letters, numbers, _ or - characters")));
+    }
+
+    @Test
+    void processDatasetFromURL_invalidStepSize_expectFail() throws Exception {
+
+        final String url = "zip" + File.separator + "dataset-valid.zip";
+
+        mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+                        .param("name", "invalidDatasetName")
+                        .param("country", ITALY.name())
+                        .param("language", IT.name())
+                        .param("url", url)
+                        .param("stepsize", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message",
+                        is("Step size must be a number higher than zero")));
     }
 
     @Test
@@ -247,6 +286,24 @@ class DatasetControllerTest {
     }
 
     @Test
+    void processDatasetFromOAI_invalidStepSize_expectFail() throws Exception {
+
+        final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+
+        mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+                        .param("name", "invalidDatasetName")
+                        .param("country", ITALY.name())
+                        .param("language", IT.name())
+                        .param("url", url)
+                        .param("setspec", "1073")
+                        .param("metadataformat", "rdf")
+                        .param("stepsize", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message",
+                        is("Step size must be a number higher than zero")));
+    }
+
+    @Test
     void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
 
         final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
@@ -254,7 +311,7 @@ class DatasetControllerTest {
         when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
                 .thenReturn("12345");
         doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
-                .runHarvestOaiPmhAsync(eq("my-data-set"), eq("12345"), eq(ITALY), eq(IT),
+                .runHarvestOaiPmhAsync(any(DatasetMetadata.class),
                         any(OaiHarvestData.class));
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")

@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -66,8 +67,14 @@ class SandboxConfig {
   @Value("${sandbox.enrichment.dereference-url}")
   private String dereferenceServiceUrl;
 
-  @Value("${sandbox.enrichment.enrichment-url}")
-  private String enrichmentServiceUrl;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
+  private String entityManagementUrl;
+
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
+  private String entityApiUrl;
+
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-key}")
+  private String entityApiKey;
 
   //TODO: 04-03-2021 We should remove this configuration once
   //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
@@ -100,8 +107,8 @@ class SandboxConfig {
   }
 
   @Bean
-  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository) {
-    return new XsltUrlUpdateServiceImpl(transformXsltRepository);
+  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository, LockRegistry lockRegistry) {
+    return new XsltUrlUpdateServiceImpl(transformXsltRepository, lockRegistry);
   }
 
   @Bean
@@ -158,9 +165,9 @@ class SandboxConfig {
   EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
     DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
-    dereferencerProvider.setEnrichmentUrl(enrichmentServiceUrl);
+    dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
     EnricherProvider enricherProvider = new EnricherProvider();
-    enricherProvider.setEnrichmentUrl(enrichmentServiceUrl);
+    enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
     return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
   }
 

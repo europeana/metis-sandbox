@@ -14,6 +14,8 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +46,7 @@ class RecordLogServiceImpl implements RecordLogService {
 
         RecordEntity recordEntity = recordRepository.getOne(record.getRecordId());
         var recordLogEntity = new RecordLogEntity(recordEntity, new String(
-            recordRecordProcessEvent.getRecord().getContent()),
+            recordRecordProcessEvent.getRecord().getContent(), StandardCharsets.UTF_8),
                 recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus());
         var recordErrorLogEntities = recordErrors.stream()
                 .map(error -> new RecordErrorLogEntity(recordEntity,

@@ -17,13 +17,18 @@ import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepos
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
-import eu.europeana.metis.sandbox.test.utils.PostgresContainerInitializerIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainer;
+import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
+import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
-import eu.europeana.patternanalysis.view.*;
-
+import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
+import eu.europeana.patternanalysis.view.ProblemOccurrence;
+import eu.europeana.patternanalysis.view.ProblemPattern;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription;
+import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,7 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
-
+import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -45,6 +50,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.integration.jdbc.lock.DefaultLockRepository;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.jdbc.lock.LockRepository;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -60,9 +68,10 @@ class PatternAnalysisServiceImplIT {
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    PostgresContainerInitializerIT.dynamicProperties(registry);
-    PostgresContainerInitializerIT.runScripts(List.of(
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+    TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
+    postgresql.dynamicProperties(registry);
+    postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
+        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql"));
   }
 
   final String rdfStringNoProblems = IOUtils.toString(
@@ -86,7 +95,6 @@ class PatternAnalysisServiceImplIT {
 
   @TestConfiguration
   static class Config {
-
     @Bean
     PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2(ProblemPatternsRepositories problemPatternsRepositories) {
       return new PatternAnalysisServiceImpl(problemPatternsRepositories, 2, 2);
@@ -328,22 +336,20 @@ class PatternAnalysisServiceImplIT {
     //Insert a problem pattern
     final LocalDateTime nowP1 = LocalDateTime.now();
     final RDF rdfRecords1 = new RdfConversionUtils().convertStringToRdf(IOUtils.toString(new FileInputStream(
-            "src/test/resources/record.problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
+        "src/test/resources/record.problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
     final RDF rdfRecords2 = new RdfConversionUtils().convertStringToRdf(IOUtils.toString(new FileInputStream(
-            "src/test/resources/record.problempatterns/P1_uppercase_title.xml"), StandardCharsets.UTF_8));
-
+        "src/test/resources/record.problempatterns/P1_uppercase_title.xml"), StandardCharsets.UTF_8));
 
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution("1",
-            Step.VALIDATE_INTERNAL,
-            nowP1);
+        Step.VALIDATE_INTERNAL,
+        nowP1);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecords1);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecords2);
     patternAnalysisServiceImpl.finalizeDatasetPatternAnalysis(executionPoint1);
 
-
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<Step> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
-            "1", Step.VALIDATE_INTERNAL, nowP1).orElseThrow();
+        "1", Step.VALIDATE_INTERNAL, nowP1).orElseThrow();
     assertThat(datasetPatternAnalysis.getProblemPatternList()).hasSize(1);
     List<RecordAnalysis> recordAnalysisList = datasetPatternAnalysis.getProblemPatternList().get(0).getRecordAnalysisList();
     assertThat(recordAnalysisList).hasSize(1);
@@ -351,9 +357,9 @@ class PatternAnalysisServiceImplIT {
     assertThat(recordAnalysis.getRecordId()).isIn("/21/_providedCHO_MHC_EMC_10_ms_06", "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
     assertThat(recordAnalysis.getProblemOccurrenceList()).hasSize(1);
     ProblemOccurrence occurrence = recordAnalysis.getProblemOccurrenceList().get(0);
-    assertThat(occurrence.getMessageReport()).isIn("LOWERCASE or UPPERCASE title","lowercase or uppercase title");
+    assertThat(occurrence.getMessageReport()).isIn("LOWERCASE or UPPERCASE title", "lowercase or uppercase title");
     assertThat(occurrence.getAffectedRecordIds()).containsExactlyInAnyOrder("/21/_providedCHO_MHC_EMC_10_ms_06",
-            "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
   }
 
 

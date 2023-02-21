@@ -11,7 +11,7 @@
 
   <groupId>eu.europeana.metis</groupId>
   <artifactId>metis-sandbox</artifactId>
-  <version>4</version>
+  <version>5</version>
   <packaging>war</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
@@ -19,7 +19,7 @@
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
     <url>https://github.com/europeana/metis-sandbox</url>
-    <tag>v4</tag>
+    <tag>v5</tag>
     <developerConnection>scm:git:https://github.com/europeana/metis-sandbox</developerConnection>
   </scm>
 
@@ -39,10 +39,10 @@
   <properties>
     <version.java>11</version.java>
     <version.springfox>2.9.2</version.springfox>
-    <version.metis>8-SNAPSHOT</version.metis>
+    <version.metis>9</version.metis>
     <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.3.3</version.postgresql>
-    <version.aws.s3>1.11.762</version.aws.s3>
+    <version.postgresql>42.5.0</version.postgresql>
+    <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
@@ -54,11 +54,13 @@
     <version.wiremock>2.32.0</version.wiremock>
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
-    <version.woodstox-core>6.2.7</version.woodstox-core>
-    <version.testcontainers>1.17.2</version.testcontainers>
+    <version.woodstox-core>6.4.0</version.woodstox-core>
+    <version.testcontainers>1.17.5</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.9.1</version.micrometer>
     <version.apm>1.33.0</version.apm>
+    <version.netty>4.1.84.Final</version.netty>
+    <version.reactor>3.4.24</version.reactor>
   </properties>
   <dependencies>
     <!-- Spring boot -->
@@ -89,7 +91,10 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-jdbc</artifactId>
+    </dependency>
     <!-- Europeana -->
     <dependency>
       <groupId>eu.europeana.metis</groupId>
@@ -118,8 +123,92 @@
           <groupId>eu.europeana.corelib</groupId>
           <artifactId>corelib-lookup</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-webflux</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.projectreactor</groupId>
+          <artifactId>reactor-core</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- client entity api dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.projectreactor.netty</groupId>
+          <artifactId>reactor-netty</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http2</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-resolver-dns</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-dns</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-buffer</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-resolver</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>${version.reactor}</version>
+    </dependency>
+    <!-- end of client entity api entities -->
 
     <dependency>
       <groupId>eu.europeana.metis</groupId>
@@ -287,6 +376,24 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mongodb</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>solr</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>localstack</artifactId>
       <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>

@@ -6,9 +6,10 @@ import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -23,7 +24,6 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
-import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -32,10 +32,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.io.IOUtils;
@@ -51,6 +53,7 @@ import org.springframework.stereotype.Service;
 public class HarvestServiceImpl implements HarvestService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
+  private static final int DEFAULT_STEP_SIZE = 1;
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
@@ -58,7 +61,6 @@ public class HarvestServiceImpl implements HarvestService {
   private final DatasetService datasetService;
   private final int maxRecords;
   private final RecordRepository recordRepository;
-  private final XmlRecordProcessorService xmlRecordProcessorService;
 
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester,
@@ -66,67 +68,54 @@ public class HarvestServiceImpl implements HarvestService {
       RecordPublishService recordPublishService,
       DatasetService datasetService,
       @Value("${sandbox.dataset.max-size}") int maxRecords,
-      RecordRepository recordRepository,
-      XmlRecordProcessorService xmlRecordProcessorService) {
+      RecordRepository recordRepository) {
     this.httpHarvester = httpHarvester;
     this.recordPublishService = recordPublishService;
     this.datasetService = datasetService;
     this.recordRepository = recordRepository;
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
-    this.xmlRecordProcessorService = xmlRecordProcessorService;
   }
 
   @Override
-  public void harvestOaiPmh(String datasetId, Record.RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData) {
-    publishHarvestedRecords(harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData),
+  public void harvestOaiPmh(String datasetId, RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData, Integer stepSize) {
+    publishHarvestedRecords(harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData, stepSize),
         datasetId,
         "Error harvesting OAI-PMH records",
         Step.HARVEST_OAI_PMH);
   }
 
   private List<RecordInfo> harvestOaiIdentifiers(String datasetId, Record.RecordBuilder recordDataEncapsulated,
-      @NotNull OaiHarvestData oaiHarvestData) {
+      @NotNull OaiHarvestData oaiHarvestData, Integer stepSize) {
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    datasetService.updateNumberOfTotalRecord(datasetId, null);
 
     try (OaiRecordHeaderIterator recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         new OaiHarvest(oaiHarvestData.getUrl(),
             oaiHarvestData.getMetadataformat(),
             oaiHarvestData.getSetspec()))) {
 
-      AtomicLong numberOfIterations = new AtomicLong();
+      List<OaiRecordHeader> filteredIterator = filterHeaders(recordHeaderIterator, datasetId, stepSize, recordDataEncapsulated);
 
-      recordHeaderIterator.forEach(recordHeader -> {
+      if(filteredIterator.isEmpty()){
+        return Collections.emptyList();
+      }
+
+      filteredIterator.forEach(recordHeader -> {
             try {
               OaiHarvestData completeOaiHarvestData = new OaiHarvestData(oaiHarvestData.getUrl(),
                   oaiHarvestData.getSetspec(),
                   oaiHarvestData.getMetadataformat(),
                   recordHeader.getOaiIdentifier());
 
-              if (recordHeader.isDeleted()) {
-                return ReportingIteration.IterationResult.CONTINUE;
-              }
-
-              numberOfIterations.getAndIncrement();
-
-              if (numberOfIterations.get() > maxRecords) {
-                datasetService.setRecordLimitExceeded(datasetId);
-                numberOfIterations.set(maxRecords);
-                return ReportingIteration.IterationResult.TERMINATE;
-              }
-
-              recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated, recordInfoList));
+              recordInfoList.add(harvestOaiRecords(datasetId, completeOaiHarvestData, recordDataEncapsulated));
 
             } catch (RuntimeException harvestException) {
-              saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(), Step.HARVEST_OAI_PMH,
+              saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(),
+                      Step.HARVEST_OAI_PMH,
                   harvestException);
             }
-            return ReportingIteration.IterationResult.CONTINUE;
           }
       );
-
-      datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
 
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
@@ -137,8 +126,51 @@ public class HarvestServiceImpl implements HarvestService {
                          .collect(Collectors.toList());
   }
 
-  private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData,
-      Record.RecordBuilder recordToHarvest, List<RecordInfo> recordInfoList) {
+  private List<OaiRecordHeader> filterHeaders(OaiRecordHeaderIterator iteratorToFilter, String datasetId,
+                                              Integer stepSize, Record.RecordBuilder recordDataEncapsulated)
+          throws HarvesterException {
+
+    List<OaiRecordHeader> result = new ArrayList<>();
+    final int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
+    AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
+    AtomicInteger currentIndex = new AtomicInteger();
+    AtomicInteger nextIndexToSelect = new AtomicInteger(numberOfRecordsToStepInto - 1);
+
+    iteratorToFilter.forEach(oaiRecordHeader -> {
+      if(numberOfSelectedHeaders.get() >= maxRecords){
+        //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+        //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+        datasetService.setRecordLimitExceeded(datasetId);
+        return ReportingIteration.IterationResult.TERMINATE;
+      }
+
+      if(currentIndex.get() == nextIndexToSelect.get()){
+        if(oaiRecordHeader.isDeleted()){
+          nextIndexToSelect.getAndIncrement();
+        } else {
+          result.add(oaiRecordHeader);
+          nextIndexToSelect.addAndGet(numberOfRecordsToStepInto);
+          numberOfSelectedHeaders.getAndIncrement();
+        }
+      }
+      currentIndex.getAndIncrement();
+      return ReportingIteration.IterationResult.CONTINUE;
+    });
+
+    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+    datasetService.updateNumberOfTotalRecord(datasetId, (long) result.size());
+
+    if(isStepSizeBiggerThanDatasetSize(result.size(), currentIndex.get(), nextIndexToSelect.get(), numberOfRecordsToStepInto)){
+      saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_OAI_PMH,
+              new IllegalArgumentException("Step size bigger than dataset size"));
+      return Collections.emptyList();
+    }
+
+    return result;
+  }
+
+  private RecordInfo harvestOaiRecords(String datasetId, OaiHarvestData oaiHarvestData, Record.RecordBuilder recordToHarvest) {
     RecordInfo recordInfo;
     List<RecordError> recordErrors = new ArrayList<>();
     try {
@@ -149,59 +181,64 @@ public class HarvestServiceImpl implements HarvestService {
       RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
-      if (isDuplicatedByProviderId(recordEntity, datasetId)
-          || isDuplicatedByContent(recordContent, recordInfoList)) {
-        recordInfo = handleDuplicated(oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, recordToHarvest);
-      } else {
-        recordEntity = recordRepository.save(recordEntity);
-        Record harvestedRecord = recordToHarvest
-            .providerId(oaiHarvestData.getOaiIdentifier())
-            .content(recordContent)
-            .recordId(recordEntity.getId())
-            .build();
+      recordEntity = recordRepository.save(recordEntity);
+      Record harvestedRecord = recordToHarvest
+              .providerId(oaiHarvestData.getOaiIdentifier())
+              .content(recordContent)
+              .recordId(recordEntity.getId())
+              .build();
         recordInfo = new RecordInfo(harvestedRecord, recordErrors);
-      }
 
       return recordInfo;
     } catch (HarvesterException | IOException e) {
       LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}", oaiHarvestData.getOaiIdentifier(), e);
-      saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(), Step.HARVEST_OAI_PMH, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(),
+              Step.HARVEST_OAI_PMH, new RuntimeException(e));
       return null;
     }
   }
 
   @Override
-  public void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated)
+  public void harvest(InputStream inputStream, String datasetId, RecordBuilder recordDataEncapsulated, Integer stepSize)
       throws ServiceException {
-    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated),
+    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated, stepSize),
         datasetId,
         "Error harvesting file records",
         Step.HARVEST_ZIP);
   }
 
   private List<RecordInfo> harvestInputStreamIdentifiers(InputStream inputStream, String datasetId,
-      Record.RecordBuilder recordDataEncapsulated) {
+      Record.RecordBuilder recordDataEncapsulated, Integer stepSize) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
-    datasetService.updateNumberOfTotalRecord(datasetId, null);
+    final int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
 
     try {
-      AtomicLong numberOfIterations = new AtomicLong(0);
+      AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
+      AtomicInteger currentIndex = new AtomicInteger();
+      AtomicInteger nextIndexToSelect = new AtomicInteger(numberOfRecordsToStepInto - 1);
+
       final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream,
           CompressedFileExtension.ZIP);
+      final String extractedDirectoryFromIterator = iterator.getExtractedDirectory();
       iterator.forEach(path -> {
         try (InputStream content = Files.newInputStream(path)) {
 
-          numberOfIterations.getAndIncrement();
-
-          if (numberOfIterations.get() > maxRecords) {
+          if (numberOfSelectedHeaders.get() >= maxRecords) {
+            //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+            //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
             datasetService.setRecordLimitExceeded(datasetId);
-            numberOfIterations.set(maxRecords);
+            numberOfSelectedHeaders.set(maxRecords);
             return ReportingIteration.IterationResult.TERMINATE;
           }
 
-          recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, recordInfoList));
+          if(currentIndex.get() == nextIndexToSelect.get()){
+            recordInfoList.add(harvestInputStream(content, datasetId, recordDataEncapsulated, path, extractedDirectoryFromIterator));
+            nextIndexToSelect.addAndGet(numberOfRecordsToStepInto);
+            numberOfSelectedHeaders.incrementAndGet();
+          }
 
+          currentIndex.incrementAndGet();
           return ReportingIteration.IterationResult.CONTINUE;
 
         } catch (IOException | RuntimeException e) {
@@ -213,7 +250,15 @@ public class HarvestServiceImpl implements HarvestService {
       // Attempt to delete the temporary iterator content.
       iterator.deleteIteratorContent();
 
-      datasetService.updateNumberOfTotalRecord(datasetId, numberOfIterations.get());
+      //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
+      //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+      datasetService.updateNumberOfTotalRecord(datasetId, (long) numberOfSelectedHeaders.get());
+
+      if(isStepSizeBiggerThanDatasetSize(recordInfoList.size(), currentIndex.get(), nextIndexToSelect.get(), numberOfRecordsToStepInto)){
+        saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_ZIP,
+                new IllegalArgumentException("Step size is bigger than dataset size"));
+        return Collections.emptyList();
+      }
 
       if (!exception.isEmpty()) {
         throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
@@ -231,33 +276,27 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   private RecordInfo harvestInputStream(InputStream inputStream, String datasetId, Record.RecordBuilder recordToHarvest,
-      Path path, List<RecordInfo> recordInfoList) throws ServiceException {
+      Path path, String extractedDirectoryFromIterator) throws ServiceException {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
-    int pathNameCount = path.getNameCount();
-    Path tmpProviderId = pathNameCount >= 2 ? path.subpath(pathNameCount - 2, pathNameCount) : path.getFileName();
-    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId.toString(), datasetId, "", "");
+    String tmpProviderId = createTemporaryIdFromPath(extractedDirectoryFromIterator, path);
+    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId, datasetId, "", "");
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
 
-      if (isDuplicatedByProviderId(recordEntity, datasetId)
-          || isDuplicatedByContent(recordContent, recordInfoList)) {
-        recordInfo = handleDuplicated(tmpProviderId.toString(), Step.HARVEST_ZIP, recordToHarvest);
-      } else {
-        recordEntity = recordRepository.save(recordEntity);
-        Record harvestedRecord = recordToHarvest
-            .providerId(tmpProviderId.toString())
-            .content(recordContent)
-            .recordId(recordEntity.getId())
-            .build();
-        recordInfo = new RecordInfo(harvestedRecord, recordErrors);
-      }
+      recordEntity = recordRepository.save(recordEntity);
+      Record harvestedRecord = recordToHarvest
+              .providerId(tmpProviderId)
+              .content(recordContent)
+              .recordId(recordEntity.getId())
+              .build();
+      recordInfo = new RecordInfo(harvestedRecord, recordErrors);
 
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId.toString(), Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
       return null;
     }
   }
@@ -295,7 +334,7 @@ public class HarvestServiceImpl implements HarvestService {
       String providerIdWithError,
       Step step,
       RuntimeException harvest) {
-    final String errorMessage = "Error harvesting record:";
+    final String errorMessage = "Error while harvesting ";
     final String causeMessage = "Cause: " + findCause(harvest);
     RecordError recordErrorCreated = new RecordError(errorMessage + " " + providerIdWithError + " " + causeMessage,
         causeMessage);
@@ -328,33 +367,13 @@ public class HarvestServiceImpl implements HarvestService {
     }
   }
 
-  private boolean isDuplicatedByProviderId(RecordEntity recordEntity, String datasetId) {
-    RecordEntity recordFound = recordRepository.findByProviderIdAndDatasetId(recordEntity.getProviderId(), datasetId);
-    return recordFound != null;
+  private String createTemporaryIdFromPath(String extractedDirectory, Path pathToRelativize){
+    return extractedDirectory.isBlank() ? pathToRelativize.getFileName().toString() : 
+            Paths.get(extractedDirectory).relativize(pathToRelativize).toString();
+
   }
 
-  private boolean isDuplicatedByContent(byte[] content, List<RecordInfo> recordInfoList) {
-    String providerId = xmlRecordProcessorService.getProviderId(content);
-    if (providerId == null) {
-      return false;
-    } else {
-      return recordInfoList
-          .stream()
-          .filter(Objects::nonNull)
-          .anyMatch(recordInfo ->
-              providerId.equals(
-                  xmlRecordProcessorService.getProviderId(
-                      recordInfo
-                      .getRecord()
-                      .getContent())
-              )
-          );
-    }
-  }
-
-  private RecordInfo handleDuplicated(String providerId, Step step, Record.RecordBuilder recordToHarvest) {
-    RecordError recordErrorCreated = new RecordError("Duplicated record", "Record already registered");
-    saveErrorWhileHarvesting(recordToHarvest, providerId, step, new RuntimeException(recordErrorCreated.getMessage()));
-    return null;
+  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex, int nextIndexToSelect, int stepSize){
+    return datasetSize == 0 && currentIndex > 0 && currentIndex <= nextIndexToSelect && nextIndexToSelect < stepSize;
   }
 }

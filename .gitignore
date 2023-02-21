@@ -21,7 +21,9 @@
 *.ear
 *.zip
 !**/test/resources/zip/dataset-valid.zip
+!**/test/resources/zip/dataset-valid-small.zip
 !**/test/resources/zip/dataset-valid-with-xslt-file.zip
+!**/test/resources/zip/dataset-valid-with-xslt-file-small.zip
 *.tar.gz
 *.rar
 
