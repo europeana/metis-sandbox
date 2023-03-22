@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,6 +36,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
+import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -50,8 +52,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -71,6 +76,9 @@ class DatasetControllerTest {
     private DatasetService datasetService;
 
     @MockBean
+    private DatasetLogService datasetLogService;
+
+    @MockBean
     private DatasetReportService datasetReportService;
 
     @MockBean
@@ -82,6 +90,15 @@ class DatasetControllerTest {
     @MockBean
     private HarvestPublishService harvestPublishService;
 
+    @Mock
+    private CompletableFuture<Void> asyncResult;
+
+    @BeforeEach
+    public void setup(){
+        when(harvestPublishService.runHarvestZipAsync(any(),any())).thenReturn(asyncResult);
+        when(harvestPublishService.runHarvestHttpZipAsync(any(),any())).thenReturn(asyncResult);
+        when(harvestPublishService.runHarvestOaiPmhAsync(any(),any())).thenReturn(asyncResult);
+    }
     @Test
     void processDatasetFromZipFile_withoutXsltFile_expectSuccess() throws Exception {
 
@@ -379,7 +396,7 @@ class DatasetControllerTest {
         var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
                 new TierStatistics(0, Collections.emptyList()));
         var report = new ProgressInfoDto("https://metis-sandbox",
-                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", tiersZeroInfo);
+            10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", emptyList(), tiersZeroInfo);
         when(datasetReportService.getReport("1")).thenReturn(report);
 
         mvc.perform(get("/dataset/{id}", "1"))

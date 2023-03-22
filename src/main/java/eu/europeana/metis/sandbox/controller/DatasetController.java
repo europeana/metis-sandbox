@@ -13,6 +13,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
@@ -68,6 +69,7 @@ class DatasetController {
   private static final String APPLICATION_RDF_XML = "application/rdf+xml";
 
   private final DatasetService datasetService;
+  private final DatasetLogService datasetLogService;
   private final DatasetReportService reportService;
   private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
@@ -75,11 +77,13 @@ class DatasetController {
   private final UrlValidator urlValidator;
 
   public DatasetController(DatasetService datasetService,
+      DatasetLogService datasetLogService,
       DatasetReportService reportService,
       RecordLogService recordLogService,
       RecordTierCalculationService recordTierCalculationService,
       HarvestPublishService harvestPublishService) {
     this.datasetService = datasetService;
+    this.datasetLogService = datasetLogService;
     this.reportService = reportService;
     this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
@@ -124,8 +128,8 @@ class DatasetController {
             .withLanguage(language)
             .withStepSize(stepsize)
             .build();
-    harvestPublishService.runHarvestZipAsync(dataset, datasetMetadata);
-
+    harvestPublishService.runHarvestZipAsync(dataset, datasetMetadata)
+                         .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
     return new DatasetIdDto(createdDatasetId);
   }
 
@@ -170,7 +174,8 @@ class DatasetController {
             .withLanguage(language)
             .withStepSize(stepsize)
             .build();
-    harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata);
+    harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata)
+                         .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
     return new DatasetIdDto(createdDatasetId);
   }
 
@@ -219,7 +224,8 @@ class DatasetController {
             .withStepSize(stepsize)
             .build();
     harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
-        new OaiHarvestData(url, setspec, metadataformat, ""));
+        new OaiHarvestData(url, setspec, metadataformat, ""))
+                         .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
 
     return new DatasetIdDto(createdDatasetId);
   }

@@ -70,7 +70,7 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
             } catch (HarvesterException e) {
                 throw new ServiceException("Error harvesting records for dataset" + datasetMetadata.getDatasetId(), e);
             }
-        }, asyncServiceTaskExecutor).thenRunAsync(() -> {
+        }, asyncServiceTaskExecutor).whenComplete((result, exception) -> {
             try {
                 inputStreamToHarvest.close();
             } catch (IOException e) {

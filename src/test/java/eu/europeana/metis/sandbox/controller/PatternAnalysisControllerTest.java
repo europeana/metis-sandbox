@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -87,7 +88,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -124,7 +125,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -160,7 +161,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
     doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -198,7 +199,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -278,7 +279,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
