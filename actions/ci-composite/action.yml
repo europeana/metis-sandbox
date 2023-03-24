@@ -1,10 +1,17 @@
 name: 'General ci'
-
 description: 'General ci'
+inputs:
+  github_token:
+    description: 'Github token'
+    required: true
+  sonar_token:
+    description: 'Sonar token'
+    required: true
+
 runs:
   using: "composite"
   steps:
-#    - name: Checkout code
+    #    - name: Checkout code
     #      uses: actions/checkout@v2
     #      with:
     #        fetch-depth: 0
@@ -37,5 +44,5 @@ runs:
         -Dsonar.projectKey=europeana_metis-sandbox
         sonar:sonar
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ inputs.SONAR_TOKEN }}
