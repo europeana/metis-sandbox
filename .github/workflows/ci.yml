@@ -1,6 +1,14 @@
 name: CI
 
-on: push
+on:
+  push:
+    #Do not run on main to avoid duplicate builds during release
+    branches-ignore:
+      - '!master'
+      - '!main'
+    #Run on release tags
+    tags:
+      - 'v*'
 
 jobs:
   ci:
@@ -8,7 +16,7 @@ jobs:
     steps:
       - name: Install media software
         uses: europeana/metis-actions/actions/media-software-install-steps@main
-      - name: CI steps
+      - name: Build code and Sonar Analyze
         uses: europeana/metis-actions/actions/build-analyze@main
         with:
           sonar_organization: europeana
