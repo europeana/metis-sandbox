@@ -6,6 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Install media software
         uses: ./.github/workflows/media-software-install-steps.yml
       - name: Install media software
