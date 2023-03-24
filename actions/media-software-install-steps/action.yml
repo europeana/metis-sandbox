@@ -1,15 +1,19 @@
 name: 'Install relevant media software'
 
+description: 'Install relevant media software'
 runs:
   using: "composite"
   steps:
     - name: Setup latest updates
+      shell: bash
       run: sudo apt update
     - name: Setup ImageMagick
+      shell: bash
       run: sudo apt install imagemagick
     - name: Setup FFmpeg
       uses: Iamshankhadeep/setup-ffmpeg@v1.1
       with:
         version: "4.1"
     - name: Setup Ghostscript
+      shell: bash
       run: sudo apt-get install ghostscript -y

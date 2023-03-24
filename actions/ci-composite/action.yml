@@ -1,5 +1,6 @@
 name: 'General ci'
 
+description: 'General ci'
 runs:
   using: "composite"
   steps:
@@ -20,6 +21,7 @@ runs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
     - name: Build - Clean Jacoco Verify
+      shell: bash
       run: >
         mvn --batch-mode --update-snapshots
         clean
@@ -27,6 +29,7 @@ runs:
         verify
         org.jacoco:jacoco-maven-plugin:report
     - name: Sonar Analyze
+      shell: bash
       run: >
         mvn --batch-mode
         -Dsonar.host.url=https://sonarcloud.io
