@@ -6,14 +6,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+#      - uses: actions/checkout@v3
+      #        with:
+      #          fetch-depth: 0
       - name: Install media software
-        uses: ./actions/media-software-install-steps
-      - name: Ci steps
-        uses: ./actions/ci-composite
+        uses: europeana/metis-actions/actions/media-software-install-steps@main
+      - name: CI steps
+        uses: europeana/metis-actions/actions/ci-composite@main
         with:
+          sonar_organization: europeana
+          sonar_project_key: europeana_metis-sandbox
           github_token: ${{ secrets.GITHUB_TOKEN }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
 
