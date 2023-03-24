@@ -10,9 +10,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install media software
-        uses: ./actions/media-software-install-steps
-      - name: Install media software
-        uses: ./workflows/ci-composite
+        uses: actions/media-software-install-steps
+      - name: Ci steps
+        uses: actions/ci-composite
 
 #      - name: Setup latest updates
 #        run: sudo apt update
