@@ -21,5 +21,4 @@ jobs:
         with:
           sonar_organization: europeana
           sonar_project_key: europeana_metis-sandbox
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
