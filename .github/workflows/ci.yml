@@ -14,8 +14,8 @@ jobs:
       - name: Ci steps
         uses: ./actions/ci-composite
         with:
-          github_token: { { secrets.GITHUB_TOKEN } }
-          sonar_token: { { secrets.SONAR_TOKEN } }
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
 
 #      - name: Setup latest updates
 #        run: sudo apt update
