@@ -3,62 +3,15 @@ name: CI
 on: push
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     steps:
-#      - uses: actions/checkout@v3
-      #        with:
-      #          fetch-depth: 0
       - name: Install media software
         uses: europeana/metis-actions/actions/media-software-install-steps@main
       - name: CI steps
-        uses: europeana/metis-actions/actions/ci-composite@main
+        uses: europeana/metis-actions/actions/build-analyze@main
         with:
           sonar_organization: europeana
           sonar_project_key: europeana_metis-sandbox
           github_token: ${{ secrets.GITHUB_TOKEN }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
-
-#      - name: Setup latest updates
-#        run: sudo apt update
-#      - name: Setup ImageMagick
-#        run: sudo apt install imagemagick
-#      - name: Setup FFmpeg
-#        uses: Iamshankhadeep/setup-ffmpeg@v1.1
-#        with:
-#          version: "4.1"
-#      - name: Setup Ghostscript
-#        run: sudo apt-get install ghostscript -y
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 0
-#      - name: Set up JDK 11
-#        uses: actions/setup-java@v2
-#        with:
-#          java-version: '11'
-#          distribution: 'temurin'
-#          cache: maven
-#      - name: Cache SonarCloud packages
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.sonar/cache
-#          key: ${{ runner.os }}-sonar
-#          restore-keys: ${{ runner.os }}-sonar
-#      - name: Build - Clean Jacoco Verify
-#        run: >
-#          mvn --batch-mode --update-snapshots
-#          clean
-#          org.jacoco:jacoco-maven-plugin:prepare-agent
-#          verify
-#          org.jacoco:jacoco-maven-plugin:report
-#      - name: Sonar Analyze
-#        run: >
-#          mvn --batch-mode
-#          -Dsonar.host.url=https://sonarcloud.io
-#          -Dsonar.organization=europeana
-#          -Dsonar.projectKey=europeana_metis-sandbox
-#          sonar:sonar
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
