@@ -6,8 +6,6 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Base of the dataset report

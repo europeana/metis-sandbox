@@ -68,7 +68,7 @@ class DatasetReportServiceImplTest {
     void getReportWithDatasetErrors_Fail() {
         var dataset = createDataset(null);
         List<DatasetLogDto> datasetLogs= Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE,Status.FAIL));
-        when(datasetLogService.getAllLogs(1)).thenReturn(datasetLogs);
+        when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
 
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
 

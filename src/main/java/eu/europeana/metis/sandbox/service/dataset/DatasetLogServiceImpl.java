@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DatasetLogServiceImpl implements DatasetLogService {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(DatasetLogServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetLogServiceImpl.class);
 
   @Autowired
   private DatasetRepository datasetRepository;
@@ -49,45 +49,45 @@ public class DatasetLogServiceImpl implements DatasetLogService {
 
   @Override
   @Transactional
-  public Void logException(String datasetId, Throwable e) {
-    e = unwrapFromCompletionException(e);
-    String message = buildMessageFromExceptionChain(e);
-    message = enrichMessageForUnexpectedExceptions(e, message);
-    log(datasetId, Status.FAIL, message, e);
+  public Void logException(String datasetId, Throwable exception) {
+    exception = unwrapFromCompletionException(exception);
+    String message = buildMessageFromExceptionChain(exception);
+    message = enrichMessageForUnexpectedExceptions(exception, message);
+    log(datasetId, Status.FAIL, message, exception);
     return null;
   }
 
   @Override
-  public List<DatasetLogDto> getAllLogs(int datasetId) {
-    return datasetLogRepository.findByDatasetDatasetId(datasetId)
+  public List<DatasetLogDto> getAllLogs(String datasetId) {
+    return datasetLogRepository.findByDatasetDatasetId(Integer.parseInt(datasetId))
                                .stream()
                                .map(entity -> new DatasetLogDto(entity.getMessage(), entity.getStatus()))
                                .collect(Collectors.toList());
   }
 
-  private Throwable unwrapFromCompletionException(Throwable e) {
-    if (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) {
-      e = e.getCause();
+  private Throwable unwrapFromCompletionException(Throwable exception) {
+    if (exception instanceof java.util.concurrent.CompletionException && exception.getCause() != null) {
+      exception = exception.getCause();
     }
-    return e;
+    return exception;
   }
 
-  private static String buildMessageFromExceptionChain(Throwable e) {
+  private static String buildMessageFromExceptionChain(Throwable exception) {
     String lastMessage = null;
     List<String> distinctMessages = new ArrayList<>();
-    for (Throwable exceptionFormChain : ExceptionUtils.getThrowables(e)) {
+    for (Throwable exceptionFromChain : ExceptionUtils.getThrowables(exception)) {
       String message =
-          exceptionFormChain.getMessage() != null ? exceptionFormChain.getMessage() : exceptionFormChain.getClass().getName();
+          exceptionFromChain.getMessage() != null ? exceptionFromChain.getMessage() : exceptionFromChain.getClass().getName();
       if (!message.equals(lastMessage)) {
         distinctMessages.add(message);
       }
       lastMessage = message;
     }
-    return distinctMessages.stream().collect(Collectors.joining(" - "));
+    return String.join(" - ", distinctMessages);
   }
 
-  private static String enrichMessageForUnexpectedExceptions(Throwable e, String message) {
-    if (!(e instanceof ServiceException)) {
+  private static String enrichMessageForUnexpectedExceptions(Throwable exception, String message) {
+    if (!(exception instanceof ServiceException)) {
       message = "Exception occurred while sending records to execute: "+message;
     }
     return message;

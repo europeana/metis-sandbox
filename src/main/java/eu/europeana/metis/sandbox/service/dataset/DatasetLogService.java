@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 public interface DatasetLogService {
 
   @Transactional
-  Void log(String datasetId, Status status, String message, Throwable e);
+  Void log(String datasetId, Status status, String message, Throwable exception);
 
   @Transactional
-  Void logException(String datasetId, Throwable e);
+  Void logException(String datasetId, Throwable exception);
 
-  List<DatasetLogDto> getAllLogs(int datasetId);
+  List<DatasetLogDto> getAllLogs(String datasetId);
 }

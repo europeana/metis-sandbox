@@ -50,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetReportServiceImpl implements DatasetReportService {
 
     private static final int FIRST = 0;
-    private static final String STEP_SIZE_BIGGER_THAN_DATASET = "Step size value bigger than the dataset size.";
     private static final String EMPTY_DATASET_MESSAGE = "Dataset is empty.";
     private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
     private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
@@ -109,9 +108,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
         // get qty of records that failed
         long failedRecords = getFailedRecords(stepStatistics);
 
-        List<DatasetLogDto> datasetLogs = datasetLogService.getAllLogs(dataset.getDatasetId());
+        List<DatasetLogDto> datasetLogs = datasetLogService.getAllLogs(datasetId);
         if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))
-            || getErrors(datasetLogs).count() > 0) {
+            || getErrors(datasetLogs).findAny().isPresent()) {
             return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
                     dataset.getRecordsQuantity(), 0L, List.of(),
                     datasetInfoDto, getErrorMessage(datasetLogs, failedRecords, dataset.getRecordsQuantity()),
@@ -160,7 +159,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     private String getErrorMessage(List<DatasetLogDto> datasetLogs, Long failedRecords, Long recordsQuantity) {
-        if (getErrors(datasetLogs).count() > 0) {
+        if (getErrors(datasetLogs).findAny().isPresent()) {
             return getErrors(datasetLogs).map(DatasetLogDto::getMessage).collect(Collectors.joining(","));
         }
 
