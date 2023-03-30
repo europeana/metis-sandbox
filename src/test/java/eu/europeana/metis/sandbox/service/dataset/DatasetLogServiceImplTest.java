@@ -91,6 +91,22 @@ class DatasetLogServiceImplTest {
   }
 
   @Test
+  void logException_shouldNotLogTheSameMessageFromSubsequentChainedExceptionsTwice() {
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+    Throwable exception = new RuntimeException(MESSAGE_2, new Exception(MESSAGE_1, new RuntimeException(MESSAGE_1)));
+
+    service.logException(DATASET_ID, exception);
+
+    verify(datasetLogRepository).save(logCaptor.capture());
+    DatasetLogEntity savedLog = logCaptor.getValue();
+    assertThat(savedLog.getMessage()).containsOnlyOnce(MESSAGE_1);
+    assertThat(savedLog.getMessage()).contains(MESSAGE_2);
+    assertThat(savedLog.getStackTrace()).isNotBlank();
+    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
+    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+  }
+
+  @Test
   void logException_shouldUnwrapCompletionException() {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
     Throwable exception = new CompletionException(MESSAGE_2, new RuntimeException(MESSAGE_1));
@@ -105,6 +121,22 @@ class DatasetLogServiceImplTest {
     assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
     assertThat(savedLog.getDataset()).isEqualTo(dataset);
   }
+
+  @Test
+  void logException_shouldNotUnwrapCompletionExceptionWithoutCause() {
+    when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+    Throwable exception = new CompletionException(MESSAGE_1){};
+
+    service.logException(DATASET_ID, exception);
+
+    verify(datasetLogRepository).save(logCaptor.capture());
+    DatasetLogEntity savedLog = logCaptor.getValue();
+    assertThat(savedLog.getMessage()).contains(MESSAGE_1);
+    assertThat(savedLog.getStackTrace()).isNotBlank();
+    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
+    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+  }
+
 
   @Test
   void getAllLogs_shouldReturnAllLogsSavedInDB() {

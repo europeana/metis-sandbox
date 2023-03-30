@@ -69,7 +69,6 @@ class DatasetReportServiceImplTest {
         var dataset = createDataset(null);
         List<DatasetLogDto> datasetLogs= Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE,Status.FAIL));
         when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
-
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
 
         var result = service.getReport("1");
@@ -240,6 +239,26 @@ class DatasetReportServiceImplTest {
                 "Dataset is empty.", emptyList(), null);
         var report = service.getReport("1");
         assertReportEquals(expected, report);
+    }
+
+    @Test
+    void getReport_WithDatasetWarnings_ShouldNotFail() {
+        var dataset = createDataset(5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
+        when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+        when(recordLogRepository.getStepStatistics("1")).thenReturn(
+            List.of(recordViewCreate, recordViewExternal));
+        when(errorLogRepository.getByRecordIdDatasetId("1"))
+            .thenReturn(List.of());
+        List<DatasetLogDto> datasetLogs = Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE, Status.WARN));
+        when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
+
+        var result = service.getReport("1");
+
+        assertNotEquals(ProgressInfoDto.Status.FAILED, result.getStatus());
+        assertEquals("", result.getErrorType());
+        assertEquals(datasetLogs, result.getDatasetLogs());
     }
 
     @Test
