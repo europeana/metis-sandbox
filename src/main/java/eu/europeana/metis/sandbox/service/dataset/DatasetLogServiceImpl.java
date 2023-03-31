@@ -32,16 +32,16 @@ public class DatasetLogServiceImpl implements DatasetLogService {
 
   @Override
   @Transactional
-  public Void log(String datasetId, Status status, String message, Throwable e) {
+  public Void log(String datasetId, Status status, String message, Throwable exception) {
     if (status == Status.FAIL) {
-      LOGGER.error(message, e);
+      LOGGER.error(message, exception);
     } else {
-      LOGGER.warn(message, e);
+      LOGGER.warn(message, exception);
     }
     DatasetLogEntity log = new DatasetLogEntity();
     log.setDataset(datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow());
     log.setMessage(message);
-    log.setStackTrace(ExceptionUtils.getStackTrace(e));
+    log.setStackTrace(ExceptionUtils.getStackTrace(exception));
     log.setStatus(status);
     datasetLogRepository.save(log);
     return null;
