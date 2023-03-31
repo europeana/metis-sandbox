@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
  * the message broker
  */
 @Configuration
-class RecordLogConfiguration {
+class RecordLogQueueConfiguration extends QueueConsumerConfiguration {
 
   @Value("${sandbox.rabbitmq.queues.record.log.queue:#{null}}")
   private String queue;
@@ -31,25 +31,34 @@ class RecordLogConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.log.routing-key:#{null}}")
   private String routingKey;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.consumers:2}")
-  private int consumers;
+  @Value("${sandbox.rabbitmq.queues.record.log.consumers:12}")
+  private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers:2}")
+  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers:12}")
   private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.prefetch:1}")
-  private int prefetchCount;
-
-  private final MessageConverter messageConverter;
+  @Value("${sandbox.rabbitmq.queues.record.log.prefetch:3}")
+  private int messagePrefetchCount;
 
   private final AmqpConfiguration amqpConfiguration;
 
-  public RecordLogConfiguration(MessageConverter messageConverter,
+  /**
+   * Instantiates a new Record log queue configuration.
+   *
+   * @param messageConverter the message converter
+   * @param amqpConfiguration the amqp configuration
+   */
+  public RecordLogQueueConfiguration(MessageConverter messageConverter,
       AmqpConfiguration amqpConfiguration) {
-    this.messageConverter = messageConverter;
+    super(messageConverter);
     this.amqpConfiguration = amqpConfiguration;
   }
 
+  /**
+   * Log queue queue.
+   *
+   * @return the queue
+   */
   @Bean
   Queue logQueue() {
     return QueueBuilder.durable(queue)
@@ -58,11 +67,21 @@ class RecordLogConfiguration {
                        .build();
   }
 
+  /**
+   * Log dlq queue.
+   *
+   * @return the queue
+   */
   @Bean
   Queue logDlq() {
     return QueueBuilder.durable(dlq).build();
   }
 
+  /**
+   * Log binding binding.
+   *
+   * @return the binding
+   */
   @Bean
   Binding logBinding() {
     return BindingBuilder.bind(logQueue())
@@ -70,6 +89,11 @@ class RecordLogConfiguration {
                          .with(routingKey);
   }
 
+  /**
+   * Log dlq binding binding.
+   *
+   * @return the binding
+   */
   @Bean
   Binding logDlqBinding() {
     return BindingBuilder.bind(logDlq())
@@ -77,17 +101,20 @@ class RecordLogConfiguration {
                          .with(dlq);
   }
 
-  // By having a factory defined for each consumer we can tune specific settings if we need to
+  /**
+   * Record log factory simple rabbit listener container factory.
+   *
+   * @param configurer the configurer
+   * @param connectionFactory the connection factory
+   * @return the simple rabbit listener container factory
+   */
   @Bean
   SimpleRabbitListenerContainerFactory recordLogFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    var factory = new SimpleRabbitListenerContainerFactory();
-    configurer.configure(factory, connectionFactory);
-    factory.setMessageConverter(messageConverter);
-    factory.setConcurrentConsumers(consumers);
-    factory.setMaxConcurrentConsumers(maxConsumers);
-    factory.setPrefetchCount(prefetchCount);
-    return factory;
+    super.setConcurrentQueueConsumers(concurrentConsumers);
+    super.setMaxConcurrentQueueConsumers(maxConsumers);
+    super.setMessagePrefetchCount(messagePrefetchCount);
+    return super.getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 }
