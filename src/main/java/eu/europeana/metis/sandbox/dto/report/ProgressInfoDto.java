@@ -40,12 +40,19 @@ public class ProgressInfoDto {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private final TiersZeroInfo tiersZeroInfo;
 
+  @JsonProperty("dataset-logs")
+  private final List<DatasetLogDto> datasetLogs;
+
+
   public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
                          List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto, String errorType,
-                         TiersZeroInfo tiersZeroInfo) {
+                         List<DatasetLogDto> datasetLogs, TiersZeroInfo tiersZeroInfo) {
     this.processedRecords = processedRecords;
     this.tiersZeroInfo = tiersZeroInfo;
-    if (totalRecords == null) {
+    if (!errorType.equals("")) {
+      this.status = Status.FAILED;
+      this.totalRecords = totalRecords != null ? totalRecords : 0L;
+    } else if (totalRecords == null) {
       this.status = Status.HARVESTING_IDENTIFIERS;
       this.totalRecords = 0L;
     } else if (totalRecords.equals(this.processedRecords)) {
@@ -55,16 +62,18 @@ public class ProgressInfoDto {
       this.status = Status.IN_PROGRESS;
       this.totalRecords = totalRecords;
     }
+    this.datasetLogs = datasetLogs;
     this.progressByStep = Collections.unmodifiableList(progressByStep);
     this.datasetInfoDto = datasetInfoDto;
-    this.errorType = status == Status.COMPLETED ? errorType : "";
+    this.errorType = errorType;
     this.portalPublishUrl = this.errorType.isBlank() ? portalPublishUrl : "";
   }
 
   public enum Status {
     HARVESTING_IDENTIFIERS("Harvesting Identifiers"),
     COMPLETED("Completed"),
-    IN_PROGRESS("In Progress");
+    IN_PROGRESS("In Progress"),
+    FAILED("Failed");
 
     private final String value;
 
@@ -107,5 +116,9 @@ public class ProgressInfoDto {
 
   public TiersZeroInfo getTiersZeroInfo() {
     return tiersZeroInfo;
+  }
+
+  public List<DatasetLogDto> getDatasetLogs() {
+    return datasetLogs;
   }
 }

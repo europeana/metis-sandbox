@@ -25,6 +25,7 @@ import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -169,9 +170,8 @@ class HarvestServiceImplTest {
                 .thenReturn(recordEntity3)
                 .thenReturn(recordEntity4);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 10);
-
-        verify(datasetService, times(1)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
+        assertThrows(StepIsTooBigException.class, ()->
+            harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 10));
     }
 
     @Test
@@ -438,9 +438,8 @@ class HarvestServiceImplTest {
                 .thenReturn(recordEntity3)
                 .thenReturn(recordEntity4);
 
-        harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, 10);
-
-        verify(datasetService, times(1)).updateNumberOfTotalRecord(eq("datasetId"), eq(0L));
+        assertThrows(StepIsTooBigException.class, () ->
+            harvestService.harvestOaiPmh("datasetId", createMockEncapsulatedRecord(), oaiHarvestData, 10));
     }
 
     @Test

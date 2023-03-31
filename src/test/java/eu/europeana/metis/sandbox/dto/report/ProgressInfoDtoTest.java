@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.dto.report;
 
+import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -110,7 +111,7 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false), "", null);
+            false), "", emptyList(), null);
   }
 
   @NotNull
@@ -138,7 +139,7 @@ class ProgressInfoDtoTest {
             Language.HR,
             Country.CROATIA,
             false,
-            false), "", null);
+            false), "", emptyList(), null);
   }
 
   @NotNull
@@ -154,7 +155,7 @@ class ProgressInfoDtoTest {
             Country.CROATIA,
             false,
             false),
-            "",
+            "", emptyList(),
             getTiersZeroInfo());
   }
 
@@ -172,6 +173,7 @@ class ProgressInfoDtoTest {
                     false,
                     false),
             "Error",
+                    emptyList(),
             null);
   }
 
