@@ -41,7 +41,7 @@
     <version.springfox>2.9.2</version.springfox>
     <version.metis>9</version.metis>
     <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.5.0</version.postgresql>
+    <version.postgresql>42.6.0</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
@@ -59,7 +59,7 @@
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.9.1</version.micrometer>
     <version.apm>1.33.0</version.apm>
-    <version.netty>4.1.84.Final</version.netty>
+    <version.netty>4.1.91.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
   </properties>
   <dependencies>
