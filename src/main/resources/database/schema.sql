@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS dataset
 CREATE TABLE IF NOT EXISTS dataset_log
 (
     id           BIGSERIAL,
-    dataset_id    BIGINT      NOT NULL,
+    dataset_id   BIGINT      NOT NULL,
     status       VARCHAR(30) NOT NULL,
     message      TEXT        NOT NULL,
     stack_trace  TEXT        NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS dataset_log
 
 CREATE TABLE IF NOT EXISTS record
 (
-    id           BIGSERIAL,
+    id            BIGSERIAL,
     europeana_id  VARCHAR(255) NULL,
     provider_id   VARCHAR(255) NULL,
     dataset_id    VARCHAR(100) NOT NULL,
