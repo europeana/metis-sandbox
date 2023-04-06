@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
-import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -50,9 +49,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.integration.jdbc.lock.DefaultLockRepository;
-import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
-import org.springframework.integration.jdbc.lock.LockRepository;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -95,6 +91,7 @@ class PatternAnalysisServiceImplIT {
 
   @TestConfiguration
   static class Config {
+
     @Bean
     PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2(ProblemPatternsRepositories problemPatternsRepositories) {
       return new PatternAnalysisServiceImpl(problemPatternsRepositories, 2, 2);
@@ -350,16 +347,19 @@ class PatternAnalysisServiceImplIT {
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<Step> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
         "1", Step.VALIDATE_INTERNAL, nowP1).orElseThrow();
-    assertThat(datasetPatternAnalysis.getProblemPatternList()).hasSize(1);
+    assertEquals(1, datasetPatternAnalysis.getProblemPatternList().size());
     List<RecordAnalysis> recordAnalysisList = datasetPatternAnalysis.getProblemPatternList().get(0).getRecordAnalysisList();
-    assertThat(recordAnalysisList).hasSize(1);
+    assertEquals(1, recordAnalysisList.size());
     RecordAnalysis recordAnalysis = recordAnalysisList.get(0);
-    assertThat(recordAnalysis.getRecordId()).isIn("/21/_providedCHO_MHC_EMC_10_ms_06", "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
-    assertThat(recordAnalysis.getProblemOccurrenceList()).hasSize(1);
+    assertTrue(recordAnalysis.getRecordId().equals("/21/_providedCHO_MHC_EMC_10_ms_06") ||
+        recordAnalysis.getRecordId().equals("/21/_providedCHO_MHC_EMC_10_ms_07_jpg"));
+    assertEquals(1, recordAnalysis.getProblemOccurrenceList().size());
     ProblemOccurrence occurrence = recordAnalysis.getProblemOccurrenceList().get(0);
-    assertThat(occurrence.getMessageReport()).isIn("LOWERCASE or UPPERCASE title", "lowercase or uppercase title");
-    assertThat(occurrence.getAffectedRecordIds()).containsExactlyInAnyOrder("/21/_providedCHO_MHC_EMC_10_ms_06",
-        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg");
+    assertTrue(occurrence.getMessageReport().equals("LOWERCASE or UPPERCASE title") ||
+        occurrence.getMessageReport().equals("lowercase or uppercase title"));
+    assertLinesMatch(occurrence.getAffectedRecordIds(), List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg"));
+
   }
 
 
