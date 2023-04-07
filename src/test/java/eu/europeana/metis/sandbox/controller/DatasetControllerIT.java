@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -200,9 +201,9 @@ class DatasetControllerIT {
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
-    assertJson(
+    JSONAssert.assertEquals(
         expectedDatasetInfoJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), String.valueOf(expectedDatasetId)),
-        StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())));
+        StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
 
   }
 
@@ -229,9 +230,9 @@ class DatasetControllerIT {
             String.class, expectedDatasetId, "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6");
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertJson(expectedContentTierJson(StringUtils.deleteWhitespace(tierCalculationResponseContent),
+    JSONAssert.assertEquals(expectedContentTierJson(StringUtils.deleteWhitespace(tierCalculationResponseContent),
             "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6"),
-        StringUtils.deleteWhitespace(response.getBody()));
+        StringUtils.deleteWhitespace(response.getBody()), true);
   }
 
   @Test
@@ -302,16 +303,10 @@ class DatasetControllerIT {
         new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
   }
 
-  private String removeCreationDate(String body){
+  private String removeCreationDate(String body) {
     JSONObject jsonObject = new JSONObject(body);
     jsonObject.getJSONObject("dataset-info").remove("creation-date");
     return jsonObject.toString();
-  }
-
-
-  void assertJson(String expected, String actual) throws JsonProcessingException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    assertTrue(objectMapper.readTree(expected).equals(objectMapper.readTree(actual)));
   }
 
   int extractDatasetId(String value) {
