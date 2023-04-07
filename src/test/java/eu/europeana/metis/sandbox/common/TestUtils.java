@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.common;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
@@ -75,5 +77,26 @@ public class TestUtils {
     public void forEach(ReportingIteration<Path> action) {
       this.extractedDirectory.forEach(action::process);
     }
+  }
+
+  public static void assertContainsOnlyOnce(String expected, String actual) {
+    int count = countOccurrences(expected, actual);
+    if (count > 1) {
+      fail(String.format("There are more than one occurrences of %s in %s", expected, actual));
+    }
+  }
+
+  private static int countOccurrences(CharSequence sequenceToSearch, CharSequence actual) {
+    String strToSearch = sequenceToSearch.toString();
+    String strActual = actual.toString();
+    int occurrences = 0;
+
+    for (int i = 0; i <= strActual.length() - strToSearch.length(); ++i) {
+      if (strActual.substring(i, i + sequenceToSearch.length()).equals(strToSearch)) {
+        ++occurrences;
+      }
+    }
+
+    return occurrences;
   }
 }

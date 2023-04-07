@@ -1,4 +1,5 @@
 BEGIN;
+DROP TABLE IF EXISTS dataset_log;
 DROP TABLE IF EXISTS dataset;
 DROP TABLE IF EXISTS record_log;
 DROP TABLE IF EXISTS record_error_log;

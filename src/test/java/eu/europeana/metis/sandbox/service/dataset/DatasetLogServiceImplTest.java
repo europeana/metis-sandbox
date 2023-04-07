@@ -1,7 +1,11 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static eu.europeana.metis.sandbox.common.TestUtils.assertContainsOnlyOnce;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,12 +30,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DatasetLogServiceImplTest {
 
-  private static final String DATASET_ID = "1";
   public static final String MESSAGE_1 = "ExceptionMessage1";
-
   public static final String MESSAGE_2 = "ExceptionMessage2";
-
   public static final String MESSAGE_3 = "ExceptionMessage3";
+  private static final String DATASET_ID = "1";
   @Mock
   private DatasetRepository datasetRepository;
   @Mock
@@ -52,10 +54,11 @@ class DatasetLogServiceImplTest {
 
     verify(datasetLogRepository).save(logCaptor.capture());
     DatasetLogEntity savedLog = logCaptor.getValue();
-    assertThat(savedLog.getMessage()).contains(MESSAGE_1);
-    assertThat(savedLog.getStackTrace()).isNotBlank();
-    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
-    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+
+    assertTrue(savedLog.getMessage().contains(MESSAGE_1));
+    assertNotEquals("", savedLog.getStackTrace());
+    assertEquals(Status.FAIL, savedLog.getStatus());
+    assertEquals(dataset, savedLog.getDataset());
   }
 
   @Test
@@ -67,10 +70,10 @@ class DatasetLogServiceImplTest {
 
     verify(datasetLogRepository).save(logCaptor.capture());
     DatasetLogEntity savedLog = logCaptor.getValue();
-    assertThat(savedLog.getMessage()).contains(RuntimeException.class.getName());
-    assertThat(savedLog.getStackTrace()).isNotBlank();
-    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
-    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+    assertTrue(savedLog.getMessage().contains(RuntimeException.class.getName()));
+    assertNotEquals("", savedLog.getStackTrace());
+    assertEquals(Status.FAIL, savedLog.getStatus());
+    assertEquals(dataset, savedLog.getDataset());
   }
 
   @Test
@@ -82,12 +85,12 @@ class DatasetLogServiceImplTest {
 
     verify(datasetLogRepository).save(logCaptor.capture());
     DatasetLogEntity savedLog = logCaptor.getValue();
-    assertThat(savedLog.getMessage()).contains(MESSAGE_1);
-    assertThat(savedLog.getMessage()).contains(MESSAGE_2);
-    assertThat(savedLog.getMessage()).contains(MESSAGE_3);
-    assertThat(savedLog.getStackTrace()).isNotBlank();
-    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
-    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+    assertTrue(savedLog.getMessage().contains(MESSAGE_1));
+    assertTrue(savedLog.getMessage().contains(MESSAGE_2));
+    assertTrue(savedLog.getMessage().contains(MESSAGE_3));
+    assertNotEquals("", savedLog.getStackTrace());
+    assertEquals(Status.FAIL, savedLog.getStatus());
+    assertEquals(dataset, savedLog.getDataset());
   }
 
   @Test
@@ -99,11 +102,11 @@ class DatasetLogServiceImplTest {
 
     verify(datasetLogRepository).save(logCaptor.capture());
     DatasetLogEntity savedLog = logCaptor.getValue();
-    assertThat(savedLog.getMessage()).containsOnlyOnce(MESSAGE_1);
-    assertThat(savedLog.getMessage()).contains(MESSAGE_2);
-    assertThat(savedLog.getStackTrace()).isNotBlank();
-    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
-    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+    assertContainsOnlyOnce(MESSAGE_1, savedLog.getMessage());
+    assertTrue(savedLog.getMessage().contains(MESSAGE_2));
+    assertNotEquals("", savedLog.getStackTrace());
+    assertEquals(Status.FAIL, savedLog.getStatus());
+    assertEquals(dataset, savedLog.getDataset());
   }
 
   @Test
@@ -115,28 +118,28 @@ class DatasetLogServiceImplTest {
 
     verify(datasetLogRepository).save(logCaptor.capture());
     DatasetLogEntity savedLog = logCaptor.getValue();
-    assertThat(savedLog.getMessage()).contains(MESSAGE_1);
-    assertThat(savedLog.getMessage()).doesNotContain(MESSAGE_2);
-    assertThat(savedLog.getStackTrace()).isNotBlank();
-    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
-    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+    assertTrue(savedLog.getMessage().contains(MESSAGE_1));
+    assertFalse(savedLog.getMessage().contains(MESSAGE_2));
+    assertNotEquals("", savedLog.getStackTrace());
+    assertEquals(Status.FAIL, savedLog.getStatus());
+    assertEquals(dataset, savedLog.getDataset());
   }
 
   @Test
   void logException_shouldNotUnwrapCompletionExceptionWithoutCause() {
     when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
-    Throwable exception = new CompletionException(MESSAGE_1){};
+    Throwable exception = new CompletionException(MESSAGE_1) {
+    };
 
     service.logException(DATASET_ID, exception);
 
     verify(datasetLogRepository).save(logCaptor.capture());
     DatasetLogEntity savedLog = logCaptor.getValue();
-    assertThat(savedLog.getMessage()).contains(MESSAGE_1);
-    assertThat(savedLog.getStackTrace()).isNotBlank();
-    assertThat(savedLog.getStatus()).isEqualTo(Status.FAIL);
-    assertThat(savedLog.getDataset()).isEqualTo(dataset);
+    assertTrue(savedLog.getMessage().contains(MESSAGE_1));
+    assertNotEquals("", savedLog.getStackTrace());
+    assertEquals(Status.FAIL, savedLog.getStatus());
+    assertEquals(dataset, savedLog.getDataset());
   }
-
 
   @Test
   void getAllLogs_shouldReturnAllLogsSavedInDB() {
@@ -147,10 +150,9 @@ class DatasetLogServiceImplTest {
 
     List<DatasetLogDto> logs = service.getAllLogs(DATASET_ID);
 
-    assertThat(logs).hasSize(1);
+    assertEquals(1, logs.size());
     DatasetLogDto log = logs.get(0);
-    assertThat(log.getMessage()).isEqualTo(MESSAGE_1);
-    assertThat(log.getType()).isEqualTo(Status.FAIL);
+    assertEquals(MESSAGE_1, log.getMessage());
+    assertEquals(Status.FAIL, log.getType());
   }
-
 }
