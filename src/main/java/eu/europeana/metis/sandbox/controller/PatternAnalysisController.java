@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -273,7 +274,7 @@ public class PatternAnalysisController {
     try {
       lock.lock();
       hasLock = true;
-    } catch (Exception ex) {
+    } catch (CannotAcquireLockException ex) {
       LOGGER.debug("Cleaning cache: {} unable to acquire lock {}", entry.getKey(), ex);
       // retry again
       evictEntry(entry);

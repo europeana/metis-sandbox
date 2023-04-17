@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +72,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
     try {
       lock.lock();
       hasLock = true;
-    } catch (Exception ex) {
+    } catch (CannotAcquireLockException ex) {
       LOGGER.info("Save default xslt cannot acquire lock", ex);
       saveDefaultXslt(newTransformXslt);
     }

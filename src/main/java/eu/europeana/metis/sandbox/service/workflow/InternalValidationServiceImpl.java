@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
     try {
       lock.lock();
       hasLock = true;
-    } catch (Exception ex) {
+    } catch (CannotAcquireLockException ex) {
       LOGGER.debug("Generate analysis: unable to aquire lock {} {} :: {} {}", datasetId, ex, recordToValidate.getRecordId(),
           recordToValidate.getEuropeanaId());
       //retry on error
@@ -125,7 +126,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
     try {
       lock.lock();
       hasLock = true;
-    } catch (Exception ex) {
+    } catch (CannotAcquireLockException ex) {
       LOGGER.debug("Cleaning cache: {} unable to acquire lock {}", entry.getKey(), ex);
       // retry again
       evictEntry(entry);
