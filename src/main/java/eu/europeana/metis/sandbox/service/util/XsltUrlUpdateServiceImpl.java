@@ -67,24 +67,33 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
   private void saveDefaultXslt(String newTransformXslt) {
     final Lock lock = lockRegistry.obtain("saveDefaultXslt");
+    boolean hasLock = false;
     try {
       lock.lock();
-      LOGGER.info("Save default xslt lock, Locked");
-      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc();
+      hasLock = true;
+    } catch (Exception ex) {
+      LOGGER.info("Save default xslt cannot acquire lock", ex);
+      saveDefaultXslt(newTransformXslt);
+    }
+    if (hasLock) {
+      try {
+        LOGGER.info("Save default xslt lock, Locked");
+        final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc();
 
-      if (entity.isPresent()) {
-        if (!(newTransformXslt.equals(entity.get().getTransformXslt()))) {
-          entity.get().setTransformXslt(newTransformXslt);
-          transformXsltRepository.save(entity.get());
+        if (entity.isPresent()) {
+          if (!(newTransformXslt.equals(entity.get().getTransformXslt()))) {
+            entity.get().setTransformXslt(newTransformXslt);
+            transformXsltRepository.save(entity.get());
+          }
+        } else {
+          transformXsltRepository.save(new TransformXsltEntity(newTransformXslt));
         }
-      } else {
-        transformXsltRepository.save(new TransformXsltEntity(newTransformXslt));
+      } catch (RuntimeException e) {
+        LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
+      } finally {
+        LOGGER.info("Save default xslt lock, Unlocked");
+        lock.unlock();
       }
-    } catch (RuntimeException e) {
-      LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
-    } finally {
-      LOGGER.info("Save default xslt lock, Unlocked");
-      lock.unlock();
     }
   }
 }

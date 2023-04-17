@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -68,6 +67,7 @@ public class PatternAnalysisController {
   private final RdfConversionUtils rdfConversionUtils = new RdfConversionUtils();
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
   private final LockRegistry lockRegistry;
+
   /**
    * Constructor with required parameters.
    *
@@ -116,16 +116,27 @@ public class PatternAnalysisController {
 
   private void finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {
     if (datasetReportService.getReport(datasetId).getStatus() == Status.COMPLETED) {
-      final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("finalizePatternAnalysis_" + datasetId));
+      final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId,
+          s -> lockRegistry.obtain("finalizePatternAnalysis_" + datasetId));
+      boolean hasLock = false;
       try {
         lock.lock();
-        LOGGER.debug("Finalize analysis: {} lock, Locked", datasetId);
-        patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
-      } catch (PatternAnalysisException e) {
-        LOGGER.error("Something went wrong during finalizing pattern analysis", e);
-      } finally {
-        lock.unlock();
-        LOGGER.debug("Finalize analysis: {} lock, Unlocked", datasetId);
+        hasLock = true;
+      } catch (Exception ex) {
+        LOGGER.debug("Finalize analysis: {} unable to acquire lock, {}", datasetId, ex);
+        // retry on error
+        finalizeDatasetPatternAnalysis(datasetId, datasetExecutionPoint);
+      }
+      if (hasLock) {
+        try {
+          LOGGER.debug("Finalize analysis: {} lock, Locked", datasetId);
+          patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
+        } catch (PatternAnalysisException e) {
+          LOGGER.error("Something went wrong during finalizing pattern analysis", e);
+        } finally {
+          lock.unlock();
+          LOGGER.debug("Finalize analysis: {} lock, Unlocked", datasetId);
+        }
       }
     }
   }
@@ -155,7 +166,8 @@ public class PatternAnalysisController {
                                   .stream()
                                   .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
                                   .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
-                                  .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
+                                  .sorted(Comparator.comparing(
+                                      problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
                                   .collect(Collectors.toList()),
             HttpStatus.OK);
   }
@@ -215,6 +227,7 @@ public class PatternAnalysisController {
   }
 
   private static final class DatasetProblemPatternAnalysisFilter {
+
     public static ProblemPattern sortRecordAnalysisByRecordId(ProblemPattern problemPattern) {
       return new ProblemPattern(problemPattern.getProblemPatternDescription(),
           problemPattern.getRecordOccurrences(),
@@ -225,16 +238,16 @@ public class PatternAnalysisController {
     }
 
     public static ProblemPattern cleanMessageReportForP7TitleIsEnough(ProblemPattern problemPattern) {
-      if (problemPattern.getProblemPatternDescription().getProblemPatternId().equals(ProblemPatternId.P7))
-      {
+      if (problemPattern.getProblemPatternDescription().getProblemPatternId().equals(ProblemPatternId.P7)) {
         return new ProblemPattern(problemPattern.getProblemPatternDescription(),
             problemPattern.getRecordOccurrences(),
             problemPattern.getRecordAnalysisList()
                           .stream()
-                          .map( recordAnalysis -> new RecordAnalysis(recordAnalysis.getRecordId(),
+                          .map(recordAnalysis -> new RecordAnalysis(recordAnalysis.getRecordId(),
                               recordAnalysis.getProblemOccurrenceList()
                                             .stream()
-                                            .map( problemOccurrence -> new ProblemOccurrence("", problemOccurrence.getAffectedRecordIds()))
+                                            .map(problemOccurrence -> new ProblemOccurrence("",
+                                                problemOccurrence.getAffectedRecordIds()))
                                             .collect(Collectors.toList())
                           ))
                           .collect(Collectors.toList()));
@@ -250,9 +263,23 @@ public class PatternAnalysisController {
   @Scheduled(cron = "0 0 0 * * ?")
   private void cleanCache() {
     for (Entry<String, Lock> entry : datasetIdLocksMap.entrySet()) {
-      final Lock lock = entry.getValue();
+      evictEntry(entry);
+    }
+  }
+
+  private void evictEntry(Entry<String, Lock> entry) {
+    final Lock lock = entry.getValue();
+    boolean hasLock = false;
+    try {
+      lock.lock();
+      hasLock = true;
+    } catch (Exception ex) {
+      LOGGER.debug("Cleaning cache: {} unable to acquire lock {}", entry.getKey(), ex);
+      // retry again
+      evictEntry(entry);
+    }
+    if (hasLock) {
       try {
-        lock.lock();
         LOGGER.debug("Cleaning cache: {} lock, Locked", entry.getKey());
         datasetIdLocksMap.remove(entry.getKey());
         LOGGER.debug("Dataset id maps cache cleaned");

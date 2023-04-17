@@ -62,7 +62,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
           validationResult.getRecordId(), validationResult.getNodeId());
     }
     try {
-      generateAnalysis(recordToValidate.getDatasetId(), recordToValidate.getContent());
+      generateAnalysis(recordToValidate.getDatasetId(), recordToValidate);
     } catch (PatternAnalysisException e) {
       LOGGER.error(format("An error occurred while processing pattern analysis with record id %s",
           recordToValidate.getEuropeanaId()), e);
@@ -70,19 +70,33 @@ class InternalValidationServiceImpl implements InternalValidationService {
     return new RecordInfo(recordToValidate);
   }
 
-  private void generateAnalysis(String datasetId, byte[] recordContent) throws PatternAnalysisException {
+  private void generateAnalysis(String datasetId, Record recordToValidate) throws PatternAnalysisException {
     final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("generateAnalysis_" + datasetId));
     final ExecutionPoint executionPoint;
+    boolean hasLock = false;
     try {
       lock.lock();
-      LOGGER.debug("Generate analysis: {} lock, Locked", datasetId);
-      final LocalDateTime timestamp = datasetIdTimestampMap.computeIfAbsent(datasetId, s -> getLocalDateTime(datasetId));
-      //We have to attempt initialization everytime because we don't have an entry point for the start of the step
-      executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
-      patternAnalysisService.generateRecordPatternAnalysis(executionPoint, new String(recordContent, StandardCharsets.UTF_8));
-    } finally {
-      lock.unlock();
-      LOGGER.debug("Generate analysis: {} lock, Unlocked", datasetId);
+      hasLock = true;
+    } catch (Exception ex) {
+      LOGGER.debug("Generate analysis: unable to aquire lock {} {} :: {} {}", datasetId, ex, recordToValidate.getRecordId(),
+          recordToValidate.getEuropeanaId());
+      //retry on error
+      generateAnalysis(datasetId, recordToValidate);
+    }
+    if (hasLock) {
+      try {
+        LOGGER.debug("Generate analysis: {} lock, Locked {} {}", datasetId, recordToValidate.getRecordId(),
+            recordToValidate.getEuropeanaId());
+        final LocalDateTime timestamp = datasetIdTimestampMap.computeIfAbsent(datasetId, s -> getLocalDateTime(datasetId));
+        //We have to attempt initialization everytime because we don't have an entry point for the start of the step
+        executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
+        patternAnalysisService.generateRecordPatternAnalysis(executionPoint,
+            new String(recordToValidate.getContent(), StandardCharsets.UTF_8));
+      } finally {
+        lock.unlock();
+        LOGGER.debug("Generate analysis: {} lock, Unlocked {} {}", datasetId, recordToValidate.getRecordId(),
+            recordToValidate.getEuropeanaId());
+      }
     }
   }
 
@@ -101,9 +115,23 @@ class InternalValidationServiceImpl implements InternalValidationService {
   @Scheduled(cron = "0 0 0 * * ?")
   private void cleanCache() {
     for (Entry<String, Lock> entry : datasetIdLocksMap.entrySet()) {
-      final Lock lock = entry.getValue();
+      evictEntry(entry);
+    }
+  }
+
+  private void evictEntry(Entry<String, Lock> entry) {
+    boolean hasLock = false;
+    final Lock lock = entry.getValue();
+    try {
+      lock.lock();
+      hasLock = true;
+    } catch (Exception ex) {
+      LOGGER.debug("Cleaning cache: {} unable to acquire lock {}", entry.getKey(), ex);
+      // retry again
+      evictEntry(entry);
+    }
+    if (hasLock) {
       try {
-        lock.lock();
         LOGGER.debug("Cleaning cache: {} lock, Locked", entry.getKey());
         if (datasetIdTimestampMap.get(entry.getKey()).isAfter(
             LocalDateTime.now().minus(MAP_EVICTION_PERIOD))) {
