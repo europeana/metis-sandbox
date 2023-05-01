@@ -20,7 +20,6 @@ import eu.europeana.patternanalysis.view.RecordAnalysis;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,10 +83,8 @@ public class PatternAnalysisController {
      * @return The pattern analysis of the dataset
      */
     @Operation(description = "Retrieve pattern analysis from a dataset")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Response contains the pattern analysis"),
-            @ApiResponse(responseCode = "404", description = "Dataset not found")
-    })
+    @ApiResponse(responseCode = "200", description = "Response contains the pattern analysis")
+    @ApiResponse(responseCode = "404", description = "Dataset not found")
     @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
@@ -129,10 +126,8 @@ public class PatternAnalysisController {
      * @throws SerializationException if there's an issue with the record content
      */
     @Operation(description = "Retrieve pattern analysis from a specific record")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Response contains the pattern analysis"),
-            @ApiResponse(responseCode = "404", description = "Not able to retrieve the pattern analysis of record")
-    })
+    @ApiResponse(responseCode = "200", description = "Response contains the pattern analysis")
+    @ApiResponse(responseCode = "404", description = "Not able to retrieve the pattern analysis of record")
     @GetMapping(value = "{id}/get-record-pattern-analysis", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ProblemPattern>> getRecordPatternAnalysis(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId,
@@ -157,10 +152,8 @@ public class PatternAnalysisController {
      * @return The set of execution timestamp that are available
      */
     @Operation(description = "Get data of all available execution timestamps")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "All values retrieved"),
-            @ApiResponse(responseCode = "404", description = "Not able to retrieve all timestamps values")
-    })
+    @ApiResponse(responseCode = "200", description = "All values retrieved")
+    @ApiResponse(responseCode = "404", description = "Not able to retrieve all timestamps values")
     @GetMapping(value = "execution-timestamps", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody

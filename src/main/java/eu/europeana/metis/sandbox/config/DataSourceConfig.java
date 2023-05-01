@@ -46,18 +46,26 @@ class DataSourceConfig {
                 try {
                     super.doCommit(status);
                 } catch (JpaSystemException jpaSystemException) {
-                    Throwable firstLevelThrowable = jpaSystemException.getCause();
-                    if (firstLevelThrowable instanceof TransactionException) {
-                        Throwable secondLevelThrowable = firstLevelThrowable.getCause();
-                        if (secondLevelThrowable instanceof PSQLException
-                                && "40001".equals(((PSQLException) secondLevelThrowable).getSQLState())) {
-                            throw new TransactionSystemException(firstLevelThrowable.getMessage(), firstLevelThrowable);
-                        }
-                    }
-                    throw jpaSystemException;
+                    transformToTransactionSystemExceptionIfNeeded(jpaSystemException);
                 }
             }
         };
+    }
+
+    private static void transformToTransactionSystemExceptionIfNeeded(JpaSystemException jpaSystemException) {
+        Throwable firstLevelThrowable = jpaSystemException.getCause();
+        // Check if the transaction was unable to commit against JDBC Connection.
+        if (firstLevelThrowable instanceof TransactionException) {
+            Throwable secondLevelThrowable = firstLevelThrowable.getCause();
+            // Check if it could not serialize access due to read/write dependencies among transactions (SQL 40001)
+            // Detail: Reason code: Canceled on identification as a pivot, during commit attempt.
+            // Hint: The transaction might succeed if retried when TransactionSystemException is raised.
+            if (secondLevelThrowable instanceof PSQLException
+                    && "40001".equals(((PSQLException) secondLevelThrowable).getSQLState())) {
+                throw new TransactionSystemException(firstLevelThrowable.getMessage(), firstLevelThrowable);
+            }
+        }
+        throw jpaSystemException;
     }
 
     private void appendCustomTrustStore()

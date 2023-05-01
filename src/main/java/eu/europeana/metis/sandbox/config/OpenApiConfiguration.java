@@ -1,11 +1,7 @@
 package eu.europeana.metis.sandbox.config;
 
-import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +37,7 @@ class OpenApiConfiguration {
                 .group("metis-sandbox")
                 .packagesToScan("eu.europeana.metis.sandbox")
                 .pathsToMatch("/dataset/**", "/pattern-analysis/**")
-                .addOpenApiCustomiser( openApi -> openApi.info(apiInfo()))
+                .addOpenApiCustomiser(openApi -> openApi.info(apiInfo()))
                 .build();
     }
 
