@@ -28,15 +28,14 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
   private final LockRegistry lockRegistry;
 
-  private static final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_2)
-                                                         .followRedirects(Redirect.NORMAL)
-                                                         .connectTimeout(Duration.ofSeconds(5))
-                                                         .build();
+  private final HttpClient httpClient;
 
   public XsltUrlUpdateServiceImpl(TransformXsltRepository transformXsltRepository,
-      LockRegistry lockRegistry) {
+      LockRegistry lockRegistry,
+      HttpClient httpClient) {
     this.transformXsltRepository = transformXsltRepository;
     this.lockRegistry = lockRegistry;
+    this.httpClient = httpClient;
   }
 
   @Override

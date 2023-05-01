@@ -4,6 +4,10 @@ info:
     description: Sandbox to process Datasets
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
+    contact:
+      name: Europeana Foundation
+      email: info@europeana.eu
+      url: www.europeana.eu
 spring:
   autoconfigure:
     exclude:

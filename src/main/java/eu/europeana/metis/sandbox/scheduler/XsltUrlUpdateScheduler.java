@@ -2,12 +2,20 @@ package eu.europeana.metis.sandbox.scheduler;
 
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class XsltUrlUpdateScheduler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(XsltUrlUpdateScheduler.class);
 
   private final XsltUrlUpdateService xsltUrlUpdateService;
 
@@ -23,8 +31,9 @@ public class XsltUrlUpdateScheduler {
     xsltUrlUpdateService.updateXslt(defaultXsltUrl);
   }
 
-  @PostConstruct
-  public void init() {
+  @EventListener
+  public void init(ApplicationReadyEvent readyEvent) {
+    LOGGER.info("All beans initialized");
     //Run this on startup so that we have a valid xslt
     updateDefaultXsltUrl();
   }

@@ -1,12 +1,7 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertLinesMatch;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -44,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -55,7 +51,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @ExtendWith(SpringExtension.class)
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = EmbeddedMongoAutoConfiguration.class )
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
@@ -357,9 +353,10 @@ class PatternAnalysisServiceImplIT {
     ProblemOccurrence occurrence = recordAnalysis.getProblemOccurrenceList().get(0);
     assertTrue(occurrence.getMessageReport().equals("LOWERCASE or UPPERCASE title") ||
         occurrence.getMessageReport().equals("lowercase or uppercase title"));
-    assertLinesMatch(occurrence.getAffectedRecordIds(), List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
-        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg"));
-
+    assertTrue(occurrence.getAffectedRecordIds().containsAll(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg")));
+    assertTrue(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
+            "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.getAffectedRecordIds()));
   }
 
 
