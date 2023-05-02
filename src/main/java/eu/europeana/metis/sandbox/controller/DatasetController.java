@@ -272,6 +272,7 @@ class DatasetController {
    *
    * @param datasetId the dataset id
    * @param recordId the record id
+   * @param stepName the step name
    * @return the string representation of the stored record
    * @throws NoRecordFoundException if record was not found
    */
@@ -281,9 +282,10 @@ class DatasetController {
       @ApiResponse(code = 404, message = "Record not found")
   })
   @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
-  public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId)
+  public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId,
+                          @RequestParam(required = false) String step)
       throws NoRecordFoundException {
-    return recordLogService.getProviderRecordString(recordId, datasetId);
+    return recordLogService.getProviderRecordString(recordId, datasetId, step);
   }
 
   /**

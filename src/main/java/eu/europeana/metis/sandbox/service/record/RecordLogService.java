@@ -23,14 +23,15 @@ public interface RecordLogService {
   void logRecordEvent(RecordProcessEvent recordRecordProcessEvent);
 
   /**
-   * Get provider record content as String from the database
+   * Gets provider record string.
    *
-   * @param recordId the reocrd id
+   * @param recordId  the record id
    * @param datasetId the dataset id
-   * @return the record content
-   * @throws NoRecordFoundException if the record was not found
+   * @param step  the step name
+   * @return the provider record string
+   * @throws NoRecordFoundException the no record found exception
    */
-  String getProviderRecordString(String recordId, String datasetId) throws NoRecordFoundException;
+  String getProviderRecordString(String recordId, String datasetId, String step) throws NoRecordFoundException;
 
   /**
    * Get a record log entity from the database

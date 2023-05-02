@@ -1,25 +1,5 @@
 package eu.europeana.metis.sandbox.controller;
 
-import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
-import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static java.util.Collections.emptyList;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
@@ -44,17 +24,6 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-
-import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +34,36 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
+import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static java.util.Collections.emptyList;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @ExtendWith(SpringExtension.class)
@@ -96,25 +95,27 @@ class DatasetControllerTest {
     private CompletableFuture<Void> asyncResult;
 
     @BeforeEach
-    public void setup(){
-        when(harvestPublishService.runHarvestZipAsync(any(),any())).thenReturn(asyncResult);
-        when(harvestPublishService.runHarvestHttpZipAsync(any(),any())).thenReturn(asyncResult);
-        when(harvestPublishService.runHarvestOaiPmhAsync(any(),any())).thenReturn(asyncResult);
+    public void setup() {
+        when(harvestPublishService.runHarvestZipAsync(any(), any())).thenReturn(asyncResult);
+        when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(asyncResult);
+        when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
     }
+
     @Test
     void processDatasetFromZipFile_withoutXsltFile_expectSuccess() throws Exception {
 
         MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
                 "<test></test>".getBytes());
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
 
         mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
                         .file(mockMultipart)
                         .param("country", ITALY.name())
                         .param("language", IT.name())
-                        .param("stepsize","2"))
+                        .param("stepsize", "2"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.dataset-id", is("12345")));
 
@@ -131,7 +132,8 @@ class DatasetControllerTest {
                 "application/xslt+xml",
                 "string".getBytes());
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
 
         mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -151,7 +153,8 @@ class DatasetControllerTest {
 
         String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
 
         mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -170,12 +173,12 @@ class DatasetControllerTest {
 
         final String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
 
-
         MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
                 "application/xslt+xml",
                 "string".getBytes());
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
 
         mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -195,7 +198,8 @@ class DatasetControllerTest {
 
         final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
                 .thenReturn("12345");
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -220,7 +224,8 @@ class DatasetControllerTest {
                 "application/xslt+xml",
                 "string".getBytes());
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(InputStream.class)))
                 .thenReturn("12345");
 
         mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -339,7 +344,8 @@ class DatasetControllerTest {
 
         final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(InputStream.class)))
                 .thenReturn("12345");
         doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
                 .runHarvestOaiPmhAsync(any(DatasetMetadata.class),
@@ -361,7 +367,8 @@ class DatasetControllerTest {
 
         final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
 
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(InputStream.class)))
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(InputStream.class)))
                 .thenThrow(new ServiceException("Failed", new Exception()));
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -410,7 +417,8 @@ class DatasetControllerTest {
         var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
                 new TierStatistics(0, Collections.emptyList()));
         var report = new ProgressInfoDto("https://metis-sandbox",
-            10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", emptyList(), tiersZeroInfo);
+                10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", emptyList(),
+                tiersZeroInfo);
         when(datasetReportService.getReport("1")).thenReturn(report);
 
         mvc.perform(get("/dataset/{id}", "1"))
@@ -462,9 +470,11 @@ class DatasetControllerTest {
 
         final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
         recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
-        final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(recordTierCalculationSummary,
+        final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(
+                recordTierCalculationSummary,
                 new ContentTierBreakdown.Builder().build(), null);
-        when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenReturn(recordTierCalculationView);
+        when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenReturn(
+                recordTierCalculationView);
 
         mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
                         .param("recordId", recordId))
@@ -492,7 +502,25 @@ class DatasetControllerTest {
         final String datasetId = "1";
         final String recordId = "europeanaId";
         final String returnString = "exampleString";
-        when(recordLogService.getProviderRecordString(recordId, datasetId)).thenReturn(returnString);
+        final String step = "HARVEST";
+        when(recordLogService.getProviderRecordString(recordId, datasetId, step)).thenReturn(
+                returnString);
+
+        mvc.perform(get("/dataset/{id}/record", datasetId)
+                        .param("recordId", recordId)
+                        .param("step", step))
+                .andExpect(content().string(returnString));
+
+        verify(datasetLogService, never()).logException(any(), any());
+    }
+
+    @Test
+    void getRecord_stepOptional_expectSuccess() throws Exception {
+        final String datasetId = "1";
+        final String recordId = "europeanaId";
+        final String returnString = "exampleString";
+        when(recordLogService.getProviderRecordString(recordId, datasetId, null)).thenReturn(
+                returnString);
 
         mvc.perform(get("/dataset/{id}/record", datasetId)
                         .param("recordId", recordId))
@@ -505,10 +533,13 @@ class DatasetControllerTest {
     void getRecord_NoRecordFoundException() throws Exception {
         final String datasetId = "1";
         final String recordId = "europeanaId";
-        when(recordLogService.getProviderRecordString(anyString(), anyString())).thenThrow(
+        final String step = "step";
+        when(recordLogService.getProviderRecordString(anyString(), anyString(), anyString())).thenThrow(
                 new NoRecordFoundException("record not found"));
 
-        mvc.perform(get("/dataset/{id}/record", datasetId).param("recordId", recordId))
+        mvc.perform(get("/dataset/{id}/record", datasetId)
+                        .param("recordId", recordId)
+                        .param("step", step))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message",
                         is("record not found")));
@@ -517,18 +548,19 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromZipFile_AsyncExecutionException_expectLogging() throws Exception {
         MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-            "<test></test>".getBytes());
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
-            .thenReturn("12345");
+                "<test></test>".getBytes());
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
+                .thenReturn("12345");
         ServiceException exception = new ServiceException("Test error");
         when(harvestPublishService.runHarvestZipAsync(any(), any())).thenReturn(
-            CompletableFuture.failedFuture(exception));
+                CompletableFuture.failedFuture(exception));
 
         mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-               .file(mockMultipart)
-               .param("country", ITALY.name())
-               .param("language", IT.name())
-               .param("stepsize","2"));
+                .file(mockMultipart)
+                .param("country", ITALY.name())
+                .param("language", IT.name())
+                .param("stepsize", "2"));
 
         verify(datasetLogService).logException("12345", exception);
     }
@@ -536,17 +568,18 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromURL_AsyncExecutionException_expectLogging() throws Exception {
         ServiceException exception = new ServiceException("Test error");
-        when(harvestPublishService.runHarvestHttpZipAsync(any(),any())).thenReturn(
-            CompletableFuture.failedFuture(exception));
+        when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(
+                CompletableFuture.failedFuture(exception));
         String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
-            .thenReturn("12345");
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
+                .thenReturn("12345");
 
         mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-               .param("country", ITALY.name())
-               .param("language", IT.name())
-               .param("url", url)
-               .param("stepsize", "2"))           ;
+                .param("country", ITALY.name())
+                .param("language", IT.name())
+                .param("url", url)
+                .param("stepsize", "2"));
 
         verify(datasetLogService).logException("12345", exception);
     }
@@ -554,19 +587,20 @@ class DatasetControllerTest {
     @Test
     void processDatasetFromOAI_AsyncExecutionException_expectLogging() throws Exception {
         ServiceException exception = new ServiceException("Test error");
-        when(harvestPublishService.runHarvestOaiPmhAsync(any(),any())).thenReturn(
-            CompletableFuture.failedFuture(exception));
+        when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(
+                CompletableFuture.failedFuture(exception));
         final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT), any(ByteArrayInputStream.class)))
-            .thenReturn("12345");
+        when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+                any(ByteArrayInputStream.class)))
+                .thenReturn("12345");
 
         mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-               .param("country", ITALY.xmlValue())
-               .param("language", IT.xmlValue())
-               .param("url", url)
-               .param("setspec", "1073")
-               .param("metadataformat", "rdf")
-               .param("stepsize", "2"))           ;
+                .param("country", ITALY.xmlValue())
+                .param("language", IT.xmlValue())
+                .param("url", url)
+                .param("setspec", "1073")
+                .param("metadataformat", "rdf")
+                .param("stepsize", "2"));
 
         verify(datasetLogService).logException("12345", exception);
     }
