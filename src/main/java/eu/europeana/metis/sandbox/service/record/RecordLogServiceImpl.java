@@ -24,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class RecordLogServiceImpl implements RecordLogService {
 
-    private static final Set<Step> HARVEST_STEPS = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
-
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository recordErrorLogRepository;
     private final RecordRepository recordRepository;
