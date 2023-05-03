@@ -78,6 +78,26 @@ class ProgressInfoDtoTest {
     assertEquals(Language.HR, progressInfoDto.getDatasetInfoDto().getLanguage());
     assertFalse(progressInfoDto.getDatasetInfoDto().isRecordLimitExceeded());
     assertFalse(progressInfoDto.getDatasetInfoDto().isTransformedToEdmExternal());
+    assertTrue(progressInfoDto.isRecordsPublishedSuccessfully());
+  }
+
+  private static Stream<Arguments> providePublish() {
+    return Stream.of(
+            Arguments.of(getTestHarvestingIdsInfoDto(), false, ""),
+            Arguments.of(getTestErrorTypeInfoDto(), true, "http://metis-sandbox"),
+            Arguments.of(getTestProgressInfoDto(), true, "http://metis-sandbox"),
+            Arguments.of(getTestCompletedInfoDto(), true, "http://metis-sandbox"),
+            Arguments.of(getTestFailedInfoDtoNotPublished(), false, "")
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("providePublish")
+  void getRecordsPublishedSuccessfully(ProgressInfoDto progressInfoDto,
+                                       boolean expectedPublishedSuccess,
+                                       String expectedPublishPortal) {
+    assertEquals(expectedPublishPortal, progressInfoDto.getPortalPublishUrl());
+    assertEquals(expectedPublishedSuccess, progressInfoDto.isRecordsPublishedSuccessfully());
   }
 
   @Test
@@ -96,7 +116,6 @@ class ProgressInfoDtoTest {
     assertEquals(4, progressInfoDto.getTiersZeroInfo().getMetadataTier().getTotalNumberOfRecords());
     assertEquals(progressInfoDto.getTiersZeroInfo().getMetadataTier().getListRecordIds(),
             List.of("europeanaId1", "europeanaId2","europeanaId3", "europeanaId4"));
-
   }
 
   @NotNull
@@ -115,7 +134,7 @@ class ProgressInfoDtoTest {
   }
 
   @NotNull
-  private static List<ProgressByStepDto> getProgressByStepDtoList(int success, int success1) {
+  private static List<ProgressByStepDto> getProgressByStepDtoList(int mediaProcessed, int published) {
     return List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.TRANSFORM_TO_EDM_EXTERNAL, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
@@ -123,8 +142,8 @@ class ProgressInfoDtoTest {
         new ProgressByStepDto(Step.VALIDATE_INTERNAL, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.NORMALIZE, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.ENRICH, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.MEDIA_PROCESS, success, 0, 0, List.of()),
-        new ProgressByStepDto(Step.PUBLISH, success1, 0, 0, List.of()));
+        new ProgressByStepDto(Step.MEDIA_PROCESS, mediaProcessed, 0, 0, List.of()),
+        new ProgressByStepDto(Step.PUBLISH, published, 0, 0, List.of()));
   }
 
   @NotNull
@@ -140,6 +159,23 @@ class ProgressInfoDtoTest {
             Country.CROATIA,
             false,
             false), "", emptyList(), null);
+  }
+
+  @NotNull
+  private static ProgressInfoDto getTestFailedInfoDtoNotPublished() {
+    return new ProgressInfoDto("http://metis-sandbox",
+            5L,
+            5L,
+            getProgressByStepDtoList(5, 0),
+            new DatasetInfoDto("datasetId",
+                    "datasetName",
+                    LocalDateTime.parse("2022-03-14T22:50:22"),
+                    Language.HR,
+                    Country.CROATIA,
+                    false,
+                    false),
+            "Fail to publish", emptyList(),
+            getTiersZeroInfo());
   }
 
   @NotNull
