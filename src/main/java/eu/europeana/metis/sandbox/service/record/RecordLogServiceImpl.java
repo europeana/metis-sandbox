@@ -61,10 +61,10 @@ class RecordLogServiceImpl implements RecordLogService {
     }
 
     @Override
-    public String getProviderRecordString(String recordId, String datasetId, String step)
+    public String getProviderRecordString(String recordId, String datasetId, Set<Step> step)
             throws NoRecordFoundException {
 
-        return getRecordLogEntities(recordId, datasetId, getSetFromStep(step))
+        return getRecordLogEntities(recordId, datasetId, step)
             .stream().findFirst()
             .map(RecordLogEntity::getContent)
             .orElseThrow(
@@ -72,20 +72,6 @@ class RecordLogServiceImpl implements RecordLogService {
                     String.format(
                         "Record not found for recordId: %s, datasetId: %s",
                         recordId, datasetId)));
-    }
-
-    public Set<Step> getSetFromStep(String step) {
-        Set<Step> steps;
-        if (step==null || step.isBlank() || step.equals("HARVEST")) {
-            steps = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
-        } else {
-            try {
-                steps = Set.of(Step.valueOf(step));
-            } catch (IllegalArgumentException ignored) {
-                steps = Set.of();
-            }
-        }
-        return steps;
     }
 
     @Override

@@ -18,7 +18,8 @@ public interface RecordLogService {
    *
    * @param recordRecordProcessEvent must not be null
    * @throws NullPointerException if event record is null
-   * @throws ServiceException if any unhandled exception happens, exception will contain original exception
+   * @throws ServiceException     if any unhandled exception happens, exception will contain
+   *                              original exception
    */
   void logRecordEvent(RecordProcessEvent recordRecordProcessEvent);
 
@@ -27,11 +28,11 @@ public interface RecordLogService {
    *
    * @param recordId  the record id
    * @param datasetId the dataset id
-   * @param step  the step name
+   * @param step      the step
    * @return the provider record string
    * @throws NoRecordFoundException the no record found exception
    */
-  String getProviderRecordString(String recordId, String datasetId, String step) throws NoRecordFoundException;
+  String getProviderRecordString(String recordId, String datasetId, Set<Step> step) throws NoRecordFoundException;
 
   /**
    * Get a record log entity from the database
@@ -47,17 +48,17 @@ public interface RecordLogService {
   /**
    * Get a record log entities from the database
    *
-   * @param recordId the record id
+   * @param recordId  the record id
    * @param datasetId the dataset id
-   * @param steps the steps that we want to get the record state
+   * @param steps     the steps that we want to get the record state
    * @return the record log entities
    */
-  public Set<RecordLogEntity> getRecordLogEntities(String recordId, String datasetId, Set<Step> steps);
+  Set<RecordLogEntity> getRecordLogEntities(String recordId, String datasetId, Set<Step> steps);
 
   /**
    * Get a record error log entity from the database
    *
-   * @param recordId the record id
+   * @param recordId  the record id
    * @param datasetId the dataset id
    * @return the record error log entity
    */
@@ -68,7 +69,7 @@ public interface RecordLogService {
    *
    * @param datasetId must not be null
    * @throws NullPointerException if dataset id is null
-   * @throws ServiceException if there is an issue removing the dataset
+   * @throws ServiceException     if there is an issue removing the dataset
    */
   void remove(String datasetId);
 }
