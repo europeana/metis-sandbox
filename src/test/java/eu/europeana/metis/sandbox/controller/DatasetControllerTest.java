@@ -125,7 +125,7 @@ class DatasetControllerTest {
         arguments("PUBLISH", Set.of(Step.PUBLISH), status().isOk(),
             content().string("exampleString")),
         arguments("CLOSE", Set.of(Step.CLOSE), status().isOk(), content().string("exampleString")),
-        arguments("NON_SENSE", Set.of(), status().isBadRequest(), content().string(""))
+        arguments("NON_SENSE", Set.of(), status().isBadRequest(), content().string("{\"statusCode\":400,\"status\":\"BAD_REQUEST\",\"message\":\"Invalid step name NON_SENSE\"}"))
     );
   }
 
