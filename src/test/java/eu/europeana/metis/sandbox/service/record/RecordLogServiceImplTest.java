@@ -121,9 +121,9 @@ class RecordLogServiceImplTest {
     final RecordLogEntity recordLogEntity = new RecordLogEntity();
     recordLogEntity.setContent("content");
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
-        Set.of(Step.HARVEST_ZIP))).thenReturn(Set.of(recordLogEntity));
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(recordLogEntity));
     final String providerRecord = service.getProviderRecordString("recordId", "datasetId",
-        Set.of(Step.HARVEST_ZIP));
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP));
     assertNotNull(providerRecord);
     assertEquals("content", providerRecord);
   }

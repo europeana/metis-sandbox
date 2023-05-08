@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/dataset/")
@@ -287,7 +286,6 @@ class DatasetController {
   @ApiOperation("Get record string representation")
   @ApiResponses({
       @ApiResponse(code = 200, message = "String representation of record"),
-      @ApiResponse(code = 400, message = "Invalid step"),
       @ApiResponse(code = 404, message = "Record not found")
   })
   @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
@@ -304,8 +302,8 @@ class DatasetController {
     } else {
       try {
         steps = Set.of(Step.valueOf(step));
-      } catch (IllegalArgumentException illegalArgumentException) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid step name");
+      } catch (IllegalArgumentException iae) {
+        throw new IllegalArgumentException(String.format("Invalid step name %s", step), iae);
       }
     }
     return steps;
