@@ -26,12 +26,6 @@ class ProgressInfoDtoTest {
 
   private ProgressInfoDto progressInfoDto;
 
-  @Test
-  void getPortalPublishUrl() {
-    progressInfoDto = getTestProgressInfoDto();
-    assertEquals("http://metis-sandbox", progressInfoDto.getPortalPublishUrl());
-  }
-
   private static Stream<Arguments> provideStatus() {
     return Stream.of(
         Arguments.of(getTestHarvestingIdsInfoDto(), Status.HARVESTING_IDENTIFIERS),
@@ -40,18 +34,139 @@ class ProgressInfoDtoTest {
     );
   }
 
-  @ParameterizedTest
-  @MethodSource("provideStatus")
-  void getStatus(ProgressInfoDto progressInfoDto, Status expectedStatus) {
-    assertEquals(expectedStatus, progressInfoDto.getStatus());
-  }
-
   private static Stream<Arguments> provideProcessed() {
     return Stream.of(
         Arguments.of(getTestHarvestingIdsInfoDto(), 0L),
         Arguments.of(getTestProgressInfoDto(), 2L),
         Arguments.of(getTestCompletedInfoDto(), 5L)
     );
+  }
+
+  private static Stream<Arguments> providePublish() {
+    return Stream.of(
+        Arguments.of(getTestHarvestingIdsInfoDto(), false, ""),
+        Arguments.of(getTestErrorTypeInfoDto(), true, "http://metis-sandbox"),
+        Arguments.of(getTestProgressInfoDto(), true, "http://metis-sandbox"),
+        Arguments.of(getTestCompletedInfoDto(), true, "http://metis-sandbox"),
+        Arguments.of(getTestFailedInfoDtoNotPublished(), false, "")
+    );
+  }
+
+  @NotNull
+  private static ProgressInfoDto getTestProgressInfoDto() {
+    return new ProgressInfoDto("http://metis-sandbox",
+        5L,
+        2L,
+        getProgressByStepDtoList(2, 1),
+        new DatasetInfoDto("datasetId",
+            "datasetName",
+            LocalDateTime.parse("2022-03-14T22:50:22"),
+            Language.HR,
+            Country.CROATIA,
+            false,
+            false), "", emptyList(), null);
+  }
+
+  @NotNull
+  private static List<ProgressByStepDto> getProgressByStepDtoList(int mediaProcessed,
+      int published) {
+    return List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.TRANSFORM_TO_EDM_EXTERNAL, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.TRANSFORM, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.VALIDATE_INTERNAL, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.NORMALIZE, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.ENRICH, 5, 0, 0, List.of()),
+        new ProgressByStepDto(Step.MEDIA_PROCESS, mediaProcessed, 0, 0, List.of()),
+        new ProgressByStepDto(Step.PUBLISH, published, 0, 0, List.of()));
+  }
+
+  @NotNull
+  private static ProgressInfoDto getTestHarvestingIdsInfoDto() {
+    return new ProgressInfoDto("http://metis-sandbox",
+        null,
+        0L,
+        List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 0, 0, 0, List.of())),
+        new DatasetInfoDto("datasetId",
+            "datasetName",
+            LocalDateTime.parse("2022-03-14T22:50:22"),
+            Language.HR,
+            Country.CROATIA,
+            false,
+            false), "", emptyList(), null);
+  }
+
+  @NotNull
+  private static ProgressInfoDto getTestFailedInfoDtoNotPublished() {
+    return new ProgressInfoDto("http://metis-sandbox",
+        5L,
+        5L,
+        getProgressByStepDtoList(5, 0),
+        new DatasetInfoDto("datasetId",
+            "datasetName",
+            LocalDateTime.parse("2022-03-14T22:50:22"),
+            Language.HR,
+            Country.CROATIA,
+            false,
+            false),
+        "Fail to publish", emptyList(),
+        getTiersZeroInfo());
+  }
+
+  @NotNull
+  private static ProgressInfoDto getTestCompletedInfoDto() {
+    return new ProgressInfoDto("http://metis-sandbox",
+        5L,
+        5L,
+        getProgressByStepDtoList(5, 5),
+        new DatasetInfoDto("datasetId",
+            "datasetName",
+            LocalDateTime.parse("2022-03-14T22:50:22"),
+            Language.HR,
+            Country.CROATIA,
+            false,
+            false),
+        "", emptyList(),
+        getTiersZeroInfo());
+  }
+
+  @NotNull
+  private static ProgressInfoDto getTestErrorTypeInfoDto() {
+    return new ProgressInfoDto("http://metis-sandbox",
+        5L,
+        5L,
+        getProgressByStepDtoList(5, 5),
+        new DatasetInfoDto("datasetId",
+            "datasetName",
+            LocalDateTime.parse("2022-03-14T22:50:22"),
+            Language.HR,
+            Country.CROATIA,
+            false,
+            false),
+        "Error",
+        emptyList(),
+        null);
+  }
+
+  @NotNull
+  private static TiersZeroInfo getTiersZeroInfo() {
+    TierStatistics contentTier = new TierStatistics(2, List.of("europeanaId1", "europeanaId2"));
+    TierStatistics metadataTier = new TierStatistics(4,
+        List.of("europeanaId1", "europeanaId2", "europeanaId3", "europeanaId4"));
+
+    return new TiersZeroInfo(contentTier, metadataTier);
+  }
+
+  @Test
+  void getPortalPublishUrl() {
+    progressInfoDto = getTestProgressInfoDto();
+    assertEquals("http://metis-sandbox", progressInfoDto.getPortalPublishUrl());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideStatus")
+  void getStatus(ProgressInfoDto progressInfoDto, Status expectedStatus) {
+    assertEquals(expectedStatus, progressInfoDto.getStatus());
   }
 
   @ParameterizedTest
@@ -73,116 +188,41 @@ class ProgressInfoDtoTest {
 
     assertEquals("datasetId", progressInfoDto.getDatasetInfoDto().getDatasetId());
     assertEquals("datasetName", progressInfoDto.getDatasetInfoDto().getDatasetName());
-    assertEquals(LocalDateTime.parse("2022-03-14T22:50:22"), progressInfoDto.getDatasetInfoDto().getCreationDate());
+    assertEquals(LocalDateTime.parse("2022-03-14T22:50:22"),
+        progressInfoDto.getDatasetInfoDto().getCreationDate());
     assertEquals(Country.CROATIA, progressInfoDto.getDatasetInfoDto().getCountry());
     assertEquals(Language.HR, progressInfoDto.getDatasetInfoDto().getLanguage());
     assertFalse(progressInfoDto.getDatasetInfoDto().isRecordLimitExceeded());
     assertFalse(progressInfoDto.getDatasetInfoDto().isTransformedToEdmExternal());
+    assertTrue(progressInfoDto.isRecordsPublishedSuccessfully());
+  }
+
+  @ParameterizedTest
+  @MethodSource("providePublish")
+  void getRecordsPublishedSuccessfully(ProgressInfoDto progressInfoDto,
+      boolean expectedPublishedSuccess,
+      String expectedPublishPortal) {
+    assertEquals(expectedPublishPortal, progressInfoDto.getPortalPublishUrl());
+    assertEquals(expectedPublishedSuccess, progressInfoDto.isRecordsPublishedSuccessfully());
   }
 
   @Test
   void getErrorType() {
     progressInfoDto = getTestErrorTypeInfoDto();
-    assertEquals( "Error", progressInfoDto.getErrorType());
-    assertEquals( "", progressInfoDto.getPortalPublishUrl());
+    assertEquals("Error", progressInfoDto.getErrorType());
+    assertEquals(Status.FAILED, progressInfoDto.getStatus());
+    assertEquals("http://metis-sandbox", progressInfoDto.getPortalPublishUrl());
   }
 
   @Test
-  void getTiersZeroInfoTest(){
+  void getTiersZeroInfoTest() {
     progressInfoDto = getTestCompletedInfoDto();
     assertEquals(2, progressInfoDto.getTiersZeroInfo().getContentTier().getTotalNumberOfRecords());
     assertEquals(progressInfoDto.getTiersZeroInfo().getContentTier().getListRecordIds(),
-            List.of("europeanaId1", "europeanaId2"));
+        List.of("europeanaId1", "europeanaId2"));
     assertEquals(4, progressInfoDto.getTiersZeroInfo().getMetadataTier().getTotalNumberOfRecords());
     assertEquals(progressInfoDto.getTiersZeroInfo().getMetadataTier().getListRecordIds(),
-            List.of("europeanaId1", "europeanaId2","europeanaId3", "europeanaId4"));
-
-  }
-
-  @NotNull
-  private static ProgressInfoDto getTestProgressInfoDto() {
-    return new ProgressInfoDto("http://metis-sandbox",
-        5L,
-        2L,
-        getProgressByStepDtoList(2, 1),
-        new DatasetInfoDto("datasetId",
-            "datasetName",
-            LocalDateTime.parse("2022-03-14T22:50:22"),
-            Language.HR,
-            Country.CROATIA,
-            false,
-            false), "", emptyList(), null);
-  }
-
-  @NotNull
-  private static List<ProgressByStepDto> getProgressByStepDtoList(int success, int success1) {
-    return List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.TRANSFORM_TO_EDM_EXTERNAL, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.TRANSFORM, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.VALIDATE_INTERNAL, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.NORMALIZE, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.ENRICH, 5, 0, 0, List.of()),
-        new ProgressByStepDto(Step.MEDIA_PROCESS, success, 0, 0, List.of()),
-        new ProgressByStepDto(Step.PUBLISH, success1, 0, 0, List.of()));
-  }
-
-  @NotNull
-  private static ProgressInfoDto getTestHarvestingIdsInfoDto() {
-    return new ProgressInfoDto("http://metis-sandbox",
-        null,
-        0L,
-        List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 0, 0, 0, List.of())),
-        new DatasetInfoDto("datasetId",
-            "datasetName",
-            LocalDateTime.parse("2022-03-14T22:50:22"),
-            Language.HR,
-            Country.CROATIA,
-            false,
-            false), "", emptyList(), null);
-  }
-
-  @NotNull
-  private static ProgressInfoDto getTestCompletedInfoDto() {
-    return new ProgressInfoDto("http://metis-sandbox",
-        5L,
-        5L,
-        getProgressByStepDtoList(5, 5),
-        new DatasetInfoDto("datasetId",
-            "datasetName",
-            LocalDateTime.parse("2022-03-14T22:50:22"),
-            Language.HR,
-            Country.CROATIA,
-            false,
-            false),
-            "", emptyList(),
-            getTiersZeroInfo());
-  }
-
-  @NotNull
-  private static ProgressInfoDto getTestErrorTypeInfoDto() {
-    return new ProgressInfoDto("http://metis-sandbox",
-            5L,
-            5L,
-            getProgressByStepDtoList(5, 5),
-            new DatasetInfoDto("datasetId",
-                    "datasetName",
-                    LocalDateTime.parse("2022-03-14T22:50:22"),
-                    Language.HR,
-                    Country.CROATIA,
-                    false,
-                    false),
-            "Error",
-                    emptyList(),
-            null);
-  }
-
-  @NotNull
-  private static TiersZeroInfo getTiersZeroInfo(){
-    TierStatistics contentTier = new TierStatistics(2, List.of("europeanaId1", "europeanaId2"));
-    TierStatistics metadataTier = new TierStatistics(4, List.of("europeanaId1", "europeanaId2","europeanaId3", "europeanaId4"));
-
-    return new TiersZeroInfo(contentTier, metadataTier);
+        List.of("europeanaId1", "europeanaId2", "europeanaId3", "europeanaId4"));
   }
 
 }

@@ -358,9 +358,10 @@ class PatternAnalysisServiceImplIT {
     assertTrue(occurrence.getMessageReport().equals("LOWERCASE or UPPERCASE title") ||
         occurrence.getMessageReport().equals("lowercase or uppercase title"));
     assertTrue(occurrence.getAffectedRecordIds().containsAll(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
-            "/21/_providedCHO_MHC_EMC_10_ms_07_jpg")));
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg")));
     assertTrue(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
-            "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.getAffectedRecordIds()));
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.getAffectedRecordIds()));
+
   }
 
 
