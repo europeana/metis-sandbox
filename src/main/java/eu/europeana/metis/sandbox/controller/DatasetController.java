@@ -6,6 +6,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -28,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -95,10 +97,10 @@ class DatasetController {
    * POST API calls for harvesting and processing the records given a zip file
    *
    * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param dataset the given dataset itself to be processed as a zip file
-   * @param xsltFile the xslt file used for transformation to edm external
+   * @param country     the given country from which the records refer to
+   * @param language    the given language that the records contain
+   * @param dataset     the given dataset itself to be processed as a zip file
+   * @param xsltFile    the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing a file")
@@ -115,21 +117,22 @@ class DatasetController {
       @ApiParam(value = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    if(stepsize != null) {
+    if (stepsize != null) {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language, xsltInputStream);
+    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
+        language, xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-            .withDatasetId(createdDatasetId)
-            .withDatasetName(datasetName)
-            .withCountry(country)
-            .withLanguage(language)
-            .withStepSize(stepsize)
-            .build();
+        .withDatasetId(createdDatasetId)
+        .withDatasetName(datasetName)
+        .withCountry(country)
+        .withLanguage(language)
+        .withStepSize(stepsize)
+        .build();
     harvestPublishService.runHarvestZipAsync(dataset, datasetMetadata)
-                         .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+        .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
     return new DatasetIdDto(createdDatasetId);
   }
 
@@ -138,10 +141,10 @@ class DatasetController {
    * POST API calls for harvesting and processing the records given a URL of a zip file
    *
    * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param url the given dataset itself to be processed as a URL of a zip file
-   * @param xsltFile the xslt file used for transformation to edm external
+   * @param country     the given country from which the records refer to
+   * @param language    the given language that the records contain
+   * @param url         the given dataset itself to be processed as a URL of a zip file
+   * @param xsltFile    the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset by HTTP providing an URL")
@@ -159,37 +162,40 @@ class DatasetController {
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    if(stepsize != null) {
+    if (stepsize != null) {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
+    checkArgument(urlValidator.isValid(url),
+        "The provided url is invalid. Please provide a valid url.");
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
+    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
+        language,
         xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-            .withDatasetId(createdDatasetId)
-            .withDatasetName(datasetName)
-            .withCountry(country)
-            .withLanguage(language)
-            .withStepSize(stepsize)
-            .build();
+        .withDatasetId(createdDatasetId)
+        .withDatasetName(datasetName)
+        .withCountry(country)
+        .withLanguage(language)
+        .withStepSize(stepsize)
+        .build();
     harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata)
-                         .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+        .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
     return new DatasetIdDto(createdDatasetId);
   }
 
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
    *
-   * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param url the given URL of the OAI-PMH repository to be processed
-   * @param setspec forms a unique identifier for the set within the repository, it must be unique for each set.
-   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH requests issued to the
-   * repository
-   * @param xsltFile the xslt file used for transformation to edm external
+   * @param datasetName    the given name of the dataset to be processed
+   * @param country        the given country from which the records refer to
+   * @param language       the given language that the records contain
+   * @param url            the given URL of the OAI-PMH repository to be processed
+   * @param setspec        forms a unique identifier for the set within the repository, it must be
+   *                       unique for each set.
+   * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
+   *                       requests issued to the repository
+   * @param xsltFile       the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
    */
   @ApiOperation("Process the given dataset using OAI-PMH")
@@ -208,24 +214,25 @@ class DatasetController {
       @ApiParam(value = "metadata format") @RequestParam String metadataformat,
       @ApiParam(value = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    if(stepsize != null) {
+    if (stepsize != null) {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
-    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
+    checkArgument(urlValidator.isValid(url),
+        "The provided url is invalid. Please provide a valid url.");
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
         xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-            .withDatasetId(createdDatasetId)
-            .withDatasetName(datasetName)
-            .withCountry(country)
-            .withLanguage(language)
-            .withStepSize(stepsize)
-            .build();
+        .withDatasetId(createdDatasetId)
+        .withDatasetName(datasetName)
+        .withCountry(country)
+        .withLanguage(language)
+        .withStepSize(stepsize)
+        .build();
     harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
-        new OaiHarvestData(url, setspec, metadataformat, ""))
-                         .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+            new OaiHarvestData(url, setspec, metadataformat, ""))
+        .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -251,7 +258,7 @@ class DatasetController {
    * GET API returns the generated tier calculation view for a stored record.
    *
    * @param datasetId the dataset id
-   * @param recordId the record id
+   * @param recordId  the record id
    * @return the record tier calculation view
    * @throws NoRecordFoundException if record was not found
    */
@@ -271,7 +278,8 @@ class DatasetController {
    * GET API returns the string representation of the stored record.
    *
    * @param datasetId the dataset id
-   * @param recordId the record id
+   * @param recordId  the record id
+   * @param step      the step name
    * @return the string representation of the stored record
    * @throws NoRecordFoundException if record was not found
    */
@@ -281,9 +289,24 @@ class DatasetController {
       @ApiResponse(code = 404, message = "Record not found")
   })
   @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
-  public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId)
+  public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId,
+      @RequestParam(required = false) String step)
       throws NoRecordFoundException {
-    return recordLogService.getProviderRecordString(recordId, datasetId);
+    return recordLogService.getProviderRecordString(recordId, datasetId, getSetFromStep(step));
+  }
+
+  private Set<Step> getSetFromStep(String step) {
+    Set<Step> steps;
+    if (step == null || step.isBlank() || step.equals("HARVEST")) {
+      steps = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
+    } else {
+      try {
+        steps = Set.of(Step.valueOf(step));
+      } catch (IllegalArgumentException iae) {
+        throw new IllegalArgumentException(String.format("Invalid step name %s", step), iae);
+      }
+    }
+    return steps;
   }
 
   /**
@@ -301,7 +324,7 @@ class DatasetController {
   @ResponseBody
   public List<CountryView> getAllCountries() {
     return Country.getCountryListSortedByName().stream().map(CountryView::new)
-                  .collect(Collectors.toList());
+        .collect(Collectors.toList());
   }
 
   /**
@@ -319,7 +342,7 @@ class DatasetController {
   @ResponseBody
   public List<LanguageView> getAllLanguages() {
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
-                   .collect(Collectors.toList());
+        .collect(Collectors.toList());
   }
 
   private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

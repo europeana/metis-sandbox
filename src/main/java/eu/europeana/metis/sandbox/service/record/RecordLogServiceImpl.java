@@ -24,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class RecordLogServiceImpl implements RecordLogService {
 
-    private static final Set<Step> HARVEST_STEPS = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
-
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository recordErrorLogRepository;
     private final RecordRepository recordRepository;
@@ -63,10 +61,10 @@ class RecordLogServiceImpl implements RecordLogService {
     }
 
     @Override
-    public String getProviderRecordString(String recordId, String datasetId)
+    public String getProviderRecordString(String recordId, String datasetId, Set<Step> step)
             throws NoRecordFoundException {
 
-        return getRecordLogEntities(recordId, datasetId, HARVEST_STEPS)
+        return getRecordLogEntities(recordId, datasetId, step)
             .stream().findFirst()
             .map(RecordLogEntity::getContent)
             .orElseThrow(
