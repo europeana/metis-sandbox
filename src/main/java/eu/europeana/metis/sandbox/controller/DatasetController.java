@@ -27,7 +27,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -148,7 +155,6 @@ class DatasetController {
         return new DatasetIdDto(createdDatasetId);
     }
 
-
     /**
      * POST API calls for harvesting and processing the records given a URL of a zip file
      *
@@ -204,7 +210,7 @@ class DatasetController {
      * @param setspec        forms a unique identifier for the set within the repository, it must be
      *                       unique for each set.
      * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
-     *                       requests issued to the                       repository
+     *                       requests issued to the repository
      * @param xsltFile       the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
@@ -241,8 +247,8 @@ class DatasetController {
                         new OaiHarvestData(url, setspec, metadataformat, ""))
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
 
-    return new DatasetIdDto(createdDatasetId);
-  }
+        return new DatasetIdDto(createdDatasetId);
+    }
 
     /**
      * GET API calls to return the progress status of a given dataset id
@@ -285,7 +291,7 @@ class DatasetController {
      * @param datasetId the dataset id
      * @param recordId  the record id
      * @param step      the step name
-   * @return the string representation of the stored record
+     * @return the string representation of the stored record
      * @throws NoRecordFoundException if record was not found
      */
     @Operation(summary = "Gets a record", description = "Get record string representation")
@@ -294,22 +300,22 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
     public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId,
-            @RequestParam(required = false) String step)throws NoRecordFoundException {
+                            @RequestParam(required = false) String step) throws NoRecordFoundException {
         return recordLogService.getProviderRecordString(recordId, datasetId, getSetFromStep(step));
-  }
-
-  private Set<Step> getSetFromStep(String step) {
-    Set<Step> steps;
-    if (step == null || step.isBlank() || step.equals("HARVEST")) {
-      steps = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
-    } else {
-      try {
-        steps = Set.of(Step.valueOf(step));
-      } catch (IllegalArgumentException iae) {
-        throw new IllegalArgumentException(String.format("Invalid step name %s", step), iae);
-      }
     }
-    return steps;
+
+    private Set<Step> getSetFromStep(String step) {
+        Set<Step> steps;
+        if (step == null || step.isBlank() || step.equals("HARVEST")) {
+            steps = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
+        } else {
+            try {
+                steps = Set.of(Step.valueOf(step));
+            } catch (IllegalArgumentException iae) {
+                throw new IllegalArgumentException(String.format("Invalid step name %s", step), iae);
+            }
+        }
+        return steps;
     }
 
     /**
@@ -348,47 +354,57 @@ class DatasetController {
                 .collect(Collectors.toList());
     }
 
-  private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
-    if (xslt != null && !xslt.isEmpty()) {
-      final String contentType = xslt.getContentType();
-      if (contentType == null) {
-        throw new IllegalArgumentException("Something went wrong checking file's content type.");
-      } else if (!contentType.contains("xml")) {
-        throw new IllegalArgumentException("The given xslt file should be a single xml file.");
-      }
-      try {
-        return new ByteArrayInputStream(xslt.getBytes());
-      } catch (IOException e) {
-        throw new XsltProcessingException("Something wrong happened while processing xslt file.",
-            e);
-      }
+    private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
+        if (xslt != null && !xslt.isEmpty()) {
+            final String contentType = xslt.getContentType();
+            if (contentType == null) {
+                throw new IllegalArgumentException("Something went wrong checking file's content type.");
+            } else if (!contentType.contains("xml")) {
+                throw new IllegalArgumentException("The given xslt file should be a single xml file.");
+            }
+            try {
+                return new ByteArrayInputStream(xslt.getBytes());
+            } catch (IOException e) {
+                throw new XsltProcessingException("Something wrong happened while processing xslt file.",
+                        e);
+            }
+        }
+        return new ByteArrayInputStream(new byte[0]);
     }
-    return new ByteArrayInputStream(new byte[0]);
-  }
 
-  private static class CountryView {
+    private static class CountryView {
 
-    @JsonProperty("name")
-    private final String name;
-    @JsonProperty("xmlValue")
-    private final String xmlValue;
+        @JsonProperty("name")
+        private final String name;
+        @JsonProperty("xmlValue")
+        private final String xmlValue;
 
-    CountryView(Country country) {
-      this.name = country.name();
-      this.xmlValue = country.xmlValue();
+        /**
+         * Instantiates a new Country view.
+         *
+         * @param country the country
+         */
+        CountryView(Country country) {
+            this.name = country.name();
+            this.xmlValue = country.xmlValue();
+        }
     }
-  }
 
-  private static class LanguageView {
+    private static class LanguageView {
 
-    @JsonProperty("name")
-    private final String name;
-    @JsonProperty("xmlValue")
-    private final String xmlValue;
+        @JsonProperty("name")
+        private final String name;
+        @JsonProperty("xmlValue")
+        private final String xmlValue;
 
-    LanguageView(Language language) {
-      this.name = language.name();
-      this.xmlValue = language.xmlValue();
+        /**
+         * Instantiates a new Language view.
+         *
+         * @param language the language
+         */
+        LanguageView(Language language) {
+            this.name = language.name();
+            this.xmlValue = language.xmlValue();
+        }
     }
-  }
 }

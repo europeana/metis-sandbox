@@ -27,12 +27,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
@@ -64,6 +75,7 @@ public class PatternAnalysisController {
      * @param executionPointService  the execution point service
      * @param recordLogService       the record log service
      * @param datasetReportService   the dataset report service
+     * @param lockRegistry           the lock registry
      */
     public PatternAnalysisController(PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
                                      ExecutionPointService executionPointService,
@@ -217,6 +229,12 @@ public class PatternAnalysisController {
     }
 
     private static final class DatasetProblemPatternAnalysisFilter {
+        /**
+         * Sort record analysis by record id problem pattern.
+         *
+         * @param problemPattern the problem pattern
+         * @return the problem pattern
+         */
         public static ProblemPattern sortRecordAnalysisByRecordId(ProblemPattern problemPattern) {
             return new ProblemPattern(problemPattern.getProblemPatternDescription(),
                     problemPattern.getRecordOccurrences(),
@@ -226,6 +244,12 @@ public class PatternAnalysisController {
                             .collect(Collectors.toList()));
         }
 
+        /**
+         * Clean message report for p 7 title is enough problem pattern.
+         *
+         * @param problemPattern the problem pattern
+         * @return the problem pattern
+         */
         public static ProblemPattern cleanMessageReportForP7TitleIsEnough(ProblemPattern problemPattern) {
             if (problemPattern.getProblemPatternDescription().getProblemPatternId().equals(ProblemPatternId.P7)) {
                 return new ProblemPattern(problemPattern.getProblemPatternDescription(),
