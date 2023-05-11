@@ -1,7 +1,12 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertLinesMatch;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -356,7 +361,7 @@ class PatternAnalysisServiceImplIT {
     assertTrue(occurrence.getAffectedRecordIds().containsAll(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
         "/21/_providedCHO_MHC_EMC_10_ms_07_jpg")));
     assertTrue(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
-            "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.getAffectedRecordIds()));
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.getAffectedRecordIds()));
   }
 
 

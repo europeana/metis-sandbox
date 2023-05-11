@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.controller;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -33,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -239,8 +241,8 @@ class DatasetController {
                         new OaiHarvestData(url, setspec, metadataformat, ""))
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
 
-        return new DatasetIdDto(createdDatasetId);
-    }
+    return new DatasetIdDto(createdDatasetId);
+  }
 
     /**
      * GET API calls to return the progress status of a given dataset id
@@ -282,7 +284,8 @@ class DatasetController {
      *
      * @param datasetId the dataset id
      * @param recordId  the record id
-     * @return the string representation of the stored record
+     * @param step      the step name
+   * @return the string representation of the stored record
      * @throws NoRecordFoundException if record was not found
      */
     @Operation(summary = "Gets a record", description = "Get record string representation")
@@ -290,9 +293,23 @@ class DatasetController {
     @ApiResponse(responseCode = "404", description = "Record not found")
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
-    public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId)
-            throws NoRecordFoundException {
-        return recordLogService.getProviderRecordString(recordId, datasetId);
+    public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId,
+            @RequestParam(required = false) String step)throws NoRecordFoundException {
+        return recordLogService.getProviderRecordString(recordId, datasetId, getSetFromStep(step));
+  }
+
+  private Set<Step> getSetFromStep(String step) {
+    Set<Step> steps;
+    if (step == null || step.isBlank() || step.equals("HARVEST")) {
+      steps = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
+    } else {
+      try {
+        steps = Set.of(Step.valueOf(step));
+      } catch (IllegalArgumentException iae) {
+        throw new IllegalArgumentException(String.format("Invalid step name %s", step), iae);
+      }
+    }
+    return steps;
     }
 
     /**
@@ -331,57 +348,47 @@ class DatasetController {
                 .collect(Collectors.toList());
     }
 
-    private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
-        if (xslt != null && !xslt.isEmpty()) {
-            final String contentType = xslt.getContentType();
-            if (contentType == null) {
-                throw new IllegalArgumentException("Something went wrong checking file's content type.");
-            } else if (!contentType.contains("xml")) {
-                throw new IllegalArgumentException("The given xslt file should be a single xml file.");
-            }
-            try {
-                return new ByteArrayInputStream(xslt.getBytes());
-            } catch (IOException e) {
-                throw new XsltProcessingException("Something wrong happened while processing xslt file.",
-                        e);
-            }
-        }
-        return new ByteArrayInputStream(new byte[0]);
+  private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
+    if (xslt != null && !xslt.isEmpty()) {
+      final String contentType = xslt.getContentType();
+      if (contentType == null) {
+        throw new IllegalArgumentException("Something went wrong checking file's content type.");
+      } else if (!contentType.contains("xml")) {
+        throw new IllegalArgumentException("The given xslt file should be a single xml file.");
+      }
+      try {
+        return new ByteArrayInputStream(xslt.getBytes());
+      } catch (IOException e) {
+        throw new XsltProcessingException("Something wrong happened while processing xslt file.",
+            e);
+      }
     }
+    return new ByteArrayInputStream(new byte[0]);
+  }
 
-    private static class CountryView {
+  private static class CountryView {
 
-        @JsonProperty("name")
-        private final String name;
-        @JsonProperty("xmlValue")
-        private final String xmlValue;
+    @JsonProperty("name")
+    private final String name;
+    @JsonProperty("xmlValue")
+    private final String xmlValue;
 
-        /**
-         * Instantiates a new Country view.
-         *
-         * @param country the country
-         */
-        CountryView(Country country) {
-            this.name = country.name();
-            this.xmlValue = country.xmlValue();
-        }
+    CountryView(Country country) {
+      this.name = country.name();
+      this.xmlValue = country.xmlValue();
     }
+  }
 
-    private static class LanguageView {
+  private static class LanguageView {
 
-        @JsonProperty("name")
-        private final String name;
-        @JsonProperty("xmlValue")
-        private final String xmlValue;
+    @JsonProperty("name")
+    private final String name;
+    @JsonProperty("xmlValue")
+    private final String xmlValue;
 
-        /**
-         * Instantiates a new Language view.
-         *
-         * @param language the language
-         */
-        LanguageView(Language language) {
-            this.name = language.name();
-            this.xmlValue = language.xmlValue();
-        }
+    LanguageView(Language language) {
+      this.name = language.name();
+      this.xmlValue = language.xmlValue();
     }
+  }
 }
