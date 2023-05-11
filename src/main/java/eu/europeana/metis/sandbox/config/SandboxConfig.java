@@ -24,6 +24,10 @@ import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -107,8 +111,9 @@ class SandboxConfig {
   }
 
   @Bean
-  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository, LockRegistry lockRegistry) {
-    return new XsltUrlUpdateServiceImpl(transformXsltRepository, lockRegistry);
+  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
+      LockRegistry lockRegistry, HttpClient httpClient) {
+    return new XsltUrlUpdateServiceImpl(transformXsltRepository, lockRegistry, httpClient);
   }
 
   @Bean
@@ -205,6 +210,14 @@ class SandboxConfig {
   @ConfigurationProperties(prefix = "sandbox.validation")
   Schema schema() {
     return new Schema();
+  }
+
+  @Bean
+  HttpClient httpClient() {
+    return HttpClient.newBuilder().version(Version.HTTP_2)
+                     .followRedirects(Redirect.NORMAL)
+                     .connectTimeout(Duration.ofSeconds(5))
+                     .build();
   }
 
   private Properties schemaProperties() {

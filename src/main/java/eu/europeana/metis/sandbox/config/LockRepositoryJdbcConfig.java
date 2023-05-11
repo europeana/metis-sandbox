@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
+import java.time.Duration;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,7 @@ public class LockRepositoryJdbcConfig {
 
   @Value("${spring.integration.defaultlockrepository.prefix:integration.int_}")
   private String prefix;
-  @Value("${spring.integration.defaultlockrepository.ttl:10000}")
+  @Value("${spring.integration.defaultlockrepository.ttl:120000}")
   private int timeToLive;
   @Value("${spring.integration.defaultlockrepository.region:DEFAULT}")
   private String region;
@@ -29,6 +30,8 @@ public class LockRepositoryJdbcConfig {
 
   @Bean
   public JdbcLockRegistry jdbcLockRegistry(LockRepository repository) {
-    return new JdbcLockRegistry(repository);
+    JdbcLockRegistry jdbcLockRegistry = new JdbcLockRegistry(repository);
+    jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(1));
+    return jdbcLockRegistry;
   }
 }
