@@ -14,6 +14,7 @@ import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.Record.RecordBuilder;
 import eu.europeana.metis.sandbox.domain.RecordError;
@@ -162,9 +163,7 @@ public class HarvestServiceImpl implements HarvestService {
     datasetService.updateNumberOfTotalRecord(datasetId, (long) result.size());
 
     if(isStepSizeBiggerThanDatasetSize(result.size(), currentIndex.get(), nextIndexToSelect.get(), numberOfRecordsToStepInto)){
-      saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_OAI_PMH,
-              new IllegalArgumentException("Step size bigger than dataset size"));
-      return Collections.emptyList();
+      throw new StepIsTooBigException(currentIndex.get());
     }
 
     return result;
@@ -255,9 +254,7 @@ public class HarvestServiceImpl implements HarvestService {
       datasetService.updateNumberOfTotalRecord(datasetId, (long) numberOfSelectedHeaders.get());
 
       if(isStepSizeBiggerThanDatasetSize(recordInfoList.size(), currentIndex.get(), nextIndexToSelect.get(), numberOfRecordsToStepInto)){
-        saveErrorWhileHarvesting(recordDataEncapsulated, "dataset " + datasetId, Step.HARVEST_ZIP,
-                new IllegalArgumentException("Step size is bigger than dataset size"));
-        return Collections.emptyList();
+        throw new StepIsTooBigException(currentIndex.get());
       }
 
       if (!exception.isEmpty()) {

@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.record;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,14 +38,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RecordLogServiceImplTest {
 
   @Mock
-  private RecordLogRepository recordLogRepository;
-
-  @Mock
   RecordErrorLogRepository errorLogRepository;
-
   @Mock
   RecordRepository recordRepository;
-
+  @Mock
+  private RecordLogRepository recordLogRepository;
   @InjectMocks
   private RecordLogServiceImpl service;
 
@@ -60,7 +58,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
-    var event = new RecordProcessEvent(new RecordInfo(record),  Step.HARVEST_ZIP, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     service.logRecordEvent(event);
 
@@ -78,7 +76,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new RecordProcessEvent(new RecordInfo(record),  Step.HARVEST_ZIP, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
 
     when(recordLogRepository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -119,12 +117,15 @@ class RecordLogServiceImplTest {
   }
 
   @Test
-  void getProviderRecordString_expectSuccess() throws Exception {
+  void getProviderRecordStringByStep_expectSuccess() throws Exception {
     final RecordLogEntity recordLogEntity = new RecordLogEntity();
     recordLogEntity.setContent("content");
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
         Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(recordLogEntity));
-    assertNotNull(service.getProviderRecordString("recordId", "datasetId"));
+    final String providerRecord = service.getProviderRecordString("recordId", "datasetId",
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP));
+    assertNotNull(providerRecord);
+    assertEquals("content", providerRecord);
   }
 
   @Test
@@ -133,13 +134,13 @@ class RecordLogServiceImplTest {
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
         Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Collections.emptySet());
     assertThrows(NoRecordFoundException.class,
-        () -> service.getProviderRecordString("recordId", "datasetId"));
+        () -> service.getProviderRecordString("recordId", "datasetId", Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP)));
 
     //Case null content
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
         Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(new RecordLogEntity()));
     assertThrows(NoRecordFoundException.class,
-        () -> service.getProviderRecordString("recordId", "datasetId"));
+        () -> service.getProviderRecordString("recordId", "datasetId", Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP)));
   }
 
   @Test

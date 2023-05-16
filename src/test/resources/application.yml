@@ -4,6 +4,10 @@ info:
     description: Sandbox to process Datasets
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
+    contact:
+      name: Europeana Foundation
+      email: info@europeana.eu
+      url: www.europeana.eu
 spring:
   autoconfigure:
     exclude:
@@ -116,55 +120,75 @@ sandbox:
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
           routing-key: sandbox.record.#
           auto-start: true
-          consumers: 2
-          max-consumers: 2
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
           auto-start: true
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
         transformation:
           edm:
             external:
               queue: sandbox.record.transformation.edm.external
               dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
               auto-start: true
-        ordered:
-          queue: sandbox.record.ordered
-          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
-          auto-start: true
+              consumers: 12
+              max-consumers: 12
+              prefetch: 3
         validated:
           external:
             queue: sandbox.record.validated.external
             dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
             auto-start: true
+            consumers: 12
+            max-consumers: 12
+            prefetch: 3
           internal:
             queue: sandbox.record.validated.internal
             dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
             auto-start: true
+            consumers: 12
+            max-consumers: 12
+            prefetch: 3
         transformed:
           queue: sandbox.record.transformed
           dlq: ${sandbox.rabbitmq.queues.record.transformed.queue}.dlq
           auto-start: true
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
         normalized:
           queue: sandbox.record.normalized
           dlq: ${sandbox.rabbitmq.queues.record.normalized.queue}.dlq
           auto-start: true
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
         enriched:
           queue: sandbox.record.enriched
           dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
           auto-start: true
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
           auto-start: true
-        previewed:
-          queue: sandbox.record.previewed
-          dlq: ${sandbox.rabbitmq.queues.record.previewed.queue}.dlq
-          auto-start: true
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
         published:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
           auto-start: true
+          consumers: 12
+          max-consumers: 12
+          prefetch: 3
 
 elastic:
   apm:

@@ -1,31 +1,28 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
-
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.report.*;
+import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.TierStatistics;
+import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,11 +30,28 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Collections.emptyList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertLinesMatch;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
 @ExtendWith(MockitoExtension.class)
 class DatasetReportServiceImplTest {
 
+    public static final String DATASET_ERROR_MESSAGE = "dataset-error-message";
     @Mock
     private DatasetRepository datasetRepository;
+
+    @Mock
+    private DatasetLogService datasetLogService;
 
     @Mock
     private RecordLogRepository recordLogRepository;
@@ -51,6 +65,20 @@ class DatasetReportServiceImplTest {
     @InjectMocks
     private DatasetReportServiceImpl service;
 
+    private static RecordEntity getTestRecordEntity(final Long recordId) {
+        RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
+                "providerId" + recordId, recordId.toString(), "", "");
+        recordEntity.setId(recordId);
+        return recordEntity;
+    }
+
+    @NotNull
+    private static DatasetEntity createDataset(Long recordsQuantity) {
+        DatasetEntity dataset = new DatasetEntity("test", recordsQuantity, Language.NL, Country.NETHERLANDS, false);
+        dataset.setDatasetId(1);
+        return dataset;
+    }
+
     @BeforeEach
     void setup() {
         setField(service, "portalPublishDatasetUrl",
@@ -58,8 +86,22 @@ class DatasetReportServiceImplTest {
     }
 
     @Test
-    void getReportWithErrors_expectSuccess() {
-        var dataset = new DatasetEntity("dataset", 5L, Language.NL, Country.NETHERLANDS, false);
+    void getReportWithDatasetErrors_Fail() {
+        var dataset = createDataset(null);
+        List<DatasetLogDto> datasetLogs = Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE, Status.FAIL));
+        when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
+        when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+
+        var result = service.getReport("1");
+
+        assertEquals(ProgressInfoDto.Status.FAILED, result.getStatus());
+        assertEquals(DATASET_ERROR_MESSAGE, result.getErrorType());
+        assertEquals(datasetLogs, result.getDatasetLogs());
+    }
+
+    @Test
+    void getReportWithRecordErrors_expectSuccess() {
+        var dataset = createDataset(5L);
         var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
         var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("europeanaId1 | providerId1", "europeanaId2 | providerId2"));
@@ -72,7 +114,7 @@ class DatasetReportServiceImplTest {
                 5L, 4L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "", null);
+                        false, false), "", emptyList(), null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1L);
@@ -99,14 +141,14 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReportWithoutErrors_expectSuccess() {
-        var dataset = new DatasetEntity("dataset", 5L, Language.NL, Country.NETHERLANDS, false);
+        var dataset = createDataset(5L);
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var report = new ProgressInfoDto(
                 "A review URL will be generated when the dataset has finished processing.",
                 5L, 0L,
                 List.of(createProgress, externalProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", null);
+                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", emptyList(), null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -124,17 +166,17 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReportCompleted_expectSuccess() {
-        var dataset = new DatasetEntity("dataset", 5L, Language.NL, Country.NETHERLANDS, false);
+        var dataset = createDataset(5L);
         var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var publishProgress = new ProgressByStepDto(Step.PUBLISH, 5, 0, 0, List.of());
         var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(2, List.of("europeanaId1", "europeanaId2")),
                 new TierStatistics(3, List.of("europeanaId1", "europeanaId2", "europeanaId3")));
         var report = new ProgressInfoDto(
-                "https://metis-sandbox/portal/publish/search?q=edm_datasetName:null_dataset*", 5L, 5L,
+                "https://metis-sandbox/portal/publish/search?q=edm_datasetName:1_test*", 5L, 5L,
                 List.of(createProgress, externalProgress, publishProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "", tiersZeroInfo);
+                        false, false), "", emptyList(), tiersZeroInfo);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -165,7 +207,7 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReportCompletedAllErrors_expectSuccess() {
-        var dataset = new DatasetEntity("dataset", 5L, Language.NL, Country.NETHERLANDS, false);
+        var dataset = createDataset(5L);
         var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
         var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("europeanaId1 | providerId1", "europeanaId2 | providerId2"));
@@ -175,10 +217,10 @@ class DatasetReportServiceImplTest {
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
         var report = new ProgressInfoDto(
-                "", 5L, 5L,
+                "https://metis-sandbox/portal/publish/search?q=edm_datasetName:1_test*", 5L, 5L,
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "All dataset records failed to be processed.", null);
+                        false, false), "", emptyList(), null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5L);
@@ -207,7 +249,7 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReport_retrieveEmptyDataset_expectSuccess() {
-        var datasetEntity = new DatasetEntity("test", 0L, Language.NL, Country.NETHERLANDS, false);
+        var datasetEntity = createDataset(0L);
         datasetEntity.setDatasetId(1);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
@@ -215,25 +257,29 @@ class DatasetReportServiceImplTest {
         var expected = new ProgressInfoDto(
                 "", 0L, 0L, List.of(),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
-                "Dataset is empty.", null);
+                "Dataset is empty.", emptyList(), null);
         var report = service.getReport("1");
         assertReportEquals(expected, report);
     }
 
     @Test
-    void getReport_retrieveStepSizeError_expectSuccess() {
-        var datasetEntity = new DatasetEntity("test", 0L, Language.NL, Country.NETHERLANDS, false);
-        StepStatistic failedStatistic = new StepStatistic(Step.HARVEST_ZIP, Status.FAIL, 1L);
-        datasetEntity.setDatasetId(1);
-        when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
-        when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of(failedStatistic));
+    void getReport_WithDatasetWarnings_ShouldNotFail() {
+        var dataset = createDataset(5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
+        when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
+        when(recordLogRepository.getStepStatistics("1")).thenReturn(
+                List.of(recordViewCreate, recordViewExternal));
+        when(errorLogRepository.getByRecordIdDatasetId("1"))
+                .thenReturn(List.of());
+        List<DatasetLogDto> datasetLogs = Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE, Status.WARN));
+        when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
 
-        var expected = new ProgressInfoDto(
-                "", 0L, 0L, List.of(),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
-                "Step size value bigger than the dataset size.", null);
-        var report = service.getReport("1");
-        assertReportEquals(expected, report);
+        var result = service.getReport("1");
+
+        assertNotEquals(ProgressInfoDto.Status.FAILED, result.getStatus());
+        assertEquals("", result.getErrorType());
+        assertEquals(datasetLogs, result.getDatasetLogs());
     }
 
     @Test
@@ -246,7 +292,7 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReport_failToRetrieveRecords_expectFail() {
-        when(datasetRepository.findById(1)).thenReturn(Optional.of(new DatasetEntity("test", 5L, Language.NL, Country.NETHERLANDS, false)));
+        when(datasetRepository.findById(1)).thenReturn(Optional.of(createDataset(5L)));
         when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
         assertThrows(ServiceException.class, () -> service.getReport("1"));
@@ -259,14 +305,13 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReport_HarvestingDataset_expectSuccess() {
-        var datasetEntity = new DatasetEntity("test", null, Language.NL, Country.NETHERLANDS, false);
-        datasetEntity.setDatasetId(1);
+        var datasetEntity = createDataset(null);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
 
         var expected = new ProgressInfoDto(
-            "Harvesting dataset identifiers and records.", null, 0L, List.of(),
-            new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", null);
+                "Harvesting dataset identifiers and records.", null, 0L, List.of(),
+                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", emptyList(), null);
         var report = service.getReport("1");
 
         assertReportEquals(expected, report);
@@ -307,13 +352,7 @@ class DatasetReportServiceImplTest {
                 assertLinesMatch(recordIdsExpected, recordIdsActual);
             }
         }
-    }
-
-    private static RecordEntity getTestRecordEntity(final Long recordId) {
-        RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
-                "providerId" + recordId, recordId.toString(), "", "");
-        recordEntity.setId(recordId);
-        return recordEntity;
+        assertEquals(expected.isRecordsPublishedSuccessfully(), actual.isRecordsPublishedSuccessfully());
     }
 
     private static class ErrorLogViewImpl implements ErrorLogView {

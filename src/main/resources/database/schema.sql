@@ -12,9 +12,21 @@ CREATE TABLE IF NOT EXISTS dataset
     PRIMARY KEY (dataset_id)
 );
 
-CREATE TABLE IF NOT EXISTS record
+CREATE TABLE IF NOT EXISTS dataset_log
 (
     id           BIGSERIAL,
+    dataset_id   BIGINT      NOT NULL,
+    status       VARCHAR(30) NOT NULL,
+    message      TEXT        NOT NULL,
+    stack_trace  TEXT        NOT NULL,
+    created_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (id),
+    FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
+);
+
+CREATE TABLE IF NOT EXISTS record
+(
+    id            BIGSERIAL,
     europeana_id  VARCHAR(255) NULL,
     provider_id   VARCHAR(255) NULL,
     dataset_id    VARCHAR(100) NOT NULL,
@@ -66,6 +78,7 @@ CREATE TABLE IF NOT EXISTS default_transform_xslt
     PRIMARY KEY (id)
 );
 
+CREATE INDEX ON dataset_log (dataset_id);
 CREATE INDEX ON record_log (record_id);
 CREATE INDEX ON record_error_log (record_id);
 CREATE INDEX ON record (dataset_id, europeana_id, provider_id);

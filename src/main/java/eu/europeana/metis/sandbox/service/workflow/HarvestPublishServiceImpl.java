@@ -8,6 +8,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class HarvestPublishServiceImpl implements HarvestPublishService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestPublishServiceImpl.class);
+    private static final String HARVESTING_ERROR_MESSAGE = "Error harvesting records for dataset: ";
 
     private final HarvestService harvestService;
     private final Executor asyncServiceTaskExecutor;
@@ -45,19 +47,22 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
 
     @Override
     public CompletableFuture<Void> runHarvestHttpZipAsync(String url, DatasetMetadata datasetMetadata){
-        try {
-            InputStream input = new URL(url).openStream();
-            Record.RecordBuilder recordDataEncapsulated = Record.builder()
-                                                                .datasetId(datasetMetadata.getDatasetId())
-                                                                .datasetName(datasetMetadata.getDatasetName())
-                                                                .country(datasetMetadata.getCountry())
-                                                                .language(datasetMetadata.getLanguage());
-
-
-            return runHarvestZipAsync(input, recordDataEncapsulated, datasetMetadata);
-        } catch (IOException e) {
-            throw new ServiceException("Error harvesting records from file " + url, e);
-        }
+        Record.RecordBuilder recordDataEncapsulated = Record.builder()
+                                                            .datasetId(datasetMetadata.getDatasetId())
+                                                            .datasetName(datasetMetadata.getDatasetName())
+                                                            .country(datasetMetadata.getCountry())
+                                                            .language(datasetMetadata.getLanguage());
+        return CompletableFuture.runAsync(() -> {
+            try (InputStream input = new URL(url).openStream()) {
+                harvestService.harvest(input, datasetMetadata.getDatasetId(), recordDataEncapsulated,
+                    datasetMetadata.getStepSize());
+            } catch (UnknownHostException e) {
+                throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
+                    + " - unknown host: " + e.getMessage());
+            } catch (IOException | HarvesterException e) {
+                throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
+            }
+        }, asyncServiceTaskExecutor);
     }
 
     private CompletableFuture<Void> runHarvestZipAsync(InputStream inputStreamToHarvest,
@@ -68,9 +73,9 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                 harvestService.harvest(inputStreamToHarvest, datasetMetadata.getDatasetId(), recordDataEncapsulated,
                         datasetMetadata.getStepSize());
             } catch (HarvesterException e) {
-                throw new ServiceException("Error harvesting records for dataset" + datasetMetadata.getDatasetId(), e);
+                throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
             }
-        }, asyncServiceTaskExecutor).thenRunAsync(() -> {
+        }, asyncServiceTaskExecutor).whenComplete((result, exception) -> {
             try {
                 inputStreamToHarvest.close();
             } catch (IOException e) {
