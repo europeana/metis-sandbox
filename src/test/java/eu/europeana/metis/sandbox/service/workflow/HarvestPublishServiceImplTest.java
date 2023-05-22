@@ -58,7 +58,7 @@ public class HarvestPublishServiceImplTest {
                                                      .withLanguage(Language.NL)
                                                      .withStepSize(5)
                                                      .build();
-    asyncHarvestPublishService.runHarvestZipAsync(datasetFile, datasetMetadata);
+    asyncHarvestPublishService.runHarvestFileAsync(datasetFile, datasetMetadata);
 
     verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5));
 
@@ -80,7 +80,7 @@ public class HarvestPublishServiceImplTest {
     when(datasetFile.getInputStream()).thenThrow(new IOException("error test"));
 
     assertThrows(ServiceException.class, () ->
-        asyncHarvestPublishService.runHarvestZipAsync(datasetFile, datasetMetadata));
+        asyncHarvestPublishService.runHarvestFileAsync(datasetFile, datasetMetadata));
 
   }
 

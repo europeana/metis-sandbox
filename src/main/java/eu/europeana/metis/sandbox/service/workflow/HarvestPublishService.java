@@ -10,20 +10,20 @@ import java.util.concurrent.CompletableFuture;
 public interface HarvestPublishService {
 
     /**
-     * Start the harvest of a zip asynchronously on the given file {@link MultipartFile}
+     * Start the harvest of a compressed file asynchronously on the given file {@link MultipartFile}
      *
-     * @param file zip file containing one or more records
+     * @param file compressed file containing one or more records
      * @param datasetMetadata object that encapsulates all data related to the dataset
      * @return A HarvestContent object containing the content of the harvest and a bollean indicating
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
      */
-    CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, DatasetMetadata datasetMetadata);
+    CompletableFuture<Void> runHarvestFileAsync(MultipartFile file, DatasetMetadata datasetMetadata);
 
     /**
      * Start the harvest of an url asynchronously on the given URL {@link String}
      *
-     * @param url URL for zip file containing one or more records
+     * @param url URL for compressed file containing one or more records
      * @param datasetMetadata the object that encapsulates all data related to the dataset
      * @return A HarvestContent object containing the content of the harvest and a boolean indicating
      * if it reached the max number of records

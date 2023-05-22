@@ -131,7 +131,7 @@ class DatasetControllerTest {
 
   @BeforeEach
   public void setup() {
-    when(harvestPublishService.runHarvestZipAsync(any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestFileAsync(any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
@@ -592,7 +592,7 @@ class DatasetControllerTest {
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestZipAsync(any(), any())).thenReturn(
+    when(harvestPublishService.runHarvestFileAsync(any(), any())).thenReturn(
         CompletableFuture.failedFuture(exception));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")

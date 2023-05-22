@@ -116,13 +116,13 @@ class DatasetController {
     }
 
     /**
-     * POST API calls for harvesting and processing the records given a zip file
+     * POST API calls for harvesting and processing the records given a zip, tar or tar.gz file
      *
      * @param datasetName the given name of the dataset to be processed
      * @param country     the given country from which the records refer to
      * @param language    the given language that the records contain
      * @param stepsize    the stepsize
-     * @param dataset     the given dataset itself to be processed as a zip file
+     * @param dataset     the given dataset itself to be processed as a compressed file
      * @param xsltFile    the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
@@ -137,7 +137,7 @@ class DatasetController {
             @Parameter(description = "country of the dataset", required = true) @RequestParam Country country,
             @Parameter(description = "language of the dataset", required = true) @RequestParam Language language,
             @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(required = false) Integer stepsize,
-            @Parameter(description = "dataset records uploaded in a zip file", required = true) @RequestParam MultipartFile dataset,
+            @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam MultipartFile dataset,
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         if (stepsize != null) {
@@ -150,13 +150,13 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestZipAsync(dataset, datasetMetadata)
+        harvestPublishService.runHarvestFileAsync(dataset, datasetMetadata)
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
         return new DatasetIdDto(createdDatasetId);
     }
 
     /**
-     * POST API calls for harvesting and processing the records given a URL of a zip file
+     * POST API calls for harvesting and processing the records given a URL of a compressed file
      *
      * @param datasetName the given name of the dataset to be processed
      * @param country     the given country from which the records refer to

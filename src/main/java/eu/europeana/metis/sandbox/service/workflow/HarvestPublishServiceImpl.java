@@ -32,14 +32,15 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     }
 
     @Override
-    public CompletableFuture<Void> runHarvestZipAsync(MultipartFile file, DatasetMetadata datasetMetadata){
+    public CompletableFuture<Void> runHarvestFileAsync(MultipartFile file, DatasetMetadata datasetMetadata){
         try {
             Record.RecordBuilder recordDataEncapsulated = Record.builder()
                                                                 .datasetId(datasetMetadata.getDatasetId())
                                                                 .datasetName(datasetMetadata.getDatasetName())
                                                                 .country(datasetMetadata.getCountry())
                                                                 .language(datasetMetadata.getLanguage());
-            return runHarvestZipAsync(file.getInputStream(), recordDataEncapsulated, datasetMetadata);
+            LOGGER.info("Content type: " + file.getContentType());
+            return runHarvestFileAsync(file.getInputStream(), recordDataEncapsulated, datasetMetadata);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + file.getName(), e);
         }
@@ -65,9 +66,9 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
         }, asyncServiceTaskExecutor);
     }
 
-    private CompletableFuture<Void> runHarvestZipAsync(InputStream inputStreamToHarvest,
-                                                       Record.RecordBuilder recordDataEncapsulated,
-                                                       DatasetMetadata datasetMetadata) {
+    private CompletableFuture<Void> runHarvestFileAsync(InputStream inputStreamToHarvest,
+                                                        Record.RecordBuilder recordDataEncapsulated,
+                                                        DatasetMetadata datasetMetadata) {
         return CompletableFuture.runAsync(() -> {
             try {
                 harvestService.harvest(inputStreamToHarvest, datasetMetadata.getDatasetId(), recordDataEncapsulated,
