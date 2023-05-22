@@ -310,7 +310,7 @@ class DatasetController {
     private Set<Step> getSetFromStep(String step) {
         Set<Step> steps;
         if (step == null || step.isBlank() || step.equals("HARVEST")) {
-            steps = Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH);
+            steps = Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH);
         } else {
             try {
                 steps = Set.of(Step.valueOf(step));

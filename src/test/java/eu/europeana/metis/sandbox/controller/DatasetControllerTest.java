@@ -102,11 +102,11 @@ class DatasetControllerTest {
 
   private static Stream<Arguments> steps() {
     return Stream.of(
-        arguments(null, Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments(null, Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
-        arguments("", Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments("", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
-        arguments("HARVEST", Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments("HARVEST", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
         arguments("TRANSFORM_TO_EDM_EXTERNAL", Set.of(Step.TRANSFORM_TO_EDM_EXTERNAL),
             status().isOk(), content().string("exampleString")),
@@ -461,7 +461,7 @@ class DatasetControllerTest {
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
-    var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 10, 0, 0, List.of());
+    var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
     var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
         Country.NETHERLANDS, false, false);
@@ -573,7 +573,7 @@ class DatasetControllerTest {
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
     when(recordLogService.getProviderRecordString(recordId, datasetId,
-        Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH)))
+        Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH)))
         .thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)

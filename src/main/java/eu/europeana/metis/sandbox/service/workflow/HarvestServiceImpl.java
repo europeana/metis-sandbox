@@ -203,7 +203,7 @@ public class HarvestServiceImpl implements HarvestService {
     publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated, stepSize),
         datasetId,
         "Error harvesting file records",
-        Step.HARVEST_ZIP);
+        Step.HARVEST_FILE);
   }
 
   private List<RecordInfo> harvestInputStreamIdentifiers(InputStream inputStream, String datasetId,
@@ -293,7 +293,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_FILE, new RuntimeException(e));
       return null;
     }
   }
