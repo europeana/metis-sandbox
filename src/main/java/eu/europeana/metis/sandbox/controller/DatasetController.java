@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -140,6 +142,7 @@ class DatasetController {
             @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam MultipartFile dataset,
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+        checkIfIsValidFileType(dataset);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -370,6 +373,15 @@ class DatasetController {
             }
         }
         return new ByteArrayInputStream(new byte[0]);
+    }
+
+    private void checkIfIsValidFileType(MultipartFile uploadedFile) {
+        String fileContentType = uploadedFile.getContentType();
+        if (StringUtils.isEmpty(fileContentType) || (!fileContentType.contains("zip")
+                && !fileContentType.contains("x-tar")
+                && !fileContentType.contains("gzip"))) {
+            throw new InvalidCompressedFileException(new Exception("The given file type is invalid or there was an issue inspecting its content type"));
+        }
     }
 
     private static class CountryView {

@@ -39,7 +39,6 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                                                                 .datasetName(datasetMetadata.getDatasetName())
                                                                 .country(datasetMetadata.getCountry())
                                                                 .language(datasetMetadata.getLanguage());
-            LOGGER.info("Content type: " + file.getContentType());
             return runHarvestFileAsync(file.getInputStream(), recordDataEncapsulated, datasetMetadata);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + file.getName(), e);

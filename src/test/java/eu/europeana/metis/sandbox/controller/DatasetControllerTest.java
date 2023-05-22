@@ -139,7 +139,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromZipFile_withoutXsltFile_expectSuccess() throws Exception {
 
-    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
@@ -160,7 +160,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromZipFile_withXsltFile_expectSuccess() throws Exception {
 
-    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
@@ -280,7 +280,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromFile_invalidName_expectFail() throws Exception {
 
-    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data=set")
@@ -295,7 +295,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromFile_invalidStepSize_expectFail() throws Exception {
 
-    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -306,6 +306,22 @@ class DatasetControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Step size must be a number higher than zero")));
+  }
+
+  @Test
+  void processDatasetFromFile_invalidFileType_expectFail() throws Exception {
+
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+            "<test></test>".getBytes());
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                    .file(dataset)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("stepsize", "-1"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message",
+                    is("File provided is not valid compressed file. ")));
   }
 
   @Test
@@ -586,7 +602,7 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromZipFile_AsyncExecutionException_expectLogging() throws Exception {
-    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))

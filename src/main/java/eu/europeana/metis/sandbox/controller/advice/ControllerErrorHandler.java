@@ -49,7 +49,7 @@ class ControllerErrorHandler {
     }
 
     @ExceptionHandler(InvalidCompressedFileException.class)
-    public ResponseEntity<Object> handleIInvalidZipFileException(InvalidCompressedFileException ex) {
+    public ResponseEntity<Object> handleInvalidCompressedFileException(InvalidCompressedFileException ex) {
         var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);

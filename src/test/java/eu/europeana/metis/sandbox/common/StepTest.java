@@ -15,7 +15,7 @@ class StepTest {
   private static Stream<Arguments> provideExpectedStepsAndValues() {
     return Stream.of(
         Arguments.of(Step.HARVEST_OAI_PMH, "harvest OAI-PMH", 1),
-        Arguments.of(Step.HARVEST_ZIP, "harvest zip", 2),
+        Arguments.of(Step.HARVEST_ZIP, "harvest file", 2),
         Arguments.of(Step.TRANSFORM_TO_EDM_EXTERNAL, "transform to EDM external", 3),
         Arguments.of(Step.VALIDATE_EXTERNAL, "validate (edm external)", 4),
         Arguments.of(Step.TRANSFORM, "transform", 5),
