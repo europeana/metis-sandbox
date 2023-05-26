@@ -19,6 +19,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -142,7 +143,7 @@ class DatasetController {
             @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam MultipartFile dataset,
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-        checkIfIsValidFileType(dataset);
+        CompressedFileExtension compressedFileExtension = checkIfIsValidFileType(dataset);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -153,7 +154,7 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestFileAsync(dataset, datasetMetadata)
+        harvestPublishService.runHarvestFileAsync(dataset, datasetMetadata, compressedFileExtension)
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
         return new DatasetIdDto(createdDatasetId);
     }
@@ -375,12 +376,20 @@ class DatasetController {
         return new ByteArrayInputStream(new byte[0]);
     }
 
-    private void checkIfIsValidFileType(MultipartFile uploadedFile) {
+    private CompressedFileExtension checkIfIsValidFileType(MultipartFile uploadedFile) {
         String fileContentType = uploadedFile.getContentType();
-        if (StringUtils.isEmpty(fileContentType) || (!fileContentType.contains("zip")
-                && !fileContentType.contains("x-tar")
-                && !fileContentType.contains("gzip"))) {
-            throw new InvalidCompressedFileException(new Exception("The given file type is invalid or there was an issue inspecting its content type"));
+        if (StringUtils.isEmpty(fileContentType)) {
+            throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
+        }
+
+        if(fileContentType.contains("gzip")){
+            return CompressedFileExtension.TAR_GZ;
+        } else if (fileContentType.contains("zip")){
+            return CompressedFileExtension.ZIP;
+        } else if (fileContentType.contains("x-tar")) {
+            return CompressedFileExtension.TAR;
+        } else {
+            throw new InvalidCompressedFileException(new Exception("The compressed file type is invalid"));
         }
     }
 

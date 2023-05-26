@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+
+import eu.europeana.metis.utils.CompressedFileExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,7 +133,7 @@ class DatasetControllerTest {
 
   @BeforeEach
   public void setup() {
-    when(harvestPublishService.runHarvestFileAsync(any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestFileAsync(any(), any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
@@ -608,7 +610,7 @@ class DatasetControllerTest {
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestFileAsync(any(), any())).thenReturn(
+    when(harvestPublishService.runHarvestFileAsync(any(), any(), eq(CompressedFileExtension.ZIP))).thenReturn(
         CompletableFuture.failedFuture(exception));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")

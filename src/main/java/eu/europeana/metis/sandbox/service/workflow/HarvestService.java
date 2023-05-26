@@ -2,7 +2,10 @@ package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.utils.CompressedFileExtension;
+
 import java.io.InputStream;
 
 
@@ -28,5 +31,7 @@ public interface HarvestService {
    * @param stepSize               The step size to apply in the record selection
    * @throws HarvesterException In case an issue occurs while harvesting
    */
-  void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated, Integer stepSize) throws HarvesterException;
+  void harvest(InputStream inputStream, String datasetId, Record.RecordBuilder recordDataEncapsulated, Integer stepSize,
+               CompressedFileExtension compressedFileExtension) throws HarvesterException;
+
 }

@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.concurrent.CompletableFuture;
@@ -18,7 +19,7 @@ public interface HarvestPublishService {
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
      */
-    CompletableFuture<Void> runHarvestFileAsync(MultipartFile file, DatasetMetadata datasetMetadata);
+    CompletableFuture<Void> runHarvestFileAsync(MultipartFile file, DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension);
 
     /**
      * Start the harvest of an url asynchronously on the given URL {@link String}

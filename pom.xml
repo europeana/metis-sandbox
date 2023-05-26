@@ -39,7 +39,7 @@
   <properties>
     <version.java>11</version.java>
     <version.springdoc>1.7.0</version.springdoc>
-    <version.metis>10</version.metis>
+    <version.metis>11-SNAPSHOT</version.metis>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.6.0</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
