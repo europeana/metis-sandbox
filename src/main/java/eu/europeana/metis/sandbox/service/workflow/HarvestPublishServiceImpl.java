@@ -5,12 +5,14 @@ import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.domain.Record;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
 import eu.europeana.metis.utils.CompressedFileExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,8 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     }
 
     @Override
-    public CompletableFuture<Void> runHarvestHttpZipAsync(String url, DatasetMetadata datasetMetadata) {
+    public CompletableFuture<Void> runHarvestHttpZipAsync(String url, DatasetMetadata datasetMetadata,
+                                                          CompressedFileExtension compressedFileExtension) {
         Record.RecordBuilder recordDataEncapsulated = Record.builder()
                 .datasetId(datasetMetadata.getDatasetId())
                 .datasetName(datasetMetadata.getDatasetName())
@@ -57,7 +60,7 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
         return CompletableFuture.runAsync(() -> {
             try (InputStream input = new URL(url).openStream()) {
                 harvestService.harvest(input, datasetMetadata.getDatasetId(), recordDataEncapsulated,
-                        datasetMetadata.getStepSize(), CompressedFileExtension.ZIP);
+                        datasetMetadata.getStepSize(), compressedFileExtension);
             } catch (UnknownHostException e) {
                 throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
                         + " - unknown host: " + e.getMessage());

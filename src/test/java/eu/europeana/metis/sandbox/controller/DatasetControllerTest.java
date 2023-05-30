@@ -134,7 +134,7 @@ class DatasetControllerTest {
   @BeforeEach
   public void setup() {
     when(harvestPublishService.runHarvestFileAsync(any(), any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestHttpZipAsync(any(), any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
 
@@ -344,7 +344,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromURL_invalidStepSize_expectFail() throws Exception {
 
-    final String url = "zip" + File.separator + "dataset-valid.zip";
+    final String url = Paths.get("zip" + File.separator + "dataset-valid.zip").toUri().toString();
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("name", "invalidDatasetName")
@@ -625,7 +625,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromURL_AsyncExecutionException_expectLogging() throws Exception {
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(
+    when(harvestPublishService.runHarvestHttpZipAsync(any(), any(), any())).thenReturn(
         CompletableFuture.failedFuture(exception));
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),

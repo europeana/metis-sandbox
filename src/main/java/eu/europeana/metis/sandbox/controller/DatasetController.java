@@ -43,6 +43,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -143,7 +148,7 @@ class DatasetController {
             @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam MultipartFile dataset,
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-        CompressedFileExtension compressedFileExtension = checkIfIsValidFileType(dataset);
+        CompressedFileExtension compressedFileExtension = checkIfFileTypeFromFileHarvestIsValid(dataset);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -186,6 +191,7 @@ class DatasetController {
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+        CompressedFileExtension compressedFileExtension = checkIfFileTypeFromUrlIsValid(url);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -198,7 +204,7 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata)
+        harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata, compressedFileExtension)
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
         return new DatasetIdDto(createdDatasetId);
     }
@@ -376,56 +382,87 @@ class DatasetController {
         return new ByteArrayInputStream(new byte[0]);
     }
 
-    private CompressedFileExtension checkIfIsValidFileType(MultipartFile uploadedFile) {
-        String fileContentType = uploadedFile.getContentType();
-        if (StringUtils.isEmpty(fileContentType)) {
-            throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
-        }
+    private CompressedFileExtension checkIfFileTypeFromUrlIsValid(String url) {
 
-        if(fileContentType.contains("gzip")){
-            return CompressedFileExtension.TAR_GZ;
-        } else if (fileContentType.contains("zip")){
-            return CompressedFileExtension.ZIP;
-        } else if (fileContentType.contains("x-tar")) {
-            return CompressedFileExtension.TAR;
-        } else {
-            throw new InvalidCompressedFileException(new Exception("The compressed file type is invalid"));
-        }
-    }
+        try {
+            if (url.startsWith("file:/")) {
+                Path path = Path.of(url);
+                String fileContentType = Files.probeContentType(path);
 
-    private static class CountryView {
+                return checkIfIsValidFileType(fileContentType);
+            } else {
 
-        @JsonProperty("name")
-        private final String name;
-        @JsonProperty("xmlValue")
-        private final String xmlValue;
+                URLConnection urlConnection = new URL(url).openConnection();
+                String fileContentType = urlConnection.getContentType();
 
-        /**
-         * Instantiates a new Country view.
-         *
-         * @param country the country
-         */
-        CountryView(Country country) {
-            this.name = country.name();
-            this.xmlValue = country.xmlValue();
+                if (StringUtils.isEmpty(fileContentType)) {
+                    throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
+                }
+
+                return checkIfIsValidFileType(fileContentType);
+
+
+            }
+        } catch (IOException e) {
+            throw new InvalidCompressedFileException(new Exception("There was an issue while extracting file from url"));
+
         }
     }
 
-    private static class LanguageView {
+        private CompressedFileExtension checkIfFileTypeFromFileHarvestIsValid (MultipartFile uploadedFile){
+            String fileContentType = uploadedFile.getContentType();
+            if (StringUtils.isEmpty(fileContentType)) {
+                throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
+            }
 
-        @JsonProperty("name")
-        private final String name;
-        @JsonProperty("xmlValue")
-        private final String xmlValue;
+            return checkIfIsValidFileType(fileContentType);
+        }
 
-        /**
-         * Instantiates a new Language view.
-         *
-         * @param language the language
-         */
-        LanguageView(Language language) {
-            this.name = language.name();
-            this.xmlValue = language.xmlValue();
+        private CompressedFileExtension checkIfIsValidFileType (String fileContentType){
+            if (fileContentType.contains("gzip")) {
+                return CompressedFileExtension.TAR_GZ;
+            } else if (fileContentType.contains("zip")) {
+                return CompressedFileExtension.ZIP;
+            } else if (fileContentType.contains("x-tar")) {
+                return CompressedFileExtension.TAR;
+            } else {
+                throw new InvalidCompressedFileException(new Exception("The compressed file type is invalid"));
+            }
+        }
+
+        private static class CountryView {
+
+            @JsonProperty("name")
+            private final String name;
+            @JsonProperty("xmlValue")
+            private final String xmlValue;
+
+            /**
+             * Instantiates a new Country view.
+             *
+             * @param country the country
+             */
+            CountryView(Country country) {
+                this.name = country.name();
+                this.xmlValue = country.xmlValue();
+            }
+        }
+
+        private static class LanguageView {
+
+            @JsonProperty("name")
+            private final String name;
+            @JsonProperty("xmlValue")
+            private final String xmlValue;
+
+            /**
+             * Instantiates a new Language view.
+             *
+             * @param language the language
+             */
+            LanguageView(Language language) {
+                this.name = language.name();
+                this.xmlValue = language.xmlValue();
+            }
         }
     }
-}
