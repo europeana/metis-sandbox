@@ -13,8 +13,9 @@ public interface HarvestPublishService {
     /**
      * Start the harvest of a compressed file asynchronously on the given file {@link MultipartFile}
      *
-     * @param file            compressed file containing one or more records
-     * @param datasetMetadata object that encapsulates all data related to the dataset
+     * @param file                    compressed file containing one or more records
+     * @param datasetMetadata         object that encapsulates all data related to the dataset
+     * @param compressedFileExtension the content type of file being uploaded
      * @return A HarvestContent object containing the content of the harvest and a bollean indicating
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
@@ -24,8 +25,9 @@ public interface HarvestPublishService {
     /**
      * Start the harvest of an url asynchronously on the given URL {@link String}
      *
-     * @param url             URL for compressed file containing one or more records
-     * @param datasetMetadata the object that encapsulates all data related to the dataset
+     * @param url                     URL for compressed file containing one or more records
+     * @param datasetMetadata         the object that encapsulates all data related to the dataset
+     * @param compressedFileExtension the content type of the file being uploaded
      * @return A HarvestContent object containing the content of the harvest and a boolean indicating
      * if it reached the max number of records
      * @throws ServiceException if error processing URL, if URL timeout, if records are empty
