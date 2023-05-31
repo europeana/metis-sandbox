@@ -134,7 +134,7 @@ class DatasetControllerTest {
   @BeforeEach
   public void setup() {
     when(harvestPublishService.runHarvestFileAsync(any(), any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestHttpZipAsync(any(), any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
 
@@ -155,6 +155,48 @@ class DatasetControllerTest {
             .param("stepsize", "2"))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromTarFile_withoutXsltFile_expectSuccess() throws Exception {
+
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/x-tar",
+            "<test></test>".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+            any(ByteArrayInputStream.class)))
+            .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                    .file(mockMultipart)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("stepsize", "2"))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromTarGzFile_withoutXsltFile_expectSuccess() throws Exception {
+
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/gzip",
+            "<test></test>".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+            any(ByteArrayInputStream.class)))
+            .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                    .file(mockMultipart)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("stepsize", "2"))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -181,6 +223,58 @@ class DatasetControllerTest {
             .param("stepsize", "2"))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromTarFile_withXsltFile_expectSuccess() throws Exception {
+
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/x-tar",
+            "<test></test>".getBytes());
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+            "application/xslt+xml",
+            "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+            any(ByteArrayInputStream.class)))
+            .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                    .file(mockMultipart)
+                    .file(xsltMock)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("stepsize", "2"))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromTarGzFile_withXsltFile_expectSuccess() throws Exception {
+
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/gzip",
+            "<test></test>".getBytes());
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+            "application/xslt+xml",
+            "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+            any(ByteArrayInputStream.class)))
+            .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                    .file(mockMultipart)
+                    .file(xsltMock)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("stepsize", "2"))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -625,7 +719,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromURL_AsyncExecutionException_expectLogging() throws Exception {
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestHttpZipAsync(any(), any(), any())).thenReturn(
+    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(
         CompletableFuture.failedFuture(exception));
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),

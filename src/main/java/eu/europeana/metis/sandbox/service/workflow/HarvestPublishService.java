@@ -32,7 +32,7 @@ public interface HarvestPublishService {
      * if it reached the max number of records
      * @throws ServiceException if error processing URL, if URL timeout, if records are empty
      */
-    CompletableFuture<Void> runHarvestHttpZipAsync(String url, DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension);
+    CompletableFuture<Void> runHarvestHttpFileAsync(String url, DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension);
 
     /**
      * Async publish to message broker for further processing. This will send messages to 'harvestOai`

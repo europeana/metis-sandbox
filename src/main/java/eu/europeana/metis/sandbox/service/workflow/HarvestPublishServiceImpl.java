@@ -50,8 +50,8 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
     }
 
     @Override
-    public CompletableFuture<Void> runHarvestHttpZipAsync(String url, DatasetMetadata datasetMetadata,
-                                                          CompressedFileExtension compressedFileExtension) {
+    public CompletableFuture<Void> runHarvestHttpFileAsync(String url, DatasetMetadata datasetMetadata,
+                                                           CompressedFileExtension compressedFileExtension) {
         Record.RecordBuilder recordDataEncapsulated = Record.builder()
                 .datasetId(datasetMetadata.getDatasetId())
                 .datasetName(datasetMetadata.getDatasetName())

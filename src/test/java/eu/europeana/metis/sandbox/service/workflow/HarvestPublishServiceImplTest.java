@@ -97,7 +97,7 @@ public class HarvestPublishServiceImplTest {
                                                      .withStepSize(5)
                                                      .build();
 
-    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpZipAsync(
+    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpFileAsync(
         "http://ftp.eanadev.org/uploads/Hauenstein-0.zip", datasetMetadata, CompressedFileExtension.ZIP);
 
     assertTrue(!future.isCompletedExceptionally() || future.isCancelled());
@@ -115,7 +115,7 @@ public class HarvestPublishServiceImplTest {
                                                      .withStepSize(5)
                                                      .build();
 
-    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpZipAsync("http://myfake-test-url.com",
+    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpFileAsync("http://myfake-test-url.com",
         datasetMetadata,null);
 
     assertTrue(future.isCompletedExceptionally() && !future.isCancelled());

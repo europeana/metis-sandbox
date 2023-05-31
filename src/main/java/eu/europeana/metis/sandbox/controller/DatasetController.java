@@ -147,7 +147,7 @@ class DatasetController {
             @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam MultipartFile dataset,
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-        CompressedFileExtension compressedFileExtension = checkIfFileTypeFromFileHarvestIsValid(dataset);
+        CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(dataset);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -190,7 +190,7 @@ class DatasetController {
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
 
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-        CompressedFileExtension compressedFileExtension = checkIfFileTypeFromUrlIsValid(url);
+        CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(url);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -203,7 +203,7 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestHttpZipAsync(url, datasetMetadata, compressedFileExtension)
+        harvestPublishService.runHarvestHttpFileAsync(url, datasetMetadata, compressedFileExtension)
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
         return new DatasetIdDto(createdDatasetId);
     }
@@ -381,14 +381,14 @@ class DatasetController {
         return new ByteArrayInputStream(new byte[0]);
     }
 
-    private CompressedFileExtension checkIfFileTypeFromUrlIsValid(String url) {
+    private CompressedFileExtension getCompressedFileExtensionTypeFromUrl(String url) {
 
         try {
             if (url.startsWith("file:/")) {
                 Path path = Path.of(url);
                 String fileContentType = Files.probeContentType(path);
 
-                return checkIfIsValidFileType(fileContentType);
+                return getCompressedFileExtensionType(fileContentType);
             } else {
 
                 URLConnection urlConnection = new URL(url).openConnection();
@@ -398,26 +398,26 @@ class DatasetController {
                     throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
                 }
 
-                return checkIfIsValidFileType(fileContentType);
+                return getCompressedFileExtensionType(fileContentType);
 
 
             }
         } catch (IOException e) {
-            throw new InvalidCompressedFileException(new Exception("There was an issue while extracting file from url"));
+            throw new InvalidCompressedFileException(e);
 
         }
     }
 
-        private CompressedFileExtension checkIfFileTypeFromFileHarvestIsValid (MultipartFile uploadedFile){
+        private CompressedFileExtension getCompressedFileExtensionTypeFromUploadedFile(MultipartFile uploadedFile){
             String fileContentType = uploadedFile.getContentType();
             if (StringUtils.isEmpty(fileContentType)) {
                 throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
             }
 
-            return checkIfIsValidFileType(fileContentType);
+            return getCompressedFileExtensionType(fileContentType);
         }
 
-        private CompressedFileExtension checkIfIsValidFileType (String fileContentType){
+        private CompressedFileExtension getCompressedFileExtensionType(String fileContentType){
             if (fileContentType.contains("gzip")) {
                 return CompressedFileExtension.TAR_GZ;
             } else if (fileContentType.contains("zip")) {
