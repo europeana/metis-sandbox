@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.controller.advice;
 import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
-import eu.europeana.metis.sandbox.common.exception.InvalidZipFileException;
+import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -48,8 +48,8 @@ class ControllerErrorHandler {
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
     }
 
-    @ExceptionHandler(InvalidZipFileException.class)
-    public ResponseEntity<Object> handleIInvalidZipFileException(InvalidZipFileException ex) {
+    @ExceptionHandler(InvalidCompressedFileException.class)
+    public ResponseEntity<Object> handleInvalidCompressedFileException(InvalidCompressedFileException ex) {
         var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);

@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+
+import eu.europeana.metis.utils.CompressedFileExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +72,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @ExtendWith(SpringExtension.class)
@@ -100,13 +103,31 @@ class DatasetControllerTest {
   @Mock
   private CompletableFuture<Void> asyncResult;
 
+  private static Stream<MultipartFile> provideDifferentCompressedFiles() {
+    return Stream.of(
+            new MockMultipartFile("dataset", "dataset.txt", "application/zip",
+                    "<test></test>".getBytes()),
+            new MockMultipartFile("dataset", "dataset.txt", "application/x-tar",
+                    "<test></test>".getBytes()),
+            new MockMultipartFile("dataset", "dataset.txt", "application/gzip",
+                    "<test></test>".getBytes())
+    );
+  }
+
+  private static Stream<String> provideDifferentUrlsOfCompressedFiles() {
+    return Stream.of(
+            Paths.get("zip", "dataset-valid.zip").toUri().toString(),
+            Paths.get("zip", "sandbox.tar.gz").toUri().toString(),
+            Paths.get("zip", "records_to_test.tar").toUri().toString()
+    );
+  }
   private static Stream<Arguments> steps() {
     return Stream.of(
-        arguments(null, Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments(null, Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
-        arguments("", Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments("", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
-        arguments("HARVEST", Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments("HARVEST", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
         arguments("TRANSFORM_TO_EDM_EXTERNAL", Set.of(Step.TRANSFORM_TO_EDM_EXTERNAL),
             status().isOk(), content().string("exampleString")),
@@ -131,16 +152,14 @@ class DatasetControllerTest {
 
   @BeforeEach
   public void setup() {
-    when(harvestPublishService.runHarvestZipAsync(any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestFileAsync(any(), any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
 
-  @Test
-  void processDatasetFromZipFile_withoutXsltFile_expectSuccess() throws Exception {
-
-    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        "<test></test>".getBytes());
+  @ParameterizedTest
+  @MethodSource("provideDifferentCompressedFiles")
+  void processDatasetFromZipFile_withoutXsltFile_expectSuccess(MockMultipartFile mockMultipart) throws Exception {
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
@@ -157,11 +176,9 @@ class DatasetControllerTest {
     verify(datasetLogService, never()).logException(any(), any());
   }
 
-  @Test
-  void processDatasetFromZipFile_withXsltFile_expectSuccess() throws Exception {
-
-    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-        "<test></test>".getBytes());
+  @ParameterizedTest
+  @MethodSource("provideDifferentCompressedFiles")
+  void processDatasetFromZipFile_withXsltFile_expectSuccess(MockMultipartFile mockMultipart) throws Exception {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
@@ -183,10 +200,9 @@ class DatasetControllerTest {
     verify(datasetLogService, never()).logException(any(), any());
   }
 
-  @Test
-  void processDatasetFromURL_withoutXsltFile_expectSuccess() throws Exception {
-
-    String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
+  @ParameterizedTest
+  @MethodSource("provideDifferentUrlsOfCompressedFiles")
+  void processDatasetFromURL_withoutXsltFile_expectSuccess(String url) throws Exception {
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
@@ -203,10 +219,9 @@ class DatasetControllerTest {
     verify(datasetLogService, never()).logException(any(), any());
   }
 
-  @Test
-  void processDatasetFromURL_withXsltFile_expectSuccess() throws Exception {
-
-    final String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
+  @ParameterizedTest
+  @MethodSource("provideDifferentUrlsOfCompressedFiles")
+  void processDatasetFromURL_withXsltFile_expectSuccess(String url) throws Exception {
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
@@ -280,7 +295,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromFile_invalidName_expectFail() throws Exception {
 
-    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data=set")
@@ -295,7 +310,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromFile_invalidStepSize_expectFail() throws Exception {
 
-    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -306,6 +321,22 @@ class DatasetControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Step size must be a number higher than zero")));
+  }
+
+  @Test
+  void processDatasetFromFile_invalidFileType_expectFail() throws Exception {
+
+    var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+            "<test></test>".getBytes());
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+                    .file(dataset)
+                    .param("country", ITALY.name())
+                    .param("language", IT.name())
+                    .param("stepsize", "-1"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message",
+                    is("File provided is not valid compressed file. ")));
   }
 
   @Test
@@ -326,7 +357,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromURL_invalidStepSize_expectFail() throws Exception {
 
-    final String url = "zip" + File.separator + "dataset-valid.zip";
+    final String url = Paths.get("zip" + File.separator + "dataset-valid.zip").toUri().toString();
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
             .param("name", "invalidDatasetName")
@@ -445,7 +476,7 @@ class DatasetControllerTest {
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
-    var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 10, 0, 0, List.of());
+    var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
     var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
         Country.NETHERLANDS, false, false);
@@ -557,7 +588,7 @@ class DatasetControllerTest {
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
     when(recordLogService.getProviderRecordString(recordId, datasetId,
-        Set.of(Step.HARVEST_ZIP, Step.HARVEST_OAI_PMH)))
+        Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH)))
         .thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
@@ -586,13 +617,13 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromZipFile_AsyncExecutionException_expectLogging() throws Exception {
-    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
+    MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestZipAsync(any(), any())).thenReturn(
+    when(harvestPublishService.runHarvestFileAsync(any(), any(), eq(CompressedFileExtension.ZIP))).thenReturn(
         CompletableFuture.failedFuture(exception));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -607,7 +638,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromURL_AsyncExecutionException_expectLogging() throws Exception {
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestHttpZipAsync(any(), any())).thenReturn(
+    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(
         CompletableFuture.failedFuture(exception));
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),

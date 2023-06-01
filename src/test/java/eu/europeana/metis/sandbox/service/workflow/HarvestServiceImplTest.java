@@ -98,9 +98,10 @@ class HarvestServiceImplTest {
         when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1)
                 .thenReturn(recordEntity2);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithoutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
+        assertHarvestProcessWithoutXslt(recordPublishService, 2, Step.HARVEST_FILE, 2L);
     }
 
     @Test
@@ -118,9 +119,10 @@ class HarvestServiceImplTest {
         when(datasetService.isXsltPresent("datasetId")).thenReturn(false);
         when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithoutXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
+        assertHarvestProcessWithoutXslt(recordPublishService, 1, Step.HARVEST_FILE, 1L);
     }
 
     @Test
@@ -144,9 +146,10 @@ class HarvestServiceImplTest {
                 .thenReturn(recordEntity3)
                 .thenReturn(recordEntity4);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 2);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 2,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithoutXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
+        assertHarvestProcessWithoutXslt(recordPublishService, 2, Step.HARVEST_FILE, 2L);
     }
 
     @Test
@@ -171,7 +174,8 @@ class HarvestServiceImplTest {
                 .thenReturn(recordEntity4);
 
         assertThrows(StepIsTooBigException.class, ()->
-            harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 10));
+            harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 10,
+                    CompressedFileExtension.ZIP));
     }
 
     @Test
@@ -195,9 +199,10 @@ class HarvestServiceImplTest {
                 .thenReturn(recordEntity3)
                 .thenReturn(recordEntity4);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
+        assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_FILE, 2L);
     }
 
     @Test
@@ -221,9 +226,10 @@ class HarvestServiceImplTest {
                 .thenReturn(recordEntity3)
                 .thenReturn(recordEntity4);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 2);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), 2,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_ZIP, 2L);
+        assertHarvestProcessWithXslt(recordPublishService, 2, Step.HARVEST_FILE, 2L);
     }
 
     @Test
@@ -241,9 +247,10 @@ class HarvestServiceImplTest {
         when(datasetService.isXsltPresent("datasetId")).thenReturn(true);
         when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_ZIP, 1L);
+        assertHarvestProcessWithXslt(recordPublishService, 1, Step.HARVEST_FILE, 1L);
     }
 
     @Test
@@ -270,7 +277,7 @@ class HarvestServiceImplTest {
                         .language(Language.NL).country(Country.NETHERLANDS).build());
 
         harvestService.harvest(new ByteArrayInputStream("inputStream".getBytes(StandardCharsets.UTF_8)), "datasetId",
-                recordBuilderToTest, null);
+                recordBuilderToTest, null, CompressedFileExtension.ZIP);
         verify(recordPublishService, times(0)).publishToHarvestQueue(captorRecordInfo.capture(), any(Step.class));
         verify(recordRepository, times(2)).save(any(RecordEntity.class));
     }
@@ -281,7 +288,8 @@ class HarvestServiceImplTest {
                 HarvesterException.class);
 
         assertThrows(ServiceException.class,
-                () -> harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null));
+                () -> harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                        CompressedFileExtension.ZIP));
     }
 
     @Test
@@ -304,9 +312,10 @@ class HarvestServiceImplTest {
                 .thenReturn(null)
                 .thenReturn(recordEntity2);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithoutXslt(recordPublishService, 3, Step.HARVEST_ZIP, 3L);
+        assertHarvestProcessWithoutXslt(recordPublishService, 3, Step.HARVEST_FILE, 3L);
     }
 
     @Test
@@ -330,9 +339,10 @@ class HarvestServiceImplTest {
                 .thenReturn(null)
                 .thenReturn(recordEntity2);
 
-        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null);
+        harvestService.harvest(new ByteArrayInputStream(new byte[0]), "datasetId", createMockEncapsulatedRecord(), null,
+                CompressedFileExtension.ZIP);
 
-        assertHarvestProcessWithoutXslt(recordPublishService, 3, Step.HARVEST_ZIP, 3L);
+        assertHarvestProcessWithoutXslt(recordPublishService, 3, Step.HARVEST_FILE, 3L);
     }
 
     @Test

@@ -60,7 +60,7 @@ class MetricsServiceImplTest {
   void processMetrics() {
     when(recordRepository.getMetricDatasetStatistics()).thenReturn(List.of(new DatasetStatistic("1", 10L)));
     when(recordLogRepository.getMetricStepStatistics()).thenReturn(
-        List.of(new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 10L)));
+        List.of(new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 10L)));
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(List.of(
         new DatasetProblemPatternStatistic(ProblemPatternId.P2.name(), 5L)));
     when(amqpConfiguration.getAllQueuesNames()).thenReturn(List.of("sandbox.record.created"));
@@ -68,7 +68,7 @@ class MetricsServiceImplTest {
     metricsService.processMetrics();
 
     assertEquals(1L, meterRegistry.get("sandbox.metrics.dataset.count").gauge().value());
-    assertEquals(10L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
+    assertEquals(10L, meterRegistry.get("sandbox.metrics.dataset.harvest_file.success").gauge().value());
     assertEquals(5L, meterRegistry.get("sandbox.metrics.dataset.p2").gauge().value());
     assertEquals(10L, meterRegistry.get("sandbox.metrics.queue.created").gauge().value());
     assertRepositoriesAndMeterRegistry();
@@ -88,7 +88,7 @@ class MetricsServiceImplTest {
     when(recordLogRepository.getMetricStepStatistics()).thenReturn(null);
     metricsService.processMetrics();
 
-    assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
+    assertEquals(0L, meterRegistry.get("sandbox.metrics.dataset.harvest_file.success").gauge().value());
     assertRepositoriesAndMeterRegistry();
   }
 
@@ -106,7 +106,7 @@ class MetricsServiceImplTest {
     when(recordRepository.getMetricDatasetStatistics()).thenReturn(List.of(new DatasetStatistic("1", 5L),
         new DatasetStatistic("2", 5L)));
     when(recordLogRepository.getMetricStepStatistics()).thenReturn(
-        List.of(new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 10L)));
+        List.of(new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 10L)));
     when(problemPatternRepository.getMetricProblemPatternStatistics()).thenReturn(List.of(
         new DatasetProblemPatternStatistic(ProblemPatternId.P2.name(), 5L)));
     when(amqpConfiguration.getAllQueuesNames()).thenReturn(List.of("sandbox.record.created"));
@@ -114,7 +114,7 @@ class MetricsServiceImplTest {
     metricsService.processMetrics();
 
     assertEquals(2L, meterRegistry.get("sandbox.metrics.dataset.count").gauge().value());
-    assertEquals(10L, meterRegistry.get("sandbox.metrics.dataset.harvest_zip.success").gauge().value());
+    assertEquals(10L, meterRegistry.get("sandbox.metrics.dataset.harvest_file.success").gauge().value());
     assertEquals(5L, meterRegistry.get("sandbox.metrics.dataset.p2").gauge().value());
     assertEquals(10L, meterRegistry.get("sandbox.metrics.queue.created").gauge().value());
     assertRepositoriesAndMeterRegistry();
