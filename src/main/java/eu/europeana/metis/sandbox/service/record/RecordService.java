@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.record;
 
-import eu.europeana.indexing.tiers.model.MediaTier;
-import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.domain.Record;
 
 public interface RecordService {
@@ -17,10 +16,9 @@ public interface RecordService {
    * Updates record's content tier and metadata tier values
    *
    * @param recordToUpdate the record to update
-   * @param contentTier the content tier value to update with
-   * @param metadataTier the metadata tier value to update with
+   * @param tierResults the results to update the given record with
    */
-  void setContentTierAndMetadataTier(Record recordToUpdate, MediaTier contentTier, MetadataTier metadataTier);
+  void setTierResults(Record recordToUpdate, TierResults tierResults);
 
   /**
    * Deletes all records that are associated to a given dataset id

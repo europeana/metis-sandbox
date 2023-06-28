@@ -29,7 +29,17 @@ public class RecordEntity {
 
   protected String contentTier;
 
+  protected String contentTierBeforeLicenseCorrection;
+
   protected String metadataTier;
+
+  protected String metadataTierLanguage;
+
+  protected String metadataTierEnablingElements;
+
+  protected String metadataTierContextualClasses;
+
+  protected String license;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "recordId")
   private List<RecordLogEntity> recordLogEntity;
@@ -112,12 +122,52 @@ public class RecordEntity {
     this.contentTier = contentTier;
   }
 
+  public String getContentTierBeforeLicenseCorrection() {
+    return contentTierBeforeLicenseCorrection;
+  }
+
+  public void setContentTierBeforeLicenseCorrection(String contentTierBeforeLicenseCorrection) {
+    this.contentTierBeforeLicenseCorrection = contentTierBeforeLicenseCorrection;
+  }
+
   public String getMetadataTier() {
     return metadataTier;
   }
 
   public void setMetadataTier(String metadataTier) {
     this.metadataTier = metadataTier;
+  }
+
+  public String getMetadataTierLanguage() {
+    return metadataTierLanguage;
+  }
+
+  public void setMetadataTierLanguage(String metadataTierLanguage) {
+    this.metadataTierLanguage = metadataTierLanguage;
+  }
+
+  public String getMetadataTierEnablingElements() {
+    return metadataTierEnablingElements;
+  }
+
+  public void setMetadataTierEnablingElements(String metadataTierEnablingElements) {
+    this.metadataTierEnablingElements = metadataTierEnablingElements;
+  }
+
+  public String getMetadataTierContextualClasses() {
+    return metadataTierContextualClasses;
+  }
+
+  public void setMetadataTierContextualClasses(String metadataTierContextualClasses) {
+    this.metadataTierContextualClasses = metadataTierContextualClasses;
+  }
+
+  public String getLicense() {
+    return license;
+  }
+
+  public void setLicense(String license) {
+    this.license = license;
   }
 
   public List<RecordLogEntity> getRecordLogEntity() {

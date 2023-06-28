@@ -43,12 +43,12 @@ class IndexingServiceImpl implements IndexingService {
       throw new RecordProcessingException(recordToIndex.getProviderId(), ex);
     }
 
-    if(tierCalculations == null || (tierCalculations.getMediaTier() == null && tierCalculations.getMetadataTier() == null)){
+    if(tierCalculations == null || isAllDataNull(tierCalculations)){
       throw new RecordProcessingException(recordToIndex.getProviderId(), new IndexerRelatedIndexingException(
               String.format("Something went wrong with tier calculations with record %s", recordToIndex.getProviderId())));
     }
 
-    recordService.setContentTierAndMetadataTier(recordToIndex, tierCalculations.getMediaTier(), tierCalculations.getMetadataTier());
+    recordService.setTierResults(recordToIndex, tierCalculations);
 
     return new RecordInfo(recordToIndex);
   }
@@ -67,5 +67,15 @@ class IndexingServiceImpl implements IndexingService {
   @PreDestroy
   public void destroy() throws IOException {
     publishIndexer.close();
+  }
+
+  private boolean isAllDataNull(TierResults tierResultsToCheck){
+    return tierResultsToCheck.getMediaTier() == null &&
+            tierResultsToCheck.getMetadataTier() == null &&
+            tierResultsToCheck.getContentTierBeforeLicenseCorrection() == null &&
+            tierResultsToCheck.getMetadataTierLanguage() == null &&
+            tierResultsToCheck.getMetadataTierContextualClasses() == null &&
+            tierResultsToCheck.getContentTierBeforeLicenseCorrection() == null &&
+            tierResultsToCheck.getLicenseType() == null;
   }
 }

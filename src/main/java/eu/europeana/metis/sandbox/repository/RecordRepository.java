@@ -17,8 +17,13 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @param metadataTier the metadata tier value to update with
    */
   @Modifying
-  @Query("UPDATE RecordEntity rec SET rec.contentTier = ?2, rec.metadataTier = ?3 WHERE rec.id = ?1")
-  void updateContentTierAndMetadataTier(Long recordId, String contentTier, String metadataTier);
+  @Query("UPDATE RecordEntity rec SET rec.contentTier = ?2, rec.metadataTier = ?3, " +
+          "rec.contentTierBeforeLicenseCorrection = ?4, " +
+          "rec.metadataTierLanguage = ?5, rec.metadataTierEnablingElements = ?6," +
+          "rec.metadataTierContextualClasses = ?7, rec.license = ?8 WHERE rec.id = ?1")
+  void updateRecordWithTierResults(Long recordId, String contentTier, String metadataTier, String contentTierBeforeLicenseCorrection,
+                                   String metadataTierLanguage, String metadataTierEnablingElements, String metadataTierContextualClasses,
+                                   String license);
 
   /**
    * Delete records that belong to the given dataset id

@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.record;
 
-import eu.europeana.indexing.tiers.model.MediaTier;
-import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -45,8 +44,15 @@ public class RecordServiceImpl implements RecordService {
 
   @Override
   @Transactional
-  public void setContentTierAndMetadataTier(Record recordToUpdate, MediaTier contentTier, MetadataTier metadataTier) {
-    recordRepository.updateContentTierAndMetadataTier(recordToUpdate.getRecordId(), contentTier.toString(), metadataTier.toString());
+  public void setTierResults(Record recordToUpdate, TierResults tierResults) {
+    recordRepository.updateRecordWithTierResults(recordToUpdate.getRecordId(),
+            tierResults.getMediaTier().toString(),
+            tierResults.getMetadataTier().toString(),
+            tierResults.getContentTierBeforeLicenseCorrection().toString(),
+            tierResults.getMetadataTierLanguage().toString(),
+            tierResults.getMetadataTierEnablingElements().toString(),
+            tierResults.getMetadataTierContextualClasses().toString(),
+            tierResults.getLicenseType().toString());
   }
 
   @Override

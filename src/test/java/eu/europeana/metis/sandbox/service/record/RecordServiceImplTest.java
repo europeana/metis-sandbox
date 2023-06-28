@@ -4,14 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -52,7 +49,6 @@ class RecordServiceImplTest {
   void setEuropeanaIdAndProviderId_expectSuccess() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     Record record = getRecord(content);
-    final String datasetId = "1";
     final String providerId = "providerId";
     final String europeanaId = "/1/providerId";
 
@@ -80,17 +76,15 @@ class RecordServiceImplTest {
     assertEquals("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)."
             +" providerId & europeanaId updated multiple times",
         serviceException.getMessage());
-    assertEquals(null, record.getProviderId());
-    assertEquals(null, record.getEuropeanaId());
+    assertNull(record.getProviderId());
+    assertNull(record.getEuropeanaId());
   }
 
   @Test
   void setEuropeanaIdAndProviderId_expectProviderAndEuropeanaIdRecordDuplicatedException() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     Record record = getRecord(content);
-    final String datasetId = "1";
     final String providerId = "providerId";
-    final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
     when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
@@ -113,8 +107,12 @@ class RecordServiceImplTest {
   @Test
   void setContentTierAndMetadataTier() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-    recordService.setContentTierAndMetadataTier(getRecord(content), MediaTier.T4, MetadataTier.TA);
-    verify(recordRepository).updateContentTierAndMetadataTier(anyLong(), anyString(), anyString());
+    TierResults tierResults = mock(TierResults.class);
+    when(tierResults.getMediaTier()).thenReturn(MediaTier.T4);
+    when(tierResults.getMetadataTier()).thenReturn(MetadataTier.TA);
+    recordService.setTierResults(getRecord(content), tierResults);
+    verify(recordRepository).updateRecordWithTierResults(anyLong(), anyString(), anyString(), anyString(), anyString(),
+            anyString(), anyString(), anyString());
   }
 
   private static Record getRecord(byte[] content) {

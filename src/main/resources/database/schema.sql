@@ -26,12 +26,17 @@ CREATE TABLE IF NOT EXISTS dataset_log
 
 CREATE TABLE IF NOT EXISTS record
 (
-    id            BIGSERIAL,
-    europeana_id  VARCHAR(255) NULL,
-    provider_id   VARCHAR(255) NULL,
-    dataset_id    VARCHAR(100) NOT NULL,
-    content_tier  VARCHAR(3) NULL,
-    metadata_tier VARCHAR(3) NULL,
+    id                                      BIGSERIAL,
+    europeana_id                            VARCHAR(255) NULL,
+    provider_id                             VARCHAR(255) NULL,
+    dataset_id                              VARCHAR(100) NOT NULL,
+    content_tier                            VARCHAR(3) NULL,
+    content_tier_before_license_correction  VARCHAR(3) NULL,
+    metadata_tier                           VARCHAR(3) NULL,
+    metadata_tier_language                  VARCHAR(3) NULL,
+    metadata_tier_enabling_elements         VARCHAR(3) NULL,
+    metadata_tier_contextual_classes        VARCHAR(3) NULL,
+    license                                 VARCHAR(13) NULL
     PRIMARY KEY (id),
     UNIQUE (europeana_id, dataset_id),
     UNIQUE (provider_id, dataset_id)
