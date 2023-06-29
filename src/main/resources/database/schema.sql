@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS record
     metadata_tier_language                  VARCHAR(3) NULL,
     metadata_tier_enabling_elements         VARCHAR(3) NULL,
     metadata_tier_contextual_classes        VARCHAR(3) NULL,
-    license                                 VARCHAR(13) NULL
+    license                                 VARCHAR(13) NULL,
     PRIMARY KEY (id),
     UNIQUE (europeana_id, dataset_id),
     UNIQUE (provider_id, dataset_id)
