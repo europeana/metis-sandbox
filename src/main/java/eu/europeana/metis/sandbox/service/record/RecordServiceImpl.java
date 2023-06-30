@@ -4,14 +4,20 @@ import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordJdbcRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service to modify Records in database
@@ -29,6 +35,16 @@ public class RecordServiceImpl implements RecordService {
     this.recordRepository = recordRepository;
     this.recordJdbcRepository = recordJdbcRepository;
     this.xmlRecordProcessorService = xmlRecordProcessorService;
+  }
+
+  @Override
+  @Transactional
+  public List<RecordTiersInfoDto> getRecordsTiers(String datasetId){
+    List<RecordEntity> recordEntities = recordRepository.findByDatasetId(datasetId);
+    return recordEntities.stream()
+            .filter(recordEntity -> !areAllTierValuesNullOrEmpty(recordEntity))
+            .map(RecordTiersInfoDto::new)
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -77,5 +93,16 @@ public class RecordServiceImpl implements RecordService {
       recordToUpdate.setEuropeanaId(europeanaId);
       recordToUpdate.setProviderId(providerId);
     }
+  }
+
+  private boolean areAllTierValuesNullOrEmpty(RecordEntity recordEntity){
+    return (recordEntity.getContentTier() == null || StringUtils.isEmpty(recordEntity.getContentTier())) &&
+            (recordEntity.getMetadataTier() == null || StringUtils.isEmpty(recordEntity.getMetadataTier())) &&
+            (recordEntity.getContentTierBeforeLicenseCorrection() == null ||
+                    StringUtils.isEmpty(recordEntity.getContentTierBeforeLicenseCorrection())) &&
+            (recordEntity.getMetadataTierLanguage() == null || StringUtils.isEmpty(recordEntity.getMetadataTierLanguage())) &&
+            (recordEntity.getMetadataTierEnablingElements() == null || StringUtils.isEmpty(recordEntity.getMetadataTierEnablingElements())) &&
+            (recordEntity.getMetadataTierContextualClasses() == null || StringUtils.isEmpty(recordEntity.getMetadataTierContextualClasses())) &&
+            (recordEntity.getLicense() == null);
   }
 }

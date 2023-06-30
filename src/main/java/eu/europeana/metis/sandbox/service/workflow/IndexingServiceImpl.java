@@ -75,7 +75,7 @@ class IndexingServiceImpl implements IndexingService {
             tierResultsToCheck.getContentTierBeforeLicenseCorrection() == null &&
             tierResultsToCheck.getMetadataTierLanguage() == null &&
             tierResultsToCheck.getMetadataTierContextualClasses() == null &&
-            tierResultsToCheck.getContentTierBeforeLicenseCorrection() == null &&
+            tierResultsToCheck.getMetadataTierEnablingElements() == null &&
             tierResultsToCheck.getLicenseType() == null;
   }
 }

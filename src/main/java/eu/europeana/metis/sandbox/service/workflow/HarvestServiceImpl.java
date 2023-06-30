@@ -177,7 +177,7 @@ public class HarvestServiceImpl implements HarvestService {
           oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
-      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
+      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, null, null);
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
       recordEntity = recordRepository.save(recordEntity);

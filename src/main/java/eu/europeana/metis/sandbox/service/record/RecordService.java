@@ -2,8 +2,18 @@ package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+
+import java.util.List;
 
 public interface RecordService {
+
+  /**
+   * Returns a list of records and their data associated to a given dataset id
+   *
+   * @param datasetId the id of the dataset that the records belong to
+   */
+  public List<RecordTiersInfoDto> getRecordsTiers(String datasetId);
 
   /**
    * Updates record's europeana id and provider id values

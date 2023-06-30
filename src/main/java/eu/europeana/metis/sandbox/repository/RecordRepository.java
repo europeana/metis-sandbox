@@ -10,6 +10,15 @@ import org.springframework.data.jpa.repository.Query;
 public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
 
   /**
+   * Returns all records that are port of the given datasetId
+   *
+   * @param datasetId The id of the dataset to search for
+   * @return A list of record entities that are part of the given dataset
+   */
+  List<RecordEntity> findByDatasetId(String datasetId);
+
+
+  /**
    * Update record with new values for content tier and metadata tier
    *
    * @param recordId the id of the record to update
