@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.model.TierResults;
+import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -105,14 +106,19 @@ class RecordServiceImplTest {
   }
 
   @Test
-  void setContentTierAndMetadataTier() {
+  void testSetTierResults() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     TierResults tierResults = mock(TierResults.class);
-    when(tierResults.getMediaTier()).thenReturn(MediaTier.T4);
+    when(tierResults.getMediaTier()).thenReturn(MediaTier.T3);
+    when(tierResults.getContentTierBeforeLicenseCorrection()).thenReturn(MediaTier.T4);
     when(tierResults.getMetadataTier()).thenReturn(MetadataTier.TA);
+    when(tierResults.getMetadataTierLanguage()).thenReturn(MetadataTier.TB);
+    when(tierResults.getMetadataTierEnablingElements()).thenReturn(MetadataTier.TC);
+    when(tierResults.getMetadataTierContextualClasses()).thenReturn(MetadataTier.T0);
+    when(tierResults.getLicenseType()).thenReturn(LicenseType.OPEN);
     recordService.setTierResults(getRecord(content), tierResults);
-    verify(recordRepository).updateRecordWithTierResults(anyLong(), anyString(), anyString(), anyString(), anyString(),
-            anyString(), anyString(), anyString());
+    verify(recordRepository).updateRecordWithTierResults(anyLong(), eq("3"), eq("A"), eq("4"), eq("B"),
+            eq("C"), eq("0"), eq("OPEN"));
   }
 
   private static Record getRecord(byte[] content) {
