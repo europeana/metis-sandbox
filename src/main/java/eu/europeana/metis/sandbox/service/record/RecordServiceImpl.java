@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.model.TierResults;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -41,8 +42,13 @@ public class RecordServiceImpl implements RecordService {
   @Transactional
   public List<RecordTiersInfoDto> getRecordsTiers(String datasetId){
     List<RecordEntity> recordEntities = recordRepository.findByDatasetId(datasetId);
+
+    if(recordEntities.isEmpty()){
+      throw new InvalidDatasetException(datasetId);
+    }
+
     return recordEntities.stream()
-            .filter(recordEntity -> !areAllTierValuesNullOrEmpty(recordEntity))
+            .filter(this::areAllTierValuesNotNullOrEmpty)
             .map(RecordTiersInfoDto::new)
             .collect(Collectors.toList());
   }
@@ -95,14 +101,14 @@ public class RecordServiceImpl implements RecordService {
     }
   }
 
-  private boolean areAllTierValuesNullOrEmpty(RecordEntity recordEntity){
-    return (recordEntity.getContentTier() == null || StringUtils.isEmpty(recordEntity.getContentTier())) &&
+  private boolean areAllTierValuesNotNullOrEmpty(RecordEntity recordEntity){
+    return !((recordEntity.getContentTier() == null || StringUtils.isEmpty(recordEntity.getContentTier())) &&
             (recordEntity.getMetadataTier() == null || StringUtils.isEmpty(recordEntity.getMetadataTier())) &&
             (recordEntity.getContentTierBeforeLicenseCorrection() == null ||
                     StringUtils.isEmpty(recordEntity.getContentTierBeforeLicenseCorrection())) &&
             (recordEntity.getMetadataTierLanguage() == null || StringUtils.isEmpty(recordEntity.getMetadataTierLanguage())) &&
             (recordEntity.getMetadataTierEnablingElements() == null || StringUtils.isEmpty(recordEntity.getMetadataTierEnablingElements())) &&
             (recordEntity.getMetadataTierContextualClasses() == null || StringUtils.isEmpty(recordEntity.getMetadataTierContextualClasses())) &&
-            (recordEntity.getLicense() == null);
+            (recordEntity.getLicense() == null));
   }
 }

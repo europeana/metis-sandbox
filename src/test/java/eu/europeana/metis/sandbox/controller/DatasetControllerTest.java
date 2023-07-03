@@ -43,6 +43,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import java.io.ByteArrayInputStream;
@@ -90,6 +91,9 @@ class DatasetControllerTest {
 
   @MockBean
   private DatasetReportService datasetReportService;
+
+  @MockBean
+  private RecordService recordService;
 
   @MockBean
   private RecordLogService recordLogService;
