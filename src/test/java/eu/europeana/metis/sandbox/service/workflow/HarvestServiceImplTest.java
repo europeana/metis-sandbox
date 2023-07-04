@@ -87,9 +87,9 @@ class HarvestServiceImplTest {
     void harvest_notExceedingRecordLimitWithoutXslt_expectSuccess() throws HarvesterException {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -111,7 +111,7 @@ class HarvestServiceImplTest {
 
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -129,13 +129,13 @@ class HarvestServiceImplTest {
     void harvest_withStepSize_expectSuccess() throws HarvesterException {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIteratorStepSizeTest());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -156,13 +156,13 @@ class HarvestServiceImplTest {
     void harvest_withStepSize_expectFail() throws HarvesterException {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIteratorStepSizeTest());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -182,13 +182,13 @@ class HarvestServiceImplTest {
     void harvest_notExceedingRecordLimitWithXslt_expectSuccess() throws HarvesterException {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -209,13 +209,13 @@ class HarvestServiceImplTest {
     void harvest_withStepSizeAndWithXslt_expectSuccess() throws HarvesterException {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIteratorStepSizeTest());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -239,7 +239,7 @@ class HarvestServiceImplTest {
 
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(prepareMockListForHttpIterator());
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -262,7 +262,7 @@ class HarvestServiceImplTest {
 
         HttpRecordIterator httpRecordIterator = new TestUtils.TestHttpRecordIterator(pathList);
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -297,9 +297,9 @@ class HarvestServiceImplTest {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(
                 addDuplicatedRecordsToHttpIterator(prepareMockListForHttpIterator()));
 
-        RecordEntity recordEntity1 = new RecordEntity("", "src/test/resources/zip/Record1.xml", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "src/test/resources/zip/Record1.xml", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -323,9 +323,9 @@ class HarvestServiceImplTest {
         HttpRecordIterator httpIterator = new TestUtils.TestHttpRecordIterator(
                 addDuplicatedRecordsToHttpIterator(prepareMockListForHttpIterator()));
 
-        RecordEntity recordEntity1 = new RecordEntity("", "src/test/resources/zip/Record1.xml", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "src/test/resources/zip/Record1.xml", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "src/test/resources/zip/Record2.xml", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
 
         when(httpHarvester.createTemporaryHttpHarvestIterator(any(InputStream.class), any(CompressedFileExtension.class))).thenReturn(
@@ -352,9 +352,9 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -377,7 +377,7 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -398,13 +398,13 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIteratorStepSizeTest());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -429,13 +429,13 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIteratorStepSizeTest());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -459,9 +459,9 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -484,7 +484,7 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIterator());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -505,13 +505,13 @@ class HarvestServiceImplTest {
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(prepareListForOaiRecordIteratorStepSizeTest());
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
-        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity3 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity3.setId(3L);
-        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity4 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity4.setId(4L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -547,7 +547,7 @@ class HarvestServiceImplTest {
 
         OaiRecordHeaderIterator oaiRecordHeaderIterator = new TestUtils.TestHeaderIterator(iteratorList);
 
-        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity1 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity1.setId(1L);
 
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
@@ -576,7 +576,7 @@ class HarvestServiceImplTest {
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
         when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
@@ -603,9 +603,9 @@ class HarvestServiceImplTest {
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
         when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
@@ -634,7 +634,7 @@ class HarvestServiceImplTest {
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
         when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
@@ -661,9 +661,9 @@ class HarvestServiceImplTest {
 
         OaiRecord mockOaiRecord = mock(OaiRecord.class);
         when(mockOaiRecord.getRecord()).thenReturn(new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
-        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity2 = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity2.setId(2L);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);
@@ -693,7 +693,7 @@ class HarvestServiceImplTest {
                 .thenReturn(new ByteArrayInputStream("record1".getBytes(StandardCharsets.UTF_8)))
                 .thenReturn(new ByteArrayInputStream("record2".getBytes(StandardCharsets.UTF_8)))
                 .thenReturn(new ByteArrayInputStream("record3".getBytes(StandardCharsets.UTF_8)));
-        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "");
+        RecordEntity recordEntity = new RecordEntity("", "", "datasetId", "", "", "", "", "", "", "");
         recordEntity.setId(1L);
         when(oaiHarvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiRecordHeaderIterator);
         when(oaiHarvester.harvestRecord(any(OaiRepository.class), anyString())).thenReturn(mockOaiRecord);

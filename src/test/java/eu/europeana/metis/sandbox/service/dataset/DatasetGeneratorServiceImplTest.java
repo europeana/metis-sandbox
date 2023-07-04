@@ -37,15 +37,20 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generate_expectSuccess() {
 
-    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "contentTier1", "metadataTier1");
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "contentTier1", "contentTierBeforeLicenseCorrection1",
+            "metadataTier1", "metadataTierLanguage1", "metadataTierEnablingElements1", "metadataTierContextualClasses1", "license1");
     recordEntity1.setId(1L);
-    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "contentTier2", "metadataTier2");
+    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "1", "contentTier2", "contentTierBeforeLicenseCorrection2",
+            "metadataTier2", "metadataTierLanguage2", "metadataTierEnablingElements2", "metadataTierContextualClasses2", "license2");
     recordEntity2.setId(2L);
-    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "contentTier3", "metadataTier3");
+    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "1", "contentTier3", "contentTierBeforeLicenseCorrection3",
+            "metadataTier3", "metadataTierLanguage3", "metadataTierEnablingElements3", "metadataTierContextualClasses3", "license3");
     recordEntity3.setId(3L);
-    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "contentTier4", "metadataTier4");
+    RecordEntity recordEntity4 = new RecordEntity("europeanaId4", "providerId4", "1", "contentTier4", "contentTierBeforeLicenseCorrection4",
+            "metadataTier4", "metadataTierLanguage4", "metadataTierEnablingElements4", "metadataTierContextualClasses4", "license4");
     recordEntity4.setId(4L);
-    RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1", "contentTier5", "metadataTier5");
+    RecordEntity recordEntity5 = new RecordEntity("europeanaId5", "providerId5", "1", "contentTier5", "contentTierBeforeLicenseCorrection5",
+            "metadataTie51", "metadataTierLanguage5", "metadataTierEnablingElements5", "metadataTierContextualClasses5", "license5");
     recordEntity5.setId(5L);
     when(recordRepository.save(any(RecordEntity.class))).thenReturn(recordEntity1, recordEntity2, recordEntity3, recordEntity4, recordEntity5);
 
@@ -57,7 +62,8 @@ class DatasetGeneratorServiceImplTest {
   @Test
   void generateWithDuplicateRecord_expectSuccess() {
 
-    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "contentTier1", "metadataTier1");
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "1", "contentTier1", "contentTierBeforeLicenseCorrection1",
+            "metadataTier1", "metadataTierLanguage1", "metadataTierEnablingElements1", "metadataTierContextualClasses1", "license1");
     recordEntity1.setId(1L);
 
     when(recordRepository.save(any()))
@@ -78,9 +84,9 @@ class DatasetGeneratorServiceImplTest {
 
   @Test
   void generate_inCaseOfInvalidRecords_expectSuccess() {
-    final RecordEntity recordEntity1 = new RecordEntity(null, null, "1", "", "");
+    final RecordEntity recordEntity1 = new RecordEntity(null, null, "1", "", "", "", "", "", "", "");
     recordEntity1.setId(9514055L);
-    final RecordEntity recordEntity2 = new RecordEntity(null, null, "1", "", "");
+    final RecordEntity recordEntity2 = new RecordEntity(null, null, "1", "", "", "", "", "", "", "");
     recordEntity1.setId(9514058L);
     when(recordRepository.save(any(RecordEntity.class))).thenThrow(RecordParsingException.class)
             .thenReturn(recordEntity1)

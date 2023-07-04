@@ -10,15 +10,21 @@ import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.indexing.utils.LicenseType;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordJdbcRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +50,34 @@ class RecordServiceImplTest {
   @BeforeEach
   void prepare() {
     reset(recordRepository);
+  }
+
+  @Test
+  void getRecordsTiers_expectSuccess(){
+    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "datasetId", "3",
+            "4", "A", "B", "C",
+            "0", "OPEN");
+    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "datasetId", "2",
+            "2", "B", "C", "0",
+            "A", "RESTRICTED");
+    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "datasetId", "1",
+            "1", "C", "0", "B",
+            "A", "CLOSED");
+    List<RecordEntity> recordEntities = List.of(recordEntity1, recordEntity2, recordEntity3);
+    when(recordRepository.findByDatasetId("datasetId")).thenReturn(recordEntities);
+    List<RecordTiersInfoDto> result = recordService.getRecordsTiers("datasetId");
+    checkTierValues(recordEntity1, result.get(0));
+    checkTierValues(recordEntity2, result.get(1));
+    checkTierValues(recordEntity3, result.get(2));
+  }
+
+  @Test
+  void getRecordsTiers_expectException(){
+    when(recordRepository.findByDatasetId("datasetId")).thenReturn(Collections.emptyList());
+    InvalidDatasetException exception = assertThrows(InvalidDatasetException.class, () ->
+            recordService.getRecordsTiers("datasetId"));
+    assertEquals(exception.getMessage(), "Provided dataset id: [datasetId] is not valid. ");
+
   }
 
   @Test
@@ -129,5 +163,16 @@ class RecordServiceImplTest {
                  .country(Country.NETHERLANDS)
                  .language(Language.NL)
                  .content(content).build();
+  }
+
+  private void checkTierValues(RecordEntity recordEntity, RecordTiersInfoDto recordTiersInfoDto){
+    assertEquals(recordEntity.getContentTier(), recordTiersInfoDto.getContentTier().toString());
+    assertEquals(recordEntity.getContentTierBeforeLicenseCorrection(), recordTiersInfoDto.getContentTierBeforeLicenseCorrection().toString());
+    assertEquals(recordEntity.getMetadataTier(), recordTiersInfoDto.getMetadataTier().toString());
+    assertEquals(recordEntity.getMetadataTierLanguage(), recordTiersInfoDto.getMetadataTierLanguage().toString());
+    assertEquals(recordEntity.getMetadataTierEnablingElements(), recordTiersInfoDto.getMetadataTierEnablingElements().toString());
+    assertEquals(recordEntity.getMetadataTierContextualClasses(), recordTiersInfoDto.getMetadataTierContextualClasses().toString());
+    assertEquals(recordEntity.getLicense(), recordTiersInfoDto.getLicense().toString());
+
   }
 }

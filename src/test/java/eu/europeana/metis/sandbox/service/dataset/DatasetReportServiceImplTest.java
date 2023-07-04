@@ -67,7 +67,7 @@ class DatasetReportServiceImplTest {
 
     private static RecordEntity getTestRecordEntity(final Long recordId) {
         RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
-                "providerId" + recordId, recordId.toString(), "", "");
+                "providerId" + recordId, recordId.toString(), "", "", "", "", "", "", "");
         recordEntity.setId(recordId);
         return recordEntity;
     }
@@ -189,12 +189,12 @@ class DatasetReportServiceImplTest {
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of());
         when(recordRepository.findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc("1", MediaTier.T0.toString()))
-                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
-                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0")));
+                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0", "0", "0", "0", "0", "0"),
+                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0", "0", "0", "0","0","0")));
         when(recordRepository.findTop10ByDatasetIdAndMetadataTierOrderByEuropeanaIdAsc("1", MetadataTier.T0.toString()))
-                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
-                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0"),
-                        new RecordEntity("europeanaId3", "providerId2", "1", "0", "0")));
+                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0", "0", "0", "0", "0", "0"),
+                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0", "0", "0", "0", "0", "0"),
+                        new RecordEntity("europeanaId3", "providerId2", "1", "0", "0", "0", "0", "0", "0", "0")));
         when(recordRepository.getRecordWithDatasetIdAndContentTierCount("1", MediaTier.T0.toString()))
                 .thenReturn(2);
         when(recordRepository.getRecordWithDatasetIdAndMetadataTierCount("1", MetadataTier.T0.toString()))

@@ -5,6 +5,7 @@ import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,9 +22,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -34,6 +38,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -617,6 +622,39 @@ class DatasetControllerTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message",
             is("record not found")));
+  }
+
+  @Test
+  void getRecordsTier_expectSuccess() throws Exception {
+    RecordTiersInfoDto recordTiersInfoDto1 = new RecordTiersInfoDto("recordId", MediaTier.T3, MediaTier.T4, LicenseType.OPEN,
+            MetadataTier.TA, MetadataTier.TB, MetadataTier.TC, MetadataTier.T0);
+    List<RecordTiersInfoDto> resultMock = List.of(recordTiersInfoDto1);
+
+    when(recordService.getRecordsTiers("datasetId")).thenReturn(resultMock);
+
+    mvc.perform(get("/dataset/{id}/records-tiers", "datasetId"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("$[0].record-id", is("recordId")))
+            .andExpect(jsonPath("$[0].content-tier", is("3")))
+            .andExpect(jsonPath("$[0].content-tier-before-license-correction", is("4")))
+            .andExpect(jsonPath("$[0].license", is("OPEN")))
+            .andExpect(jsonPath("$[0].metadata-tier", is("A")))
+            .andExpect(jsonPath("$[0].metadata-tier-language", is("B")))
+            .andExpect(jsonPath("$[0].metadata-tier-enabling-elements", is("C")))
+            .andExpect(jsonPath("$[0].metadata-tier-contextual-classes", is("0")));
+
+  }
+
+  @Test
+  void getRecordsTier_expectInvalidDatasetException() throws Exception {
+    InvalidDatasetException invalidDatasetException = new InvalidDatasetException("datasetId");
+    when(recordService.getRecordsTiers("datasetId")).thenThrow(invalidDatasetException);
+
+    mvc.perform(get("/dataset/{id}/records-tiers", "datasetId"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message", is("Provided dataset id: [datasetId] is not valid. ")));
+
   }
 
   @Test

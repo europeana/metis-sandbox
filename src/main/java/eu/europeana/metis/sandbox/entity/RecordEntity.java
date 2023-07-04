@@ -56,12 +56,19 @@ public class RecordEntity {
    * @param contentTier the value of the content tier of the record
    * @param metadataTier the value of the metadata tier of the record
    */
-  public RecordEntity(String europeanaId, String providerId, String datasetId, String contentTier, String metadataTier) {
+  public RecordEntity(String europeanaId, String providerId, String datasetId, String contentTier, String contentTierBeforeLicenseCorrection,
+                      String metadataTier, String metadataTierLanguage, String metadataTierEnablingElements, String metadataTierContextualClasses,
+                      String license) {
     this.europeanaId = europeanaId;
     this.providerId = providerId;
     this.datasetId = datasetId;
     this.contentTier = contentTier;
+    this.contentTierBeforeLicenseCorrection = contentTierBeforeLicenseCorrection;
     this.metadataTier = metadataTier;
+    this.metadataTierLanguage = metadataTierLanguage;
+    this.metadataTierEnablingElements = metadataTierEnablingElements;
+    this.metadataTierContextualClasses = metadataTierContextualClasses;
+    this.license = license;
   }
 
   /**
