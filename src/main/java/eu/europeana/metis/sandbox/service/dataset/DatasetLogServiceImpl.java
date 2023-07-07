@@ -25,10 +25,18 @@ public class DatasetLogServiceImpl implements DatasetLogService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DatasetLogServiceImpl.class);
 
-  @Autowired
-  private DatasetRepository datasetRepository;
-  @Autowired
-  private DatasetLogRepository datasetLogRepository;
+  private final DatasetRepository datasetRepository;
+  private final DatasetLogRepository datasetLogRepository;
+  
+  public DatasetLogServiceImpl(DatasetRepository datasetRepository, DatasetLogRepository datasetLogRepository){
+    this.datasetRepository = datasetRepository;
+    this.datasetLogRepository = datasetLogRepository;
+  }
+  
+  @Override
+  public void remove(String datasetId){
+    datasetLogRepository.deleteAllByDatasetDatasetId(Integer.parseInt(datasetId));
+  }
 
   @Override
   @Transactional
