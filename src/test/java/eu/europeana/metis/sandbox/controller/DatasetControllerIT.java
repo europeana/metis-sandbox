@@ -26,7 +26,10 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import org.json.JSONObject;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -46,6 +49,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SandboxApplication.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DatasetControllerIT {
 
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
@@ -286,7 +290,9 @@ class DatasetControllerIT {
   }
 
   @Test
+  @Order(1) //Make this run first so the data removal script does not affect other tests
   void datasetsAreRemoved_expectSuccess(){
+    System.out.println("I'M FIRST");
     FileSystemResource dataset = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid-small.zip");
