@@ -58,8 +58,8 @@ sandbox:
     leakDetectionThreshold: 5000  # five second should be enough
   dataset:
     clean:
-      frequency: 0 0 0 * * ? # At 00:00:00am every day
-      days-to-preserve: 7
+      frequency: 0 */5 * * * ? # Start at every 5th minute
+      days-to-preserve: -1
     max-size: 1000
     creation:
       threads:
