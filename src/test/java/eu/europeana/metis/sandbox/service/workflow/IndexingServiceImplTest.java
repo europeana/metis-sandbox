@@ -45,20 +45,20 @@ class IndexingServiceImplTest {
     service = new IndexingServiceImpl(publishIndexer, recordService);
   }
 
-//  @Test
-//  void indexPublish_expectSuccess() throws IndexingException {
-//    var record = Record.builder().recordId(1L)
-//        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
-//        .datasetName("").datasetId("").build();
-//    TierResults mock = new TierResults(MediaTier.T1, MetadataTier.TA);
-//
-//    when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
-//            .thenReturn(mock);
-//
-//    service.index(record);
-//    verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
-//    verify(recordService).setContentTierAndMetadataTier(record, MediaTier.T1, MetadataTier.TA);
-//  }
+  @Test
+  void indexPublish_expectSuccess() throws IndexingException {
+    var record = Record.builder().recordId(1L)
+        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
+        .datasetName("").datasetId("").build();
+    TierResults mock = new TierResults(MediaTier.T1, MetadataTier.TA);
+
+    when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
+            .thenReturn(mock);
+
+    service.index(record);
+    verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
+    verify(recordService).setContentTierAndMetadataTier(record, MediaTier.T1, MetadataTier.TA);
+  }
 
   @Test
   void indexPublish_IndexingIssue_expectFail() throws IndexingException {
