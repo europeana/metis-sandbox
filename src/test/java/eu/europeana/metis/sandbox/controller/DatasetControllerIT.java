@@ -292,7 +292,6 @@ class DatasetControllerIT {
   @Test
   @Order(1) //Make this run first so the data removal script does not affect other tests
   void datasetsAreRemoved_expectSuccess(){
-    System.out.println("I'M FIRST");
     FileSystemResource dataset = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid-small.zip");
