@@ -8,7 +8,9 @@ import eu.europeana.metis.sandbox.entity.RecordEntity;
 import io.swagger.annotations.ApiModel;
 
 @ApiModel(RecordTiersInfoDto.SWAGGER_MODEL_NAME)
-
+/**
+ * Object to encapsulate all tiers values related to a record
+ */
 public class RecordTiersInfoDto {
 
     public static final String SWAGGER_MODEL_NAME = "RecordTiersInfo";
@@ -37,6 +39,17 @@ public class RecordTiersInfoDto {
     @JsonProperty("metadata-tier-contextual-classes")
     private final MetadataTier metadataTierContextualClasses;
 
+    /**
+     * Constructor of the object to initialize each field
+     * @param recordId The id of the record to represent
+     * @param contentTier The value of the content tier of the record
+     * @param contentTierBeforeLicenseCorrection The value of the content tier before license correction
+     * @param license The license type of the record
+     * @param metadataTier The value of the metadata tier of the record
+     * @param metadataTierLanguage The value of the metadata tier related to Language class
+     * @param metadataTierEnablingElements The value of the metadata tier related to Enabling Elements class
+     * @param metadataTierContextualClasses The value of the metadata tier related to Contextual Classes class
+     */
     public RecordTiersInfoDto(String recordId, MediaTier contentTier, MediaTier contentTierBeforeLicenseCorrection,
                               LicenseType license, MetadataTier metadataTier, MetadataTier metadataTierLanguage,
                               MetadataTier metadataTierEnablingElements, MetadataTier metadataTierContextualClasses) {
@@ -50,6 +63,10 @@ public class RecordTiersInfoDto {
         this.metadataTierContextualClasses = metadataTierContextualClasses;
     }
 
+    /**
+     * Constructor of the object using a RecordEntity
+     * @param recordEntity The record entity to gather the information from
+     */
     public RecordTiersInfoDto(RecordEntity recordEntity){
         recordId = recordEntity.getEuropeanaId();
         contentTier = MediaTier.getEnum(recordEntity.getContentTier());

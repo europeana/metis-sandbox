@@ -54,7 +54,12 @@ public class RecordEntity {
    * @param providerId the id of the record provided
    * @param datasetId the dataset id associated to the record
    * @param contentTier the value of the content tier of the record
+   * @param contentTierBeforeLicenseCorrection  the value of the content tier before license correction
    * @param metadataTier the value of the metadata tier of the record
+   * @param metadataTierLanguage the value of the metadata tier related to Language class
+   * @param metadataTierEnablingElements the value of the metadata tier related to Enabling Elements class
+   * @param metadataTierContextualClasses the value of the metadata tier related to Contextual Classes class
+   * @param license the value of the license type
    */
   public RecordEntity(String europeanaId, String providerId, String datasetId, String contentTier, String contentTierBeforeLicenseCorrection,
                       String metadataTier, String metadataTierLanguage, String metadataTierEnablingElements, String metadataTierContextualClasses,

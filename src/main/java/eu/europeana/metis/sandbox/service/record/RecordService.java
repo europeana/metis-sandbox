@@ -12,8 +12,9 @@ public interface RecordService {
    * Returns a list of records and their data associated to a given dataset id
    *
    * @param datasetId the id of the dataset that the records belong to
+   * @return A list of RecordTiersInfoDto associated to the given dataset id
    */
-  public List<RecordTiersInfoDto> getRecordsTiers(String datasetId);
+  List<RecordTiersInfoDto> getRecordsTiers(String datasetId);
 
   /**
    * Updates record's europeana id and provider id values

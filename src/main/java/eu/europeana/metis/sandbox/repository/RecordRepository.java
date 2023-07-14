@@ -24,6 +24,11 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @param recordId the id of the record to update
    * @param contentTier the content tier value to update with
    * @param metadataTier the metadata tier value to update with
+   * @param contentTierBeforeLicenseCorrection the value of the content tier before license correction
+   * @param metadataTierLanguage the value of the metadata tier related to Language class
+   * @param metadataTierEnablingElements the value of the metadata tier related to Enabling Elements class
+   * @param metadataTierContextualClasses the values of the metadata tier related to Contextual Classes class
+   * @param license the type of license
    */
   @Modifying
   @Query("UPDATE RecordEntity rec SET rec.contentTier = ?2, rec.metadataTier = ?3, " +

@@ -76,7 +76,7 @@ class RecordServiceImplTest {
     when(recordRepository.findByDatasetId("datasetId")).thenReturn(Collections.emptyList());
     InvalidDatasetException exception = assertThrows(InvalidDatasetException.class, () ->
             recordService.getRecordsTiers("datasetId"));
-    assertEquals(exception.getMessage(), "Provided dataset id: [datasetId] is not valid. ");
+    assertEquals("Provided dataset id: [datasetId] is not valid. ", exception.getMessage());
 
   }
 
