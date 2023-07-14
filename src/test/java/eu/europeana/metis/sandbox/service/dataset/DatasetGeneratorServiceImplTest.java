@@ -15,15 +15,12 @@ import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
-import org.hibernate.HibernateException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.PersistenceException;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetGeneratorServiceImplTest {
