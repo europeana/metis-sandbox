@@ -12,8 +12,6 @@ public interface DatasetLogService {
    * Remove matching dataset id
    *
    * @param datasetId must not be null
-   * @throws NullPointerException if dataset id is null
-   * @throws ServiceException     if removing dataset fails
    */
   void remove(String datasetId);
 
