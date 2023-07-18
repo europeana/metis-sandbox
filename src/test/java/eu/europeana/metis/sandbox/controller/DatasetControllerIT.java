@@ -183,7 +183,7 @@ class DatasetControllerIT {
             File.separator + "dataset-valid-small.zip");
     FileSystemResource datasetResponseBody = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "zip" + File.separator + "responsefiles " + File.separator +
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator +
                 "response_body_dataset_valid_small.txt");
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
