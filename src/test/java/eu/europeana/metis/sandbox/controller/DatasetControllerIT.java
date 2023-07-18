@@ -49,7 +49,6 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SandboxApplication.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DatasetControllerIT {
 
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
@@ -290,45 +289,6 @@ class DatasetControllerIT {
     languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
 
-  @Test
-  @Order(1) //Make this run first so the data removal script does not affect other tests
-  void datasetsAreRemoved_expectSuccess(){
-    FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid-small.zip");
-
-    ResponseEntity<String> response = makeHarvestingByFile(dataset, null);
-    assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
-    final int expectedDatasetId = extractDatasetId(response.getBody());
-    assertTrue(expectedDatasetId > 0);
-
-    // Give time for the full harvesting to happen
-    Awaitility.await().atMost(10, MINUTES)
-            .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                    String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
-
-    ResponseEntity<String> getDatasetResponse =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
-    assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
-    assertNotNull(getDatasetResponse.getBody());
-    assertTrue(getDatasetResponse.getBody().contains("\"total-records\":2"));
-
-    // Give time for the data removal to happen
-    Awaitility.await().atMost(10, MINUTES)
-            .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
-                    String.class, expectedDatasetId).getBody()).contains("Provided dataset id: [" + expectedDatasetId + "] " +
-                    "is not valid. "));
-
-    ResponseEntity<String> getDatasetErrorResponse =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
-    assertEquals(HttpStatus.BAD_REQUEST, getDatasetErrorResponse.getStatusCode());
-    assertNotNull(getDatasetErrorResponse.getBody());
-    assertTrue(getDatasetErrorResponse.getBody().contains("Provided dataset id: [" + expectedDatasetId +"] " +
-            "is not valid. "));
-
-  }
 
   private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
 

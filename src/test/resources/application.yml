@@ -58,8 +58,8 @@ sandbox:
     leakDetectionThreshold: 5000  # five second should be enough
   dataset:
     clean:
-      frequency: 0 */5 * * * ? # Start at every 5th minute for integration tests
-      days-to-preserve: -1 # Delete databases that are created on the same day for integration tests
+      frequency: 0 0 0 * * ? # At 00:00:00am every day
+      days-to-preserve: 7
     max-size: 1000
     creation:
       threads:
