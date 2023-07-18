@@ -183,7 +183,8 @@ class DatasetControllerIT {
             File.separator + "dataset-valid-small.zip");
     FileSystemResource datasetResponseBody = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "response_body_dataset_valid_small.txt");
+            File.separator + "zip" + File.separator + "responsefiles " + File.separator +
+                "response_body_dataset_valid_small.txt");
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
@@ -215,7 +216,8 @@ class DatasetControllerIT {
             File.separator + "dataset-valid-small.zip");
     FileSystemResource tierCalculationResponse = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "tier_calculation_response_body.txt");
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+                "tier_calculation_response_body.txt");
     String tierCalculationResponseContent = new String(tierCalculationResponse.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -242,7 +244,7 @@ class DatasetControllerIT {
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
     FileSystemResource getRecordBody = new FileSystemResource("src" + File.separator + "test" + File.separator + "resources" +
-        File.separator + "get_record_response_body.txt");
+        File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_record_response_body.txt");
     String getRecordBodyContent = new String(getRecordBody.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -268,7 +270,7 @@ class DatasetControllerIT {
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid-small.zip");
     FileSystemResource getRecordBody = new FileSystemResource("src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "get_records_tiers_response_body.txt");
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_records_tiers_response_body.txt");
     String getRecordBodyContent = new String(getRecordBody.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));

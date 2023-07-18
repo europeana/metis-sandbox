@@ -39,29 +39,6 @@ public class RecordTiersInfoDto {
     @JsonProperty("metadata-tier-contextual-classes")
     private final MetadataTier metadataTierContextualClasses;
 
-    /**
-     * Constructor of the object to initialize each field
-     * @param recordId The id of the record to represent
-     * @param contentTier The value of the content tier of the record
-     * @param contentTierBeforeLicenseCorrection The value of the content tier before license correction
-     * @param license The license type of the record
-     * @param metadataTier The value of the metadata tier of the record
-     * @param metadataTierLanguage The value of the metadata tier related to Language class
-     * @param metadataTierEnablingElements The value of the metadata tier related to Enabling Elements class
-     * @param metadataTierContextualClasses The value of the metadata tier related to Contextual Classes class
-     */
-    public RecordTiersInfoDto(String recordId, MediaTier contentTier, MediaTier contentTierBeforeLicenseCorrection,
-                              LicenseType license, MetadataTier metadataTier, MetadataTier metadataTierLanguage,
-                              MetadataTier metadataTierEnablingElements, MetadataTier metadataTierContextualClasses) {
-        this.recordId = recordId;
-        this.contentTier = contentTier;
-        this.contentTierBeforeLicenseCorrection = contentTierBeforeLicenseCorrection;
-        this.license = license;
-        this.metadataTier = metadataTier;
-        this.metadataTierLanguage = metadataTierLanguage;
-        this.metadataTierEnablingElements = metadataTierEnablingElements;
-        this.metadataTierContextualClasses = metadataTierContextualClasses;
-    }
 
     /**
      * Constructor of the object using a RecordEntity
@@ -76,6 +53,21 @@ public class RecordTiersInfoDto {
         metadataTierLanguage = MetadataTier.getEnum(recordEntity.getMetadataTierLanguage());
         metadataTierEnablingElements = MetadataTier.getEnum(recordEntity.getMetadataTierEnablingElements());
         metadataTierContextualClasses = MetadataTier.getEnum(recordEntity.getMetadataTierContextualClasses());
+    }
+
+    /**
+     * Constructor using the builder
+     * @param builder The builder
+     */
+    public RecordTiersInfoDto(RecordTiersInfoDtoBuilder builder){
+        recordId = builder.recordId;
+        contentTier = builder.contentTier;
+        contentTierBeforeLicenseCorrection = builder.contentTierBeforeLicenseCorrection;
+        license = builder.license;
+        metadataTier = builder.metadataTier;
+        metadataTierLanguage = builder.metadataTierLanguage;
+        metadataTierEnablingElements = builder.metadataTierEnablingElements;
+        metadataTierContextualClasses = builder.metadataTierContextualClasses;
     }
 
     public String getRecordId() {
@@ -108,5 +100,109 @@ public class RecordTiersInfoDto {
 
     public MetadataTier getMetadataTierContextualClasses() {
         return metadataTierContextualClasses;
+    }
+
+    public static class RecordTiersInfoDtoBuilder{
+
+        private String recordId;
+        private MediaTier contentTier;
+        private MediaTier contentTierBeforeLicenseCorrection;
+        private LicenseType license;
+        private MetadataTier metadataTier;
+        private MetadataTier metadataTierLanguage;
+        private MetadataTier metadataTierEnablingElements;
+        private MetadataTier metadataTierContextualClasses;
+
+        public RecordTiersInfoDtoBuilder(){
+        }
+
+        /**
+         * Sets the value of record id
+         * @param recordId The id of the record to represent
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setRecordId(String recordId){
+            this.recordId = recordId;
+            return this;
+        }
+
+        /**
+         * Sets the value of content tier
+         * @param contentTier The value of the content tier of the record
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setContentTier(MediaTier contentTier){
+            this.contentTier = contentTier;
+            return this;
+        }
+
+        /**
+         * Sets the value of content tier before license correction
+         * @param contentTierBeforeLicenseCorrection The value of the content tier before license correction
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setContentTierBeforeLicenseCorrection(MediaTier contentTierBeforeLicenseCorrection){
+            this.contentTierBeforeLicenseCorrection = contentTierBeforeLicenseCorrection;
+            return this;
+        }
+
+        /**
+         * Sets the value of license type
+         * @param license The license type of the record
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setLicense(LicenseType license){
+            this.license = license;
+            return this;
+        }
+
+        /**
+         * Sets the value of metadata tier
+         * @param metadataTier The value of the metadata tier of the record
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setMetadataTier(MetadataTier metadataTier){
+            this.metadataTier = metadataTier;
+            return this;
+        }
+
+        /**
+         * Sets the value of metadata tier related to Language class
+         * @param metadataTierLanguage The value of the metadata tier related to Language class
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setMetadataTierLanguage(MetadataTier metadataTierLanguage){
+            this.metadataTierLanguage = metadataTierLanguage;
+            return this;
+        }
+
+        /**
+         * Sets the value of metadata tier related to Enabling Elements class
+         * @param metadataTierEnablingElements The value of the metadata tier related to Enabling Elements class
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setMetadataTierEnablingElements(MetadataTier metadataTierEnablingElements){
+            this.metadataTierEnablingElements = metadataTierEnablingElements;
+            return this;
+        }
+
+        /**
+         * Sets the value of metadata tier related to Contextual Classes class
+         * @param metadataTierContextualClasses The value of the metadata tier related to Contextual Classes class
+         * @return The builder with the new value
+         */
+        public RecordTiersInfoDtoBuilder setMetadataTierContextualClasses(MetadataTier metadataTierContextualClasses){
+            this.metadataTierContextualClasses = metadataTierContextualClasses;
+            return this;
+        }
+
+        /**
+         * Build the object RecordTiersInfoDto based on the given values from the builder
+         * @return a new RecordTiersInfoDto object
+         */
+        public RecordTiersInfoDto build(){
+            return new RecordTiersInfoDto(this);
+        }
+
     }
 }

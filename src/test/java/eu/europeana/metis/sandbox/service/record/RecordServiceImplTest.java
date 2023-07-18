@@ -54,15 +54,42 @@ class RecordServiceImplTest {
 
   @Test
   void getRecordsTiers_expectSuccess(){
-    RecordEntity recordEntity1 = new RecordEntity("europeanaId1", "providerId1", "datasetId", "3",
-            "4", "A", "B", "C",
-            "0", "OPEN");
-    RecordEntity recordEntity2 = new RecordEntity("europeanaId2", "providerId2", "datasetId", "2",
-            "2", "B", "C", "0",
-            "A", "RESTRICTED");
-    RecordEntity recordEntity3 = new RecordEntity("europeanaId3", "providerId3", "datasetId", "1",
-            "1", "C", "0", "B",
-            "A", "CLOSED");
+    RecordEntity recordEntity1 = new RecordEntity.RecordEntityBuilder()
+            .setEuropeanaId("europeanaId1")
+            .setProviderId("providerId1")
+            .setDatasetId("datasetId")
+            .setContentTier("3")
+            .setContentTierBeforeLicenseCorrection("4")
+            .setMetadataTier("A")
+            .setMetadataTierLanguage("B")
+            .setMetadataTierEnablingElements("C")
+            .setMetadataTierContextualClasses("0")
+            .setLicense("OPEN")
+            .build();
+    RecordEntity recordEntity2 = new RecordEntity.RecordEntityBuilder()
+            .setEuropeanaId("europeanaId2")
+            .setProviderId("providerId2")
+            .setDatasetId("datasetId")
+            .setContentTier("2")
+            .setContentTierBeforeLicenseCorrection("2")
+            .setMetadataTier("B")
+            .setMetadataTierLanguage("C")
+            .setMetadataTierEnablingElements("0")
+            .setMetadataTierContextualClasses("A")
+            .setLicense("RESTRICTED")
+            .build();
+    RecordEntity recordEntity3 = new RecordEntity.RecordEntityBuilder()
+            .setEuropeanaId("europeanaId3")
+            .setProviderId("providerId3")
+            .setDatasetId("datasetId")
+            .setContentTier("1")
+            .setContentTierBeforeLicenseCorrection("1")
+            .setMetadataTier("C")
+            .setMetadataTierLanguage("0")
+            .setMetadataTierEnablingElements("B")
+            .setMetadataTierContextualClasses("A")
+            .setLicense("CLOSED")
+            .build();
     List<RecordEntity> recordEntities = List.of(recordEntity1, recordEntity2, recordEntity3);
     when(recordRepository.findByDatasetId("datasetId")).thenReturn(recordEntities);
     List<RecordTiersInfoDto> result = recordService.getRecordsTiers("datasetId");

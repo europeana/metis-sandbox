@@ -177,7 +177,7 @@ public class HarvestServiceImpl implements HarvestService {
           oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
-      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, null, null, null, null, null, null, null);
+      RecordEntity recordEntity = new RecordEntity(oaiHarvestData.getOaiIdentifier(), datasetId);
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
       recordEntity = recordRepository.save(recordEntity);
@@ -278,7 +278,7 @@ public class HarvestServiceImpl implements HarvestService {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
     String tmpProviderId = createTemporaryIdFromPath(extractedDirectoryFromIterator, path);
-    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId, datasetId, null, null, null, null, null, null, null);
+    RecordEntity recordEntity = new RecordEntity(tmpProviderId, datasetId);
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();

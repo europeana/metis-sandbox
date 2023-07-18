@@ -102,13 +102,12 @@ public class RecordServiceImpl implements RecordService {
   }
 
   private boolean areAllTierValuesNotNullOrEmpty(RecordEntity recordEntity){
-    return !((recordEntity.getContentTier() == null || StringUtils.isEmpty(recordEntity.getContentTier())) &&
-            (recordEntity.getMetadataTier() == null || StringUtils.isEmpty(recordEntity.getMetadataTier())) &&
-            (recordEntity.getContentTierBeforeLicenseCorrection() == null ||
-                    StringUtils.isEmpty(recordEntity.getContentTierBeforeLicenseCorrection())) &&
-            (recordEntity.getMetadataTierLanguage() == null || StringUtils.isEmpty(recordEntity.getMetadataTierLanguage())) &&
-            (recordEntity.getMetadataTierEnablingElements() == null || StringUtils.isEmpty(recordEntity.getMetadataTierEnablingElements())) &&
-            (recordEntity.getMetadataTierContextualClasses() == null || StringUtils.isEmpty(recordEntity.getMetadataTierContextualClasses())) &&
-            (recordEntity.getLicense() == null));
+    return StringUtils.isNotBlank(recordEntity.getContentTier()) &&
+            StringUtils.isNotBlank(recordEntity.getMetadataTier()) &&
+            StringUtils.isNotBlank(recordEntity.getContentTierBeforeLicenseCorrection()) &&
+            StringUtils.isNotBlank(recordEntity.getMetadataTierLanguage()) &&
+            StringUtils.isNotBlank(recordEntity.getMetadataTierEnablingElements()) &&
+            StringUtils.isNotBlank(recordEntity.getMetadataTierContextualClasses()) &&
+            StringUtils.isNotBlank(recordEntity.getLicense());
   }
 }

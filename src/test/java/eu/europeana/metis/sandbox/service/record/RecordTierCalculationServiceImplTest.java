@@ -54,8 +54,18 @@ class RecordTierCalculationServiceImplTest {
     final String metadataTierEnablingElements = "metadataTierEnablingElements";
     final String metadataTierContextualClasses = "metadataTierContextualClasses";
     final String license = "license";
-    final RecordEntity recordEntity = new RecordEntity(europeanaId, providerId, datasetId, contentTier, contentTierBeforeLicenseCorrection, metadataTier,
-            metadataTierLanguage, metadataTierEnablingElements, metadataTierContextualClasses, license);
+    final RecordEntity recordEntity = new RecordEntity.RecordEntityBuilder()
+            .setEuropeanaId(europeanaId)
+            .setProviderId(providerId)
+            .setDatasetId(datasetId)
+            .setContentTier(contentTier)
+            .setContentTierBeforeLicenseCorrection(contentTierBeforeLicenseCorrection)
+            .setMetadataTier(metadataTier)
+            .setMetadataTierLanguage(metadataTierLanguage)
+            .setMetadataTierEnablingElements(metadataTierEnablingElements)
+            .setMetadataTierContextualClasses(metadataTierContextualClasses)
+            .setLicense(license)
+            .build();
     final Step mediaProcessStep = Step.MEDIA_PROCESS;
     final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep, Status.SUCCESS);
     recordEntity.setId(recordId);

@@ -626,8 +626,17 @@ class DatasetControllerTest {
 
   @Test
   void getRecordsTier_expectSuccess() throws Exception {
-    RecordTiersInfoDto recordTiersInfoDto1 = new RecordTiersInfoDto("recordId", MediaTier.T3, MediaTier.T4, LicenseType.OPEN,
-            MetadataTier.TA, MetadataTier.TB, MetadataTier.TC, MetadataTier.T0);
+    RecordTiersInfoDto recordTiersInfoDto1 = new RecordTiersInfoDto.RecordTiersInfoDtoBuilder()
+            .setRecordId("recordId")
+            .setContentTier(MediaTier.T3)
+            .setContentTierBeforeLicenseCorrection(MediaTier.T4)
+            .setLicense(LicenseType.OPEN)
+            .setMetadataTier(MetadataTier.TA)
+            .setMetadataTierLanguage(MetadataTier.TB)
+            .setMetadataTierEnablingElements(MetadataTier.TC)
+            .setMetadataTierContextualClasses(MetadataTier.T0)
+            .build();
+
     List<RecordTiersInfoDto> resultMock = List.of(recordTiersInfoDto1);
 
     when(recordService.getRecordsTiers("datasetId")).thenReturn(resultMock);
