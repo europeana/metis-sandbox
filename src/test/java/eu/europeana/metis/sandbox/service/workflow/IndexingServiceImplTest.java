@@ -3,9 +3,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexingProperties;
@@ -50,10 +48,11 @@ class IndexingServiceImplTest {
     var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
-    TierResults mock = new TierResults(MediaTier.T1, MetadataTier.TA);
-
+    TierResults tierResultsMock = mock(TierResults.class);
+    when(tierResultsMock.getMediaTier()).thenReturn(MediaTier.T1);
+    when(tierResultsMock.getMetadataTier()).thenReturn(MetadataTier.TA);
     when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
-            .thenReturn(mock);
+            .thenReturn(tierResultsMock);
 
     service.index(record);
     verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
