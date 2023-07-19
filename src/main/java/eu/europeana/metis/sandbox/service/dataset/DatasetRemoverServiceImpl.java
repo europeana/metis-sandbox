@@ -17,6 +17,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverServiceImpl.class);
 
   private final DatasetService datasetService;
+  private final DatasetLogService datasetLogService;
   private final RecordLogService recordLogService;
   private final IndexingService indexingService;
   private final ThumbnailStoreService thumbnailStoreService;
@@ -25,12 +26,14 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
 
   DatasetRemoverServiceImpl(
           DatasetService datasetService,
+          DatasetLogService datasetLogService,
           RecordLogService recordLogService,
           IndexingService indexingService,
           ThumbnailStoreService thumbnailStoreService,
           RecordService recordService,
           ProblemPatternDataRemover problemPatternDataRemover) {
     this.datasetService = datasetService;
+    this.datasetLogService = datasetLogService;
     this.recordLogService = recordLogService;
     this.indexingService = indexingService;
     this.thumbnailStoreService = thumbnailStoreService;
@@ -59,8 +62,11 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           recordLogService.remove(dataset);
           LOGGER.debug("Remove records for dataset id: [{}]", dataset);
           recordService.remove(dataset);
+          LOGGER.debug("Remove logs for dataset id: [{}]", dataset);
+          datasetLogService.remove(dataset);
           LOGGER.debug("Remove problem pattern data associated with dataset id: [{}]", dataset);
           problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
+          LOGGER.debug("Remove dataset with id: [{}]", dataset);
           datasetService.remove(dataset);
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);

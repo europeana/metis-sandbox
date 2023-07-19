@@ -27,6 +27,9 @@ class DatasetRemoverServiceImplTest {
   private DatasetService datasetService;
 
   @Mock
+  private DatasetLogService datasetLogService;
+
+  @Mock
   private RecordLogService recordLogService;
 
   @Mock
@@ -55,6 +58,7 @@ class DatasetRemoverServiceImplTest {
     verify(indexingService, times(4)).remove(anyString());
     verify(recordLogService, times(4)).remove(anyString());
     verify(datasetService, times(4)).remove(anyString());
+    verify(datasetLogService, times(4)).remove(anyString());
     verify(recordService, times(4)).remove(anyString());
     verify(problemPatternDataRemover, times(4)).removeProblemPatternDataFromDatasetId(anyString());
   }
@@ -74,6 +78,7 @@ class DatasetRemoverServiceImplTest {
     verify(indexingService, times(3)).remove(anyString());
     verify(recordLogService, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
+    verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());
     verify(problemPatternDataRemover, times(3)).removeProblemPatternDataFromDatasetId(anyString());
   }
@@ -93,6 +98,7 @@ class DatasetRemoverServiceImplTest {
     verify(indexingService, times(3)).remove(anyString());
     verify(recordLogService, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
+    verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());
     verify(problemPatternDataRemover, times(3)).removeProblemPatternDataFromDatasetId(anyString());
   }

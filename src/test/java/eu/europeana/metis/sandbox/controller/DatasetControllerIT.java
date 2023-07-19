@@ -207,6 +207,7 @@ class DatasetControllerIT {
         expectedDatasetInfoJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), String.valueOf(expectedDatasetId)),
         StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
 
+
   }
 
   @Test
@@ -330,6 +331,7 @@ class DatasetControllerIT {
     List<Language> languages = Language.getLanguageListSortedByName();
     languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
+
 
   private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
 
