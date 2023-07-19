@@ -10,15 +10,34 @@ import org.springframework.data.jpa.repository.Query;
 public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
 
   /**
+   * Returns all records that are port of the given datasetId
+   *
+   * @param datasetId The id of the dataset to search for
+   * @return A list of record entities that are part of the given dataset
+   */
+  List<RecordEntity> findByDatasetId(String datasetId);
+
+
+  /**
    * Update record with new values for content tier and metadata tier
    *
    * @param recordId the id of the record to update
    * @param contentTier the content tier value to update with
    * @param metadataTier the metadata tier value to update with
+   * @param contentTierBeforeLicenseCorrection the value of the content tier before license correction
+   * @param metadataTierLanguage the value of the metadata tier related to Language class
+   * @param metadataTierEnablingElements the value of the metadata tier related to Enabling Elements class
+   * @param metadataTierContextualClasses the values of the metadata tier related to Contextual Classes class
+   * @param license the type of license
    */
   @Modifying
-  @Query("UPDATE RecordEntity rec SET rec.contentTier = ?2, rec.metadataTier = ?3 WHERE rec.id = ?1")
-  void updateContentTierAndMetadataTier(Long recordId, String contentTier, String metadataTier);
+  @Query("UPDATE RecordEntity rec SET rec.contentTier = ?2, rec.metadataTier = ?3, " +
+          "rec.contentTierBeforeLicenseCorrection = ?4, " +
+          "rec.metadataTierLanguage = ?5, rec.metadataTierEnablingElements = ?6," +
+          "rec.metadataTierContextualClasses = ?7, rec.license = ?8 WHERE rec.id = ?1")
+  void updateRecordWithTierResults(Long recordId, String contentTier, String metadataTier, String contentTierBeforeLicenseCorrection,
+                                   String metadataTierLanguage, String metadataTierEnablingElements, String metadataTierContextualClasses,
+                                   String license);
 
   /**
    * Delete records that belong to the given dataset id

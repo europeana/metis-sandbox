@@ -12,11 +12,13 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
+import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import eu.europeana.metis.utils.CompressedFileExtension;
@@ -94,6 +96,7 @@ class DatasetController {
     private final DatasetService datasetService;
     private final DatasetLogService datasetLogService;
     private final DatasetReportService reportService;
+    private final RecordService recordService;
     private final RecordLogService recordLogService;
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
@@ -105,17 +108,19 @@ class DatasetController {
      * @param datasetService               the dataset service
      * @param datasetLogService            the dataset log service
      * @param reportService                the report service
+     * @param recordService                the record service
      * @param recordLogService             the record log service
      * @param recordTierCalculationService the record tier calculation service
      * @param harvestPublishService        the harvest publish service
      */
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
-                             DatasetReportService reportService, RecordLogService recordLogService,
-                             RecordTierCalculationService recordTierCalculationService,
+                             DatasetReportService reportService, RecordService recordService,
+                             RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
                              HarvestPublishService harvestPublishService) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
+        this.recordService = recordService;
         this.recordLogService = recordLogService;
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
@@ -311,6 +316,23 @@ class DatasetController {
     public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId,
                             @RequestParam(required = false) String step) throws NoRecordFoundException {
         return recordLogService.getProviderRecordString(recordId, datasetId, getSetFromStep(step));
+    }
+
+    /**
+     * GET API returns the records tiers of a given dataset.
+     *
+     * @param datasetId the dataset id
+     * @return the records tier of a given dataset
+     *
+     */
+    @Operation(summary = "Gets a list of records tier", description = "Get list of records tiers")
+    @ApiResponse(responseCode = "200", description = "List of records tiers")
+    @ApiResponse(responseCode = "404", description = "Records not found")
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
+        return recordService.getRecordsTiers(datasetId);
     }
 
     private Set<Step> getSetFromStep(String step) {
