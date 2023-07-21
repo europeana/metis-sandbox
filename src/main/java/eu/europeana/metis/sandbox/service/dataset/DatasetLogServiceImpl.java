@@ -40,6 +40,7 @@ public class DatasetLogServiceImpl implements DatasetLogService {
     }
 
     @Override
+    @Transactional
     public void remove(String datasetId) {
         datasetLogRepository.deleteAllByDatasetDatasetId(Integer.parseInt(datasetId));
     }
