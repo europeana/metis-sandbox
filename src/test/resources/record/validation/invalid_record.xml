@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:adms="http://www.w3.org/ns/adms#"
+         xmlns:cc="http://creativecommons.org/ns#"
+         xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:doap="http://usefulinc.com/ns/doap#"
+         xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:odrl="http://www.w3.org/ns/odrl/2/"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:svcs="http://rdfs.org/sioc/services#"
+         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#">
+   <edm:WebResource rdf:about="https://www.dropbox.com/s/7m7yahxrxqcp1c8/FIN_The%20Wounded%20Angel.jpg?raw=1"/>
+   <ore:Aggregation rdf:about="FI_280_005#aggregation">
+      <edm:aggregatedCHO rdf:resource="FI_280_005"/>
+      <edm:dataProvider>Finnish National Gallery</edm:dataProvider>
+      <edm:isShownAt rdf:resource="https://www.kansallisgalleria.fi/fi/object/396251"/>
+      <edm:isShownBy rdf:resource="https://www.dropbox.com/s/7m7yahxrxqcp1c8/FIN_The%20Wounded%20Angel.jpg?raw=1"/>
+      <edm:provider>Europeana 280</edm:provider>
+      <edm:rights rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+   </ore:Aggregation>
+   <edm:ProvidedCHO rdf:about="FI_280_005">
+      <dc:creator rdf:resource="http://viaf.org/viaf/10651135"/>
+      <dc:description xml:lang="fi">Enkeli, jota kaksi nuorta poikaa kantaa, taustalla on puistonäkymä.</dc:description>
+      <dc:description xml:lang="en">An angel is carried by two young boys, a park view on the background.</dc:description>
+      <dc:subject rdf:resource="http://vocab.getty.edu/aat/300021514"/>
+      <dc:subject rdf:resource="http://www.wikidata.org/entity/Q235113"/>
+      <dc:subject rdf:resource="http://www.wikidata.org/entity/Q7569"/>
+      <dc:title xml:lang="fi">Haavoittunut enkeli</dc:title>
+      <dc:title xml:lang="en">The Wounded Angel</dc:title>
+      <dc:type rdf:resource="http://vocab.getty.edu/aat/300055865"/>
+      <dc:type rdf:resource="http://vocab.getty.edu/aat/300033799"/>
+      <dcterms:created>1903</dcterms:created>
+      <dcterms:extent>127 cm x 154 cm</dcterms:extent>
+      <dcterms:medium rdf:resource="http://vocab.getty.edu/aat/300178684"/>
+      <dcterms:provenance xml:lang="en">purchase 14.12.1928</dcterms:provenance>
+      <edm:currentLocation rdf:resource="https://sws.geonames.org/6956564/"/>
+      <edm:type>IMAGE</edm:type>
+   </edm:ProvidedCHO>
+</rdf:RDF>
