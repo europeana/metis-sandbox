@@ -1,29 +1,34 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The type Harvest validation step.
  */
 public class HarvestValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private static final String PROVIDER = "VALIDATION-SERVICE";
-    private static final String DATASET_ID_PREFIX = "val_";
-    private final RecordRepository recordRepository;
-    private final DatasetService datasetService;
     private ValidationStep nextValidationStep;
+    private final RecordLogService recordLogService;
 
-    public HarvestValidationStep(DatasetService datasetService, RecordRepository recordRepository) {
-        this.datasetService = datasetService;
-        this.recordRepository = recordRepository;
+    /**
+     * Instantiates a new Harvest validation step.
+     *
+     * @param recordLogService the record log service
+     */
+    public HarvestValidationStep(RecordLogService recordLogService) {
+        this.recordLogService = recordLogService;
     }
 
     @Override
@@ -32,30 +37,23 @@ public class HarvestValidationStep implements ValidationStep {
     }
 
     @Override
-    public ValidationResult validate(Record recordToValidate) {
+    public List<ValidationResult> validate(Record recordToValidate) {
+        List<ValidationResult> validationResults = new ArrayList<>();
         try {
-            UUID uuid = UUID.randomUUID();
-            final String datasetName = DATASET_ID_PREFIX + uuid;
-            final String datasetId = datasetService.createEmptyDataset(datasetName,
-                    recordToValidate.getCountry(),
-                    recordToValidate.getLanguage(), null);
-            RecordEntity recordEntity = new RecordEntity(PROVIDER, datasetId);
-            Record.RecordBuilder recordToHarvest = new Record.RecordBuilder();
-            recordEntity = recordRepository.save(recordEntity);
-            recordToValidate = recordToHarvest
-                    .providerId(PROVIDER)
-                    .datasetId(datasetId)
-                    .datasetName(datasetName)
-                    .country(recordToValidate.getCountry())
-                    .language(recordToValidate.getLanguage())
-                    .content(recordToValidate.getContent())
-                    .recordId(recordEntity.getId())
-                    .build();
-            LOGGER.error("harvesting validation step virtual dataset {}", datasetName);
-            return this.nextValidationStep.validate(recordToValidate);
+            LOGGER.info("harvesting validation step virtual dataset {}", recordToValidate.getDatasetName());
+            validationResults.add(new ValidationResult(Step.HARVEST_FILE,
+                    new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
+                    ValidationResult.Status.PASSED));
+            validationResults.addAll(this.nextValidationStep.validate(recordToValidate));
+            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate),Step.HARVEST_FILE, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("harvesting validation step fail", ex);
-            return new ValidationResult("harvest", ValidationResult.Status.FAILED);
+            validationResults.removeIf(validationResult -> validationResult.getStep().equals(Step.HARVEST_FILE));
+            validationResults.add(new ValidationResult(Step.HARVEST_FILE,
+                    new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
+                    ValidationResult.Status.FAILED));
+            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate),Step.HARVEST_FILE, Status.FAIL));
         }
+        return validationResults;
     }
 }

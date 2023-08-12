@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.controller;
 
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowReport;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowService;
@@ -16,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
@@ -59,15 +62,26 @@ class ValidationControllerTest {
         Path testRecordPath = Paths.get("src", "test", "resources", "record", "validation", "valid_record.xml");
         MockMultipartFile mockRecordFile = new MockMultipartFile("recordToValidate",
                 "valid_record.xml", "application/rdf+xml", Files.newInputStream(testRecordPath));
-        ValidationWorkflowReport workflowReport = new ValidationWorkflowReport(
-                new ValidationResult("success", ValidationResult.Status.PASSED),
+        ValidationWorkflowReport workflowReport = new ValidationWorkflowReport(List.of(
+                new ValidationResult(Step.HARVEST_FILE,
+                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
+                        ValidationResult.Status.PASSED),
+                new ValidationResult(Step.VALIDATE_EXTERNAL,
+                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
+                        ValidationResult.Status.PASSED),
+                new ValidationResult(Step.TRANSFORM,
+                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
+                        ValidationResult.Status.PASSED),
+                new ValidationResult(Step.VALIDATE_INTERNAL,
+                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
+                        ValidationResult.Status.PASSED)),
                 getProblemPatternAnalysis().getProblemPatterns());
         when(validationWorkflowService.validate(any(MultipartFile.class), any(), any())).thenReturn(workflowReport);
         mvc.perform(multipart("/record/validation", "test")
                         .file(mockRecordFile)
                         .param("country", NETHERLANDS.name())
                         .param("language", NL.name()))
+                .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk());
-        //.andExpect(jsonPath("$.dataset-id", is("12345")));
     }
 }

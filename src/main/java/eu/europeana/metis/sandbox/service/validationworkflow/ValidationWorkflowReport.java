@@ -5,16 +5,16 @@ import eu.europeana.patternanalysis.view.ProblemPattern;
 import java.util.List;
 
 public class ValidationWorkflowReport {
-    private final ValidationResult result;
+    private final List<ValidationResult> validationResults;
     private final List<ProblemPattern> problemPatternList;
 
-    public ValidationWorkflowReport(ValidationResult validationResult, List<ProblemPattern> problemPatterns) {
-        this.result = validationResult;
+    public ValidationWorkflowReport(List<ValidationResult> validationResults, List<ProblemPattern> problemPatterns) {
+        this.validationResults = validationResults;
         this.problemPatternList = problemPatterns;
     }
 
-    public ValidationResult getResult() {
-        return result;
+    public List<ValidationResult> getValidationResults() {
+        return validationResults;
     }
 
     public List<ProblemPattern> getProblemPatternList() {

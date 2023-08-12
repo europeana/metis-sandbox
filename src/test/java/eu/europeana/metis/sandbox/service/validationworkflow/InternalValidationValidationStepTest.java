@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -12,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,14 +51,19 @@ class InternalValidationValidationStepTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(record);
         when(internalValidationService.validate(any())).thenReturn(recordInfo);
-        when(validationExtractor.extract(any())).thenReturn(recordInfo.getRecord());
+        when(validationExtractor.extractRecord(any())).thenReturn(recordInfo.getRecord());
 
         //when
-        ValidationResult validationResult = internalValidationValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = internalValidationValidationStep.validate(recordToValidate);
 
         //then
-        assertEquals("success", validationResult.getMessage());
-        assertEquals(ValidationResult.Status.PASSED, validationResult.getStatus());
+        Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.VALIDATE_INTERNAL)).findFirst();
+        assertTrue(result.isPresent());
+        assertEquals(ValidationResult.Status.PASSED, result.get().getStatus());
+        Optional<RecordValidationMessage> message = result.get().getMessages().stream().findFirst();
+        assertTrue(message.isPresent());
+        assertEquals("success", message.get().getMessage());
+        assertEquals(RecordValidationMessage.Type.INFO, message.get().getMessageType());
         verify(internalValidationService, times(1)).validate(any());
     }
 
@@ -69,11 +77,16 @@ class InternalValidationValidationStepTest {
         when(internalValidationService.validate(any())).thenThrow(new RuntimeException("Internal validation error"));
 
         //when
-        ValidationResult validationResult = internalValidationValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = internalValidationValidationStep.validate(recordToValidate);
 
         //then
-        assertEquals("internal validation", validationResult.getMessage());
-        assertEquals(ValidationResult.Status.FAILED, validationResult.getStatus());
+        Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.VALIDATE_INTERNAL)).findFirst();
+        assertTrue(result.isPresent());
+        assertEquals(ValidationResult.Status.FAILED, result.get().getStatus());
+        Optional<RecordValidationMessage> message = result.get().getMessages().stream().findFirst();
+        assertTrue(message.isPresent());
+        assertEquals("Internal validation error", message.get().getMessage());
+        assertEquals(RecordValidationMessage.Type.ERROR, message.get().getMessageType());
         verify(internalValidationService, times(1)).validate(any());
     }
 }

@@ -15,9 +15,8 @@ import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
 import eu.europeana.metis.sandbox.service.validationworkflow.ExternalValidationStep;
@@ -33,7 +32,6 @@ import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.normalization.NormalizerFactory;
-import eu.europeana.patternanalysis.ProblemPatternAnalyzer;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
@@ -240,28 +238,29 @@ class SandboxConfig {
     }
 
     @Bean
-    ValidationStep harvestValidationStep(DatasetService datasetService, RecordRepository recordRepository) {
-        return new HarvestValidationStep(datasetService, recordRepository);
+    ValidationStep harvestValidationStep(RecordLogService recordLogService) {
+        return new HarvestValidationStep(recordLogService);
     }
 
     @Bean
-    ValidationStep externalValidationStep(ExternalValidationService externalValidationService, ValidationExtractor validationExtractor) {
-        return new ExternalValidationStep(externalValidationService, validationExtractor);
+    ValidationStep externalValidationStep(ExternalValidationService externalValidationService,
+                                          ValidationExtractor validationExtractor,
+                                          RecordLogService recordLogService) {
+        return new ExternalValidationStep(externalValidationService, validationExtractor, recordLogService);
     }
 
     @Bean
-    ValidationStep transformationValidationStep(TransformationService transformationService, ValidationExtractor validationExtractor) {
-        return new TransformationValidationStep(transformationService, validationExtractor);
+    ValidationStep transformationValidationStep(TransformationService transformationService,
+                                                ValidationExtractor validationExtractor,
+                                                RecordLogService recordLogService) {
+        return new TransformationValidationStep(transformationService, validationExtractor, recordLogService);
     }
 
     @Bean
-    ValidationStep internalValidationValidationStep(InternalValidationService internalValidationService, ValidationExtractor validationExtractor) {
-        return new InternalValidationValidationStep(internalValidationService, validationExtractor);
-    }
-
-    @Bean
-    ProblemPatternAnalyzer problemPatternAnalyzer() {
-        return new ProblemPatternAnalyzer();
+    ValidationStep internalValidationValidationStep(InternalValidationService internalValidationService,
+                                                    ValidationExtractor validationExtractor,
+                                                    RecordLogService recordLogService) {
+        return new InternalValidationValidationStep(internalValidationService, validationExtractor, recordLogService);
     }
 
     private Properties schemaProperties() {
