@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -19,8 +18,8 @@ import java.util.List;
  */
 public class HarvestValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private ValidationStep nextValidationStep;
     private final RecordLogService recordLogService;
+    private ValidationStep nextValidationStep;
 
     /**
      * Instantiates a new Harvest validation step.
@@ -45,14 +44,14 @@ public class HarvestValidationStep implements ValidationStep {
                     new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                     ValidationResult.Status.PASSED));
             validationResults.addAll(this.nextValidationStep.validate(recordToValidate));
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate),Step.HARVEST_FILE, Status.SUCCESS));
+            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.HARVEST_FILE, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("harvesting validation step fail", ex);
             validationResults.removeIf(validationResult -> validationResult.getStep().equals(Step.HARVEST_FILE));
             validationResults.add(new ValidationResult(Step.HARVEST_FILE,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
                     ValidationResult.Status.FAILED));
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate),Step.HARVEST_FILE, Status.FAIL));
+            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.HARVEST_FILE, Status.FAIL));
         }
         return validationResults;
     }

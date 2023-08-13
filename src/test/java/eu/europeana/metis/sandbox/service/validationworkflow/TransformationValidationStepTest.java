@@ -57,13 +57,13 @@ class TransformationValidationStepTest {
         RecordInfo recordInfo = new RecordInfo(transformedRecord);
         when(transformationService.transformToEdmInternal(any())).thenReturn(recordInfo);
         when(validationExtractor.extractRecord(any())).thenReturn(recordInfo.getRecord());
-        when(validationExtractor.extractResults(any(),any(),any())).thenReturn(
+        when(validationExtractor.extractResults(any(), any(), any())).thenReturn(
                 List.of(new ValidationResult(Step.TRANSFORM,
-                        new RecordValidationMessage(RecordValidationMessage.Type.INFO,"success"),
+                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                         ValidationResult.Status.PASSED))
         );
         when(internalValidationValidationStep.validate(any())).thenReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
-                new RecordValidationMessage(RecordValidationMessage.Type.INFO,"success"),
+                new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                 ValidationResult.Status.PASSED)));
         transformationValidationStep.setNextValidationStep(internalValidationValidationStep);
 
@@ -81,7 +81,7 @@ class TransformationValidationStepTest {
         verify(transformationService, times(1)).transformToEdmInternal(any());
         verify(recordLogService, times(1)).logRecordEvent(any());
         verify(validationExtractor, times(1)).extractRecord(any());
-        verify(validationExtractor, times(1)).extractResults(any(),any(),any());
+        verify(validationExtractor, times(1)).extractResults(any(), any(), any());
     }
 
     @Test

@@ -63,7 +63,7 @@ class ValidatedRecordExtractorTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(expectedRecord);
         // when
-        List<ValidationResult> validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo,new ArrayList<>());
+        List<ValidationResult> validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo, new ArrayList<>());
 
         // then
         assertEquals(1, validationResults.size());
@@ -86,10 +86,10 @@ class ValidatedRecordExtractorTest {
                 .providerId("providerId")
                 .content("content".getBytes(StandardCharsets.UTF_8))
                 .build();
-        RecordInfo recordInfo = new RecordInfo(expectedRecord,List.of(new RecordError("Fail message1", "stackTrace1"),
+        RecordInfo recordInfo = new RecordInfo(expectedRecord, List.of(new RecordError("Fail message1", "stackTrace1"),
                 new RecordError("Fail message2", "stackTrace2")));
         // when
-        List<ValidationResult> validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo,new ArrayList<>());
+        List<ValidationResult> validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo, new ArrayList<>());
 
         // then
         assertEquals(1, validationResults.size());

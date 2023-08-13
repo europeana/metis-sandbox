@@ -4,9 +4,6 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +18,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -68,7 +64,7 @@ class HarvestValidationStepTest {
         assertTrue(message.isPresent());
         assertEquals("success", message.get().getMessage());
         assertEquals(RecordValidationMessage.Type.INFO, message.get().getMessageType());
-        verify(recordLogService, times(1)).logRecordEvent( any());
+        verify(recordLogService, times(1)).logRecordEvent(any());
     }
 
     @Test

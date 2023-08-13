@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,10 +29,10 @@ import static org.mockito.Mockito.when;
 class InternalValidationValidationStepTest {
     @Mock
     ValidationExtractor validationExtractor;
-
     @Mock
     InternalValidationService internalValidationService;
-
+    @Mock
+    RecordLogService recordLogService;
     @InjectMocks
     InternalValidationValidationStep internalValidationValidationStep;
 
@@ -52,7 +55,12 @@ class InternalValidationValidationStepTest {
         RecordInfo recordInfo = new RecordInfo(record);
         when(internalValidationService.validate(any())).thenReturn(recordInfo);
         when(validationExtractor.extractRecord(any())).thenReturn(recordInfo.getRecord());
-
+        when(validationExtractor.extractResults(any(), any(), any())).thenReturn(
+                List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
+                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
+                        ValidationResult.Status.PASSED))
+        );
+        doNothing().when(recordLogService).logRecordEvent(any());
         //when
         List<ValidationResult> validationResults = internalValidationValidationStep.validate(recordToValidate);
 
@@ -65,6 +73,7 @@ class InternalValidationValidationStepTest {
         assertEquals("success", message.get().getMessage());
         assertEquals(RecordValidationMessage.Type.INFO, message.get().getMessageType());
         verify(internalValidationService, times(1)).validate(any());
+        verify(recordLogService, times(2)).logRecordEvent(any());
     }
 
     @Test
@@ -75,7 +84,7 @@ class InternalValidationValidationStepTest {
                 .content("info".getBytes(StandardCharsets.UTF_8))
                 .build();
         when(internalValidationService.validate(any())).thenThrow(new RuntimeException("Internal validation error"));
-
+        doNothing().when(recordLogService).logRecordEvent(any());
         //when
         List<ValidationResult> validationResults = internalValidationValidationStep.validate(recordToValidate);
 
@@ -85,8 +94,9 @@ class InternalValidationValidationStepTest {
         assertEquals(ValidationResult.Status.FAILED, result.get().getStatus());
         Optional<RecordValidationMessage> message = result.get().getMessages().stream().findFirst();
         assertTrue(message.isPresent());
-        assertEquals("Internal validation error", message.get().getMessage());
+        assertEquals("java.lang.RuntimeException: Internal validation error", message.get().getMessage());
         assertEquals(RecordValidationMessage.Type.ERROR, message.get().getMessageType());
         verify(internalValidationService, times(1)).validate(any());
+        verify(recordLogService, times(1)).logRecordEvent(any());
     }
 }
