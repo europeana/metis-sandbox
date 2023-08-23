@@ -64,7 +64,7 @@ public class ValidationController {
             @Parameter(description = "country of the record") @RequestParam Country country,
             @Parameter(description = "language of the record") @RequestParam Language language,
             @Parameter(description = "record file to be validated", required = true) @RequestParam MultipartFile recordToValidate) throws SerializationException, IOException {
-        checkArgument(isFileTypeValid(recordToValidate));
+        checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
         return workflowService.validate(recordToValidate, country, language);
     }
 
