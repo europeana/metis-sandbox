@@ -48,13 +48,13 @@ class HarvestValidationStepTest {
                 .language(Language.NL)
                 .content("info".getBytes(StandardCharsets.UTF_8))
                 .build();
-        when(externalValidationStep.validate(any())).thenReturn(List.of(new ValidationResult(Step.VALIDATE_EXTERNAL,
+        when(externalValidationStep.performStep(any())).thenReturn(List.of(new ValidationResult(Step.VALIDATE_EXTERNAL,
                 new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                 ValidationResult.Status.PASSED)));
         harvestValidationStep.setNextValidationStep(externalValidationStep);
 
         //when
-        List<ValidationResult> validationResults = harvestValidationStep.validate(record);
+        List<ValidationResult> validationResults = harvestValidationStep.performStep(record);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.HARVEST_FILE)).findFirst();
@@ -71,7 +71,7 @@ class HarvestValidationStepTest {
     void validate_expectFail() {
         //given
         doNothing().when(recordLogService).logRecordEvent(any());
-        doThrow(new RuntimeException("Validation error")).when(externalValidationStep).validate(any());
+        doThrow(new RuntimeException("Validation error")).when(externalValidationStep).performStep(any());
 
         Record record = new Record.RecordBuilder()
                 .recordId(1L)
@@ -85,7 +85,7 @@ class HarvestValidationStepTest {
         harvestValidationStep.setNextValidationStep(externalValidationStep);
 
         //when
-        List<ValidationResult> validationResults = harvestValidationStep.validate(record);
+        List<ValidationResult> validationResults = harvestValidationStep.performStep(record);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.HARVEST_FILE)).findFirst();

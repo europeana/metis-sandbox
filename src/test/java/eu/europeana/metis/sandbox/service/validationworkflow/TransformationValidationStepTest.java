@@ -62,13 +62,13 @@ class TransformationValidationStepTest {
                         new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                         ValidationResult.Status.PASSED))
         );
-        when(internalValidationValidationStep.validate(any())).thenReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
+        when(internalValidationValidationStep.performStep(any())).thenReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
                 new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                 ValidationResult.Status.PASSED)));
         transformationValidationStep.setNextValidationStep(internalValidationValidationStep);
 
         //when
-        List<ValidationResult> validationResults = transformationValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = transformationValidationStep.performStep(recordToValidate);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.TRANSFORM)).findFirst();
@@ -95,7 +95,7 @@ class TransformationValidationStepTest {
         when(transformationService.transformToEdmInternal(any())).thenThrow(new RuntimeException("Transformation exception"));
 
         //when
-        List<ValidationResult> validationResults = transformationValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = transformationValidationStep.performStep(recordToValidate);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.TRANSFORM)).findFirst();

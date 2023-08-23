@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
@@ -63,7 +64,15 @@ public class ValidationController {
             @Parameter(description = "country of the record") @RequestParam Country country,
             @Parameter(description = "language of the record") @RequestParam Language language,
             @Parameter(description = "record file to be validated", required = true) @RequestParam MultipartFile recordToValidate) throws SerializationException, IOException {
-
+        checkArgument(isFileTypeValid(recordToValidate));
         return workflowService.validate(recordToValidate, country, language);
+    }
+
+    private boolean isFileTypeValid(MultipartFile fileToCheck){
+        String fileType = fileToCheck.getContentType();
+        if (fileType == null) {
+            throw new IllegalArgumentException("Something went wrong checking file's content type.");
+        } else return fileType.contains("xml");
+
     }
 }

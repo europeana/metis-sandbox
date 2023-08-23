@@ -22,7 +22,7 @@ public class ExternalValidationStep implements ValidationStep {
     private final ExternalValidationService externalValidationService;
     private final ValidationExtractor validationExtractor;
     private ValidationStep nextValidationStep;
-    private RecordLogService recordLogService;
+    private final RecordLogService recordLogService;
 
     /**
      * Instantiates a new External validation step.
@@ -43,13 +43,13 @@ public class ExternalValidationStep implements ValidationStep {
     }
 
     @Override
-    public List<ValidationResult> validate(Record recordToValidate) {
+    public List<ValidationResult> performStep(Record recordToValidate) {
         List<ValidationResult> validationResults = new ArrayList<>();
         try {
             RecordInfo recordInfoValidated = externalValidationService.validate(recordToValidate);
             validationResults.addAll(validationExtractor.extractResults(Step.VALIDATE_EXTERNAL,
                     recordInfoValidated,
-                    this.nextValidationStep.validate(validationExtractor.extractRecord(recordInfoValidated))));
+                    this.nextValidationStep.performStep(validationExtractor.extractRecord(recordInfoValidated))));
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_EXTERNAL, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("external validation step fail", ex);

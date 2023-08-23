@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,17 +36,18 @@ public class ValidatedRecordExtractor implements ValidationExtractor {
     public List<ValidationResult> extractResults(Step step,
                                                  RecordInfo recordInfo,
                                                  List<ValidationResult> validationResults) {
+        List<ValidationResult> result = new ArrayList<>(validationResults);
         if (recordInfo.getErrors().isEmpty()) {
-            validationResults.add(new ValidationResult(step,
+            result.add(new ValidationResult(step,
                     new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                     ValidationResult.Status.PASSED));
             LOGGER.info("validation step {} success {}", step, recordInfo.getRecord().getDatasetName());
         } else {
-            validationResults.add(new ValidationResult(step, recordInfo.getErrors()
+            result.add(new ValidationResult(step, recordInfo.getErrors()
                     .stream()
                     .map(item -> new RecordValidationMessage(RecordValidationMessage.Type.ERROR, item.getMessage()))
                     .collect(Collectors.toList()), ValidationResult.Status.FAILED));
         }
-        return validationResults;
+        return result;
     }
 }

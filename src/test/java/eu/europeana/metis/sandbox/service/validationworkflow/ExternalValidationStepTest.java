@@ -63,14 +63,14 @@ class ExternalValidationStepTest {
                         new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                         ValidationResult.Status.PASSED))
         );
-        when(transformationValidationStep.validate(any())).thenReturn(
+        when(transformationValidationStep.performStep(any())).thenReturn(
                 List.of(new ValidationResult(Step.TRANSFORM,
                         new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                         ValidationResult.Status.PASSED)));
         externalValidationStep.setNextValidationStep(transformationValidationStep);
 
         //when
-        List<ValidationResult> validationResults = externalValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = externalValidationStep.performStep(recordToValidate);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.VALIDATE_EXTERNAL)).findFirst();
@@ -98,7 +98,7 @@ class ExternalValidationStepTest {
         externalValidationStep.setNextValidationStep(transformationValidationStep);
 
         //when
-        List<ValidationResult> validationResults = externalValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = externalValidationStep.performStep(recordToValidate);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.VALIDATE_EXTERNAL)).findFirst();

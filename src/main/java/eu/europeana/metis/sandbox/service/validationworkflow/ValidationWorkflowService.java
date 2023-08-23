@@ -93,7 +93,7 @@ public class ValidationWorkflowService {
         List<ValidationResult> validationResults = new ArrayList<>();
         try {
             Record harvestedRecord = createDatasetAndGetHarvestedRecord(recordToValidate, country, language);
-            validationResults = this.validationStep.validate(harvestedRecord);
+            validationResults = this.validationStep.performStep(harvestedRecord);
             Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(harvestedRecord.getDatasetId(), Step.VALIDATE_INTERNAL.toString());
 
             List<ValidationResult> finalValidationResults = validationResults;

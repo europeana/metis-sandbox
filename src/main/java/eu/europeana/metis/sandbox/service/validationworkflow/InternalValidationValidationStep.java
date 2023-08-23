@@ -42,7 +42,7 @@ public class InternalValidationValidationStep implements ValidationStep {
     }
 
     @Override
-    public List<ValidationResult> validate(Record recordToValidate) {
+    public List<ValidationResult> performStep(Record recordToValidate) {
         List<ValidationResult> validationResults = new ArrayList<>();
         try {
             RecordInfo recordInfoValidated = internalValidationService.validate(recordToValidate);

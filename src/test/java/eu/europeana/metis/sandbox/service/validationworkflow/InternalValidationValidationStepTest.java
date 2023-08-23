@@ -62,7 +62,7 @@ class InternalValidationValidationStepTest {
         );
         doNothing().when(recordLogService).logRecordEvent(any());
         //when
-        List<ValidationResult> validationResults = internalValidationValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = internalValidationValidationStep.performStep(recordToValidate);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.VALIDATE_INTERNAL)).findFirst();
@@ -86,7 +86,7 @@ class InternalValidationValidationStepTest {
         when(internalValidationService.validate(any())).thenThrow(new RuntimeException("Internal validation error"));
         doNothing().when(recordLogService).logRecordEvent(any());
         //when
-        List<ValidationResult> validationResults = internalValidationValidationStep.validate(recordToValidate);
+        List<ValidationResult> validationResults = internalValidationValidationStep.performStep(recordToValidate);
 
         //then
         Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.VALIDATE_INTERNAL)).findFirst();

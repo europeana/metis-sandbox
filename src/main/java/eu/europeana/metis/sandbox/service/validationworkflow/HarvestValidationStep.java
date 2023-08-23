@@ -36,14 +36,17 @@ public class HarvestValidationStep implements ValidationStep {
     }
 
     @Override
-    public List<ValidationResult> validate(Record recordToValidate) {
+    public List<ValidationResult> performStep(Record recordToValidate) {
         List<ValidationResult> validationResults = new ArrayList<>();
         try {
             LOGGER.info("harvesting validation step virtual dataset {}", recordToValidate.getDatasetName());
             validationResults.add(new ValidationResult(Step.HARVEST_FILE,
                     new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                     ValidationResult.Status.PASSED));
-            validationResults.addAll(this.nextValidationStep.validate(recordToValidate));
+            //TODO: MET-5382 This current implementation causes some sort of recursion. Due to the nature of this workflow
+            //TODO: we've decided to keep as it it, but it is something to change if later we want tp upgrade to multiple
+            //TODO: simultaneous usages. This applies to the remaining of the steps
+            validationResults.addAll(this.nextValidationStep.performStep(recordToValidate));
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.HARVEST_FILE, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("harvesting validation step fail", ex);

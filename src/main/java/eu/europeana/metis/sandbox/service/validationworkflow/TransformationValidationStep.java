@@ -43,13 +43,13 @@ public class TransformationValidationStep implements ValidationStep {
     }
 
     @Override
-    public List<ValidationResult> validate(Record recordToValidate) {
+    public List<ValidationResult> performStep(Record recordToValidate) {
         List<ValidationResult> validationResults = new ArrayList<>();
         try {
             RecordInfo recordInfoValidated = transformationService.transformToEdmInternal(recordToValidate);
             validationResults.addAll(validationExtractor.extractResults(Step.TRANSFORM,
                     recordInfoValidated,
-                    this.nextValidationStep.validate(validationExtractor.extractRecord(recordInfoValidated))));
+                    this.nextValidationStep.performStep(validationExtractor.extractRecord(recordInfoValidated))));
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.TRANSFORM, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("transformation validation step fail", ex);

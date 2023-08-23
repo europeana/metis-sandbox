@@ -16,10 +16,10 @@ public interface ValidationStep {
     void setNextValidationStep(ValidationStep nextValidationStep);
 
     /**
-     * Validate list.
+     * Performs the step to the given list.
      *
      * @param recordToValidate the record to validate
      * @return the list
      */
-    List<ValidationResult> validate(Record recordToValidate);
+    List<ValidationResult> performStep(Record recordToValidate);
 }

@@ -105,7 +105,7 @@ class ValidationWorkflowServiceTest {
                 "valid_record.xml", "application/rdf+xml", "mockRDF".getBytes(StandardCharsets.UTF_8));
         doReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
                 new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                ValidationResult.Status.PASSED))).when(internalValidationValidationStep).validate(any());
+                ValidationResult.Status.PASSED))).when(internalValidationValidationStep).performStep(any());
         prepareBaseMocks();
 
         // when
@@ -126,7 +126,7 @@ class ValidationWorkflowServiceTest {
                 "invalid_record.xml", "application/rdf+xml", "mockRDF".getBytes(StandardCharsets.UTF_8));
         doReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
                 new RecordValidationMessage(RecordValidationMessage.Type.ERROR, "Error"),
-                ValidationResult.Status.FAILED))).when(internalValidationValidationStep).validate(any());
+                ValidationResult.Status.FAILED))).when(internalValidationValidationStep).performStep(any());
         prepareBaseMocks();
 
         // when
@@ -144,9 +144,9 @@ class ValidationWorkflowServiceTest {
         doNothing().when(datasetService).updateNumberOfTotalRecord(anyString(), anyLong());
         RecordEntity recordEntity = new RecordEntity("providerId", "datasetId");
         doReturn(recordEntity).when(recordRepository).save(any());
-        doReturn(internalValidationValidationStep.validate(any())).when(transformationValidationStep).validate(any());
-        doReturn(transformationValidationStep.validate(any())).when(externalValidationStep).validate(any());
-        doReturn(externalValidationStep.validate(any())).when(harvestValidationStep).validate(any());
+        doReturn(internalValidationValidationStep.performStep(any())).when(transformationValidationStep).performStep(any());
+        doReturn(transformationValidationStep.performStep(any())).when(externalValidationStep).performStep(any());
+        doReturn(externalValidationStep.performStep(any())).when(harvestValidationStep).performStep(any());
         ExecutionPoint executionPoint = new ExecutionPoint();
         executionPoint.setExecutionTimestamp(LocalDateTime.now());
         executionPoint.setExecutionPointId(1);
