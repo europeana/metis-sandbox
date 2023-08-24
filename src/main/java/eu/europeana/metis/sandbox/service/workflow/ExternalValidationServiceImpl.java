@@ -31,14 +31,14 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
   }
 
   @Override
-  public RecordInfo validate(Record record) {
-    requireNonNull(record, "Record must not be null");
+  public RecordInfo validate(Record recordToValidate) {
+    requireNonNull(recordToValidate, "Record must not be null");
     byte[] recordOrdered;
 
     try {
-      recordOrdered = orderingService.performOrdering(record.getContent());
+      recordOrdered = orderingService.performOrdering(recordToValidate.getContent());
     } catch (TransformationException e) {
-      throw new RecordProcessingException(record.getProviderId(), e);
+      throw new RecordProcessingException(recordToValidate.getProviderId(), e);
     }
 
     var validationResult = validator
@@ -47,8 +47,8 @@ class ExternalValidationServiceImpl implements ExternalValidationService {
       throw new RecordValidationException(validationResult.getMessage(),
           validationResult.getRecordId(), validationResult.getNodeId());
     }
-    recordService.setEuropeanaIdAndProviderId(record);
-    return new RecordInfo(Record.from(record, recordOrdered));
+    recordService.setEuropeanaIdAndProviderId(recordToValidate);
+    return new RecordInfo(Record.from(recordToValidate, recordOrdered));
   }
 
 }

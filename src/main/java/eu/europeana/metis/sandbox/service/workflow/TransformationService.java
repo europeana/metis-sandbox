@@ -10,12 +10,12 @@ public interface TransformationService {
   /**
    * Transform the given record using the default xslt
    *
-   * @param record must not be null
+   * @param recordToTransform must not be null
    * @return {@link RecordInfo} containing record transformed
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if records fails at transformation
    */
-  RecordInfo transformToEdmInternal(Record record);
+  RecordInfo transformToEdmInternal(Record recordToTransform);
 
   /**
    * Transform the given record to EDM external format using a xslt given by the user previously

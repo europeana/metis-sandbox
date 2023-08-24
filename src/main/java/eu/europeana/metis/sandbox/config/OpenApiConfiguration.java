@@ -36,7 +36,7 @@ class OpenApiConfiguration {
         return GroupedOpenApi.builder()
                 .group("metis-sandbox")
                 .packagesToScan("eu.europeana.metis.sandbox")
-                .pathsToMatch("/dataset/**", "/pattern-analysis/**")
+                .pathsToMatch("/dataset/**", "/pattern-analysis/**", "/record/**")
                 .addOpenApiCustomiser(openApi -> openApi.info(apiInfo()))
                 .build();
     }
