@@ -91,8 +91,8 @@ sandbox:
     leakDetectionThreshold: 5000  # five second should be enough
   rate-limit:
     bandwidth:
-      capacity: 20
-      time: 3600 # in seconds
+      capacity:
+      time: # in seconds
   dataset:
     clean:
       frequency: 0 0 0 * * ? # At 00:00:00am every day
