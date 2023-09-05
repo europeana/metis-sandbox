@@ -72,11 +72,11 @@
       <artifactId>bucket4j-core</artifactId>
       <version>${version.bucket4j}</version>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>com.bucket4j</groupId>-->
-<!--      <artifactId>bucket4j-postgresql</artifactId>-->
-<!--      <version>${version.postgresql.bucket4j}</version>-->
-<!--    </dependency>-->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-postgresql</artifactId>
+      <version>${version.postgresql.bucket4j}</version>
+    </dependency>
 
     <!-- Spring boot -->
     <dependency>

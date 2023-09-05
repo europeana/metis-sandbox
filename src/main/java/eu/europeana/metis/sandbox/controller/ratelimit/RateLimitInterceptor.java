@@ -1,10 +1,11 @@
 package eu.europeana.metis.sandbox.controller.ratelimit;
 
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.Refill;
+import io.github.bucket4j.*;
+import io.github.bucket4j.distributed.remote.CommandResult;
+import io.github.bucket4j.distributed.remote.Request;
+import io.github.bucket4j.distributed.remote.commands.TryConsumeAndReturnRemainingTokensCommand;
+import io.github.bucket4j.postgresql.PostgreSQLadvisoryLockBasedProxyManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -12,32 +13,27 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final Integer capacity;
-    private final Long time;
+    private final PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager;
+    private final BucketConfiguration bucketConfiguration;
 
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
-
-    public RateLimitInterceptor(Integer capacity, Long time){
+    public RateLimitInterceptor(Integer capacity, Long time, PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager){
         this.capacity = capacity;
-        this.time = time;
+        this.postgreSQLManager = postgreSQLManager;
+        bucketConfiguration = BucketConfiguration.builder()
+                .addLimit(Bandwidth.classic(capacity, Refill.intervally(capacity, Duration.ofSeconds(time))))
+                .build();
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
-        request.getRemoteAddr();
 
-//        Bucket tokenBucket = Bucket.builder()
-//                // 20 requests per hour per API client
-//                .addLimit(Bandwidth.classic(capacity, Refill.intervally(tokens, Duration.ofSeconds(time))))
-//                .build();
-        Bucket tokenBucket = resolveBucket(request.getRemoteAddr());
+        Long key = Long.parseLong(request.getRemoteAddr().replace(":", ""));
+        ConsumptionProbe probe = resolveBucket(key);
         response.addHeader("X-Rate-Limit-Limit", String.valueOf(capacity));
-        ConsumptionProbe probe = tokenBucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
             response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
             return true;
@@ -51,14 +47,15 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
     }
 
-    private Bucket resolveBucket(String apiKey) {
-        return cache.computeIfAbsent(apiKey, this::newBucket);
-    }
-
-    private Bucket newBucket(String apiKey) {
-        return Bucket.builder()
-                .addLimit(Bandwidth.classic(capacity, Refill.intervally(capacity, Duration.ofSeconds(time))))
-                .build();
+    private ConsumptionProbe resolveBucket(Long apiKey) {
+        Request<ConsumptionProbe> request = new Request<>(new TryConsumeAndReturnRemainingTokensCommand(1), null, null);
+        CommandResult<ConsumptionProbe> commandResult = postgreSQLManager.execute(apiKey, request);
+        if(commandResult.isBucketNotFound()){
+            Bucket bucket = postgreSQLManager.builder().build(apiKey, bucketConfiguration);
+            return bucket.tryConsumeAndReturnRemaining(1);
+        } else {
+            return commandResult.getData();
+        }
     }
 
 }
