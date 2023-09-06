@@ -30,8 +30,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
-
-        Long key = Long.parseLong(request.getRemoteAddr().replace(":", ""));
+        Long key = (long) request.getRemoteAddr().hashCode();
         ConsumptionProbe probe = resolveBucket(key);
         response.addHeader("X-Rate-Limit-Limit", String.valueOf(capacity));
         if (probe.isConsumed()) {
