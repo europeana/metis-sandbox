@@ -76,6 +76,12 @@
       <groupId>com.bucket4j</groupId>
       <artifactId>bucket4j-postgresql</artifactId>
       <version>${version.postgresql.bucket4j}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP-java6</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Spring boot -->

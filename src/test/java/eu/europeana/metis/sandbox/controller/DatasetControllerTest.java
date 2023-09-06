@@ -36,6 +36,7 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
@@ -87,6 +88,9 @@ class DatasetControllerTest {
 
   @Autowired
   private MockMvc mvc;
+
+  @MockBean
+  private RateLimitInterceptor rateLimitInterceptor;
 
   @MockBean
   private DatasetService datasetService;

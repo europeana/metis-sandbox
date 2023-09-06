@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -53,6 +54,9 @@ class PatternAnalysisControllerTest {
 
   @Autowired
   private MockMvc mvc;
+
+  @MockBean
+  private RateLimitInterceptor rateLimitInterceptor;
 
   @MockBean
   private PatternAnalysisService<Step, ExecutionPoint> mockPatternAnalysisService;

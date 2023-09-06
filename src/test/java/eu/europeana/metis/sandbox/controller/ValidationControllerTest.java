@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.controller;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowReport;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.sql.DataSource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,6 +44,8 @@ class ValidationControllerTest {
     ValidationWorkflowService validationWorkflowService;
     @Autowired
     private MockMvc mvc;
+    @MockBean
+    private RateLimitInterceptor rateLimitInterceptor;
 
     @NotNull
     private static ProblemPatternAnalysis getProblemPatternAnalysis() {
