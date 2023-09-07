@@ -4,7 +4,6 @@ import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import io.github.bucket4j.TimeMeter;
 import io.github.bucket4j.distributed.jdbc.BucketTableSettings;
 import io.github.bucket4j.distributed.jdbc.SQLProxyConfiguration;
-import io.github.bucket4j.distributed.jdbc.SQLProxyConfigurationBuilder;
 import io.github.bucket4j.distributed.proxy.ClientSideConfig;
 import io.github.bucket4j.postgresql.PostgreSQLadvisoryLockBasedProxyManager;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +23,7 @@ public class RateLimitConfig {
 
     @Bean
     RateLimitInterceptor rateLimitInterceptor(DataSource dataSource){
-        SQLProxyConfiguration<Long> sqlProxyConfiguration = SQLProxyConfigurationBuilder.builder()
+        SQLProxyConfiguration<Long> sqlProxyConfiguration = SQLProxyConfiguration.builder()
                 .withClientSideConfig(ClientSideConfig.getDefault().withClientClock(TimeMeter.SYSTEM_MILLISECONDS))
                 .withTableSettings(BucketTableSettings.customSettings("rate_limit.buckets", "id", "bucket_state"))
                 .build(dataSource);

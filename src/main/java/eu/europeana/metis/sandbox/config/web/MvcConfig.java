@@ -11,8 +11,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.sql.DataSource;
-
 /**
  * MVC configuration. Binds Country and Language converters to the {@link FormatterRegistry}. Also
  * contains CORS configuration.
