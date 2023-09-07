@@ -14,12 +14,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 
+/**
+ * Implementation of Rate Limit interceptor to intercept the requests
+ */
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final Integer capacity;
     private final PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager;
     private final BucketConfiguration bucketConfiguration;
 
+    /**
+     * Constructor
+     * @param capacity The max number of tokens per user
+     * @param time The time it takes to refresh the tokens per uset
+     * @param postgreSQLManager The database manager of the tokens per user
+     */
     public RateLimitInterceptor(Integer capacity, Long time, PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager){
         this.capacity = capacity;
         this.postgreSQLManager = postgreSQLManager;
