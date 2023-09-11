@@ -1,7 +1,11 @@
 package eu.europeana.metis.sandbox.controller.ratelimit;
 
 
-import io.github.bucket4j.*;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Refill;
+import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.Bucket;
 import io.github.bucket4j.distributed.remote.CommandResult;
 import io.github.bucket4j.distributed.remote.Request;
 import io.github.bucket4j.distributed.remote.commands.TryConsumeAndReturnRemainingTokensCommand;
@@ -39,14 +43,14 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
-        Long key = (long) request.getRemoteAddr().hashCode();
-        ConsumptionProbe probe = resolveBucket(key);
+        final Long key = (long) request.getRemoteAddr().hashCode();
+        final ConsumptionProbe probe = resolveBucket(key);
         response.addHeader("X-Rate-Limit-Limit", String.valueOf(capacity));
         if (probe.isConsumed()) {
             response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
             return true;
         } else {
-            long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;
+            final long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;
             response.addHeader("X-Rate-Limit-Reset", String.valueOf(waitForRefill));
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(),
                     "You have exhausted your API Request Quota");
@@ -56,8 +60,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private ConsumptionProbe resolveBucket(Long apiKey) {
-        Request<ConsumptionProbe> request = new Request<>(new TryConsumeAndReturnRemainingTokensCommand(1), null, null);
-        CommandResult<ConsumptionProbe> commandResult = postgreSQLManager.execute(apiKey, request);
+        final Request<ConsumptionProbe> request = new Request<>(new TryConsumeAndReturnRemainingTokensCommand(1), null, null);
+        final CommandResult<ConsumptionProbe> commandResult = postgreSQLManager.execute(apiKey, request);
         if(commandResult.isBucketNotFound()){
             Bucket bucket = postgreSQLManager.builder().build(apiKey, bucketConfiguration);
             return bucket.tryConsumeAndReturnRemaining(1);
