@@ -56,6 +56,10 @@ sandbox:
     #MET-3929 connection leak detection
     maximumPoolSize: 10           # this is the default we make it explicit in the config.
     leakDetectionThreshold: 5000  # five second should be enough
+  rate-limit:
+    bandwidth:
+      capacity: 20
+      time: 3600 # in seconds
   dataset:
     clean:
       frequency: 0 0 0 * * ? # At 00:00:00am every day

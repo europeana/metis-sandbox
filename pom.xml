@@ -62,8 +62,28 @@
     <version.netty>4.1.91.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
+    <version.bucket4j>8.3.0</version.bucket4j>
+    <version.postgresql.bucket4j>8.1.1</version.postgresql.bucket4j>
   </properties>
   <dependencies>
+    <!-- Rate limiting dependencies-->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-core</artifactId>
+      <version>${version.bucket4j}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-postgresql</artifactId>
+      <version>${version.postgresql.bucket4j}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP-java6</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <!-- Spring boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

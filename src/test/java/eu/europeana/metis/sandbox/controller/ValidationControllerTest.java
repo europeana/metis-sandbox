@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.controller;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowReport;
@@ -42,6 +43,8 @@ class ValidationControllerTest {
     ValidationWorkflowService validationWorkflowService;
     @Autowired
     private MockMvc mvc;
+    @MockBean
+    private RateLimitInterceptor rateLimitInterceptor;
 
     @NotNull
     private static ProblemPatternAnalysis getProblemPatternAnalysis() {
