@@ -323,7 +323,7 @@ class PatternAnalysisControllerTest {
        .andExpect(status().isOk())
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternId", is("P7")))
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternTitle", is("Missing description fields")))
-       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("NOTICE")))
+       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("WARNING")))
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternQualityDimension", is("COMPLETENESS")))
        .andExpect(jsonPath("$[0].recordOccurrences", is(1)))
        .andExpect(jsonPath("$[0].recordAnalysisList[0].recordId", is("recordId1")))
