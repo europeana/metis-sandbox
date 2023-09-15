@@ -23,6 +23,8 @@ import java.time.Duration;
  */
 public class RateLimitInterceptor implements HandlerInterceptor {
 
+    private static final int VALUE_TO_TRANSFORM_TO_SECONDS = 1_000_000_000;
+
     private final Integer capacity;
     private final PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager;
     private final BucketConfiguration bucketConfiguration;
@@ -48,9 +50,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         response.addHeader("X-Rate-Limit-Limit", String.valueOf(capacity));
         if (probe.isConsumed()) {
             response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
+            final long waitForRefill = probe.getNanosToWaitForReset() / VALUE_TO_TRANSFORM_TO_SECONDS;
+            response.addHeader("X-Rate-Limit-Reset", String.valueOf(waitForRefill));
             return true;
         } else {
-            final long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;
+            final long waitForRefill = probe.getNanosToWaitForRefill() / VALUE_TO_TRANSFORM_TO_SECONDS;
             response.addHeader("X-Rate-Limit-Reset", String.valueOf(waitForRefill));
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(),
                     "You have exhausted your API Request Quota");
