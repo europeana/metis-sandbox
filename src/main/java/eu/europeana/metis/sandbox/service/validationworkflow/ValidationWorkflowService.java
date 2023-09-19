@@ -36,7 +36,10 @@ public class ValidationWorkflowService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final String PROVIDER = "VALIDATION-SERVICE-";
     private static final String DATASET_ID_PREFIX = "val_";
-    private final ValidationStep validationStep;
+    private final ValidationStep harvestValidationStep;
+    private final ValidationStep externalValidationStep;
+    private final ValidationStep transformationValidationStep;
+    private final ValidationStep internalValidationValidationStep;
     private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
     private final ExecutionPointService executionPointService;
     private final RecordRepository recordRepository;
@@ -66,17 +69,15 @@ public class ValidationWorkflowService {
                                      PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
                                      ExecutionPointService executionPointService,
                                      LockRegistry lockRegistry) {
-        this.validationStep = harvestValidationStep;
+        this.harvestValidationStep = harvestValidationStep;
+        this.externalValidationStep = externalValidationStep;
+        this.transformationValidationStep = transformationValidationStep;
+        this.internalValidationValidationStep = internalValidationValidationStep;
         this.patternAnalysisService = patternAnalysisService;
         this.executionPointService = executionPointService;
         this.lockRegistry = lockRegistry;
         this.datasetService = datasetService;
         this.recordRepository = recordRepository;
-        // set the chain of responsibility
-        this.validationStep.setNextValidationStep(externalValidationStep);
-        externalValidationStep.setNextValidationStep(transformationValidationStep);
-        transformationValidationStep.setNextValidationStep(internalValidationValidationStep);
-        internalValidationValidationStep.setNextValidationStep(null);
     }
 
     /**
@@ -93,10 +94,11 @@ public class ValidationWorkflowService {
         List<ValidationResult> validationResults = new ArrayList<>();
         try {
             Record harvestedRecord = createDatasetAndGetHarvestedRecord(recordToValidate, country, language);
-            validationResults = this.validationStep.performStep(harvestedRecord);
-            Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(harvestedRecord.getDatasetId(), Step.VALIDATE_INTERNAL.toString());
+            validationResults = performSteps(harvestedRecord);
+            Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(harvestedRecord.getDatasetId(),
+                    Step.VALIDATE_INTERNAL.toString());
 
-            List<ValidationResult> finalValidationResults = validationResults;
+            final List<ValidationResult> finalValidationResults = validationResults;
             return datasetExecutionPointOptional.flatMap(executionPoint -> {
                         finalizeValidationPatternAnalysis(harvestedRecord.getDatasetId(), executionPoint);
                         return patternAnalysisService.getDatasetPatternAnalysis(
@@ -142,5 +144,35 @@ public class ValidationWorkflowService {
             lock.unlock();
             LOGGER.debug("Finalize record analysis: {} lock, Unlocked", datasetId);
         }
+    }
+
+    private List<ValidationResult> performSteps(Record recordToProcess){
+        List<ValidationResult> validationResults = new ArrayList<>();
+
+        ValidationStepContent harvestResult = harvestValidationStep.performStep(recordToProcess);
+        validationResults.add(harvestResult.getValidationStepResult());
+
+        if(harvestResult.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
+            return validationResults;
+        }
+
+        ValidationStepContent externalValidationResult = externalValidationStep.performStep(harvestResult.getRecordStepResult());
+        validationResults.add(externalValidationResult.getValidationStepResult());
+
+        if(externalValidationResult.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
+            return validationResults;
+        }
+
+        ValidationStepContent transformationResult = transformationValidationStep.performStep(externalValidationResult.getRecordStepResult());
+        validationResults.add(transformationResult.getValidationStepResult());
+
+        if(transformationResult.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
+            return validationResults;
+        }
+
+        ValidationStepContent internalValidationResult = internalValidationValidationStep.performStep(transformationResult.getRecordStepResult());
+        validationResults.add(internalValidationResult.getValidationStepResult());
+
+        return validationResults;
     }
 }

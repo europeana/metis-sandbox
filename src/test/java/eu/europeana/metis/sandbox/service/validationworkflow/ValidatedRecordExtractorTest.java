@@ -9,12 +9,10 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ValidatedRecordExtractorTest {
     private final ValidatedRecordExtractor validatedRecordExtractor = new ValidatedRecordExtractor();
@@ -63,13 +61,13 @@ class ValidatedRecordExtractorTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(expectedRecord);
         // when
-        List<ValidationResult> validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo, new ArrayList<>());
+        ValidationStepContent validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
 
         // then
-        assertEquals(1, validationResults.size());
-        Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.HARVEST_FILE)).findFirst();
-        assertEquals(ValidationResult.Status.PASSED, result.get().getStatus());
-        Optional<RecordValidationMessage> message = result.get().getMessages().stream().findFirst();
+        ValidationResult result = validationResults.getValidationStepResult();
+        assertNotNull(result);
+        assertEquals(ValidationResult.Status.PASSED, result.getStatus());
+        Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();
         assertEquals("success", message.get().getMessage());
     }
 
@@ -89,13 +87,12 @@ class ValidatedRecordExtractorTest {
         RecordInfo recordInfo = new RecordInfo(expectedRecord, List.of(new RecordError("Fail message1", "stackTrace1"),
                 new RecordError("Fail message2", "stackTrace2")));
         // when
-        List<ValidationResult> validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo, new ArrayList<>());
+        ValidationStepContent validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
 
         // then
-        assertEquals(1, validationResults.size());
-        Optional<ValidationResult> result = validationResults.stream().filter(f -> f.getStep().equals(Step.HARVEST_FILE)).findFirst();
-        assertEquals(ValidationResult.Status.FAILED, result.get().getStatus());
-        Optional<RecordValidationMessage> message = result.get().getMessages().stream().findFirst();
+        ValidationResult result = validationResults.getValidationStepResult();
+        assertEquals(ValidationResult.Status.FAILED, result.getStatus());
+        Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();
         assertEquals("Fail message1", message.get().getMessage());
     }
 }

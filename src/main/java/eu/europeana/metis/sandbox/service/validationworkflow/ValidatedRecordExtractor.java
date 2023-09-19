@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -33,20 +31,19 @@ public class ValidatedRecordExtractor implements ValidationExtractor {
     }
 
     @Override
-    public List<ValidationResult> extractResults(Step step,
-                                                 RecordInfo recordInfo,
-                                                 List<ValidationResult> validationResults) {
-        List<ValidationResult> result = new ArrayList<>(validationResults);
+    public ValidationStepContent extractResults(Step step,
+                                                 RecordInfo recordInfo) {
+        ValidationStepContent result;
         if (recordInfo.getErrors().isEmpty()) {
-            result.add(new ValidationResult(step,
+            result = new ValidationStepContent(new ValidationResult(step,
                     new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                    ValidationResult.Status.PASSED));
+                    ValidationResult.Status.PASSED), recordInfo.getRecord());
             LOGGER.info("validation step {} success {}", step, recordInfo.getRecord().getDatasetName());
         } else {
-            result.add(new ValidationResult(step, recordInfo.getErrors()
+            result = new ValidationStepContent(new ValidationResult(step, recordInfo.getErrors()
                     .stream()
                     .map(item -> new RecordValidationMessage(RecordValidationMessage.Type.ERROR, item.getMessage()))
-                    .collect(Collectors.toList()), ValidationResult.Status.FAILED));
+                    .collect(Collectors.toList()), ValidationResult.Status.FAILED), recordInfo.getRecord());
         }
         return result;
     }

@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The type Transformation validation step.
@@ -22,7 +20,6 @@ public class TransformationValidationStep implements ValidationStep {
     private final TransformationService transformationService;
     private final ValidationExtractor validationExtractor;
     private final RecordLogService recordLogService;
-    private ValidationStep nextValidationStep;
 
     /**
      * Instantiates a new Transformation validation step.
@@ -38,27 +35,19 @@ public class TransformationValidationStep implements ValidationStep {
     }
 
     @Override
-    public void setNextValidationStep(ValidationStep nextValidationStep) {
-        this.nextValidationStep = nextValidationStep;
-    }
-
-    @Override
-    public List<ValidationResult> performStep(Record recordToValidate) {
-        List<ValidationResult> validationResults = new ArrayList<>();
+    public ValidationStepContent performStep(Record recordToValidate) {
+        ValidationStepContent validationResult;
         try {
             RecordInfo recordInfoValidated = transformationService.transformToEdmInternal(recordToValidate);
-            validationResults.addAll(validationExtractor.extractResults(Step.TRANSFORM,
-                    recordInfoValidated,
-                    this.nextValidationStep.performStep(validationExtractor.extractRecord(recordInfoValidated))));
+            validationResult = validationExtractor.extractResults(Step.TRANSFORM, recordInfoValidated);
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.TRANSFORM, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("transformation validation step fail", ex);
-            validationResults.removeIf(validationResult -> validationResult.getStep().equals(Step.TRANSFORM));
-            validationResults.add(new ValidationResult(Step.TRANSFORM,
+            validationResult = new ValidationStepContent(new ValidationResult(Step.TRANSFORM,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
-                    ValidationResult.Status.FAILED));
+                    ValidationResult.Status.FAILED), recordToValidate);
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.TRANSFORM, Status.FAIL));
         }
-        return validationResults;
+        return validationResult;
     }
 }
