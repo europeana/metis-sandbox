@@ -28,10 +28,6 @@ class ExternalValidationStepTest {
     @Mock
     ExternalValidationService externalValidationService;
     @Mock
-    TransformationValidationStep transformationValidationStep;
-    @Mock
-    ValidationExtractor validationExtractor;
-    @Mock
     RecordLogService recordLogService;
     @InjectMocks
     ExternalValidationStep externalValidationStep;
@@ -55,10 +51,6 @@ class ExternalValidationStepTest {
         RecordInfo recordInfo = new RecordInfo(record);
         doNothing().when(recordLogService).logRecordEvent(any());
         when(externalValidationService.validate(any())).thenReturn(recordInfo);
-        when(validationExtractor.extractResults(any(), any())).thenReturn(
-                new ValidationStepContent(new ValidationResult(Step.VALIDATE_EXTERNAL,
-                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                        ValidationResult.Status.PASSED), record));
 
         //when
         ValidationStepContent validationStepContent = externalValidationStep.performStep(recordToValidate);
@@ -73,7 +65,7 @@ class ExternalValidationStepTest {
         assertEquals(RecordValidationMessage.Type.INFO, message.get().getMessageType());
         verify(externalValidationService, times(1)).validate(any());
         verify(recordLogService, times(1)).logRecordEvent(any());
-        verify(validationExtractor, times(1)).extractResults(any(), any());
+
     }
 
     @Test

@@ -29,23 +29,23 @@ public class HarvestValidationStep implements ValidationStep {
 
     @Override
     public ValidationStepContent performStep(Record recordToValidate) {
+        Record copyOfRecord = ValidatedRecordExtractor.extractRecord(new RecordInfo(recordToValidate));
+        RecordInfo recordInfo = new RecordInfo(copyOfRecord);
         ValidationResult validationResult;
         try {
             LOGGER.info("harvesting validation step virtual dataset {}", recordToValidate.getDatasetName());
-
             validationResult = new ValidationResult(Step.HARVEST_FILE,
                     new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                     ValidationResult.Status.PASSED);
-
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.HARVEST_FILE, Status.SUCCESS));
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfo, Step.HARVEST_FILE, Status.SUCCESS));
 
         } catch (Exception ex) {
             LOGGER.error("harvesting validation step fail", ex);
             validationResult = new ValidationResult(Step.HARVEST_FILE,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
                     ValidationResult.Status.FAILED);
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.HARVEST_FILE, Status.FAIL));
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfo, Step.HARVEST_FILE, Status.FAIL));
         }
-        return new ValidationStepContent(validationResult, recordToValidate);
+        return new ValidationStepContent(validationResult, copyOfRecord);
     }
 }

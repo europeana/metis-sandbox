@@ -18,7 +18,6 @@ import java.lang.invoke.MethodHandles;
 public class TransformationValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final TransformationService transformationService;
-    private final ValidationExtractor validationExtractor;
     private final RecordLogService recordLogService;
 
     /**
@@ -27,10 +26,8 @@ public class TransformationValidationStep implements ValidationStep {
      * @param transformationService the transformation service
      */
     public TransformationValidationStep(TransformationService transformationService,
-                                        ValidationExtractor validationExtractor,
                                         RecordLogService recordLogService) {
         this.transformationService = transformationService;
-        this.validationExtractor = validationExtractor;
         this.recordLogService = recordLogService;
     }
 
@@ -39,8 +36,8 @@ public class TransformationValidationStep implements ValidationStep {
         ValidationStepContent validationResult;
         try {
             RecordInfo recordInfoValidated = transformationService.transformToEdmInternal(recordToValidate);
-            validationResult = validationExtractor.extractResults(Step.TRANSFORM, recordInfoValidated);
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.TRANSFORM, Status.SUCCESS));
+            validationResult = ValidatedRecordExtractor.extractResults(Step.TRANSFORM, recordInfoValidated);
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.TRANSFORM, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("transformation validation step fail", ex);
             validationResult = new ValidationStepContent(new ValidationResult(Step.TRANSFORM,

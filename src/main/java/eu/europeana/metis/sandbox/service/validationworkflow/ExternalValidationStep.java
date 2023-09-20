@@ -18,7 +18,6 @@ import java.lang.invoke.MethodHandles;
 public class ExternalValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final ExternalValidationService externalValidationService;
-    private final ValidationExtractor validationExtractor;
     private final RecordLogService recordLogService;
 
     /**
@@ -27,27 +26,25 @@ public class ExternalValidationStep implements ValidationStep {
      * @param externalValidationService the external validation service
      */
     public ExternalValidationStep(ExternalValidationService externalValidationService,
-                                  ValidationExtractor validationExtractor,
                                   RecordLogService recordLogService) {
         this.externalValidationService = externalValidationService;
-        this.validationExtractor = validationExtractor;
         this.recordLogService = recordLogService;
     }
 
     @Override
     public ValidationStepContent performStep(Record recordToValidate) {
-        ValidationStepContent validationResult;
+        ValidationStepContent validationStepContent;
         try {
             RecordInfo recordInfoValidated = externalValidationService.validate(recordToValidate);
-            validationResult = validationExtractor.extractResults(Step.VALIDATE_EXTERNAL, recordInfoValidated);
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_EXTERNAL, Status.SUCCESS));
+            validationStepContent = ValidatedRecordExtractor.extractResults(Step.VALIDATE_EXTERNAL, recordInfoValidated);
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.VALIDATE_EXTERNAL, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("external validation step fail", ex);
-            validationResult = new ValidationStepContent(new ValidationResult(Step.VALIDATE_EXTERNAL,
+            validationStepContent = new ValidationStepContent(new ValidationResult(Step.VALIDATE_EXTERNAL,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
                     ValidationResult.Status.FAILED), recordToValidate);
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_EXTERNAL, Status.FAIL));
         }
-        return validationResult;
+        return validationStepContent;
     }
 }

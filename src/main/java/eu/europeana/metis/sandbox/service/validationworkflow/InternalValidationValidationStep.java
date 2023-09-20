@@ -18,7 +18,6 @@ import java.lang.invoke.MethodHandles;
 public class InternalValidationValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final InternalValidationService internalValidationService;
-    private final ValidationExtractor validationExtractor;
     private final RecordLogService recordLogService;
 
     /**
@@ -27,10 +26,8 @@ public class InternalValidationValidationStep implements ValidationStep {
      * @param internalValidationService the internal validation service
      */
     public InternalValidationValidationStep(InternalValidationService internalValidationService,
-                                            ValidationExtractor validationExtractor,
                                             RecordLogService recordLogService) {
         this.internalValidationService = internalValidationService;
-        this.validationExtractor = validationExtractor;
         this.recordLogService = recordLogService;
     }
 
@@ -39,11 +36,11 @@ public class InternalValidationValidationStep implements ValidationStep {
         ValidationStepContent validationResult;
         try {
             RecordInfo recordInfoValidated = internalValidationService.validate(recordToValidate);
-            recordToValidate = validationExtractor.extractRecord(recordInfoValidated);
+            recordToValidate = ValidatedRecordExtractor.extractRecord(recordInfoValidated);
             LOGGER.info("internal validation step success {}", recordToValidate.getDatasetName());
-            validationResult = validationExtractor.extractResults(Step.VALIDATE_INTERNAL, recordInfoValidated);
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_INTERNAL, Status.SUCCESS));
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.CLOSE, Status.SUCCESS));
+            validationResult = ValidatedRecordExtractor.extractResults(Step.VALIDATE_INTERNAL, recordInfoValidated);
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.VALIDATE_INTERNAL, Status.SUCCESS));
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.CLOSE, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("internal validation step fail", ex);
             validationResult = new ValidationStepContent(new ValidationResult(Step.VALIDATE_INTERNAL,

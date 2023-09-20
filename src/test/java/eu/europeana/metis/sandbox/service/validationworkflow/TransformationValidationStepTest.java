@@ -27,8 +27,6 @@ class TransformationValidationStepTest {
     @Mock
     TransformationService transformationService;
     @Mock
-    ValidationExtractor validationExtractor;
-    @Mock
     RecordLogService recordLogService;
     @InjectMocks
     TransformationValidationStep transformationValidationStep;
@@ -52,10 +50,6 @@ class TransformationValidationStepTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(transformedRecord);
         when(transformationService.transformToEdmInternal(any())).thenReturn(recordInfo);
-        when(validationExtractor.extractResults(any(), any())).thenReturn(
-                new ValidationStepContent(new ValidationResult(Step.TRANSFORM,
-                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                        ValidationResult.Status.PASSED), transformedRecord));
 
         //when
         ValidationStepContent validationStepContent = transformationValidationStep.performStep(recordToValidate);
@@ -70,7 +64,7 @@ class TransformationValidationStepTest {
         assertEquals(RecordValidationMessage.Type.INFO, message.get().getMessageType());
         verify(transformationService, times(1)).transformToEdmInternal(any());
         verify(recordLogService, times(1)).logRecordEvent(any());
-        verify(validationExtractor, times(1)).extractResults(any(), any());
+
     }
 
     @Test

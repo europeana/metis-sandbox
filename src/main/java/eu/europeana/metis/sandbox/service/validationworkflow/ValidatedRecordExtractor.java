@@ -12,13 +12,17 @@ import java.util.stream.Collectors;
 /**
  * The type Validated record extractor.
  */
-public class ValidatedRecordExtractor implements ValidationExtractor {
+public class ValidatedRecordExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @Override
-    public Record extractRecord(RecordInfo validatedRecordInfo) {
-        Record.RecordBuilder recordBuilder = new Record.RecordBuilder();
-        return recordBuilder
+    /**
+     * Extract record.
+     *
+     * @param validatedRecordInfo the validated record info
+     * @return the record
+     */
+    public static Record extractRecord(RecordInfo validatedRecordInfo) {
+        return Record.builder()
                 .providerId(validatedRecordInfo.getRecord().getProviderId())
                 .europeanaId(validatedRecordInfo.getRecord().getEuropeanaId())
                 .datasetId(validatedRecordInfo.getRecord().getDatasetId())
@@ -30,9 +34,14 @@ public class ValidatedRecordExtractor implements ValidationExtractor {
                 .build();
     }
 
-    @Override
-    public ValidationStepContent extractResults(Step step,
-                                                 RecordInfo recordInfo) {
+    /**
+     * Extract results list.
+     *
+     * @param step              the step
+     * @param recordInfo        the record info
+     * @return the list
+     */
+    public static ValidationStepContent extractResults(Step step,RecordInfo recordInfo) {
         ValidationStepContent result;
         if (recordInfo.getErrors().isEmpty()) {
             result = new ValidationStepContent(new ValidationResult(step,

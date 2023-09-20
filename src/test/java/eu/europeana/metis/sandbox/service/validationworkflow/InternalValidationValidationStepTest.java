@@ -26,8 +26,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class InternalValidationValidationStepTest {
     @Mock
-    ValidationExtractor validationExtractor;
-    @Mock
     InternalValidationService internalValidationService;
     @Mock
     RecordLogService recordLogService;
@@ -52,11 +50,6 @@ class InternalValidationValidationStepTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(record);
         when(internalValidationService.validate(any())).thenReturn(recordInfo);
-        when(validationExtractor.extractRecord(any())).thenReturn(recordInfo.getRecord());
-        when(validationExtractor.extractResults(any(), any())).thenReturn(
-                new ValidationStepContent(new ValidationResult(Step.VALIDATE_INTERNAL,
-                        new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                        ValidationResult.Status.PASSED), record));
 
         doNothing().when(recordLogService).logRecordEvent(any());
         //when

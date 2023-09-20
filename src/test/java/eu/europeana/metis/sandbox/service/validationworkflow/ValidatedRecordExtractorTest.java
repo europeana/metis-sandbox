@@ -15,7 +15,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ValidatedRecordExtractorTest {
-    private final ValidatedRecordExtractor validatedRecordExtractor = new ValidatedRecordExtractor();
 
     @Test
     void extractRecord_expectSuccess() {
@@ -33,7 +32,7 @@ class ValidatedRecordExtractorTest {
         RecordInfo recordInfo = new RecordInfo(expectedRecord);
 
         // when
-        Record extractedRecord = validatedRecordExtractor.extractRecord(recordInfo);
+        Record extractedRecord = ValidatedRecordExtractor.extractRecord(recordInfo);
 
         // then
         assertEquals(expectedRecord.getRecordId(), extractedRecord.getRecordId());
@@ -61,7 +60,7 @@ class ValidatedRecordExtractorTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(expectedRecord);
         // when
-        ValidationStepContent validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
+        ValidationStepContent validationResults = ValidatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
 
         // then
         ValidationResult result = validationResults.getValidationStepResult();
@@ -87,7 +86,7 @@ class ValidatedRecordExtractorTest {
         RecordInfo recordInfo = new RecordInfo(expectedRecord, List.of(new RecordError("Fail message1", "stackTrace1"),
                 new RecordError("Fail message2", "stackTrace2")));
         // when
-        ValidationStepContent validationResults = validatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
+        ValidationStepContent validationResults = ValidatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
 
         // then
         ValidationResult result = validationResults.getValidationStepResult();
