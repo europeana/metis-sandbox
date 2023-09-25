@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.validationworkflow;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
@@ -103,9 +104,18 @@ class ValidationWorkflowServiceTest {
         // given
         MockMultipartFile mockMultipartFile = new MockMultipartFile("valid_record",
                 "valid_record.xml", "application/rdf+xml", "mockRDF".getBytes(StandardCharsets.UTF_8));
-        doReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
+        Record testRecord = Record.builder()
+                .recordId(1L)
+                .providerId("providerIs")
+                .europeanaId("europeanaId")
+                .country(Country.NETHERLANDS)
+                .language(Language.NL)
+                .content(mockMultipartFile.getInputStream().readAllBytes())
+                .build();
+
+        doReturn(new ValidationStepContent(new ValidationResult(Step.VALIDATE_INTERNAL,
                 new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                ValidationResult.Status.PASSED))).when(internalValidationValidationStep).performStep(any());
+                ValidationResult.Status.PASSED), testRecord)).when(internalValidationValidationStep).performStep(any());
         prepareBaseMocks();
 
         // when
@@ -124,9 +134,17 @@ class ValidationWorkflowServiceTest {
         // given
         MockMultipartFile mockMultipartFile = new MockMultipartFile("invalid_record",
                 "invalid_record.xml", "application/rdf+xml", "mockRDF".getBytes(StandardCharsets.UTF_8));
-        doReturn(List.of(new ValidationResult(Step.VALIDATE_INTERNAL,
+        Record testRecord = Record.builder()
+                .recordId(1L)
+                .providerId("providerIs")
+                .europeanaId("europeanaId")
+                .country(Country.NETHERLANDS)
+                .language(Language.NL)
+                .content(mockMultipartFile.getInputStream().readAllBytes())
+                .build();
+        doReturn(new ValidationStepContent(new ValidationResult(Step.VALIDATE_INTERNAL,
                 new RecordValidationMessage(RecordValidationMessage.Type.ERROR, "Error"),
-                ValidationResult.Status.FAILED))).when(internalValidationValidationStep).performStep(any());
+                ValidationResult.Status.FAILED), testRecord)).when(internalValidationValidationStep).performStep(any());
         prepareBaseMocks();
 
         // when

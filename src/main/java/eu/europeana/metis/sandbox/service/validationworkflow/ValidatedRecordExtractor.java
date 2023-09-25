@@ -7,20 +7,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * The type Validated record extractor.
  */
-public class ValidatedRecordExtractor implements ValidationExtractor {
+public class ValidatedRecordExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @Override
-    public Record extractRecord(RecordInfo validatedRecordInfo) {
-        Record.RecordBuilder recordBuilder = new Record.RecordBuilder();
-        return recordBuilder
+    private ValidatedRecordExtractor(){
+        throw new IllegalStateException("Validated record utility class");
+    }
+
+    /**
+     * Extract record.
+     *
+     * @param validatedRecordInfo the validated record info
+     * @return the record
+     */
+    public static Record extractRecord(RecordInfo validatedRecordInfo) {
+        return Record.builder()
                 .providerId(validatedRecordInfo.getRecord().getProviderId())
                 .europeanaId(validatedRecordInfo.getRecord().getEuropeanaId())
                 .datasetId(validatedRecordInfo.getRecord().getDatasetId())
@@ -32,21 +38,25 @@ public class ValidatedRecordExtractor implements ValidationExtractor {
                 .build();
     }
 
-    @Override
-    public List<ValidationResult> extractResults(Step step,
-                                                 RecordInfo recordInfo,
-                                                 List<ValidationResult> validationResults) {
-        List<ValidationResult> result = new ArrayList<>(validationResults);
+    /**
+     * Extract results list.
+     *
+     * @param step              the step
+     * @param recordInfo        the record info
+     * @return the list
+     */
+    public static ValidationStepContent extractValidationStepContent(Step step, RecordInfo recordInfo) {
+        ValidationStepContent result;
         if (recordInfo.getErrors().isEmpty()) {
-            result.add(new ValidationResult(step,
+            result = new ValidationStepContent(new ValidationResult(step,
                     new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
-                    ValidationResult.Status.PASSED));
+                    ValidationResult.Status.PASSED), recordInfo.getRecord());
             LOGGER.info("validation step {} success {}", step, recordInfo.getRecord().getDatasetName());
         } else {
-            result.add(new ValidationResult(step, recordInfo.getErrors()
+            result = new ValidationStepContent(new ValidationResult(step, recordInfo.getErrors()
                     .stream()
                     .map(item -> new RecordValidationMessage(RecordValidationMessage.Type.ERROR, item.getMessage()))
-                    .collect(Collectors.toList()), ValidationResult.Status.FAILED));
+                    .collect(Collectors.toList()), ValidationResult.Status.FAILED), recordInfo.getRecord());
         }
         return result;
     }

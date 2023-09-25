@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The type External validation step.
@@ -20,8 +18,6 @@ import java.util.List;
 public class ExternalValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final ExternalValidationService externalValidationService;
-    private final ValidationExtractor validationExtractor;
-    private ValidationStep nextValidationStep;
     private final RecordLogService recordLogService;
 
     /**
@@ -30,35 +26,25 @@ public class ExternalValidationStep implements ValidationStep {
      * @param externalValidationService the external validation service
      */
     public ExternalValidationStep(ExternalValidationService externalValidationService,
-                                  ValidationExtractor validationExtractor,
                                   RecordLogService recordLogService) {
         this.externalValidationService = externalValidationService;
-        this.validationExtractor = validationExtractor;
         this.recordLogService = recordLogService;
     }
 
     @Override
-    public void setNextValidationStep(ValidationStep nextValidationStep) {
-        this.nextValidationStep = nextValidationStep;
-    }
-
-    @Override
-    public List<ValidationResult> performStep(Record recordToValidate) {
-        List<ValidationResult> validationResults = new ArrayList<>();
+    public ValidationStepContent performStep(Record recordToValidate) {
+        ValidationStepContent validationStepContent;
         try {
             RecordInfo recordInfoValidated = externalValidationService.validate(recordToValidate);
-            validationResults.addAll(validationExtractor.extractResults(Step.VALIDATE_EXTERNAL,
-                    recordInfoValidated,
-                    this.nextValidationStep.performStep(validationExtractor.extractRecord(recordInfoValidated))));
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_EXTERNAL, Status.SUCCESS));
+            validationStepContent = ValidatedRecordExtractor.extractValidationStepContent(Step.VALIDATE_EXTERNAL, recordInfoValidated);
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.VALIDATE_EXTERNAL, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("external validation step fail", ex);
-            validationResults.removeIf(validationResult -> validationResult.getStep().equals(Step.VALIDATE_EXTERNAL));
-            validationResults.add(new ValidationResult(Step.VALIDATE_EXTERNAL,
+            validationStepContent = new ValidationStepContent(new ValidationResult(Step.VALIDATE_EXTERNAL,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
-                    ValidationResult.Status.FAILED));
+                    ValidationResult.Status.FAILED), recordToValidate);
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_EXTERNAL, Status.FAIL));
         }
-        return validationResults;
+        return validationStepContent;
     }
 }

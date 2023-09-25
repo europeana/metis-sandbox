@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The type Internal validation step.
@@ -20,7 +18,6 @@ import java.util.List;
 public class InternalValidationValidationStep implements ValidationStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final InternalValidationService internalValidationService;
-    private final ValidationExtractor validationExtractor;
     private final RecordLogService recordLogService;
 
     /**
@@ -29,38 +26,28 @@ public class InternalValidationValidationStep implements ValidationStep {
      * @param internalValidationService the internal validation service
      */
     public InternalValidationValidationStep(InternalValidationService internalValidationService,
-                                            ValidationExtractor validationExtractor,
                                             RecordLogService recordLogService) {
         this.internalValidationService = internalValidationService;
-        this.validationExtractor = validationExtractor;
         this.recordLogService = recordLogService;
     }
 
     @Override
-    public void setNextValidationStep(ValidationStep nextValidationStep) {
-        // There is no next validation step
-    }
-
-    @Override
-    public List<ValidationResult> performStep(Record recordToValidate) {
-        List<ValidationResult> validationResults = new ArrayList<>();
+    public ValidationStepContent performStep(Record recordToValidate) {
+        ValidationStepContent validationResult;
         try {
             RecordInfo recordInfoValidated = internalValidationService.validate(recordToValidate);
-            recordToValidate = validationExtractor.extractRecord(recordInfoValidated);
+            recordToValidate = ValidatedRecordExtractor.extractRecord(recordInfoValidated);
             LOGGER.info("internal validation step success {}", recordToValidate.getDatasetName());
-            validationResults.addAll(validationExtractor.extractResults(Step.VALIDATE_INTERNAL,
-                    recordInfoValidated,
-                    new ArrayList<>()));
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_INTERNAL, Status.SUCCESS));
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.CLOSE, Status.SUCCESS));
+            validationResult = ValidatedRecordExtractor.extractValidationStepContent(Step.VALIDATE_INTERNAL, recordInfoValidated);
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.VALIDATE_INTERNAL, Status.SUCCESS));
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.CLOSE, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("internal validation step fail", ex);
-            validationResults.removeIf(validationResult -> validationResult.getStep().equals(Step.VALIDATE_INTERNAL));
-            validationResults.add(new ValidationResult(Step.VALIDATE_INTERNAL,
+            validationResult = new ValidationStepContent(new ValidationResult(Step.VALIDATE_INTERNAL,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
-                    ValidationResult.Status.FAILED));
+                    ValidationResult.Status.FAILED), recordToValidate);
             recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.VALIDATE_INTERNAL, Status.FAIL));
         }
-        return validationResults;
+        return validationResult;
     }
 }
