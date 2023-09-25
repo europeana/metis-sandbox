@@ -36,7 +36,7 @@ public class ExternalValidationStep implements ValidationStep {
         ValidationStepContent validationStepContent;
         try {
             RecordInfo recordInfoValidated = externalValidationService.validate(recordToValidate);
-            validationStepContent = ValidatedRecordExtractor.extractResults(Step.VALIDATE_EXTERNAL, recordInfoValidated);
+            validationStepContent = ValidatedRecordExtractor.extractValidationStepContent(Step.VALIDATE_EXTERNAL, recordInfoValidated);
             recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.VALIDATE_EXTERNAL, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("external validation step fail", ex);

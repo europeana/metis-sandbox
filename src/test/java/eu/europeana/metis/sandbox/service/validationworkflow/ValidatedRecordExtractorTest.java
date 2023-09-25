@@ -12,7 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class ValidatedRecordExtractorTest {
 
@@ -60,10 +62,10 @@ class ValidatedRecordExtractorTest {
                 .build();
         RecordInfo recordInfo = new RecordInfo(expectedRecord);
         // when
-        ValidationStepContent validationResults = ValidatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
+        ValidationStepContent validationStepContent = ValidatedRecordExtractor.extractValidationStepContent(Step.HARVEST_FILE, recordInfo);
 
         // then
-        ValidationResult result = validationResults.getValidationStepResult();
+        ValidationResult result = validationStepContent.getValidationStepResult();
         assertNotNull(result);
         assertEquals(ValidationResult.Status.PASSED, result.getStatus());
         Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();
@@ -86,10 +88,10 @@ class ValidatedRecordExtractorTest {
         RecordInfo recordInfo = new RecordInfo(expectedRecord, List.of(new RecordError("Fail message1", "stackTrace1"),
                 new RecordError("Fail message2", "stackTrace2")));
         // when
-        ValidationStepContent validationResults = ValidatedRecordExtractor.extractResults(Step.HARVEST_FILE, recordInfo);
+        ValidationStepContent validationStepContent = ValidatedRecordExtractor.extractValidationStepContent(Step.HARVEST_FILE, recordInfo);
 
         // then
-        ValidationResult result = validationResults.getValidationStepResult();
+        ValidationResult result = validationStepContent.getValidationStepResult();
         assertEquals(ValidationResult.Status.FAILED, result.getStatus());
         Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();
         assertEquals("Fail message1", message.get().getMessage());

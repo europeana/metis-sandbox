@@ -15,6 +15,10 @@ import java.util.stream.Collectors;
 public class ValidatedRecordExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+    private ValidatedRecordExtractor(){
+        throw new IllegalStateException("Validated record utility class");
+    }
+
     /**
      * Extract record.
      *
@@ -41,7 +45,7 @@ public class ValidatedRecordExtractor {
      * @param recordInfo        the record info
      * @return the list
      */
-    public static ValidationStepContent extractResults(Step step,RecordInfo recordInfo) {
+    public static ValidationStepContent extractValidationStepContent(Step step, RecordInfo recordInfo) {
         ValidationStepContent result;
         if (recordInfo.getErrors().isEmpty()) {
             result = new ValidationStepContent(new ValidationResult(step,

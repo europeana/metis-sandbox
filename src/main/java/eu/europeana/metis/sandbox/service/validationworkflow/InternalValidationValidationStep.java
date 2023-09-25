@@ -38,7 +38,7 @@ public class InternalValidationValidationStep implements ValidationStep {
             RecordInfo recordInfoValidated = internalValidationService.validate(recordToValidate);
             recordToValidate = ValidatedRecordExtractor.extractRecord(recordInfoValidated);
             LOGGER.info("internal validation step success {}", recordToValidate.getDatasetName());
-            validationResult = ValidatedRecordExtractor.extractResults(Step.VALIDATE_INTERNAL, recordInfoValidated);
+            validationResult = ValidatedRecordExtractor.extractValidationStepContent(Step.VALIDATE_INTERNAL, recordInfoValidated);
             recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.VALIDATE_INTERNAL, Status.SUCCESS));
             recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.CLOSE, Status.SUCCESS));
         } catch (Exception ex) {

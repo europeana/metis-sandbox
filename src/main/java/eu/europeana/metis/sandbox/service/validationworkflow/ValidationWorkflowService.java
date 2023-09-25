@@ -149,29 +149,29 @@ public class ValidationWorkflowService {
     private List<ValidationResult> performSteps(Record recordToProcess){
         List<ValidationResult> validationResults = new ArrayList<>();
 
-        ValidationStepContent harvestResult = harvestValidationStep.performStep(recordToProcess);
-        validationResults.add(harvestResult.getValidationStepResult());
+        ValidationStepContent harvestStepContent = harvestValidationStep.performStep(recordToProcess);
+        validationResults.add(harvestStepContent.getValidationStepResult());
 
-        if(harvestResult.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
+        if(harvestStepContent.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
             return validationResults;
         }
 
-        ValidationStepContent externalValidationResult = externalValidationStep.performStep(harvestResult.getRecordStepResult());
-        validationResults.add(externalValidationResult.getValidationStepResult());
+        ValidationStepContent externalValidationStepContent = externalValidationStep.performStep(harvestStepContent.getRecordStepResult());
+        validationResults.add(externalValidationStepContent.getValidationStepResult());
 
-        if(externalValidationResult.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
+        if(externalValidationStepContent.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
             return validationResults;
         }
 
-        ValidationStepContent transformationResult = transformationValidationStep.performStep(externalValidationResult.getRecordStepResult());
-        validationResults.add(transformationResult.getValidationStepResult());
+        ValidationStepContent transformationStepContent = transformationValidationStep.performStep(externalValidationStepContent.getRecordStepResult());
+        validationResults.add(transformationStepContent.getValidationStepResult());
 
-        if(transformationResult.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
+        if(transformationStepContent.getValidationStepResult().getStatus() == ValidationResult.Status.FAILED){
             return validationResults;
         }
 
-        ValidationStepContent internalValidationResult = internalValidationValidationStep.performStep(transformationResult.getRecordStepResult());
-        validationResults.add(internalValidationResult.getValidationStepResult());
+        ValidationStepContent internalValidationStepContent = internalValidationValidationStep.performStep(transformationStepContent.getRecordStepResult());
+        validationResults.add(internalValidationStepContent.getValidationStepResult());
 
         return validationResults;
     }

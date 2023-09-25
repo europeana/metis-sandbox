@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -18,7 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -44,10 +46,10 @@ class HarvestValidationStepTest {
                 .build();
 
         //when
-        ValidationStepContent validationResults = harvestValidationStep.performStep(record);
+        ValidationStepContent validationStepContent = harvestValidationStep.performStep(record);
 
         //then
-        ValidationResult result = validationResults.getValidationStepResult();
+        ValidationResult result = validationStepContent.getValidationStepResult();
         assertNotNull(result);
         assertEquals(ValidationResult.Status.PASSED, result.getStatus());
         Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();
@@ -73,10 +75,10 @@ class HarvestValidationStepTest {
                 .build();
 
         //when
-        ValidationStepContent validationResults = harvestValidationStep.performStep(record);
+        ValidationStepContent validationStepContent = harvestValidationStep.performStep(record);
 
         //then
-        ValidationResult result = validationResults.getValidationStepResult();
+        ValidationResult result = validationStepContent.getValidationStepResult();
         assertNotNull(result);
         assertEquals(ValidationResult.Status.FAILED, result.getStatus());
         Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();

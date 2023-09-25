@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
@@ -16,7 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
@@ -79,10 +80,10 @@ class ExternalValidationStepTest {
         when(externalValidationService.validate(any())).thenThrow(new RuntimeException("External validation failure"));
 
         //when
-        ValidationStepContent validationResults = externalValidationStep.performStep(recordToValidate);
+        ValidationStepContent validationStepContent = externalValidationStep.performStep(recordToValidate);
 
         //then
-        ValidationResult result = validationResults.getValidationStepResult();
+        ValidationResult result = validationStepContent.getValidationStepResult();
         assertNotNull(result);
         assertEquals(ValidationResult.Status.FAILED, result.getStatus());
         Optional<RecordValidationMessage> message = result.getMessages().stream().findFirst();
