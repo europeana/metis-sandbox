@@ -5,6 +5,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:14-alpine
+    container_name: metis-sandbox-postgres
     environment:
       - POSTGRES_DB=sandbox_local
       - POSTGRES_USER=test
@@ -16,6 +17,7 @@ services:
       - ./src/main/resources/database/schema_problem_patterns.sql:/docker-entrypoint-initdb.d/schema_problem_patterns.sql
   rabbitmq:
     image: rabbitmq:3.9.12-management
+    container_name: metis-sandbox-rabbitmq
     environment:
       - RABBIT_DEFAULT_VHOST=/
       - RABBITMQ_DEFAULT_USER=guest
@@ -23,3 +25,32 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+  mongo:
+    image: mongo:4.2.9
+    container_name: metis-sandbox-mongo
+    environment:
+      MONGO_INITDB_DATABASE: metis-sandbox
+      MONGO_INITDB_ROOT_USERNAME: guest
+      MONGO_INITDB_ROOT_PASSWORD: guest
+    ports:
+      - '27017:27017'
+  metis-sandbox-local:
+    image: europeana/metis-sandbox:develop
+    container_name: metis-sandbox-local
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      RABBITMQ_HOST: metis-sandbox-rabbitmq
+      MONGO_HOSTS: metis-sandbox-mongo
+      POSTGRES_HOST: metis-sandbox-postgres
+    volumes:
+      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/resources/custom-truststore.jks:/data/certificates/custom-truststore.jks
+      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/resources/application.properties:/application.properties
+      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/resources/log4j2.xml:/data/logging/log4j2.xml
+    depends_on:
+      - rabbitmq
+      - mongo
+      - postgres
