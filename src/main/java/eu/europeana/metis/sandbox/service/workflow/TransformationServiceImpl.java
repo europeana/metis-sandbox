@@ -35,22 +35,22 @@ class TransformationServiceImpl implements TransformationService {
   }
 
   @Override
-  public RecordInfo transformToEdmInternal(Record record) {
-    requireNonNull(record, "Record must not be null");
+  public RecordInfo transformToEdmInternal(Record recordToTransform) {
+    requireNonNull(recordToTransform, "Record must not be null");
 
     final byte[] recordTransformed;
     try {
       final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = new EuropeanaIdCreator()
-          .constructEuropeanaId(record.getContentInputStream(), record.getDatasetId());
-      XsltTransformer transformer = getTransformer(getJoinDatasetIdDatasetName(record),
-          record.getCountry().xmlValue(), record.getLanguage().name().toLowerCase());
+          .constructEuropeanaId(recordToTransform.getContentInputStream(), recordToTransform.getDatasetId());
+      XsltTransformer transformer = getTransformer(getJoinDatasetIdDatasetName(recordToTransform),
+          recordToTransform.getCountry().xmlValue(), recordToTransform.getLanguage().name().toLowerCase());
       recordTransformed = transformer
-          .transformToBytes(record.getContent(), europeanaGeneratedIdsMap);
+          .transformToBytes(recordToTransform.getContent(), europeanaGeneratedIdsMap);
     } catch (TransformationException | EuropeanaIdException e) {
-      throw new RecordProcessingException(record.getProviderId(), e);
+      throw new RecordProcessingException(recordToTransform.getProviderId(), e);
     }
 
-    return new RecordInfo(Record.from(record, recordTransformed));
+    return new RecordInfo(Record.from(recordToTransform, recordTransformed));
   }
 
   @Override

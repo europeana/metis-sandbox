@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
@@ -182,7 +183,8 @@ class DatasetControllerIT {
             File.separator + "dataset-valid-small.zip");
     FileSystemResource datasetResponseBody = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "response_body_dataset_valid_small.txt");
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+                "response_body_dataset_valid_small.txt");
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
@@ -205,6 +207,7 @@ class DatasetControllerIT {
         expectedDatasetInfoJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), String.valueOf(expectedDatasetId)),
         StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
 
+
   }
 
   @Test
@@ -214,7 +217,8 @@ class DatasetControllerIT {
             File.separator + "dataset-valid-small.zip");
     FileSystemResource tierCalculationResponse = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "tier_calculation_response_body.txt");
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+                "tier_calculation_response_body.txt");
     String tierCalculationResponseContent = new String(tierCalculationResponse.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -241,7 +245,7 @@ class DatasetControllerIT {
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
     FileSystemResource getRecordBody = new FileSystemResource("src" + File.separator + "test" + File.separator + "resources" +
-        File.separator + "get_record_response_body.txt");
+        File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_record_response_body.txt");
     String getRecordBodyContent = new String(getRecordBody.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -259,6 +263,49 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(StringUtils.deleteWhitespace(getRecordBodyContent), StringUtils.deleteWhitespace(response.getBody()));
+  }
+
+  @Test
+  void getRecordsTier_expectSuccess() throws IOException {
+    FileSystemResource dataset = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "dataset-valid-small.zip");
+    FileSystemResource getRecordBody = new FileSystemResource("src" + File.separator + "test" + File.separator + "resources" +
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_records_tiers_response_body.txt");
+    String getRecordBodyContent = new String(getRecordBody.getInputStream().readAllBytes());
+    ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+
+    String recordId1 = "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6";
+    String recordId2 = "/" + expectedDatasetId + "/URN_NBN_SI_doc_35SZSOCF";
+
+    Awaitility.await().atMost(10, MINUTES)
+            .until(() -> {
+              String body = Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
+                      String.class, expectedDatasetId).getBody());
+
+              return body.contains(recordId1) && body.contains(recordId2);
+            });
+
+    ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
+            String.class, expectedDatasetId);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(removeRecordIdFields(getRecordBodyContent)),
+            StringUtils.deleteWhitespace(removeRecordIdFields(response.getBody())), true);
+
+  }
+
+  @Test
+  void getRecordsTier_expectException() {
+    ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
+            String.class, 100);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertTrue(response.getBody().contains("Provided dataset id: [100] is not valid. "));
+
   }
 
   @Test
@@ -284,6 +331,7 @@ class DatasetControllerIT {
     List<Language> languages = Language.getLanguageListSortedByName();
     languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
+
 
   private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
 
@@ -332,6 +380,22 @@ class DatasetControllerIT {
       return rootNode.toPrettyString();
     } catch (JsonProcessingException e) {
       return actual;
+    }
+  }
+
+  String removeRecordIdFields(String body){
+    ObjectMapper mapper = new ObjectMapper();
+    try{
+      JsonNode rootNode = mapper.readTree(body);
+      JsonNode firstElem = rootNode.get(0);
+      JsonNode secondElem = rootNode.get(1);
+      ((ObjectNode) firstElem).remove("record-id");
+      ((ObjectNode) secondElem).remove("record-id");
+      ((ArrayNode) rootNode).set(0, firstElem);
+      ((ArrayNode) rootNode).set(1, secondElem);
+      return rootNode.toPrettyString();
+    } catch (JsonProcessingException e){
+      return body;
     }
   }
 

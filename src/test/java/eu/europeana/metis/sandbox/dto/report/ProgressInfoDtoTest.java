@@ -70,7 +70,7 @@ class ProgressInfoDtoTest {
   @NotNull
   private static List<ProgressByStepDto> getProgressByStepDtoList(int mediaProcessed,
       int published) {
-    return List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of()),
+    return List.of(new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.TRANSFORM_TO_EDM_EXTERNAL, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
         new ProgressByStepDto(Step.TRANSFORM, 5, 0, 0, List.of()),
@@ -86,7 +86,7 @@ class ProgressInfoDtoTest {
     return new ProgressInfoDto("http://metis-sandbox",
         null,
         0L,
-        List.of(new ProgressByStepDto(Step.HARVEST_ZIP, 0, 0, 0, List.of())),
+        List.of(new ProgressByStepDto(Step.HARVEST_FILE, 0, 0, 0, List.of())),
         new DatasetInfoDto("datasetId",
             "datasetName",
             LocalDateTime.parse("2022-03-14T22:50:22"),

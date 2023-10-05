@@ -58,7 +58,7 @@ class RecordLogServiceImplTest {
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
     var recordError = new RecordError("message", "stack");
 
-    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
 
     service.logRecordEvent(event);
 
@@ -76,7 +76,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
 
     when(recordLogRepository.save(any(RecordLogEntity.class)))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -89,7 +89,7 @@ class RecordLogServiceImplTest {
     var record = Record.builder().recordId(1L).content("".getBytes()).datasetId("1")
         .language(Language.IT).country(Country.ITALY).datasetName("").build();
 
-    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
 
     when(errorLogRepository.saveAll(anyList()))
         .thenThrow(new RuntimeException("Exception saving"));
@@ -121,9 +121,9 @@ class RecordLogServiceImplTest {
     final RecordLogEntity recordLogEntity = new RecordLogEntity();
     recordLogEntity.setContent("content");
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
-        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(recordLogEntity));
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_FILE))).thenReturn(Set.of(recordLogEntity));
     final String providerRecord = service.getProviderRecordString("recordId", "datasetId",
-        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP));
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_FILE));
     assertNotNull(providerRecord);
     assertEquals("content", providerRecord);
   }
@@ -132,15 +132,15 @@ class RecordLogServiceImplTest {
   void getProviderRecordString_expectFail() {
     //Case null entity
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
-        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Collections.emptySet());
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_FILE))).thenReturn(Collections.emptySet());
     assertThrows(NoRecordFoundException.class,
-        () -> service.getProviderRecordString("recordId", "datasetId", Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP)));
+        () -> service.getProviderRecordString("recordId", "datasetId", Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_FILE)));
 
     //Case null content
     when(recordLogRepository.findRecordLogByRecordIdDatasetIdAndStepIn("recordId", "datasetId",
-        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP))).thenReturn(Set.of(new RecordLogEntity()));
+        Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_FILE))).thenReturn(Set.of(new RecordLogEntity()));
     assertThrows(NoRecordFoundException.class,
-        () -> service.getProviderRecordString("recordId", "datasetId", Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_ZIP)));
+        () -> service.getProviderRecordString("recordId", "datasetId", Set.of(Step.HARVEST_OAI_PMH, Step.HARVEST_FILE)));
   }
 
   @Test

@@ -51,7 +51,7 @@ class RecordPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    dataset.getRecords().forEach(record -> service.publishToHarvestQueue(new RecordInfo(record), Step.HARVEST_ZIP));
+    dataset.getRecords().forEach(record -> service.publishToHarvestQueue(new RecordInfo(record), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
@@ -69,7 +69,7 @@ class RecordPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    dataset.getRecords().forEach(record -> service.publishToHarvestQueue(new RecordInfo(record), Step.HARVEST_ZIP));
+    dataset.getRecords().forEach(record -> service.publishToHarvestQueue(new RecordInfo(record), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
@@ -84,7 +84,7 @@ class RecordPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    dataset.getRecords().forEach(record -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(record), Step.HARVEST_ZIP));
+    dataset.getRecords().forEach(record -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(record), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }
@@ -102,7 +102,7 @@ class RecordPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    dataset.getRecords().forEach(record -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(record), Step.HARVEST_ZIP));
+    dataset.getRecords().forEach(record -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(record), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }

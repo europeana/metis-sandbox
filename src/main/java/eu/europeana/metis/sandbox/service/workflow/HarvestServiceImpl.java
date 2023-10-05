@@ -177,7 +177,7 @@ public class HarvestServiceImpl implements HarvestService {
           oaiHarvestData.getMetadataformat());
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiRepository,
           oaiHarvestData.getOaiIdentifier());
-      RecordEntity recordEntity = new RecordEntity(null, oaiHarvestData.getOaiIdentifier(), datasetId, "", "");
+      RecordEntity recordEntity = new RecordEntity(oaiHarvestData.getOaiIdentifier(), datasetId);
       byte[] recordContent = oaiRecord.getRecord().readAllBytes();
 
       recordEntity = recordRepository.save(recordEntity);
@@ -198,16 +198,17 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public void harvest(InputStream inputStream, String datasetId, RecordBuilder recordDataEncapsulated, Integer stepSize)
+  public void harvest(InputStream inputStream, String datasetId, RecordBuilder recordDataEncapsulated, Integer stepSize,
+                      CompressedFileExtension compressedFileExtension)
       throws ServiceException {
-    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated, stepSize),
+    publishHarvestedRecords(harvestInputStreamIdentifiers(inputStream, datasetId, recordDataEncapsulated, stepSize, compressedFileExtension),
         datasetId,
         "Error harvesting file records",
-        Step.HARVEST_ZIP);
+        Step.HARVEST_FILE);
   }
 
   private List<RecordInfo> harvestInputStreamIdentifiers(InputStream inputStream, String datasetId,
-      Record.RecordBuilder recordDataEncapsulated, Integer stepSize) {
+      Record.RecordBuilder recordDataEncapsulated, Integer stepSize, CompressedFileExtension compressedFileExtension) {
     List<Pair<Path, Exception>> exception = new ArrayList<>(1);
     List<RecordInfo> recordInfoList = new ArrayList<>();
     final int numberOfRecordsToStepInto = stepSize == null ? DEFAULT_STEP_SIZE : stepSize;
@@ -218,7 +219,7 @@ public class HarvestServiceImpl implements HarvestService {
       AtomicInteger nextIndexToSelect = new AtomicInteger(numberOfRecordsToStepInto - 1);
 
       final HttpRecordIterator iterator = httpHarvester.createTemporaryHttpHarvestIterator(inputStream,
-          CompressedFileExtension.ZIP);
+          compressedFileExtension);
       final String extractedDirectoryFromIterator = iterator.getExtractedDirectory();
       iterator.forEach(path -> {
         try (InputStream content = Files.newInputStream(path)) {
@@ -277,7 +278,7 @@ public class HarvestServiceImpl implements HarvestService {
     List<RecordError> recordErrors = new ArrayList<>();
     RecordInfo recordInfo;
     String tmpProviderId = createTemporaryIdFromPath(extractedDirectoryFromIterator, path);
-    RecordEntity recordEntity = new RecordEntity(null, tmpProviderId, datasetId, "", "");
+    RecordEntity recordEntity = new RecordEntity(tmpProviderId, datasetId);
 
     try {
       byte[] recordContent = new ByteArrayInputStream(IOUtils.toByteArray(inputStream)).readAllBytes();
@@ -293,7 +294,7 @@ public class HarvestServiceImpl implements HarvestService {
       return recordInfo;
     } catch (RuntimeException | IOException e) {
       LOGGER.error("Error harvesting file records: {} with exception {}", recordEntity.getId(), e);
-      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_ZIP, new RuntimeException(e));
+      saveErrorWhileHarvesting(recordToHarvest, tmpProviderId, Step.HARVEST_FILE, new RuntimeException(e));
       return null;
     }
   }

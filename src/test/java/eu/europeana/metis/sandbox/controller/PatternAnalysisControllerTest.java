@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -53,6 +54,9 @@ class PatternAnalysisControllerTest {
 
   @Autowired
   private MockMvc mvc;
+
+  @MockBean
+  private RateLimitInterceptor rateLimitInterceptor;
 
   @MockBean
   private PatternAnalysisService<Step, ExecutionPoint> mockPatternAnalysisService;
@@ -319,7 +323,7 @@ class PatternAnalysisControllerTest {
        .andExpect(status().isOk())
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternId", is("P7")))
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternTitle", is("Missing description fields")))
-       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("NOTICE")))
+       .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternSeverity", is("WARNING")))
        .andExpect(jsonPath("$[0].problemPatternDescription.problemPatternQualityDimension", is("COMPLETENESS")))
        .andExpect(jsonPath("$[0].recordOccurrences", is(1)))
        .andExpect(jsonPath("$[0].recordAnalysisList[0].recordId", is("recordId1")))

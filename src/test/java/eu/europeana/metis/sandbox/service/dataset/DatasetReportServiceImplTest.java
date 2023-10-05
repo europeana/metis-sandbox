@@ -66,8 +66,11 @@ class DatasetReportServiceImplTest {
     private DatasetReportServiceImpl service;
 
     private static RecordEntity getTestRecordEntity(final Long recordId) {
-        RecordEntity recordEntity = new RecordEntity("europeanaId" + recordId.toString(),
-                "providerId" + recordId, recordId.toString(), "", "");
+        RecordEntity recordEntity = new RecordEntity.RecordEntityBuilder()
+                .setEuropeanaId("europeanaId" + recordId.toString())
+                .setProviderId("providerId" + recordId)
+                .setDatasetId(recordId.toString())
+                .build();
         recordEntity.setId(recordId);
         return recordEntity;
     }
@@ -107,7 +110,7 @@ class DatasetReportServiceImplTest {
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("europeanaId1 | providerId1", "europeanaId2 | providerId2"));
         var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("europeanaId3 | providerId3", "europeanaId4 | providerId4"));
         var errors = List.of(error1, error2);
-        var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 1, 4, 0, errors);
         var report = new ProgressInfoDto(
                 "A review URL will be generated when the dataset has finished processing.",
@@ -116,7 +119,7 @@ class DatasetReportServiceImplTest {
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false), "", emptyList(), null);
 
-        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1L);
         var recordViewExternal2 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 4L);
         var errorView1 = new ErrorLogViewImpl(1L, getTestRecordEntity(1L), Step.VALIDATE_EXTERNAL, Status.FAIL,
@@ -142,7 +145,7 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportWithoutErrors_expectSuccess() {
         var dataset = createDataset(5L);
-        var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var report = new ProgressInfoDto(
                 "A review URL will be generated when the dataset has finished processing.",
@@ -150,7 +153,7 @@ class DatasetReportServiceImplTest {
                 List.of(createProgress, externalProgress),
                 new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", emptyList(), null);
 
-        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
 
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
@@ -167,7 +170,7 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportCompleted_expectSuccess() {
         var dataset = createDataset(5L);
-        var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var publishProgress = new ProgressByStepDto(Step.PUBLISH, 5, 0, 0, List.of());
         var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(2, List.of("europeanaId1", "europeanaId2")),
@@ -178,7 +181,7 @@ class DatasetReportServiceImplTest {
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false), "", emptyList(), tiersZeroInfo);
 
-        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
         var recordViewPublish = new StepStatistic(Step.PUBLISH, Status.SUCCESS, 5L);
         var recordViewClose = new StepStatistic(Step.CLOSE, Status.SUCCESS, 5L);
@@ -189,12 +192,32 @@ class DatasetReportServiceImplTest {
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of());
         when(recordRepository.findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc("1", MediaTier.T0.toString()))
-                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
-                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0")));
+                .thenReturn(List.of(new RecordEntity.RecordEntityBuilder()
+                        .setEuropeanaId("europeanaId1")
+                                .setProviderId("providerId1")
+                                .setDatasetId("1")
+                                .build(),
+                        new RecordEntity.RecordEntityBuilder()
+                                .setEuropeanaId("europeanaId2")
+                                .setProviderId("providerId2")
+                                .setDatasetId("1")
+                                .build()));
         when(recordRepository.findTop10ByDatasetIdAndMetadataTierOrderByEuropeanaIdAsc("1", MetadataTier.T0.toString()))
-                .thenReturn(List.of(new RecordEntity("europeanaId1", "providerId1", "1", "0", "0"),
-                        new RecordEntity("europeanaId2", "providerId2", "1", "0", "0"),
-                        new RecordEntity("europeanaId3", "providerId2", "1", "0", "0")));
+                .thenReturn(List.of(new RecordEntity.RecordEntityBuilder()
+                                .setEuropeanaId("europeanaId1")
+                                .setProviderId("providerId1")
+                                .setDatasetId("1")
+                                .build(),
+                        new RecordEntity.RecordEntityBuilder()
+                                .setEuropeanaId("europeanaId2")
+                                .setProviderId("providerId2")
+                                .setDatasetId("1")
+                                .build(),
+                        new RecordEntity.RecordEntityBuilder()
+                                .setEuropeanaId("europeanaId3")
+                                .setProviderId("providerId2")
+                                .setDatasetId("1")
+                                .build()));
         when(recordRepository.getRecordWithDatasetIdAndContentTierCount("1", MediaTier.T0.toString()))
                 .thenReturn(2);
         when(recordRepository.getRecordWithDatasetIdAndMetadataTierCount("1", MetadataTier.T0.toString()))
@@ -213,7 +236,7 @@ class DatasetReportServiceImplTest {
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("europeanaId1 | providerId1", "europeanaId2 | providerId2"));
         var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("europeanaId3 | providerId3", "europeanaId4 | providerId4", "europeanaId5 | providerId5"));
         var errors = List.of(error1, error2);
-        var createProgress = new ProgressByStepDto(Step.HARVEST_ZIP, 5, 0, 0, List.of());
+        var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 0, 5, 0, errors);
 
         var report = new ProgressInfoDto(
@@ -222,7 +245,7 @@ class DatasetReportServiceImplTest {
                 new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
                         false, false), "", emptyList(), null);
 
-        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5L);
 
         var errorView1 = new ErrorLogViewImpl(1L, getTestRecordEntity(1L), Step.VALIDATE_EXTERNAL, Status.FAIL,
@@ -265,7 +288,7 @@ class DatasetReportServiceImplTest {
     @Test
     void getReport_WithDatasetWarnings_ShouldNotFail() {
         var dataset = createDataset(5L);
-        var recordViewCreate = new StepStatistic(Step.HARVEST_ZIP, Status.SUCCESS, 5L);
+        var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(

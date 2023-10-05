@@ -3,9 +3,10 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
 
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexingProperties;
@@ -13,7 +14,14 @@ import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.model.TierClassifier;
 import eu.europeana.indexing.tiers.model.TierResults;
+import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
+import eu.europeana.indexing.tiers.view.LanguageBreakdown;
+import eu.europeana.indexing.tiers.view.EnablingElementsBreakdown;
+import eu.europeana.indexing.tiers.view.ContextualClassesBreakdown;
+import eu.europeana.indexing.tiers.view.MetadataTierBreakdown;
+import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -50,14 +58,29 @@ class IndexingServiceImplTest {
     var record = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
-    TierResults mock = new TierResults(MediaTier.T1, MetadataTier.TA);
+    ContentTierBreakdown contentTierBreakdown = new ContentTierBreakdown.Builder()
+            .setLicenseType(LicenseType.OPEN)
+            .setMediaTierBeforeLicenseCorrection(MediaTier.T2)
+            .build();
+    eu.europeana.indexing.tiers.model.TierClassifier.TierClassification<MediaTier, ContentTierBreakdown> mediaTierClassification =
+            new TierClassifier.TierClassification<>(MediaTier.T1, contentTierBreakdown);
+    LanguageBreakdown languageBreakdownMock = mock(LanguageBreakdown.class);
+    EnablingElementsBreakdown enablingElementsBreakdownMock = mock(EnablingElementsBreakdown.class);
+    ContextualClassesBreakdown contextualClassesBreakdownMock = mock(ContextualClassesBreakdown.class);
+    MetadataTierBreakdown metadataTierBreakdown = new MetadataTierBreakdown(languageBreakdownMock, enablingElementsBreakdownMock, contextualClassesBreakdownMock);
+    TierClassifier.TierClassification<MetadataTier, MetadataTierBreakdown> metadataTierClassification =
+            new TierClassifier.TierClassification<>(MetadataTier.TA, metadataTierBreakdown);
+    when(languageBreakdownMock.getMetadataTier()).thenReturn(MetadataTier.TA);
+    when(enablingElementsBreakdownMock.getMetadataTier()).thenReturn(MetadataTier.TB);
+    when(contextualClassesBreakdownMock.getMetadataTier()).thenReturn(MetadataTier.TC);
+    TierResults tierResultsMock = new TierResults(mediaTierClassification, metadataTierClassification);
 
     when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
-            .thenReturn(mock);
+            .thenReturn(tierResultsMock);
 
     service.index(record);
     verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
-    verify(recordService).setContentTierAndMetadataTier(record, MediaTier.T1, MetadataTier.TA);
+    verify(recordService).setTierResults(record, tierResultsMock);
   }
 
   @Test

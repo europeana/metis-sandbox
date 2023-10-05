@@ -39,7 +39,7 @@ class CloseExecutorTest {
   @Test
   void close_expectSuccess() {
     var record = getTestRecord();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
 
     consumer.close(recordEvent);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
@@ -49,7 +49,7 @@ class CloseExecutorTest {
   @Test
   void close_inputMessageWithFailStatus_expectNoInteractions() {
     var record = getTestRecord();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.FAIL);
 
     consumer.close(recordEvent);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
@@ -58,7 +58,7 @@ class CloseExecutorTest {
   @Test
   void close_exception_expectLogError() {
     var record = getTestRecord();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_ZIP, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
     final RuntimeException runtimeException = new AmqpException("Queue Failure");
     doThrow(runtimeException).when(amqpTemplate).convertAndSend(any(), any(Object.class));
 

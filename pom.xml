@@ -11,7 +11,7 @@
 
   <groupId>eu.europeana.metis</groupId>
   <artifactId>metis-sandbox</artifactId>
-  <version>6</version>
+  <version>7</version>
   <packaging>war</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
@@ -19,7 +19,7 @@
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
     <url>https://github.com/europeana/metis-sandbox</url>
-    <tag>v6</tag>
+    <tag>HEAD</tag>
     <developerConnection>scm:git:https://github.com/europeana/metis-sandbox</developerConnection>
   </scm>
 
@@ -39,7 +39,7 @@
   <properties>
     <version.java>11</version.java>
     <version.springdoc>1.7.0</version.springdoc>
-    <version.metis>10</version.metis>
+    <version.metis>11</version.metis>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.6.0</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
@@ -62,8 +62,28 @@
     <version.netty>4.1.91.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
+    <version.bucket4j>8.3.0</version.bucket4j>
+    <version.postgresql.bucket4j>8.1.1</version.postgresql.bucket4j>
   </properties>
   <dependencies>
+    <!-- Rate limiting dependencies-->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-core</artifactId>
+      <version>${version.bucket4j}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-postgresql</artifactId>
+      <version>${version.postgresql.bucket4j}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP-java6</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <!-- Spring boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -23,6 +23,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
+import eu.europeana.metis.utils.CompressedFileExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,9 +60,10 @@ public class HarvestPublishServiceImplTest {
                                                      .withLanguage(Language.NL)
                                                      .withStepSize(5)
                                                      .build();
-    asyncHarvestPublishService.runHarvestZipAsync(datasetFile, datasetMetadata);
+    asyncHarvestPublishService.runHarvestFileAsync(datasetFile, datasetMetadata, CompressedFileExtension.ZIP);
 
-    verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5));
+    verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5),
+            eq(CompressedFileExtension.ZIP));
 
   }
 
@@ -80,7 +83,7 @@ public class HarvestPublishServiceImplTest {
     when(datasetFile.getInputStream()).thenThrow(new IOException("error test"));
 
     assertThrows(ServiceException.class, () ->
-        asyncHarvestPublishService.runHarvestZipAsync(datasetFile, datasetMetadata));
+        asyncHarvestPublishService.runHarvestFileAsync(datasetFile, datasetMetadata, CompressedFileExtension.ZIP));
 
   }
 
@@ -94,11 +97,12 @@ public class HarvestPublishServiceImplTest {
                                                      .withStepSize(5)
                                                      .build();
 
-    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpZipAsync(
-        "http://ftp.eanadev.org/uploads/Hauenstein-0.zip", datasetMetadata);
+    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpFileAsync(
+        "http://ftp.eanadev.org/uploads/Hauenstein-0.zip", datasetMetadata, CompressedFileExtension.ZIP);
 
     assertTrue(!future.isCompletedExceptionally() || future.isCancelled());
-    verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5));
+    verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5),
+            eq(CompressedFileExtension.ZIP));
   }
 
   @Test
@@ -111,8 +115,8 @@ public class HarvestPublishServiceImplTest {
                                                      .withStepSize(5)
                                                      .build();
 
-    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpZipAsync("http://myfake-test-url.com",
-        datasetMetadata);
+    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpFileAsync("http://myfake-test-url.com",
+        datasetMetadata,null);
 
     assertTrue(future.isCompletedExceptionally() && !future.isCancelled());
   }

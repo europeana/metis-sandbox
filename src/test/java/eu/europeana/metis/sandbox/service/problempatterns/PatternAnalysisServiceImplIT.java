@@ -202,7 +202,7 @@ class PatternAnalysisServiceImplIT {
                         .getMessageReport()));
 
         //Empty result
-        assertTrue(patternAnalysisServiceImpl.getDatasetPatternAnalysis("1", Step.HARVEST_ZIP, nowP6)
+        assertTrue(patternAnalysisServiceImpl.getDatasetPatternAnalysis("1", Step.HARVEST_FILE, nowP6)
                 .isEmpty());
     }
 

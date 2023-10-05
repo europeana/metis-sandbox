@@ -4,6 +4,10 @@ info:
     description: Sandbox to process Datasets
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
+    contact:
+      name: Europeana Foundation
+      email: info@europeana.eu
+      url: www.europeana.eu
 
 spring:
   profiles:
@@ -85,6 +89,10 @@ sandbox:
     password:
     maximumPoolSize: 10           # this is the default we make it explicit in the config.
     leakDetectionThreshold: 5000  # five second should be enough
+  rate-limit:
+    bandwidth:
+      capacity:
+      time: # in seconds
   dataset:
     clean:
       frequency: 0 0 0 * * ? # At 00:00:00am every day
