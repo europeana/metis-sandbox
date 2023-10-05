@@ -2,13 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.16</version>
-    <relativePath />
-  </parent>
-
   <groupId>eu.europeana.metis</groupId>
   <artifactId>metis-sandbox</artifactId>
   <version>7-SNAPSHOT</version>
@@ -40,6 +33,7 @@
     <version.java>11</version.java>
     <version.springdoc>1.7.0</version.springdoc>
     <version.metis>11-SNAPSHOT</version.metis>
+    <version.spring.boot>2.7.16</version.spring.boot>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.6.0</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
@@ -94,10 +88,6 @@
           <artifactId>spring-boot-starter-logging</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-log4j2</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -473,7 +463,7 @@
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>${parent.version}</version>
+        <version>${version.spring.boot}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -516,7 +506,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${parent.version}</version>
+        <version>${version.spring.boot}</version>
         <executions>
           <execution>
             <goals>
@@ -555,6 +545,7 @@
               <goal>verify</goal>
             </goals>
             <configuration>
+              <classesDirectory>${project.build.outputDirectory}</classesDirectory>
               <includes>
                 <include>**/*IT.java</include>
               </includes>
