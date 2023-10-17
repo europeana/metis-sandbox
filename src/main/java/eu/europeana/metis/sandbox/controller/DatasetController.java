@@ -10,9 +10,7 @@ import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
-import eu.europeana.metis.sandbox.dto.DatasetIdDto;
-import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
-import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+import eu.europeana.metis.sandbox.dto.*;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -49,6 +47,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -278,6 +277,19 @@ class DatasetController {
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
         //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
         return reportService.getReport(datasetId);
+    }
+
+
+    @Operation(summary = "Get a dataset", description = "Get dataset progress information")
+    @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "/dataset-info/{id}", produces = APPLICATION_JSON_VALUE)
+    public DatasetInfoDto getDatasetInfo(
+            @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+        UploadDataDto uploadDataDto = new OAIPmhUploadDto("http://oai-testing-url.com/test", "setspec", "metadata-format");
+        DatasetInfoDto datasetInfoDto = new DatasetInfoDto("3", "dataset-test", LocalDateTime.now(),Language.NL, Country.NETHERLANDS, false, false);
+        datasetInfoDto.setUploadDataDto(uploadDataDto);
+        return datasetInfoDto;
     }
 
     /**

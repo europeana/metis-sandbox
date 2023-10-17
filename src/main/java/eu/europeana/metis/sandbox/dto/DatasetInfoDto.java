@@ -32,6 +32,9 @@ public class DatasetInfoDto {
   @JsonProperty("transformed-to-edm-external")
   private final boolean transformedToEdmExternal;
 
+  @JsonProperty("upload-data")
+  private UploadDataDto uploadDataDto;
+
   public DatasetInfoDto(String datasetId, String datasetName, LocalDateTime creationDate,
       Language language, Country country, boolean recordLimitExceeded, boolean transformedToEdmExternal) {
 
@@ -42,6 +45,10 @@ public class DatasetInfoDto {
     this.datasetName = datasetName;
     this.recordLimitExceeded = recordLimitExceeded;
     this.transformedToEdmExternal = transformedToEdmExternal;
+  }
+
+  public void setUploadDataDto(UploadDataDto uploadDataDto){
+    this.uploadDataDto = uploadDataDto;
   }
 
   public String getDatasetId() {
