@@ -3,8 +3,8 @@ package eu.europeana.metis.sandbox.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 
-@ApiModel(HttpUploadDto.SWAGGER_MODEL_NAME)
-public class HttpUploadDto implements UploadDataDto{
+@ApiModel(HttpHarvestingDto.SWAGGER_MODEL_NAME)
+public class HttpHarvestingDto implements HarvestingParametersDto {
 
     public static final String SWAGGER_MODEL_NAME = "HttpUpload";
 
@@ -14,7 +14,7 @@ public class HttpUploadDto implements UploadDataDto{
     @JsonProperty("url")
     private final String url;
 
-    public HttpUploadDto(String url) {
+    public HttpHarvestingDto(String url) {
         this.url = url;
     }
 

@@ -283,12 +283,12 @@ class DatasetController {
     @Operation(summary = "Get a dataset", description = "Get dataset progress information")
     @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
-    @GetMapping(value = "/dataset-info/{id}", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "{id}/dataset-info", produces = APPLICATION_JSON_VALUE)
     public DatasetInfoDto getDatasetInfo(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-        UploadDataDto uploadDataDto = new OAIPmhUploadDto("http://oai-testing-url.com/test", "setspec", "metadata-format");
+        HarvestingParametersDto uploadDataDto = new OAIPmhHarvestingDto("http://oai-testing-url.com/test", "setspec", "metadata-format");
         DatasetInfoDto datasetInfoDto = new DatasetInfoDto("3", "dataset-test", LocalDateTime.now(),Language.NL, Country.NETHERLANDS, false, false);
-        datasetInfoDto.setUploadDataDto(uploadDataDto);
+        datasetInfoDto.setHarvestingParameters(uploadDataDto);
         return datasetInfoDto;
     }
 
