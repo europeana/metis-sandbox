@@ -38,4 +38,9 @@ public class HarvestingParametersServiceImpl implements HarvestingParametersServ
         }
 
     }
+
+    @Override
+    public HarvestingParametersEntity getDatasetHarvestingParameters(String datasetId) {
+        return harvestingParametersRepository.getHarvestingParametersEntitiesByDatasetId_DatasetId(Integer.parseInt(datasetId));
+    }
 }
