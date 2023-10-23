@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import eu.europeana.metis.sandbox.service.dataset.HarvestingParametersService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,13 +39,16 @@ public class HarvestPublishServiceImplTest {
   @Mock
   private HarvestService harvestService;
 
+  @Mock
+  private HarvestingParametersService harvestingParametersService;
+
   private final Executor taskExecutor = Runnable::run;
 
   private HarvestPublishServiceImpl asyncHarvestPublishService;
 
   @BeforeEach
   void setUp() {
-    asyncHarvestPublishService = new HarvestPublishServiceImpl(harvestService, taskExecutor);
+    asyncHarvestPublishService = new HarvestPublishServiceImpl(harvestService, taskExecutor, harvestingParametersService);
   }
 
 
