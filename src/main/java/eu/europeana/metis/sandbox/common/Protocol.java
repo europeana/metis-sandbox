@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.common;
 
+/**
+ * Enum class to represent the type of harvesting
+ */
 public enum Protocol {
     FILE("FILE"),
     HTTP("HTTP"),
@@ -10,6 +13,10 @@ public enum Protocol {
         this.value = value;
     }
 
+    /**
+     * Returns the enum value as a String
+     * @return a String value of the enum
+     */
     public String value() {
         return value;
     }

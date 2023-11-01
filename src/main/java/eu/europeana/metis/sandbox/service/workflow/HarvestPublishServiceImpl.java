@@ -49,7 +49,7 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                     .country(datasetMetadata.getCountry())
                     .language(datasetMetadata.getLanguage());
             harvestingParametersService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-                    Protocol.FILE, file.getName(), compressedFileExtension.name(), null, null, null);
+                    Protocol.FILE, file.getOriginalFilename(), compressedFileExtension.name(), null, null, null);
             return runHarvestFileAsync(file.getInputStream(), recordDataEncapsulated, datasetMetadata, compressedFileExtension);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + file.getName(), e);

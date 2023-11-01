@@ -7,7 +7,11 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.*;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -57,7 +61,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private static final String SUFFIX = "*";
     private final DatasetRepository datasetRepository;
     private final DatasetLogService datasetLogService;
-    private final HarvestingParametersService harvestingParametersService;
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository errorLogRepository;
     private final RecordRepository recordRepository;
@@ -76,7 +79,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
         this.recordLogRepository = recordLogRepository;
         this.errorLogRepository = errorLogRepository;
         this.recordRepository = recordRepository;
-        this.harvestingParametersService = harvestingParametersService;
     }
 
     private static Stream<DatasetLogDto> getErrors(List<DatasetLogDto> datasetLogs) {

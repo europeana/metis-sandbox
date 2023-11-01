@@ -13,6 +13,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Enumerated;
 import javax.persistence.EnumType;
 
+/**
+ * Entity to map harvesting_parameters table
+ */
 @Entity
 @Table(name = "harvesting_parameters")
 public class HarvestingParametersEntity {
@@ -38,7 +41,18 @@ public class HarvestingParametersEntity {
 
     private String metadataFormat;
 
-    public HarvestingParametersEntity(DatasetEntity datasetId, Protocol protocol, String fileName, String fileType, String url, String setSpec, String metadataFormat) {
+    /**
+     * Parameterized constructor
+     * @param datasetId The id of the dataset associated to these harvesting parameters
+     * @param protocol The type of harvesting done
+     * @param fileName The name of ile that was harvested (if it exists)
+     * @param fileType The type of the file that was harvested (if it exists)
+     * @param url The url used to be harvested (if it exists)
+     * @param setSpec The setspec used for the harvesting (if it exists)
+     * @param metadataFormat The metadata format used for the harvesting (if it exists)
+     */
+    public HarvestingParametersEntity(DatasetEntity datasetId, Protocol protocol, String fileName, String fileType,
+                                      String url, String setSpec, String metadataFormat) {
         this.datasetId = datasetId;
         this.protocol = protocol;
         this.fileName = fileName;

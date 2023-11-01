@@ -11,11 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Service class to access harvesting parameters table in the database
+ */
 @Service
 public class HarvestingParametersServiceImpl implements HarvestingParametersService{
 
     private final HarvestingParametersRepository harvestingParametersRepository;
     private final DatasetRepository datasetRepository;
+
+    /**
+     * Constructor
+     * @param harvestingParametersRepository The repository that connected to the table harvesting parameters
+     * @param datasetRepository The repository that connects to the dataset repository
+     */
     public HarvestingParametersServiceImpl(HarvestingParametersRepository harvestingParametersRepository,
                                            DatasetRepository datasetRepository) {
         this.harvestingParametersRepository = harvestingParametersRepository;
@@ -25,13 +34,13 @@ public class HarvestingParametersServiceImpl implements HarvestingParametersServ
 
     @Override
     @Transactional
-    public HarvestingParametersEntity createDatasetHarvestingParameters(String datasetId, Protocol protocol,
-                                                                        String fileName, String fileType, String url,
-                                                                        String setSpec, String metadataFormat) {
+    public void createDatasetHarvestingParameters(String datasetId, Protocol protocol,
+                                                  String fileName, String fileType, String url,
+                                                  String setSpec, String metadataFormat) {
         requireNonNull(datasetId, "Dataset name must not be null");
         requireNonNull(protocol, "Type of harvesting must not be null");
         try {
-            return harvestingParametersRepository.save(new HarvestingParametersEntity(datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow(),
+            harvestingParametersRepository.save(new HarvestingParametersEntity(datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow(),
                     protocol, fileName, fileType, url, setSpec, metadataFormat));
         } catch (RuntimeException e) {
             throw new ServiceException(format("Error saving harvesting parameters for dataset id: [%s]. ", datasetId), e);
