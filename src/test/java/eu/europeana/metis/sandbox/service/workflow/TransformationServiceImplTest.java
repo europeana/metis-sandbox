@@ -1,9 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -13,137 +9,152 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Optional;
-
 import eu.europeana.metis.transformation.service.TransformationException;
-import eu.europeana.metis.transformation.service.XsltTransformer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.integration.jdbc.lock.LockRepository;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TransformationServiceImplTest {
 
-  private final TestUtils testUtils = new TestUtils();
+    private final TestUtils testUtils = new TestUtils();
 
-  @Mock
-  TransformXsltRepository transformXsltRepository;
+    @Mock
+    TransformXsltRepository transformXsltRepository;
 
-  @Mock
-  DatasetRepository datasetRepositoryMock;
+    @Mock
+    DatasetRepository datasetRepositoryMock;
 
-  @Spy
-  @InjectMocks
-  TransformationServiceImpl transformationService;
+    @Mock
+    LockRepository lockRepository;
 
-  @Test
-  void transform_expectSuccess() throws IOException{
+    @Spy
+    @InjectMocks
+    TransformationServiceImpl transformationService;
 
-    var input = testUtils.readFileToBytes(
-            "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record.xml");
-    var expected = testUtils.readFileToBytes(
-            "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record-expected.xml");
-    var transformFile = new ByteArrayInputStream(testUtils.readFileToBytes(
-            "record" + File.separator +  "transform" + File.separator + "bnf" + File.separator + "BnF_Xslt_file.xslt"));
+    @Test
+    void transform_expectSuccess() throws IOException {
+        var input = testUtils.readFileToBytes(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record.xml");
+        var expected = testUtils.readFileToBytes(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record-expected.xml");
+        var transformFile = new ByteArrayInputStream(testUtils.readFileToBytes(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "BnF_Xslt_file.xslt"));
 
-    var result = transformationService.transform("identifier", transformFile, input);
+        var result = transformationService.transform("identifier", transformFile, input);
 
-    assertArrayEquals(expected, result);
+        assertArrayEquals(expected, result);
+    }
 
-  }
+    @Test
+    void transform_emptyXml_expectRecordProcessingException() throws IOException {
+        var transformFile = new ByteArrayInputStream(testUtils.readFileToBytes(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "BnF_Xslt_file.xslt"));
 
-  @Test
-  void transform_emptyXml_expectRecordProcessingException() throws IOException {
+        RecordProcessingException exception =
+                assertThrows(RecordProcessingException.class,
+                        () -> transformationService.transform("identifier", transformFile, new byte[0]));
 
-    var transformFile = new ByteArrayInputStream(testUtils.readFileToBytes(
-            "record" + File.separator +  "transform" + File.separator + "bnf" + File.separator + "BnF_Xslt_file.xslt"));
+        assertEquals("identifier", exception.getRecordId());
+    }
 
-    RecordProcessingException exception =
-            assertThrows(RecordProcessingException.class,
-                    () -> transformationService.transform("identifier", transformFile, new byte[0]));
+    @Test
+    void transform_recordInput_expectSuccess() throws IOException {
+        var input = testUtils.readFileToString(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record.xml");
+        var expected = testUtils.readFileToString(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record-expected.xml");
+        var transformFile = testUtils.readFileToString(
+                "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "BnF_Xslt_file.xslt");
 
-    assertEquals("identifier", exception.getRecordId());
-  }
+        var inputRecord = createRecord(input);
+        var expectedRecord = createRecord(expected);
 
-  @Test
-  void transform_recordInput_expectSuccess() throws IOException {
+        var expectedRecordInfo = new RecordInfo(expectedRecord, Collections.emptyList());
 
-    var input = testUtils.readFileToString(
-            "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record.xml");
-    var expected = testUtils.readFileToString(
-            "record" + File.separator + "transform" + File.separator + "bnf" + File.separator + "bnf-record-expected.xml");
-    var transformFile = testUtils.readFileToString(
-            "record" + File.separator +  "transform" + File.separator + "bnf" + File.separator + "BnF_Xslt_file.xslt");
+        when(datasetRepositoryMock.getXsltContentFromDatasetId(1)).thenReturn(transformFile);
 
-    var inputRecord = createRecord(input);
-    var expectedRecord = createRecord(expected);
+        var result = transformationService.transform(inputRecord);
 
-    var expectedRecordInfo = new RecordInfo(expectedRecord, Collections.emptyList());
+        assertEquals(expectedRecordInfo, result);
+    }
 
-    when(datasetRepositoryMock.getXsltContentFromDatasetId(1)).thenReturn(transformFile);
+    @Test
+    void transformToEdmInternal_expectSuccess() throws IOException {
+        var input = testUtils.readFileToString(
+                "record" + File.separator + "transform" + File.separator + "record-input.xml");
+        var expected = testUtils.readFileToString(
+                "record" + File.separator + "transform" + File.separator + "record-expected.xml");
+        var transformFile = testUtils.readFileToString(
+                "record" + File.separator + "defaultTransform.xslt");
 
-    var result = transformationService.transform(inputRecord);
+        var inputRecord = createRecord(input);
+        var expectedRecord = createRecord(expected);
 
-    assertEquals(expectedRecordInfo, result);
+        var expectedRecordInfo = new RecordInfo(expectedRecord, Collections.emptyList());
 
-  }
+        TransformXsltEntity transformXsltEntity = new TransformXsltEntity(transformFile);
+        when(transformXsltRepository.findById(anyInt())).thenReturn(Optional.of(transformXsltEntity));
 
-  @Test
-  void transformToEdmInternal_expectSuccess() throws IOException {
+        var result = transformationService.transformToEdmInternal(inputRecord);
 
-    var input = testUtils.readFileToString(
-        "record" + File.separator + "transform" + File.separator + "record-input.xml");
-    var expected = testUtils.readFileToString(
-        "record" + File.separator + "transform" + File.separator + "record-expected.xml");
-    var transformFile = testUtils.readFileToString(
-        "record" + File.separator + "defaultTransform.xslt");
+        assertEquals(expectedRecordInfo, result);
+    }
 
-    var inputRecord = createRecord(input);
-    var expectedRecord = createRecord(expected);
+    @Test
+    void transformToEdmInternal_expectException() throws IOException {
+        var input = testUtils.readFileToString(
+                "record" + File.separator + "transform" + File.separator + "record-input.xml");
 
-    var expectedRecordInfo = new RecordInfo(expectedRecord, Collections.emptyList());
+        var inputRecord = createRecord(input);
 
-    TransformXsltEntity transformXsltEntity = new TransformXsltEntity(transformFile);
-    when(transformXsltRepository.findById(anyInt())).thenReturn(Optional.of(transformXsltEntity));
+        when(lockRepository.isAcquired(TransformXsltRepository.LOCK_NAME_KEY)).thenReturn(true);
+        Exception result = assertThrows(RecordProcessingException.class, () -> transformationService.transformToEdmInternal(inputRecord));
 
-    var result = transformationService.transformToEdmInternal(inputRecord);
+        assertNotNull(result);
+        assertTrue(result.getCause().getMessage().contains("Default xslt is being updated"));
+    }
 
-    assertEquals(expectedRecordInfo, result);
+    @Test
+    void transformToEdmInternal_invalidXml_expectRecordProcessingException() throws IOException {
+        var input = testUtils.readFileToString(
+                "record" + File.separator + "record-missing-id.xml");
 
-  }
+        var record = createRecord(input);
 
-  @Test
-  void transformToEdmInternal_invalidXml_expectRecordProcessingException() throws IOException {
+        RecordProcessingException exception =
+                assertThrows(RecordProcessingException.class,
+                        () -> transformationService.transformToEdmInternal(record));
 
-    var input = testUtils.readFileToString(
-        "record" + File.separator + "record-missing-id.xml");
+        assertEquals("1", exception.getRecordId());
+    }
 
-    var record = createRecord(input);
-
-    RecordProcessingException exception =
-        assertThrows(RecordProcessingException.class,
-            () -> transformationService.transformToEdmInternal(record));
-
-    assertEquals("1", exception.getRecordId());
-  }
-
-  private Record createRecord(String input){
-    return Record.builder()
-            .datasetId("1").datasetName("One")
-            .providerId("1")
-            .country(Country.ITALY)
-            .language(Language.IT)
-            .content(input.getBytes(StandardCharsets.UTF_8))
-            .recordId(1L).build();
-  }
+    private Record createRecord(String input) {
+        return Record.builder()
+                .datasetId("1").datasetName("One")
+                .providerId("1")
+                .country(Country.ITALY)
+                .language(Language.IT)
+                .content(input.getBytes(StandardCharsets.UTF_8))
+                .recordId(1L).build();
+    }
 }

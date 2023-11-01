@@ -63,7 +63,7 @@ public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
   }
 
   private void saveDefaultXslt(String newTransformXslt) {
-    final Lock lock = lockRegistry.obtain("saveDefaultXslt");
+    final Lock lock = lockRegistry.obtain(TransformXsltRepository.LOCK_NAME_KEY);
     try {
       lock.lock();
       LOGGER.info("Save default xslt lock, Locked");
