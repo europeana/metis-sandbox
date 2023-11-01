@@ -279,19 +279,6 @@ class DatasetController {
         return reportService.getReport(datasetId);
     }
 
-
-    @Operation(summary = "Get a dataset", description = "Get dataset progress information")
-    @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
-    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
-    @GetMapping(value = "{id}/dataset-info", produces = APPLICATION_JSON_VALUE)
-    public DatasetInfoDto getDatasetInfo(
-            @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-        HarvestingParametersDto uploadDataDto = new OAIPmhHarvestingDto("http://oai-testing-url.com/test", "setspec", "metadata-format");
-        DatasetInfoDto datasetInfoDto = new DatasetInfoDto("3", "dataset-test", LocalDateTime.now(),Language.NL, Country.NETHERLANDS, false, false);
-        datasetInfoDto.setHarvestingParameters(uploadDataDto);
-        return datasetInfoDto;
-    }
-
     /**
      * GET API returns the generated tier calculation view for a stored record.
      *

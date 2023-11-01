@@ -43,4 +43,16 @@ public class HarvestingParametersServiceImpl implements HarvestingParametersServ
     public HarvestingParametersEntity getDatasetHarvestingParameters(String datasetId) {
         return harvestingParametersRepository.getHarvestingParametersEntitiesByDatasetId_DatasetId(Integer.parseInt(datasetId));
     }
+
+    @Override
+    @Transactional
+    public void remove(String datasetId) {
+        requireNonNull(datasetId, "Dataset id must not be null");
+        try {
+            harvestingParametersRepository.deleteByDatasetId_DatasetId(Integer.parseInt(datasetId));
+        } catch (RuntimeException e) {
+            throw new ServiceException(
+                    format("Error removing records for dataset id: [%s]. ", datasetId), e);
+        }
+    }
 }

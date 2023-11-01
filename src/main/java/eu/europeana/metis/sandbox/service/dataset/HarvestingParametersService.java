@@ -9,4 +9,6 @@ public interface HarvestingParametersService {
                                                                  String fileType, String url, String setSpec, String metadataFormat);
 
     HarvestingParametersEntity getDatasetHarvestingParameters(String datasetId);
+
+    void remove(String datasetId);
 }

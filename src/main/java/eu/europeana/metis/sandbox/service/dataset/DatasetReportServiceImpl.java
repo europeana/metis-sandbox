@@ -95,14 +95,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
         // search for dataset
         DatasetEntity dataset = getDataset(datasetId);
-        HarvestingParametersDto harvestingParametersDto = prepareHarvestingParametersData(harvestingParametersService
-                .getDatasetHarvestingParameters(datasetId));
 
         //Create DatasetInfoDto from DatasetEntity
         DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
                 dataset.getLanguage(), dataset.getCountry(), dataset.getRecordLimitExceeded(),
                 StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
-        datasetInfoDto.setHarvestingParameters(harvestingParametersDto);
 
         // pull records and errors data for the dataset
         List<StepStatistic> stepStatistics;
