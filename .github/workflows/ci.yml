@@ -23,7 +23,7 @@ jobs:
     with:
       docker-organization: europeana
       docker-image-name: metis-sandbox
-      project-path: metis-sandbox/metis-sandbox-rest/
+      project-path: ./
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
