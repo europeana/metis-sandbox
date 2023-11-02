@@ -14,3 +14,14 @@ jobs:
           sonar_organization: europeana
           sonar_project_key: europeana_metis-sandbox
           sonar_token: ${{ secrets.METIS_SONAR_TOKEN }}
+
+  docker-build_metis-sandbox:
+    needs: ci
+    uses: europeana/metis-actions/.github/workflows/docker-build-push.yml@main
+    with:
+      docker-organization: europeana
+      docker-image-name: metis-sandbox
+      project-path: metis-sandbox/metis-sandbox-rest/
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}

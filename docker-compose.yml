@@ -15,6 +15,8 @@ services:
     volumes:
       - ./src/main/resources/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - ./src/main/resources/database/schema_problem_patterns.sql:/docker-entrypoint-initdb.d/schema_problem_patterns.sql
+      - ./src/main/resources/database/schema_lockrepository.sql:/docker-entrypoint-initdb.d/schema_lockrepository.sql
+      - ./src/main/resources/database/schema_validation.sql:/docker-entrypoint-initdb.d/schema_validation.sql
   rabbitmq:
     image: rabbitmq:3.9.12-management
     container_name: metis-sandbox-rabbitmq
@@ -47,9 +49,9 @@ services:
       MONGO_HOSTS: metis-sandbox-mongo
       POSTGRES_HOST: metis-sandbox-postgres
     volumes:
-      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/resources/custom-truststore.jks:/data/certificates/custom-truststore.jks
-      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/resources/application.properties:/application.properties
-      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/resources/log4j2.xml:/data/logging/log4j2.xml
+      - /data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks:/data/certificates/custom-truststore.jks
+      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml:/application.yml
+      - /data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml:/data/logging/log4j2.xml
     depends_on:
       - rabbitmq
       - mongo
