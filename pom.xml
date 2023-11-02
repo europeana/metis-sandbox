@@ -45,15 +45,15 @@
     <version.slf4j>1.7.30</version.slf4j>
     <version.log4j>2.20.0</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
-    <version.wiremock>2.35.0</version.wiremock>
+    <version.wiremock>2.35.1</version.wiremock>
     <version.commons.collections>3.2.2</version.commons.collections>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
-    <version.testcontainers>1.18.0</version.testcontainers>
+    <version.testcontainers>1.19.0</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
     <version.apm>1.33.0</version.apm>
-    <version.netty>4.1.91.Final</version.netty>
+    <version.netty>4.1.94.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
     <version.bucket4j>8.3.0</version.bucket4j>
