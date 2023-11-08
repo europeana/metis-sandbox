@@ -10,43 +10,43 @@ import org.springframework.context.annotation.Configuration;
 
 
 /**
- * The type Published queue configuration.
+ * The type Media queue configuration.
  */
 @Configuration
-public class PublishedQueueConfiguration extends QueueConsumerConfiguration {
+public class MediaQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.published.consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.media.consumers}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.published.max-consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.media.max-consumers}")
   private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.published.prefetch:3}")
+  @Value("${sandbox.rabbitmq.queues.record.media.prefetch}")
   private int messagePrefetchCount;
 
   /**
-   * Instantiates a new Published queue configuration.
+   * Instantiates a new Media queue configuration.
    *
    * @param messageConverter the message converter
    */
-  public PublishedQueueConfiguration(MessageConverter messageConverter) {
+  public MediaQueueConfig(MessageConverter messageConverter) {
     super(messageConverter);
   }
 
   /**
-   * Closing factory simple rabbit listener container factory.
+   * Publish factory simple rabbit listener container factory.
    *
    * @param configurer the configurer
    * @param connectionFactory the connection factory
    * @return the simple rabbit listener container factory
    */
   @Bean
-  SimpleRabbitListenerContainerFactory closingFactory(
+  SimpleRabbitListenerContainerFactory publishFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    super.setConcurrentQueueConsumers(concurrentConsumers);
-    super.setMaxConcurrentQueueConsumers(maxConsumers);
-    super.setMessagePrefetchCount(messagePrefetchCount);
-    return super.getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    setConcurrentQueueConsumers(concurrentConsumers);
+    setMaxConcurrentQueueConsumers(maxConsumers);
+    setMessagePrefetchCount(messagePrefetchCount);
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 }

@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
  * the message broker
  */
 @Configuration
-class RecordLogQueueConfiguration extends QueueConsumerConfiguration {
+class RecordLogQueueConfig extends QueueConsumerConfig {
 
   @Value("${sandbox.rabbitmq.queues.record.log.queue:#{null}}")
   private String queue;
@@ -31,13 +31,13 @@ class RecordLogQueueConfiguration extends QueueConsumerConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.log.routing-key:#{null}}")
   private String routingKey;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.log.consumers}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers}")
   private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.prefetch:3}")
+  @Value("${sandbox.rabbitmq.queues.record.log.prefetch}")
   private int messagePrefetchCount;
 
   private final AmqpConfiguration amqpConfiguration;
@@ -48,8 +48,8 @@ class RecordLogQueueConfiguration extends QueueConsumerConfiguration {
    * @param messageConverter the message converter
    * @param amqpConfiguration the amqp configuration
    */
-  public RecordLogQueueConfiguration(MessageConverter messageConverter,
-      AmqpConfiguration amqpConfiguration) {
+  public RecordLogQueueConfig(MessageConverter messageConverter,
+                              AmqpConfiguration amqpConfiguration) {
     super(messageConverter);
     this.amqpConfiguration = amqpConfiguration;
   }
@@ -112,9 +112,9 @@ class RecordLogQueueConfiguration extends QueueConsumerConfiguration {
   SimpleRabbitListenerContainerFactory recordLogFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    super.setConcurrentQueueConsumers(concurrentConsumers);
-    super.setMaxConcurrentQueueConsumers(maxConsumers);
-    super.setMessagePrefetchCount(messagePrefetchCount);
-    return super.getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    setConcurrentQueueConsumers(concurrentConsumers);
+    setMaxConcurrentQueueConsumers(maxConsumers);
+    setMessagePrefetchCount(messagePrefetchCount);
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 }

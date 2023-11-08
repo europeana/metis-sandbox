@@ -8,44 +8,45 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
 /**
- * The type Created queue configuration.
+ * The type Validated external queue configuration.
  */
 @Configuration
-public class CreatedQueueConfiguration extends QueueConsumerConfiguration {
+public class ValidatedExternalQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.created.consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.consumers}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.created.max-consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.max-consumers}")
   private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.created.prefetch:3}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.prefetch}")
   private int messagePrefetchCount;
 
   /**
-   * Instantiates a new Queue consumer configuration.
+   * Instantiates a new Validated external queue configuration.
    *
    * @param messageConverter the message converter
    */
-  public CreatedQueueConfiguration(MessageConverter messageConverter) {
+  public ValidatedExternalQueueConfig(MessageConverter messageConverter) {
     super(messageConverter);
   }
 
   /**
-   * External validation factory simple rabbit listener container factory.
+   * Transformation factory simple rabbit listener container factory.
    *
    * @param configurer the configurer
    * @param connectionFactory the connection factory
    * @return the simple rabbit listener container factory
    */
   @Bean
-  SimpleRabbitListenerContainerFactory externalValidationFactory(
+  SimpleRabbitListenerContainerFactory transformationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    super.setConcurrentQueueConsumers(concurrentConsumers);
-    super.setMaxConcurrentQueueConsumers(maxConsumers);
-    super.setMessagePrefetchCount(messagePrefetchCount);
-    return super.getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    setConcurrentQueueConsumers(concurrentConsumers);
+    setMaxConcurrentQueueConsumers(maxConsumers);
+    setMessagePrefetchCount(messagePrefetchCount);
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 }

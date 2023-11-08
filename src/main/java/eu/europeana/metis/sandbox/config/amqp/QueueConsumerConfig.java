@@ -5,22 +5,22 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Queue consumer configuration for workflow listeners.
  * Every listener has a {@link SimpleRabbitListenerContainerFactory}.
  * <br /> If changes like increasing consumers for a listener are needed,
- * every subclass can be customized by using the SimpleRabbitListenerContainerFactory
- * by default 2 consumers, 2 concurrent and 1 prefetch is set if none is defined
- * subclasses may also define their own defaults.
+ * every subclass can be customized by using the SimpleRabbitListenerContainerFactory.
  */
-public abstract class QueueConsumerConfiguration {
+@Configuration
+public abstract class QueueConsumerConfig {
 
-  @Value("${spring.rabbitmq.listener.simple.concurrency:2}")
+  @Value("${spring.rabbitmq.listener.simple.consumers}")
   private int concurrentQueueConsumers;
-  @Value("${spring.rabbitmq.listener.simple.max-concurrency:2}")
+  @Value("${spring.rabbitmq.listener.simple.max-consumers}")
   private int maxConcurrentQueueConsumers;
-  @Value("${spring.rabbitmq.listener.prefetch:1}")
+  @Value("${spring.rabbitmq.listener.simple.prefetch}")
   private int messagePrefetchCount;
 
   private final MessageConverter messageConverter;
@@ -30,7 +30,7 @@ public abstract class QueueConsumerConfiguration {
    *
    * @param messageConverter the message converter
    */
-  public QueueConsumerConfiguration(MessageConverter messageConverter) {
+  public QueueConsumerConfig(MessageConverter messageConverter) {
     this.messageConverter = messageConverter;
   }
 

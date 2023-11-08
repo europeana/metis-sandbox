@@ -13,15 +13,15 @@ import org.springframework.context.annotation.Configuration;
  * The type Normalized queue configuration.
  */
 @Configuration
-public class NormalizedQueueConfiguration extends QueueConsumerConfiguration {
+public class NormalizedQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.normalized.consumers}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.max-consumers:12}")
+  @Value("${sandbox.rabbitmq.queues.record.normalized.max-consumers}")
   private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.prefetch:3}")
+  @Value("${sandbox.rabbitmq.queues.record.normalized.prefetch}")
   private int messagePrefetchCount;
 
   /**
@@ -29,7 +29,7 @@ public class NormalizedQueueConfiguration extends QueueConsumerConfiguration {
    *
    * @param messageConverter the message converter
    */
-  public NormalizedQueueConfiguration(MessageConverter messageConverter) {
+  public NormalizedQueueConfig(MessageConverter messageConverter) {
     super(messageConverter);
   }
 
@@ -37,9 +37,9 @@ public class NormalizedQueueConfiguration extends QueueConsumerConfiguration {
   SimpleRabbitListenerContainerFactory enrichmentFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    super.setConcurrentQueueConsumers(concurrentConsumers);
-    super.setMaxConcurrentQueueConsumers(maxConsumers);
-    super.setMessagePrefetchCount(messagePrefetchCount);
-    return super.getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    setConcurrentQueueConsumers(concurrentConsumers);
+    setMaxConcurrentQueueConsumers(maxConsumers);
+    setMessagePrefetchCount(messagePrefetchCount);
+    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
   }
 }
