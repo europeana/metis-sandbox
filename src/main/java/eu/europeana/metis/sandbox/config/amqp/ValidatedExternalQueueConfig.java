@@ -15,10 +15,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ValidatedExternalQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.validated.external.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.concurrency}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.validated.external.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.validated.external.max-concurrency}")
   private int maxConsumers;
 
   @Value("${sandbox.rabbitmq.queues.record.validated.external.prefetch}")
@@ -44,9 +44,10 @@ public class ValidatedExternalQueueConfig extends QueueConsumerConfig {
   SimpleRabbitListenerContainerFactory transformationFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    setConcurrentQueueConsumers(concurrentConsumers);
-    setMaxConcurrentQueueConsumers(maxConsumers);
-    setMessagePrefetchCount(messagePrefetchCount);
-    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
+    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
+    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
+    return simpleRabbitListenerContainerFactory;
   }
 }

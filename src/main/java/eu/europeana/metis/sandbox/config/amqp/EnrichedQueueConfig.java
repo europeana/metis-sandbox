@@ -15,10 +15,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EnrichedQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.enriched.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.enriched.concurrency}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.enriched.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.enriched.max-concurrency}")
   private int maxConsumers;
 
   @Value("${sandbox.rabbitmq.queues.record.enriched.prefetch}")
@@ -44,9 +44,10 @@ public class EnrichedQueueConfig extends QueueConsumerConfig {
   SimpleRabbitListenerContainerFactory mediaProcessingFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    setConcurrentQueueConsumers(concurrentConsumers);
-    setMaxConcurrentQueueConsumers(maxConsumers);
-    setMessagePrefetchCount(messagePrefetchCount);
-    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
+    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
+    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
+    return simpleRabbitListenerContainerFactory;
   }
 }

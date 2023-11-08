@@ -14,10 +14,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TransformEdmExternalQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.concurrency}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.max-concurrency}")
   private int maxConsumers;
 
   @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.prefetch}")
@@ -45,9 +45,10 @@ public class TransformEdmExternalQueueConfig extends QueueConsumerConfig {
   SimpleRabbitListenerContainerFactory transformationEdmExternalFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    setConcurrentQueueConsumers(concurrentConsumers);
-    setMaxConcurrentQueueConsumers(maxConsumers);
-    setMessagePrefetchCount(messagePrefetchCount);
-    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
+    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
+    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
+    return simpleRabbitListenerContainerFactory;
   }
 }

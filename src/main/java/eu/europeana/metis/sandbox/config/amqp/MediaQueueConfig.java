@@ -15,10 +15,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MediaQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.media.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.media.concurrency}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.media.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.media.max-concurrency}")
   private int maxConsumers;
 
   @Value("${sandbox.rabbitmq.queues.record.media.prefetch}")
@@ -44,9 +44,10 @@ public class MediaQueueConfig extends QueueConsumerConfig {
   SimpleRabbitListenerContainerFactory publishFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    setConcurrentQueueConsumers(concurrentConsumers);
-    setMaxConcurrentQueueConsumers(maxConsumers);
-    setMessagePrefetchCount(messagePrefetchCount);
-    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
+    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
+    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
+    return simpleRabbitListenerContainerFactory;
   }
 }

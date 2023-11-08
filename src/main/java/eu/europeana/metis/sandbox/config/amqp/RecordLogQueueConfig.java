@@ -31,10 +31,10 @@ class RecordLogQueueConfig extends QueueConsumerConfig {
   @Value("${sandbox.rabbitmq.queues.record.log.routing-key:#{null}}")
   private String routingKey;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.log.concurrency}")
   private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.log.max-consumers}")
+  @Value("${sandbox.rabbitmq.queues.record.log.max-concurrency}")
   private int maxConsumers;
 
   @Value("${sandbox.rabbitmq.queues.record.log.prefetch}")
@@ -112,9 +112,10 @@ class RecordLogQueueConfig extends QueueConsumerConfig {
   SimpleRabbitListenerContainerFactory recordLogFactory(
       SimpleRabbitListenerContainerFactoryConfigurer configurer,
       ConnectionFactory connectionFactory) {
-    setConcurrentQueueConsumers(concurrentConsumers);
-    setMaxConcurrentQueueConsumers(maxConsumers);
-    setMessagePrefetchCount(messagePrefetchCount);
-    return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
+    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
+    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
+    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
+    return simpleRabbitListenerContainerFactory;
   }
 }
