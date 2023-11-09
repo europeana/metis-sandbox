@@ -14,39 +14,35 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CreatedQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.created.concurrency}")
-  private int concurrentConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.created.concurrency}")
+    private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.created.max-concurrency}")
-  private int maxConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.created.max-concurrency}")
+    private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.created.prefetch}")
-  private int messagePrefetchCount;
+    @Value("${sandbox.rabbitmq.queues.record.created.prefetch}")
+    private int messagePrefetchCount;
 
-  /**
-   * Instantiates a new Queue consumer configuration.
-   *
-   * @param messageConverter the message converter
-   */
-  public CreatedQueueConfig(MessageConverter messageConverter) {
-    super(messageConverter);
-  }
+    /**
+     * Instantiates a new Queue consumer configuration.
+     *
+     * @param messageConverter the message converter
+     */
+    public CreatedQueueConfig(MessageConverter messageConverter) {
+        super(messageConverter);
+    }
 
-  /**
-   * External validation factory simple rabbit listener container factory.
-   *
-   * @param configurer the configurer
-   * @param connectionFactory the connection factory
-   * @return the simple rabbit listener container factory
-   */
-  @Bean
-  SimpleRabbitListenerContainerFactory externalValidationFactory(
-      SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      ConnectionFactory connectionFactory) {
-    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
-    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
-    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
-    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
-    return simpleRabbitListenerContainerFactory;
-  }
+    /**
+     * External validation factory simple rabbit listener container factory.
+     *
+     * @param configurer        the configurer
+     * @param connectionFactory the connection factory
+     * @return the simple rabbit listener container factory
+     */
+    @Bean
+    SimpleRabbitListenerContainerFactory externalValidationFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            ConnectionFactory connectionFactory) {
+        return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory, concurrentConsumers, maxConsumers, messagePrefetchCount);
+    }
 }

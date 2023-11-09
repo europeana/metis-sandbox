@@ -15,32 +15,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class NormalizedQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.concurrency}")
-  private int concurrentConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.normalized.concurrency}")
+    private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.max-concurrency}")
-  private int maxConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.normalized.max-concurrency}")
+    private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.normalized.prefetch}")
-  private int messagePrefetchCount;
+    @Value("${sandbox.rabbitmq.queues.record.normalized.prefetch}")
+    private int messagePrefetchCount;
 
-  /**
-   * Instantiates a new Normalized queue configuration.
-   *
-   * @param messageConverter the message converter
-   */
-  public NormalizedQueueConfig(MessageConverter messageConverter) {
-    super(messageConverter);
-  }
+    /**
+     * Instantiates a new Normalized queue configuration.
+     *
+     * @param messageConverter the message converter
+     */
+    public NormalizedQueueConfig(MessageConverter messageConverter) {
+        super(messageConverter);
+    }
 
-  @Bean
-  SimpleRabbitListenerContainerFactory enrichmentFactory(
-      SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      ConnectionFactory connectionFactory) {
-    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
-    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
-    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
-    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
-    return simpleRabbitListenerContainerFactory;
-  }
+    @Bean
+    SimpleRabbitListenerContainerFactory enrichmentFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            ConnectionFactory connectionFactory) {
+        return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory, concurrentConsumers, maxConsumers, messagePrefetchCount);
+    }
 }

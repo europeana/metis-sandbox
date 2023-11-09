@@ -15,39 +15,35 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MediaQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.media.concurrency}")
-  private int concurrentConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.media.concurrency}")
+    private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.media.max-concurrency}")
-  private int maxConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.media.max-concurrency}")
+    private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.media.prefetch}")
-  private int messagePrefetchCount;
+    @Value("${sandbox.rabbitmq.queues.record.media.prefetch}")
+    private int messagePrefetchCount;
 
-  /**
-   * Instantiates a new Media queue configuration.
-   *
-   * @param messageConverter the message converter
-   */
-  public MediaQueueConfig(MessageConverter messageConverter) {
-    super(messageConverter);
-  }
+    /**
+     * Instantiates a new Media queue configuration.
+     *
+     * @param messageConverter the message converter
+     */
+    public MediaQueueConfig(MessageConverter messageConverter) {
+        super(messageConverter);
+    }
 
-  /**
-   * Publish factory simple rabbit listener container factory.
-   *
-   * @param configurer the configurer
-   * @param connectionFactory the connection factory
-   * @return the simple rabbit listener container factory
-   */
-  @Bean
-  SimpleRabbitListenerContainerFactory publishFactory(
-      SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      ConnectionFactory connectionFactory) {
-    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
-    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
-    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
-    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
-    return simpleRabbitListenerContainerFactory;
-  }
+    /**
+     * Publish factory simple rabbit listener container factory.
+     *
+     * @param configurer        the configurer
+     * @param connectionFactory the connection factory
+     * @return the simple rabbit listener container factory
+     */
+    @Bean
+    SimpleRabbitListenerContainerFactory publishFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            ConnectionFactory connectionFactory) {
+        return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory, concurrentConsumers, maxConsumers, messagePrefetchCount);
+    }
 }

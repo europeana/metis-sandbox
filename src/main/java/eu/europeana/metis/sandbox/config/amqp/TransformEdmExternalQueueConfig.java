@@ -14,41 +14,37 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TransformEdmExternalQueueConfig extends QueueConsumerConfig {
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.concurrency}")
-  private int concurrentConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.concurrency}")
+    private int concurrentConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.max-concurrency}")
-  private int maxConsumers;
+    @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.max-concurrency}")
+    private int maxConsumers;
 
-  @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.prefetch}")
-  private int messagePrefetchCount;
-
-
-  /**
-   * Instantiates a new Transform edm external queue configuration.
-   *
-   * @param messageConverter the message converter
-   */
-  public TransformEdmExternalQueueConfig(MessageConverter messageConverter) {
-    super(messageConverter);
-  }
+    @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.prefetch}")
+    private int messagePrefetchCount;
 
 
-  /**
-   * Transformation edm external factory simple rabbit listener container factory.
-   *
-   * @param configurer the configurer
-   * @param connectionFactory the connection factory
-   * @return the simple rabbit listener container factory
-   */
-  @Bean
-  SimpleRabbitListenerContainerFactory transformationEdmExternalFactory(
-      SimpleRabbitListenerContainerFactoryConfigurer configurer,
-      ConnectionFactory connectionFactory) {
-    SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = getSimpleRabbitListenerContainerFactory(configurer, connectionFactory);
-    simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
-    simpleRabbitListenerContainerFactory.setMaxConcurrentConsumers(maxConsumers);
-    simpleRabbitListenerContainerFactory.setPrefetchCount(messagePrefetchCount);
-    return simpleRabbitListenerContainerFactory;
-  }
+    /**
+     * Instantiates a new Transform edm external queue configuration.
+     *
+     * @param messageConverter the message converter
+     */
+    public TransformEdmExternalQueueConfig(MessageConverter messageConverter) {
+        super(messageConverter);
+    }
+
+
+    /**
+     * Transformation edm external factory simple rabbit listener container factory.
+     *
+     * @param configurer        the configurer
+     * @param connectionFactory the connection factory
+     * @return the simple rabbit listener container factory
+     */
+    @Bean
+    SimpleRabbitListenerContainerFactory transformationEdmExternalFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            ConnectionFactory connectionFactory) {
+        return getSimpleRabbitListenerContainerFactory(configurer, connectionFactory, concurrentConsumers, maxConsumers, messagePrefetchCount);
+    }
 }
