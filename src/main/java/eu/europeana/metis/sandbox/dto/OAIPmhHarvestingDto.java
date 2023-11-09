@@ -1,19 +1,19 @@
 package eu.europeana.metis.sandbox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.common.Protocol;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import io.swagger.annotations.ApiModel;
 
 /**
  * Represents the data related to OAI-PMH harvesting
  */
 @ApiModel(OAIPmhHarvestingDto.SWAGGER_MODEL_NAME)
-public class OAIPmhHarvestingDto implements HarvestingParametersDto {
+public class OAIPmhHarvestingDto implements HarvestingParametricDto {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 
-    @JsonProperty("protocol")
-    private final Protocol protocol = Protocol.OAI_PMH;
+    @JsonProperty("harvest-protocol")
+    private static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.OAI_PMH;
 
     @JsonProperty("url")
     private final String url;
@@ -36,8 +36,8 @@ public class OAIPmhHarvestingDto implements HarvestingParametersDto {
         this.metadataFormat = metadataFormat;
     }
 
-    public Protocol getProtocol() {
-        return protocol;
+    public HarvestProtocol getProtocol() {
+        return HARVEST_PROTOCOL;
     }
 
     public String getUrl() {

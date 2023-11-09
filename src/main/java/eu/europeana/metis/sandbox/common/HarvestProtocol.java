@@ -3,13 +3,13 @@ package eu.europeana.metis.sandbox.common;
 /**
  * Enum class to represent the type of harvesting
  */
-public enum Protocol {
+public enum HarvestProtocol {
     FILE("FILE"),
     HTTP("HTTP"),
     OAI_PMH("OAI-PMH");
     private final String value;
 
-    Protocol(String value) {
+    HarvestProtocol(String value) {
         this.value = value;
     }
 

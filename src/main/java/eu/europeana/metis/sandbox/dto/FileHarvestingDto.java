@@ -1,19 +1,19 @@
 package eu.europeana.metis.sandbox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.common.Protocol;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import io.swagger.annotations.ApiModel;
 
 /**
  * Represents the data related to File harvesting
  */
 @ApiModel(FileHarvestingDto.SWAGGER_MODEL_NAME)
-public class FileHarvestingDto implements HarvestingParametersDto {
+public class FileHarvestingDto implements HarvestingParametricDto {
 
     public static final String SWAGGER_MODEL_NAME = "FileUpload";
 
-    @JsonProperty("protocol")
-    private final Protocol protocol = Protocol.FILE;
+    @JsonProperty("harvest-protocol")
+    private static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.FILE;
 
     @JsonProperty("file-name")
     private final String fileName;
@@ -31,8 +31,8 @@ public class FileHarvestingDto implements HarvestingParametersDto {
         this.fileType = fileType;
     }
 
-    public Protocol getProtocol(){
-        return protocol;
+    public HarvestProtocol getProtocol(){
+        return HARVEST_PROTOCOL;
     }
 
     public String getFileName() {

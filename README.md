@@ -82,7 +82,7 @@ In the action sections of metis-sandbox repository now exists a new action calle
 1. Click here to enter the option.
 2. In this section you enable the parameters.
 3. Parameter section.
-   - a. **http or https protocol.** Now is by default https. The test run in the acceptance environment. need to update ACCEPTANCE_API_ENDPOINT and ACCEPTANCE_API_PATH in the secrets section of metis sandbox repository. To change the url.
+   - a. **http or https harvestProtocol.** Now is by default https. The test run in the acceptance environment. need to update ACCEPTANCE_API_ENDPOINT and ACCEPTANCE_API_PATH in the secrets section of metis sandbox repository. To change the url.
    - b. **Port.** Now is by default 443.
    - c. **Amount of users (threads).** Amount of users running at the same time.
    - d. **Ramp up period (in seconds).** time in between to spawn new users.

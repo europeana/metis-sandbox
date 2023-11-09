@@ -1,19 +1,19 @@
 package eu.europeana.metis.sandbox.repository;
 
-import eu.europeana.metis.sandbox.entity.HarvestingParametersEntity;
+import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * Repository connected to Harvesting Parameters table
  */
-public interface HarvestingParametersRepository extends JpaRepository<HarvestingParametersEntity, Long> {
+public interface HarvestingParameterRepository extends JpaRepository<HarvestingParameterEntity, Long> {
 
     /**
      * Gets the entity based on the dataset id
      * @param datasetId The id of the dataset to do the search
      * @return The entity associated to the dataset id
      */
-    HarvestingParametersEntity getHarvestingParametersEntitiesByDatasetId_DatasetId(Integer datasetId);
+    HarvestingParameterEntity getHarvestingParametersEntitiesByDatasetId_DatasetId(Integer datasetId);
 
     /**
      * Removes the entity from the table based on the dataset id

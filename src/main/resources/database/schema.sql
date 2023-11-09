@@ -83,11 +83,11 @@ CREATE TABLE IF NOT EXISTS default_transform_xslt
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS harvesting_parameters
+CREATE TABLE IF NOT EXISTS harvesting_parameter
 (
     id               BIGSERIAL,
     dataset_id       BIGINT      NOT NULL,
-    protocol         VARCHAR(10) NOT NULL,
+    harvest_protocol VARCHAR(10) NOT NULL,
     file_name        TEXT        NULL,
     file_type        VARCHAR(9)  NULL,
     url              TEXT        NULL,
@@ -95,9 +95,9 @@ CREATE TABLE IF NOT EXISTS harvesting_parameters
     metadata_format  TEXT        NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
-    );
+);
 
-CREATE INDEX ON harvesting_parameters (dataset_id);
+CREATE INDEX ON harvesting_parameter (dataset_id);
 CREATE INDEX ON dataset_log (dataset_id);
 CREATE INDEX ON record_log (record_id);
 CREATE INDEX ON record_error_log (record_id);
