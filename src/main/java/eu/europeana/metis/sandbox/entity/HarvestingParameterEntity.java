@@ -1,9 +1,6 @@
 package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -63,51 +60,6 @@ public class HarvestingParameterEntity {
         this.url = url;
         this.setSpec = setSpec;
         this.metadataFormat = metadataFormat;
-    }
-
-    /**
-     * Constructor based on parametricDto type FileHarvestingDto
-     * @param datasetId The id of the dataset associated to this type of harvesting
-     * @param fileHarvestingDto The object encapsulating all data related to file harvesting
-     */
-    public HarvestingParameterEntity(DatasetEntity datasetId, FileHarvestingDto fileHarvestingDto){
-        this.datasetId = datasetId;
-        this.harvestProtocol = fileHarvestingDto.getProtocol();
-        this.fileName = fileHarvestingDto.getFileName();
-        this.fileType = fileHarvestingDto.getFileType();
-        this.url = null;
-        this.setSpec = null;
-        this.metadataFormat = null;
-    }
-
-    /**
-     * Constructor based on parametricDto type HttpHarvestingDto
-     * @param datasetId The id of the dataset associated to this type of harvesting
-     * @param httpHarvestingDto The object encapsulating all data related to http harvesting
-     */
-    public HarvestingParameterEntity(DatasetEntity datasetId, HttpHarvestingDto httpHarvestingDto){
-        this.datasetId = datasetId;
-        this.harvestProtocol = httpHarvestingDto.getProtocol();
-        this.fileName = null;
-        this.fileType = null;
-        this.url = httpHarvestingDto.getUrl();
-        this.setSpec = null;
-        this.metadataFormat = null;
-    }
-
-    /**
-     * Constructor based on parametricDto type OAIPmhHarvestingDto
-     * @param datasetId The id of the dataset associated to this type of harvesting
-     * @param oaiPmhHarvestingDto The object encapsulating all data related to OAI-PMH harvesting
-     */
-    public HarvestingParameterEntity(DatasetEntity datasetId, OAIPmhHarvestingDto oaiPmhHarvestingDto){
-        this.datasetId = datasetId;
-        this.harvestProtocol = oaiPmhHarvestingDto.getProtocol();
-        this.fileName = null;
-        this.fileType = null;
-        this.url = oaiPmhHarvestingDto.getUrl();
-        this.setSpec = oaiPmhHarvestingDto.getSetSpec();
-        this.metadataFormat = oaiPmhHarvestingDto.getMetadataFormat();
     }
 
     public HarvestingParameterEntity() {

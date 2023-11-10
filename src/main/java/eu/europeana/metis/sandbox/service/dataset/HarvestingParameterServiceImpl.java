@@ -73,13 +73,19 @@ public class HarvestingParameterServiceImpl implements HarvestingParameterServic
 
         switch(harvestingParametricDto.getProtocol()){
             case FILE:
-                return new HarvestingParameterEntity(datasetEntity,(FileHarvestingDto) harvestingParametricDto);
+                FileHarvestingDto fileHarvestingDto = (FileHarvestingDto) harvestingParametricDto;
+                return new HarvestingParameterEntity(datasetEntity, fileHarvestingDto.getProtocol(), fileHarvestingDto.getFileName(),
+                        fileHarvestingDto.getFileType(), null, null, null);
 
             case HTTP:
-                return new HarvestingParameterEntity(datasetEntity,(HttpHarvestingDto) harvestingParametricDto);
+                HttpHarvestingDto httpHarvestingDto = (HttpHarvestingDto) harvestingParametricDto;
+                return new HarvestingParameterEntity(datasetEntity, httpHarvestingDto.getProtocol(), null, null,
+                        httpHarvestingDto.getUrl(), null, null);
 
             case OAI_PMH:
-                return new HarvestingParameterEntity(datasetEntity,(OAIPmhHarvestingDto) harvestingParametricDto);
+                OAIPmhHarvestingDto oaiPmhHarvestingDto = (OAIPmhHarvestingDto) harvestingParametricDto;
+                return new HarvestingParameterEntity(datasetEntity, oaiPmhHarvestingDto.getProtocol(), null, null,
+                        oaiPmhHarvestingDto.getUrl(), oaiPmhHarvestingDto.getSetSpec(), oaiPmhHarvestingDto.getMetadataFormat());
 
             default:
                 throw new NoSuchParameterException("No such value for harvest protocol exists");

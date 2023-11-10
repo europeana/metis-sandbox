@@ -55,10 +55,10 @@
             <stringProp name="Argument.desc">API PATH for http request</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="harvestProtocol" elementType="Argument">
-            <stringProp name="Argument.name">harvestProtocol</stringProp>
+          <elementProp name="protocol" elementType="Argument">
+            <stringProp name="Argument.name">protocol</stringProp>
             <stringProp name="Argument.value">http</stringProp>
-            <stringProp name="Argument.desc">http or https harvestProtocol</stringProp>
+            <stringProp name="Argument.desc">http or https protocol</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -111,7 +111,7 @@
           </elementProp>
           <stringProp name="HTTPSampler.domain">${__P(host,${host})}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port,${port})}</stringProp>
-          <stringProp name="HTTPSampler.harvestProtocol">${__P(harvestProtocol,${harvestProtocol})}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${__P(protocol,${protocol})}</stringProp>
           <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
           <stringProp name="HTTPSampler.path">${__P(apipath,${apipath})}</stringProp>
           <stringProp name="TestPlan.comments">Defaults on api requests</stringProp>
@@ -148,7 +148,7 @@
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.harvestProtocol"></stringProp>
+          <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path">dataset/${datasetName}/harvestByUrl</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -217,7 +217,7 @@ vars.put(&quot;step&quot;,&quot;N/A&quot;);</stringProp>
             </elementProp>
             <stringProp name="HTTPSampler.domain"></stringProp>
             <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.harvestProtocol"></stringProp>
+            <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
             <stringProp name="HTTPSampler.path">/dataset/${datasetId}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -250,7 +250,7 @@ vars.put(&quot;step&quot;,&quot;N/A&quot;);</stringProp>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.harvestProtocol"></stringProp>
+          <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path">/dataset/${datasetId}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -281,7 +281,7 @@ vars.put(&quot;step&quot;,&quot;N/A&quot;);</stringProp>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.harvestProtocol"></stringProp>
+          <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path">/pattern-analysis/${datasetId}/get-dataset-pattern-analysis</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
