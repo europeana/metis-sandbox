@@ -8,10 +8,6 @@ import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.HarvestingParametricDto;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -19,7 +15,6 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -72,8 +67,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
             DatasetLogService datasetLogService,
             RecordLogRepository recordLogRepository,
             RecordErrorLogRepository errorLogRepository,
-            RecordRepository recordRepository,
-            HarvestingParameterService harvestingParameterService) {
+            RecordRepository recordRepository) {
         this.datasetRepository = datasetRepository;
         this.datasetLogService = datasetLogService;
         this.recordLogRepository = recordLogRepository;
@@ -279,23 +273,5 @@ class DatasetReportServiceImpl implements DatasetReportService {
         // encapsulate values into TiersZeroInfo
         return contentTierInfo == null && metadataTierInfo == null ? null :
                 new TiersZeroInfo(contentTierInfo, metadataTierInfo);
-    }
-
-    private HarvestingParametricDto prepareHarvestingParametersData(HarvestingParameterEntity harvestingParameterEntity){
-        switch(harvestingParameterEntity.getProtocol()){
-            case FILE:
-                return new FileHarvestingDto(harvestingParameterEntity.getFileName(), harvestingParameterEntity.getFileType());
-
-            case HTTP:
-                return new HttpHarvestingDto(harvestingParameterEntity.getUrl());
-
-            case OAI_PMH:
-                return new OAIPmhHarvestingDto(harvestingParameterEntity.getUrl(), harvestingParameterEntity.getSetSpec(),
-                        harvestingParameterEntity.getMetadataFormat());
-
-            default:
-                throw new  ServiceException(format("Failed to get harvesting parameters for dataset id: [%s]. ",
-                        harvestingParameterEntity.getDatasetId().getDatasetId()));
-        }
     }
 }
