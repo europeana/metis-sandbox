@@ -133,7 +133,7 @@
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-normalization</artifactId>
-      <version>${version.metis}</version>
+      <version>${version.metis.normalization}</version>
     </dependency>
 
     <dependency>
