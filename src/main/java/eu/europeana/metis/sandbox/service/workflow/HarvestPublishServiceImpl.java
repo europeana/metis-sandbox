@@ -13,6 +13,10 @@ import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
+import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +31,14 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
 
     private final HarvestService harvestService;
     private final Executor asyncServiceTaskExecutor;
+    private final HarvestingParameterService harvestingParameterService;
 
     public HarvestPublishServiceImpl(HarvestService harvestService,
-                                     Executor asyncServiceTaskExecutor) {
+                                     Executor asyncServiceTaskExecutor,
+                                     HarvestingParameterService harvestingParameterService) {
         this.harvestService = harvestService;
         this.asyncServiceTaskExecutor = asyncServiceTaskExecutor;
+        this.harvestingParameterService = harvestingParameterService;
     }
 
     @Override
@@ -43,6 +50,8 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                     .datasetName(datasetMetadata.getDatasetName())
                     .country(datasetMetadata.getCountry())
                     .language(datasetMetadata.getLanguage());
+            harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
+                    new FileHarvestingDto(file.getOriginalFilename(), compressedFileExtension.name()));
             return runHarvestFileAsync(file.getInputStream(), recordDataEncapsulated, datasetMetadata, compressedFileExtension);
         } catch (IOException e) {
             throw new ServiceException("Error harvesting records from file " + file.getName(), e);
@@ -57,6 +66,7 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                 .datasetName(datasetMetadata.getDatasetName())
                 .country(datasetMetadata.getCountry())
                 .language(datasetMetadata.getLanguage());
+        harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
         return CompletableFuture.runAsync(() -> {
             try (InputStream input = new URL(url).openStream()) {
                 harvestService.harvest(input, datasetMetadata.getDatasetId(), recordDataEncapsulated,
@@ -98,6 +108,9 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                 .language(datasetMetadata.getLanguage())
                 .datasetName(datasetMetadata.getDatasetName())
                 .datasetId(datasetMetadata.getDatasetId());
+        harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
+                new OAIPmhHarvestingDto(oaiHarvestData.getUrl(), oaiHarvestData.getSetspec(),
+                        oaiHarvestData.getMetadataformat()));
         return CompletableFuture.runAsync(
                 () -> harvestService.harvestOaiPmh(datasetMetadata.getDatasetId(), recordDataEncapsulated, oaiHarvestData,
                         datasetMetadata.getStepSize()), asyncServiceTaskExecutor);
