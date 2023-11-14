@@ -52,7 +52,7 @@
     <version.testcontainers>1.19.0</version.testcontainers>
     <version.awaitability>1.7.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
-    <version.apm>1.33.0</version.apm>
+      <version.elastic.apm>1.43.0</version.elastic.apm>
     <version.netty>4.1.94.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
@@ -461,7 +461,7 @@
     <dependency>
       <groupId>co.elastic.apm</groupId>
       <artifactId>apm-agent-attach</artifactId>
-      <version>${version.apm}</version>
+        <version>${version.elastic.apm}</version>
     </dependency>
   </dependencies>
   <dependencyManagement>

@@ -1,8 +1,9 @@
-FROM openjdk:11-jre-slim
-RUN apt update -y &&  \
-    apt install imagemagick -y && \
-    apt install ffmpeg -y && \
-    apt install ghostscript -y
+FROM eclipse-temurin:21-jre
+RUN apt-get update && \
+    apt-get install imagemagick -y && \
+    apt-get install ffmpeg -y && \
+    apt-get install ghostscript -y && \
+    apt-get clean
 COPY target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app.jar"]
