@@ -33,6 +33,7 @@
     <version.java>11</version.java>
     <version.springdoc>1.7.0</version.springdoc>
     <version.metis>12-SNAPSHOT</version.metis>
+    <version.metis.normalization>13-SNAPSHOT</version.metis.normalization>
     <version.spring.boot>2.7.16</version.spring.boot>
     <version.europeana>2.15.3</version.europeana>
     <version.postgresql>42.6.0</version.postgresql>
@@ -132,7 +133,7 @@
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-normalization</artifactId>
-      <version>${version.metis}</version>
+      <version>${version.metis.normalization}</version>
     </dependency>
 
     <dependency>
