@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="metis-sandbox/Dockerfile" type="docker-deploy" factoryName="dockerfile"
+                 server-name="Docker">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="metis-sandbox"/>
+        <option name="containerName" value="metis-sandbox"/>
+        <option name="commandLineOptions"
+                value=" -e JDK_JAVA_OPTIONS=&quot;-Xms500m -Xmx500m&quot; --cpus=2 --memory=1500m --memory-swap=1500m -p 8080:8080  -v /data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks:/data/certificates/custom-truststore.jks -v /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml:/application.yml -v /data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml:/data/logging/log4j2.xml "/>
+        <option name="sourceFilePath" value="Dockerfile"/>
+      </settings>
+    </deployment>
+    <method v="2"/>
+  </configuration>
+</component>
