@@ -48,11 +48,21 @@ services:
       RABBITMQ_HOST: metis-sandbox-rabbitmq
       MONGO_HOSTS: metis-sandbox-mongo
       POSTGRES_HOST: metis-sandbox-postgres
+      JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
+    memswap_limit: -1
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1500M
+        reservations:
+          cpus: '2'
+          memory: 1500M
     volumes:
       - /data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks:/data/certificates/custom-truststore.jks
       - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml:/application.yml
       - /data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml:/data/logging/log4j2.xml
-    depends_on:
-      - rabbitmq
-      - mongo
-      - postgres
+#    depends_on:
+#      - rabbitmq
+#      - mongo
+#      - postgres
