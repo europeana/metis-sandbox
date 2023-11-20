@@ -491,28 +491,19 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
-        Country.NETHERLANDS, false, false);
     var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
         new TierStatistics(0, Collections.emptyList()));
     var report = new ProgressInfoDto("https://metis-sandbox",
-        10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", emptyList(),
+        10L, 10L, List.of(createProgress, externalProgress), false, "", emptyList(),
         tiersZeroInfo);
     when(datasetReportService.getReport("1")).thenReturn(report);
 
-    mvc.perform(get("/dataset/{id}", "1"))
+    mvc.perform(get("/dataset/{id}/progress", "1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status",
             is("COMPLETED")))
         .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
-            is(message1)))
-        .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
-        .andExpect(jsonPath("$.dataset-info.dataset-name", is("Test")))
-        .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
-        .andExpect(jsonPath("$.dataset-info.language", is("Dutch")))
-        .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")))
-        .andExpect(jsonPath("$.dataset-info.record-limit-exceeded", is(false)))
-        .andExpect(jsonPath("$.dataset-info.transformed-to-edm-external", is(false)));
+            is(message1)));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -523,7 +514,7 @@ class DatasetControllerTest {
     when(datasetReportService.getReport("1"))
         .thenThrow(new InvalidDatasetException("1"));
 
-    mvc.perform(get("/dataset/{id}", "1"))
+    mvc.perform(get("/dataset/{id}/progress", "1"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Provided dataset id: [1] is not valid. ")));
@@ -535,7 +526,7 @@ class DatasetControllerTest {
     when(datasetReportService.getReport("1"))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
-    mvc.perform(get("/dataset/{id}", "1"))
+    mvc.perform(get("/dataset/{id}/progress", "1"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));

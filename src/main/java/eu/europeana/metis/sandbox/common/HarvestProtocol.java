@@ -4,9 +4,9 @@ package eu.europeana.metis.sandbox.common;
  * Enum class to represent the type of harvesting
  */
 public enum HarvestProtocol {
-    FILE("FILE"),
-    HTTP("HTTP"),
-    OAI_PMH("OAI-PMH");
+    FILE("HARVEST_FILE"),
+    HTTP("HARVEST_HTTP"),
+    OAI_PMH("HARVEST_OAI_PMH");
     private final String value;
 
     HarvestProtocol(String value) {

@@ -92,7 +92,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -129,7 +129,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -165,7 +165,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -203,7 +203,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -283,7 +283,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), null, "", emptyList(), null));
+        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
