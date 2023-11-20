@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HarvestingParametricDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
@@ -20,8 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Optional;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -116,17 +116,8 @@ public class HarvestParameterServiceImplTest {
         when(harvestingParameterRepository.save(any())).thenThrow(new RuntimeException());
         HarvestingParametricDto harvestingParametricDto = new FileHarvestingDto("fileName", "fileType");
 
-        harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametricDto);
-
-        HarvestingParameterEntity capturedEntity = entityArgumentCaptor.getValue();
-
-        assertEquals(1, capturedEntity.getDatasetId().getDatasetId());
-        assertEquals(HarvestProtocol.FILE, capturedEntity.getProtocol());
-        assertEquals("fileName", capturedEntity.getFileName());
-        assertEquals("fileType", capturedEntity.getFileType());
-        assertNull(capturedEntity.getUrl());
-        assertNull(capturedEntity.getSetSpec());
-        assertNull(capturedEntity.getMetadataFormat());
+        assertThrows(ServiceException.class, () ->
+                harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametricDto));
 
     }
 
