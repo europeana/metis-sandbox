@@ -5,6 +5,8 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -64,4 +66,11 @@ public interface DatasetService {
    * @return Returns 0 if there is no xslt, 1 otherwise
    */
   boolean isXsltPresent(String datasetId);
+
+  /**
+   * Returns an object encapsulating all data related to a dataset
+   * @param datasetId The id of the dataset to get information of
+   * @return An object encapsulating all data related to a dataset
+   */
+  DatasetInfoDto getDatasetInfo(String datasetId);
 }

@@ -8,7 +8,9 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.*;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.IOException;
@@ -25,10 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 class DatasetServiceImpl implements DatasetService {
 
   private final DatasetRepository datasetRepository;
+  private final HarvestingParameterService harvestingParameterService;
 
-  public DatasetServiceImpl(
-      DatasetRepository datasetRepository) {
+  public DatasetServiceImpl(DatasetRepository datasetRepository, HarvestingParameterService harvestingParameterService) {
     this.datasetRepository = datasetRepository;
+    this.harvestingParameterService = harvestingParameterService;
   }
 
   @Override
@@ -89,6 +92,14 @@ class DatasetServiceImpl implements DatasetService {
     return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0;
   }
 
+  @Override
+  public DatasetInfoDto getDatasetInfo(String datasetId) {
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
+            datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
+
+  }
+
   private boolean isInputStreamAvailable(InputStream stream) {
     try {
       return stream != null && stream.available() != 0;
@@ -113,6 +124,24 @@ class DatasetServiceImpl implements DatasetService {
       return datasetRepository.save(datasetEntityToSave);
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error creating dataset: [%s]. ", datasetEntityToSave.getDatasetName()), e);
+    }
+  }
+
+  private HarvestingParametricDto getHarvestingParameterDto(String datasetId){
+    HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
+
+    switch(entity.getProtocol()){
+      case FILE:
+        return new FileHarvestingDto(entity.getFileName(), entity.getFileType());
+
+      case HTTP:
+        return new HttpHarvestingDto(entity.getUrl());
+
+      case OAI_PMH:
+        return new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
+
+      default:
+        throw new ServiceException("Something went wrong while getting data about harvesting parameters");
     }
   }
 }

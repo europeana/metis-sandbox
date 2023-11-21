@@ -13,7 +13,7 @@ public class FileHarvestingDto implements HarvestingParametricDto {
     public static final String SWAGGER_MODEL_NAME = "FileUpload";
 
     @JsonProperty("harvest-protocol")
-    private static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.FILE;
+    private final String harvestProtocol = HarvestProtocol.FILE.value();
 
     @JsonProperty("file-name")
     private final String fileName;
@@ -31,8 +31,8 @@ public class FileHarvestingDto implements HarvestingParametricDto {
         this.fileType = fileType;
     }
 
-    public HarvestProtocol getProtocol(){
-        return HARVEST_PROTOCOL;
+    public HarvestProtocol getHarvestProtocol(){
+        return HarvestProtocol.FILE;
     }
 
     public String getFileName() {
