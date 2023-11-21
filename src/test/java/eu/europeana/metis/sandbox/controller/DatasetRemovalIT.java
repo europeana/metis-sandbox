@@ -27,7 +27,9 @@ import java.util.Objects;
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

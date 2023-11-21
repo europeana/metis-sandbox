@@ -13,7 +13,7 @@ public class OAIPmhHarvestingDto implements HarvestingParametricDto {
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 
     @JsonProperty("harvest-protocol")
-    private static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.OAI_PMH;
+    private final String harvestProtocol = HarvestProtocol.OAI_PMH.value();
 
     @JsonProperty("url")
     private final String url;
@@ -36,8 +36,8 @@ public class OAIPmhHarvestingDto implements HarvestingParametricDto {
         this.metadataFormat = metadataFormat;
     }
 
-    public HarvestProtocol getProtocol() {
-        return HARVEST_PROTOCOL;
+    public HarvestProtocol getHarvestProtocol() {
+        return HarvestProtocol.OAI_PMH;
     }
 
     public String getUrl() {

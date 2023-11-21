@@ -13,6 +13,7 @@ import org.hibernate.procedure.NoSuchParameterException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.*;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
@@ -71,20 +72,20 @@ public class HarvestingParameterServiceImpl implements HarvestingParameterServic
 
         DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
 
-        switch(harvestingParametricDto.getProtocol()){
+        switch(harvestingParametricDto.getHarvestProtocol()){
             case FILE:
                 FileHarvestingDto fileHarvestingDto = (FileHarvestingDto) harvestingParametricDto;
-                return new HarvestingParameterEntity(datasetEntity, fileHarvestingDto.getProtocol(), fileHarvestingDto.getFileName(),
+                return new HarvestingParameterEntity(datasetEntity, FILE, fileHarvestingDto.getFileName(),
                         fileHarvestingDto.getFileType(), null, null, null);
 
             case HTTP:
                 HttpHarvestingDto httpHarvestingDto = (HttpHarvestingDto) harvestingParametricDto;
-                return new HarvestingParameterEntity(datasetEntity, httpHarvestingDto.getProtocol(), null, null,
+                return new HarvestingParameterEntity(datasetEntity, HTTP, null, null,
                         httpHarvestingDto.getUrl(), null, null);
 
             case OAI_PMH:
                 OAIPmhHarvestingDto oaiPmhHarvestingDto = (OAIPmhHarvestingDto) harvestingParametricDto;
-                return new HarvestingParameterEntity(datasetEntity, oaiPmhHarvestingDto.getProtocol(), null, null,
+                return new HarvestingParameterEntity(datasetEntity, OAI_PMH, null, null,
                         oaiPmhHarvestingDto.getUrl(), oaiPmhHarvestingDto.getSetSpec(), oaiPmhHarvestingDto.getMetadataFormat());
 
             default:

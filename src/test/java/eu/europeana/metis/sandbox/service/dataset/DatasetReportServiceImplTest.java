@@ -65,9 +65,6 @@ class DatasetReportServiceImplTest {
     @Mock
     private RecordRepository recordRepository;
 
-    @Mock
-    private HarvestingParameterService harvestingParameterService;
-
     @InjectMocks
     private DatasetReportServiceImpl service;
 
@@ -97,11 +94,9 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportWithDatasetErrors_Fail() {
         var dataset = createDataset(null);
-        var harvestingParameterEntity = new HarvestingParameterEntity(dataset, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         List<DatasetLogDto> datasetLogs = Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE, Status.FAIL));
         when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var result = service.getReport("1");
 
@@ -113,7 +108,6 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportWithRecordErrors_expectSuccess() {
         var dataset = createDataset(5L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(dataset, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
         var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("europeanaId1 | providerId1", "europeanaId2 | providerId2"));
@@ -144,7 +138,6 @@ class DatasetReportServiceImplTest {
                 List.of(recordViewCreate, recordViewExternal1, recordViewExternal2));
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4));
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var result = service.getReport("1");
 
@@ -154,7 +147,6 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportWithoutErrors_expectSuccess() {
         var dataset = createDataset(5L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(dataset, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var report = new ProgressInfoDto(
@@ -171,7 +163,6 @@ class DatasetReportServiceImplTest {
                 List.of(recordViewCreate, recordViewExternal));
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of());
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var result = service.getReport("1");
 
@@ -181,7 +172,6 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportCompleted_expectSuccess() {
         var dataset = createDataset(5L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(dataset, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of());
         var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of());
         var publishProgress = new ProgressByStepDto(Step.PUBLISH, 5, 0, 0, List.of());
@@ -233,7 +223,6 @@ class DatasetReportServiceImplTest {
                 .thenReturn(2);
         when(recordRepository.getRecordWithDatasetIdAndMetadataTierCount("1", MetadataTier.T0.toString()))
                 .thenReturn(3);
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var result = service.getReport("1");
 
@@ -243,7 +232,6 @@ class DatasetReportServiceImplTest {
     @Test
     void getReportCompletedAllErrors_expectSuccess() {
         var dataset = createDataset(5L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(dataset, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
         var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
         var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("europeanaId1 | providerId1", "europeanaId2 | providerId2"));
@@ -276,7 +264,6 @@ class DatasetReportServiceImplTest {
                 List.of(recordViewCreate, recordViewExternal));
         when(errorLogRepository.getByRecordIdDatasetId("1"))
                 .thenReturn(List.of(errorView1, errorView2, errorView3, errorView4, errorView5));
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var result = service.getReport("1");
 
@@ -286,11 +273,9 @@ class DatasetReportServiceImplTest {
     @Test
     void getReport_retrieveEmptyDataset_expectSuccess() {
         var datasetEntity = createDataset(0L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(datasetEntity, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         datasetEntity.setDatasetId(1);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var expected = new ProgressInfoDto(
                 "", 0L, 0L, List.of(),
@@ -303,7 +288,6 @@ class DatasetReportServiceImplTest {
     @Test
     void getReport_WithDatasetWarnings_ShouldNotFail() {
         var dataset = createDataset(5L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(dataset, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(dataset));
@@ -313,7 +297,6 @@ class DatasetReportServiceImplTest {
                 .thenReturn(List.of());
         List<DatasetLogDto> datasetLogs = Collections.singletonList(new DatasetLogDto(DATASET_ERROR_MESSAGE, Status.WARN));
         when(datasetLogService.getAllLogs("1")).thenReturn(datasetLogs);
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var result = service.getReport("1");
 
@@ -333,10 +316,8 @@ class DatasetReportServiceImplTest {
     @Test
     void getReport_failToRetrieveRecords_expectFail() {
         var datasetEntity = createDataset(5L);
-        var harvestingParameterEntity = new HarvestingParameterEntity(datasetEntity, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         assertThrows(ServiceException.class, () -> service.getReport("1"));
     }
@@ -349,10 +330,8 @@ class DatasetReportServiceImplTest {
     @Test
     void getReport_HarvestingDataset_expectSuccess() {
         var datasetEntity = createDataset(null);
-        var harvestingParameterEntity = new HarvestingParameterEntity(datasetEntity, HarvestProtocol.FILE, "fileName", "fileType", null, null, null);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(recordLogRepository.getStepStatistics("1")).thenReturn(List.of());
-        when(harvestingParameterService.getDatasetHarvestingParameters("1")).thenReturn(harvestingParameterEntity);
 
         var expected = new ProgressInfoDto(
                 "Harvesting dataset identifiers and records.", null, 0L, List.of(),

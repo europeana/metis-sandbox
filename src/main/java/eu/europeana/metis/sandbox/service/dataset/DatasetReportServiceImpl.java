@@ -64,7 +64,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private final RecordLogRepository recordLogRepository;
     private final RecordErrorLogRepository errorLogRepository;
     private final RecordRepository recordRepository;
-    private final HarvestingParameterService harvestingParameterService;
     @Value("${sandbox.portal.publish.dataset-base-url}")
     private String portalPublishDatasetUrl;
 
@@ -73,14 +72,12 @@ class DatasetReportServiceImpl implements DatasetReportService {
             DatasetLogService datasetLogService,
             RecordLogRepository recordLogRepository,
             RecordErrorLogRepository errorLogRepository,
-            RecordRepository recordRepository,
-            HarvestingParameterService harvestingParameterService) {
+            RecordRepository recordRepository) {
         this.datasetRepository = datasetRepository;
         this.datasetLogService = datasetLogService;
         this.recordLogRepository = recordLogRepository;
         this.errorLogRepository = errorLogRepository;
         this.recordRepository = recordRepository;
-        this.harvestingParameterService = harvestingParameterService;
     }
 
     private static Stream<DatasetLogDto> getErrors(List<DatasetLogDto> datasetLogs) {
@@ -99,12 +96,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
         // search for dataset
         DatasetEntity dataset = getDataset(datasetId);
-        HarvestingParametricDto harvestingParametricDto = getHarvestingParameterDto(datasetId);
-
-        //Create DatasetInfoDto from DatasetEntity
-        DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-                dataset.getLanguage(), dataset.getCountry(), harvestingParametricDto,
-                StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
 
         // pull records and errors data for the dataset
         List<StepStatistic> stepStatistics;
@@ -282,23 +273,5 @@ class DatasetReportServiceImpl implements DatasetReportService {
         // encapsulate values into TiersZeroInfo
         return contentTierInfo == null && metadataTierInfo == null ? null :
                 new TiersZeroInfo(contentTierInfo, metadataTierInfo);
-    }
-
-    private HarvestingParametricDto getHarvestingParameterDto(String datasetId){
-        HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
-
-        switch(entity.getProtocol()){
-            case FILE:
-                return new FileHarvestingDto(entity.getFileName(), entity.getFileType());
-
-            case HTTP:
-                return new HttpHarvestingDto(entity.getUrl());
-
-            case OAI_PMH:
-                return new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
-
-            default:
-                throw new ServiceException("Something went wrong while getting data about harvesting parameters");
-        }
     }
 }
