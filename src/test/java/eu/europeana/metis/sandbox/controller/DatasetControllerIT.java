@@ -194,18 +194,16 @@ class DatasetControllerIT {
 
     // Give time for the full harvesting to happen
     Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                   String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
 
     ResponseEntity<String> getDatasetResponse =
-        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
 
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
-    assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
-    JSONAssert.assertEquals(
-        expectedDatasetInfoJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), String.valueOf(expectedDatasetId)),
-        StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
+        StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
 
 
   }
@@ -351,12 +349,6 @@ class DatasetControllerIT {
         new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
   }
 
-  private String removeCreationDate(String body) {
-    JSONObject jsonObject = new JSONObject(body);
-    jsonObject.getJSONObject("dataset-info").remove("creation-date");
-    return jsonObject.toString();
-  }
-
   int extractDatasetId(String value) {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
@@ -364,22 +356,6 @@ class DatasetControllerIT {
       return node.get("dataset-id").asInt();
     } catch (JsonProcessingException e) {
       return -1;
-    }
-  }
-
-  String expectedDatasetInfoJson(String actual, String datasetId) {
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      JsonNode rootNode = mapper.readTree(actual);
-      JsonNode datasetNode = rootNode.get("dataset-info");
-      ((ObjectNode) datasetNode).remove("dataset-id");
-      ((ObjectNode) datasetNode).put("dataset-id", datasetId);
-      ((ObjectNode) rootNode).replace("dataset-info", datasetNode);
-      ((ObjectNode) rootNode).remove("portal-publish");
-      rootNode = ((ObjectNode) rootNode).put("portal-publish", "http://metis-test" + datasetId + "_testDataset*");
-      return rootNode.toPrettyString();
-    } catch (JsonProcessingException e) {
-      return actual;
     }
   }
 
