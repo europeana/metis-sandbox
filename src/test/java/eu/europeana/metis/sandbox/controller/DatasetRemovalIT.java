@@ -78,23 +78,23 @@ class DatasetRemovalIT {
 
         // Give time for the full harvesting to happen
         Awaitility.await().atMost(10, MINUTES)
-                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                         String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
 
         ResponseEntity<String> getDatasetResponse =
-                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
         assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
         assertNotNull(getDatasetResponse.getBody());
         assertTrue(getDatasetResponse.getBody().contains("\"total-records\":2"));
 
         // Give time for the data removal to happen
         Awaitility.await().atMost(10, MINUTES)
-                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                         String.class, expectedDatasetId).getBody()).contains("Provided dataset id: [" + expectedDatasetId + "] " +
                         "is not valid. "));
 
         ResponseEntity<String> getDatasetErrorResponse =
-                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
         assertEquals(HttpStatus.BAD_REQUEST, getDatasetErrorResponse.getStatusCode());
         assertNotNull(getDatasetErrorResponse.getBody());
         assertTrue(getDatasetErrorResponse.getBody().contains("Provided dataset id: [" + expectedDatasetId +"] " +
