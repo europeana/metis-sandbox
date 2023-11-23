@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -94,7 +95,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public DatasetInfoDto getDatasetInfo(String datasetId) {
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow(() -> new InvalidDatasetException(datasetId));
     return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
             datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
 

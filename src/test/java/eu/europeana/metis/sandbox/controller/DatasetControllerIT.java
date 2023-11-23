@@ -177,7 +177,7 @@ class DatasetControllerIT {
   //  }
   //
   @Test
-  public void retrieveDataset_expectStatus_ok() throws IOException {
+  public void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
@@ -204,6 +204,34 @@ class DatasetControllerIT {
     assertNotNull(getDatasetResponse.getBody());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
         StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
+
+
+  }
+
+  @Test
+  public void retrieveDatasetInfo_expectStatus_ok() throws IOException {
+    FileSystemResource dataset = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "dataset-valid-small.zip");
+    FileSystemResource datasetResponseBody = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" +
+                    File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+                    "get_dataset_info_response_body.txt");
+    String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
+
+    ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+
+    ResponseEntity<String> getDatasetResponse =
+            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/info", String.class, expectedDatasetId);
+
+    assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
+    assertNotNull(getDatasetResponse.getBody());
+    assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
+            StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
 
 
   }
@@ -347,6 +375,12 @@ class DatasetControllerIT {
 
     return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
         new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+  }
+
+  private String removeCreationDate(String body) {
+    JSONObject jsonObject = new JSONObject(body);
+    jsonObject.remove("creation-date");
+    return jsonObject.toString();
   }
 
   int extractDatasetId(String value) {
