@@ -7,19 +7,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install media software
-        uses: europeana/metis-actions/actions/media-software-install-steps@main
+        uses: europeana/metis-actions/actions/media-software-install-steps@jdk17
       - name: Build code and Sonar Analyze
-        uses: europeana/metis-actions/actions/build-analyze@main
+        uses: europeana/metis-actions/actions/build-analyze@jdk17
         with:
           sonar_organization: europeana
           sonar_project_key: europeana_metis-sandbox
           sonar_token: ${{ secrets.METIS_SONAR_TOKEN }}
       - name: Upload all jars to target-jars
-        uses: europeana/metis-actions/actions/upload-target-jars@main
+        uses: europeana/metis-actions/actions/upload-target-jars@jdk17
 
   docker-build_metis-sandbox:
     needs: ci
-    uses: europeana/metis-actions/.github/workflows/docker-build-push.yml@main
+    uses: europeana/metis-actions/.github/workflows/docker-build-push.yml@jdk17
     with:
       docker-organization: europeana
       docker-image-name: metis-sandbox
