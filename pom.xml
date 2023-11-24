@@ -30,7 +30,7 @@
   </distributionManagement>
 
   <properties>
-    <version.java>11</version.java>
+    <version.java>17</version.java>
     <version.springdoc>1.7.0</version.springdoc>
     <version.metis>12-SNAPSHOT</version.metis>
     <version.metis.normalization>13-SNAPSHOT</version.metis.normalization>
@@ -586,10 +586,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${version.maven.compiler.plugin}</version>
           <configuration>
-            <source>${version.java}</source>
-            <target>${version.java}</target>
-            <testSource>${version.java}</testSource>
-            <testTarget>${version.java}</testTarget>
+            <release>${version.java}</release>
           </configuration>
         </plugin>
       </plugins>
