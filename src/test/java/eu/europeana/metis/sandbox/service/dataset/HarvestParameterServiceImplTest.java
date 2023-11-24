@@ -21,8 +21,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Optional;
 
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -119,6 +123,31 @@ public class HarvestParameterServiceImplTest {
         assertThrows(ServiceException.class, () ->
                 harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametricDto));
 
+    }
+
+    @Test
+    void getDatasetHarvestingParameters_expectSuccess(){
+        DatasetEntity datasetEntity = new DatasetEntity();
+        datasetEntity.setDatasetId(1);
+        HarvestingParameterEntity entity = new HarvestingParameterEntity(datasetEntity, HarvestProtocol.FILE,
+                "fileName", "fileType", null, null, null);
+        when(harvestingParameterRepository.getHarvestingParametersEntitiesByDatasetId_DatasetId(1)).thenReturn(entity);
+
+        HarvestingParameterEntity resultEntity = harvestingParameterService.getDatasetHarvestingParameters("1");
+
+        assertEquals(entity, resultEntity);
+    }
+
+    @Test
+    void remove_expectSuccess(){
+        harvestingParameterService.remove("1");
+        verify(harvestingParameterRepository).deleteByDatasetId_DatasetId(1);
+    }
+
+    @Test
+    void remove_expectFail(){
+        doThrow(new RuntimeException("error")).when(harvestingParameterRepository).deleteByDatasetId_DatasetId(1);
+        assertThrows(ServiceException.class, () -> harvestingParameterService.remove("1"));
     }
 
 }
