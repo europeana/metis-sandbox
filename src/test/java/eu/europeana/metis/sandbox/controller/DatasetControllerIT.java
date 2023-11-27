@@ -209,7 +209,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void retrieveDatasetInfo_expectStatus_ok() throws IOException {
+  void retrieveDatasetInfo_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
             "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
                     File.separator + "dataset-valid-small.zip");
