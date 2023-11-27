@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-public class HarvestParameterServiceImplTest {
+class HarvestParameterServiceImplTest {
 
     @Mock
     private HarvestingParameterRepository harvestingParameterRepository;
