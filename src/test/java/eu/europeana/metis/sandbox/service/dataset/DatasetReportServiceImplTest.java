@@ -315,8 +315,6 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReport_failToRetrieveRecords_expectFail() {
-        var datasetEntity = createDataset(5L);
-        when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
         assertThrows(ServiceException.class, () -> service.getReport("1"));
