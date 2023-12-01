@@ -204,8 +204,6 @@ class DatasetControllerIT {
     assertNotNull(getDatasetResponse.getBody());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
         StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
-
-
   }
 
   @Test
@@ -232,8 +230,6 @@ class DatasetControllerIT {
     assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
             StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
-
-
   }
 
   @Test

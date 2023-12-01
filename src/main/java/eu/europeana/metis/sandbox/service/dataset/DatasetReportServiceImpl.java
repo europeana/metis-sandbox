@@ -99,10 +99,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
         }
 
         // get qty of records completely processed
-        long completedRecords = getCompletedRecords(stepStatistics);
+        final long completedRecords = getCompletedRecords(stepStatistics);
 
         // search for dataset
-        DatasetEntity dataset = getDataset(datasetId);
+        final DatasetEntity dataset = getDataset(datasetId);
 
         List<DatasetLogDto> datasetLogs = datasetLogService.getAllLogs(datasetId);
         if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))

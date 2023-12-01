@@ -34,11 +34,13 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
-import eu.europeana.metis.sandbox.dto.*;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -502,7 +504,9 @@ class DatasetControllerTest {
         .andExpect(jsonPath("$.status",
             is("COMPLETED")))
         .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
-            is(message1)));
+            is(message1)))
+        .andExpect(jsonPath("$.progress-by-step[1].errors[1].message",
+            is(message2)));
 
     verify(datasetLogService, never()).logException(any(), any());
   }

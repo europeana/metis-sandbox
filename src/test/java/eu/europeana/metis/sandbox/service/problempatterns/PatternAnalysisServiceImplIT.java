@@ -4,7 +4,11 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
-import eu.europeana.metis.sandbox.repository.problempatterns.*;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.test.utils.TestContainer;
 import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
@@ -12,7 +16,11 @@ import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
-import eu.europeana.patternanalysis.view.*;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription;
+import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
+import eu.europeana.patternanalysis.view.ProblemPattern;
+import eu.europeana.patternanalysis.view.RecordAnalysis;
+import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +50,11 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @EnableAutoConfiguration(exclude = EmbeddedMongoAutoConfiguration.class)

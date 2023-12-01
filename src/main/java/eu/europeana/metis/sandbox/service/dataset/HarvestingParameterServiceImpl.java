@@ -13,7 +13,9 @@ import org.hibernate.procedure.NoSuchParameterException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static eu.europeana.metis.sandbox.common.HarvestProtocol.*;
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.FILE;
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.HTTP;
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.OAI_PMH;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
