@@ -13,7 +13,7 @@ public class HttpHarvestingDto implements HarvestingParametricDto {
     public static final String SWAGGER_MODEL_NAME = "HttpUpload";
 
     @JsonProperty("harvest-protocol")
-    private static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.HTTP;
+    private final String harvestProtocol = HarvestProtocol.HTTP.value();
 
     @JsonProperty("url")
     private final String url;
@@ -26,8 +26,8 @@ public class HttpHarvestingDto implements HarvestingParametricDto {
         this.url = url;
     }
 
-    public HarvestProtocol getProtocol() {
-        return HARVEST_PROTOCOL;
+    public HarvestProtocol getHarvestProtocol() {
+        return HarvestProtocol.HTTP;
     }
 
     public String getUrl() {

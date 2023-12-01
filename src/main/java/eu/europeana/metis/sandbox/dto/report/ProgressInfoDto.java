@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.dto.report;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import io.swagger.annotations.ApiModel;
 
 import java.util.Collections;
@@ -31,8 +30,8 @@ public class ProgressInfoDto {
     @JsonProperty("progress-by-step")
     private final List<ProgressByStepDto> progressByStep;
 
-    @JsonProperty("dataset-info")
-    private final DatasetInfoDto datasetInfoDto;
+    @JsonProperty("record-limit-exceeded")
+    private final boolean recordLimitExceeded;
 
     @JsonProperty("error-type")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -49,7 +48,7 @@ public class ProgressInfoDto {
     private final boolean recordsPublishedSuccessfully;
 
     public ProgressInfoDto(String portalPublishUrl, Long totalRecords, Long processedRecords,
-                           List<ProgressByStepDto> progressByStep, DatasetInfoDto datasetInfoDto, String errorType,
+                           List<ProgressByStepDto> progressByStep, boolean recordLimitExceeded, String errorType,
                            List<DatasetLogDto> datasetLogs, TiersZeroInfo tiersZeroInfo) {
         this.processedRecords = processedRecords;
         this.tiersZeroInfo = tiersZeroInfo;
@@ -68,7 +67,7 @@ public class ProgressInfoDto {
         }
         this.datasetLogs = datasetLogs;
         this.progressByStep = Collections.unmodifiableList(progressByStep);
-        this.datasetInfoDto = datasetInfoDto;
+        this.recordLimitExceeded = recordLimitExceeded;
         this.errorType = errorType;
         this.recordsPublishedSuccessfully =
                 progressByStep.stream().filter(step -> step.getStep() == Step.PUBLISH).findAny()
@@ -96,8 +95,8 @@ public class ProgressInfoDto {
         return progressByStep;
     }
 
-    public DatasetInfoDto getDatasetInfoDto() {
-        return datasetInfoDto;
+    public boolean getRecordLimitExceeded() {
+        return recordLimitExceeded;
     }
 
     public String getErrorType() {

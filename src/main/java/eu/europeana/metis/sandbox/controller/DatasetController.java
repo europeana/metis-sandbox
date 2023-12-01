@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -270,14 +271,29 @@ class DatasetController {
      * @param datasetId The given dataset id to look for
      * @return The report of the dataset status
      */
-    @Operation(summary = "Get a dataset", description = "Get dataset progress information")
+    @Operation(summary = "Get dataset's progress", description = "Get dataset progress information")
     @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
-    @GetMapping(value = "{id}", produces = APPLICATION_JSON_VALUE)
-    public ProgressInfoDto getDataset(
+    @GetMapping(value = "{id}/progress", produces = APPLICATION_JSON_VALUE)
+    public ProgressInfoDto getDatasetProgress(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
         //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
         return reportService.getReport(datasetId);
+    }
+
+    /**
+     * GET API calls to return the information about a given dataset id
+     *
+     * @param datasetId The given dataset id to look for
+     * @return The report of the dataset status
+     */
+    @Operation(summary = "Get dataset information", description = "Get dataset information")
+    @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "{id}/info", produces = APPLICATION_JSON_VALUE)
+    public DatasetInfoDto getDatasetInfo(
+            @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+        return datasetService.getDatasetInfo(datasetId);
     }
 
     /**

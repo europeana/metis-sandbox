@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 
 /**
@@ -7,5 +8,6 @@ import eu.europeana.metis.sandbox.common.HarvestProtocol;
  */
 public interface HarvestingParametricDto {
 
-    HarvestProtocol getProtocol();
+    @JsonIgnore
+    HarvestProtocol getHarvestProtocol();
 }

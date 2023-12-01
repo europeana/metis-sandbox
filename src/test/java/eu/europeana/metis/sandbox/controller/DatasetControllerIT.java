@@ -177,7 +177,7 @@ class DatasetControllerIT {
   //  }
   //
   @Test
-  public void retrieveDataset_expectStatus_ok() throws IOException {
+  public void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
@@ -194,20 +194,42 @@ class DatasetControllerIT {
 
     // Give time for the full harvesting to happen
     Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                   String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
 
     ResponseEntity<String> getDatasetResponse =
-        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
+
+    assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
+    assertNotNull(getDatasetResponse.getBody());
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
+        StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
+  }
+
+  @Test
+  void retrieveDatasetInfo_expectStatus_ok() throws IOException {
+    FileSystemResource dataset = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+                    File.separator + "dataset-valid-small.zip");
+    FileSystemResource datasetResponseBody = new FileSystemResource(
+            "src" + File.separator + "test" + File.separator + "resources" +
+                    File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+                    "get_dataset_info_response_body.txt");
+    String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
+
+    ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+
+    ResponseEntity<String> getDatasetResponse =
+            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/info", String.class, expectedDatasetId);
 
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
-    JSONAssert.assertEquals(
-        expectedDatasetInfoJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), String.valueOf(expectedDatasetId)),
-        StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
-
-
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
+            StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
   }
 
   @Test
@@ -353,7 +375,7 @@ class DatasetControllerIT {
 
   private String removeCreationDate(String body) {
     JSONObject jsonObject = new JSONObject(body);
-    jsonObject.getJSONObject("dataset-info").remove("creation-date");
+    jsonObject.remove("creation-date");
     return jsonObject.toString();
   }
 
@@ -364,22 +386,6 @@ class DatasetControllerIT {
       return node.get("dataset-id").asInt();
     } catch (JsonProcessingException e) {
       return -1;
-    }
-  }
-
-  String expectedDatasetInfoJson(String actual, String datasetId) {
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      JsonNode rootNode = mapper.readTree(actual);
-      JsonNode datasetNode = rootNode.get("dataset-info");
-      ((ObjectNode) datasetNode).remove("dataset-id");
-      ((ObjectNode) datasetNode).put("dataset-id", datasetId);
-      ((ObjectNode) rootNode).replace("dataset-info", datasetNode);
-      ((ObjectNode) rootNode).remove("portal-publish");
-      rootNode = ((ObjectNode) rootNode).put("portal-publish", "http://metis-test" + datasetId + "_testDataset*");
-      return rootNode.toPrettyString();
-    } catch (JsonProcessingException e) {
-      return actual;
     }
   }
 

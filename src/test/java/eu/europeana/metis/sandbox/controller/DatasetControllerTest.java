@@ -34,11 +34,12 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -483,7 +484,7 @@ class DatasetControllerTest {
   }
 
   @Test
-  void retrieveDataset_expectSuccess() throws Exception {
+  void retrieveDatasetProgress_expectSuccess() throws Exception {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
@@ -491,54 +492,126 @@ class DatasetControllerTest {
     var errors = List.of(error1, error2);
     var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
     var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var datasetInfoDto = new DatasetInfoDto("12345", "Test", LocalDateTime.MIN, Language.NL,
-        Country.NETHERLANDS, false, false);
     var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
         new TierStatistics(0, Collections.emptyList()));
     var report = new ProgressInfoDto("https://metis-sandbox",
-        10L, 10L, List.of(createProgress, externalProgress), datasetInfoDto, "", emptyList(),
+        10L, 10L, List.of(createProgress, externalProgress), false, "", emptyList(),
         tiersZeroInfo);
     when(datasetReportService.getReport("1")).thenReturn(report);
 
-    mvc.perform(get("/dataset/{id}", "1"))
+    mvc.perform(get("/dataset/{id}/progress", "1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status",
             is("COMPLETED")))
         .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
             is(message1)))
-        .andExpect(jsonPath("$.dataset-info.dataset-id", is("12345")))
-        .andExpect(jsonPath("$.dataset-info.dataset-name", is("Test")))
-        .andExpect(jsonPath("$.dataset-info.creation-date", is("-999999999-01-01T00:00:00")))
-        .andExpect(jsonPath("$.dataset-info.language", is("Dutch")))
-        .andExpect(jsonPath("$.dataset-info.country", is("Netherlands")))
-        .andExpect(jsonPath("$.dataset-info.record-limit-exceeded", is(false)))
-        .andExpect(jsonPath("$.dataset-info.transformed-to-edm-external", is(false)));
+        .andExpect(jsonPath("$.progress-by-step[1].errors[1].message",
+            is(message2)));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
-  void retrieveDataset_datasetInvalidDatasetId_expectFail() throws Exception {
+  void retrieveDatasetProgress_datasetInvalidDatasetId_expectFail() throws Exception {
 
     when(datasetReportService.getReport("1"))
         .thenThrow(new InvalidDatasetException("1"));
 
-    mvc.perform(get("/dataset/{id}", "1"))
+    mvc.perform(get("/dataset/{id}/progress", "1"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("Provided dataset id: [1] is not valid. ")));
   }
 
   @Test
-  void retrieveDataset_datasetReportServiceFails_expectFail() throws Exception {
+  void retrieveDatasetProgress_datasetReportServiceFails_expectFail() throws Exception {
 
     when(datasetReportService.getReport("1"))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
-    mvc.perform(get("/dataset/{id}", "1"))
+    mvc.perform(get("/dataset/{id}/progress", "1"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
+  }
+
+  @Test
+  void retrieveDatasetInfo_fileHarvesting_expectSuccess() throws Exception {
+    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", LocalDateTime.MIN, IT, ITALY,
+            new FileHarvestingDto("fileName", "fileType"),false);
+
+    when(datasetService.getDatasetInfo("1")).thenReturn(mock);
+
+    mvc.perform(get("/dataset/{id}/info", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.dataset-id", is("1")))
+            .andExpect(jsonPath("$.dataset-name", is("datasetName")))
+            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00")))
+            .andExpect(jsonPath("$.language", is("Italian")))
+            .andExpect(jsonPath("$.country", is("Italy")))
+            .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
+            .andExpect(jsonPath("$.harvesting-parameters.file-name", is("fileName")))
+            .andExpect(jsonPath("$.harvesting-parameters.file-type", is("fileType")))
+            .andExpect(jsonPath("$.harvesting-parameters.url").doesNotExist())
+            .andExpect(jsonPath("$.harvesting-parameters.set-spec").doesNotExist())
+            .andExpect(jsonPath("$.harvesting-parameters.metadata-format").doesNotExist());
+
+  }
+
+  @Test
+  void retrieveDatasetInfo_httpHarvesting_expectSuccess() throws Exception {
+    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", LocalDateTime.MIN, IT, ITALY,
+            new HttpHarvestingDto("http://url-to-test.com"),false);
+
+    when(datasetService.getDatasetInfo("1")).thenReturn(mock);
+
+    mvc.perform(get("/dataset/{id}/info", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.dataset-id", is("1")))
+            .andExpect(jsonPath("$.dataset-name", is("datasetName")))
+            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00")))
+            .andExpect(jsonPath("$.language", is("Italian")))
+            .andExpect(jsonPath("$.country", is("Italy")))
+            .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
+            .andExpect(jsonPath("$.harvesting-parameters.url", is("http://url-to-test.com")))
+            .andExpect(jsonPath("$.harvesting-parameters.file-name").doesNotExist())
+            .andExpect(jsonPath("$.harvesting-parameters.file-type").doesNotExist())
+            .andExpect(jsonPath("$.harvesting-parameters.set-spec").doesNotExist())
+            .andExpect(jsonPath("$.harvesting-parameters.metadata-format").doesNotExist());
+
+  }
+
+  @Test
+  void retrieveDatasetInfo_oaiPmhHarvesting_expectSuccess() throws Exception {
+    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", LocalDateTime.MIN, IT, ITALY,
+            new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"),false);
+
+    when(datasetService.getDatasetInfo("1")).thenReturn(mock);
+
+    mvc.perform(get("/dataset/{id}/info", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.dataset-id", is("1")))
+            .andExpect(jsonPath("$.dataset-name", is("datasetName")))
+            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00")))
+            .andExpect(jsonPath("$.language", is("Italian")))
+            .andExpect(jsonPath("$.country", is("Italy")))
+            .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
+            .andExpect(jsonPath("$.harvesting-parameters.url", is("http://url-to-test.com")))
+            .andExpect(jsonPath("$.harvesting-parameters.set-spec", is("setSpec")))
+            .andExpect(jsonPath("$.harvesting-parameters.metadata-format", is("metadataFormat")))
+            .andExpect(jsonPath("$.harvesting-parameters.file-name").doesNotExist())
+            .andExpect(jsonPath("$.harvesting-parameters.file-type").doesNotExist());
+
+  }
+
+  @Test
+  void retrieveDatasetInfo_datasetDoesNotExist_expectFail() throws Exception {
+    when(datasetService.getDatasetInfo("1")).thenThrow(new InvalidDatasetException("1"));
+
+    mvc.perform(get("/dataset/{id}/info", "1"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message", is("Provided dataset id: [1] is not valid. ")));
+
   }
 
   @Test
