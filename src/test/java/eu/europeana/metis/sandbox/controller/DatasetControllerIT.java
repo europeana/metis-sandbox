@@ -21,6 +21,8 @@ import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -176,6 +178,31 @@ class DatasetControllerIT {
   //        .andExpect(status().isAccepted());
   //  }
   //
+
+  @Test
+  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+    ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+  }
+
+  private ResponseEntity<String> makeHarvestingByOAIPMH() throws URISyntaxException {
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    body.add("url", new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString());
+    body.add("setspec", "oai_integration_test");
+    body.add("metadataformat", "edm");
+
+    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestOaiPmh",
+        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+  }
+
   @Test
   public void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
@@ -188,6 +215,7 @@ class DatasetControllerIT {
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
+    System.out.println(responseDataset.getBody());
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
@@ -199,7 +227,7 @@ class DatasetControllerIT {
 
     ResponseEntity<String> getDatasetResponse =
         testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
-
+    System.out.println(getDatasetResponse.getBody());
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),

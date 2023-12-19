@@ -1,5 +1,9 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.common.OaiHarvestData;
@@ -30,6 +34,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
@@ -42,22 +57,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 /**
  * The type Dataset controller.
@@ -242,7 +241,7 @@ class DatasetController {
             @Parameter(description = "language of the dataset", required = true) @RequestParam Language language,
             @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(required = false) Integer stepsize,
             @Parameter(description = "dataset URL records", required = true) @RequestParam String url,
-            @Parameter(description = "dataset specification", required = true) @RequestParam String setspec,
+            @Parameter(description = "dataset specification") @RequestParam(required = false) String setspec,
             @Parameter(description = "metadata format") @RequestParam String metadataformat,
             @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
@@ -258,11 +257,19 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
+        setspec = getDefaultSetSpecWhenNotAvailable(setspec);
         harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
                         new OaiHarvestData(url, setspec, metadataformat, ""))
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
 
         return new DatasetIdDto(createdDatasetId);
+    }
+
+    private static String getDefaultSetSpecWhenNotAvailable(String setspec) {
+        if (setspec !=null && setspec.equals("")) {
+            setspec = null;
+        }
+        return setspec;
     }
 
     /**

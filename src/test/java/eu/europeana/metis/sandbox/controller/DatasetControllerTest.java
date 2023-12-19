@@ -260,7 +260,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromOAI_expectSuccess() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
@@ -270,8 +270,8 @@ class DatasetControllerTest {
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf")
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm")
             .param("stepsize", "2"))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
@@ -280,9 +280,31 @@ class DatasetControllerTest {
   }
 
   @Test
+  void processDatasetFromOAIWithEmptySetSpec_expectSuccess() throws Exception {
+
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+        any(ByteArrayInputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
   void processDatasetFromOAIWithXsltFile_expectSuccess() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
@@ -297,8 +319,8 @@ class DatasetControllerTest {
             .param("country", ITALY.xmlValue())
             .param("language", IT.xmlValue())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf")
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm")
             .param("stepsize", "2"))
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.dataset-id", is("12345")));
@@ -387,15 +409,15 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromOAI_invalidName_expectFail() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data=set")
             .param("name", "invalidDatasetName")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf"))
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("dataset name can only include letters, numbers, _ or - characters")));
@@ -404,15 +426,15 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromOAI_invalidStepSize_expectFail() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
             .param("name", "invalidDatasetName")
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf")
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm")
             .param("stepsize", "-1"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
@@ -422,7 +444,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(InputStream.class)))
@@ -435,8 +457,8 @@ class DatasetControllerTest {
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf"))
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm"))
         .andExpect(status().isBadRequest())
         .andExpect(result -> assertTrue(
             result.getResolvedException() instanceof IllegalArgumentException));
@@ -445,7 +467,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromOAI_datasetServiceFails_expectFail() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
         any(InputStream.class)))
@@ -455,8 +477,8 @@ class DatasetControllerTest {
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf"))
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.message",
             is("Failed Please retry, if problem persists contact provider.")));
@@ -466,7 +488,7 @@ class DatasetControllerTest {
   @Test
   void processDatasetFromOAI_differentXsltFileType_expectFail() throws Exception {
 
-    final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
         "string".getBytes());
@@ -476,8 +498,8 @@ class DatasetControllerTest {
             .param("country", ITALY.name())
             .param("language", IT.name())
             .param("url", url)
-            .param("setspec", "1073")
-            .param("metadataformat", "rdf"))
+            .param("setspec", "oai_integration_test")
+            .param("metadataformat", "edm"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message",
             is("The given xslt file should be a single xml file.")));
