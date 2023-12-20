@@ -31,8 +31,6 @@ import java.util.Objects;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -54,7 +52,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 class DatasetControllerIT {
 
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetControllerIT.class);
+
   @LocalServerPort
   private int port;
 
@@ -73,10 +71,6 @@ class DatasetControllerIT {
     solrContainerIT.dynamicProperties(registry);
     TestContainer s3ContainerIT = TestContainerFactoryIT.getContainer(TestContainerType.S3);
     s3ContainerIT.dynamicProperties(registry);
-  }
-
-  private String getBaseUrl() {
-    return "http://localhost:" + port;
   }
 
   @Test
@@ -164,6 +158,13 @@ class DatasetControllerIT {
 
   }
 
+  @Test
+  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+    ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+  }
 
   //
   // TODO: This sort of integration test should be addressed differently,
@@ -182,30 +183,6 @@ class DatasetControllerIT {
   //
 
   @Test
-  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
-    ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
-    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
-    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
-    assertTrue(expectedDatasetId > 0);
-  }
-
-  private ResponseEntity<String> makeHarvestingByOAIPMH() throws URISyntaxException {
-    HttpHeaders requestHeaders = new HttpHeaders();
-    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-    body.add("country", ITALY.xmlValue());
-    body.add("language", IT.xmlValue());
-
-    body.add("url", new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString());
-    body.add("setspec", "oai_integration_test");
-    body.add("metadataformat", "edm");
-
-    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestOaiPmh",
-        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
-  }
-
-  @Test
   public void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
@@ -213,7 +190,7 @@ class DatasetControllerIT {
     FileSystemResource datasetResponseBody = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
             File.separator + "zip" + File.separator + "responsefiles" + File.separator +
-                "response_body_dataset_valid_small.txt");
+            "response_body_dataset_valid_small.txt");
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
@@ -236,15 +213,59 @@ class DatasetControllerIT {
         StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
   }
 
+  private String getBaseUrl() {
+    return "http://localhost:" + port;
+  }
+
+  private ResponseEntity<String> makeHarvestingByOAIPMH() throws URISyntaxException {
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    body.add("url", new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString());
+    body.add("setspec", "oai_integration_test");
+    body.add("metadataformat", "edm");
+
+    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestOaiPmh",
+        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+  }
+
+  private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
+
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body
+        = new LinkedMultiValueMap<>();
+    body.add("dataset", dataset);
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    if (xsltFile != null) {
+      body.add("xsltFile", xsltFile);
+    }
+
+    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
+        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+  }
+
+  private String removeCreationDate(String body) {
+    JSONObject jsonObject = new JSONObject(body);
+    jsonObject.remove("creation-date");
+    return jsonObject.toString();
+  }
+
   @Test
   void retrieveDatasetInfo_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid-small.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid-small.zip");
     FileSystemResource datasetResponseBody = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" +
-                    File.separator + "zip" + File.separator + "responsefiles" + File.separator +
-                    "get_dataset_info_response_body.txt");
+        "src" + File.separator + "test" + File.separator + "resources" +
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+            "get_dataset_info_response_body.txt");
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
@@ -253,13 +274,13 @@ class DatasetControllerIT {
     assertTrue(expectedDatasetId > 0);
 
     ResponseEntity<String> getDatasetResponse =
-            testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/info", String.class, expectedDatasetId);
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/info", String.class, expectedDatasetId);
 
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
-            StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
+        StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
   }
 
   @Test
@@ -270,7 +291,7 @@ class DatasetControllerIT {
     FileSystemResource tierCalculationResponse = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
             File.separator + "zip" + File.separator + "responsefiles" + File.separator +
-                "tier_calculation_response_body.txt");
+            "tier_calculation_response_body.txt");
     String tierCalculationResponseContent = new String(tierCalculationResponse.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -320,10 +341,10 @@ class DatasetControllerIT {
   @Test
   void getRecordsTier_expectSuccess() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid-small.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid-small.zip");
     FileSystemResource getRecordBody = new FileSystemResource("src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_records_tiers_response_body.txt");
+        File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_records_tiers_response_body.txt");
     String getRecordBodyContent = new String(getRecordBody.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -334,26 +355,26 @@ class DatasetControllerIT {
     String recordId2 = "/" + expectedDatasetId + "/URN_NBN_SI_doc_35SZSOCF";
 
     Awaitility.await().atMost(10, MINUTES)
-            .until(() -> {
-              String body = Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
-                      String.class, expectedDatasetId).getBody());
+              .until(() -> {
+                String body = Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
+                    String.class, expectedDatasetId).getBody());
 
-              return body.contains(recordId1) && body.contains(recordId2);
-            });
+                return body.contains(recordId1) && body.contains(recordId2);
+              });
 
     ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
-            String.class, expectedDatasetId);
+        String.class, expectedDatasetId);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(removeRecordIdFields(getRecordBodyContent)),
-            StringUtils.deleteWhitespace(removeRecordIdFields(response.getBody())), true);
+        StringUtils.deleteWhitespace(removeRecordIdFields(response.getBody())), true);
 
   }
 
   @Test
   void getRecordsTier_expectException() {
     ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
-            String.class, 100);
+        String.class, 100);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertTrue(response.getBody().contains("Provided dataset id: [100] is not valid. "));
@@ -384,31 +405,6 @@ class DatasetControllerIT {
     languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
 
-
-  private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
-
-    HttpHeaders requestHeaders = new HttpHeaders();
-    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-    MultiValueMap<String, Object> body
-        = new LinkedMultiValueMap<>();
-    body.add("dataset", dataset);
-    body.add("country", ITALY.xmlValue());
-    body.add("language", IT.xmlValue());
-
-    if (xsltFile != null) {
-      body.add("xsltFile", xsltFile);
-    }
-
-    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
-        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
-  }
-
-  private String removeCreationDate(String body) {
-    JSONObject jsonObject = new JSONObject(body);
-    jsonObject.remove("creation-date");
-    return jsonObject.toString();
-  }
-
   int extractDatasetId(String value) {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
@@ -419,9 +415,9 @@ class DatasetControllerIT {
     }
   }
 
-  String removeRecordIdFields(String body){
+  String removeRecordIdFields(String body) {
     ObjectMapper mapper = new ObjectMapper();
-    try{
+    try {
       JsonNode rootNode = mapper.readTree(body);
       JsonNode firstElem = rootNode.get(0);
       JsonNode secondElem = rootNode.get(1);
@@ -430,7 +426,7 @@ class DatasetControllerIT {
       ((ArrayNode) rootNode).set(0, firstElem);
       ((ArrayNode) rootNode).set(1, secondElem);
       return rootNode.toPrettyString();
-    } catch (JsonProcessingException e){
+    } catch (JsonProcessingException e) {
       return body;
     }
   }
