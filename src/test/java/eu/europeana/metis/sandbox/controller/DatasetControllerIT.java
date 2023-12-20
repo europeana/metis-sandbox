@@ -31,6 +31,8 @@ import java.util.Objects;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -52,7 +54,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 class DatasetControllerIT {
 
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetControllerIT.class);
   @LocalServerPort
   private int port;
 
@@ -86,7 +88,7 @@ class DatasetControllerIT {
     ResponseEntity<String> response = makeHarvestingByFile(dataset, null);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
   }
@@ -103,7 +105,7 @@ class DatasetControllerIT {
     ResponseEntity<String> response = makeHarvestingByFile(dataset, xsltFileForTransformationToEdmExternal);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
   }
@@ -128,7 +130,7 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
   }
@@ -156,7 +158,7 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
 
@@ -182,7 +184,7 @@ class DatasetControllerIT {
   @Test
   public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
     ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
-    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
   }
@@ -215,8 +217,8 @@ class DatasetControllerIT {
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
-    System.out.println(responseDataset.getBody());
-    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
 
@@ -227,7 +229,7 @@ class DatasetControllerIT {
 
     ResponseEntity<String> getDatasetResponse =
         testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
-    System.out.println(getDatasetResponse.getBody());
+
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
@@ -246,7 +248,7 @@ class DatasetControllerIT {
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
-    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
 
