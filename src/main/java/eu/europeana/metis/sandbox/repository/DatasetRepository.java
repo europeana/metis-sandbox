@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.repository;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,7 +20,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
-  List<DatasetIdView> getByCreatedDateBefore(LocalDateTime date);
+  List<DatasetIdView> getByCreatedDateBefore(ZonedDateTime date);
 
   /**
    * Updates the value of recordQuantity to the given dataset

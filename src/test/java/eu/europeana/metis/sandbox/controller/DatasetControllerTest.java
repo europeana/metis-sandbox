@@ -59,6 +59,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -559,7 +561,8 @@ class DatasetControllerTest {
 
   @Test
   void retrieveDatasetInfo_fileHarvesting_expectSuccess() throws Exception {
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", LocalDateTime.MIN, IT, ITALY,
+    ZonedDateTime mockTime = ZonedDateTime.of(LocalDateTime.MIN, ZoneId.systemDefault());
+    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
             new FileHarvestingDto("fileName", "fileType"),false);
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
@@ -568,7 +571,7 @@ class DatasetControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.dataset-id", is("1")))
             .andExpect(jsonPath("$.dataset-name", is("datasetName")))
-            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00")))
+            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00+00:17:30")))
             .andExpect(jsonPath("$.language", is("Italian")))
             .andExpect(jsonPath("$.country", is("Italy")))
             .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
@@ -582,7 +585,8 @@ class DatasetControllerTest {
 
   @Test
   void retrieveDatasetInfo_httpHarvesting_expectSuccess() throws Exception {
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", LocalDateTime.MIN, IT, ITALY,
+    ZonedDateTime mockTime = ZonedDateTime.of(LocalDateTime.MIN, ZoneId.systemDefault());
+    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
             new HttpHarvestingDto("http://url-to-test.com"),false);
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
@@ -591,7 +595,7 @@ class DatasetControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.dataset-id", is("1")))
             .andExpect(jsonPath("$.dataset-name", is("datasetName")))
-            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00")))
+            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00+00:17:30")))
             .andExpect(jsonPath("$.language", is("Italian")))
             .andExpect(jsonPath("$.country", is("Italy")))
             .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
@@ -605,7 +609,8 @@ class DatasetControllerTest {
 
   @Test
   void retrieveDatasetInfo_oaiPmhHarvesting_expectSuccess() throws Exception {
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", LocalDateTime.MIN, IT, ITALY,
+    ZonedDateTime mockTime = ZonedDateTime.of(LocalDateTime.MIN, ZoneId.systemDefault());
+    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
             new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"),false);
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
@@ -614,7 +619,7 @@ class DatasetControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.dataset-id", is("1")))
             .andExpect(jsonPath("$.dataset-name", is("datasetName")))
-            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00")))
+            .andExpect(jsonPath("$.creation-date", is("-999999999-01-01T00:00:00+00:17:30")))
             .andExpect(jsonPath("$.language", is("Italian")))
             .andExpect(jsonPath("$.country", is("Italy")))
             .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
