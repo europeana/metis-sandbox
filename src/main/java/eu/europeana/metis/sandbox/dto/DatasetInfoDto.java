@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import io.swagger.annotations.ApiModel;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
 public class DatasetInfoDto {
@@ -18,7 +18,7 @@ public class DatasetInfoDto {
   private final String datasetName;
 
   @JsonProperty("creation-date")
-  private final LocalDateTime creationDate;
+  private final ZonedDateTime creationDate;
 
   @JsonProperty("language")
   private final Language language;
@@ -32,7 +32,7 @@ public class DatasetInfoDto {
   @JsonProperty("harvesting-parameters")
   private final HarvestingParametricDto harvestingParametricDto;
 
-  public DatasetInfoDto(String datasetId, String datasetName, LocalDateTime creationDate,
+  public DatasetInfoDto(String datasetId, String datasetName, ZonedDateTime creationDate,
                         Language language, Country country, HarvestingParametricDto harvestingParametricDto,
                         boolean transformedToEdmExternal) {
 
@@ -53,7 +53,7 @@ public class DatasetInfoDto {
     return datasetName;
   }
 
-  public LocalDateTime getCreationDate() {
+  public ZonedDateTime getCreationDate() {
     return creationDate;
   }
 

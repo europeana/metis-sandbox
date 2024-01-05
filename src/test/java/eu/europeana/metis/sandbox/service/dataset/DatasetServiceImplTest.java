@@ -18,7 +18,7 @@ import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,7 +60,7 @@ class DatasetServiceImplTest {
     var id3 = new DatasetIdViewImpl(3);
     var id4 = new DatasetIdViewImpl(4);
 
-    when(datasetRepository.getByCreatedDateBefore(any(LocalDateTime.class)))
+    when(datasetRepository.getByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenReturn(List.of(id1, id2, id3, id4));
 
     var result = service.getDatasetIdsCreatedBefore(7);
@@ -70,7 +70,7 @@ class DatasetServiceImplTest {
 
   @Test
   void getDatasetIdsBefore_failToGetIds_expectFail() {
-    when(datasetRepository.getByCreatedDateBefore(any(LocalDateTime.class)))
+    when(datasetRepository.getByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenThrow(new RuntimeException("Issue"));
 
     assertThrows(ServiceException.class, () -> service.getDatasetIdsCreatedBefore(7));

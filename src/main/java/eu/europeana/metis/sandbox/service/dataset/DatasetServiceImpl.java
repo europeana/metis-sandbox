@@ -21,7 +21,7 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -56,7 +56,7 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public List<String> getDatasetIdsCreatedBefore(int days) {
-    LocalDateTime date = LocalDateTime.now()
+    ZonedDateTime date = ZonedDateTime.now()
         .truncatedTo(ChronoUnit.DAYS)
         .minusDays(days);
 
