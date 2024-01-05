@@ -16,8 +16,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -90,7 +88,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         // Then, we take the last 32 bits of the least significant bits and keep them on the right side.
         // The result is a combination of both, with all 64 bits of the long populated.
         // Math.abs() is to guarantee for the value to always be positive
-        return Math.abs((mostSignificantBits << 32) | (leastSignificantBits & 0xFFFFFFFFL));
-    }
+        final int numberOfBitsToShift = 32;
+        return Math.abs((mostSignificantBits << numberOfBitsToShift) | (leastSignificantBits & 0xFFFFFFFFL));
+    }32
 
 }
