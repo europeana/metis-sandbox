@@ -90,6 +90,6 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         // Math.abs() is to guarantee for the value to always be positive
         final int numberOfBitsToShift = 32;
         return Math.abs((mostSignificantBits << numberOfBitsToShift) | (leastSignificantBits & 0xFFFFFFFFL));
-    }32
+    }
 
 }
