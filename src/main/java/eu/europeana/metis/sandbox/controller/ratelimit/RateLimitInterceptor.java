@@ -17,6 +17,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
+import java.util.UUID;
 
 /**
  * Implementation of Rate Limit interceptor to intercept the requests
@@ -45,7 +46,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
-        final Long key = (long) request.getRemoteAddr().hashCode();
+        final Long key = generateUniqueIdFromIpAddress(request.getRemoteAddr());
         final ConsumptionProbe probe = resolveBucket(key);
         response.addHeader("X-Rate-Limit-Limit", String.valueOf(capacity));
         if (probe.isConsumed()) {
@@ -72,6 +73,23 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         } else {
             return commandResult.getData();
         }
+    }
+
+    // Although collision can still happen, this approach provides higher chances of uniqueness than simply using hashCode()
+    private Long generateUniqueIdFromIpAddress(String ipAddress){
+        // Generate a UUID based on the ip address's bytes
+        UUID uuid = UUID.nameUUIDFromBytes(ipAddress.getBytes());
+        // Convert the UUID to a Long value.
+        // UUID is a 128 bit value, while a Long is a 64 bit value.
+        long mostSignificantBits = uuid.getMostSignificantBits();
+        long leastSignificantBits = uuid.getLeastSignificantBits();
+
+        // We take the last 32 bits of the most significant bits and shift them to the left side.
+        // Then, we take the last 32 bits of the least significant bits and keep them on the right side.
+        // The result is a combination of both, with all 64 bits of the long populated.
+        // Math.abs() is to guarantee for the value to always be positive
+        final int numberOfBitsToShift = 32;
+        return Math.abs((mostSignificantBits << numberOfBitsToShift) | (leastSignificantBits & 0xFFFFFFFFL));
     }
 
 }
