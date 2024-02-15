@@ -20,12 +20,12 @@
     <repository>
       <id>artifactory.eanadev.org</id>
       <name>artifactory.eanadev.org-releases</name>
-      <url>https://artifactory.eanadev.org/artifactory/libs-release-local</url>
+      <url>https://artifactory.eanadev.org/artifactory/libs-release</url>
     </repository>
     <snapshotRepository>
       <id>artifactory.eanadev.org</id>
       <name>artifactory.eanadev.org-snapshots</name>
-      <url>https://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+      <url>https://artifactory.eanadev.org/artifactory/libs-snapshot</url>
     </snapshotRepository>
   </distributionManagement>
 
