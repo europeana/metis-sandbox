@@ -36,7 +36,7 @@
     <version.metis.normalization>13-SNAPSHOT</version.metis.normalization>
     <version.spring.boot>2.7.16</version.spring.boot>
     <version.europeana>2.16.7-SNAPSHOT</version.europeana>
-    <version.postgresql>42.6.0</version.postgresql>
+    <version.postgresql>42.7.2</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
