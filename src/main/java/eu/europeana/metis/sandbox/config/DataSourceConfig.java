@@ -2,6 +2,8 @@ package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.metis.utils.CustomTruststoreAppender;
 import eu.europeana.metis.utils.CustomTruststoreAppender.TrustStoreConfigurationException;
+import jakarta.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.TransactionException;
 import org.postgresql.util.PSQLException;
@@ -14,9 +16,6 @@ import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.support.DefaultTransactionStatus;
-
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 
 /**
  * Configures the datasource, ensures that the custom trust store is appended before creating the

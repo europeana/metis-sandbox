@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.entity.problempatterns;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import org.hibernate.Hibernate;
 
 /**

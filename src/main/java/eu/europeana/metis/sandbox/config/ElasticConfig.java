@@ -3,10 +3,10 @@ package eu.europeana.metis.sandbox.config;
 import static java.util.stream.Collectors.joining;
 
 import co.elastic.apm.attach.ElasticApmAttacher;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;

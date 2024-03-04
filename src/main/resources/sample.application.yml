@@ -44,7 +44,6 @@ spring:
           multiplier: 2
           max-attempts: 3
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
 # spring boot actuator see documentation at

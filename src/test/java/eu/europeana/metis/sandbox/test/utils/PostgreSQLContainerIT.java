@@ -52,7 +52,6 @@ public class PostgreSQLContainerIT extends TestContainer {
     registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
 
     registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
-    registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQL9Dialect");
     registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
 
     // TODO: 27/06/2022 We should perhaps remove the specifics here and use the default spring configuration properties

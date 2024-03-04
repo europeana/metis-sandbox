@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.config.amqp;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
+import java.util.List;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Binding.DestinationType;
@@ -13,8 +14,6 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their bindings. <br /><br /> If there
