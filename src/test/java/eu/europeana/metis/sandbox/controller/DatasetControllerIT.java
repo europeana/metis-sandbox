@@ -74,7 +74,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithFile_expectStatus_accepted() {
+  void harvestDatasetWithFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
@@ -88,7 +88,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
+  void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-with-xslt-file-small.zip");
@@ -105,7 +105,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithUrl_expectStatus_accepted() {
+  void harvestDatasetWithUrl_expectStatus_accepted() {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-small.zip");
     assertTrue(Files.exists(datasetPath));
 
@@ -130,7 +130,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
+  void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-with-xslt-file-small.zip");
     assertTrue(Files.exists(datasetPath));
     FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
@@ -159,7 +159,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+  void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
     ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
@@ -183,7 +183,7 @@ class DatasetControllerIT {
   //
 
   @Test
-  public void retrieveDatasetProgress_expectStatus_ok() throws IOException {
+  void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");

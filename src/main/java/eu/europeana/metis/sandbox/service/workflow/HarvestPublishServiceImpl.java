@@ -5,19 +5,18 @@ import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.domain.Record;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.utils.CompressedFileExtension;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -68,13 +67,13 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
                 .language(datasetMetadata.getLanguage());
         harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
         return CompletableFuture.runAsync(() -> {
-            try (InputStream input = new URL(url).openStream()) {
+            try (InputStream input = new URI(url).toURL().openStream()) {
                 harvestService.harvest(input, datasetMetadata.getDatasetId(), recordDataEncapsulated,
                         datasetMetadata.getStepSize(), compressedFileExtension);
             } catch (UnknownHostException e) {
                 throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
                         + " - unknown host: " + e.getMessage());
-            } catch (IOException | HarvesterException e) {
+            } catch (IOException | URISyntaxException | HarvesterException e) {
                 throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
             }
         }, asyncServiceTaskExecutor);

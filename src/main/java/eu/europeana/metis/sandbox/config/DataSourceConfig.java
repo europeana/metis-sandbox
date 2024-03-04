@@ -70,7 +70,7 @@ class DataSourceConfig {
     private void appendCustomTrustStore()
             throws TrustStoreConfigurationException {
         if (StringUtils.isNotEmpty(trustStorePath) && StringUtils.isNotEmpty(trustStorePassword)) {
-            CustomTruststoreAppender.appendCustomTrustoreToDefault(trustStorePath, trustStorePassword);
+            CustomTruststoreAppender.appendCustomTruststoreToDefault(trustStorePath, trustStorePassword);
         }
     }
 }

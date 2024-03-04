@@ -37,7 +37,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -148,7 +148,8 @@ class DatasetController {
             @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
         @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
-        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(name = "stepsize", required = false) Integer stepsize,
+        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+        @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile dataset,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
@@ -239,7 +240,8 @@ class DatasetController {
             @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
         @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
-        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(name = "stepsize", required = false) Integer stepsize,
+        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+        @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset URL records", required = true) @RequestParam("url") String url,
         @Parameter(description = "dataset specification") @RequestParam(name = "setspec", required = false) String setspec,
         @Parameter(description = "metadata format") @RequestParam("metadataformat") String metadataformat,
@@ -353,7 +355,6 @@ class DatasetController {
     @ApiResponse(responseCode = "404", description = "Records not found")
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
     public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
         return recordService.getRecordsTiers(datasetId);
     }
@@ -384,7 +385,6 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "countries", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
     public List<CountryView> getAllCountries() {
         return Country.getCountryListSortedByName().stream().map(CountryView::new)
                 .collect(Collectors.toList());
@@ -402,7 +402,6 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "languages", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
     public List<LanguageView> getAllLanguages() {
         return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
                 .collect(Collectors.toList());
@@ -436,7 +435,7 @@ class DatasetController {
                 return getCompressedFileExtensionType(fileContentType);
             } else {
 
-                URLConnection urlConnection = new URL(url).openConnection();
+                URLConnection urlConnection = new URI(url).toURL().openConnection();
                 String fileContentType = urlConnection.getContentType();
 
                 if (StringUtils.isEmpty(fileContentType)) {
@@ -447,7 +446,7 @@ class DatasetController {
 
 
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new InvalidCompressedFileException(e);
 
         }
