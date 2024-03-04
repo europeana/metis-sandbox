@@ -34,8 +34,9 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
    * </p>
    * @param portalPublishRecordBaseUrl the portal publish record base url
    */
-  public RecordTierCalculationServiceImpl(@Qualifier("recordLogServiceImpl") RecordLogService recordLogService,
-      String portalPublishRecordBaseUrl) {
+  public RecordTierCalculationServiceImpl(
+      RecordLogService recordLogService,
+      @Qualifier("portalPublishRecordBaseUrl") String portalPublishRecordBaseUrl) {
     this.recordLogService = recordLogService;
     this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }

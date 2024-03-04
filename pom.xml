@@ -38,7 +38,7 @@
     <version.europeana>2.16.7-SNAPSHOT</version.europeana>
     <version.postgresql>42.7.2</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
-    <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+    <version.maven.compiler.plugin>3.12.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>3.1.2</version.surefire.plugin>
     <version.failsafe.plugin>3.1.2</version.failsafe.plugin>
@@ -600,6 +600,7 @@
           <version>${version.maven.compiler.plugin}</version>
           <configuration>
             <release>${version.java}</release>
+            <parameters>true</parameters>
           </configuration>
         </plugin>
       </plugins>
