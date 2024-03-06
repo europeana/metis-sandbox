@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.config.web;
 
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -20,13 +19,15 @@ class MvcConfig implements WebMvcConfigurer {
 
   @Value("${sandbox.cors.mapping}")
   private String[] corsMapping;
+  private final RateLimitInterceptor rateLimitInterceptor;
 
-  @Autowired
-  private RateLimitInterceptor rateLimitInterceptor;
+  public MvcConfig(RateLimitInterceptor rateLimitInterceptor) {
+    this.rateLimitInterceptor = rateLimitInterceptor;
+  }
 
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addRedirectViewController("/", "swagger-ui.html");
+    registry.addRedirectViewController("/", "/swagger-ui/index.html");
   }
 
   @Override
