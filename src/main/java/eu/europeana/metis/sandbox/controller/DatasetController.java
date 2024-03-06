@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
@@ -191,7 +190,8 @@ class DatasetController {
             @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
         @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
-        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(name = "stepsize", required = false) Integer stepsize,
+        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+        @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
 
@@ -268,7 +268,7 @@ class DatasetController {
     }
 
     private static String getDefaultSetSpecWhenNotAvailable(String setspec) {
-        if (setspec !=null && setspec.equals("")) {
+        if (setspec != null && setspec.isEmpty()) {
             setspec = null;
         }
         return setspec;
@@ -361,7 +361,7 @@ class DatasetController {
 
     private Set<Step> getSetFromStep(String step) {
         Set<Step> steps;
-        if (step == null || step.isBlank() || step.equals("HARVEST")) {
+        if (step == null || step.isBlank() || "HARVEST".equals(step)) {
             steps = Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH);
         } else {
             try {
@@ -386,8 +386,7 @@ class DatasetController {
     @GetMapping(value = "countries", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public List<CountryView> getAllCountries() {
-        return Country.getCountryListSortedByName().stream().map(CountryView::new)
-                .collect(Collectors.toList());
+        return Country.getCountryListSortedByName().stream().map(CountryView::new).toList();
     }
 
     /**
@@ -403,8 +402,7 @@ class DatasetController {
     @GetMapping(value = "languages", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public List<LanguageView> getAllLanguages() {
-        return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
-                .collect(Collectors.toList());
+        return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

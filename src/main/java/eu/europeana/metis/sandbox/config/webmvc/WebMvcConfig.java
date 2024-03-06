@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.config.web;
+package eu.europeana.metis.sandbox.config.webmvc;
 
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import org.apache.commons.lang3.ArrayUtils;
@@ -15,13 +15,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * contains CORS configuration.
  */
 @Configuration
-class MvcConfig implements WebMvcConfigurer {
+class WebMvcConfig implements WebMvcConfigurer {
 
   @Value("${sandbox.cors.mapping}")
   private String[] corsMapping;
   private final RateLimitInterceptor rateLimitInterceptor;
 
-  public MvcConfig(RateLimitInterceptor rateLimitInterceptor) {
+  public WebMvcConfig(RateLimitInterceptor rateLimitInterceptor) {
     this.rateLimitInterceptor = rateLimitInterceptor;
   }
 

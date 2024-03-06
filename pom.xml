@@ -47,10 +47,10 @@
     <version.log4j>2.21.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
     <version.wiremock>3.4.2</version.wiremock>
-    <version.commons.collections>3.2.2</version.commons.collections>
+    <version.commons.collections4>4.4</version.commons.collections4>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
-    <version.testcontainers>1.19.0</version.testcontainers>
+    <version.testcontainers>1.19.7</version.testcontainers>
     <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
     <version.elastic.apm>1.43.0</version.elastic.apm>
@@ -461,9 +461,9 @@
       <version>${version.springdoc-openapi-starter-webmvc-ui}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-      <version>${version.commons.collections}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>${version.commons.collections4}</version>
     </dependency>
 
     <!--Metrics-->

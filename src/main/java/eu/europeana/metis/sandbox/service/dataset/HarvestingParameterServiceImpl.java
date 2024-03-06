@@ -1,5 +1,11 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.FILE;
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.HTTP;
+import static eu.europeana.metis.sandbox.common.HarvestProtocol.OAI_PMH;
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HarvestingParametricDto;
@@ -9,15 +15,8 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
-import org.hibernate.procedure.NoSuchParameterException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static eu.europeana.metis.sandbox.common.HarvestProtocol.FILE;
-import static eu.europeana.metis.sandbox.common.HarvestProtocol.HTTP;
-import static eu.europeana.metis.sandbox.common.HarvestProtocol.OAI_PMH;
-import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
 
 /**
  * Service class to access harvesting parameters table in the database
@@ -74,26 +73,23 @@ public class HarvestingParameterServiceImpl implements HarvestingParameterServic
 
         DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
 
-        switch(harvestingParametricDto.getHarvestProtocol()){
-            case FILE:
-                FileHarvestingDto fileHarvestingDto = (FileHarvestingDto) harvestingParametricDto;
-                return new HarvestingParameterEntity(datasetEntity, FILE, fileHarvestingDto.getFileName(),
-                        fileHarvestingDto.getFileType(), null, null, null);
-
-            case HTTP:
-                HttpHarvestingDto httpHarvestingDto = (HttpHarvestingDto) harvestingParametricDto;
-                return new HarvestingParameterEntity(datasetEntity, HTTP, null, null,
-                        httpHarvestingDto.getUrl(), null, null);
-
-            case OAI_PMH:
-                OAIPmhHarvestingDto oaiPmhHarvestingDto = (OAIPmhHarvestingDto) harvestingParametricDto;
-                return new HarvestingParameterEntity(datasetEntity, OAI_PMH, null, null,
-                        oaiPmhHarvestingDto.getUrl(), oaiPmhHarvestingDto.getSetSpec(), oaiPmhHarvestingDto.getMetadataFormat());
-
-            default:
-                throw new NoSuchParameterException("No such value for harvest protocol exists");
-
+      return switch (harvestingParametricDto.getHarvestProtocol()) {
+        case FILE -> {
+          FileHarvestingDto fileHarvestingDto = (FileHarvestingDto) harvestingParametricDto;
+          yield new HarvestingParameterEntity(datasetEntity, FILE, fileHarvestingDto.getFileName(),
+              fileHarvestingDto.getFileType(), null, null, null);
         }
+        case HTTP -> {
+          HttpHarvestingDto httpHarvestingDto = (HttpHarvestingDto) harvestingParametricDto;
+          yield new HarvestingParameterEntity(datasetEntity, HTTP, null, null,
+              httpHarvestingDto.getUrl(), null, null);
+        }
+        case OAI_PMH -> {
+          OAIPmhHarvestingDto oaiPmhHarvestingDto = (OAIPmhHarvestingDto) harvestingParametricDto;
+          yield new HarvestingParameterEntity(datasetEntity, OAI_PMH, null, null,
+              oaiPmhHarvestingDto.getUrl(), oaiPmhHarvestingDto.getSetSpec(), oaiPmhHarvestingDto.getMetadataFormat());
+        }
+      };
 
 
     }
