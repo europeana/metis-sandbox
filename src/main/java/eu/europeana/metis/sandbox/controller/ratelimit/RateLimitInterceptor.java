@@ -1,23 +1,22 @@
 package eu.europeana.metis.sandbox.controller.ratelimit;
 
 
-import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Refill;
-import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Bucket;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.Refill;
 import io.github.bucket4j.distributed.remote.CommandResult;
 import io.github.bucket4j.distributed.remote.Request;
 import io.github.bucket4j.distributed.remote.commands.TryConsumeAndReturnRemainingTokensCommand;
 import io.github.bucket4j.postgresql.PostgreSQLadvisoryLockBasedProxyManager;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.Duration;
-import java.util.UUID;
 
 /**
  * Implementation of Rate Limit interceptor to intercept the requests

@@ -15,8 +15,6 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-      - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
-      - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
   application:
     name: *name
   servlet:
@@ -44,7 +42,6 @@ spring:
           multiplier: 2
           max-attempts: 3
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
 # spring boot actuator see documentation at

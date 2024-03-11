@@ -37,14 +37,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
@@ -53,7 +53,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -146,11 +145,12 @@ class DatasetController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public DatasetIdDto harvestDatasetFromFile(
             @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
-            @Parameter(description = "country of the dataset", required = true) @RequestParam Country country,
-            @Parameter(description = "language of the dataset", required = true) @RequestParam Language language,
-            @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(required = false) Integer stepsize,
-            @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam MultipartFile dataset,
-            @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
+        @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
+        @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
+        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+        @RequestParam(name = "stepsize", required = false) Integer stepsize,
+        @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile dataset,
+        @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(dataset);
         if (stepsize != null) {
@@ -188,11 +188,12 @@ class DatasetController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public DatasetIdDto harvestDatasetFromURL(
             @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
-            @Parameter(description = "country of the dataset", required = true) @RequestParam Country country,
-            @Parameter(description = "language of the dataset", required = true) @RequestParam Language language,
-            @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(required = false) Integer stepsize,
-            @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam String url,
-            @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
+        @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
+        @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
+        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+        @RequestParam(name = "stepsize", required = false) Integer stepsize,
+        @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
+        @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
 
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(url);
@@ -237,13 +238,14 @@ class DatasetController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public DatasetIdDto harvestDatasetOaiPmh(
             @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
-            @Parameter(description = "country of the dataset", required = true) @RequestParam Country country,
-            @Parameter(description = "language of the dataset", required = true) @RequestParam Language language,
-            @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1")) @RequestParam(required = false) Integer stepsize,
-            @Parameter(description = "dataset URL records", required = true) @RequestParam String url,
-            @Parameter(description = "dataset specification") @RequestParam(required = false) String setspec,
-            @Parameter(description = "metadata format") @RequestParam String metadataformat,
-            @Parameter(description = "xslt file to transform to EDM external") @RequestParam(required = false) MultipartFile xsltFile) {
+        @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
+        @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
+        @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+        @RequestParam(name = "stepsize", required = false) Integer stepsize,
+        @Parameter(description = "dataset URL records", required = true) @RequestParam("url") String url,
+        @Parameter(description = "dataset specification") @RequestParam(name = "setspec", required = false) String setspec,
+        @Parameter(description = "metadata format") @RequestParam("metadataformat") String metadataformat,
+        @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
@@ -266,7 +268,7 @@ class DatasetController {
     }
 
     private static String getDefaultSetSpecWhenNotAvailable(String setspec) {
-        if (setspec !=null && setspec.equals("")) {
+        if (setspec != null && setspec.isEmpty()) {
             setspec = null;
         }
         return setspec;
@@ -317,7 +319,7 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/record/compute-tier-calculation", produces = APPLICATION_JSON_VALUE)
     public RecordTierCalculationView computeRecordTierCalculation(
-            @PathVariable("id") String datasetId, @RequestParam String recordId)
+        @PathVariable("id") String datasetId, @RequestParam("recordId") String recordId)
             throws NoRecordFoundException {
         return recordTierCalculationService.calculateTiers(recordId, datasetId);
     }
@@ -336,8 +338,8 @@ class DatasetController {
     @ApiResponse(responseCode = "404", description = "Record not found")
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
-    public String getRecord(@PathVariable("id") String datasetId, @RequestParam String recordId,
-                            @RequestParam(required = false) String step) throws NoRecordFoundException {
+    public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
+        @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
         return recordLogService.getProviderRecordString(recordId, datasetId, getSetFromStep(step));
     }
 
@@ -353,14 +355,13 @@ class DatasetController {
     @ApiResponse(responseCode = "404", description = "Records not found")
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
     public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
         return recordService.getRecordsTiers(datasetId);
     }
 
     private Set<Step> getSetFromStep(String step) {
         Set<Step> steps;
-        if (step == null || step.isBlank() || step.equals("HARVEST")) {
+        if (step == null || step.isBlank() || "HARVEST".equals(step)) {
             steps = Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH);
         } else {
             try {
@@ -384,10 +385,8 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "countries", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
     public List<CountryView> getAllCountries() {
-        return Country.getCountryListSortedByName().stream().map(CountryView::new)
-                .collect(Collectors.toList());
+        return Country.getCountryListSortedByName().stream().map(CountryView::new).toList();
     }
 
     /**
@@ -402,10 +401,8 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "languages", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
     public List<LanguageView> getAllLanguages() {
-        return Language.getLanguageListSortedByName().stream().map(LanguageView::new)
-                .collect(Collectors.toList());
+        return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
@@ -436,7 +433,7 @@ class DatasetController {
                 return getCompressedFileExtensionType(fileContentType);
             } else {
 
-                URLConnection urlConnection = new URL(url).openConnection();
+                URLConnection urlConnection = new URI(url).toURL().openConnection();
                 String fileContentType = urlConnection.getContentType();
 
                 if (StringUtils.isEmpty(fileContentType)) {
@@ -447,7 +444,7 @@ class DatasetController {
 
 
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new InvalidCompressedFileException(e);
 
         }

@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -21,19 +20,25 @@ import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionEvaluationLogger;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +56,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
     classes = SandboxApplication.class)
 class DatasetControllerIT {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
   @LocalServerPort
@@ -74,7 +80,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithFile_expectStatus_accepted() {
+  void harvestDatasetWithFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
@@ -88,7 +94,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
+  void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-with-xslt-file-small.zip");
@@ -105,7 +111,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithUrl_expectStatus_accepted() {
+  void harvestDatasetWithUrl_expectStatus_accepted() {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-small.zip");
     assertTrue(Files.exists(datasetPath));
 
@@ -130,7 +136,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
+  void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-with-xslt-file-small.zip");
     assertTrue(Files.exists(datasetPath));
     FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
@@ -159,7 +165,7 @@ class DatasetControllerIT {
   }
 
   @Test
-  public void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+  void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
     ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
@@ -183,7 +189,7 @@ class DatasetControllerIT {
   //
 
   @Test
-  public void retrieveDatasetProgress_expectStatus_ok() throws IOException {
+  void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
@@ -298,8 +304,10 @@ class DatasetControllerIT {
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
 
-    Awaitility.await().atMost(10, MINUTES).until(() -> testRestTemplate.getForEntity(getBaseUrl() +
-            "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
+    Awaitility.await().conditionEvaluationListener(new ConditionEvaluationLogger(LOGGER::info))
+              .atMost(10, MINUTES).with().pollInterval(Duration.ofSeconds(5))
+              .until(() -> testRestTemplate.getForEntity(
+                  getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
         String.class, expectedDatasetId, "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6").getStatusCode()
         != HttpStatus.NOT_FOUND);
     ResponseEntity<String> response =

@@ -1,11 +1,9 @@
-package eu.europeana.metis.sandbox.config.web;
-
-import org.springframework.core.convert.converter.Converter;
+package eu.europeana.metis.sandbox.config.webmvc;
 
 import java.time.LocalDateTime;
-
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import org.springframework.core.convert.converter.Converter;
 
 public class StringToTimestampConverter implements Converter<String, LocalDateTime> {
 

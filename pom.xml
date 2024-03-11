@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
-  <!-- Github connection -->
+  <!-- GitHub connection -->
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
     <url>https://github.com/europeana/metis-sandbox</url>
@@ -31,27 +31,27 @@
 
   <properties>
     <version.java>21</version.java>
-    <version.springdoc>1.7.0</version.springdoc>
+    <version.springdoc-openapi-starter-webmvc-ui>2.3.0</version.springdoc-openapi-starter-webmvc-ui>
     <version.metis>12-SNAPSHOT</version.metis>
     <version.metis.normalization>13-SNAPSHOT</version.metis.normalization>
-    <version.spring.boot>2.7.16</version.spring.boot>
+    <version.spring.boot>3.2.3</version.spring.boot>
     <version.europeana>2.16.7-SNAPSHOT</version.europeana>
-    <version.postgresql>42.6.0</version.postgresql>
+    <version.postgresql>42.7.2</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
-    <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+    <version.maven.compiler.plugin>3.12.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>3.1.2</version.surefire.plugin>
     <version.failsafe.plugin>3.1.2</version.failsafe.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.slf4j>1.7.30</version.slf4j>
-    <version.log4j>2.20.0</version.log4j>
+    <version.slf4j>2.0.12</version.slf4j>
+    <version.log4j>2.21.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
-    <version.wiremock>2.35.1</version.wiremock>
-    <version.commons.collections>3.2.2</version.commons.collections>
+    <version.wiremock>3.4.2</version.wiremock>
+    <version.commons.collections4>4.4</version.commons.collections4>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
-    <version.testcontainers>1.19.0</version.testcontainers>
-    <version.awaitability>1.7.0</version.awaitability>
+    <version.testcontainers>1.19.7</version.testcontainers>
+    <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
     <version.elastic.apm>1.43.0</version.elastic.apm>
     <version.netty>4.1.100.Final</version.netty>
@@ -253,7 +253,7 @@
           <groupId>org.codehaus.woodstox</groupId>
           <artifactId>stax2-api</artifactId>
         </exclusion>
-        <!-- This is not really part of the library but we excluded just in case.-->
+        <!-- This is not really part of the library, but we excluded just in case.-->
         <exclusion>
           <groupId>com.fasterxml.woodstox</groupId>
           <artifactId>woodstox-core</artifactId>
@@ -438,14 +438,14 @@
 
 
     <dependency>
-      <groupId>com.jayway.awaitility</groupId>
+      <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <version>${version.awaitability}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock-jre8-standalone</artifactId>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
       <version>${version.wiremock}</version>
       <scope>test</scope>
     </dependency>
@@ -457,13 +457,13 @@
     </dependency>
     <dependency>
       <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-ui</artifactId>
-      <version>${version.springdoc}</version>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${version.springdoc-openapi-starter-webmvc-ui}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-      <version>${version.commons.collections}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>${version.commons.collections4}</version>
     </dependency>
 
     <!--Metrics-->

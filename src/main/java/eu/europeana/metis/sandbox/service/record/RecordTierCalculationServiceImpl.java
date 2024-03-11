@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.entity.RecordErrorLogEntity;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.util.ArrayList;
 import java.util.Objects;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriTemplate;
@@ -33,7 +34,9 @@ public class RecordTierCalculationServiceImpl implements RecordTierCalculationSe
    * </p>
    * @param portalPublishRecordBaseUrl the portal publish record base url
    */
-  public RecordTierCalculationServiceImpl(RecordLogService recordLogService, String portalPublishRecordBaseUrl) {
+  public RecordTierCalculationServiceImpl(
+      RecordLogService recordLogService,
+      @Qualifier("portalPublishRecordBaseUrl") String portalPublishRecordBaseUrl) {
     this.recordLogService = recordLogService;
     this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }
