@@ -53,7 +53,7 @@
     <version.testcontainers>1.19.7</version.testcontainers>
     <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
-    <version.elastic.apm>1.43.0</version.elastic.apm>
+    <version.elastic.apm>1.48.1</version.elastic.apm>
     <version.netty>4.1.100.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
