@@ -1,39 +1,44 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
+import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.test.utils.TestContainer;
 import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-
-import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
-import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = SandboxApplication.class)
 @TestPropertySource(locations = "/application.yml",
-        properties = {"sandbox.dataset.clean.frequency= 0 */5 * * * ?",
+    properties = {"sandbox.dataset.clean.frequency= */30 * * * * ?",
         "sandbox.dataset.clean.days-to-preserve=-1"})
 class DatasetRemovalIT {
 
@@ -78,23 +83,23 @@ class DatasetRemovalIT {
 
         // Give time for the full harvesting to happen
         Awaitility.await().atMost(10, MINUTES)
-                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+                  .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                         String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
 
         ResponseEntity<String> getDatasetResponse =
-                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
         assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
         assertNotNull(getDatasetResponse.getBody());
         assertTrue(getDatasetResponse.getBody().contains("\"total-records\":2"));
 
         // Give time for the data removal to happen
         Awaitility.await().atMost(10, MINUTES)
-                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+                .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                         String.class, expectedDatasetId).getBody()).contains("Provided dataset id: [" + expectedDatasetId + "] " +
                         "is not valid. "));
 
         ResponseEntity<String> getDatasetErrorResponse =
-                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+                testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
         assertEquals(HttpStatus.BAD_REQUEST, getDatasetErrorResponse.getStatusCode());
         assertNotNull(getDatasetErrorResponse.getBody());
         assertTrue(getDatasetErrorResponse.getBody().contains("Provided dataset id: [" + expectedDatasetId +"] " +

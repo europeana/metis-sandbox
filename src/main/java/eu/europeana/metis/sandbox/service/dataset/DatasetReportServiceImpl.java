@@ -7,7 +7,6 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -21,7 +20,6 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,14 +87,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
     public ProgressInfoDto getReport(String datasetId) {
         requireNonNull(datasetId, "Dataset id must not be null");
 
-        // search for dataset
-        DatasetEntity dataset = getDataset(datasetId);
-
-        //Create DatasetInfoDto from DatasetEntity
-        DatasetInfoDto datasetInfoDto = new DatasetInfoDto(datasetId, dataset.getDatasetName(), dataset.getCreatedDate(),
-                dataset.getLanguage(), dataset.getCountry(), dataset.getRecordLimitExceeded(),
-                StringUtils.isNotBlank(dataset.getXsltEdmExternalContent()));
-
         // pull records and errors data for the dataset
         List<StepStatistic> stepStatistics;
         List<ErrorLogView> errorsLog;
@@ -109,14 +99,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
         }
 
         // get qty of records completely processed
-        long completedRecords = getCompletedRecords(stepStatistics);
+        final long completedRecords = getCompletedRecords(stepStatistics);
+
+        // search for dataset
+        final DatasetEntity dataset = getDataset(datasetId);
 
         List<DatasetLogDto> datasetLogs = datasetLogService.getAllLogs(datasetId);
         if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))
                 || getErrors(datasetLogs).findAny().isPresent()) {
             return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
                     dataset.getRecordsQuantity(), 0L, List.of(),
-                    datasetInfoDto, getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
+                    dataset.getRecordLimitExceeded(), getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
                     datasetLogs,
                     null);
         }
@@ -139,7 +132,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         return new ProgressInfoDto(
                 getPublishPortalUrl(dataset, completedRecords),
                 dataset.getRecordsQuantity(), completedRecords,
-                stepsInfo, datasetInfoDto, getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
+                stepsInfo, dataset.getRecordLimitExceeded(), getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
                 datasetLogs, tiersZeroInfo);
     }
 

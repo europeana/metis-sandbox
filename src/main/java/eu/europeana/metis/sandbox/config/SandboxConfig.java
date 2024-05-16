@@ -33,6 +33,16 @@ import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
 import eu.europeana.validation.service.SchemaProvider;
+import java.lang.invoke.MethodHandles;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executor;
+import javax.xml.xpath.XPathFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,22 +56,12 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import javax.xml.xpath.XPathFactory;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpClient.Version;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executor;
-
 @Configuration
 @EnableScheduling
 @ComponentScan("eu.europeana.validation.service")
 class SandboxConfig {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SandboxConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Value("${sandbox.rabbitmq.queues.record.created.queue}")
     private String createdQueue;
@@ -111,13 +111,6 @@ class SandboxConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     XsltTransformer xsltEdmSorter() throws TransformationException {
         return new XsltTransformer(edmSorterUrl);
-    }
-
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    XsltTransformer xsltTransformer(String datasetName, String edmCountry, String edmLanguage)
-            throws TransformationException {
-        return new XsltTransformer(defaultXsltUrl, datasetName, edmCountry, edmLanguage);
     }
 
     @Bean
@@ -263,12 +256,13 @@ class SandboxConfig {
     }
 
     private void addSchemaProperties(String key, Object value, Properties props) {
-        if (value instanceof String) {
-            props.setProperty(key, (String) value);
-        } else if (value instanceof Map) {
-            var map = ((Map<?, ?>) value);
+        if (value instanceof String string) {
+            props.setProperty(key, string);
+        } else if (value instanceof Map<?, ?> map) {
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                addSchemaProperties(key + "." + entry.getKey(), entry.getValue(), props);
+                String nestedKey = key + "." + entry.getKey().toString();
+                Object nestedValue = entry.getValue();
+                addSchemaProperties(nestedKey, nestedValue, props);
             }
         } else {
             throw new IllegalArgumentException("Property value: " + value);

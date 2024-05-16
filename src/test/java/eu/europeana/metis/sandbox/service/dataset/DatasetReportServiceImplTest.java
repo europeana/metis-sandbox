@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -9,6 +10,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -16,6 +18,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -116,8 +119,7 @@ class DatasetReportServiceImplTest {
                 "A review URL will be generated when the dataset has finished processing.",
                 5L, 4L,
                 List.of(createProgress, externalProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "", emptyList(), null);
+                false, "", emptyList(), null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal1 = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 1L);
@@ -151,7 +153,7 @@ class DatasetReportServiceImplTest {
                 "A review URL will be generated when the dataset has finished processing.",
                 5L, 0L,
                 List.of(createProgress, externalProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", emptyList(), null);
+                false, "", emptyList(), null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -178,8 +180,7 @@ class DatasetReportServiceImplTest {
         var report = new ProgressInfoDto(
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:1_test*", 5L, 5L,
                 List.of(createProgress, externalProgress, publishProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "", emptyList(), tiersZeroInfo);
+                false, "", emptyList(), tiersZeroInfo);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.SUCCESS, 5L);
@@ -193,7 +194,7 @@ class DatasetReportServiceImplTest {
                 .thenReturn(List.of());
         when(recordRepository.findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc("1", MediaTier.T0.toString()))
                 .thenReturn(List.of(new RecordEntity.RecordEntityBuilder()
-                        .setEuropeanaId("europeanaId1")
+                                .setEuropeanaId("europeanaId1")
                                 .setProviderId("providerId1")
                                 .setDatasetId("1")
                                 .build(),
@@ -242,8 +243,7 @@ class DatasetReportServiceImplTest {
         var report = new ProgressInfoDto(
                 "https://metis-sandbox/portal/publish/search?q=edm_datasetName:1_test*", 5L, 5L,
                 List.of(createProgress, externalProgress),
-                new DatasetInfoDto("", "", LocalDateTime.now(), Language.NL, Country.NETHERLANDS,
-                        false, false), "", emptyList(), null);
+                false, "", emptyList(), null);
 
         var recordViewCreate = new StepStatistic(Step.HARVEST_FILE, Status.SUCCESS, 5L);
         var recordViewExternal = new StepStatistic(Step.VALIDATE_EXTERNAL, Status.FAIL, 5L);
@@ -279,7 +279,7 @@ class DatasetReportServiceImplTest {
 
         var expected = new ProgressInfoDto(
                 "", 0L, 0L, List.of(),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false),
+                false,
                 "Dataset is empty.", emptyList(), null);
         var report = service.getReport("1");
         assertReportEquals(expected, report);
@@ -315,7 +315,6 @@ class DatasetReportServiceImplTest {
 
     @Test
     void getReport_failToRetrieveRecords_expectFail() {
-        when(datasetRepository.findById(1)).thenReturn(Optional.of(createDataset(5L)));
         when(recordLogRepository.getStepStatistics("1")).thenThrow(new RuntimeException("exception"));
 
         assertThrows(ServiceException.class, () -> service.getReport("1"));
@@ -334,7 +333,7 @@ class DatasetReportServiceImplTest {
 
         var expected = new ProgressInfoDto(
                 "Harvesting dataset identifiers and records.", null, 0L, List.of(),
-                new DatasetInfoDto("", "", LocalDateTime.now(), null, null, false, false), "", emptyList(), null);
+                false, "", emptyList(), null);
         var report = service.getReport("1");
 
         assertReportEquals(expected, report);

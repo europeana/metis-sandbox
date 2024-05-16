@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.config.web;
+package eu.europeana.metis.sandbox.config.webmvc;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import java.util.Map;

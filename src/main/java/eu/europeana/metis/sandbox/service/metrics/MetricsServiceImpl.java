@@ -14,13 +14,10 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpAdmin;
@@ -99,7 +96,7 @@ public class MetricsServiceImpl implements MetricsService {
   private Long getTotalMessagesFromQueue(String queueName){
     return queueStatistics == null || queueStatistics.isEmpty() ? 0L :
             queueStatistics.stream().filter(queueStatistic -> queueStatistic.getQueueName().equals(queueName))
-                    .collect(Collectors.toList()).get(0).getCountMessages();
+                           .toList().getFirst().getCountMessages();
   }
 
   private List<QueueStatistic> refreshQueueStatisticsList(){
@@ -107,7 +104,7 @@ public class MetricsServiceImpl implements MetricsService {
     for (String queue : amqpConfiguration.getAllQueuesNames()){
       QueueInformation queueInformation = amqpAdmin.getQueueInfo(queue);
       if(queueInformation == null){
-        LOGGER.error("No such queue " + queue + " exists");
+        LOGGER.error("No such queue {} exists", queue);
       } else {
         newList.add(new QueueStatistic(queue, (long) queueInformation.getMessageCount()));
       }

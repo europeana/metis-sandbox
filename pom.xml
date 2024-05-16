@@ -2,20 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.11</version>
-    <relativePath />
-  </parent>
-
   <groupId>eu.europeana.metis</groupId>
   <artifactId>metis-sandbox</artifactId>
-  <version>7</version>
-  <packaging>war</packaging>
+  <version>8</version>
+  <packaging>jar</packaging>
   <name>metis-sandbox</name>
   <description>Metis sandbox pilot</description>
-  <!-- Github connection -->
+  <!-- GitHub connection -->
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
     <url>https://github.com/europeana/metis-sandbox</url>
@@ -37,33 +30,37 @@
   </distributionManagement>
 
   <properties>
-    <version.java>11</version.java>
-    <version.springdoc>1.7.0</version.springdoc>
-    <version.metis>11</version.metis>
-    <version.europeana>2.15.3</version.europeana>
-    <version.postgresql>42.6.0</version.postgresql>
+    <version.java>21</version.java>
+    <version.springdoc-openapi-starter-webmvc-ui>2.3.0</version.springdoc-openapi-starter-webmvc-ui>
+    <version.metis>12.2</version.metis>
+    <version.metis.normalization>13</version.metis.normalization>
+    <version.spring.boot>3.2.3</version.spring.boot>
+    <version.europeana>2.16.7</version.europeana>
+    <version.postgresql>42.7.2</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
-    <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+    <version.maven.compiler.plugin>3.12.1</version.maven.compiler.plugin>
     <version.coveralls>4.0.0</version.coveralls>
-    <version.surefire.plugin>2.22.1</version.surefire.plugin>
-    <version.failsafe.plugin>2.22.1</version.failsafe.plugin>
+    <version.surefire.plugin>3.1.2</version.surefire.plugin>
+    <version.failsafe.plugin>3.1.2</version.failsafe.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.slf4j>1.7.30</version.slf4j>
-    <version.log4j>2.20.0</version.log4j>
+    <version.slf4j>2.0.12</version.slf4j>
+    <version.log4j>2.21.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
-    <version.wiremock>2.35.0</version.wiremock>
-    <version.commons.collections>3.2.2</version.commons.collections>
+    <version.wiremock>3.4.2</version.wiremock>
+    <version.commons.collections4>4.4</version.commons.collections4>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
-    <version.testcontainers>1.18.0</version.testcontainers>
-    <version.awaitability>1.7.0</version.awaitability>
+    <version.testcontainers>1.19.7</version.testcontainers>
+    <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
-    <version.apm>1.33.0</version.apm>
-    <version.netty>4.1.91.Final</version.netty>
+    <version.elastic.apm>1.48.1</version.elastic.apm>
+    <version.netty>4.1.100.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
     <version.bucket4j>8.3.0</version.bucket4j>
     <version.postgresql.bucket4j>8.1.1</version.postgresql.bucket4j>
+    <version.guava>32.1.3-jre</version.guava>
+    <version.mockito-core>5.8.0</version.mockito-core>
   </properties>
   <dependencies>
     <!-- Rate limiting dependencies-->
@@ -83,7 +80,12 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+      <!-- guava -->
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>${version.guava}</version>
+      </dependency>
     <!-- Spring boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -132,7 +134,13 @@
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-normalization</artifactId>
-      <version>${version.metis}</version>
+      <version>${version.metis.normalization}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -245,7 +253,7 @@
           <groupId>org.codehaus.woodstox</groupId>
           <artifactId>stax2-api</artifactId>
         </exclusion>
-        <!-- This is not really part of the library but we excluded just in case.-->
+        <!-- This is not really part of the library, but we excluded just in case.-->
         <exclusion>
           <groupId>com.fasterxml.woodstox</groupId>
           <artifactId>woodstox-core</artifactId>
@@ -331,6 +339,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${version.mockito-core}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- logging -->
     <dependency>
@@ -342,21 +356,6 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <version>${version.log4j}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-api</artifactId>
-      <version>${version.log4j}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>${version.log4j}</version>
     </dependency>
 
     <dependency>
@@ -393,6 +392,12 @@
       <artifactId>testcontainers</artifactId>
       <version>${version.testcontainers}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-compress</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
@@ -439,14 +444,14 @@
 
 
     <dependency>
-      <groupId>com.jayway.awaitility</groupId>
+      <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <version>${version.awaitability}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock-jre8-standalone</artifactId>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
       <version>${version.wiremock}</version>
       <scope>test</scope>
     </dependency>
@@ -458,13 +463,13 @@
     </dependency>
     <dependency>
       <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-ui</artifactId>
-      <version>${version.springdoc}</version>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${version.springdoc-openapi-starter-webmvc-ui}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-      <version>${version.commons.collections}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>${version.commons.collections4}</version>
     </dependency>
 
     <!--Metrics-->
@@ -476,9 +481,20 @@
     <dependency>
       <groupId>co.elastic.apm</groupId>
       <artifactId>apm-agent-attach</artifactId>
-      <version>${version.apm}</version>
+        <version>${version.elastic.apm}</version>
     </dependency>
   </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${version.spring.boot}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <repositories>
 
@@ -516,11 +532,26 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${version.spring.boot}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${version.surefire.plugin}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <!--Temporary argument to bypass exception on inline mockito mocks(coming from transitive bytebuddy dependency).-->
+            <!--Remove this when mockito has been updated to work with java 21(At time of writing 5.8.0 does not work).-->
+            <net.bytebuddy.experimental>true</net.bytebuddy.experimental>
+          </systemPropertyVariables>
+        </configuration>
         <executions>
           <execution>
             <id>unit-tests</id>
@@ -547,6 +578,7 @@
               <goal>verify</goal>
             </goals>
             <configuration>
+              <classesDirectory>${project.build.outputDirectory}</classesDirectory>
               <includes>
                 <include>**/*IT.java</include>
               </includes>
@@ -567,10 +599,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${version.maven.compiler.plugin}</version>
           <configuration>
-            <source>${version.java}</source>
-            <target>${version.java}</target>
-            <testSource>${version.java}</testSource>
-            <testTarget>${version.java}</testTarget>
+            <release>${version.java}</release>
           </configuration>
         </plugin>
       </plugins>

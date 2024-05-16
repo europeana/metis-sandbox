@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.awaitility.Awaitility;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -21,17 +20,25 @@ import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionEvaluationLogger;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -49,6 +56,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
     classes = SandboxApplication.class)
 class DatasetControllerIT {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
   @LocalServerPort
@@ -71,12 +79,8 @@ class DatasetControllerIT {
     s3ContainerIT.dynamicProperties(registry);
   }
 
-  private String getBaseUrl() {
-    return "http://localhost:" + port;
-  }
-
   @Test
-  public void harvestDatasetWithFile_expectStatus_accepted() {
+  void harvestDatasetWithFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
@@ -84,13 +88,13 @@ class DatasetControllerIT {
     ResponseEntity<String> response = makeHarvestingByFile(dataset, null);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
   }
 
   @Test
-  public void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
+  void harvestDatasetWithFile_withXsltFile_expectStatus_accepted() {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-with-xslt-file-small.zip");
@@ -101,13 +105,13 @@ class DatasetControllerIT {
     ResponseEntity<String> response = makeHarvestingByFile(dataset, xsltFileForTransformationToEdmExternal);
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
   }
 
   @Test
-  public void harvestDatasetWithUrl_expectStatus_accepted() {
+  void harvestDatasetWithUrl_expectStatus_accepted() {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-small.zip");
     assertTrue(Files.exists(datasetPath));
 
@@ -126,13 +130,13 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
   }
 
   @Test
-  public void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
+  void harvestDatasetWithUrl_withXsltFile_expectStatus_accepted() {
     Path datasetPath = Paths.get("src", "test", "resources", "zip", "dataset-valid-with-xslt-file-small.zip");
     assertTrue(Files.exists(datasetPath));
     FileSystemResource xsltFileForTransformationToEdmExternal = new FileSystemResource(
@@ -154,12 +158,19 @@ class DatasetControllerIT {
 
     assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+    assertTrue(response.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(response.getBody());
     assertTrue(expectedDatasetId > 0);
 
   }
 
+  @Test
+  void harvestDatasetWithOAI_PMH_expectStatus_accepted() throws Exception {
+    ResponseEntity<String> responseDataset = makeHarvestingByOAIPMH();
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+  }
 
   //
   // TODO: This sort of integration test should be addressed differently,
@@ -176,38 +187,106 @@ class DatasetControllerIT {
   //        .andExpect(status().isAccepted());
   //  }
   //
+
   @Test
-  public void retrieveDataset_expectStatus_ok() throws IOException {
+  void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
             File.separator + "dataset-valid-small.zip");
     FileSystemResource datasetResponseBody = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
             File.separator + "zip" + File.separator + "responsefiles" + File.separator +
-                "response_body_dataset_valid_small.txt");
+            "response_body_dataset_valid_small.txt");
     String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
 
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
-    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
+
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
 
     // Give time for the full harvesting to happen
     Awaitility.await().atMost(10, MINUTES)
-              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}",
+              .until(() -> Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress",
                   String.class, expectedDatasetId).getBody()).contains("COMPLETED"));
 
     ResponseEntity<String> getDatasetResponse =
-        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}", String.class, expectedDatasetId);
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, expectedDatasetId);
+
+    assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
+    assertNotNull(getDatasetResponse.getBody());
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
+        StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
+  }
+
+  private String getBaseUrl() {
+    return "http://localhost:" + port;
+  }
+
+  private ResponseEntity<String> makeHarvestingByOAIPMH() throws URISyntaxException {
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    body.add("url", new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString());
+    body.add("setspec", "oai_integration_test");
+    body.add("metadataformat", "edm");
+
+    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestOaiPmh",
+        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+  }
+
+  private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
+
+    HttpHeaders requestHeaders = new HttpHeaders();
+    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    MultiValueMap<String, Object> body
+        = new LinkedMultiValueMap<>();
+    body.add("dataset", dataset);
+    body.add("country", ITALY.xmlValue());
+    body.add("language", IT.xmlValue());
+
+    if (xsltFile != null) {
+      body.add("xsltFile", xsltFile);
+    }
+
+    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
+        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
+  }
+
+  private String removeCreationDate(String body) {
+    JSONObject jsonObject = new JSONObject(body);
+    jsonObject.remove("creation-date");
+    return jsonObject.toString();
+  }
+
+  @Test
+  void retrieveDatasetInfo_expectStatus_ok() throws IOException {
+    FileSystemResource dataset = new FileSystemResource(
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid-small.zip");
+    FileSystemResource datasetResponseBody = new FileSystemResource(
+        "src" + File.separator + "test" + File.separator + "resources" +
+            File.separator + "zip" + File.separator + "responsefiles" + File.separator +
+            "get_dataset_info_response_body.txt");
+    String datasetResponseBodyContent = new String(datasetResponseBody.getInputStream().readAllBytes());
+
+    ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
+    assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d+\"\\}"));
+    final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
+    assertTrue(expectedDatasetId > 0);
+
+    ResponseEntity<String> getDatasetResponse =
+        testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/info", String.class, expectedDatasetId);
 
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     assertTrue(getDatasetResponse.getBody().contains("\"creation-date\""));
-    JSONAssert.assertEquals(
-        expectedDatasetInfoJson(StringUtils.deleteWhitespace(datasetResponseBodyContent), String.valueOf(expectedDatasetId)),
+    JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
         StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
-
-
   }
 
   @Test
@@ -218,15 +297,17 @@ class DatasetControllerIT {
     FileSystemResource tierCalculationResponse = new FileSystemResource(
         "src" + File.separator + "test" + File.separator + "resources" +
             File.separator + "zip" + File.separator + "responsefiles" + File.separator +
-                "tier_calculation_response_body.txt");
+            "tier_calculation_response_body.txt");
     String tierCalculationResponseContent = new String(tierCalculationResponse.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
     final int expectedDatasetId = extractDatasetId(responseDataset.getBody());
     assertTrue(expectedDatasetId > 0);
 
-    Awaitility.await().atMost(10, MINUTES).until(() -> testRestTemplate.getForEntity(getBaseUrl() +
-            "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
+    Awaitility.await().conditionEvaluationListener(new ConditionEvaluationLogger(LOGGER::info))
+              .atMost(10, MINUTES).with().pollInterval(Duration.ofSeconds(5))
+              .until(() -> testRestTemplate.getForEntity(
+                  getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
         String.class, expectedDatasetId, "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6").getStatusCode()
         != HttpStatus.NOT_FOUND);
     ResponseEntity<String> response =
@@ -268,10 +349,10 @@ class DatasetControllerIT {
   @Test
   void getRecordsTier_expectSuccess() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
-            "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
-                    File.separator + "dataset-valid-small.zip");
+        "src" + File.separator + "test" + File.separator + "resources" + File.separator + "zip" +
+            File.separator + "dataset-valid-small.zip");
     FileSystemResource getRecordBody = new FileSystemResource("src" + File.separator + "test" + File.separator + "resources" +
-            File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_records_tiers_response_body.txt");
+        File.separator + "zip" + File.separator + "responsefiles" + File.separator + "get_records_tiers_response_body.txt");
     String getRecordBodyContent = new String(getRecordBody.getInputStream().readAllBytes());
     ResponseEntity<String> responseDataset = makeHarvestingByFile(dataset, null);
     assertTrue(responseDataset.getBody().matches("\\{\"dataset-id\":\"\\d\"\\}"));
@@ -282,26 +363,26 @@ class DatasetControllerIT {
     String recordId2 = "/" + expectedDatasetId + "/URN_NBN_SI_doc_35SZSOCF";
 
     Awaitility.await().atMost(10, MINUTES)
-            .until(() -> {
-              String body = Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
-                      String.class, expectedDatasetId).getBody());
+              .until(() -> {
+                String body = Objects.requireNonNull(testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
+                    String.class, expectedDatasetId).getBody());
 
-              return body.contains(recordId1) && body.contains(recordId2);
-            });
+                return body.contains(recordId1) && body.contains(recordId2);
+              });
 
     ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
-            String.class, expectedDatasetId);
+        String.class, expectedDatasetId);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(removeRecordIdFields(getRecordBodyContent)),
-            StringUtils.deleteWhitespace(removeRecordIdFields(response.getBody())), true);
+        StringUtils.deleteWhitespace(removeRecordIdFields(response.getBody())), true);
 
   }
 
   @Test
   void getRecordsTier_expectException() {
     ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
-            String.class, 100);
+        String.class, 100);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertTrue(response.getBody().contains("Provided dataset id: [100] is not valid. "));
@@ -332,31 +413,6 @@ class DatasetControllerIT {
     languages.forEach(language -> assertTrue(response.getBody().contains(language.xmlValue())));
   }
 
-
-  private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
-
-    HttpHeaders requestHeaders = new HttpHeaders();
-    requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-    MultiValueMap<String, Object> body
-        = new LinkedMultiValueMap<>();
-    body.add("dataset", dataset);
-    body.add("country", ITALY.xmlValue());
-    body.add("language", IT.xmlValue());
-
-    if (xsltFile != null) {
-      body.add("xsltFile", xsltFile);
-    }
-
-    return testRestTemplate.postForEntity(getBaseUrl() + "/dataset/{name}/harvestByFile",
-        new HttpEntity<>(body, requestHeaders), String.class, "testDataset");
-  }
-
-  private String removeCreationDate(String body) {
-    JSONObject jsonObject = new JSONObject(body);
-    jsonObject.getJSONObject("dataset-info").remove("creation-date");
-    return jsonObject.toString();
-  }
-
   int extractDatasetId(String value) {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
@@ -367,25 +423,9 @@ class DatasetControllerIT {
     }
   }
 
-  String expectedDatasetInfoJson(String actual, String datasetId) {
+  String removeRecordIdFields(String body) {
     ObjectMapper mapper = new ObjectMapper();
     try {
-      JsonNode rootNode = mapper.readTree(actual);
-      JsonNode datasetNode = rootNode.get("dataset-info");
-      ((ObjectNode) datasetNode).remove("dataset-id");
-      ((ObjectNode) datasetNode).put("dataset-id", datasetId);
-      ((ObjectNode) rootNode).replace("dataset-info", datasetNode);
-      ((ObjectNode) rootNode).remove("portal-publish");
-      rootNode = ((ObjectNode) rootNode).put("portal-publish", "http://metis-test" + datasetId + "_testDataset*");
-      return rootNode.toPrettyString();
-    } catch (JsonProcessingException e) {
-      return actual;
-    }
-  }
-
-  String removeRecordIdFields(String body){
-    ObjectMapper mapper = new ObjectMapper();
-    try{
       JsonNode rootNode = mapper.readTree(body);
       JsonNode firstElem = rootNode.get(0);
       JsonNode secondElem = rootNode.get(1);
@@ -394,7 +434,7 @@ class DatasetControllerIT {
       ((ArrayNode) rootNode).set(0, firstElem);
       ((ArrayNode) rootNode).set(1, secondElem);
       return rootNode.toPrettyString();
-    } catch (JsonProcessingException e){
+    } catch (JsonProcessingException e) {
       return body;
     }
   }

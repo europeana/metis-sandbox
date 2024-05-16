@@ -5,6 +5,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:14-alpine
+    container_name: metis-sandbox-postgres
     environment:
       - POSTGRES_DB=sandbox_local
       - POSTGRES_USER=test
@@ -14,8 +15,11 @@ services:
     volumes:
       - ./src/main/resources/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - ./src/main/resources/database/schema_problem_patterns.sql:/docker-entrypoint-initdb.d/schema_problem_patterns.sql
+      - ./src/main/resources/database/schema_lockrepository.sql:/docker-entrypoint-initdb.d/schema_lockrepository.sql
+      - ./src/main/resources/database/schema_validation.sql:/docker-entrypoint-initdb.d/schema_validation.sql
   rabbitmq:
     image: rabbitmq:3.9.12-management
+    container_name: metis-sandbox-rabbitmq
     environment:
       - RABBIT_DEFAULT_VHOST=/
       - RABBITMQ_DEFAULT_USER=guest
@@ -23,3 +27,42 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+  mongo:
+    image: mongo:4.2.9
+    container_name: metis-sandbox-mongo
+    environment:
+      MONGO_INITDB_DATABASE: metis-sandbox
+      MONGO_INITDB_ROOT_USERNAME: guest
+      MONGO_INITDB_ROOT_PASSWORD: guest
+    ports:
+      - '27017:27017'
+  metis-sandbox-local:
+    image: europeana/metis-sandbox:develop
+    container_name: metis-sandbox-local
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      RABBITMQ_HOST: metis-sandbox-rabbitmq
+      MONGO_HOSTS: metis-sandbox-mongo
+      POSTGRES_HOST: metis-sandbox-postgres
+      JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
+    memswap_limit: -1
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1500M
+        reservations:
+          cpus: '2'
+          memory: 1500M
+    volumes:
+      - /data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks:/data/certificates/custom-truststore.jks
+      - /data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml:/application.yml
+      - /data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml:/data/logging/log4j2.xml
+    depends_on:
+      - rabbitmq
+      - mongo
+      - postgres

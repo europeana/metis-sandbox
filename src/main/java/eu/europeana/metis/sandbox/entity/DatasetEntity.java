@@ -2,15 +2,15 @@ package eu.europeana.metis.sandbox.entity;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import java.time.LocalDateTime;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.ZonedDateTime;
 
 /**
  * Entity to map dataset table
@@ -28,7 +28,7 @@ public class DatasetEntity {
   private Long recordsQuantity;
 
   @Column(insertable = false, updatable = false)
-  private LocalDateTime createdDate;
+  private ZonedDateTime createdDate;
 
   @Enumerated(EnumType.STRING)
   private Language language;
@@ -84,11 +84,11 @@ public class DatasetEntity {
     this.recordsQuantity = recordsQuantity;
   }
 
-  public LocalDateTime getCreatedDate() {
+  public ZonedDateTime getCreatedDate() {
     return createdDate;
   }
 
-  public void setCreatedDate(LocalDateTime createdDate) {
+  public void setCreatedDate(ZonedDateTime createdDate) {
     this.createdDate = createdDate;
   }
 

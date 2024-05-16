@@ -11,7 +11,6 @@ import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -49,11 +48,10 @@ public class RecordMessageConverter implements MessageConverter {
    */
   @Override
   public Message toMessage(Object object, MessageProperties messageProperties) {
-    if (!(object instanceof RecordProcessEvent)) {
+    if (!(object instanceof RecordProcessEvent recordRecordProcessEvent)) {
       throw new MessageConversionException("Provided object is not of type Record");
     }
 
-    RecordProcessEvent recordRecordProcessEvent = (RecordProcessEvent) object;
     Record recordToProcess = recordRecordProcessEvent.getRecord();
     List<RecordError> errors = recordRecordProcessEvent.getRecordErrors();
 
@@ -68,8 +66,7 @@ public class RecordMessageConverter implements MessageConverter {
         .setHeaderIfAbsent(STATUS, recordRecordProcessEvent.getStatus()).build();
 
     if (!errors.isEmpty()) {
-      List<List<String>> errorsHeader = errors.stream().map(x -> List.of(x.getMessage(), x.getStackTrace()))
-          .collect(Collectors.toList());
+      List<List<String>> errorsHeader = errors.stream().map(x -> List.of(x.getMessage(), x.getStackTrace())).toList();
       properties.setHeader(ERRORS, errorsHeader);
     }
 
@@ -107,8 +104,7 @@ public class RecordMessageConverter implements MessageConverter {
     List<RecordError> recordErrors = List.of();
 
     if (nonNull(errors)) {
-      recordErrors = errors.stream().map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString()))
-          .collect(Collectors.toList());
+      recordErrors = errors.stream().map(x -> new RecordError(x.get(LEFT).toString(), x.get(RIGHT).toString())).toList();
     }
 
     RecordInfo recordInfo = new RecordInfo(recordToSend, recordErrors);

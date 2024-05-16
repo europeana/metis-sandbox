@@ -1,17 +1,21 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowReport;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowService;
 import eu.europeana.metis.schema.convert.SerializationException;
-import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,12 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 /**
  * The type Validation controller.
@@ -64,7 +62,8 @@ public class ValidationController {
     public ValidationWorkflowReport validate(
             @Parameter(description = "country of the record") @RequestParam(required = false, defaultValue = "Europe") Country country,
             @Parameter(description = "language of the record") @RequestParam(required = false, defaultValue = "Multilingual Content") Language language,
-            @Parameter(description = "record file to be validated", required = true) @RequestParam MultipartFile recordToValidate) throws SerializationException, IOException {
+        @Parameter(description = "record file to be validated", required = true)
+        @RequestParam MultipartFile recordToValidate) throws SerializationException, IOException {
         checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
         return workflowService.validate(recordToValidate, country, language);
     }

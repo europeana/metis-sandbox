@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +21,10 @@ class RecordPublishServiceImpl implements RecordPublishService {
   private final String createdQueue;
   private final String transformationToEdmExternalQueue;
 
-  public RecordPublishServiceImpl(AmqpTemplate amqpTemplate, String createdQueue, String transformationToEdmExternalQueue) {
+  public RecordPublishServiceImpl(
+      AmqpTemplate amqpTemplate,
+      @Qualifier("createdQueue") String createdQueue,
+      @Qualifier("transformationToEdmExternalQueue") String transformationToEdmExternalQueue) {
     this.amqpTemplate = amqpTemplate;
     this.createdQueue = createdQueue;
     this.transformationToEdmExternalQueue = transformationToEdmExternalQueue;

@@ -1,8 +1,14 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -12,7 +18,7 @@ import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +60,7 @@ class DatasetServiceImplTest {
     var id3 = new DatasetIdViewImpl(3);
     var id4 = new DatasetIdViewImpl(4);
 
-    when(datasetRepository.getByCreatedDateBefore(any(LocalDateTime.class)))
+    when(datasetRepository.getByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenReturn(List.of(id1, id2, id3, id4));
 
     var result = service.getDatasetIdsCreatedBefore(7);
@@ -64,7 +70,7 @@ class DatasetServiceImplTest {
 
   @Test
   void getDatasetIdsBefore_failToGetIds_expectFail() {
-    when(datasetRepository.getByCreatedDateBefore(any(LocalDateTime.class)))
+    when(datasetRepository.getByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenThrow(new RuntimeException("Issue"));
 
     assertThrows(ServiceException.class, () -> service.getDatasetIdsCreatedBefore(7));

@@ -9,12 +9,12 @@ info:
       email: info@europeana.eu
       url: www.europeana.eu
 spring:
+  profiles:
+    active: default
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-      - org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
-      - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
   application:
     name: *name
   servlet:
@@ -29,6 +29,8 @@ spring:
     ssl:
       enabled: false
       algorithm: TLSv1.2
+      trust-store:
+      trust-store-password:
     listener:
       simple:
         concurrency: 2
@@ -40,8 +42,29 @@ spring:
           multiplier: 2
           max-attempts: 3
   jpa:
-    database-platform:
     open-in-view: false
+
+# spring boot actuator see documentation at
+# https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: [ "health", "info", "loggers", "metrics", "scheduledtasks", "beans" ]
+  endpoint:
+    health: # Shows application health information.
+      enabled: true
+    info: # Displays arbitrary application info.
+      enabled: true
+    loggers: # Shows and modifies the configuration of loggers in the application.
+      enabled: true
+    metrics: # Shows ‘metrics’ information for the current application.
+      enabled: true
+    scheduledtasks: # Displays the scheduled tasks in your application.
+      enabled: true
+    beans: # Displays beans in the application only test environment.
+      enabled: true
 sandbox:
   cors:
     mapping: '*'
@@ -53,7 +76,6 @@ sandbox:
     driverClassName:
     username:
     password:
-    #MET-3929 connection leak detection
     maximumPoolSize: 10           # this is the default we make it explicit in the config.
     leakDetectionThreshold: 5000  # five second should be enough
   rate-limit:
@@ -87,6 +109,7 @@ sandbox:
         schematronLocation: schematron/schematron.xsl
   transformation:
     xslt-url: https://metis-core-rest.test.eanadev.org/datasets/xslt/default
+    xslt-update-frequency: 0 0 * * * * # 0 0 * * * * = every hour of every day
   enrichment:
     dereference-url: https://metis-dereference-rest.test.eanadev.org
     enrichment-properties:
@@ -99,6 +122,10 @@ sandbox:
       db:
       hosts:
       ports:
+      authentication-db:
+      username:
+      password:
+      ssl-enable: false
     solr:
       hosts:
   s3:
@@ -124,76 +151,82 @@ sandbox:
           dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
           routing-key: sandbox.record.#
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         created:
           queue: sandbox.record.created
           dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         transformation:
           edm:
             external:
               queue: sandbox.record.transformation.edm.external
               dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
               auto-start: true
-              consumers: 12
-              max-consumers: 12
-              prefetch: 3
+              concurrency: 2
+              max-concurrency: 2
+              prefetch: 1
+        ordered:
+          queue: sandbox.record.ordered
+          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
+          auto-start: true
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         validated:
           external:
             queue: sandbox.record.validated.external
             dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
             auto-start: true
-            consumers: 12
-            max-consumers: 12
-            prefetch: 3
+            concurrency: 2
+            max-concurrency: 2
+            prefetch: 1
           internal:
             queue: sandbox.record.validated.internal
             dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
             auto-start: true
-            consumers: 12
-            max-consumers: 12
-            prefetch: 3
+            concurrency: 2
+            max-concurrency: 2
+            prefetch: 1
         transformed:
           queue: sandbox.record.transformed
           dlq: ${sandbox.rabbitmq.queues.record.transformed.queue}.dlq
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         normalized:
           queue: sandbox.record.normalized
           dlq: ${sandbox.rabbitmq.queues.record.normalized.queue}.dlq
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         enriched:
           queue: sandbox.record.enriched
           dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         media:
           queue: sandbox.record.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
         published:
           queue: sandbox.record.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
           auto-start: true
-          consumers: 12
-          max-consumers: 12
-          prefetch: 3
-
+          concurrency: 2
+          max-concurrency: 2
+          prefetch: 1
 elastic:
   apm:
     service_name: metis-sandbox-rest-dev

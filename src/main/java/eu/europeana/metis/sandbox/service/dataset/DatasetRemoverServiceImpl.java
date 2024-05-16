@@ -23,6 +23,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final ThumbnailStoreService thumbnailStoreService;
   private final RecordService recordService;
   private final ProblemPatternDataRemover problemPatternDataRemover;
+  private final HarvestingParameterService harvestingParameterService;
 
   DatasetRemoverServiceImpl(
           DatasetService datasetService,
@@ -31,7 +32,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           IndexingService indexingService,
           ThumbnailStoreService thumbnailStoreService,
           RecordService recordService,
-          ProblemPatternDataRemover problemPatternDataRemover) {
+          ProblemPatternDataRemover problemPatternDataRemover,
+          HarvestingParameterService harvestingParameterService) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
     this.recordLogService = recordLogService;
@@ -39,6 +41,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
     this.thumbnailStoreService = thumbnailStoreService;
     this.recordService = recordService;
     this.problemPatternDataRemover = problemPatternDataRemover;
+    this.harvestingParameterService = harvestingParameterService;
   }
 
   @Override
@@ -64,6 +67,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           recordService.remove(dataset);
           LOGGER.debug("Remove logs for dataset id: [{}]", dataset);
           datasetLogService.remove(dataset);
+          LOGGER.debug("Remove harvesting parameters for dataset id: [{}]", dataset);
+          harvestingParameterService.remove(dataset);
           LOGGER.debug("Remove problem pattern data associated with dataset id: [{}]", dataset);
           problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
           LOGGER.debug("Remove dataset with id: [{}]", dataset);

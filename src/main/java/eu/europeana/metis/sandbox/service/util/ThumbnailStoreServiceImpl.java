@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.util;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -53,8 +52,8 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
 
     // remove null objects
     var notNullThumbnails = thumbnails.stream()
-        .filter(Objects::nonNull)
-        .collect(toList());
+                                      .filter(Objects::nonNull)
+                                      .toList();
 
     // store each thumbnail in s3 bucket
     for (Thumbnail thumbnail : notNullThumbnails) {
@@ -68,8 +67,8 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
     // store thumbnail info in DB to keep track of bucket contents
     try {
       thumbnailRepository.saveAll(notNullThumbnails.stream()
-          .map(x -> new ThumbnailEntity(datasetId, x.getTargetName()))
-          .collect(toList()));
+                                                   .map(x -> new ThumbnailEntity(datasetId, x.getTargetName()))
+                                                   .toList());
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error saving thumbnail entities: [%s] for dataset: [%s]. ",
           notNullThumbnails.stream().map(Thumbnail::getTargetName).collect(joining(",")),
@@ -87,9 +86,9 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
 
     // create objects for s3 batch deletes
     var thumbnailKeys = thumbnailEntities.stream()
-        .map(ThumbnailEntity::getThumbnailId)
-        .map(KeyVersion::new)
-        .collect(toList());
+                                         .map(ThumbnailEntity::getThumbnailId)
+                                         .map(KeyVersion::new)
+                                         .toList();
 
     // split deletes in batches (s3 supports a max of 1000 per batch) and delete in batches
     Lists.partition(thumbnailKeys, BATCH_SIZE).forEach(this::deleteBatch);
@@ -132,8 +131,8 @@ class ThumbnailStoreServiceImpl implements ThumbnailStoreService {
       s3client.deleteObjects(request);
     } catch (MultiObjectDeleteException e) {
       var errors = e.getErrors().stream()
-          .map(DeleteError::getKey)
-          .collect(toList());
+                    .map(DeleteError::getKey)
+                    .toList();
       throw new ThumbnailRemoveException(errors, e);
     } catch (SdkClientException e) {
       throw new ThumbnailRemoveException(e);

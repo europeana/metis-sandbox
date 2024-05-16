@@ -44,6 +44,9 @@ class DatasetRemoverServiceImplTest {
   @Mock
   private ProblemPatternDataRemover problemPatternDataRemover;
 
+  @Mock
+  private HarvestingParameterService harvestingParameterService;
+
   @InjectMocks
   private DatasetRemoverServiceImpl service;
 
@@ -57,6 +60,7 @@ class DatasetRemoverServiceImplTest {
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexingService, times(4)).remove(anyString());
     verify(recordLogService, times(4)).remove(anyString());
+    verify(harvestingParameterService, times(4)).remove(anyString());
     verify(datasetService, times(4)).remove(anyString());
     verify(datasetLogService, times(4)).remove(anyString());
     verify(recordService, times(4)).remove(anyString());
@@ -77,6 +81,7 @@ class DatasetRemoverServiceImplTest {
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexingService, times(3)).remove(anyString());
     verify(recordLogService, times(3)).remove(anyString());
+    verify(harvestingParameterService, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
     verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());
@@ -97,6 +102,7 @@ class DatasetRemoverServiceImplTest {
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexingService, times(3)).remove(anyString());
     verify(recordLogService, times(3)).remove(anyString());
+    verify(harvestingParameterService, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
     verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());

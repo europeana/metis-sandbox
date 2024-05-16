@@ -11,11 +11,10 @@ import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.sandbox.service.record.RecordService;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.Date;
-import javax.annotation.PreDestroy;
-
-import eu.europeana.metis.sandbox.service.record.RecordService;
 import org.springframework.stereotype.Service;
 
 @Service
