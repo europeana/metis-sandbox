@@ -58,7 +58,8 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
   public CompletableFuture<Void> runHarvestHttpFileAsync(String url, DatasetMetadata datasetMetadata,
       CompressedFileExtension compressedFileExtension) {
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
-    try (InputStream inputStreamToHarvest = new URI(url).toURL().openStream()) {
+    try {
+      final InputStream inputStreamToHarvest = new URI(url).toURL().openStream();
       return runHarvestFileAsync(inputStreamToHarvest, datasetMetadata, compressedFileExtension);
     } catch (UnknownHostException e) {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
