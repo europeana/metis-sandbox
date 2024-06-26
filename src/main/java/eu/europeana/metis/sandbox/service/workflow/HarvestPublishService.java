@@ -20,7 +20,7 @@ public interface HarvestPublishService {
      * if it reached the max number of records
      * @throws ServiceException if file is not valid, error reading file, if records are empty
      */
-    CompletableFuture<Void> runHarvestFileAsync(MultipartFile file, DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension);
+    CompletableFuture<Void> runHarvestProvidedFileAsync(MultipartFile file, DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension);
 
     /**
      * Start the harvest of an url asynchronously on the given URL {@link String}

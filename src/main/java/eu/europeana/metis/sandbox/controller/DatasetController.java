@@ -163,7 +163,7 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestFileAsync(dataset, datasetMetadata, compressedFileExtension)
+        harvestPublishService.runHarvestProvidedFileAsync(dataset, datasetMetadata, compressedFileExtension)
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
         return new DatasetIdDto(createdDatasetId);
     }
