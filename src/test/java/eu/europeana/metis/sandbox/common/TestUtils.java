@@ -2,8 +2,10 @@ package eu.europeana.metis.sandbox.common;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import eu.europeana.metis.harvesting.FullRecordHarvestingIterator;
+import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
-import eu.europeana.metis.harvesting.http.HttpRecordIterator;
+import eu.europeana.metis.harvesting.http.HttpHarvester.ArchiveEntry;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import java.io.BufferedReader;
@@ -47,8 +49,24 @@ public class TestUtils {
 
     @Override
     public void forEachFiltered(final ReportingIteration<OaiRecordHeader> action,
-        final Predicate<OaiRecordHeader> filter) {
-      this.source.forEach(action::process);
+        final Predicate<OaiRecordHeader> filter) throws HarvesterException {
+      for (OaiRecordHeader item : this.source) {
+        try {
+          action.process(item);
+        } catch (IOException e) {
+          throw new HarvesterException(e.getMessage(), e);
+        }
+      }
+    }
+
+    @Override
+    public void forEachNonDeleted(ReportingIteration<OaiRecordHeader> reportingIteration) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Integer countRecords() {
+      return source.size();
     }
 
     @Override
@@ -56,26 +74,39 @@ public class TestUtils {
     }
   }
 
-  public static class TestHttpRecordIterator implements HttpRecordIterator {
+  public static class TestHttpRecordIterator implements
+      FullRecordHarvestingIterator<ArchiveEntry, Path> {
 
-    private final List<Path> extractedDirectory;
+    private final List<ArchiveEntry> extractedDirectory;
 
-    public TestHttpRecordIterator(List<Path> extractedDirectory) {
+    public TestHttpRecordIterator(List<ArchiveEntry> extractedDirectory) {
       this.extractedDirectory = extractedDirectory;
     }
 
     @Override
-    public String getExtractedDirectory() {
-      return extractedDirectory.get(0).subpath(0,3).toString();
+    public void forEachFiltered(ReportingIteration<ArchiveEntry> reportingIteration, Predicate<Path> predicate)
+        throws HarvesterException {
+      for (ArchiveEntry item : this.extractedDirectory) {
+        try {
+          reportingIteration.process(item);
+        } catch (IOException e) {
+          throw new HarvesterException(e.getMessage(), e);
+        }
+      }
     }
 
     @Override
-    public void deleteIteratorContent() {
+    public void forEachNonDeleted(ReportingIteration<ArchiveEntry> reportingIteration) {
+      throw new UnsupportedOperationException();
     }
 
     @Override
-    public void forEach(ReportingIteration<Path> action) {
-      this.extractedDirectory.forEach(action::process);
+    public Integer countRecords() {
+      return extractedDirectory.size();
+    }
+
+    @Override
+    public void close() {
     }
   }
 
