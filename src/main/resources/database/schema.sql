@@ -97,6 +97,17 @@ CREATE TABLE IF NOT EXISTS harvesting_parameter
     FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
 );
 
+CREATE TABLE IF NOT EXISTS dataset_debias_detect
+(
+    id           BIGSERIAL,
+    dataset_id   BIGINT      NOT NULL,
+    state        VARCHAR(30) NOT NULL,
+    created_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (id),
+    FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
+);
+
+CREATE INDEX ON dataset_debias_detect (dataset_id);
 CREATE INDEX ON harvesting_parameter (dataset_id);
 CREATE INDEX ON dataset_log (dataset_id);
 CREATE INDEX ON record_log (record_id);
