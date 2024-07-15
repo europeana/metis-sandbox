@@ -16,12 +16,14 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.debias.DetectService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -100,6 +102,7 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
+    private final DetectService debiasDetectService;
 
     /**
      * Instantiates a new Dataset controller.
@@ -115,7 +118,7 @@ class DatasetController {
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService) {
+                             HarvestPublishService harvestPublishService, DetectService debiasDetectService) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -124,6 +127,7 @@ class DatasetController {
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
         urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
+        this.debiasDetectService = debiasDetectService;
     }
 
     /**
@@ -403,6 +407,26 @@ class DatasetController {
     @ResponseStatus(HttpStatus.OK)
     public List<LanguageView> getAllLanguages() {
         return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
+    }
+
+    @Operation(description = "Process debias detection dataset")
+    @ApiResponse(responseCode = "200", description = "Process debias detection feature", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = LanguageView.class))})
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public boolean processDebias(@PathVariable("id") String datasetId) {
+        return debiasDetectService.process(datasetId);
+    }
+
+    @Operation(description = "Get debias detetion dataset")
+    @ApiResponse(responseCode = "200", description = "Get detection information about debias detection", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = LanguageView.class))})
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public DetectionInfoDto getDebiasDetection(@PathVariable("id") String datasetId) {
+        return debiasDetectService.getDetectionInfo(datasetId);
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

@@ -1,55 +1,43 @@
 package eu.europeana.metis.sandbox.config;
 
-import eu.europeana.metis.sandbox.common.debias.Event;
-import eu.europeana.metis.sandbox.common.debias.State;
+
+import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import eu.europeana.metis.sandbox.service.debias.CompletedState;
+import eu.europeana.metis.sandbox.service.debias.DebiasMachine;
+import eu.europeana.metis.sandbox.service.debias.DetectService;
+import eu.europeana.metis.sandbox.service.debias.ErrorState;
+import eu.europeana.metis.sandbox.service.debias.ProcessingState;
+import eu.europeana.metis.sandbox.service.debias.ReadyState;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.statemachine.config.EnableStateMachine;
-import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
-import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
-import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
 @Configuration
-@EnableStateMachine
-public class DebiasConfig extends StateMachineConfigurerAdapter<State, Event> {
+public class DebiasConfig {
 
-  @Override
-  public void configure(StateMachineStateConfigurer<State, Event> states) throws Exception {
-    states
-        .withStates()
-        .initial(State.START)
-        .state(State.PROCESSING)
-        .state(State.ERROR)
-        .end(State.COMPLETED);
+  @Bean
+  public DetectService debiasMachine(DetectRepository detectRepository) {
+    return new DebiasMachine(detectRepository);
   }
 
-  @Override
-  public void configure(StateMachineTransitionConfigurer<State, Event> transitions) throws Exception {
-    transitions
-        .withExternal()
-        .source(State.START).target(State.PROCESSING)
-        .event(Event.PROCESS)
-        .and()
-        .withExternal()
-        .source(State.PROCESSING).target(State.ERROR)
-        .event(Event.FAIL)
-        .and()
-        .withExternal()
-        .source(State.ERROR).target(State.PROCESSING)
-        .event(Event.PROCESS)
-        .and()
-        .withExternal()
-        .source(State.PROCESSING).target(State.COMPLETED)
-        .event(Event.SUCCEED);
+  @Bean
+  ReadyState readyState(DetectService debiasMachine, DetectRepository detectRepository) {
+    return new ReadyState(debiasMachine, detectRepository);
   }
 
-  //  @Bean
-  //  public StateMachineRuntimePersister<State,Event,String> stringStateMachineRuntimePersister() {
-  //    return  new JpaPersistingStateMachineInterceptor<>(jpaStateMachineRepository);;
-  //  }
-  //  @Override
-  //  public void configure(StateMachineConfigurationConfigurer<State, Event> config) throws Exception {
-  //    config.withPersistence()
-  //        .runtimePersister()
-  //  }
+  @Bean
+  CompletedState completedState(DetectService debiasMachine, DetectRepository detectRepository) {
+    return new CompletedState(debiasMachine, detectRepository);
+  }
+
+  @Bean
+  ProcessingState processingState(DetectService debiasMachine, DetectRepository detectRepository) {
+    return new ProcessingState(debiasMachine, detectRepository);
+  }
+
+  @Bean
+  ErrorState errorState(DetectService debiasMachine, DetectRepository detectRepository) {
+    return new ErrorState(debiasMachine, detectRepository);
+  }
+
 }
 
