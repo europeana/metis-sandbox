@@ -4,7 +4,7 @@ import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 
-public class DebiasMachine implements DetectService {
+public class DebiasMachineService implements DetectService {
 
   private final Stateful ready;
   private final Stateful processing;
@@ -13,7 +13,7 @@ public class DebiasMachine implements DetectService {
   private final DetectRepository detectRepository;
   private Stateful state;
 
-  public DebiasMachine(DetectRepository detectRepository) {
+  public DebiasMachineService(DetectRepository detectRepository) {
     this.ready = new ReadyState(this, detectRepository);
     this.processing = new ProcessingState(this, detectRepository);
     this.completed = new CompletedState(this, detectRepository);

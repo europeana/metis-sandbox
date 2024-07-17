@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.debias;
 
+import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +17,12 @@ public class CompletedState extends State implements Stateful {
 
   @Override
   public void fail(String datasetId) {
-    // do nothing
+    this.stateMachine.setState(this.stateMachine.getError());
   }
 
   @Override
   public void success(String datasetId) {
-    // do nothing
+    // do nothing, processing completed.
   }
 
   @Transactional
@@ -29,18 +30,23 @@ public class CompletedState extends State implements Stateful {
   public boolean process(String datasetId) {
     LOGGER.info("{} {}", STATE_NAME, datasetId);
     try {
-      detectRepository.updateState(datasetId, STATE_NAME);
-      // TODO: add logic
+      DetectionEntity detectionEntity = detectRepository.findByDatasetId(datasetId);
+      if (detectionEntity == null) {
+        fail(datasetId);
+        LOGGER.warn("invalid state {} {}", STATE_NAME, datasetId);
+        return this.stateMachine.process(datasetId);
+      } else {
+        detectRepository.updateState(datasetId, STATE_NAME);
+        success(datasetId);
+        LOGGER.info("success {} {}", STATE_NAME, datasetId);
+      }
 
-      success(datasetId);
-      LOGGER.info("success {} {}", STATE_NAME, datasetId);
     } catch (RuntimeException e) {
       fail(datasetId);
       LOGGER.warn("fail {} {}", STATE_NAME, datasetId, e);
-      // TODO: add retryable logic future.
-      return false;
+      return this.stateMachine.process(datasetId);
     }
-    return true;
+    return terminalState;
   }
 
   public String getName() {

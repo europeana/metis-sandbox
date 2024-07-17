@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import static java.lang.String.format;
-
+import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,16 +31,21 @@ public class ReadyState extends State implements Stateful {
   public boolean process(String datasetId) {
     LOGGER.info("{} {}", STATE_NAME, datasetId);
     try {
-      detectRepository.findByDatasetId(datasetId);
-      detectRepository.updateState(datasetId, STATE_NAME);
-      // TODO: add logic
-
+      DetectionEntity detectionEntity = detectRepository.findByDatasetId(datasetId);
+      if (detectionEntity == null) {
+        detectionEntity = new DetectionEntity();
+        detectionEntity.setState(STATE_NAME);
+        detectionEntity.setId(Long.parseLong(datasetId));
+        detectRepository.save(detectionEntity);
+      } else {
+        detectRepository.updateState(datasetId, STATE_NAME);
+      }
       success(datasetId);
       LOGGER.info("success {} {}", STATE_NAME, datasetId);
     } catch (RuntimeException e) {
       fail(datasetId);
       LOGGER.warn("fail {} {}", STATE_NAME, datasetId, e);
-      // TODO: add retryable logic future.
+      return false;
     }
     return this.stateMachine.process(datasetId);
   }

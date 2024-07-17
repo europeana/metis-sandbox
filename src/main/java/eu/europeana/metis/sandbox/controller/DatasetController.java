@@ -16,9 +16,9 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -411,7 +411,7 @@ class DatasetController {
 
     @Operation(description = "Process debias detection dataset")
     @ApiResponse(responseCode = "200", description = "Process debias detection feature", content = {
-        @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = LanguageView.class))})
+        @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -419,9 +419,9 @@ class DatasetController {
         return debiasDetectService.process(datasetId);
     }
 
-    @Operation(description = "Get debias detetion dataset")
+    @Operation(description = "Get debias detection dataset")
     @ApiResponse(responseCode = "200", description = "Get detection information about debias detection", content = {
-        @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = LanguageView.class))})
+        @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
