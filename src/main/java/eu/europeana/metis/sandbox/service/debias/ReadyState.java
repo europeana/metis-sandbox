@@ -17,25 +17,25 @@ public class ReadyState extends State implements Stateful {
   }
 
   @Override
-  public void fail(String datasetId) {
+  public void fail(Long datasetId) {
     this.stateMachine.setState(this.stateMachine.getReady());
   }
 
   @Override
-  public void success(String datasetId) {
+  public void success(Long datasetId) {
     this.stateMachine.setState(this.stateMachine.getProcessing());
   }
 
   @Transactional
   @Override
-  public boolean process(String datasetId) {
+  public boolean process(Long datasetId) {
     LOGGER.info("{} {}", STATE_NAME, datasetId);
     try {
-      DetectionEntity detectionEntity = detectRepository.findByDatasetId(datasetId);
+      DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
       if (detectionEntity == null) {
         detectionEntity = new DetectionEntity();
         detectionEntity.setState(STATE_NAME);
-        detectionEntity.setId(Long.parseLong(datasetId));
+        detectionEntity.setId(datasetId);
         detectRepository.save(detectionEntity);
       } else {
         detectRepository.updateState(datasetId, STATE_NAME);

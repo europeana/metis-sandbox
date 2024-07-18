@@ -23,17 +23,17 @@ public class DebiasMachineService implements DetectService {
   }
 
   @Override
-  public void fail(String datasetId) {
+  public void fail(Long datasetId) {
     state.fail(datasetId);
   }
 
   @Override
-  public void success(String datasetId) {
+  public void success(Long datasetId) {
     state.success(datasetId);
   }
 
   @Override
-  public boolean process(String datasetId) {
+  public boolean process(Long datasetId) {
     return state.process(datasetId);
   }
 
@@ -49,8 +49,8 @@ public class DebiasMachineService implements DetectService {
    * @return the debias detection info
    */
   @Override
-  public DetectionInfoDto getDetectionInfo(String datasetId) {
-    DetectionEntity detectionEntity = detectRepository.findByDatasetId(datasetId);
+  public DetectionInfoDto getDetectionInfo(Long datasetId) {
+    DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
     return new DetectionInfoDto(datasetId, detectionEntity.getState(), detectionEntity.getCreatedDate());
   }
 

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -12,7 +13,6 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,15 +31,15 @@ class DebiasMachineServiceTest {
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_Completed_expectSuccess() {
-    String datasetId = "1";
+    Long datasetId = 1L;
     DetectionEntity detectionEntity = new DetectionEntity();
     detectionEntity.setState("READY");
     detectionEntity.setCreatedDate(ZonedDateTime.now());
     DatasetEntity datasetEntity = new DatasetEntity();
-    datasetEntity.setDatasetId(Integer.parseInt(datasetId));
+    datasetEntity.setDatasetId(datasetId.intValue());
     detectionEntity.setDatasetId(datasetEntity);
 
-    when(detectRepository.findByDatasetId(anyString()))
+    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyLong()))
         .thenReturn(null)
         .thenReturn(detectionEntity)
         .thenReturn(detectionEntity);
@@ -48,22 +48,22 @@ class DebiasMachineServiceTest {
 
     assertTrue(result);
     assertInstanceOf(CompletedState.class, debiasMachineService.getState());
-    verify(detectRepository, times(3)).findByDatasetId(datasetId);
+    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(2)).updateState(anyString(), anyString());
+    verify(detectRepository, times(2)).updateState(anyLong(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_Error_Ready_Processing_Completed_expectSuccess() {
-    String datasetId = "1";
+    Long datasetId = 1L;
     DetectionEntity detectionEntity = new DetectionEntity();
     detectionEntity.setState("READY");
     detectionEntity.setCreatedDate(ZonedDateTime.now());
     DatasetEntity datasetEntity = new DatasetEntity();
-    datasetEntity.setDatasetId(Integer.parseInt(datasetId));
+    datasetEntity.setDatasetId(datasetId.intValue());
     detectionEntity.setDatasetId(datasetEntity);
 
-    when(detectRepository.findByDatasetId(anyString()))
+    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyLong()))
         .thenReturn(null)
         .thenThrow(new RuntimeException("Error"))
         .thenReturn(detectionEntity)
@@ -75,22 +75,22 @@ class DebiasMachineServiceTest {
 
     assertTrue(result);
     assertInstanceOf(CompletedState.class, debiasMachineService.getState());
-    verify(detectRepository, times(6)).findByDatasetId(datasetId);
+    verify(detectRepository, times(6)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(4)).updateState(anyString(), anyString());
+    verify(detectRepository, times(4)).updateState(anyLong(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_andError_expectSuccess() {
-    String datasetId = "1";
+    Long datasetId = 1L;
     DetectionEntity detectionEntity = new DetectionEntity();
     detectionEntity.setState("READY");
     detectionEntity.setCreatedDate(ZonedDateTime.now());
     DatasetEntity datasetEntity = new DatasetEntity();
-    datasetEntity.setDatasetId(Integer.parseInt(datasetId));
+    datasetEntity.setDatasetId(datasetId.intValue());
     detectionEntity.setDatasetId(datasetEntity);
 
-    when(detectRepository.findByDatasetId(anyString()))
+    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyLong()))
         .thenReturn(null)
         .thenReturn(null)
         .thenReturn(null);
@@ -100,19 +100,19 @@ class DebiasMachineServiceTest {
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasMachineService.getState());
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(3)).findByDatasetId(datasetId);
-    verify(detectRepository, times(0)).updateState(anyString(), anyString());
+    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(detectRepository, times(0)).updateState(anyLong(), anyString());
   }
 
   @Test
   void processWhenDatasetAlreadyExists_Ready_Processing_Completed_expectSuccess() {
-    String datasetId = "1";
+    Long datasetId = 1L;
     String state = "READY";
     DatasetEntity dataset = new DatasetEntity();
     dataset.setDatasetId(1);
     DetectionEntity detectionEntity = new DetectionEntity(dataset, state);
     detectionEntity.setCreatedDate(ZonedDateTime.now());
-    when(detectRepository.findByDatasetId(anyString()))
+    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyLong()))
         .thenReturn(detectionEntity)
         .thenReturn(detectionEntity);
 
@@ -120,19 +120,19 @@ class DebiasMachineServiceTest {
 
     assertTrue(result);
     assertInstanceOf(CompletedState.class, debiasMachineService.getState());
-    verify(detectRepository, times(3)).findByDatasetId(datasetId);
-    verify(detectRepository, times(3)).updateState(anyString(), anyString());
+    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(detectRepository, times(3)).updateState(anyLong(), anyString());
   }
 
   @Test
   void processWhenDatasetAlreadyExists_Ready_Processing_andError_expectSuccess() {
-    String datasetId = "1";
+    Long datasetId = 1L;
     String state = "READY";
     DatasetEntity dataset = new DatasetEntity();
-    dataset.setDatasetId(Integer.parseInt(datasetId));
+    dataset.setDatasetId(datasetId.intValue());
     DetectionEntity detectionEntity = new DetectionEntity(dataset, state);
     detectionEntity.setCreatedDate(ZonedDateTime.now());
-    when(detectRepository.findByDatasetId(anyString()))
+    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyLong()))
         .thenReturn(detectionEntity)
         .thenReturn(null)
         .thenReturn(null);
@@ -140,8 +140,8 @@ class DebiasMachineServiceTest {
 
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasMachineService.getState());
-    verify(detectRepository, times(3)).findByDatasetId(datasetId);
-    verify(detectRepository, times(1)).updateState(anyString(), anyString());
+    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(detectRepository, times(1)).updateState(anyLong(), anyString());
   }
 
   @Test

@@ -4,11 +4,11 @@ import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 
 public interface DetectService {
 
-  void fail(String datasetId);
+  void fail(Long datasetId);
 
-  void success(String datasetId);
+  void success(Long datasetId);
 
-  boolean process(String datasetId);
+  boolean process(Long datasetId);
 
   Stateful getState();
 
@@ -22,5 +22,5 @@ public interface DetectService {
 
   Stateful getError();
 
-  DetectionInfoDto getDetectionInfo(String datasetId);
+  DetectionInfoDto getDetectionInfo(Long datasetId);
 }

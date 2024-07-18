@@ -415,7 +415,7 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public boolean processDebias(@PathVariable("id") String datasetId) {
+    public boolean processDebias(@PathVariable("id") Long datasetId) {
         return debiasDetectService.process(datasetId);
     }
 
@@ -425,7 +425,7 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public DetectionInfoDto getDebiasDetection(@PathVariable("id") String datasetId) {
+    public DetectionInfoDto getDebiasDetection(@PathVariable("id") Long datasetId) {
         return debiasDetectService.getDetectionInfo(datasetId);
     }
 
