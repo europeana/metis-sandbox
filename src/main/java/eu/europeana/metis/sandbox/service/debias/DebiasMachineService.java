@@ -51,7 +51,11 @@ public class DebiasMachineService implements DetectService {
   @Override
   public DetectionInfoDto getDetectionInfo(Long datasetId) {
     DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
-    return new DetectionInfoDto(datasetId, detectionEntity.getState(), detectionEntity.getCreatedDate());
+    if (detectionEntity == null) {
+      return null;
+    } else {
+      return new DetectionInfoDto(datasetId, detectionEntity.getState(), detectionEntity.getCreatedDate());
+    }
   }
 
   public void setState(Stateful state) {
