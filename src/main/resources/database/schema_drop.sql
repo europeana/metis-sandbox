@@ -1,4 +1,5 @@
 BEGIN;
+DROP TABLE IF EXISTS dataset_debias_detect;
 DROP TABLE IF EXISTS dataset_log;
 DROP TABLE IF EXISTS harvesting_parameter;
 DROP TABLE IF EXISTS dataset;

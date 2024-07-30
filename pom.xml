@@ -369,7 +369,6 @@
       <artifactId>aws-java-sdk-s3</artifactId>
       <version>${version.aws.s3}</version>
     </dependency>
-
     <!-- Test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
