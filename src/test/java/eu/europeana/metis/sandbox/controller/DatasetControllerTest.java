@@ -844,7 +844,7 @@ class DatasetControllerTest {
   @ParameterizedTest
   @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
   void getDebias_expectSuccess(String status) throws Exception {
-    final Long datasetId = 1L;
+    final Integer datasetId = 1;
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
     when(detectService.getDetectionInfo(datasetId))
@@ -852,16 +852,16 @@ class DatasetControllerTest {
 
     mvc.perform(get("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())
-       .andExpect(jsonPath("$.dataset-id", is(datasetId.intValue())))
+       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
        .andExpect(jsonPath("$.state", is(status)))
        .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.nZ")))));
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))));
   }
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void processDebias_expectSuccess(boolean process) throws Exception {
-    final Long datasetId = 1L;
+    final Integer datasetId = 1;
     when(detectService.process(datasetId)).thenReturn(process);
     mvc.perform(post("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())

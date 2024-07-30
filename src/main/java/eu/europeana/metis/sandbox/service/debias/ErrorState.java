@@ -2,12 +2,24 @@ package eu.europeana.metis.sandbox.service.debias;
 
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * The type Error state.
+ */
 public class ErrorState extends State implements Stateful {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ErrorState.class);
   private static final String STATE_NAME = "ERROR";
 
+  /**
+   * Instantiates a new Error state.
+   *
+   * @param debiasMachine the debias machine
+   * @param detectRepository the detect repository
+   */
   public ErrorState(DetectService debiasMachine, DetectRepository detectRepository) {
     this.stateMachine = debiasMachine;
     this.name = STATE_NAME;
@@ -16,18 +28,18 @@ public class ErrorState extends State implements Stateful {
   }
 
   @Override
-  public void fail(Long datasetId) {
+  public void fail(Integer datasetId) {
     this.stateMachine.setState(this.stateMachine.getError());
   }
 
   @Override
-  public void success(Long datasetId) {
+  public void success(Integer datasetId) {
     this.stateMachine.setState(this.stateMachine.getReady());
   }
 
   @Transactional
   @Override
-  public boolean process(Long datasetId) {
+  public boolean process(Integer datasetId) {
     LOGGER.info("{} {}", STATE_NAME, datasetId);
     try {
       DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
@@ -48,6 +60,11 @@ public class ErrorState extends State implements Stateful {
     return this.stateMachine.process(datasetId);
   }
 
+  /**
+   * Gets name.
+   *
+   * @return the name
+   */
   public String getName() {
     return this.name;
   }

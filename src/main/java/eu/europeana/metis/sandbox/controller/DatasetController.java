@@ -107,13 +107,14 @@ class DatasetController {
     /**
      * Instantiates a new Dataset controller.
      *
-     * @param datasetService               the dataset service
-     * @param datasetLogService            the dataset log service
-     * @param reportService                the report service
-     * @param recordService                the record service
-     * @param recordLogService             the record log service
+     * @param datasetService the dataset service
+     * @param datasetLogService the dataset log service
+     * @param reportService the report service
+     * @param recordService the record service
+     * @param recordLogService the record log service
      * @param recordTierCalculationService the record tier calculation service
-     * @param harvestPublishService        the harvest publish service
+     * @param harvestPublishService the harvest publish service
+     * @param debiasDetectService the debias detect service
      */
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
@@ -134,11 +135,11 @@ class DatasetController {
      * POST API calls for harvesting and processing the records given a zip, tar or tar.gz file
      *
      * @param datasetName the given name of the dataset to be processed
-     * @param country     the given country from which the records refer to
-     * @param language    the given language that the records contain
-     * @param stepsize    the stepsize
-     * @param dataset     the given dataset itself to be processed as a compressed file
-     * @param xsltFile    the xslt file used for transformation to edm external
+     * @param country the given country from which the records refer to
+     * @param language the given language that the records contain
+     * @param stepsize the stepsize
+     * @param dataset the given dataset itself to be processed as a compressed file
+     * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
     @Operation(summary = "Harvest dataset from file", description = "Process the given dataset by HTTP providing a file")
@@ -176,11 +177,11 @@ class DatasetController {
      * POST API calls for harvesting and processing the records given a URL of a compressed file
      *
      * @param datasetName the given name of the dataset to be processed
-     * @param country     the given country from which the records refer to
-     * @param language    the given language that the records contain
-     * @param stepsize    the stepsize
-     * @param url         the given dataset itself to be processed as a URL of a zip file
-     * @param xsltFile    the xslt file used for transformation to edm external
+     * @param country the given country from which the records refer to
+     * @param language the given language that the records contain
+     * @param stepsize the stepsize
+     * @param url the given dataset itself to be processed as a URL of a zip file
+     * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
     @Operation(summary = "Harvest dataset from url", description = "Process the given dataset by HTTP providing an URL")
@@ -221,16 +222,16 @@ class DatasetController {
     /**
      * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
      *
-     * @param datasetName    the given name of the dataset to be processed
-     * @param country        the given country from which the records refer to
-     * @param language       the given language that the records contain
-     * @param stepsize       the stepsize
-     * @param url            the given URL of the OAI-PMH repository to be processed
-     * @param setspec        forms a unique identifier for the set within the repository, it must be
-     *                       unique for each set.
+     * @param datasetName the given name of the dataset to be processed
+     * @param country the given country from which the records refer to
+     * @param language the given language that the records contain
+     * @param stepsize the stepsize
+     * @param url the given URL of the OAI-PMH repository to be processed
+     * @param setspec forms a unique identifier for the set within the repository, it must be
+     * unique for eac set.
      * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
-     *                       requests issued to the repository
-     * @param xsltFile       the xslt file used for transformation to edm external
+     * requests issued to the repository
+     * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
     @Operation(summary = "Harvest dataset from OAI-PMH protocol", description = "Process the given dataset using OAI-PMH")
@@ -313,7 +314,7 @@ class DatasetController {
      * GET API returns the generated tier calculation view for a stored record.
      *
      * @param datasetId the dataset id
-     * @param recordId  the record id
+     * @param recordId the record id
      * @return the record tier calculation view
      * @throws NoRecordFoundException if record was not found
      */
@@ -332,8 +333,8 @@ class DatasetController {
      * GET API returns the string representation of the stored record.
      *
      * @param datasetId the dataset id
-     * @param recordId  the record id
-     * @param step      the step name
+     * @param recordId the record id
+     * @param step the step name
      * @return the string representation of the stored record
      * @throws NoRecordFoundException if record was not found
      */
@@ -352,7 +353,6 @@ class DatasetController {
      *
      * @param datasetId the dataset id
      * @return the records tier of a given dataset
-     *
      */
     @Operation(summary = "Gets a list of records tier", description = "Get list of records tiers")
     @ApiResponse(responseCode = "200", description = "List of records tiers")
@@ -409,23 +409,35 @@ class DatasetController {
         return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
     }
 
+    /**
+     * Process DeBias boolean.
+     *
+     * @param datasetId the dataset id
+     * @return the boolean
+     */
     @Operation(description = "Process debias detection dataset")
     @ApiResponse(responseCode = "200", description = "Process debias detection feature", content = {
         @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public boolean processDebias(@PathVariable("id") Long datasetId) {
+    public boolean processDebias(@PathVariable("id") Integer datasetId) {
         return debiasDetectService.process(datasetId);
     }
 
-    @Operation(description = "Get debias detection dataset")
-    @ApiResponse(responseCode = "200", description = "Get detection information about debias detection", content = {
+    /**
+     * Gets DeBias detection information.
+     *
+     * @param datasetId the dataset id
+     * @return the DeBias detection
+     */
+    @Operation(description = "Get DeBias detection dataset")
+    @ApiResponse(responseCode = "200", description = "Get detection information about DeBias detection", content = {
         @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public DetectionInfoDto getDebiasDetection(@PathVariable("id") Long datasetId) {
+    public DetectionInfoDto getDebiasDetection(@PathVariable("id") Integer datasetId) {
         return debiasDetectService.getDetectionInfo(datasetId);
     }
 

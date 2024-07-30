@@ -3,9 +3,14 @@ package eu.europeana.metis.sandbox.service.debias;
 import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import java.time.ZonedDateTime;
 
-public class DebiasMachineService implements DetectService {
+/**
+ * The type DeBias detect service.
+ */
+public class DebiasDetectService implements DetectService {
 
+  private static final String INITIAL_STATE = "READY";
   private final Stateful ready;
   private final Stateful processing;
   private final Stateful completed;
@@ -13,7 +18,12 @@ public class DebiasMachineService implements DetectService {
   private final DetectRepository detectRepository;
   private Stateful state;
 
-  public DebiasMachineService(DetectRepository detectRepository) {
+  /**
+   * Instantiates a new DeBias detect service.
+   *
+   * @param detectRepository the detect repository
+   */
+  public DebiasDetectService(DetectRepository detectRepository) {
     this.ready = new ReadyState(this, detectRepository);
     this.processing = new ProcessingState(this, detectRepository);
     this.completed = new CompletedState(this, detectRepository);
@@ -23,17 +33,17 @@ public class DebiasMachineService implements DetectService {
   }
 
   @Override
-  public void fail(Long datasetId) {
+  public void fail(Integer datasetId) {
     state.fail(datasetId);
   }
 
   @Override
-  public void success(Long datasetId) {
+  public void success(Integer datasetId) {
     state.success(datasetId);
   }
 
   @Override
-  public boolean process(Long datasetId) {
+  public boolean process(Integer datasetId) {
     return state.process(datasetId);
   }
 
@@ -42,24 +52,24 @@ public class DebiasMachineService implements DetectService {
     return state;
   }
 
+  public void setState(Stateful state) {
+    this.state = state;
+  }
+
   /**
-   * Gets debias detection info.
+   * Gets DeBias detection info.
    *
    * @param datasetId the dataset id
-   * @return the debias detection info
+   * @return the DeBias detection info
    */
   @Override
-  public DetectionInfoDto getDetectionInfo(Long datasetId) {
+  public DetectionInfoDto getDetectionInfo(Integer datasetId) {
     DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
     if (detectionEntity == null) {
-      return null;
+      return new DetectionInfoDto(datasetId, INITIAL_STATE, ZonedDateTime.now());
     } else {
       return new DetectionInfoDto(datasetId, detectionEntity.getState(), detectionEntity.getCreatedDate());
     }
-  }
-
-  public void setState(Stateful state) {
-    this.state = state;
   }
 
   public Stateful getReady() {

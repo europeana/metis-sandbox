@@ -17,13 +17,13 @@ public class DetectionInfoDto {
   public static final String SWAGGER_MODEL_NAME = "DebiasDetectionInfo";
 
   @JsonProperty("dataset-id")
-  private final Long datasetId;
+  private final Integer datasetId;
 
   @JsonProperty("state")
   private final String state;
 
   @JsonProperty("creation-date")
-  @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.nZ")
+  @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
   private final ZonedDateTime creationDate;
 
   /**
@@ -33,7 +33,7 @@ public class DetectionInfoDto {
    * @param state the state
    * @param creationDate the creation date
    */
-  public DetectionInfoDto(Long datasetId, String state, ZonedDateTime creationDate) {
+  public DetectionInfoDto(Integer datasetId, String state, ZonedDateTime creationDate) {
     this.datasetId = datasetId;
     this.state = state;
     this.creationDate = creationDate;
@@ -44,7 +44,7 @@ public class DetectionInfoDto {
    *
    * @return the dataset id
    */
-  public Long getDatasetId() {
+  public Integer getDatasetId() {
     return datasetId;
   }
 
