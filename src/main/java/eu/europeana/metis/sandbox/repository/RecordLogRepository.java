@@ -22,7 +22,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @return statistics for the given dataset
    * @see StepStatistic
    */
-  @Query( value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(*)) "
       + "FROM RecordLogEntity rle "
       + "WHERE rle.recordId.datasetId = ?1 "
       + "GROUP BY rle.step, rle.status")
@@ -34,7 +34,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @return metrics Step Statistics
    * @see StepStatistic
    */
-  @Query( value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(rle)) "
+  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.StepStatistic(rle.step, rle.status, COUNT(*)) "
       + "FROM RecordLogEntity rle "
       + "GROUP BY rle.step, rle.status")
   List<StepStatistic> getMetricStepStatistics();

@@ -49,4 +49,5 @@ CREATE TABLE problem_patterns.record_title
     PRIMARY KEY (execution_point_id, record_id, title),
     FOREIGN KEY (execution_point_id) REFERENCES problem_patterns.execution_point (execution_point_id)
 );
+CREATE INDEX ON problem_patterns.dataset_problem_pattern (pattern_id);
 COMMIT;

@@ -71,7 +71,7 @@ public interface RecordRepository extends JpaRepository<RecordEntity, Long> {
    * @return metrics Dataset Statistics
    * @see DatasetStatistic
    */
-  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic(re.datasetId, COUNT(re)) "
+  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.DatasetStatistic(re.datasetId, COUNT(*)) "
       + "FROM RecordEntity re "
       + "GROUP BY re.datasetId")
   List<DatasetStatistic> getMetricDatasetStatistics();
