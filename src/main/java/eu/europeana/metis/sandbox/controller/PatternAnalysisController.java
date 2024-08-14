@@ -99,21 +99,32 @@ public class PatternAnalysisController {
     @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-        final Optional<ExecutionPoint> datasetExecutionPoint = executionPointService
-            .getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString());
 
-        final Optional<DatasetProblemPatternAnalysisView<Step>> analysisView = datasetExecutionPoint
-            .flatMap(executionPoint -> {
-                var status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
-                return patternAnalysisService.getDatasetPatternAnalysis(datasetId,
-                        Step.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp())
-                    .map(analysis -> new DatasetProblemPatternAnalysisView<>(analysis, status));
+        // Get the execution point. If it does not exist, we are done.
+        final ExecutionPoint executionPoint = executionPointService
+            .getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString()).orElse(null);
+        if (executionPoint == null) {
+            return new ResponseEntity<>(DatasetProblemPatternAnalysisView.getEmptyAnalysis(datasetId,
+                ProblemPatternAnalysisStatus.PENDING), HttpStatus.NOT_FOUND);
+        }
+
+        // Finalize the problem pattern analysis if we can (i.e. if the dataset finished processing).
+        final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
+
+        // Now get the pattern analysis.
+        final DatasetProblemPatternAnalysisView<Step> analysisView = patternAnalysisService.getDatasetPatternAnalysis(
+                datasetId, Step.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp())
+            .map(analysis -> new DatasetProblemPatternAnalysisView<>(analysis, status))
+            .orElseGet(() -> {
+                LOGGER.error("Result not expected to be empty when there is a non-null execution point.");
+                return DatasetProblemPatternAnalysisView.getEmptyAnalysis(datasetId,
+                    ProblemPatternAnalysisStatus.ERROR);
             });
 
-        return analysisView.map(analysis -> new ResponseEntity<>(analysis, HttpStatus.OK))
-            .orElseGet(() -> new ResponseEntity<>(
-                DatasetProblemPatternAnalysisView.getViewForPendingProblemPatternAnalysis(),
-                HttpStatus.NOT_FOUND));
+        // Wrap and return.
+        final HttpStatus httpStatus = analysisView.analysisStatus == ProblemPatternAnalysisStatus.ERROR
+            ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.OK;
+        return new ResponseEntity<>(analysisView, httpStatus);
     }
 
     private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(String datasetId,
@@ -200,7 +211,7 @@ public class PatternAnalysisController {
         }
     }
 
-    private enum ProblemPatternAnalysisStatus {PENDING, IN_PROGRESS, FINALIZED, ERROR}
+    enum ProblemPatternAnalysisStatus {PENDING, IN_PROGRESS, FINALIZED, ERROR}
 
     private static final class DatasetProblemPatternAnalysisView<T> {
 
@@ -225,9 +236,10 @@ public class PatternAnalysisController {
             this.analysisStatus = status;
         }
 
-        private static <T> DatasetProblemPatternAnalysisView<T> getViewForPendingProblemPatternAnalysis() {
-            return new DatasetProblemPatternAnalysisView<>(new DatasetProblemPatternAnalysis<>("0",
-                null, null, new ArrayList<>()), ProblemPatternAnalysisStatus.PENDING);
+        private static <T> DatasetProblemPatternAnalysisView<T> getEmptyAnalysis(String datasetId,
+            ProblemPatternAnalysisStatus status) {
+            return new DatasetProblemPatternAnalysisView<>(new DatasetProblemPatternAnalysis<>(
+                datasetId, null, null, new ArrayList<>()), status);
         }
 
         @NotNull
