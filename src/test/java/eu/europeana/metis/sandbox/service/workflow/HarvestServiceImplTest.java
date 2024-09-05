@@ -12,9 +12,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.metis.harvesting.FullRecord;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
-import eu.europeana.metis.harvesting.http.HttpHarvester.ArchiveEntry;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
@@ -34,7 +34,6 @@ import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.RecordPublishService;
 import eu.europeana.metis.utils.CompressedFileExtension;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +45,6 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -300,7 +298,7 @@ class HarvestServiceImplTest {
     void harvest_failsWithErrorMessage_expectSuccess() throws HarvesterException {
         Path record1Path = Paths.get("src", "test", "resources", "zip", "Record1.xml");
         assertTrue(Files.exists(record1Path));
-        final List<ArchiveEntry> pathList = convertFromPathList(List.of(record1Path));
+        final List<FullRecord> pathList = convertFromPathList(List.of(record1Path));
 
         var httpRecordIterator = new TestUtils.TestHttpRecordIterator(pathList);
 
@@ -824,13 +822,8 @@ class HarvestServiceImplTest {
         assertHarvestProcess(recordPublishService, times, step, numberOfRecords);
     }
 
-    private List<ArchiveEntry> convertFromPathList(List<Path> pathList) {
-        return pathList.stream().map(path -> new ArchiveEntry() {
-
-            @Override
-            public ByteArrayInputStream getEntryContent() {
-                throw new UnsupportedOperationException();
-            }
+    private List<FullRecord> convertFromPathList(List<Path> pathList) {
+        return pathList.stream().map(path -> new FullRecord() {
 
             @Override
             public void writeContent(OutputStream outputStream) {
@@ -859,7 +852,7 @@ class HarvestServiceImplTest {
         }).collect(Collectors.toList());
     }
 
-    private List<ArchiveEntry> prepareMockListForHttpIterator() {
+    private List<FullRecord> prepareMockListForHttpIterator() {
         Path record1Path = Paths.get("src", "test", "resources", "zip", "Record1.xml");
         assertTrue(Files.exists(record1Path));
         Path record2Path = Paths.get("src", "test", "resources", "zip", "Record2.xml");
@@ -867,7 +860,7 @@ class HarvestServiceImplTest {
         return convertFromPathList(List.of(record1Path, record2Path));
     }
 
-    private List<ArchiveEntry> prepareMockListForHttpIteratorStepSizeTest() {
+    private List<FullRecord> prepareMockListForHttpIteratorStepSizeTest() {
         Path record1Path = Paths.get("src", "test", "resources", "zip", "Record1.xml");
         assertTrue(Files.exists(record1Path));
         Path record2Path = Paths.get("src", "test", "resources", "zip", "Record2.xml");
@@ -879,7 +872,7 @@ class HarvestServiceImplTest {
         return convertFromPathList(List.of(record1Path, record2Path, record3Path, record4Path));
     }
 
-    private List<ArchiveEntry> addDuplicatedRecordsToHttpIterator(final List<ArchiveEntry> pathList) {
+    private List<FullRecord> addDuplicatedRecordsToHttpIterator(final List<FullRecord> pathList) {
         final Path record2Path = Paths.get("src", "test", "resources", "zip", "Record2.xml");
         assertTrue(Files.exists(record2Path));
         return Stream.concat(pathList.stream(),

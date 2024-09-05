@@ -2,10 +2,10 @@ package eu.europeana.metis.sandbox.common;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import eu.europeana.metis.harvesting.FullRecord;
 import eu.europeana.metis.harvesting.FullRecordHarvestingIterator;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.ReportingIteration;
-import eu.europeana.metis.harvesting.http.HttpHarvester.ArchiveEntry;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import java.io.BufferedReader;
@@ -75,18 +75,18 @@ public class TestUtils {
   }
 
   public static class TestHttpRecordIterator implements
-      FullRecordHarvestingIterator<ArchiveEntry, Path> {
+      FullRecordHarvestingIterator<FullRecord, Path> {
 
-    private final List<ArchiveEntry> extractedDirectory;
+    private final List<FullRecord> extractedDirectory;
 
-    public TestHttpRecordIterator(List<ArchiveEntry> extractedDirectory) {
+    public TestHttpRecordIterator(List<FullRecord> extractedDirectory) {
       this.extractedDirectory = extractedDirectory;
     }
 
     @Override
-    public void forEachFiltered(ReportingIteration<ArchiveEntry> reportingIteration, Predicate<Path> predicate)
+    public void forEachFiltered(ReportingIteration<FullRecord> reportingIteration, Predicate<Path> predicate)
         throws HarvesterException {
-      for (ArchiveEntry item : this.extractedDirectory) {
+      for (FullRecord item : this.extractedDirectory) {
         try {
           reportingIteration.process(item);
         } catch (IOException e) {
@@ -96,7 +96,7 @@ public class TestUtils {
     }
 
     @Override
-    public void forEachNonDeleted(ReportingIteration<ArchiveEntry> reportingIteration) {
+    public void forEachNonDeleted(ReportingIteration<FullRecord> reportingIteration) {
       throw new UnsupportedOperationException();
     }
 
