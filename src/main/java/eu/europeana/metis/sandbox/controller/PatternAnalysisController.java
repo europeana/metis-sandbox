@@ -99,33 +99,53 @@ public class PatternAnalysisController {
     @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-        Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(datasetId,
-                Step.VALIDATE_INTERNAL.toString());
 
-        return datasetExecutionPointOptional.flatMap(executionPoint -> {
-                    finalizeDatasetPatternAnalysis(datasetId, executionPoint);
-                    return patternAnalysisService.getDatasetPatternAnalysis(
-                            datasetId, Step.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
-                }).map(analysis -> new ResponseEntity<>(new DatasetProblemPatternAnalysisView<>(analysis), HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(
-                        DatasetProblemPatternAnalysisView.getEmptyDatasetProblemPatternAnalysisView(),
-                        HttpStatus.NOT_FOUND));
+        // Get the execution point. If it does not exist, we are done.
+        final ExecutionPoint executionPoint = executionPointService
+            .getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString()).orElse(null);
+        if (executionPoint == null) {
+            return new ResponseEntity<>(DatasetProblemPatternAnalysisView.getEmptyAnalysis(datasetId,
+                ProblemPatternAnalysisStatus.PENDING), HttpStatus.NOT_FOUND);
+        }
+
+        // Finalize the problem pattern analysis if we can (i.e. if the dataset finished processing).
+        final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
+
+        // Now get the pattern analysis.
+        final DatasetProblemPatternAnalysisView<Step> analysisView = patternAnalysisService.getDatasetPatternAnalysis(
+                datasetId, Step.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp())
+            .map(analysis -> new DatasetProblemPatternAnalysisView<>(analysis, status))
+            .orElseGet(() -> {
+                LOGGER.error("Result not expected to be empty when there is a non-null execution point.");
+                return DatasetProblemPatternAnalysisView.getEmptyAnalysis(datasetId,
+                    ProblemPatternAnalysisStatus.ERROR);
+            });
+
+        // Wrap and return.
+        final HttpStatus httpStatus = analysisView.analysisStatus == ProblemPatternAnalysisStatus.ERROR
+            ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.OK;
+        return new ResponseEntity<>(analysisView, httpStatus);
     }
 
-    private void finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {
+    private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(String datasetId,
+            ExecutionPoint datasetExecutionPoint) {
         if (datasetReportService.getReport(datasetId).getStatus() == Status.COMPLETED) {
             final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("finalizePatternAnalysis_" + datasetId));
             try {
                 lock.lock();
                 LOGGER.debug("Finalize analysis: {} lock, Locked", datasetId);
                 patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
+                return ProblemPatternAnalysisStatus.FINALIZED;
             } catch (PatternAnalysisException e) {
                 LOGGER.error("Something went wrong during finalizing pattern analysis", e);
+                return ProblemPatternAnalysisStatus.ERROR;
             } finally {
                 lock.unlock();
                 LOGGER.debug("Finalize analysis: {} lock, Unlocked", datasetId);
             }
         }
+        // This method is only executed if we have an execution point, i.e. if processing is underway.
+        return ProblemPatternAnalysisStatus.IN_PROGRESS;
     }
 
     /**
@@ -191,6 +211,8 @@ public class PatternAnalysisController {
         }
     }
 
+    enum ProblemPatternAnalysisStatus {PENDING, IN_PROGRESS, FINALIZED, ERROR}
+
     private static final class DatasetProblemPatternAnalysisView<T> {
 
         @JsonProperty
@@ -201,18 +223,23 @@ public class PatternAnalysisController {
         private final String executionTimestamp;
         @JsonProperty
         private final List<ProblemPattern> problemPatternList;
+        @JsonProperty
+        private final ProblemPatternAnalysisStatus analysisStatus;
 
-        private DatasetProblemPatternAnalysisView(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
+        private DatasetProblemPatternAnalysisView(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis,
+                ProblemPatternAnalysisStatus status) {
             this.datasetId = datasetProblemPatternAnalysis.getDatasetId();
             this.executionStep = datasetProblemPatternAnalysis.getExecutionStep();
             this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
                     datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
             this.problemPatternList = getSortedProblemPatternList(datasetProblemPatternAnalysis);
+            this.analysisStatus = status;
         }
 
-        private static <T> DatasetProblemPatternAnalysisView<T> getEmptyDatasetProblemPatternAnalysisView() {
-            return new DatasetProblemPatternAnalysisView<>(new DatasetProblemPatternAnalysis<>("0", null, null,
-                    new ArrayList<>()));
+        private static <T> DatasetProblemPatternAnalysisView<T> getEmptyAnalysis(String datasetId,
+            ProblemPatternAnalysisStatus status) {
+            return new DatasetProblemPatternAnalysisView<>(new DatasetProblemPatternAnalysis<>(
+                datasetId, null, null, new ArrayList<>()), status);
         }
 
         @NotNull

@@ -2,19 +2,26 @@ package eu.europeana.metis.sandbox.controller;
 
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.controller.PatternAnalysisController.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -39,6 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,8 +83,16 @@ class PatternAnalysisControllerTest {
 
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
+  @BeforeEach
+  void resetMocks() {
+    reset(mockPatternAnalysisService, mockExecutionPointService, mockRecordLogService,
+        mockDatasetReportService, lockRegistry);
+  }
+
   @Test
   void getDatasetAnalysis_expectSuccess() throws Exception {
+
+    // Set up the tests
     LocalDateTime executionTimestamp = LocalDateTime.now();
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
@@ -91,16 +107,35 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
-    doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
+    // First check with dataset that is still processing
+    final ProgressInfoDto inProgressInfo = new ProgressInfoDto("", 1L, 0L,
+        Collections.emptyList(), false, "", emptyList(), null);
+    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
+    assertNotEquals(Status.COMPLETED, inProgressInfo.getStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-       .andExpect(status().isOk())
-       .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
-       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.datasetId", is("datasetId")))
+        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
+        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.IN_PROGRESS.name())));
+    verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
+
+    // Now check with finalized dataset.
+    final ProgressInfoDto completedInfo = new ProgressInfoDto("", 1L, 1L,
+        Collections.emptyList(), false, "", emptyList(), null);
+    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
+    assertEquals(Status.COMPLETED, completedInfo.getStatus());
+
+    mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.datasetId", is("datasetId")))
+        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
+        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())));
+    verify(mockPatternAnalysisService, times(1)).finalizeDatasetPatternAnalysis(executionPoint);
   }
 
   @Test
@@ -130,13 +165,13 @@ class PatternAnalysisControllerTest {
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
-    doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
            is(ProblemPatternDescription.ProblemPatternId.P2.toString())))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[0].recordId", is("recordId1")))
@@ -146,6 +181,7 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.problemPatternList[1].recordAnalysisList[0].recordId", is("recordId1")))
        .andExpect(jsonPath("$.problemPatternList[1].recordAnalysisList[1].recordId", is("recordId2")))
        .andExpect(jsonPath("$.problemPatternList[1].recordAnalysisList[2].recordId", is("recordId3")));
+    verify(mockPatternAnalysisService, times(1)).finalizeDatasetPatternAnalysis(executionPoint);
   }
 
   @Test
@@ -169,11 +205,13 @@ class PatternAnalysisControllerTest {
     doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-       .andExpect(status().isOk())
-       .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
-       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)));
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.datasetId", is("datasetId")))
+        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
+        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
+    verify(mockPatternAnalysisService, times(1)).finalizeDatasetPatternAnalysis(executionPoint);
   }
 
   @Test
@@ -185,8 +223,10 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.empty());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-       .andExpect(status().isNotFound())
-       .andExpect(jsonPath("$.datasetId", is("0")));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.datasetId", is("datasetId")))
+        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.PENDING.name())));
+    verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
   }
 
   @Test
@@ -204,11 +244,11 @@ class PatternAnalysisControllerTest {
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
-    doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-       .andExpect(status().isNotFound())
-       .andExpect(jsonPath("$.datasetId", is("0")));
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.datasetId", is("datasetId")))
+        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
   }
 
   @Test
@@ -284,13 +324,13 @@ class PatternAnalysisControllerTest {
 
     when(mockDatasetReportService.getReport("datasetId")).thenReturn(
         new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
-    doNothing().when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
            is(ProblemPatternDescription.ProblemPatternId.P7.toString())))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[0].recordId", is("recordId1")))
@@ -299,6 +339,7 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[1].problemOccurrenceList[0].messageReport", is("")))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[2].recordId", is("recordId3")))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[2].problemOccurrenceList[0].messageReport", is("")));
+    verify(mockPatternAnalysisService, times(1)).finalizeDatasetPatternAnalysis(executionPoint);
   }
 
   @Test
