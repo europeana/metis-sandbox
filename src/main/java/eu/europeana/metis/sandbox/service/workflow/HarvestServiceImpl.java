@@ -5,7 +5,6 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
-import eu.europeana.metis.harvesting.http.HttpHarvester.ArchiveEntry;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
@@ -173,7 +172,7 @@ public class HarvestServiceImpl implements HarvestService {
 
     final List<Pair<String, Exception>> exception = new ArrayList<>(1);
     final List<RecordInfo> recordInfoList = new ArrayList<>();
-    try (final HarvestingIterator<ArchiveEntry, Path> iterator = httpHarvester.createFullRecordHarvestIterator(inputStream,
+    try (final HarvestingIterator<FullRecord, Path> iterator = httpHarvester.createFullRecordHarvestIterator(inputStream,
         compressedFileExtension)) {
 
       harvestFromIterator(iterator, datasetId, stepSize, entry -> {
