@@ -66,8 +66,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
     var extraction1 = mock(ResourceExtractionResult.class);
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);
@@ -109,7 +109,7 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
 
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
@@ -137,8 +137,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
 
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenReturn(List.of(entry2));
@@ -164,8 +164,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
     var extraction1 = mock(ResourceExtractionResult.class);
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);
@@ -223,8 +223,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION));
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
     var extraction1 = mock(ResourceExtractionResult.class);
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);
