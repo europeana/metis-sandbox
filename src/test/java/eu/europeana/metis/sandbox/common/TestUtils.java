@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 import eu.europeana.metis.harvesting.FullRecord;
 import eu.europeana.metis.harvesting.FullRecordHarvestingIterator;
 import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +39,7 @@ public class TestUtils {
     return inputStream.readAllBytes();
   }
 
-  public static class TestHeaderIterator implements OaiRecordHeaderIterator {
+  public static class TestHeaderIterator implements HarvestingIterator<OaiRecordHeader, OaiRecordHeader> {
 
     private final List<OaiRecordHeader> source;
 
