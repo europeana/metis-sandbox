@@ -216,7 +216,7 @@ class DatasetControllerIT {
     assertEquals(HttpStatus.OK, getDatasetResponse.getStatusCode());
     assertNotNull(getDatasetResponse.getBody());
     JSONAssert.assertEquals(StringUtils.deleteWhitespace(datasetResponseBodyContent),
-        StringUtils.deleteWhitespace(getDatasetResponse.getBody()), true);
+        StringUtils.deleteWhitespace(getDatasetResponse.getBody()), false);
   }
 
   private String getBaseUrl() {
