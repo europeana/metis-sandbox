@@ -15,8 +15,11 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 import java.time.ZonedDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,13 +27,34 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DebiasDetectServiceTest {
+class DeBiasDetectServiceTest {
 
   @Mock
   DetectRepository detectRepository;
 
+  @Mock
+  DatasetRepository datasetRepository;
+
   @InjectMocks
-  DebiasDetectService debiasDetectService;
+  DeBiasDetectService debiasDetectService;
+
+  @Test
+  void processWhenDatasetNotExists_expectSuccess() {
+    final Integer datasetId = 1;
+    final DetectionEntity detectionEntity = new DetectionEntity();
+    detectionEntity.setState("READY");
+    detectionEntity.setCreatedDate(ZonedDateTime.now());
+
+    when(datasetRepository.findById(anyInt())).thenThrow(NoSuchElementException.class);
+
+    boolean result = debiasDetectService.process(datasetId);
+
+    assertFalse(result);
+    assertInstanceOf(ReadyState.class, debiasDetectService.getState());
+    verify(detectRepository, times(0)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(detectRepository, times(0)).save(any(DetectionEntity.class));
+    verify(detectRepository, times(0)).updateState(anyInt(), anyString());
+  }
 
 
   @Test
@@ -42,7 +66,7 @@ class DebiasDetectServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
     detectionEntity.setDatasetId(datasetEntity);
-
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenReturn(detectionEntity)
@@ -66,7 +90,7 @@ class DebiasDetectServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
     detectionEntity.setDatasetId(datasetEntity);
-
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenThrow(new RuntimeException("Error"));
 
@@ -88,7 +112,7 @@ class DebiasDetectServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
     detectionEntity.setDatasetId(datasetEntity);
-
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenReturn(detectionEntity)
@@ -113,7 +137,7 @@ class DebiasDetectServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
     detectionEntity.setDatasetId(datasetEntity);
-
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenReturn(detectionEntity)
@@ -138,7 +162,7 @@ class DebiasDetectServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
     detectionEntity.setDatasetId(datasetEntity);
-
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenThrow(new RuntimeException("Error"))
@@ -165,7 +189,7 @@ class DebiasDetectServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
     detectionEntity.setDatasetId(datasetEntity);
-
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenReturn(null)
@@ -184,9 +208,10 @@ class DebiasDetectServiceTest {
   void processWhenDatasetAlreadyExists_Ready_Processing_Completed_expectSuccess() {
     final Integer datasetId = 1;
     final String stateName = "READY";
-    final DatasetEntity dataset = new DatasetEntity();
-    dataset.setDatasetId(1);
-    final DetectionEntity detectionEntity = new DetectionEntity(dataset, stateName);
+    final DatasetEntity datasetEntity = new DatasetEntity();
+    datasetEntity.setDatasetId(1);
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
+    final DetectionEntity detectionEntity = new DetectionEntity(datasetEntity, stateName);
     detectionEntity.setCreatedDate(ZonedDateTime.now());
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(detectionEntity)
@@ -204,9 +229,10 @@ class DebiasDetectServiceTest {
   void processWhenDatasetAlreadyExists_Ready_Processing_andError_expectSuccess() {
     final Integer datasetId = 1;
     final String stateName = "READY";
-    final DatasetEntity dataset = new DatasetEntity();
-    dataset.setDatasetId(datasetId);
-    final DetectionEntity detectionEntity = new DetectionEntity(dataset, stateName);
+    final DatasetEntity datasetEntity = new DatasetEntity();
+    datasetEntity.setDatasetId(1);
+    when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
+    final DetectionEntity detectionEntity = new DetectionEntity(datasetEntity, stateName);
     detectionEntity.setCreatedDate(ZonedDateTime.now());
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(detectionEntity)
@@ -216,13 +242,14 @@ class DebiasDetectServiceTest {
 
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasDetectService.getState());
+
     verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).updateState(anyInt(), anyString());
   }
 
   @Test
   void set_and_get_State() {
-    debiasDetectService.setState(new ReadyState(debiasDetectService, detectRepository));
+    debiasDetectService.setState(new ReadyState(debiasDetectService, detectRepository, datasetRepository));
     assertInstanceOf(ReadyState.class, debiasDetectService.getState());
 
     debiasDetectService.setState(new ProcessingState(debiasDetectService, detectRepository));

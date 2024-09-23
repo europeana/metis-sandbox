@@ -92,6 +92,12 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+  debias:
+    url:
+    connectTimeout: 300
+    requestTimeout: 300
+    batchSize: 20
+    workers: 2
   metrics:
     frequency: '*/5 * * * * *' # every five seconds.
   validation:

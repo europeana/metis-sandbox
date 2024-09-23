@@ -2,13 +2,15 @@ package eu.europeana.metis.sandbox.service.debias;
 
 import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 import java.time.ZonedDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The type DeBias detect service.
  */
-public class DebiasDetectService implements DetectService {
+public class DeBiasDetectService implements DetectService {
 
   private static final String INITIAL_STATE = "READY";
   private final Stateful ready;
@@ -23,8 +25,8 @@ public class DebiasDetectService implements DetectService {
    *
    * @param detectRepository the detect repository
    */
-  public DebiasDetectService(DetectRepository detectRepository) {
-    this.ready = new ReadyState(this, detectRepository);
+  public DeBiasDetectService(DetectRepository detectRepository, DatasetRepository datasetRepository) {
+    this.ready = new ReadyState(this, detectRepository, datasetRepository);
     this.processing = new ProcessingState(this, detectRepository);
     this.completed = new CompletedState(this, detectRepository);
     this.error = new ErrorState(this, detectRepository);
@@ -42,6 +44,7 @@ public class DebiasDetectService implements DetectService {
     state.success(datasetId);
   }
 
+  @Transactional
   @Override
   public boolean process(Integer datasetId) {
     return state.process(datasetId);

@@ -23,7 +23,7 @@ public class DetectionEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @OneToOne(cascade = CascadeType.PERSIST)
+  @OneToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
   private DatasetEntity datasetId;
 

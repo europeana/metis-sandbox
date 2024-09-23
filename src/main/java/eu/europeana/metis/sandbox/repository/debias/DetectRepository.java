@@ -25,7 +25,7 @@ public interface DetectRepository extends JpaRepository<DetectionEntity, Long> {
    * @param state the state
    */
   @Modifying
-  @Query("UPDATE DetectionEntity dec SET dec.state = '?2' WHERE dec.datasetId = ?1")
+  @Query("UPDATE DetectionEntity dec SET dec.state = ?2 WHERE dec.datasetId.datasetId = ?1")
   void updateState(Integer datasetId, String state);
 
 }
