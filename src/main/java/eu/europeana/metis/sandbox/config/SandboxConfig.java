@@ -66,6 +66,9 @@ class SandboxConfig {
     @Value("${sandbox.rabbitmq.queues.record.created.queue}")
     private String createdQueue;
 
+    @Value("${sandbox.rabbitmq.queues.record.debias.ready.queue}")
+    private String deBiasReadyQueue;
+
     @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
     private String transformationToEdmExternalQueue;
 
@@ -132,6 +135,11 @@ class SandboxConfig {
     @Bean(name = "createdQueue")
     String createdQueue() {
         return createdQueue;
+    }
+
+    @Bean(name = "deBiasReadyQueue")
+    String deBiasReadyQueue() {
+        return deBiasReadyQueue;
     }
 
     @Bean(name = "transformationToEdmExternalQueue")

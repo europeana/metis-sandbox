@@ -3,9 +3,11 @@ package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.metis.debias.detect.client.DeBiasClient;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 import eu.europeana.metis.sandbox.service.debias.DeBiasDetectService;
 import eu.europeana.metis.sandbox.service.debias.DetectService;
+import eu.europeana.metis.sandbox.service.debias.RecordPublishable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +34,11 @@ public class DeBiasConfig {
    * @return the detect service
    */
   @Bean
-  public DetectService debiasMachine(DetectRepository detectRepository, DatasetRepository datasetRepository) {
-    return new DeBiasDetectService(detectRepository, datasetRepository);
+  public DetectService debiasMachine(DetectRepository detectRepository,
+      DatasetRepository datasetRepository,
+      RecordLogRepository recordLogRepository,
+      RecordPublishable recordPublishable) {
+    return new DeBiasDetectService(detectRepository, datasetRepository, recordLogRepository, recordPublishable);
   }
 
   @Bean
