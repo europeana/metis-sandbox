@@ -89,10 +89,13 @@ public class ReadyState extends State implements Stateful {
   }
 
   private void processDatasetAndPublishToDeBiasReadyQueue(DatasetEntity dataset) {
+    // clean up any previous processing.
+    this.recordLogRepository.deleteByRecordIdDatasetIdAndStep(dataset.getDatasetId().toString(), Step.DEBIAS);
+    // start a new processing from validated records.
     this.recordLogRepository.findRecordLogByDatasetIdAndStep(dataset.getDatasetId().toString(), Step.VALIDATE_INTERNAL)
                             .parallelStream()
                             .map(r -> {
-                              LOGGER.info("Records in: {} :: {}", STATE_NAME, r.getRecordId());
+                              LOGGER.debug("DeBias records in: {} :: {}", STATE_NAME, r.getRecordId());
                                 return new RecordInfo(new RecordBuilder()
                                     .recordId(r.getRecordId().getId())
                                     .providerId(r.getRecordId().getProviderId())
