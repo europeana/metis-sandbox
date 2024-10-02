@@ -12,13 +12,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
- * The type Record publish de bias queue service.
+ * The type Record publish DeBias queue service.
  */
 @Service
-public class RecordPublishDeBiasQueueService implements RecordPublishable {
+public class RecordPublishDeBiasQueueService implements RecordDeBiasPublishable {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      RecordPublishDeBiasQueueService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RecordPublishDeBiasQueueService.class);
 
   private final AmqpTemplate amqpTemplate;
   private final String deBiasReadyQueue;
@@ -29,8 +28,7 @@ public class RecordPublishDeBiasQueueService implements RecordPublishable {
    * @param amqpTemplate the amqp template
    * @param deBiasReadyQueue the de bias ready queue
    */
-  public RecordPublishDeBiasQueueService(
-      AmqpTemplate amqpTemplate,
+  public RecordPublishDeBiasQueueService(AmqpTemplate amqpTemplate,
       @Qualifier("deBiasReadyQueue") String deBiasReadyQueue) {
     this.amqpTemplate = amqpTemplate;
     this.deBiasReadyQueue = deBiasReadyQueue;

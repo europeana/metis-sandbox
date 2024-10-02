@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.debias.detect.client.DeBiasClient;
-import eu.europeana.metis.debias.detect.model.DeBiasResult;
 import eu.europeana.metis.debias.detect.model.error.ErrorDeBiasResult;
 import eu.europeana.metis.debias.detect.model.request.DetectionParameter;
 import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * The type De bias process service.
+ * The type DeBias process service.
  */
 @Service
 class DeBiasProcessServiceImpl implements DeBiasProcessService {
@@ -38,7 +37,7 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
   private final DeBiasClient deBiasClient;
 
   /**
-   * Instantiates a new De Bias process service.
+   * Instantiates a new DeBias process service.
    *
    * @param deBiasClient the De Bias client
    */
@@ -67,34 +66,32 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
   private HashMap<Long, ValueDetection> doDeBiasAndGenerateReport(DetectionParameter detectionParameter,
       List<Record> recordList) {
+    HashMap<Long, ValueDetection> deBiasReport = HashMap.newHashMap(recordList.size());
     try {
-      DeBiasResult result = deBiasClient.detect(detectionParameter);
-      switch (result) {
+      switch (deBiasClient.detect(detectionParameter)) {
         case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
-          HashMap<Long, ValueDetection> deBiasReport = HashMap.newHashMap(recordList.size());
           for (int i = 0; i < recordList.size(); i++) {
             deBiasReport.put(recordList.get(i).getRecordId(), deBiasResult.getDetections().get(i));
           }
-          LOGGER.info("DeBias execution finished");
-          return deBiasReport;
         }
         case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null -> {
           errorDeBiasResult.getDetailList().forEach(
               detail ->
                   LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
           );
-          LOGGER.error("DeBias execution finished with error");
-          return new HashMap<>();
+          deBiasReport.clear();
         }
         default -> {
           LOGGER.info("DeBias detected nothing");
-          return new HashMap<>();
+          deBiasReport.clear();
         }
       }
     } catch (RuntimeException e) {
+      deBiasReport.clear();
       LOGGER.error(e.getMessage(), e);
-      return new HashMap<>();
     }
+    LOGGER.info("DeBias execution finished");
+    return deBiasReport;
   }
 
   private List<String> getDescriptionsFromRecordList(List<Record> recordList) {

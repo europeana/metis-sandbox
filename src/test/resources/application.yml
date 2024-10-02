@@ -93,11 +93,9 @@ sandbox:
         max-pool-size: 40
         thread-prefix: sandbox-
   debias:
-    url: http://localhost:8080/metis-debias
+    url: http://localhost:8081/metis-debias
     connectTimeout: 300
     requestTimeout: 300
-    batchSize: 20
-    workers: 2
   metrics:
     frequency: '*/5 * * * * *' # every five seconds.
   validation:
@@ -233,6 +231,15 @@ sandbox:
           concurrency: 2
           max-concurrency: 2
           prefetch: 1
+        debias:
+          ready:
+            queue: sandbox.record.debias.ready
+            dlq: ${sandbox.rabbitmq.queues.record.debias.ready.queue}.dlq
+            auto-start: true
+            concurrency: 2
+            max-concurrency: 2
+            prefetch: 1
+            batch-size: 20
 elastic:
   apm:
     service_name: metis-sandbox-rest-dev

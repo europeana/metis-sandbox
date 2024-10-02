@@ -5,10 +5,10 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 /**
  * The interface Record publishable.
  */
-public interface RecordPublishable {
+public interface RecordDeBiasPublishable {
 
   /**
-   * Publish to de bias queue.
+   * Publish to DeBias queue.
    *
    * @param recordToPublish the record to publish
    */

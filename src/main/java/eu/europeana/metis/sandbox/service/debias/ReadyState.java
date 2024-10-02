@@ -24,7 +24,7 @@ public class ReadyState extends State implements Stateful {
   private static final String STATE_NAME = "READY";
   private final DatasetRepository datasetRepository;
   private final RecordLogRepository recordLogRepository;
-  private final RecordPublishable recordPublishable;
+  private final RecordDeBiasPublishable recordDeBiasPublishable;
 
   /**
    * Instantiates a new Ready state.
@@ -36,13 +36,13 @@ public class ReadyState extends State implements Stateful {
       DetectRepository detectRepository,
       DatasetRepository datasetRepository,
       RecordLogRepository recordLogRepository,
-      RecordPublishable recordPublishable) {
+      RecordDeBiasPublishable recordDeBiasPublishable) {
     this.stateMachine = debiasMachine;
     this.name = STATE_NAME;
     this.detectRepository = detectRepository;
     this.datasetRepository = datasetRepository;
     this.recordLogRepository = recordLogRepository;
-    this.recordPublishable = recordPublishable;
+    this.recordDeBiasPublishable = recordDeBiasPublishable;
     this.terminalState = false;
   }
 
@@ -107,7 +107,7 @@ public class ReadyState extends State implements Stateful {
                                     .content(r.getContent().getBytes(StandardCharsets.UTF_8))
                                     .build(), new ArrayList<>());}
                             )
-                            .forEach(recordPublishable::publishToDeBiasQueue);
+                            .forEach(recordDeBiasPublishable::publishToDeBiasQueue);
   }
 
 }

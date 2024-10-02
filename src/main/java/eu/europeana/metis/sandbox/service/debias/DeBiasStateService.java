@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * The type DeBias detect service.
  */
-public class DeBiasDetectService implements DetectService {
+public class DeBiasStateService implements DetectService {
 
   private static final String INITIAL_STATE = "READY";
   private final Stateful ready;
@@ -27,13 +27,13 @@ public class DeBiasDetectService implements DetectService {
    * @param detectRepository the detect repository
    * @param datasetRepository the dataset repository
    * @param recordLogRepository the record log repository
-   * @param recordPublishable the record publishable
+   * @param recordDeBiasPublishable the record publishable
    */
-  public DeBiasDetectService(DetectRepository detectRepository,
+  public DeBiasStateService(DetectRepository detectRepository,
       DatasetRepository datasetRepository,
       RecordLogRepository recordLogRepository,
-      RecordPublishable recordPublishable) {
-    this.ready = new ReadyState(this, detectRepository, datasetRepository, recordLogRepository, recordPublishable);
+      RecordDeBiasPublishable recordDeBiasPublishable) {
+    this.ready = new ReadyState(this, detectRepository, datasetRepository, recordLogRepository, recordDeBiasPublishable);
     this.processing = new ProcessingState(this, detectRepository);
     this.completed = new CompletedState(this, detectRepository);
     this.error = new ErrorState(this, detectRepository);

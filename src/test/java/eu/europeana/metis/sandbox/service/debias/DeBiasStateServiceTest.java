@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DeBiasDetectServiceTest {
+class DeBiasStateServiceTest {
 
   @Mock
   DetectRepository detectRepository;
@@ -36,7 +36,7 @@ class DeBiasDetectServiceTest {
   DatasetRepository datasetRepository;
 
   @InjectMocks
-  DeBiasDetectService debiasDetectService;
+  DeBiasStateService debiasStateService;
 
   @Test
   void processWhenDatasetNotExists_expectSuccess() {
@@ -47,10 +47,10 @@ class DeBiasDetectServiceTest {
 
     when(datasetRepository.findById(anyInt())).thenThrow(NoSuchElementException.class);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
-    assertInstanceOf(ReadyState.class, debiasDetectService.getState());
+    assertInstanceOf(ReadyState.class, debiasStateService.getState());
     verify(detectRepository, times(0)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(0)).save(any(DetectionEntity.class));
     verify(detectRepository, times(0)).updateState(anyInt(), anyString());
@@ -72,10 +72,10 @@ class DeBiasDetectServiceTest {
         .thenReturn(detectionEntity)
         .thenReturn(detectionEntity);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertTrue(result);
-    assertInstanceOf(CompletedState.class, debiasDetectService.getState());
+    assertInstanceOf(CompletedState.class, debiasStateService.getState());
     verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
     verify(detectRepository, times(2)).updateState(anyInt(), anyString());
@@ -94,10 +94,10 @@ class DeBiasDetectServiceTest {
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenThrow(new RuntimeException("Error"));
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
-    assertInstanceOf(ReadyState.class, debiasDetectService.getState());
+    assertInstanceOf(ReadyState.class, debiasStateService.getState());
     verify(detectRepository, times(1)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(0)).save(any(DetectionEntity.class));
     verify(detectRepository, times(0)).updateState(anyInt(), anyString());
@@ -119,10 +119,10 @@ class DeBiasDetectServiceTest {
         .thenReturn(null)
         .thenReturn(null);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
-    assertInstanceOf(ErrorState.class, debiasDetectService.getState());
+    assertInstanceOf(ErrorState.class, debiasStateService.getState());
     verify(detectRepository, times(4)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
     verify(detectRepository, times(1)).updateState(anyInt(), anyString());
@@ -144,10 +144,10 @@ class DeBiasDetectServiceTest {
         .thenThrow(new RuntimeException("Error"))
         .thenReturn(null);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
-    assertInstanceOf(ErrorState.class, debiasDetectService.getState());
+    assertInstanceOf(ErrorState.class, debiasStateService.getState());
     verify(detectRepository, times(4)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
     verify(detectRepository, times(1)).updateState(anyInt(), anyString());
@@ -171,10 +171,10 @@ class DeBiasDetectServiceTest {
         .thenReturn(detectionEntity)
         .thenReturn(detectionEntity);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertTrue(result);
-    assertInstanceOf(CompletedState.class, debiasDetectService.getState());
+    assertInstanceOf(CompletedState.class, debiasStateService.getState());
     verify(detectRepository, times(6)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
     verify(detectRepository, times(4)).updateState(anyInt(), anyString());
@@ -195,10 +195,10 @@ class DeBiasDetectServiceTest {
         .thenReturn(null)
         .thenReturn(null);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
-    assertInstanceOf(ErrorState.class, debiasDetectService.getState());
+    assertInstanceOf(ErrorState.class, debiasStateService.getState());
     verify(detectRepository, times(1)).save(any(DetectionEntity.class));
     verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(0)).updateState(anyInt(), anyString());
@@ -217,10 +217,10 @@ class DeBiasDetectServiceTest {
         .thenReturn(detectionEntity)
         .thenReturn(detectionEntity);
 
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertTrue(result);
-    assertInstanceOf(CompletedState.class, debiasDetectService.getState());
+    assertInstanceOf(CompletedState.class, debiasStateService.getState());
     verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(3)).updateState(anyInt(), anyString());
   }
@@ -238,10 +238,10 @@ class DeBiasDetectServiceTest {
         .thenReturn(detectionEntity)
         .thenReturn(null)
         .thenReturn(null);
-    boolean result = debiasDetectService.process(datasetId);
+    boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
-    assertInstanceOf(ErrorState.class, debiasDetectService.getState());
+    assertInstanceOf(ErrorState.class, debiasStateService.getState());
 
     verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
     verify(detectRepository, times(1)).updateState(anyInt(), anyString());
@@ -249,25 +249,25 @@ class DeBiasDetectServiceTest {
 
   @Test
   void set_and_get_State() {
-    debiasDetectService.setState(new ReadyState(debiasDetectService, detectRepository, datasetRepository));
-    assertInstanceOf(ReadyState.class, debiasDetectService.getState());
+    debiasStateService.setState(new ReadyState(debiasStateService, detectRepository, datasetRepository));
+    assertInstanceOf(ReadyState.class, debiasStateService.getState());
 
-    debiasDetectService.setState(new ProcessingState(debiasDetectService, detectRepository));
-    assertInstanceOf(ProcessingState.class, debiasDetectService.getState());
+    debiasStateService.setState(new ProcessingState(debiasStateService, detectRepository));
+    assertInstanceOf(ProcessingState.class, debiasStateService.getState());
 
-    debiasDetectService.setState(new CompletedState(debiasDetectService, detectRepository));
-    assertInstanceOf(CompletedState.class, debiasDetectService.getState());
+    debiasStateService.setState(new CompletedState(debiasStateService, detectRepository));
+    assertInstanceOf(CompletedState.class, debiasStateService.getState());
 
-    debiasDetectService.setState(new ErrorState(debiasDetectService, detectRepository));
-    assertInstanceOf(ErrorState.class, debiasDetectService.getState());
+    debiasStateService.setState(new ErrorState(debiasStateService, detectRepository));
+    assertInstanceOf(ErrorState.class, debiasStateService.getState());
   }
 
   @Test
   void testSpecificStateGetters() {
-    assertInstanceOf(ReadyState.class, debiasDetectService.getReady());
-    assertInstanceOf(ProcessingState.class, debiasDetectService.getProcessing());
-    assertInstanceOf(CompletedState.class, debiasDetectService.getCompleted());
-    assertInstanceOf(ErrorState.class, debiasDetectService.getError());
+    assertInstanceOf(ReadyState.class, debiasStateService.getReady());
+    assertInstanceOf(ProcessingState.class, debiasStateService.getProcessing());
+    assertInstanceOf(CompletedState.class, debiasStateService.getCompleted());
+    assertInstanceOf(ErrorState.class, debiasStateService.getError());
   }
 
   @Test
@@ -284,7 +284,7 @@ class DeBiasDetectServiceTest {
     when(detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId))
         .thenReturn(detectionEntity);
 
-    DetectionInfoDto detectionInfoDto = debiasDetectService.getDetectionInfo(datasetId);
+    DetectionInfoDto detectionInfoDto = debiasStateService.getDetectionInfo(datasetId);
 
     assertEquals(datasetId, detectionInfoDto.getDatasetId());
     assertEquals(stateName, detectionInfoDto.getState());
@@ -295,7 +295,7 @@ class DeBiasDetectServiceTest {
   void testGetDetectionInfo_DefaultWhenNotExists_expectSuccess() {
     final Integer datasetId = 1;
 
-    DetectionInfoDto detectionInfoDto = debiasDetectService.getDetectionInfo(datasetId);
+    DetectionInfoDto detectionInfoDto = debiasStateService.getDetectionInfo(datasetId);
 
     assertNotNull(detectionInfoDto);
     assertEquals(datasetId, detectionInfoDto.getDatasetId());
