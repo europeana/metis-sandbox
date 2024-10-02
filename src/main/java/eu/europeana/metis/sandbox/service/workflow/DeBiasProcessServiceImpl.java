@@ -1,33 +1,133 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import eu.europeana.metis.debias.detect.client.DeBiasClient;
+import eu.europeana.metis.debias.detect.model.DeBiasResult;
+import eu.europeana.metis.debias.detect.model.error.ErrorDeBiasResult;
+import eu.europeana.metis.debias.detect.model.request.DetectionParameter;
+import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
 import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.domain.RecordInfo;
+import eu.europeana.metis.schema.convert.RdfConversionUtils;
+import eu.europeana.metis.schema.convert.SerializationException;
+import eu.europeana.metis.schema.jibx.EuropeanaType;
+import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
+import eu.europeana.metis.schema.jibx.ProxyType;
+import eu.europeana.metis.schema.jibx.RDF;
+import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
+/**
+ * The type De bias process service.
+ */
 @Service
 class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasProcessServiceImpl.class);
+  private final DeBiasClient deBiasClient;
 
-  private final LockRegistry lockRegistry;
-
-  public DeBiasProcessServiceImpl(LockRegistry lockRegistry) {
-    this.lockRegistry = lockRegistry;
+  /**
+   * Instantiates a new De Bias process service.
+   *
+   * @param deBiasClient the De Bias client
+   */
+  public DeBiasProcessServiceImpl(DeBiasClient deBiasClient) {
+    this.deBiasClient = deBiasClient;
   }
 
   @Override
-  public List<RecordInfo> process(List<Record> recordToProcess) {
-    Objects.requireNonNull(recordToProcess, "List of records is required");
-    recordToProcess.forEach(record -> {
+  public void process(List<Record> recordList) {
+    Objects.requireNonNull(recordList, "List of records is required");
 
-      LOGGER.info("DeBias Execution over: {}", record.getRecordId(), record.getContent());
-    });
+    DetectionParameter detectionParameter = new DetectionParameter();
+    detectionParameter.setLanguage(recordList.getFirst().getLanguage().name().toLowerCase(Locale.US));
+    detectionParameter.setValues(getDescriptionsFromRecordList(recordList));
 
-    return List.of();
+    doDeBiasProcessing(detectionParameter);
+  }
+
+  private void doDeBiasProcessing(DetectionParameter detectionParameter) {
+    try {
+      DeBiasResult result = deBiasClient.detect(detectionParameter);
+      switch (result) {
+        case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null ->
+            deBiasResult.getDetections().forEach(detect -> {
+              LOGGER.info("literal {}", detect.getLiteral());
+              detect.getTags().forEach(tag ->
+                  LOGGER.info("tag {} {} {} {}", tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
+            }
+        );
+
+        case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
+            errorDeBiasResult.getDetailList().forEach(
+                detail ->
+                    LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
+            );
+
+        default -> // do nothing
+            LOGGER.info("DeBias nothing detected");
+      }
+    } catch (RuntimeException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+
+    LOGGER.info("DeBias execution finished");
+  }
+
+  private List<String> getDescriptionsFromRecordList(List<Record> recordList) {
+    return recordList
+        .stream()
+        .map(recordToProcess -> {
+          String recordDescription = "";
+          try {
+            recordDescription = String.join(" ",
+                getDescriptionsFromRdf(
+                    new RdfConversionUtils()
+                        .convertStringToRdf(
+                            new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
+                        )
+                )
+            );
+
+          } catch (SerializationException e) {
+            recordDescription = "";
+          }
+          LOGGER.info("DeBias Execution over: {} {}", recordToProcess.getRecordId(), recordDescription);
+          return recordDescription;
+        }).toList();
+  }
+
+  private List<String> getDescriptionsFromRdf(RDF rdf) {
+    List<ProxyType> providerProxies = this.getProviderProxies(rdf);
+    List<EuropeanaType.Choice> choices = providerProxies.stream().map(EuropeanaType::getChoiceList).filter(Objects::nonNull)
+                                                        .flatMap(Collection::stream).toList();
+
+    return this.getChoicesInStringList(choices, EuropeanaType.Choice::ifDescription, EuropeanaType.Choice::getDescription,
+        ResourceOrLiteralType::getString);
+  }
+
+  private boolean isProviderProxy(ProxyType proxy) {
+    return proxy.getEuropeanaProxy() == null || BooleanUtils.isFalse(proxy.getEuropeanaProxy().isEuropeanaProxy());
+  }
+
+  private List<ProxyType> getProviderProxies(RDF rdf) {
+    return Optional.ofNullable(rdf.getProxyList()).stream()
+                   .flatMap(Collection::stream)
+                   .filter(Objects::nonNull)
+                   .filter(this::isProviderProxy).toList();
+  }
+
+  private <T> List<String> getChoicesInStringList(List<EuropeanaType.Choice> choices, Predicate<Choice> choicePredicate,
+      Function<Choice, T> choiceGetter, Function<T, String> getString) {
+    return choices.stream().filter(Objects::nonNull).filter(choicePredicate).map(choiceGetter).map(getString).toList();
   }
 }

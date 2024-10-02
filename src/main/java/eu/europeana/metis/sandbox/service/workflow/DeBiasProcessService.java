@@ -5,15 +5,14 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import java.util.List;
 
 /**
- * The interface De bias process service.
+ * The interface De Bias process service.
  */
 public interface DeBiasProcessService {
 
   /**
-   * Process record info.
+   * Process.
    *
-   * @param recordToProcess the record to process
-   * @return the record info
+   * @param recordsToProcess the records to process
    */
-  List<RecordInfo> process(List<Record> recordToProcess);
+  void process(List<Record> recordsToProcess);
 }
