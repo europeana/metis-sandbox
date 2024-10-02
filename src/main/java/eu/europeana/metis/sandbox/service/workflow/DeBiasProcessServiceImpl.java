@@ -5,6 +5,7 @@ import eu.europeana.metis.debias.detect.model.DeBiasResult;
 import eu.europeana.metis.debias.detect.model.error.ErrorDeBiasResult;
 import eu.europeana.metis.debias.detect.model.request.DetectionParameter;
 import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
+import eu.europeana.metis.debias.detect.model.response.ValueDetection;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
@@ -15,6 +16,7 @@ import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -52,35 +54,47 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
     detectionParameter.setLanguage(recordList.getFirst().getLanguage().name().toLowerCase(Locale.US));
     detectionParameter.setValues(getDescriptionsFromRecordList(recordList));
 
-    doDeBiasProcessing(detectionParameter);
+    HashMap<Long, ValueDetection> report = doDeBiasAndGenerateReport(detectionParameter, recordList);
+    if (!report.isEmpty()) {
+      report.forEach((recordId, detect) -> {
+            LOGGER.info("recordId: {} literal: {}", recordId, detect.getLiteral());
+            detect.getTags().forEach(tag ->
+                LOGGER.info("tag {} {} {} {}", tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
+          }
+      );
+    }
   }
 
-  private void doDeBiasProcessing(DetectionParameter detectionParameter) {
+  private HashMap<Long, ValueDetection> doDeBiasAndGenerateReport(DetectionParameter detectionParameter,
+      List<Record> recordList) {
     try {
       DeBiasResult result = deBiasClient.detect(detectionParameter);
       switch (result) {
-        case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null ->
-            deBiasResult.getDetections().forEach(detect -> {
-              LOGGER.info("literal {}", detect.getLiteral());
-              detect.getTags().forEach(tag ->
-                  LOGGER.info("tag {} {} {} {}", tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
-            }
-        );
-
-        case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
-            errorDeBiasResult.getDetailList().forEach(
-                detail ->
-                    LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
-            );
-
-        default -> // do nothing
-            LOGGER.info("DeBias nothing detected");
+        case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
+          HashMap<Long, ValueDetection> deBiasReport = HashMap.newHashMap(recordList.size());
+          for (int i = 0; i < recordList.size(); i++) {
+            deBiasReport.put(recordList.get(i).getRecordId(), deBiasResult.getDetections().get(i));
+          }
+          LOGGER.info("DeBias execution finished");
+          return deBiasReport;
+        }
+        case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null -> {
+          errorDeBiasResult.getDetailList().forEach(
+              detail ->
+                  LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
+          );
+          LOGGER.error("DeBias execution finished with error");
+          return new HashMap<>();
+        }
+        default -> {
+          LOGGER.info("DeBias detected nothing");
+          return new HashMap<>();
+        }
       }
     } catch (RuntimeException e) {
       LOGGER.error(e.getMessage(), e);
+      return new HashMap<>();
     }
-
-    LOGGER.info("DeBias execution finished");
   }
 
   private List<String> getDescriptionsFromRecordList(List<Record> recordList) {
