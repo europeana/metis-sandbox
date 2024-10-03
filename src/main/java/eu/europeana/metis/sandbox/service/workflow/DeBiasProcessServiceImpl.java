@@ -14,7 +14,9 @@ import eu.europeana.metis.schema.jibx.ProxyType;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -94,36 +96,56 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
     return deBiasReport;
   }
 
-  private List<String> getDescriptionsFromRecordList(List<Record> recordList) {
+  enum SupportedLanguage{
+    ENGLISH("en"),
+    ITALIAN("it"),
+    GERMAN("de"),
+    DUTCH("nl"),
+    FRENCH("fr");
+
+    private final String prefix;
+
+    SupportedLanguage(String prefix) {
+      this.prefix = prefix;
+    }
+
+    public static SupportedLanguage match(String language) {
+      final String mainLanguage = language.split("-")[0];
+      return Arrays.stream(SupportedLanguage.values())
+          .filter(lang -> lang.prefix.equals(mainLanguage)).findAny().orElse(null);
+    }
+  }
+
+  record ValueToCheck(String value, SupportedLanguage language, long recordId){}
+
+  private List<ValueToCheck> getDescriptionsFromRecordList(List<Record> recordList) {
     return recordList
         .stream()
         .map(recordToProcess -> {
-          String recordDescription = "";
+          List<ValueToCheck> result;
           try {
-            recordDescription = String.join(" ",
-                getDescriptionsFromRdf(
+                result =  getDescriptionsFromRdf(
                     new RdfConversionUtils()
                         .convertStringToRdf(
                             new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
-                        )
-                )
-            );
+                        ), recordToProcess.getRecordId()
+                );
 
           } catch (SerializationException e) {
-            recordDescription = "";
+            result =  Collections.emptyList();
           }
-          LOGGER.info("DeBias Execution over: {} {}", recordToProcess.getRecordId(), recordDescription);
-          return recordDescription;
-        }).toList();
+          LOGGER.info("DeBias Execution over: {}", recordToProcess.getRecordId());
+          return result;
+        }).flatMap(Collection::stream).toList();
   }
 
-  private List<String> getDescriptionsFromRdf(RDF rdf) {
+  private List<ValueToCheck> getDescriptionsFromRdf(RDF rdf, long recordId) {
     List<ProxyType> providerProxies = this.getProviderProxies(rdf);
     List<EuropeanaType.Choice> choices = providerProxies.stream().map(EuropeanaType::getChoiceList).filter(Objects::nonNull)
                                                         .flatMap(Collection::stream).toList();
 
     return this.getChoicesInStringList(choices, EuropeanaType.Choice::ifDescription, EuropeanaType.Choice::getDescription,
-        ResourceOrLiteralType::getString);
+        ResourceOrLiteralType::getString, value->value.getLang().getLang(), recordId);
   }
 
   private boolean isProviderProxy(ProxyType proxy) {
@@ -137,8 +159,14 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
                    .filter(this::isProviderProxy).toList();
   }
 
-  private <T> List<String> getChoicesInStringList(List<EuropeanaType.Choice> choices, Predicate<Choice> choicePredicate,
-      Function<Choice, T> choiceGetter, Function<T, String> getString) {
-    return choices.stream().filter(Objects::nonNull).filter(choicePredicate).map(choiceGetter).map(getString).toList();
+  private <T> List<ValueToCheck> getChoicesInStringList(List<EuropeanaType.Choice> choices,
+      Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter,
+      Function<T, String> getString, Function<T, String> getLanguage, long recordId) {
+    return choices.stream().filter(Objects::nonNull).filter(choicePredicate).map(choiceGetter)
+        .map(value->{
+          return  Optional.ofNullable(SupportedLanguage.match(getLanguage.apply(value))).map(lang->new ValueToCheck(getString.apply(value), lang, recordId)).orElse(null);
+
+        })
+        .toList();
   }
 }
