@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.executor.workflow;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessService;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -38,7 +39,16 @@ class DeBiasExecutor extends StepExecutor {
       containerFactory = "deBiasFactory",
       autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
   public void debiasProcess(List<RecordProcessEvent> input) {
-    input.forEach(r -> LOGGER.debug("pulling record {} from queue", r.getRecord().getRecordId()));
-    service.process(input.stream().map(RecordProcessEvent::getRecord).toList());
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("pulling records from queue: {}", input.stream()
+                                                          .map(item -> item.getRecord()
+                                                                           .getRecordId()
+                                                                           .toString())
+                                                          .collect(Collectors.joining(",")));
+    }
+    service.process(input.stream()
+                         .map(RecordProcessEvent::getRecord)
+                         .toList()
+    );
   }
 }

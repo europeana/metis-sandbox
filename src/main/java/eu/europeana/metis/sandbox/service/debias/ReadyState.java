@@ -92,7 +92,7 @@ public class ReadyState extends State implements Stateful {
     // clean up any previous processing.
     this.recordLogRepository.deleteByRecordIdDatasetIdAndStep(dataset.getDatasetId().toString(), Step.DEBIAS);
     // start a new processing from validated records.
-    this.recordLogRepository.findRecordLogByDatasetIdAndStep(dataset.getDatasetId().toString(), Step.VALIDATE_INTERNAL)
+    this.recordLogRepository.findRecordLogByDatasetIdAndStep(dataset.getDatasetId().toString(), Step.NORMALIZE)
                             .parallelStream()
                             .map(r -> {
                               LOGGER.debug("DeBias records in: {} :: {}", STATE_NAME, r.getRecordId());
