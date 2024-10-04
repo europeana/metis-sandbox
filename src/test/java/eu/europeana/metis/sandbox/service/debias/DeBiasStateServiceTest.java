@@ -15,7 +15,9 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
+import eu.europeana.metis.sandbox.repository.DatasetLogRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
 import java.time.ZonedDateTime;
 import java.util.NoSuchElementException;
@@ -34,6 +36,12 @@ class DeBiasStateServiceTest {
 
   @Mock
   DatasetRepository datasetRepository;
+
+  @Mock
+  RecordLogRepository recordLogRepository;
+
+  @Mock
+  RecordDeBiasPublishable recordDeBiasPublishable;
 
   @InjectMocks
   DeBiasStateService debiasStateService;
@@ -249,7 +257,7 @@ class DeBiasStateServiceTest {
 
   @Test
   void set_and_get_State() {
-    debiasStateService.setState(new ReadyState(debiasStateService, detectRepository, datasetRepository));
+    debiasStateService.setState(new ReadyState(debiasStateService, detectRepository, datasetRepository, recordLogRepository, recordDeBiasPublishable));
     assertInstanceOf(ReadyState.class, debiasStateService.getState());
 
     debiasStateService.setState(new ProcessingState(debiasStateService, detectRepository));
