@@ -422,6 +422,7 @@ class DatasetController {
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
+        debiasDetectService.cleanDeBiasReport(datasetId);
         debiasDetectService.setState(debiasDetectService.getReady());
         return debiasDetectService.process(datasetId);
     }
@@ -438,8 +439,8 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public DetectionInfoDto getDebiasDetection(@PathVariable("id") Integer datasetId) {
-        return debiasDetectService.getDetectionInfo(datasetId);
+    public DetectionInfoDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
+        return debiasDetectService.getDeBiasReport(datasetId);
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

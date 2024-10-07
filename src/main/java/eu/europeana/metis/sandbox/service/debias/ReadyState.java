@@ -4,10 +4,10 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.Record.RecordBuilder;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -30,16 +30,16 @@ public class ReadyState extends State implements Stateful {
    * Instantiates a new Ready state.
    *
    * @param debiasMachine the debias machine
-   * @param detectRepository the detect repository
+   * @param datasetDeBiasRepository the detect repository
    */
   public ReadyState(DetectService debiasMachine,
-      DetectRepository detectRepository,
+      DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
       RecordLogRepository recordLogRepository,
       RecordDeBiasPublishable recordDeBiasPublishable) {
     this.stateMachine = debiasMachine;
     this.name = STATE_NAME;
-    this.detectRepository = detectRepository;
+    this.datasetDeBiasRepository = datasetDeBiasRepository;
     this.datasetRepository = datasetRepository;
     this.recordLogRepository = recordLogRepository;
     this.recordDeBiasPublishable = recordDeBiasPublishable;
@@ -78,12 +78,12 @@ public class ReadyState extends State implements Stateful {
 
   private @NotNull DatasetEntity getDatasetAndProcessDetectionEntity(Integer datasetId) {
     DatasetEntity dataset = datasetRepository.findById(datasetId).orElseThrow();
-    DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
-    if (detectionEntity == null) {
-      detectionEntity = new DetectionEntity(dataset, STATE_NAME);
-      detectRepository.save(detectionEntity);
+    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
+    if (datasetDeBiasEntity == null) {
+      datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, STATE_NAME);
+      datasetDeBiasRepository.save(datasetDeBiasEntity);
     } else {
-      detectRepository.updateState(datasetId, STATE_NAME);
+      datasetDeBiasRepository.updateState(datasetId, STATE_NAME);
     }
     return dataset;
   }

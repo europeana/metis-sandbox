@@ -4,7 +4,9 @@ package eu.europeana.metis.sandbox.config;
 import eu.europeana.metis.debias.detect.client.DeBiasClient;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
+import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
+import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.debias.DetectService;
 import eu.europeana.metis.sandbox.service.debias.RecordDeBiasPublishable;
@@ -30,18 +32,25 @@ public class DeBiasConfig {
   /**
    * DeBias machine detect service.
    *
-   * @param detectRepository the detect repository
+   * @param datasetDeBiasRepository the detect repository
    * @param datasetRepository the dataset repository
    * @param recordLogRepository the record log repository
    * @param recordDeBiasPublishable the record publishable
    * @return the detect service
    */
   @Bean
-  public DetectService debiasMachine(DetectRepository detectRepository,
+  public DetectService debiasMachine(DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
       RecordLogRepository recordLogRepository,
-      RecordDeBiasPublishable recordDeBiasPublishable) {
-    return new DeBiasStateService(detectRepository, datasetRepository, recordLogRepository, recordDeBiasPublishable);
+      RecordDeBiasPublishable recordDeBiasPublishable,
+      RecordDeBiasMainRepository recordDeBiasMainRepository,
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
+    return new DeBiasStateService(datasetDeBiasRepository,
+        datasetRepository,
+        recordLogRepository,
+        recordDeBiasPublishable,
+        recordDeBiasMainRepository,
+        recordDeBiasDetailRepository);
   }
 
   /**

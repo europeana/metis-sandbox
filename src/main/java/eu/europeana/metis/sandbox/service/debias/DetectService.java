@@ -71,11 +71,19 @@ public interface DetectService {
    */
   Stateful getError();
 
+
   /**
-   * Gets detection info.
+   * Gets DeBias report.
    *
    * @param datasetId the dataset id
-   * @return the detection info
+   * @return the de bias report
    */
-  DetectionInfoDto getDetectionInfo(Integer datasetId);
+  DetectionInfoDto getDeBiasReport(Integer datasetId);
+
+  /**
+   * Clean DeBias report.
+   *
+   * @param datasetId the dataset id
+   */
+  void cleanDeBiasReport(Integer datasetId);
 }

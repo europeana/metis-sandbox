@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
-import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
+import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +18,12 @@ public class CompletedState extends State implements Stateful {
    * Instantiates a new Completed state.
    *
    * @param debiasMachine the debias machine
-   * @param detectRepository the detect repository
+   * @param datasetDeBiasRepository the detect repository
    */
-  public CompletedState(DetectService debiasMachine, DetectRepository detectRepository) {
+  public CompletedState(DetectService debiasMachine, DatasetDeBiasRepository datasetDeBiasRepository) {
     this.stateMachine = debiasMachine;
     this.name = STATE_NAME;
-    this.detectRepository = detectRepository;
+    this.datasetDeBiasRepository = datasetDeBiasRepository;
     this.terminalState = true;
   }
 
@@ -42,13 +42,13 @@ public class CompletedState extends State implements Stateful {
   public boolean process(Integer datasetId) {
     LOGGER.info("{} {}", STATE_NAME, datasetId);
     try {
-      DetectionEntity detectionEntity = detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
-      if (detectionEntity == null) {
+      DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
+      if (datasetDeBiasEntity == null) {
         fail(datasetId);
         LOGGER.warn("invalid state {} {}", STATE_NAME, datasetId);
         return this.stateMachine.process(datasetId);
       } else {
-        detectRepository.updateState(datasetId, STATE_NAME);
+        datasetDeBiasRepository.updateState(datasetId, STATE_NAME);
         success(datasetId);
         LOGGER.info("success {} {}", STATE_NAME, datasetId);
       }

@@ -1,8 +1,6 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 
 /**
  * The type State.
@@ -16,7 +14,7 @@ public abstract class State {
   /**
    * The Detect repository.
    */
-  protected DetectRepository detectRepository;
+  protected DatasetDeBiasRepository datasetDeBiasRepository;
   /**
    * The Name.
    */

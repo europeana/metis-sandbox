@@ -1,14 +1,15 @@
 package eu.europeana.metis.sandbox.repository.debias;
 
-import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+
 /**
- * The interface Detect repository.
+ * The interface Dataset DeBias repository.
  */
-public interface DetectRepository extends JpaRepository<DetectionEntity, Long> {
+public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEntity, Long> {
 
   /**
    * Find detection entity by dataset id detection entity.
@@ -16,7 +17,7 @@ public interface DetectRepository extends JpaRepository<DetectionEntity, Long> {
    * @param datasetId the dataset id
    * @return the detection entity
    */
-  DetectionEntity findDetectionEntityByDatasetId_DatasetId(Integer datasetId);
+  DatasetDeBiasEntity findDetectionEntityByDatasetId_DatasetId(Integer datasetId);
 
   /**
    * Update state.
@@ -25,7 +26,7 @@ public interface DetectRepository extends JpaRepository<DetectionEntity, Long> {
    * @param state the state
    */
   @Modifying
-  @Query("UPDATE DetectionEntity dec SET dec.state = ?2 WHERE dec.datasetId.datasetId = ?1")
+  @Query("UPDATE DatasetDeBiasEntity dec SET dec.state = ?2 WHERE dec.datasetId.datasetId = ?1")
   void updateState(Integer datasetId, String state);
 
 }

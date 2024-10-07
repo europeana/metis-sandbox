@@ -14,11 +14,10 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.debias.DetectionEntity;
-import eu.europeana.metis.sandbox.repository.DatasetLogRepository;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.debias.DetectRepository;
+import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import java.time.ZonedDateTime;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -32,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DeBiasStateServiceTest {
 
   @Mock
-  DetectRepository detectRepository;
+  DatasetDeBiasRepository datasetDeBiasRepository;
 
   @Mock
   DatasetRepository datasetRepository;
@@ -49,9 +48,9 @@ class DeBiasStateServiceTest {
   @Test
   void processWhenDatasetNotExists_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
 
     when(datasetRepository.findById(anyInt())).thenThrow(NoSuchElementException.class);
 
@@ -59,71 +58,71 @@ class DeBiasStateServiceTest {
 
     assertFalse(result);
     assertInstanceOf(ReadyState.class, debiasStateService.getState());
-    verify(detectRepository, times(0)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(0)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(0)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(0)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(0)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(0)).updateState(anyInt(), anyString());
   }
 
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_Completed_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
-    detectionEntity.setDatasetId(datasetEntity);
+    datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
-        .thenReturn(detectionEntity)
-        .thenReturn(detectionEntity);
+        .thenReturn(datasetDeBiasEntity)
+        .thenReturn(datasetDeBiasEntity);
 
     boolean result = debiasStateService.process(datasetId);
 
     assertTrue(result);
     assertInstanceOf(CompletedState.class, debiasStateService.getState());
-    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(2)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(1)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(2)).updateState(anyInt(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_andError_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
-    detectionEntity.setDatasetId(datasetEntity);
+    datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenThrow(new RuntimeException("Error"));
 
     boolean result = debiasStateService.process(datasetId);
 
     assertFalse(result);
     assertInstanceOf(ReadyState.class, debiasStateService.getState());
-    verify(detectRepository, times(1)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(0)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(0)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(1)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(0)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(0)).updateState(anyInt(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_Completed_andError_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
-    detectionEntity.setDatasetId(datasetEntity);
+    datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
-        .thenReturn(detectionEntity)
+        .thenReturn(datasetDeBiasEntity)
         .thenReturn(null)
         .thenReturn(null);
 
@@ -131,24 +130,24 @@ class DeBiasStateServiceTest {
 
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasStateService.getState());
-    verify(detectRepository, times(4)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(1)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(4)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(1)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(1)).updateState(anyInt(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_Completed_andException_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
-    detectionEntity.setDatasetId(datasetEntity);
+    datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
-        .thenReturn(detectionEntity)
+        .thenReturn(datasetDeBiasEntity)
         .thenThrow(new RuntimeException("Error"))
         .thenReturn(null);
 
@@ -156,49 +155,49 @@ class DeBiasStateServiceTest {
 
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasStateService.getState());
-    verify(detectRepository, times(4)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(1)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(4)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(1)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(1)).updateState(anyInt(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_Error_Ready_Processing_Completed_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
-    detectionEntity.setDatasetId(datasetEntity);
+    datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenThrow(new RuntimeException("Error"))
-        .thenReturn(detectionEntity)
-        .thenReturn(detectionEntity)
-        .thenReturn(detectionEntity)
-        .thenReturn(detectionEntity);
+        .thenReturn(datasetDeBiasEntity)
+        .thenReturn(datasetDeBiasEntity)
+        .thenReturn(datasetDeBiasEntity)
+        .thenReturn(datasetDeBiasEntity);
 
     boolean result = debiasStateService.process(datasetId);
 
     assertTrue(result);
     assertInstanceOf(CompletedState.class, debiasStateService.getState());
-    verify(detectRepository, times(6)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(4)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(6)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(1)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(4)).updateState(anyInt(), anyString());
   }
 
   @Test
   void processWhenNewHappyPath_Ready_Processing_andError_expectSuccess() {
     final Integer datasetId = 1;
-    final DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState("READY");
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState("READY");
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(datasetId);
-    detectionEntity.setDatasetId(datasetEntity);
+    datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
         .thenReturn(null)
         .thenReturn(null)
         .thenReturn(null);
@@ -207,9 +206,9 @@ class DeBiasStateServiceTest {
 
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasStateService.getState());
-    verify(detectRepository, times(1)).save(any(DetectionEntity.class));
-    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(0)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(1)).save(any(DatasetDeBiasEntity.class));
+    verify(datasetDeBiasRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(0)).updateState(anyInt(), anyString());
   }
 
   @Test
@@ -219,18 +218,18 @@ class DeBiasStateServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    final DetectionEntity detectionEntity = new DetectionEntity(datasetEntity, stateName);
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
-        .thenReturn(detectionEntity)
-        .thenReturn(detectionEntity);
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity(datasetEntity, stateName);
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+        .thenReturn(datasetDeBiasEntity)
+        .thenReturn(datasetDeBiasEntity);
 
     boolean result = debiasStateService.process(datasetId);
 
     assertTrue(result);
     assertInstanceOf(CompletedState.class, debiasStateService.getState());
-    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(3)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(3)).updateState(anyInt(), anyString());
   }
 
   @Test
@@ -240,10 +239,10 @@ class DeBiasStateServiceTest {
     final DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(1);
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
-    final DetectionEntity detectionEntity = new DetectionEntity(datasetEntity, stateName);
-    detectionEntity.setCreatedDate(ZonedDateTime.now());
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
-        .thenReturn(detectionEntity)
+    final DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity(datasetEntity, stateName);
+    datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(anyInt()))
+        .thenReturn(datasetDeBiasEntity)
         .thenReturn(null)
         .thenReturn(null);
     boolean result = debiasStateService.process(datasetId);
@@ -251,22 +250,22 @@ class DeBiasStateServiceTest {
     assertFalse(result);
     assertInstanceOf(ErrorState.class, debiasStateService.getState());
 
-    verify(detectRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
-    verify(detectRepository, times(1)).updateState(anyInt(), anyString());
+    verify(datasetDeBiasRepository, times(3)).findDetectionEntityByDatasetId_DatasetId(datasetId);
+    verify(datasetDeBiasRepository, times(1)).updateState(anyInt(), anyString());
   }
 
   @Test
   void set_and_get_State() {
-    debiasStateService.setState(new ReadyState(debiasStateService, detectRepository, datasetRepository, recordLogRepository, recordDeBiasPublishable));
+    debiasStateService.setState(new ReadyState(debiasStateService, datasetDeBiasRepository, datasetRepository, recordLogRepository, recordDeBiasPublishable));
     assertInstanceOf(ReadyState.class, debiasStateService.getState());
 
-    debiasStateService.setState(new ProcessingState(debiasStateService, detectRepository));
+    debiasStateService.setState(new ProcessingState(debiasStateService, datasetDeBiasRepository));
     assertInstanceOf(ProcessingState.class, debiasStateService.getState());
 
-    debiasStateService.setState(new CompletedState(debiasStateService, detectRepository));
+    debiasStateService.setState(new CompletedState(debiasStateService, datasetDeBiasRepository));
     assertInstanceOf(CompletedState.class, debiasStateService.getState());
 
-    debiasStateService.setState(new ErrorState(debiasStateService, detectRepository));
+    debiasStateService.setState(new ErrorState(debiasStateService, datasetDeBiasRepository));
     assertInstanceOf(ErrorState.class, debiasStateService.getState());
   }
 
@@ -285,12 +284,12 @@ class DeBiasStateServiceTest {
     final ZonedDateTime createdDate = ZonedDateTime.now();
     DatasetEntity dataset = new DatasetEntity();
     dataset.setDatasetId(datasetId);
-    DetectionEntity detectionEntity = new DetectionEntity();
-    detectionEntity.setState(stateName);
-    detectionEntity.setDatasetId(dataset);
-    detectionEntity.setCreatedDate(createdDate);
-    when(detectRepository.findDetectionEntityByDatasetId_DatasetId(datasetId))
-        .thenReturn(detectionEntity);
+    DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState(stateName);
+    datasetDeBiasEntity.setDatasetId(dataset);
+    datasetDeBiasEntity.setCreatedDate(createdDate);
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId))
+        .thenReturn(datasetDeBiasEntity);
 
     DetectionInfoDto detectionInfoDto = debiasStateService.getDetectionInfo(datasetId);
 
