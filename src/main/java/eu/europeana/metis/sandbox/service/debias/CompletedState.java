@@ -20,7 +20,7 @@ public class CompletedState extends State implements Stateful {
    * @param debiasMachine the debias machine
    * @param datasetDeBiasRepository the detect repository
    */
-  public CompletedState(DetectService debiasMachine, DatasetDeBiasRepository datasetDeBiasRepository) {
+  public CompletedState(DeBiasStateful debiasMachine, DatasetDeBiasRepository datasetDeBiasRepository) {
     this.stateMachine = debiasMachine;
     this.name = STATE_NAME;
     this.datasetDeBiasRepository = datasetDeBiasRepository;

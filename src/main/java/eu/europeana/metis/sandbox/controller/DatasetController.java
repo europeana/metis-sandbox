@@ -18,12 +18,12 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DetectService;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateful;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -102,7 +102,7 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
-    private final DetectService debiasDetectService;
+    private final DeBiasStateful debiasDeBiasStateful;
 
     /**
      * Instantiates a new Dataset controller.
@@ -114,12 +114,12 @@ class DatasetController {
      * @param recordLogService the record log service
      * @param recordTierCalculationService the record tier calculation service
      * @param harvestPublishService the harvest publish service
-     * @param debiasDetectService the debias detect service
+     * @param debiasDeBiasStateful the debias detect service
      */
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService, DetectService debiasDetectService) {
+                             HarvestPublishService harvestPublishService, DeBiasStateful debiasDeBiasStateful) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -128,7 +128,7 @@ class DatasetController {
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
         urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
-        this.debiasDetectService = debiasDetectService;
+        this.debiasDeBiasStateful = debiasDeBiasStateful;
     }
 
     /**
@@ -422,9 +422,9 @@ class DatasetController {
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
-        debiasDetectService.cleanDeBiasReport(datasetId);
-        debiasDetectService.setState(debiasDetectService.getReady());
-        return debiasDetectService.process(datasetId);
+        debiasDeBiasStateful.cleanDeBiasReport(datasetId);
+        debiasDeBiasStateful.setState(debiasDeBiasStateful.getReady());
+        return debiasDeBiasStateful.process(datasetId);
     }
 
     /**
@@ -439,8 +439,8 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public DetectionInfoDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
-        return debiasDetectService.getDeBiasReport(datasetId);
+    public DeBiasReportDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
+        return debiasDeBiasStateful.getDeBiasReport(datasetId);
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

@@ -20,7 +20,7 @@ public class ProcessingState extends State implements Stateful {
    * @param debiasMachine the debias machine
    * @param datasetDeBiasRepository the detect repository
    */
-  public ProcessingState(DetectService debiasMachine, DatasetDeBiasRepository datasetDeBiasRepository) {
+  public ProcessingState(DeBiasStateful debiasMachine, DatasetDeBiasRepository datasetDeBiasRepository) {
     this.stateMachine = debiasMachine;
     this.name = STATE_NAME;
     this.datasetDeBiasRepository = datasetDeBiasRepository;

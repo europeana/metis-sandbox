@@ -12,7 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -291,22 +291,22 @@ class DeBiasStateServiceTest {
     when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId))
         .thenReturn(datasetDeBiasEntity);
 
-    DetectionInfoDto detectionInfoDto = debiasStateService.getDetectionInfo(datasetId);
+    DeBiasReportDto deBiasReportDto = debiasStateService.getDetectionInfo(datasetId);
 
-    assertEquals(datasetId, detectionInfoDto.getDatasetId());
-    assertEquals(stateName, detectionInfoDto.getState());
-    assertEquals(createdDate, detectionInfoDto.getCreationDate());
+    assertEquals(datasetId, deBiasReportDto.getDatasetId());
+    assertEquals(stateName, deBiasReportDto.getState());
+    assertEquals(createdDate, deBiasReportDto.getCreationDate());
   }
 
   @Test
   void testGetDetectionInfo_DefaultWhenNotExists_expectSuccess() {
     final Integer datasetId = 1;
 
-    DetectionInfoDto detectionInfoDto = debiasStateService.getDetectionInfo(datasetId);
+    DeBiasReportDto deBiasReportDto = debiasStateService.getDetectionInfo(datasetId);
 
-    assertNotNull(detectionInfoDto);
-    assertEquals(datasetId, detectionInfoDto.getDatasetId());
-    assertEquals("READY", detectionInfoDto.getState());
+    assertNotNull(deBiasReportDto);
+    assertEquals(datasetId, deBiasReportDto.getDatasetId());
+    assertEquals("READY", deBiasReportDto.getState());
   }
 
 }

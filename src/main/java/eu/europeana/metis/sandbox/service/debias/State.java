@@ -10,7 +10,7 @@ public abstract class State {
   /**
    * The State machine.
    */
-  protected DetectService stateMachine;
+  protected DeBiasStateful stateMachine;
   /**
    * The Detect repository.
    */

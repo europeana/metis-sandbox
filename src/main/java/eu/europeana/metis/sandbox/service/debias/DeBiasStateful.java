@@ -1,11 +1,12 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
+
 
 /**
- * The interface Detect service.
+ * The interface DeBias stateful.
  */
-public interface DetectService {
+public interface DeBiasStateful {
 
   /**
    * Fail.
@@ -78,7 +79,7 @@ public interface DetectService {
    * @param datasetId the dataset id
    * @return the de bias report
    */
-  DetectionInfoDto getDeBiasReport(Integer datasetId);
+  DeBiasReportDto getDeBiasReport(Integer datasetId);
 
   /**
    * Clean DeBias report.

@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  * The type DeBias process service.
  */
 @Service
-class DeBiasProcessServiceImpl implements DeBiasProcessService {
+public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasProcessServiceImpl.class);
 
@@ -93,9 +93,12 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
     if (!deBiasReport.isEmpty()) {
       deBiasReport.forEach(row -> {
-            LOGGER.info("recordId: {} language: {} literal: {}", row.recordId(), row.valueDetection().getLanguage(), row.valueDetection().getLiteral());
+            LOGGER.info("recordId: {} europeanaId: {} language: {} literal: {}",
+                row.recordId(), row.europeanaId(), row.valueDetection().getLanguage(),
+                row.valueDetection().getLiteral());
             row.valueDetection().getTags().forEach(tag ->
-                LOGGER.info("tag {} {} {} {}", tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
+                LOGGER.info("tag {} {} {} {}",
+                    tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
           }
       );
       saveReport(deBiasReport);
@@ -113,40 +116,41 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
     values.stream()
           .collect(groupingBy(DeBiasInputRecord::language))
           .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
-                // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
-                partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE)
-                    .forEach(partition -> {
-                          DetectionParameter detectionParameters = new DetectionParameter();
-                          detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::description).toList());
-                          detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
-                          try {
-                            switch (deBiasClient.detect(detectionParameters)) {
-                              case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
-                                for (int i = 0; i < partition.size(); i++) {
-                                  deBiasReport.add(new DeBiasReportRow(partition.get(i).recordId(),
-                                      deBiasResult.getDetections().get(i),
-                                      partition.get(i).language(),
-                                      partition.get(i).sourceField()));
+                  // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
+                  partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE)
+                      .forEach(partition -> {
+                            DetectionParameter detectionParameters = new DetectionParameter();
+                            detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::description).toList());
+                            detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
+                            try {
+                              switch (deBiasClient.detect(detectionParameters)) {
+                                case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
+                                  for (int i = 0; i < partition.size(); i++) {
+                                    deBiasReport.add(new DeBiasReportRow(partition.get(i).recordId(),
+                                        partition.get(i).europeanaId(),
+                                        deBiasResult.getDetections().get(i),
+                                        partition.get(i).language(),
+                                        partition.get(i).sourceField()));
+                                  }
                                 }
+                                case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
+                                    errorDeBiasResult.getDetailList()
+                                                     .forEach(detail ->
+                                                         LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
+                                                     );
+                                default -> LOGGER.info("DeBias detected nothing");
                               }
-                              case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
-                                  errorDeBiasResult.getDetailList()
-                                                   .forEach(detail ->
-                                                       LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
-                                                   );
-                              default -> LOGGER.info("DeBias detected nothing");
+                            } catch (RuntimeException e) {
+                              LOGGER.error(e.getMessage(), e);
                             }
-                          } catch (RuntimeException e) {
-                            LOGGER.error(e.getMessage(), e);
+                            LOGGER.info("DeBias execution finished for partition: {}",
+                                partition.stream()
+                                         .map(DeBiasInputRecord::recordId)
+                                         .map(Object::toString)
+                                         .collect(Collectors.joining(","))
+                            );
                           }
-                          LOGGER.info("DeBias execution finished for partition: {}",
-                              partition.stream()
-                                       .map(DeBiasInputRecord::recordId)
-                                       .map(Object::toString)
-                                       .collect(Collectors.joining(","))
-                          );
-                        }
-                    )
+                      )
               )
           );
   }
@@ -157,7 +161,7 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param report the report
    */
   private void saveReport(List<DeBiasReportRow> report) {
-    report.forEach( row -> {
+    report.forEach(row -> {
       if (!row.valueDetection().getTags().isEmpty()) {
         RecordEntity recordEntity = recordRepository.findById(row.recordId()).orElse(null);
         RecordDeBiasMainEntity recordDeBiasMain = new RecordDeBiasMainEntity(recordEntity, row.valueDetection().getLiteral(),
@@ -190,7 +194,7 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
                 new RdfConversionUtils()
                     .convertStringToRdf(
                         new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
-                    ), recordToProcess.getRecordId()
+                    ), recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()
             );
           } catch (SerializationException e) {
             deBiasInputRecords = Collections.emptyList();
@@ -208,7 +212,9 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param recordId the record id
    * @return the descriptions and language from rdf
    */
-  private List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf(RDF rdf, Long recordId) {
+  private List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf(RDF rdf,
+      Long recordId,
+      String europeanaId) {
     List<ProxyType> providerProxies = this.getProviderProxies(rdf);
     List<EuropeanaType.Choice> choices = providerProxies
         .stream()
@@ -223,7 +229,7 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
         ResourceOrLiteralType::getString,
         value -> value.getLang().getLang(),
         DeBiasSourceField.DC_DESCRIPTION,
-        recordId);
+        recordId, europeanaId);
   }
 
   /**
@@ -264,14 +270,16 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
    */
   private <T> List<DeBiasInputRecord> getChoicesInStringList(List<EuropeanaType.Choice> choices,
       Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter,
-      Function<T, String> getString, Function<T, String> getLanguage, DeBiasSourceField sourceField, Long recordId) {
+      Function<T, String> getString, Function<T, String> getLanguage, DeBiasSourceField sourceField,
+      Long recordId,
+      String europeanaId) {
     return choices.stream()
                   .filter(Objects::nonNull)
                   .filter(choicePredicate)
                   .map(choiceGetter)
                   .map(value -> Optional
                       .ofNullable(DeBiasSupportedLanguage.match(getLanguage.apply(value)))
-                      .map(lang -> new DeBiasInputRecord(recordId, getString.apply(value), lang, sourceField))
+                      .map(lang -> new DeBiasInputRecord(recordId, europeanaId, getString.apply(value), lang, sourceField))
                       .orElse(null))
                   .filter(Objects::nonNull)
                   .toList();
@@ -280,14 +288,22 @@ class DeBiasProcessServiceImpl implements DeBiasProcessService {
   /**
    * The type DeBias input record.
    */
-  record DeBiasInputRecord(Long recordId, String description, DeBiasSupportedLanguage language, DeBiasSourceField sourceField) {
+  record DeBiasInputRecord(Long recordId,
+                           String europeanaId,
+                           String description,
+                           DeBiasSupportedLanguage language,
+                           DeBiasSourceField sourceField) {
 
   }
 
   /**
    * The type DeBias report row.
    */
-  record DeBiasReportRow(Long recordId, ValueDetection valueDetection, DeBiasSupportedLanguage language, DeBiasSourceField sourceField) {
+  public record DeBiasReportRow(Long recordId,
+                                String europeanaId,
+                                ValueDetection valueDetection,
+                                DeBiasSupportedLanguage language,
+                                DeBiasSourceField sourceField) {
 
   }
 

@@ -1,20 +1,29 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
+import eu.europeana.metis.debias.detect.model.response.Tag;
+import eu.europeana.metis.debias.detect.model.response.ValueDetection;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
+import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
+import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
+import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasReportRow;
+import eu.europeana.metis.sandbox.service.workflow.DeBiasSupportedLanguage;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The type DeBias detect service.
  */
-public class DeBiasStateService implements DetectService {
+public class DeBiasStateService implements DeBiasStateful {
 
   private static final String INITIAL_STATE = "READY";
   private final Stateful ready;
@@ -98,12 +107,13 @@ public class DeBiasStateService implements DetectService {
    * @return the de bias report
    */
   @Override
-  public DetectionInfoDto getDeBiasReport(Integer datasetId) {
+  public DeBiasReportDto getDeBiasReport(Integer datasetId) {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
     if (datasetDeBiasEntity == null) {
-      return new DetectionInfoDto(datasetId, INITIAL_STATE, ZonedDateTime.now());
+      return new DeBiasReportDto(datasetId, INITIAL_STATE, ZonedDateTime.now(), List.of());
     } else {
-      return new DetectionInfoDto(datasetId, datasetDeBiasEntity.getState(), datasetDeBiasEntity.getCreatedDate());
+      return new DeBiasReportDto(datasetId, datasetDeBiasEntity.getState(), datasetDeBiasEntity.getCreatedDate(),
+          getReportFromDbEntities(datasetId));
     }
   }
 
@@ -118,5 +128,36 @@ public class DeBiasStateService implements DetectService {
     Objects.requireNonNull(datasetId, "Dataset id must not be null");
     this.recordDeBiasDetailRepository.deleteByDebiasIdRecordIdDatasetId(datasetId.toString());
     this.recordDeBiasMainRepository.deleteByRecordIdDatasetId(datasetId.toString());
+  }
+
+  private List<DeBiasReportRow> getReportFromDbEntities(Integer datasetId) {
+    List<DeBiasReportRow> reportRows = new ArrayList<>();
+    List<RecordDeBiasMainEntity> recordDeBiasMainEntities = this.recordDeBiasMainRepository.findByRecordIdDatasetId(
+        datasetId.toString());
+
+    recordDeBiasMainEntities.forEach(recordDeBiasMainEntity -> {
+      List<RecordDeBiasDetailEntity> detailEntities = this.recordDeBiasDetailRepository.findByDebiasIdId(
+          recordDeBiasMainEntity.getId());
+      ValueDetection valueDetection = new ValueDetection();
+      List<Tag> tags = new ArrayList<>();
+      detailEntities.forEach(recordDeBiasDetailEntity -> {
+        Tag tag = new Tag();
+        tag.setStart(recordDeBiasDetailEntity.getTag_start());
+        tag.setEnd(recordDeBiasDetailEntity.getTag_end());
+        tag.setLength(recordDeBiasDetailEntity.getTag_length());
+        tag.setUri(recordDeBiasDetailEntity.getTag_uri());
+        tags.add(tag);
+      });
+      valueDetection.setLiteral(recordDeBiasMainEntity.getLiteral());
+      valueDetection.setLanguage(recordDeBiasMainEntity.getLanguage().name().toLowerCase());
+      valueDetection.setTags(tags);
+      reportRows.add(new DeBiasReportRow(recordDeBiasMainEntity.getRecordId().getId(),
+          recordDeBiasMainEntity.getRecordId().getEuropeanaId(),
+          valueDetection,
+          DeBiasSupportedLanguage.match(recordDeBiasMainEntity.getLanguage().name().toLowerCase(Locale.US)),
+          recordDeBiasMainEntity.getSourceField()));
+    });
+
+    return reportRows;
   }
 }

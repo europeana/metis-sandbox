@@ -32,7 +32,7 @@ public class ReadyState extends State implements Stateful {
    * @param debiasMachine the debias machine
    * @param datasetDeBiasRepository the detect repository
    */
-  public ReadyState(DetectService debiasMachine,
+  public ReadyState(DeBiasStateful debiasMachine,
       DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
       RecordLogRepository recordLogRepository,

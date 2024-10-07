@@ -41,7 +41,7 @@ import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -50,7 +50,7 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DetectService;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateful;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -96,7 +96,7 @@ class DatasetControllerTest {
   private MockMvc mvc;
 
   @MockBean
-  private DetectService detectService;
+  private DeBiasStateful deBiasStateful;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -847,8 +847,8 @@ class DatasetControllerTest {
     final Integer datasetId = 1;
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
-    when(detectService.getDetectionInfo(datasetId))
-        .thenReturn(new DetectionInfoDto(datasetId, status, dateTime));
+    when(deBiasStateful.getDetectionInfo(datasetId))
+        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime));
 
     mvc.perform(get("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())
@@ -862,7 +862,7 @@ class DatasetControllerTest {
   @ValueSource(booleans = {true, false})
   void processDebias_expectSuccess(boolean process) throws Exception {
     final Integer datasetId = 1;
-    when(detectService.process(datasetId)).thenReturn(process);
+    when(deBiasStateful.process(datasetId)).thenReturn(process);
     mvc.perform(post("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())
        .andExpect(content().string(String.valueOf(process)));
