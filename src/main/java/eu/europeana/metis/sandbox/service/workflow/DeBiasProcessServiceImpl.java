@@ -19,6 +19,7 @@ import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
+import eu.europeana.metis.schema.jibx.LiteralType;
 import eu.europeana.metis.schema.jibx.ProxyType;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -93,9 +95,9 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
     if (!deBiasReport.isEmpty()) {
       deBiasReport.forEach(row -> {
-            LOGGER.info("recordId: {} europeanaId: {} language: {} literal: {}",
+            LOGGER.info("recordId: {} europeanaId: {} language: {} source: {} literal: {}",
                 row.recordId(), row.europeanaId(), row.valueDetection().getLanguage(),
-                row.valueDetection().getLiteral());
+                row.sourceField(), row.valueDetection().getLiteral());
             row.valueDetection().getTags().forEach(tag ->
                 LOGGER.info("tag {} {} {} {}",
                     tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
@@ -112,7 +114,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param deBiasReport the DeBias report
    */
   private void doDeBiasAndGenerateReport(List<Record> recordList, List<DeBiasReportRow> deBiasReport) {
-    List<DeBiasInputRecord> values = getDescriptionsFromRecords(recordList);
+    List<DeBiasInputRecord> values = getDeBiasSourceFieldsFromRecords(recordList);
     values.stream()
           .collect(groupingBy(DeBiasInputRecord::language))
           .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
@@ -120,7 +122,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
                   partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE)
                       .forEach(partition -> {
                             DetectionParameter detectionParameters = new DetectionParameter();
-                            detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::description).toList());
+                            detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
                             detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
                             try {
                               switch (deBiasClient.detect(detectionParameters)) {
@@ -184,18 +186,21 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param recordList the record list
    * @return the descriptions from records
    */
-  private List<DeBiasInputRecord> getDescriptionsFromRecords(List<Record> recordList) {
+  private List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(List<Record> recordList) {
     return recordList
         .stream()
         .map(recordToProcess -> {
-          List<DeBiasInputRecord> deBiasInputRecords;
+          List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
           try {
-            deBiasInputRecords = getDescriptionsAndLanguageFromRdf(
-                new RdfConversionUtils()
-                    .convertStringToRdf(
-                        new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
-                    ), recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()
-            );
+            RDF rdf = new RdfConversionUtils()
+                .convertStringToRdf(
+                    new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
+                );
+            deBiasInputRecords.addAll(getDescriptionsAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
+            deBiasInputRecords.addAll(getTitlesAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
+            deBiasInputRecords.addAll(getAlternativeAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
+            deBiasInputRecords.addAll(getSubjectAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
+            deBiasInputRecords.addAll(getTypeAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
           } catch (SerializationException e) {
             deBiasInputRecords = Collections.emptyList();
           }
@@ -215,21 +220,85 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   private List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf(RDF rdf,
       Long recordId,
       String europeanaId) {
-    List<ProxyType> providerProxies = this.getProviderProxies(rdf);
-    List<EuropeanaType.Choice> choices = providerProxies
-        .stream()
-        .map(EuropeanaType::getChoiceList)
-        .filter(Objects::nonNull)
-        .flatMap(Collection::stream)
-        .toList();
 
-    return this.getChoicesInStringList(choices,
+    return this.getChoicesInStringList(getChoices(rdf),
         EuropeanaType.Choice::ifDescription,
         EuropeanaType.Choice::getDescription,
         ResourceOrLiteralType::getString,
         value -> value.getLang().getLang(),
         DeBiasSourceField.DC_DESCRIPTION,
         recordId, europeanaId);
+  }
+
+  private List<DeBiasInputRecord> getTitlesAndLanguageFromRdf(RDF rdf,
+      Long recordId,
+      String europeanaId) {
+
+    return this.getChoicesInStringList(getChoices(rdf),
+        EuropeanaType.Choice::ifTitle,
+        EuropeanaType.Choice::getTitle,
+        LiteralType::getString,
+        value -> value.getLang().getLang(),
+        DeBiasSourceField.DC_TITLE,
+        recordId, europeanaId);
+  }
+
+  private List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf(RDF rdf,
+      Long recordId,
+      String europeanaId) {
+
+    return this.getChoicesInStringList(getChoices(rdf),
+        EuropeanaType.Choice::ifAlternative,
+        EuropeanaType.Choice::getAlternative,
+        LiteralType::getString,
+        value -> value.getLang().getLang(),
+        DeBiasSourceField.DCTERMS_ALTERNATIVE,
+        recordId, europeanaId);
+  }
+
+  private List<DeBiasInputRecord> getSubjectAndLanguageFromRdf(RDF rdf,
+      Long recordId,
+      String europeanaId) {
+    // this get the string (simple case)
+    return this.getChoicesInStringList(getChoices(rdf),
+        EuropeanaType.Choice::ifSubject,
+        EuropeanaType.Choice::getSubject,
+        ResourceOrLiteralType::getString,
+        value -> { if (value.getLang() !=null) return value.getLang().getLang(); else return "";},
+        DeBiasSourceField.DC_SUBJECT,
+        recordId, europeanaId);
+ // this case pointing to an entity
+//    return this.getChoicesInStringList(getChoices(rdf),
+//        EuropeanaType.Choice::ifSubject,
+//        EuropeanaType.Choice::getSubject,
+//        res -> res.getResource().getResource(),
+//        value -> value.getLang().getLang(),
+//        DeBiasSourceField.SKOS_PREFLABEL,
+//        recordId, europeanaId);
+
+  }
+
+  private List<DeBiasInputRecord> getTypeAndLanguageFromRdf(RDF rdf,
+      Long recordId,
+      String europeanaId) {
+
+    return this.getChoicesInStringList(getChoices(rdf),
+        EuropeanaType.Choice::ifSubject,
+        EuropeanaType.Choice::getSubject,
+        ResourceOrLiteralType::getString,
+        value -> { if (value.getLang() !=null) return value.getLang().getLang(); else return "";},
+        DeBiasSourceField.DC_TYPE,
+        recordId, europeanaId);
+  }
+
+  private @NotNull List<Choice> getChoices(RDF rdf) {
+    List<ProxyType> providerProxies = this.getProviderProxies(rdf);
+    return providerProxies
+        .stream()
+        .map(EuropeanaType::getChoiceList)
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .toList();
   }
 
   /**
@@ -290,7 +359,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    */
   record DeBiasInputRecord(Long recordId,
                            String europeanaId,
-                           String description,
+                           String literal,
                            DeBiasSupportedLanguage language,
                            DeBiasSourceField sourceField) {
 

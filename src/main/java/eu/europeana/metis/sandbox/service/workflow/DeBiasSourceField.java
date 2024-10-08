@@ -5,7 +5,7 @@ package eu.europeana.metis.sandbox.service.workflow;
  */
 public enum DeBiasSourceField {
   /**
-   * Dc description DeBias source field.
+   * Dc literal DeBias source field.
    */
   DC_DESCRIPTION,
   /**
@@ -23,5 +23,9 @@ public enum DeBiasSourceField {
   /**
    * Dc type DeBias source field.
    */
-  DC_TYPE 
+  DC_TYPE,
+  /**
+   * Skos pref label DeBias source field.
+   */
+  SKOS_PREFLABEL
 }
