@@ -17,7 +17,6 @@ import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
-import eu.europeana.metis.schema.jibx.AboutType;
 import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
@@ -28,8 +27,6 @@ import eu.europeana.metis.schema.jibx.ProxyType;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType.Resource;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,8 +43,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +85,26 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
     this.recordRepository = recordRepository;
   }
 
+  private static @NotNull Function<LiteralType, String> getGetLanguageLiteralType() {
+    return value -> {
+      if (value.getLang() != null) {
+        return value.getLang().getLang();
+      } else {
+        return "";
+      }
+    };
+  }
+
+  private static @NotNull Function<ResourceOrLiteralType, String> getGetLanguageResourceOrLiteralType() {
+    return value -> {
+      if (value.getLang() != null) {
+        return value.getLang().getLang();
+      } else {
+        return "";
+      }
+    };
+  }
+
   /**
    * Process batch of records with DeBias Tool and generate report
    *
@@ -106,14 +121,11 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
     if (!deBiasReport.isEmpty()) {
       deBiasReport.forEach(row -> {
-            LOGGER.info("recordId: {} europeanaId: {} language: {} source: {} literal: {}",
-                row.recordId(), row.europeanaId(), row.valueDetection().getLanguage(),
-                row.sourceField(), row.valueDetection().getLiteral());
-            row.valueDetection().getTags().forEach(tag ->
-                LOGGER.info("tag {} {} {} {}",
-                    tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
-          }
-      );
+        LOGGER.info("recordId: {} europeanaId: {} language: {} source: {} literal: {}", row.recordId(), row.europeanaId(),
+            row.valueDetection().getLanguage(), row.sourceField(), row.valueDetection().getLiteral());
+        row.valueDetection().getTags()
+           .forEach(tag -> LOGGER.info("tag {} {} {} {}", tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
+      });
       saveReport(deBiasReport);
     }
   }
@@ -126,45 +138,31 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    */
   private void doDeBiasAndGenerateReport(List<Record> recordList, List<DeBiasReportRow> deBiasReport) {
     List<DeBiasInputRecord> values = getDeBiasSourceFieldsFromRecords(recordList);
-    values.stream()
-          .collect(groupingBy(DeBiasInputRecord::language))
-          .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
-                  // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
-                  partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE)
-                      .forEach(partition -> {
-                            DetectionParameter detectionParameters = new DetectionParameter();
-                            detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
-                            detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
-                            try {
-                              switch (deBiasClient.detect(detectionParameters)) {
-                                case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
-                                  for (int i = 0; i < partition.size(); i++) {
-                                    deBiasReport.add(new DeBiasReportRow(partition.get(i).recordId(),
-                                        partition.get(i).europeanaId(),
-                                        deBiasResult.getDetections().get(i),
-                                        partition.get(i).sourceField()));
-                                  }
-                                }
-                                case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
-                                    errorDeBiasResult.getDetailList()
-                                                     .forEach(detail ->
-                                                         LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc())
-                                                     );
-                                default -> LOGGER.info("DeBias detected nothing");
-                              }
-                            } catch (RuntimeException e) {
-                              LOGGER.error(e.getMessage(), e);
-                            }
-                            LOGGER.info("DeBias execution finished for partition: {}",
-                                partition.stream()
-                                         .map(DeBiasInputRecord::recordId)
-                                         .map(Object::toString)
-                                         .collect(Collectors.joining(","))
-                            );
-                          }
-                      )
-              )
-          );
+    values.stream().collect(groupingBy(DeBiasInputRecord::language)).forEach(((deBiasSupportedLanguage, recordDescriptions) ->
+        // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
+        partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE).forEach(partition -> {
+          DetectionParameter detectionParameters = new DetectionParameter();
+          detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
+          detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
+          try {
+            switch (deBiasClient.detect(detectionParameters)) {
+              case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
+                for (int i = 0; i < partition.size(); i++) {
+                  deBiasReport.add(new DeBiasReportRow(partition.get(i).recordId(), partition.get(i).europeanaId(),
+                      deBiasResult.getDetections().get(i), partition.get(i).sourceField()));
+                }
+              }
+              case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
+                  errorDeBiasResult.getDetailList().forEach(
+                      detail -> LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc()));
+              default -> LOGGER.info("DeBias detected nothing");
+            }
+          } catch (RuntimeException e) {
+            LOGGER.error(e.getMessage(), e);
+          }
+          LOGGER.info("DeBias execution finished for partition: {}",
+              partition.stream().map(DeBiasInputRecord::recordId).map(Object::toString).collect(Collectors.joining(",")));
+        })));
   }
 
   /**
@@ -179,13 +177,11 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         RecordDeBiasMainEntity recordDeBiasMain = new RecordDeBiasMainEntity(recordEntity, row.valueDetection().getLiteral(),
             Language.valueOf(row.valueDetection().getLanguage().toUpperCase(Locale.US)), row.sourceField());
         recordDeBiasMainRepository.save(recordDeBiasMain);
-        row.valueDetection()
-           .getTags()
-           .forEach(tag -> {
-             RecordDeBiasDetailEntity recordDeBiasDetail = new RecordDeBiasDetailEntity(recordDeBiasMain,
-                 tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri());
-             recordDeBiasDetailRepository.save(recordDeBiasDetail);
-           });
+        row.valueDetection().getTags().forEach(tag -> {
+          RecordDeBiasDetailEntity recordDeBiasDetail = new RecordDeBiasDetailEntity(recordDeBiasMain, tag.getStart(),
+              tag.getEnd(), tag.getLength(), tag.getUri());
+          recordDeBiasDetailRepository.save(recordDeBiasDetail);
+        });
       }
     });
   }
@@ -197,177 +193,218 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @return the descriptions from records
    */
   private List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(List<Record> recordList) {
-    return recordList
-        .stream()
-        .map(recordToProcess -> {
-          List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
-          try {
-            RDF rdf = new RdfConversionUtils()
-                .convertStringToRdf(
-                    new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
-                );
+    return recordList.stream().map(recordToProcess -> {
+      List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
+      try {
+        RDF rdf = new RdfConversionUtils().convertStringToRdf(new String(recordToProcess.getContent(), StandardCharsets.UTF_8));
 
-            // Get the literal values
-            deBiasInputRecords.addAll(getDescriptionsAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
-            deBiasInputRecords.addAll(getTitlesAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
-            deBiasInputRecords.addAll(getAlternativeAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
-            deBiasInputRecords.addAll(getSubjectAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
-            deBiasInputRecords.addAll(getTypeAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
+        // Get the literal values
+        deBiasInputRecords.addAll(getDescriptionsAndLanguageFromRdf(rdf, recordToProcess));
+        deBiasInputRecords.addAll(getTitlesAndLanguageFromRdf(rdf, recordToProcess));
+        deBiasInputRecords.addAll(getAlternativeAndLanguageFromRdf(rdf, recordToProcess));
+        deBiasInputRecords.addAll(getSubjectAndLanguageFromRdf(rdf, recordToProcess));
+        deBiasInputRecords.addAll(getTypeAndLanguageFromRdf(rdf, recordToProcess));
 
-            // Get the values that are linked through contextual classes.
-            Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout(rdf);
-            deBiasInputRecords.addAll(
-                getChoices(rdf).stream().filter(Choice::ifSubject).map(Choice::getSubject)
-                    .filter(Objects::nonNull).map(ResourceOrLiteralType::getResource)
-                    .filter(Objects::nonNull).map(Resource::getResource)
-                    .filter(Objects::nonNull).map(contextualClassesLabels::get)
-                    .filter(Objects::nonNull).flatMap(Collection::stream).map(prefLabel ->
-                       Optional.ofNullable(prefLabel.getLang()).map(Lang::getLang).map(DeBiasSupportedLanguage::match)
-                            .map(lang -> new DeBiasInputRecord(recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(), prefLabel.getString(), lang, DeBiasSourceField.DC_SUBJECT))
-                            .orElse(null))
-                .filter(Objects::nonNull).toList());
-            deBiasInputRecords.addAll(
-                getChoices(rdf).stream().filter(Choice::ifType).map(Choice::getType)
-                    .filter(Objects::nonNull).map(ResourceOrLiteralType::getResource)
-                    .filter(Objects::nonNull).map(Resource::getResource)
-                    .filter(Objects::nonNull).map(contextualClassesLabels::get)
-                    .filter(Objects::nonNull).flatMap(Collection::stream).map(prefLabel ->
-                        Optional.ofNullable(prefLabel.getLang()).map(Lang::getLang).map(DeBiasSupportedLanguage::match)
-                            .map(lang -> new DeBiasInputRecord(recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(), prefLabel.getString(), lang, DeBiasSourceField.DC_TYPE))
-                            .orElse(null))
-                    .filter(Objects::nonNull).toList());
-          } catch (SerializationException e) {
-            deBiasInputRecords = Collections.emptyList();
-          }
-          return deBiasInputRecords;
-        })
-        .flatMap(Collection::stream)
-        .toList();
-  }
+        // Get the values that are linked through contextual classes.
+        Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout(rdf);
+        deBiasInputRecords.addAll(getSubjectReferencesAndLanguageFromRdf(recordToProcess, rdf, contextualClassesLabels));
+        deBiasInputRecords.addAll(getTypeReferencesAndLanguageFromRdf(recordToProcess, rdf, contextualClassesLabels));
 
-  private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout(RDF record){
-    final Map<String, List<PrefLabel>> result = new HashMap<>();
-    Optional.ofNullable(record.getAgentList()).stream().flatMap(Collection::stream)
-        .forEach(agent -> result.put(agent.getAbout(), agent.getPrefLabelList()));
-    Optional.ofNullable(record.getConceptList()).stream().flatMap(Collection::stream)
-        .forEach(concept -> result.put(concept.getAbout(),
-            Optional.ofNullable(concept.getChoiceList()).stream().flatMap(Collection::stream)
-                .filter(Concept.Choice::ifPrefLabel).map(Concept.Choice::getPrefLabel)
-                .filter(Objects::nonNull).toList()));
-    Optional.ofNullable(record.getOrganizationList()).stream().flatMap(Collection::stream)
-        .forEach(organization -> result.put(organization.getAbout(), organization.getPrefLabelList()));
-    Optional.ofNullable(record.getPlaceList()).stream().flatMap(Collection::stream)
-        .forEach(place -> result.put(place.getAbout(), place.getPrefLabelList()));
-    Optional.ofNullable(record.getTimeSpanList()).stream().flatMap(Collection::stream)
-        .forEach(timespan -> result.put(timespan.getAbout(), timespan.getPrefLabelList()));
-    return result;
+      } catch (SerializationException e) {
+        deBiasInputRecords = Collections.emptyList();
+      }
+      return deBiasInputRecords;
+    }).flatMap(Collection::stream).toList();
   }
 
   /**
    * Gets descriptions and language from rdf.
    *
    * @param rdf the rdf
-   * @param recordId the record id
+   * @param recordInfo the record info
    * @return the descriptions and language from rdf
    */
-  private List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf(RDF rdf,
-      Long recordId,
-      String europeanaId) {
-
+  private List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf(RDF rdf, Record recordInfo) {
     return this.getChoicesInStringList(getChoices(rdf),
         EuropeanaType.Choice::ifDescription,
         EuropeanaType.Choice::getDescription,
         ResourceOrLiteralType::getString,
-        value -> value.getLang().getLang(),
+        getGetLanguageResourceOrLiteralType(),
         DeBiasSourceField.DC_DESCRIPTION,
-        recordId, europeanaId);
+        recordInfo);
   }
 
   /**
    * Gets titles and language from rdf.
    *
    * @param rdf the rdf
-   * @param recordId the record id
-   * @param europeanaId the europeana id
+   * @param recordInfo the record info
    * @return the titles and language from rdf
    */
-  private List<DeBiasInputRecord> getTitlesAndLanguageFromRdf(RDF rdf,
-      Long recordId,
-      String europeanaId) {
-
+  private List<DeBiasInputRecord> getTitlesAndLanguageFromRdf(RDF rdf, Record recordInfo) {
     return this.getChoicesInStringList(getChoices(rdf),
         EuropeanaType.Choice::ifTitle,
         EuropeanaType.Choice::getTitle,
         LiteralType::getString,
-        value -> value.getLang().getLang(),
+        getGetLanguageLiteralType(),
         DeBiasSourceField.DC_TITLE,
-        recordId, europeanaId);
+        recordInfo);
   }
 
   /**
    * Gets alternative and language from rdf.
    *
    * @param rdf the rdf
-   * @param recordId the record id
-   * @param europeanaId the europeana id
+   * @param recordInfo the record info
    * @return the alternative and language from rdf
    */
-  private List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf(RDF rdf,
-      Long recordId,
-      String europeanaId) {
-
+  private List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf(RDF rdf, Record recordInfo) {
     return this.getChoicesInStringList(getChoices(rdf),
         EuropeanaType.Choice::ifAlternative,
         EuropeanaType.Choice::getAlternative,
         LiteralType::getString,
-        value -> value.getLang().getLang(),
+        getGetLanguageLiteralType(),
         DeBiasSourceField.DCTERMS_ALTERNATIVE,
-        recordId, europeanaId);
+        recordInfo);
   }
 
-  private List<DeBiasInputRecord> getSubjectAndLanguageFromRdf(RDF rdf,
-      Long recordId,
-      String europeanaId) {
-    // this get the string (simple case)
+  /**
+   * Gets subject and language from rdf.
+   *
+   * @param rdf the rdf
+   * @param recordInfo the record info
+   * @return the subject and language from rdf
+   */
+  private List<DeBiasInputRecord> getSubjectAndLanguageFromRdf(RDF rdf, Record recordInfo) {
     return this.getChoicesInStringList(getChoices(rdf),
         EuropeanaType.Choice::ifSubject,
         EuropeanaType.Choice::getSubject,
         ResourceOrLiteralType::getString,
-        value -> { if (value.getLang() !=null) return value.getLang().getLang(); else return "";},
+        getGetLanguageResourceOrLiteralType(),
         DeBiasSourceField.DC_SUBJECT,
-        recordId, europeanaId);
- // this case pointing to an entity
-//    return this.getChoicesInStringList(getChoices(rdf),
-//        EuropeanaType.Choice::ifSubject,
-//        EuropeanaType.Choice::getSubject,
-//        res -> res.getResource().getResource(),
-//        value -> value.getLang().getLang(),
-//        DeBiasSourceField.SKOS_PREFLABEL,
-//        recordId, europeanaId);
-
+        recordInfo);
   }
 
-  private List<DeBiasInputRecord> getTypeAndLanguageFromRdf(RDF rdf,
-      Long recordId,
-      String europeanaId) {
-
+  /**
+   * Gets type and language from rdf.
+   *
+   * @param rdf the rdf
+   * @param recordInfo the record info
+   * @return the type and language from rdf
+   */
+  private List<DeBiasInputRecord> getTypeAndLanguageFromRdf(RDF rdf, Record recordInfo) {
     return this.getChoicesInStringList(getChoices(rdf),
-        EuropeanaType.Choice::ifSubject,
-        EuropeanaType.Choice::getSubject,
+        EuropeanaType.Choice::ifType,
+        EuropeanaType.Choice::getType,
         ResourceOrLiteralType::getString,
-        value -> { if (value.getLang() !=null) return value.getLang().getLang(); else return "";},
-        DeBiasSourceField.DC_TYPE,
-        recordId, europeanaId);
+        getGetLanguageResourceOrLiteralType(),
+        DeBiasSourceField.DC_TYPE, recordInfo);
   }
 
+  /**
+   * Gets type references and language from rdf.
+   *
+   * @param recordToProcess the record to process
+   * @param rdf the rdf
+   * @param contextualClassesLabels the contextual classes labels
+   * @return the type references and language from rdf
+   */
+  private List<DeBiasInputRecord> getTypeReferencesAndLanguageFromRdf(Record recordToProcess, RDF rdf,
+      Map<String, List<PrefLabel>> contextualClassesLabels) {
+    return getChoices(rdf).stream()
+                          .filter(Choice::ifType)
+                          .map(Choice::getType)
+                          .filter(Objects::nonNull)
+                          .map(ResourceOrLiteralType::getResource)
+                          .filter(Objects::nonNull)
+                          .map(Resource::getResource)
+                          .filter(Objects::nonNull)
+                          .map(contextualClassesLabels::get)
+                          .filter(Objects::nonNull)
+                          .flatMap(Collection::stream)
+                          .map(prefLabel -> Optional.ofNullable(prefLabel.getLang())
+                                                    .map(Lang::getLang)
+                                                    .map(DeBiasSupportedLanguage::match)
+                                                    .map(
+                                                        language -> new DeBiasInputRecord(
+                                                            recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(),
+                                                            prefLabel.getString(), language, DeBiasSourceField.DC_TYPE))
+                                                    .orElse(null))
+                          .filter(Objects::nonNull)
+                          .toList();
+  }
+
+  /**
+   * Gets subject references and language from rdf.
+   *
+   * @param recordToProcess the record to process
+   * @param rdf the rdf
+   * @param contextualClassesLabels the contextual classes labels
+   * @return the subject references and language from rdf
+   */
+  private List<DeBiasInputRecord> getSubjectReferencesAndLanguageFromRdf(Record recordToProcess, RDF rdf,
+      Map<String, List<PrefLabel>> contextualClassesLabels) {
+    return getChoices(rdf).stream()
+                          .filter(Choice::ifSubject)
+                          .map(Choice::getSubject)
+                          .filter(Objects::nonNull)
+                          .map(ResourceOrLiteralType::getResource)
+                          .filter(Objects::nonNull)
+                          .map(Resource::getResource)
+                          .filter(Objects::nonNull)
+                          .map(contextualClassesLabels::get)
+                          .filter(Objects::nonNull)
+                          .flatMap(Collection::stream)
+                          .map(
+                              prefLabel -> Optional.ofNullable(prefLabel.getLang())
+                                                   .map(Lang::getLang)
+                                                   .map(DeBiasSupportedLanguage::match)
+                                                   .map(
+                                                       language -> new DeBiasInputRecord(
+                                                           recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(),
+                                                           prefLabel.getString(), language, DeBiasSourceField.DC_SUBJECT))
+                                                   .orElse(null))
+                          .filter(Objects::nonNull)
+                          .toList();
+  }
+
+
+  /**
+   * Gets contextual class labels by rdf about.
+   *
+   * @param rdf the rdf
+   * @return the contextual class labels by rdf about
+   */
+  private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout(RDF rdf) {
+    final Map<String, List<PrefLabel>> result = new HashMap<>();
+    Optional.ofNullable(rdf.getAgentList()).stream().flatMap(Collection::stream)
+            .forEach(agent -> result.put(agent.getAbout(), agent.getPrefLabelList()));
+    Optional.ofNullable(rdf.getConceptList()).stream().flatMap(Collection::stream).forEach(
+        concept -> result.put(concept.getAbout(),
+            Optional.ofNullable(concept.getChoiceList()).stream().flatMap(Collection::stream).filter(Concept.Choice::ifPrefLabel)
+                    .map(Concept.Choice::getPrefLabel).filter(Objects::nonNull).toList()));
+    Optional.ofNullable(rdf.getOrganizationList()).stream().flatMap(Collection::stream)
+            .forEach(organization -> result.put(organization.getAbout(), organization.getPrefLabelList()));
+    Optional.ofNullable(rdf.getPlaceList()).stream().flatMap(Collection::stream)
+            .forEach(place -> result.put(place.getAbout(), place.getPrefLabelList()));
+    Optional.ofNullable(rdf.getTimeSpanList()).stream().flatMap(Collection::stream)
+            .forEach(timespan -> result.put(timespan.getAbout(), timespan.getPrefLabelList()));
+    return result;
+  }
+
+  /**
+   * Gets choices.
+   *
+   * @param rdf the rdf
+   * @return the choices
+   */
   private @NotNull List<Choice> getChoices(RDF rdf) {
     List<ProxyType> providerProxies = this.getProviderProxies(rdf);
-    return providerProxies
-        .stream()
-        .map(EuropeanaType::getChoiceList)
-        .filter(Objects::nonNull)
-        .flatMap(Collection::stream)
-        .toList();
+    return providerProxies.stream()
+                          .map(EuropeanaType::getChoiceList)
+                          .filter(Objects::nonNull)
+                          .flatMap(Collection::stream)
+                          .toList();
   }
 
   /**
@@ -387,11 +424,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @return the provider proxies
    */
   private List<ProxyType> getProviderProxies(RDF rdf) {
-    return Optional.ofNullable(rdf.getProxyList()).stream()
-                   .flatMap(Collection::stream)
-                   .filter(Objects::nonNull)
-                   .filter(this::isProviderProxy)
-                   .toList();
+    return Optional.ofNullable(rdf.getProxyList()).stream().flatMap(Collection::stream).filter(Objects::nonNull)
+                   .filter(this::isProviderProxy).toList();
   }
 
   /**
@@ -403,22 +437,21 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param choiceGetter the choice getter
    * @param getString the get string
    * @param getLanguage the get language
-   * @param recordId the record id
+   * @param sourceField the source field
+   * @param recordInfo the record info
    * @return the choices in string list
    */
   private <T> List<DeBiasInputRecord> getChoicesInStringList(List<EuropeanaType.Choice> choices,
-      Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter,
-      Function<T, String> getString, Function<T, String> getLanguage, DeBiasSourceField sourceField,
-      Long recordId,
-      String europeanaId) {
+      Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter, Function<T, String> getString,
+      Function<T, String> getLanguage, DeBiasSourceField sourceField, Record recordInfo) {
     return choices.stream()
                   .filter(Objects::nonNull)
                   .filter(choicePredicate)
                   .map(choiceGetter)
-                  .map(value -> Optional
-                      .ofNullable(DeBiasSupportedLanguage.match(getLanguage.apply(value)))
-                      .map(lang -> new DeBiasInputRecord(recordId, europeanaId, getString.apply(value), lang, sourceField))
-                      .orElse(null))
+                  .map(value -> Optional.ofNullable(DeBiasSupportedLanguage.match(getLanguage.apply(value)))
+                                        .map(language -> new DeBiasInputRecord(recordInfo.getRecordId(),
+                                            recordInfo.getEuropeanaId(), getString.apply(value),
+                                            language, sourceField)).orElse(null))
                   .filter(Objects::nonNull)
                   .toList();
   }
@@ -426,10 +459,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   /**
    * The type DeBias input record.
    */
-  record DeBiasInputRecord(Long recordId,
-                           String europeanaId,
-                           String literal,
-                           DeBiasSupportedLanguage language,
+  record DeBiasInputRecord(Long recordId, String europeanaId, String literal, DeBiasSupportedLanguage language,
                            DeBiasSourceField sourceField) {
 
   }
@@ -437,10 +467,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   /**
    * The type DeBias report row.
    */
-  public record DeBiasReportRow(Long recordId,
-                                String europeanaId,
-                                ValueDetection valueDetection,
-                                DeBiasSourceField sourceField) {
+  public record DeBiasReportRow(Long recordId, String europeanaId, ValueDetection valueDetection, DeBiasSourceField sourceField) {
 
   }
 
@@ -461,11 +488,10 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
       return Stream.empty();
     }
     int partitions = (sourceList.size() - 1) / partitionSize;
-    return IntStream.rangeClosed(0, partitions)
-                    .mapToObj(partition -> {
-                      int startIndex = partition * partitionSize;
-                      int endIndex = (partition == partitions) ? sourceList.size() : (partition + 1) * partitionSize;
-                      return sourceList.subList(startIndex, endIndex);
-                    });
+    return IntStream.rangeClosed(0, partitions).mapToObj(partition -> {
+      int startIndex = partition * partitionSize;
+      int endIndex = (partition == partitions) ? sourceList.size() : (partition + 1) * partitionSize;
+      return sourceList.subList(startIndex, endIndex);
+    });
   }
 }
