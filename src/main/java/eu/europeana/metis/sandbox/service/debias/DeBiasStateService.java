@@ -154,7 +154,6 @@ public class DeBiasStateService implements DeBiasStateful {
       reportRows.add(new DeBiasReportRow(recordDeBiasMainEntity.getRecordId().getId(),
           recordDeBiasMainEntity.getRecordId().getEuropeanaId(),
           valueDetection,
-          DeBiasSupportedLanguage.match(recordDeBiasMainEntity.getLanguage().name().toLowerCase(Locale.US)),
           recordDeBiasMainEntity.getSourceField()));
     });
 

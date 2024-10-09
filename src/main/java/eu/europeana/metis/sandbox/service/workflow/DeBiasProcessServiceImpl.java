@@ -23,6 +23,8 @@ import eu.europeana.metis.schema.jibx.LiteralType;
 import eu.europeana.metis.schema.jibx.ProxyType;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,7 +133,6 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
                                     deBiasReport.add(new DeBiasReportRow(partition.get(i).recordId(),
                                         partition.get(i).europeanaId(),
                                         deBiasResult.getDetections().get(i),
-                                        partition.get(i).language(),
                                         partition.get(i).sourceField()));
                                   }
                                 }
@@ -230,6 +231,14 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         recordId, europeanaId);
   }
 
+  /**
+   * Gets titles and language from rdf.
+   *
+   * @param rdf the rdf
+   * @param recordId the record id
+   * @param europeanaId the europeana id
+   * @return the titles and language from rdf
+   */
   private List<DeBiasInputRecord> getTitlesAndLanguageFromRdf(RDF rdf,
       Long recordId,
       String europeanaId) {
@@ -243,6 +252,14 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         recordId, europeanaId);
   }
 
+  /**
+   * Gets alternative and language from rdf.
+   *
+   * @param rdf the rdf
+   * @param recordId the record id
+   * @param europeanaId the europeana id
+   * @return the alternative and language from rdf
+   */
   private List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf(RDF rdf,
       Long recordId,
       String europeanaId) {
@@ -371,7 +388,6 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   public record DeBiasReportRow(Long recordId,
                                 String europeanaId,
                                 ValueDetection valueDetection,
-                                DeBiasSupportedLanguage language,
                                 DeBiasSourceField sourceField) {
 
   }
