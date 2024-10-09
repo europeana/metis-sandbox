@@ -17,20 +17,27 @@ import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
+import eu.europeana.metis.schema.jibx.AboutType;
+import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
 import eu.europeana.metis.schema.jibx.LiteralType;
+import eu.europeana.metis.schema.jibx.LiteralType.Lang;
+import eu.europeana.metis.schema.jibx.PrefLabel;
 import eu.europeana.metis.schema.jibx.ProxyType;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
+import eu.europeana.metis.schema.jibx.ResourceOrLiteralType.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -39,6 +46,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,11 +206,36 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
                 .convertStringToRdf(
                     new String(recordToProcess.getContent(), StandardCharsets.UTF_8)
                 );
+
+            // Get the literal values
             deBiasInputRecords.addAll(getDescriptionsAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
             deBiasInputRecords.addAll(getTitlesAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
             deBiasInputRecords.addAll(getAlternativeAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
             deBiasInputRecords.addAll(getSubjectAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
             deBiasInputRecords.addAll(getTypeAndLanguageFromRdf(rdf, recordToProcess.getRecordId(), recordToProcess.getEuropeanaId()));
+
+            // Get the values that are linked through contextual classes.
+            Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout(rdf);
+            deBiasInputRecords.addAll(
+                getChoices(rdf).stream().filter(Choice::ifSubject).map(Choice::getSubject)
+                    .filter(Objects::nonNull).map(ResourceOrLiteralType::getResource)
+                    .filter(Objects::nonNull).map(Resource::getResource)
+                    .filter(Objects::nonNull).map(contextualClassesLabels::get)
+                    .filter(Objects::nonNull).flatMap(Collection::stream).map(prefLabel ->
+                       Optional.ofNullable(prefLabel.getLang()).map(Lang::getLang).map(DeBiasSupportedLanguage::match)
+                            .map(lang -> new DeBiasInputRecord(recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(), prefLabel.getString(), lang, DeBiasSourceField.DC_SUBJECT))
+                            .orElse(null))
+                .filter(Objects::nonNull).toList());
+            deBiasInputRecords.addAll(
+                getChoices(rdf).stream().filter(Choice::ifType).map(Choice::getType)
+                    .filter(Objects::nonNull).map(ResourceOrLiteralType::getResource)
+                    .filter(Objects::nonNull).map(Resource::getResource)
+                    .filter(Objects::nonNull).map(contextualClassesLabels::get)
+                    .filter(Objects::nonNull).flatMap(Collection::stream).map(prefLabel ->
+                        Optional.ofNullable(prefLabel.getLang()).map(Lang::getLang).map(DeBiasSupportedLanguage::match)
+                            .map(lang -> new DeBiasInputRecord(recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(), prefLabel.getString(), lang, DeBiasSourceField.DC_TYPE))
+                            .orElse(null))
+                    .filter(Objects::nonNull).toList());
           } catch (SerializationException e) {
             deBiasInputRecords = Collections.emptyList();
           }
@@ -209,6 +243,24 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         })
         .flatMap(Collection::stream)
         .toList();
+  }
+
+  private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout(RDF record){
+    final Map<String, List<PrefLabel>> result = new HashMap<>();
+    Optional.ofNullable(record.getAgentList()).stream().flatMap(Collection::stream)
+        .forEach(agent -> result.put(agent.getAbout(), agent.getPrefLabelList()));
+    Optional.ofNullable(record.getConceptList()).stream().flatMap(Collection::stream)
+        .forEach(concept -> result.put(concept.getAbout(),
+            Optional.ofNullable(concept.getChoiceList()).stream().flatMap(Collection::stream)
+                .filter(Concept.Choice::ifPrefLabel).map(Concept.Choice::getPrefLabel)
+                .filter(Objects::nonNull).toList()));
+    Optional.ofNullable(record.getOrganizationList()).stream().flatMap(Collection::stream)
+        .forEach(organization -> result.put(organization.getAbout(), organization.getPrefLabelList()));
+    Optional.ofNullable(record.getPlaceList()).stream().flatMap(Collection::stream)
+        .forEach(place -> result.put(place.getAbout(), place.getPrefLabelList()));
+    Optional.ofNullable(record.getTimeSpanList()).stream().flatMap(Collection::stream)
+        .forEach(timespan -> result.put(timespan.getAbout(), timespan.getPrefLabelList()));
+    return result;
   }
 
   /**
