@@ -6,12 +6,12 @@ import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
 import eu.europeana.metis.schema.jibx.LiteralType;
-import eu.europeana.metis.schema.jibx.LiteralType.Lang;
 import eu.europeana.metis.schema.jibx.PrefLabel;
 import eu.europeana.metis.schema.jibx.ProxyType;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType;
 import eu.europeana.metis.schema.jibx.ResourceOrLiteralType.Resource;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -29,23 +29,18 @@ import org.apache.commons.lang3.BooleanUtils;
  */
 public class DeBiasRdfInfoExtractor {
 
-  private DeBiasRdfInfoExtractor() {
-    // not instantiable class
-  }
+  private final RDF rdf;
+  private final Record recordToProcess;
 
   /**
-   * Gets choices.
+   * Instantiates a new DeBias rdf info extractor.
    *
    * @param rdf the rdf
-   * @return the choices
+   * @param recordToProcess the record to process
    */
-  private static List<Choice> getChoices(RDF rdf) {
-    List<ProxyType> providerProxies = getProviderProxies(rdf);
-    return providerProxies.stream()
-                          .map(EuropeanaType::getChoiceList)
-                          .filter(Objects::nonNull)
-                          .flatMap(Collection::stream)
-                          .toList();
+  public DeBiasRdfInfoExtractor(RDF rdf, Record recordToProcess) {
+    this.rdf = rdf;
+    this.recordToProcess = recordToProcess;
   }
 
   /**
@@ -82,205 +77,193 @@ public class DeBiasRdfInfoExtractor {
   }
 
   /**
-   * Gets choices in string list.
+   * Gets choices.
+   *
+   * @return the choices
+   */
+  private List<Choice> getChoices() {
+    List<ProxyType> providerProxies = getProviderProxies(this.rdf);
+    return providerProxies.stream()
+                          .map(EuropeanaType::getChoiceList)
+                          .filter(Objects::nonNull)
+                          .flatMap(Collection::stream)
+                          .toList();
+  }
+
+  /**
+   * Gets literals and languages from rdf.
    *
    * @param <T> the type parameter
-   * @param choices the choices
+   * @param <U> the type parameter
    * @param choicePredicate the choice predicate
    * @param choiceGetter the choice getter
+   * @param lookup the lookup
    * @param getString the get string
    * @param getLanguage the get language
    * @param sourceField the source field
-   * @param recordInfo the record info
-   * @return the choices in string list
+   * @return the literals and languages from rdf
    */
-  private static <T> List<DeBiasInputRecord> getChoicesInStringList(List<EuropeanaType.Choice> choices,
-      Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter, Function<T, String> getString,
-      Function<T, String> getLanguage, DeBiasSourceField sourceField, Record recordInfo) {
-    return choices.stream()
-                  .filter(Objects::nonNull)
-                  .filter(choicePredicate)
-                  .map(choiceGetter)
-                  .map(value -> Optional.ofNullable(DeBiasSupportedLanguage.match(getLanguage.apply(value)))
-                                        .map(language -> new DeBiasInputRecord(recordInfo.getRecordId(),
-                                            recordInfo.getEuropeanaId(), getString.apply(value),
-                                            language, sourceField)).orElse(null))
-                  .filter(Objects::nonNull)
-                  .toList();
+  private <T, U> List<DeBiasInputRecord> getLiteralsAndLanguagesFromRdf(
+      Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter,
+      Function<T, List<? extends U>> lookup, Function<U, String> getString,
+      Function<U, String> getLanguage, DeBiasSourceField sourceField) {
+    return getChoices()
+        .stream()
+        .filter(Objects::nonNull)
+        .filter(choicePredicate)
+        .map(choiceGetter)
+        .filter(Objects::nonNull)
+        .map(lookup)
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .filter(Objects::nonNull)
+        .map(value -> Optional.of(getLanguage.apply(value))
+                              .map(DeBiasSupportedLanguage::match)
+                              .map(
+                                  language -> new DeBiasInputRecord(this.recordToProcess.getRecordId(),
+                                      this.recordToProcess.getEuropeanaId(), getString.apply(value),
+                                      language, sourceField)).orElse(null))
+        .filter(Objects::nonNull)
+        .toList();
   }
 
   /**
    * Gets descriptions and language from rdf.
    *
-   * @param rdf the rdf
-   * @param recordInfo the record info
    * @return the descriptions and language from rdf
    */
-  static List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf(RDF rdf, Record recordInfo) {
-    return getChoicesInStringList(getChoices(rdf),
+  List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf() {
+    return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifDescription,
         EuropeanaType.Choice::getDescription,
+        List::of,
         ResourceOrLiteralType::getString,
         getLanguageResourceOrLiteralType(),
-        DeBiasSourceField.DC_DESCRIPTION,
-        recordInfo);
+        DeBiasSourceField.DC_DESCRIPTION);
   }
 
   /**
    * Gets titles and language from rdf.
    *
-   * @param rdf the rdf
-   * @param recordInfo the record info
    * @return the titles and language from rdf
    */
-  static List<DeBiasInputRecord> getTitlesAndLanguageFromRdf(RDF rdf, Record recordInfo) {
-    return getChoicesInStringList(getChoices(rdf),
+  List<DeBiasInputRecord> getTitlesAndLanguageFromRdf() {
+    return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifTitle,
         EuropeanaType.Choice::getTitle,
+        List::of,
         LiteralType::getString,
         getLanguageLiteralType(),
-        DeBiasSourceField.DC_TITLE,
-        recordInfo);
+        DeBiasSourceField.DC_TITLE);
   }
 
   /**
    * Gets alternative and language from rdf.
    *
-   * @param rdf the rdf
-   * @param recordInfo the record info
    * @return the alternative and language from rdf
    */
-  static List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf(RDF rdf, Record recordInfo) {
-    return getChoicesInStringList(getChoices(rdf),
+  List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf() {
+    return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifAlternative,
         EuropeanaType.Choice::getAlternative,
+        List::of,
         LiteralType::getString,
         getLanguageLiteralType(),
-        DeBiasSourceField.DCTERMS_ALTERNATIVE,
-        recordInfo);
+        DeBiasSourceField.DCTERMS_ALTERNATIVE);
   }
 
   /**
    * Gets subject and language from rdf.
    *
-   * @param rdf the rdf
-   * @param recordInfo the record info
    * @return the subject and language from rdf
    */
-  static List<DeBiasInputRecord> getSubjectAndLanguageFromRdf(RDF rdf, Record recordInfo) {
-    return getChoicesInStringList(getChoices(rdf),
+  List<DeBiasInputRecord> getSubjectAndLanguageFromRdf() {
+    return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifSubject,
         EuropeanaType.Choice::getSubject,
+        List::of,
         ResourceOrLiteralType::getString,
         getLanguageResourceOrLiteralType(),
-        DeBiasSourceField.DC_SUBJECT,
-        recordInfo);
+        DeBiasSourceField.DC_SUBJECT_LITERAL);
   }
 
   /**
    * Gets type and language from rdf.
    *
-   * @param rdf the rdf
-   * @param recordInfo the record info
    * @return the type and language from rdf
    */
-  static List<DeBiasInputRecord> getTypeAndLanguageFromRdf(RDF rdf, Record recordInfo) {
-    return getChoicesInStringList(getChoices(rdf),
+  List<DeBiasInputRecord> getTypeAndLanguageFromRdf() {
+    return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifType,
         EuropeanaType.Choice::getType,
+        List::of,
         ResourceOrLiteralType::getString,
         getLanguageResourceOrLiteralType(),
-        DeBiasSourceField.DC_TYPE, recordInfo);
+        DeBiasSourceField.DC_TYPE_LITERAL);
   }
 
   /**
-   * Gets type references and language from rdf.
+   * Gets subject references and type references from rdf.
    *
-   * @param recordToProcess the record to process
-   * @param rdf the rdf
+   * @return the subject references and type references from rdf
+   */
+  List<DeBiasInputRecord> getSubjectReferencesAndTypeReferencesFromRdf() {
+    Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout();
+    List<DeBiasInputRecord> result = new ArrayList<>();
+    result.addAll(getReferencesAndLanguageFromRdf(contextualClassesLabels,
+        Choice::ifSubject, Choice::getSubject, DeBiasSourceField.DC_SUBJECT_REFERENCE));
+    result.addAll(getReferencesAndLanguageFromRdf(contextualClassesLabels,
+        Choice::ifType, Choice::getType, DeBiasSourceField.DC_TYPE_REFERENCE));
+    return result;
+  }
+
+  /**
+   * Gets references and language from rdf.
+   *
    * @param contextualClassesLabels the contextual classes labels
+   * @param choicePredicate the choice predicate
+   * @param choiceGetter the choice getter
+   * @param sourceField the source field
    * @return the type references and language from rdf
    */
-  static List<DeBiasInputRecord> getTypeReferencesAndLanguageFromRdf(Record recordToProcess,
-      RDF rdf,
-      Map<String, List<PrefLabel>> contextualClassesLabels) {
-    return getChoices(rdf).stream()
-                          .filter(Choice::ifType)
-                          .map(Choice::getType)
-                          .filter(Objects::nonNull)
-                          .map(ResourceOrLiteralType::getResource)
-                          .filter(Objects::nonNull)
-                          .map(Resource::getResource)
-                          .filter(Objects::nonNull)
-                          .map(contextualClassesLabels::get)
-                          .filter(Objects::nonNull)
-                          .flatMap(Collection::stream)
-                          .map(prefLabel -> Optional.ofNullable(prefLabel.getLang())
-                                                    .map(Lang::getLang)
-                                                    .map(DeBiasSupportedLanguage::match)
-                                                    .map(
-                                                        language -> new DeBiasInputRecord(
-                                                            recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(),
-                                                            prefLabel.getString(), language, DeBiasSourceField.DC_TYPE))
-                                                    .orElse(null))
-                          .filter(Objects::nonNull)
-                          .toList();
-  }
-
-  /**
-   * Gets subject references and language from rdf.
-   *
-   * @param recordToProcess the record to process
-   * @param rdf the rdf
-   * @param contextualClassesLabels the contextual classes labels
-   * @return the subject references and language from rdf
-   */
-  static List<DeBiasInputRecord> getSubjectReferencesAndLanguageFromRdf(eu.europeana.metis.sandbox.domain.Record recordToProcess,
-      RDF rdf,
-      Map<String, List<PrefLabel>> contextualClassesLabels) {
-    return getChoices(rdf).stream()
-                          .filter(Choice::ifSubject)
-                          .map(Choice::getSubject)
-                          .filter(Objects::nonNull)
-                          .map(ResourceOrLiteralType::getResource)
-                          .filter(Objects::nonNull)
-                          .map(Resource::getResource)
-                          .filter(Objects::nonNull)
-                          .map(contextualClassesLabels::get)
-                          .filter(Objects::nonNull)
-                          .flatMap(Collection::stream)
-                          .map(
-                              prefLabel -> Optional.ofNullable(prefLabel.getLang())
-                                                   .map(Lang::getLang)
-                                                   .map(DeBiasSupportedLanguage::match)
-                                                   .map(
-                                                       language -> new DeBiasInputRecord(
-                                                           recordToProcess.getRecordId(), recordToProcess.getEuropeanaId(),
-                                                           prefLabel.getString(), language, DeBiasSourceField.DC_SUBJECT))
-                                                   .orElse(null))
-                          .filter(Objects::nonNull)
-                          .toList();
+  List<DeBiasInputRecord> getReferencesAndLanguageFromRdf(
+      Map<String, List<PrefLabel>> contextualClassesLabels,
+      Predicate<Choice> choicePredicate,
+      Function<Choice, ResourceOrLiteralType> choiceGetter, DeBiasSourceField sourceField) {
+    return getLiteralsAndLanguagesFromRdf(choicePredicate, choiceGetter,
+        reference -> Optional.of(reference)
+                             .map(ResourceOrLiteralType::getResource)
+                             .map(Resource::getResource)
+                             .map(contextualClassesLabels::get)
+                             .orElse(null),
+        LiteralType::getString,
+        getLanguageLiteralType(),
+        sourceField);
   }
 
   /**
    * Gets contextual class labels by rdf about.
    *
-   * @param rdf the rdf
    * @return the contextual class labels by rdf about
    */
-  static Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout(RDF rdf) {
+  private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout() {
     final Map<String, List<PrefLabel>> result = new HashMap<>();
-    Optional.ofNullable(rdf.getAgentList()).stream().flatMap(Collection::stream)
+    Optional.ofNullable(rdf.getAgentList())
+            .stream().flatMap(Collection::stream)
             .forEach(agent -> result.put(agent.getAbout(), agent.getPrefLabelList()));
     Optional.ofNullable(rdf.getConceptList()).stream().flatMap(Collection::stream).forEach(
         concept -> result.put(concept.getAbout(),
-            Optional.ofNullable(concept.getChoiceList()).stream().flatMap(Collection::stream).filter(Concept.Choice::ifPrefLabel)
+            Optional.ofNullable(concept.getChoiceList())
+                    .stream().flatMap(Collection::stream).filter(Concept.Choice::ifPrefLabel)
                     .map(Concept.Choice::getPrefLabel).filter(Objects::nonNull).toList()));
-    Optional.ofNullable(rdf.getOrganizationList()).stream().flatMap(Collection::stream)
+    Optional.ofNullable(rdf.getOrganizationList())
+            .stream().flatMap(Collection::stream)
             .forEach(organization -> result.put(organization.getAbout(), organization.getPrefLabelList()));
-    Optional.ofNullable(rdf.getPlaceList()).stream().flatMap(Collection::stream)
+    Optional.ofNullable(rdf.getPlaceList())
+            .stream().flatMap(Collection::stream)
             .forEach(place -> result.put(place.getAbout(), place.getPrefLabelList()));
-    Optional.ofNullable(rdf.getTimeSpanList()).stream().flatMap(Collection::stream)
+    Optional.ofNullable(rdf.getTimeSpanList())
+            .stream().flatMap(Collection::stream)
             .forEach(timespan -> result.put(timespan.getAbout(), timespan.getPrefLabelList()));
     return result;
   }

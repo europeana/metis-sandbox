@@ -1,13 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getAlternativeAndLanguageFromRdf;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getContextualClassLabelsByRdfAbout;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getDescriptionsAndLanguageFromRdf;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getSubjectAndLanguageFromRdf;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getSubjectReferencesAndLanguageFromRdf;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getTitlesAndLanguageFromRdf;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getTypeAndLanguageFromRdf;
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.getTypeReferencesAndLanguageFromRdf;
 import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.partitionList;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -26,7 +18,6 @@ import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
-import eu.europeana.metis.schema.jibx.PrefLabel;
 import eu.europeana.metis.schema.jibx.RDF;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -34,7 +25,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -108,35 +98,35 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         .stream()
         .collect(groupingBy(DeBiasInputRecord::language))
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
-        // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
-        partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE).forEach(partition -> {
-          DetectionParameter detectionParameters = new DetectionParameter();
-          detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
-          detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
-          try {
-            switch (deBiasClient.detect(detectionParameters)) {
-              case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
-                for (int i = 0; i < partition.size(); i++) {
-                  deBiasReport.add(
-                      new DeBiasReportRow(partition.get(i).recordId(), partition.get(i).europeanaId(),
-                      deBiasResult.getDetections().get(i), partition.get(i).sourceField())
-                  );
+            // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
+            partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE).forEach(partition -> {
+              DetectionParameter detectionParameters = new DetectionParameter();
+              detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
+              detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
+              try {
+                switch (deBiasClient.detect(detectionParameters)) {
+                  case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
+                    for (int i = 0; i < partition.size(); i++) {
+                      deBiasReport.add(
+                          new DeBiasReportRow(partition.get(i).recordId(), partition.get(i).europeanaId(),
+                              deBiasResult.getDetections().get(i), partition.get(i).sourceField())
+                      );
+                    }
+                  }
+                  case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
+                      errorDeBiasResult.getDetailList().forEach(
+                          detail -> LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc()));
+                  default -> LOGGER.info("DeBias detected nothing");
                 }
+              } catch (RuntimeException e) {
+                LOGGER.error(e.getMessage(), e);
               }
-              case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
-                  errorDeBiasResult.getDetailList().forEach(
-                      detail -> LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc()));
-              default -> LOGGER.info("DeBias detected nothing");
-            }
-          } catch (RuntimeException e) {
-            LOGGER.error(e.getMessage(), e);
-          }
-          LOGGER.info("DeBias execution finished for partition: {}",
-              partition.stream()
-                       .map(DeBiasInputRecord::recordId)
-                       .map(Object::toString)
-                       .collect(Collectors.joining(",")));
-        })));
+              LOGGER.info("DeBias execution finished for partition: {}",
+                  partition.stream()
+                           .map(DeBiasInputRecord::recordId)
+                           .map(Object::toString)
+                           .collect(Collectors.joining(",")));
+            })));
   }
 
   /**
@@ -175,6 +165,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
              tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
     });
   }
+
   /**
    * Gets descriptions from records.
    *
@@ -186,18 +177,17 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
       List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
       try {
         RDF rdf = new RdfConversionUtils().convertStringToRdf(new String(recordToProcess.getContent(), StandardCharsets.UTF_8));
+        DeBiasRdfInfoExtractor deBiasRdfInfoExtractor = new DeBiasRdfInfoExtractor(rdf, recordToProcess);
 
         // Get the literal values
-        deBiasInputRecords.addAll(getDescriptionsAndLanguageFromRdf(rdf, recordToProcess));
-        deBiasInputRecords.addAll(getTitlesAndLanguageFromRdf(rdf, recordToProcess));
-        deBiasInputRecords.addAll(getAlternativeAndLanguageFromRdf(rdf, recordToProcess));
-        deBiasInputRecords.addAll(getSubjectAndLanguageFromRdf(rdf, recordToProcess));
-        deBiasInputRecords.addAll(getTypeAndLanguageFromRdf(rdf, recordToProcess));
+        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getDescriptionsAndLanguageFromRdf());
+        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getTitlesAndLanguageFromRdf());
+        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getAlternativeAndLanguageFromRdf());
+        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getSubjectAndLanguageFromRdf());
+        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getTypeAndLanguageFromRdf());
 
         // Get the literal values that are linked through contextual classes.
-        Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout(rdf);
-        deBiasInputRecords.addAll(getSubjectReferencesAndLanguageFromRdf(recordToProcess, rdf, contextualClassesLabels));
-        deBiasInputRecords.addAll(getTypeReferencesAndLanguageFromRdf(recordToProcess, rdf, contextualClassesLabels));
+        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getSubjectReferencesAndTypeReferencesFromRdf());
 
       } catch (SerializationException e) {
         deBiasInputRecords = Collections.emptyList();

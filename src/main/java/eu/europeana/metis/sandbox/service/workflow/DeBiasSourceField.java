@@ -19,9 +19,17 @@ public enum DeBiasSourceField {
   /**
    * Dc subject DeBias source field.
    */
-  DC_SUBJECT,
+  DC_SUBJECT_LITERAL,
+  /**
+   * Dc subject reference DeBias source field.
+   */
+  DC_SUBJECT_REFERENCE,
   /**
    * Dc type DeBias source field.
    */
-  DC_TYPE,
+  DC_TYPE_LITERAL,
+  /**
+   * Dc type reference DeBias source field.
+   */
+  DC_TYPE_REFERENCE,
 }
