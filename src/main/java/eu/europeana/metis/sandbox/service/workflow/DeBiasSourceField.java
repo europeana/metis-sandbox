@@ -24,8 +24,4 @@ public enum DeBiasSourceField {
    * Dc type DeBias source field.
    */
   DC_TYPE,
-  /**
-   * Skos pref label DeBias source field.
-   */
-  SKOS_PREFLABEL
 }
