@@ -102,7 +102,7 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
-    private final DeBiasStateful debiasDeBiasStateful;
+    private final DeBiasStateful debiasStateService;
 
     /**
      * Instantiates a new Dataset controller.
@@ -114,12 +114,12 @@ class DatasetController {
      * @param recordLogService the record log service
      * @param recordTierCalculationService the record tier calculation service
      * @param harvestPublishService the harvest publish service
-     * @param debiasDeBiasStateful the debias detect service
+     * @param debiasStateService the debias detect service
      */
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService, DeBiasStateful debiasDeBiasStateful) {
+                             HarvestPublishService harvestPublishService, DeBiasStateful debiasStateService) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -128,7 +128,7 @@ class DatasetController {
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
         urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
-        this.debiasDeBiasStateful = debiasDeBiasStateful;
+        this.debiasStateService = debiasStateService;
     }
 
     /**
@@ -422,9 +422,9 @@ class DatasetController {
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
-        debiasDeBiasStateful.cleanDeBiasReport(datasetId);
-        debiasDeBiasStateful.setState(debiasDeBiasStateful.getReady());
-        return debiasDeBiasStateful.process(datasetId);
+        debiasStateService.cleanDeBiasReport(datasetId);
+        debiasStateService.setState(debiasStateService.getReady());
+        return debiasStateService.process(datasetId);
     }
 
     /**
@@ -440,7 +440,7 @@ class DatasetController {
     @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public DeBiasReportDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
-        return debiasDeBiasStateful.getDeBiasReport(datasetId);
+        return debiasStateService.getDeBiasReport(datasetId);
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

@@ -847,8 +847,8 @@ class DatasetControllerTest {
     final Integer datasetId = 1;
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
-    when(deBiasStateful.getDetectionInfo(datasetId))
-        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime));
+    when(deBiasStateful.getDeBiasReport(datasetId))
+        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, List.of()));
 
     mvc.perform(get("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())

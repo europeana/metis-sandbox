@@ -7,18 +7,28 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity.RecordEntityBuilder;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
+import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
+import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
+import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
+import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
+import eu.europeana.metis.sandbox.service.workflow.DeBiasSourceField;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -41,6 +51,12 @@ class DeBiasStateServiceTest {
 
   @Mock
   RecordDeBiasPublishable recordDeBiasPublishable;
+
+  @Mock
+  RecordDeBiasMainRepository recordDeBiasMainRepository;
+
+  @Mock
+  RecordDeBiasDetailRepository recordDeBiasDetailRepository;
 
   @InjectMocks
   DeBiasStateService debiasStateService;
@@ -290,8 +306,15 @@ class DeBiasStateServiceTest {
     datasetDeBiasEntity.setCreatedDate(createdDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId))
         .thenReturn(datasetDeBiasEntity);
+    RecordDeBiasMainEntity recordDeBiasMainEntity = new RecordDeBiasMainEntity(
+        new RecordEntityBuilder().setDatasetId(datasetId.toString()).build(),
+        "literal", Language.NL, DeBiasSourceField.DC_DESCRIPTION);
+    recordDeBiasMainEntity.setId(1L);
+    RecordDeBiasDetailEntity recordDeBiasDetailEntity = new RecordDeBiasDetailEntity(recordDeBiasMainEntity,1,5,5,"uri");
+    when(recordDeBiasMainRepository.findByRecordIdDatasetId(anyString())).thenReturn(List.of(recordDeBiasMainEntity));
+    when(recordDeBiasDetailRepository.findByDebiasIdId(anyLong())).thenReturn(List.of(recordDeBiasDetailEntity));
 
-    DeBiasReportDto deBiasReportDto = debiasStateService.getDetectionInfo(datasetId);
+    DeBiasReportDto deBiasReportDto = debiasStateService.getDeBiasReport(datasetId);
 
     assertEquals(datasetId, deBiasReportDto.getDatasetId());
     assertEquals(stateName, deBiasReportDto.getState());
@@ -302,7 +325,7 @@ class DeBiasStateServiceTest {
   void testGetDetectionInfo_DefaultWhenNotExists_expectSuccess() {
     final Integer datasetId = 1;
 
-    DeBiasReportDto deBiasReportDto = debiasStateService.getDetectionInfo(datasetId);
+    DeBiasReportDto deBiasReportDto = debiasStateService.getDeBiasReport(datasetId);
 
     assertNotNull(deBiasReportDto);
     assertEquals(datasetId, deBiasReportDto.getDatasetId());

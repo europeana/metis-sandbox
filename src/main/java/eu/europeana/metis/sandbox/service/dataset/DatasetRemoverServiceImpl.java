@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateful;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
@@ -24,7 +25,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final RecordService recordService;
   private final ProblemPatternDataRemover problemPatternDataRemover;
   private final HarvestingParameterService harvestingParameterService;
-
+  private final DeBiasStateful debiasStateService;
   DatasetRemoverServiceImpl(
           DatasetService datasetService,
           DatasetLogService datasetLogService,
@@ -33,7 +34,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           ThumbnailStoreService thumbnailStoreService,
           RecordService recordService,
           ProblemPatternDataRemover problemPatternDataRemover,
-          HarvestingParameterService harvestingParameterService) {
+          HarvestingParameterService harvestingParameterService,
+          DeBiasStateful debiasStateService) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
     this.recordLogService = recordLogService;
@@ -42,6 +44,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
     this.recordService = recordService;
     this.problemPatternDataRemover = problemPatternDataRemover;
     this.harvestingParameterService = harvestingParameterService;
+    this.debiasStateService = debiasStateService;
   }
 
   @Override
@@ -73,6 +76,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
           LOGGER.debug("Remove dataset with id: [{}]", dataset);
           datasetService.remove(dataset);
+          LOGGER.debug("Remove debias report with id: [{}]", dataset);
+          debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
         }
