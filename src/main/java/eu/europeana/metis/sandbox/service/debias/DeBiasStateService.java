@@ -2,7 +2,12 @@ package eu.europeana.metis.sandbox.service.debias;
 
 import eu.europeana.metis.debias.detect.model.response.Tag;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.domain.Record.RecordBuilder;
+import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
@@ -12,12 +17,14 @@ import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasReportRow;
-import eu.europeana.metis.sandbox.service.workflow.DeBiasSupportedLanguage;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -25,15 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class DeBiasStateService implements DeBiasStateful {
 
-  private static final String INITIAL_STATE = "READY";
-  private final Stateful ready;
-  private final Stateful processing;
-  private final Stateful completed;
-  private final Stateful error;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasStateService.class);
+  private static final String STATE_NAME = "READY";
   private final DatasetDeBiasRepository datasetDeBiasRepository;
   private final RecordDeBiasMainRepository recordDeBiasMainRepository;
   private final RecordDeBiasDetailRepository recordDeBiasDetailRepository;
-  private Stateful state;
+  private final DatasetRepository datasetRepository;
+  private final RecordLogRepository recordLogRepository;
+  private final RecordDeBiasPublishable recordDeBiasPublishable;
 
   /**
    * Instantiates a new DeBias detect service.
@@ -42,6 +48,8 @@ public class DeBiasStateService implements DeBiasStateful {
    * @param datasetRepository the dataset repository
    * @param recordLogRepository the record log repository
    * @param recordDeBiasPublishable the record publishable
+   * @param recordDeBiasMainRepository the record de bias main repository
+   * @param recordDeBiasDetailRepository the record de bias detail repository
    */
   public DeBiasStateService(DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
@@ -49,55 +57,29 @@ public class DeBiasStateService implements DeBiasStateful {
       RecordDeBiasPublishable recordDeBiasPublishable,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
-    this.ready = new ReadyState(this, datasetDeBiasRepository, datasetRepository, recordLogRepository, recordDeBiasPublishable);
-    this.processing = new ProcessingState(this, datasetDeBiasRepository);
-    this.completed = new CompletedState(this, datasetDeBiasRepository);
-    this.error = new ErrorState(this, datasetDeBiasRepository);
-    this.state = this.ready;
     this.datasetDeBiasRepository = datasetDeBiasRepository;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
-  }
-
-  @Override
-  public void fail(Integer datasetId) {
-    state.fail(datasetId);
-  }
-
-  @Override
-  public void success(Integer datasetId) {
-    state.success(datasetId);
+    this.datasetRepository = datasetRepository;
+    this.recordLogRepository = recordLogRepository;
+    this.recordDeBiasPublishable = recordDeBiasPublishable;
   }
 
   @Transactional
   @Override
   public boolean process(Integer datasetId) {
-    return state.process(datasetId);
-  }
+    LOGGER.info("{} {}", STATE_NAME, datasetId);
+    try {
+      DatasetEntity dataset = getDatasetAndProcessDetectionEntity(datasetId);
 
-  @Override
-  public Stateful getState() {
-    return state;
-  }
+      processDatasetAndPublishToDeBiasReadyQueue(dataset);
 
-  public void setState(Stateful state) {
-    this.state = state;
-  }
-
-  public Stateful getReady() {
-    return ready;
-  }
-
-  public Stateful getProcessing() {
-    return processing;
-  }
-
-  public Stateful getCompleted() {
-    return completed;
-  }
-
-  public Stateful getError() {
-    return error;
+      LOGGER.info("success {} {}", STATE_NAME, datasetId);
+    } catch (RuntimeException e) {
+      LOGGER.warn("fail {} {}", STATE_NAME, datasetId, e);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -110,7 +92,7 @@ public class DeBiasStateService implements DeBiasStateful {
   public DeBiasReportDto getDeBiasReport(Integer datasetId) {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
     if (datasetDeBiasEntity == null) {
-      return new DeBiasReportDto(datasetId, INITIAL_STATE, ZonedDateTime.now(), List.of());
+      return new DeBiasReportDto(datasetId, STATE_NAME, ZonedDateTime.now(), List.of());
     } else {
       return new DeBiasReportDto(datasetId, datasetDeBiasEntity.getState(), datasetDeBiasEntity.getCreatedDate(),
           getReportFromDbEntities(datasetId));
@@ -128,6 +110,56 @@ public class DeBiasStateService implements DeBiasStateful {
     Objects.requireNonNull(datasetId, "Dataset id must not be null");
     this.recordDeBiasDetailRepository.deleteByDebiasIdRecordIdDatasetId(datasetId.toString());
     this.recordDeBiasMainRepository.deleteByRecordIdDatasetId(datasetId.toString());
+  }
+
+  /**
+   * Get DeBias status.
+   *
+   * @param datasetId the dataset id
+   */
+  @Override
+  public DeBiasStatusDto getDeBiasStatus(Integer datasetId) {
+    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
+    if (datasetDeBiasEntity == null) {
+      return new DeBiasStatusDto(datasetId, STATE_NAME, ZonedDateTime.now());
+    } else {
+      return new DeBiasStatusDto(datasetId, datasetDeBiasEntity.getState(), datasetDeBiasEntity.getCreatedDate());
+    }
+  }
+
+  private @NotNull DatasetEntity getDatasetAndProcessDetectionEntity(Integer datasetId) {
+    DatasetEntity dataset = datasetRepository.findById(datasetId).orElseThrow();
+    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetId_DatasetId(datasetId);
+    if (datasetDeBiasEntity == null) {
+      datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, STATE_NAME);
+      datasetDeBiasRepository.save(datasetDeBiasEntity);
+    } else {
+      datasetDeBiasRepository.updateState(datasetId, STATE_NAME);
+    }
+    return dataset;
+  }
+
+  private void processDatasetAndPublishToDeBiasReadyQueue(DatasetEntity dataset) {
+    // clean up any previous processing.
+    this.recordLogRepository.deleteByRecordIdDatasetIdAndStep(dataset.getDatasetId().toString(), Step.DEBIAS);
+    // start a new processing from validated records.
+    this.recordLogRepository.findRecordLogByDatasetIdAndStep(dataset.getDatasetId().toString(), Step.NORMALIZE)
+                            .parallelStream()
+                            .map(r -> {
+                                  LOGGER.debug("DeBias records in: {} :: {}", STATE_NAME, r.getRecordId());
+                                  return new RecordInfo(new RecordBuilder()
+                                      .recordId(r.getRecordId().getId())
+                                      .providerId(r.getRecordId().getProviderId())
+                                      .europeanaId(r.getRecordId().getEuropeanaId())
+                                      .datasetId(r.getRecordId().getDatasetId())
+                                      .datasetName(dataset.getDatasetName())
+                                      .country(dataset.getCountry())
+                                      .language(dataset.getLanguage())
+                                      .content(r.getContent().getBytes(StandardCharsets.UTF_8))
+                                      .build(), new ArrayList<>());
+                                }
+                            )
+                            .forEach(recordDeBiasPublishable::publishToDeBiasQueue);
   }
 
   private List<DeBiasReportRow> getReportFromDbEntities(Integer datasetId) {

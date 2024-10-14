@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.dto.debias;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasReportRow;
 import io.swagger.annotations.ApiModel;
@@ -10,16 +11,23 @@ import java.util.List;
 /**
  * The type Detection info dto.
  */
-@ApiModel(DeBiasReportDto.SWAGGER_MODEL_NAME)
-public class DeBiasReportDto extends DeBiasStatusDto {
+@ApiModel(DeBiasStatusDto.SWAGGER_MODEL_NAME)
+public class DeBiasStatusDto {
 
   /**
    * The constant SWAGGER_MODEL_NAME.
    */
-  public static final String SWAGGER_MODEL_NAME = "DeBiasReportDto";
+  public static final String SWAGGER_MODEL_NAME = "DeBiasStatusDto";
 
-  @JsonProperty("detections")
-  private final List<DeBiasReportRow> deBiasReportRowList;
+  @JsonProperty("dataset-id")
+  private final Integer datasetId;
+
+  @JsonProperty("state")
+  private final String state;
+
+  @JsonProperty("creation-date")
+  @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+  private final ZonedDateTime creationDate;
 
   /**
    * Instantiates a new Detection info dto.
@@ -27,11 +35,11 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @param datasetId the dataset id
    * @param state the state
    * @param creationDate the creation date
-   * @param deBiasReportRowList the de bias report row list
    */
-  public DeBiasReportDto(Integer datasetId, String state, ZonedDateTime creationDate, List<DeBiasReportRow> deBiasReportRowList) {
-    super(datasetId, state, creationDate);
-    this.deBiasReportRowList = deBiasReportRowList;
+  public DeBiasStatusDto(Integer datasetId, String state, ZonedDateTime creationDate) {
+    this.datasetId = datasetId;
+    this.state = state;
+    this.creationDate = creationDate;
   }
 
   /**
@@ -40,7 +48,7 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @return the dataset id
    */
   public Integer getDatasetId() {
-    return super.getDatasetId();
+    return datasetId;
   }
 
   /**
@@ -49,7 +57,7 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @return the state
    */
   public String getState() {
-    return super.getState();
+    return state;
   }
 
   /**
@@ -58,15 +66,7 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @return the creation date
    */
   public ZonedDateTime getCreationDate() {
-    return super.getCreationDate();
+    return creationDate;
   }
 
-  /**
-   * Gets DeBias report row list.
-   *
-   * @return the DeBias report row list
-   */
-  public List<DeBiasReportRow> getDeBiasReportRowList() {
-    return Collections.unmodifiableList(deBiasReportRowList);
-  }
 }

@@ -19,7 +19,9 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -45,6 +47,7 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -422,9 +425,15 @@ class DatasetController {
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
-        debiasStateService.cleanDeBiasReport(datasetId);
-        debiasStateService.setState(debiasStateService.getReady());
-        return debiasStateService.process(datasetId);
+        ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
+        if (Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
+                    .map(DeBiasStatusDto::getState)
+                    .orElse("").equals("READY")
+            && progressInfoDto.getStatus().equals(Status.COMPLETED)) {
+            debiasStateService.cleanDeBiasReport(datasetId);
+            return debiasStateService.process(datasetId);
+        } else
+            return false;
     }
 
     /**
@@ -433,14 +442,30 @@ class DatasetController {
      * @param datasetId the dataset id
      * @return the DeBias detection
      */
-    @Operation(description = "Get DeBias detection dataset")
+    @Operation(description = "Get DeBias report detection dataset")
     @ApiResponse(responseCode = "200", description = "Get detection information about DeBias detection", content = {
         @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
-    @GetMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "{id}/debias/report", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public DeBiasReportDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
         return debiasStateService.getDeBiasReport(datasetId);
+    }
+
+    /**
+     * Gets DeBias detection information.
+     *
+     * @param datasetId the dataset id
+     * @return the DeBias detection
+     */
+    @Operation(description = "Get DeBias detection status dataset")
+    @ApiResponse(responseCode = "200", description = "Get status about DeBias detection", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE)})
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "{id}/debias/info", produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public DeBiasStatusDto getDeBiasStatus(@PathVariable("id") Integer datasetId) {
+        return debiasStateService.getDeBiasStatus(datasetId);
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

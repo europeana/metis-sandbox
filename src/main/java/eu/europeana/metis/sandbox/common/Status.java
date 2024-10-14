@@ -7,7 +7,8 @@ package eu.europeana.metis.sandbox.common;
 public enum Status {
   SUCCESS("Success"),
   FAIL("Error"),
-  WARN("Warning");
+  WARN("Warning"),
+  PENDING("Pending");
   private final String value;
 
   Status(String value) {

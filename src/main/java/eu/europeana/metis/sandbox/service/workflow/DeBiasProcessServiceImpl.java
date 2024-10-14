@@ -8,12 +8,17 @@ import eu.europeana.metis.debias.detect.model.error.ErrorDeBiasResult;
 import eu.europeana.metis.debias.detect.model.request.DetectionParameter;
 import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
+import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
@@ -26,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,22 +56,32 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
   private final RecordRepository recordRepository;
 
+  private final RecordLogRepository recordLogRepository;
+
+  private final DatasetDeBiasRepository datasetDeBiasRepository;
+
   /**
    * Instantiates a new DeBias process service.
    *
    * @param deBiasClient the DeBias client
    * @param recordDeBiasMainRepository the record de bias main repository
    * @param recordDeBiasDetailRepository the record de bias detail repository
+   * @param datasetDeBiasRepository the dataset de bias repository
+   * @param recordLogRepository the record log repository
    * @param recordRepository the record repository
    */
   public DeBiasProcessServiceImpl(DeBiasClient deBiasClient,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository,
+      DatasetDeBiasRepository datasetDeBiasRepository,
+      RecordLogRepository recordLogRepository,
       RecordRepository recordRepository) {
     this.deBiasClient = deBiasClient;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
     this.recordRepository = recordRepository;
+    this.recordLogRepository = recordLogRepository;
+    this.datasetDeBiasRepository = datasetDeBiasRepository;
   }
 
   /**
@@ -85,8 +101,31 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
       logReport(deBiasReport);
       saveReport(deBiasReport);
     }
+    updateProgress(recordList);
   }
 
+  /**
+   * Update progress
+   */
+  private void updateProgress(List<Record> recordList) {
+    recordList.stream()
+              .collect(groupingBy(Record::getDatasetId))
+              .forEach( (datasetId, records) -> {
+                records.forEach(recordToProcess ->
+                    recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(),Step.DEBIAS, Status.SUCCESS));
+          Set<RecordLogEntity> recordLogDeBiasList = recordLogRepository.findRecordLogByDatasetIdAndStepAndStatus(datasetId, Step.DEBIAS, Status.SUCCESS);
+          Set<RecordLogEntity> recordLogNormalizeList = recordLogRepository.findRecordLogByDatasetIdAndStep(datasetId, Step.NORMALIZE);
+          if (recordLogDeBiasList.size() == recordLogNormalizeList.size()) {
+            datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
+            LOGGER.info("DeBias COMPLETED datasetId: {}",  datasetId);
+          } else {
+            datasetDeBiasRepository.updateState(Integer.parseInt(datasetId),
+                String.format("PROCESSING %2.0f%%", (recordLogDeBiasList.size()*1.0f/recordLogNormalizeList.size()*100)));
+          }
+        }
+    );
+
+  }
   /**
    * Do DeBias and generate report.
    *

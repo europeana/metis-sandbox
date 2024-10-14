@@ -53,7 +53,7 @@ class MetricsServiceImplTest {
     verify(recordRepository, times(2)).getMetricDatasetStatistics();
     verify(recordLogRepository, times(2)).getMetricStepStatistics();
     verify(problemPatternRepository, times(2)).getMetricProblemPatternStatistics();
-    assertEquals(64, meterRegistry.getMeters().size());
+    assertEquals(76, meterRegistry.getMeters().size());
   }
 
   @Test
