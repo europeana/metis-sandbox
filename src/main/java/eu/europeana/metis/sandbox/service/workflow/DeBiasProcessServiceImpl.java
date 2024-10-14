@@ -120,7 +120,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
             LOGGER.info("DeBias COMPLETED datasetId: {}",  datasetId);
           } else {
             datasetDeBiasRepository.updateState(Integer.parseInt(datasetId),
-                String.format("PROCESSING %2.0f%%", (recordLogDeBiasList.size()*1.0f/recordLogNormalizeList.size()*100)));
+                String.format("PROCESSING %d/%d", recordLogDeBiasList.size(), recordLogNormalizeList.size()));
+
           }
         }
     );
