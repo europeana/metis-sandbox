@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 /**
  * The interface DeBias stateful.
  */
-public interface DeBiasStateful {
+public interface DeBiasServiceable {
 
   /**
    * Process boolean.

@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * The type DeBias detect service.
  */
-public class DeBiasStateService implements DeBiasStateful {
+public class DeBiasStateService implements DeBiasServiceable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasStateService.class);
   private static final String STATE_NAME = "READY";

@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.service.debias.DeBiasStateful;
+import eu.europeana.metis.sandbox.service.debias.DeBiasServiceable;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
@@ -49,7 +49,7 @@ class DatasetRemoverServiceImplTest {
   private HarvestingParameterService harvestingParameterService;
 
   @Mock
-  private DeBiasStateful deBiasStateService;
+  private DeBiasServiceable deBiasStateService;
 
   @InjectMocks
   private DatasetRemoverServiceImpl service;

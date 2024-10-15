@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.service.debias.DeBiasStateful;
+import eu.europeana.metis.sandbox.service.debias.DeBiasServiceable;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
@@ -25,7 +25,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final RecordService recordService;
   private final ProblemPatternDataRemover problemPatternDataRemover;
   private final HarvestingParameterService harvestingParameterService;
-  private final DeBiasStateful debiasStateService;
+  private final DeBiasServiceable debiasStateService;
   DatasetRemoverServiceImpl(
           DatasetService datasetService,
           DatasetLogService datasetLogService,
@@ -35,7 +35,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           RecordService recordService,
           ProblemPatternDataRemover problemPatternDataRemover,
           HarvestingParameterService harvestingParameterService,
-          DeBiasStateful debiasStateService) {
+          DeBiasServiceable debiasStateService) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
     this.recordLogService = recordLogService;

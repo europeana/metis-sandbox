@@ -25,7 +25,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DeBiasStateful;
+import eu.europeana.metis.sandbox.service.debias.DeBiasServiceable;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -105,7 +105,7 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
-    private final DeBiasStateful debiasStateService;
+    private final DeBiasServiceable debiasStateService;
 
     /**
      * Instantiates a new Dataset controller.
@@ -122,7 +122,7 @@ class DatasetController {
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService, DeBiasStateful debiasStateService) {
+                             HarvestPublishService harvestPublishService, DeBiasServiceable debiasStateService) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
