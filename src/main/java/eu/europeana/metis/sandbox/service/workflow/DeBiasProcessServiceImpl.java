@@ -119,9 +119,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
             datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
             LOGGER.info("DeBias COMPLETED datasetId: {}",  datasetId);
           } else {
-            datasetDeBiasRepository.updateState(Integer.parseInt(datasetId),
-                String.format("PROCESSING %d/%d", recordLogDeBiasList.size(), recordLogNormalizeList.size()));
-
+            datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "PROCESSING");
           }
         }
     );
