@@ -142,9 +142,9 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
 
   private void processDatasetAndPublishToDeBiasReadyQueue(DatasetDeBiasEntity dataset) {
     // clean up any previous processing.
-    this.recordLogRepository.deleteByRecordIdDatasetIdAndStep(dataset.getDatasetId().toString(), Step.DEBIAS);
+    this.recordLogRepository.deleteByRecordIdDatasetIdAndStep(dataset.getDatasetId().getDatasetId().toString(), Step.DEBIAS);
     // start a new processing from validated records.
-    this.recordLogRepository.findRecordLogByDatasetIdAndStep(dataset.getDatasetId().toString(), Step.NORMALIZE)
+    this.recordLogRepository.findRecordLogByDatasetIdAndStep(dataset.getDatasetId().getDatasetId().toString(), Step.NORMALIZE)
                             .parallelStream()
                             .map(r -> {
                                   LOGGER.debug("DeBias records in: {} :: {}", STATE_NAME, r.getRecordId());
