@@ -85,6 +85,11 @@ public class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.published.dlq:#{null}}")
   private String publishedDlq;
 
+  @Value("${sandbox.rabbitmq.queues.record.debias.ready.queue:#{null}}")
+  private String deBiasReadyQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.debias.ready.dlq:#{null}}")
+  private String deBiasReadyDlq;
 
   public AmqpConfiguration(MessageConverter messageConverter, AmqpAdmin amqpAdmin) {
     this.messageConverter = messageConverter;
@@ -120,7 +125,8 @@ public class AmqpConfiguration {
         QueueBuilder.durable(internalValidatedDlq).build(),
         QueueBuilder.durable(enrichedDlq).build(),
         QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(publishedDlq).build()
+        QueueBuilder.durable(publishedDlq).build(),
+        QueueBuilder.durable(deBiasReadyDlq).build()
     );
   }
 
@@ -128,14 +134,14 @@ public class AmqpConfiguration {
   Declarables bindings() {
     return getDeclarables(exchange, createdQueue, transformationToEdmExternalQueue,
         externalValidatedQueue, transformedQueue, normalizedQueue, internalValidatedQueue,
-        enrichedQueue, mediaProcessedQueue, publishedQueue);
+        enrichedQueue, mediaProcessedQueue, publishedQueue, deBiasReadyQueue);
   }
 
   @Bean
   Declarables dlqBindings() {
     return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
         externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
-        mediaProcessedDlq, publishedDlq);
+        mediaProcessedDlq, publishedDlq, deBiasReadyDlq);
   }
 
   //Suppress: Methods should not have too many parameters warning
@@ -145,7 +151,7 @@ public class AmqpConfiguration {
   private Declarables getDeclarables(String exchange, String created,
       String transformationToEdmExternal, String externalValidated, String transformed,
       String normalized, String internalValidated, String enriched, String mediaProcessed,
-      String published) {
+      String published, String deBiasReady) {
     return new Declarables(
         new Binding(created, DestinationType.QUEUE, exchange, created, null),
         new Binding(transformationToEdmExternal, DestinationType.QUEUE, exchange,
@@ -156,7 +162,8 @@ public class AmqpConfiguration {
         new Binding(internalValidated, DestinationType.QUEUE, exchange, internalValidated, null),
         new Binding(enriched, DestinationType.QUEUE, exchange, enriched, null),
         new Binding(mediaProcessed, DestinationType.QUEUE, exchange, mediaProcessed, null),
-        new Binding(published, DestinationType.QUEUE, exchange, published, null)
+        new Binding(published, DestinationType.QUEUE, exchange, published, null),
+        new Binding(deBiasReady, DestinationType.QUEUE, exchange, deBiasReady, null)
     );
   }
 
@@ -181,7 +188,9 @@ public class AmqpConfiguration {
         QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(mediaProcessedDlq).build(),
         QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
-                    .deadLetterRoutingKey(publishedDlq).build()
+                    .deadLetterRoutingKey(publishedDlq).build(),
+        QueueBuilder.durable(deBiasReadyQueue).deadLetterExchange(deBiasReadyDlq)
+            .deadLetterRoutingKey(deBiasReadyDlq).build()
     );
   }
 
@@ -271,6 +280,14 @@ public class AmqpConfiguration {
     return publishedDlq;
   }
 
+  public String getDeBiasReadyQueue() {
+    return deBiasReadyQueue;
+  }
+
+  public String getDeBiasReadyDlq() {
+    return deBiasReadyDlq;
+  }
+
   public AmqpAdmin getAmqpAdmin(){
     return amqpAdmin;
   }
@@ -279,6 +296,6 @@ public class AmqpConfiguration {
     return List.of(createdQueue, createdDlq, transformationToEdmExternalQueue, transformationToEdmExternalDlq,
             externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
             internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
-            mediaProcessedDlq, publishedQueue, publishedDlq);
+            mediaProcessedDlq, publishedQueue, publishedDlq, deBiasReadyQueue, deBiasReadyDlq);
   }
 }

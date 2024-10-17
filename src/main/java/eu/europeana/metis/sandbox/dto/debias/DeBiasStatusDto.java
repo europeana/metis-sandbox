@@ -8,13 +8,13 @@ import java.time.ZonedDateTime;
 /**
  * The type Detection info dto.
  */
-@ApiModel(DetectionInfoDto.SWAGGER_MODEL_NAME)
-public class DetectionInfoDto {
+@ApiModel(DeBiasStatusDto.SWAGGER_MODEL_NAME)
+public class DeBiasStatusDto {
 
   /**
    * The constant SWAGGER_MODEL_NAME.
    */
-  public static final String SWAGGER_MODEL_NAME = "DebiasDetectionInfo";
+  public static final String SWAGGER_MODEL_NAME = "DeBiasStatusDto";
 
   @JsonProperty("dataset-id")
   private final Integer datasetId;
@@ -23,7 +23,7 @@ public class DetectionInfoDto {
   private final String state;
 
   @JsonProperty("creation-date")
-  @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
   private final ZonedDateTime creationDate;
 
   /**
@@ -33,7 +33,7 @@ public class DetectionInfoDto {
    * @param state the state
    * @param creationDate the creation date
    */
-  public DetectionInfoDto(Integer datasetId, String state, ZonedDateTime creationDate) {
+  public DeBiasStatusDto(Integer datasetId, String state, ZonedDateTime creationDate) {
     this.datasetId = datasetId;
     this.state = state;
     this.creationDate = creationDate;
@@ -65,4 +65,5 @@ public class DetectionInfoDto {
   public ZonedDateTime getCreationDate() {
     return creationDate;
   }
+
 }

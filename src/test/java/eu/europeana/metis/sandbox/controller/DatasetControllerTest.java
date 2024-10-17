@@ -41,7 +41,8 @@ import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DetectionInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -50,7 +51,7 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DetectService;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -96,7 +97,7 @@ class DatasetControllerTest {
   private MockMvc mvc;
 
   @MockBean
-  private DetectService detectService;
+  private DeBiasStateService deBiasStateService;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -843,14 +844,31 @@ class DatasetControllerTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
-  void getDebias_expectSuccess(String status) throws Exception {
+  void getDebiasStatus_expectSuccess(String status) throws Exception {
     final Integer datasetId = 1;
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
-    when(detectService.getDetectionInfo(datasetId))
-        .thenReturn(new DetectionInfoDto(datasetId, status, dateTime));
+    when(deBiasStateService.getDeBiasStatus(datasetId))
+        .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime));
 
-    mvc.perform(get("/dataset/{id}/debias", datasetId))
+    mvc.perform(get("/dataset/{id}/debias/info", datasetId))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
+       .andExpect(jsonPath("$.state", is(status)))
+       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
+  void getDebiasReport_expectSuccess(String status) throws Exception {
+    final Integer datasetId = 1;
+    final ZonedDateTime dateTime = ZonedDateTime.now();
+
+    when(deBiasStateService.getDeBiasReport(datasetId))
+        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, List.of()));
+
+    mvc.perform(get("/dataset/{id}/debias/report", datasetId))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.dataset-id", is(datasetId)))
        .andExpect(jsonPath("$.state", is(status)))
@@ -862,7 +880,11 @@ class DatasetControllerTest {
   @ValueSource(booleans = {true, false})
   void processDebias_expectSuccess(boolean process) throws Exception {
     final Integer datasetId = 1;
-    when(detectService.process(datasetId)).thenReturn(process);
+    when(datasetReportService.getReport(datasetId.toString())).thenReturn(
+        new ProgressInfoDto("url",1L,1L,
+        List.of(), false,"",List.of(),null));
+    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now()));
+    when(deBiasStateService.process(datasetId)).thenReturn(process);
     mvc.perform(post("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())
        .andExpect(content().string(String.valueOf(process)));

@@ -17,13 +17,13 @@ import java.time.ZonedDateTime;
  */
 @Entity
 @Table(name = "dataset_debias_detect")
-public class DetectionEntity {
+public class DatasetDeBiasEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @OneToOne(cascade = CascadeType.PERSIST)
+  @OneToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
   private DatasetEntity datasetId;
 
@@ -36,7 +36,7 @@ public class DetectionEntity {
   /**
    * Instantiates a new Detection entity.
    */
-  public DetectionEntity() {
+  public DatasetDeBiasEntity() {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 
@@ -46,7 +46,7 @@ public class DetectionEntity {
    * @param datasetId the dataset id
    * @param state the state
    */
-  public DetectionEntity(DatasetEntity datasetId, String state) {
+  public DatasetDeBiasEntity(DatasetEntity datasetId, String state) {
     this.datasetId = datasetId;
     this.state = state;
   }
