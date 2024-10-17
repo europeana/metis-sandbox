@@ -25,7 +25,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DeBiasServiceable;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -105,7 +105,7 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
-    private final DeBiasServiceable debiasStateService;
+    private final DeBiasStateService debiasStateService;
 
     /**
      * Instantiates a new Dataset controller.
@@ -122,7 +122,7 @@ class DatasetController {
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService, DeBiasServiceable debiasStateService) {
+                             HarvestPublishService harvestPublishService, DeBiasStateService debiasStateService) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -432,8 +432,9 @@ class DatasetController {
             && progressInfoDto.getStatus().equals(Status.COMPLETED)) {
             debiasStateService.cleanDeBiasReport(datasetId);
             return debiasStateService.process(datasetId);
-        } else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -442,7 +443,7 @@ class DatasetController {
      * @param datasetId the dataset id
      * @return the DeBias detection
      */
-    @Operation(description = "Get DeBias report detection dataset")
+    @Operation(description = "Get Bias detection report for a dataset")
     @ApiResponse(responseCode = "200", description = "Get detection information about DeBias detection", content = {
         @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
@@ -458,7 +459,7 @@ class DatasetController {
      * @param datasetId the dataset id
      * @return the DeBias detection
      */
-    @Operation(description = "Get DeBias detection status dataset")
+    @Operation(description = "Get DeBias detection status for a dataset")
     @ApiResponse(responseCode = "200", description = "Get status about DeBias detection", content = {
         @Content(mediaType = APPLICATION_JSON_VALUE)})
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)

@@ -6,7 +6,6 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -65,7 +64,8 @@ class StepExecutor {
   private RecordProcessEvent createFailEvent(RecordProcessEvent input, Step step, RecordProcessingException ex) {
     final String stepName = step.value();
     final RecordError recordError = new RecordError(ex);
-    final RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)), step, Status.FAIL);
+    final RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)), step,
+        Status.FAIL);
     LOGGER.error("Exception while performing step: [{}]. ", stepName, ex);
     return output;
   }

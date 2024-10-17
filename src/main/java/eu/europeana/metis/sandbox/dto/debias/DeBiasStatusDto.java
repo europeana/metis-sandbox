@@ -2,11 +2,8 @@ package eu.europeana.metis.sandbox.dto.debias;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasReportRow;
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * The type Detection info dto.
@@ -26,7 +23,7 @@ public class DeBiasStatusDto {
   private final String state;
 
   @JsonProperty("creation-date")
-  @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
   private final ZonedDateTime creationDate;
 
   /**

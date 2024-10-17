@@ -51,7 +51,7 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DeBiasServiceable;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -97,7 +97,7 @@ class DatasetControllerTest {
   private MockMvc mvc;
 
   @MockBean
-  private DeBiasServiceable deBiasServiceable;
+  private DeBiasStateService deBiasStateService;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -848,7 +848,7 @@ class DatasetControllerTest {
     final Integer datasetId = 1;
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
-    when(deBiasServiceable.getDeBiasStatus(datasetId))
+    when(deBiasStateService.getDeBiasStatus(datasetId))
         .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime));
 
     mvc.perform(get("/dataset/{id}/debias/info", datasetId))
@@ -865,7 +865,7 @@ class DatasetControllerTest {
     final Integer datasetId = 1;
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
-    when(deBiasServiceable.getDeBiasReport(datasetId))
+    when(deBiasStateService.getDeBiasReport(datasetId))
         .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, List.of()));
 
     mvc.perform(get("/dataset/{id}/debias/report", datasetId))
@@ -883,8 +883,8 @@ class DatasetControllerTest {
     when(datasetReportService.getReport(datasetId.toString())).thenReturn(
         new ProgressInfoDto("url",1L,1L,
         List.of(), false,"",List.of(),null));
-    when(deBiasServiceable.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now()));
-    when(deBiasServiceable.process(datasetId)).thenReturn(process);
+    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now()));
+    when(deBiasStateService.process(datasetId)).thenReturn(process);
     mvc.perform(post("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())
        .andExpect(content().string(String.valueOf(process)));

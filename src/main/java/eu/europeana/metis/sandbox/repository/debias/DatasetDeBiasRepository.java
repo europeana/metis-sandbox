@@ -17,7 +17,7 @@ public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEnti
    * @param datasetId the dataset id
    * @return the detection entity
    */
-  DatasetDeBiasEntity findDetectionEntityByDatasetId_DatasetId(Integer datasetId);
+  DatasetDeBiasEntity findDetectionEntityByDatasetIdDatasetId(Integer datasetId);
 
   /**
    * Update state.

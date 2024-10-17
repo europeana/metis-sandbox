@@ -1,12 +1,7 @@
 package eu.europeana.metis.sandbox.entity.debias;
 
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,28 +16,23 @@ import jakarta.persistence.Table;
 @Table(name = "record_debias_detail")
 public class RecordDeBiasDetailEntity {
 
+  protected int tagStart;
+  protected int tagEnd;
+  protected int tagLength;
+  protected String tagUri;
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
   @ManyToOne(cascade = CascadeType.PERSIST)
   @JoinColumn(name = "debias_id", referencedColumnName = "id")
   private RecordDeBiasMainEntity debiasId;
 
-  protected int tag_start;
-
-  protected int tag_end;
-
-  protected int tag_length;
-
-  protected String tag_uri;
-
   public RecordDeBiasDetailEntity(RecordDeBiasMainEntity debiasId, int start, int end, int length, String uri) {
     this.debiasId = debiasId;
-    this.tag_start = start;
-    this.tag_end = end;
-    this.tag_length = length;
-    this.tag_uri = uri;
+    this.tagStart = start;
+    this.tagEnd = end;
+    this.tagLength = length;
+    this.tagUri = uri;
   }
 
   public RecordDeBiasDetailEntity() {
@@ -65,35 +55,35 @@ public class RecordDeBiasDetailEntity {
     this.debiasId = debiasId;
   }
 
-  public int getTag_start() {
-    return tag_start;
+  public int getTagStart() {
+    return tagStart;
   }
 
-  public void setTag_start(int tag_start) {
-    this.tag_start = tag_start;
+  public void setTagStart(int tagStart) {
+    this.tagStart = tagStart;
   }
 
-  public int getTag_end() {
-    return tag_end;
+  public int getTagEnd() {
+    return tagEnd;
   }
 
-  public void setTag_end(int tag_end) {
-    this.tag_end = tag_end;
+  public void setTagEnd(int tagEnd) {
+    this.tagEnd = tagEnd;
   }
 
-  public int getTag_length() {
-    return tag_length;
+  public int getTagLength() {
+    return tagLength;
   }
 
-  public void setTag_length(int tag_length) {
-    this.tag_length = tag_length;
+  public void setTagLength(int tagLength) {
+    this.tagLength = tagLength;
   }
 
-  public String getTag_uri() {
-    return tag_uri;
+  public String getTagUri() {
+    return tagUri;
   }
 
-  public void setTag_uri(String tag_uri) {
-    this.tag_uri = tag_uri;
+  public void setTagUri(String tagUri) {
+    this.tagUri = tagUri;
   }
 }
