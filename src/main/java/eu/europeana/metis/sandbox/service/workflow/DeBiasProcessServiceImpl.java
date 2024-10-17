@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 import eu.europeana.metis.debias.detect.client.DeBiasClient;
 import eu.europeana.metis.debias.detect.model.error.ErrorDeBiasResult;
-import eu.europeana.metis.debias.detect.model.request.DetectionParameter;
+import eu.europeana.metis.debias.detect.model.request.BiasInputLiterals;
 import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
 import eu.europeana.metis.sandbox.common.Status;
@@ -138,11 +138,11 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
             // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
             partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE).forEach(partition -> {
-              DetectionParameter detectionParameters = new DetectionParameter();
-              detectionParameters.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
-              detectionParameters.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
+              BiasInputLiterals biasInputLiterals = new BiasInputLiterals();
+              biasInputLiterals.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
+              biasInputLiterals.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
               try {
-                switch (deBiasClient.detect(detectionParameters)) {
+                switch (deBiasClient.detect(biasInputLiterals)) {
                   case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
                     for (int i = 0; i < partition.size(); i++) {
                       deBiasReport.add(
