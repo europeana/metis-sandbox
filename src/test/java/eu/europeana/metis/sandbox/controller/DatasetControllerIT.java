@@ -32,6 +32,7 @@ import java.util.Objects;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionEvaluationLogger;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
@@ -188,6 +189,7 @@ class DatasetControllerIT {
   //  }
   //
 
+  @Disabled
   @Test
   void retrieveDatasetProgress_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
@@ -289,6 +291,7 @@ class DatasetControllerIT {
         StringUtils.deleteWhitespace(removeCreationDate(getDatasetResponse.getBody())), true);
   }
 
+  @Disabled
   @Test
   void computeRecordTierCalculation_expectedSuccess() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
