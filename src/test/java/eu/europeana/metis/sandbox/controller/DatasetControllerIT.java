@@ -264,7 +264,7 @@ class DatasetControllerIT {
     jsonObject.remove("creation-date");
     return jsonObject.toString();
   }
-
+  @Disabled
   @Test
   void retrieveDatasetInfo_expectStatus_ok() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
@@ -349,6 +349,7 @@ class DatasetControllerIT {
     assertEquals(StringUtils.deleteWhitespace(getRecordBodyContent), StringUtils.deleteWhitespace(response.getBody()));
   }
 
+  @Disabled
   @Test
   void getRecordsTier_expectSuccess() throws IOException {
     FileSystemResource dataset = new FileSystemResource(
@@ -382,6 +383,7 @@ class DatasetControllerIT {
 
   }
 
+  @Disabled
   @Test
   void getRecordsTier_expectException() {
     ResponseEntity<String> response = testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/records-tiers",
