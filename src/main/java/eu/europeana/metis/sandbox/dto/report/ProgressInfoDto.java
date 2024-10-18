@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Step;
 import io.swagger.annotations.ApiModel;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,7 +65,7 @@ public class ProgressInfoDto {
             this.totalRecords = totalRecords;
         }
         this.datasetLogs = datasetLogs;
-        this.progressByStep = Collections.unmodifiableList(progressByStep);
+        this.progressByStep = progressByStep.stream().filter(s -> s.getStep()!=Step.DEBIAS).toList();
         this.recordLimitExceeded = recordLimitExceeded;
         this.errorType = errorType;
         this.recordsPublishedSuccessfully =
