@@ -30,7 +30,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -172,7 +171,7 @@ public class PatternAnalysisController {
                                 .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
                                 .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
                                 .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
-                                .collect(Collectors.toList()),
+                                .toList(),
                         HttpStatus.OK);
     }
 
@@ -187,7 +186,6 @@ public class PatternAnalysisController {
     @ApiResponse(responseCode = "404", description = "Not able to retrieve all timestamps values")
     @GetMapping(value = "execution-timestamps", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
     public Set<LocalDateTime> getAllExecutionTimestamps() {
         return executionPointService.getAllExecutionTimestamps();
     }
@@ -250,7 +248,7 @@ public class PatternAnalysisController {
                     .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
                     .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
                     .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 
@@ -267,7 +265,7 @@ public class PatternAnalysisController {
                     problemPattern.getRecordAnalysisList()
                             .stream()
                             .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
-                            .collect(Collectors.toList()));
+                            .toList());
         }
 
         /**
@@ -286,9 +284,9 @@ public class PatternAnalysisController {
                                         recordAnalysis.getProblemOccurrenceList()
                                                 .stream()
                                                 .map(problemOccurrence -> new ProblemOccurrence("", problemOccurrence.getAffectedRecordIds()))
-                                                .collect(Collectors.toList())
+                                                .toList()
                                 ))
-                                .collect(Collectors.toList()));
+                                .toList());
             } else {
                 return problemPattern;
             }

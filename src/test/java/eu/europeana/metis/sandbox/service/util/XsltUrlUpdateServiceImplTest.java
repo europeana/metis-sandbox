@@ -116,7 +116,7 @@ class XsltUrlUpdateServiceImplTest {
   }
 
   @Test
-  void updateXslt_HttpClient_IllegalArgument_ExpectFail() throws ReflectiveOperationException {
+  void updateXslt_HttpClient_IllegalArgument_ExpectFail()  {
     // when
     when(httpClient.sendAsync(any(HttpRequest.class), any())).thenThrow(IllegalArgumentException.class);
 

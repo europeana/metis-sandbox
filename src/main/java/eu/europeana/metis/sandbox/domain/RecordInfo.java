@@ -9,31 +9,31 @@ import java.util.Objects;
  */
 public class RecordInfo {
 
-  private final Record record;
+  private final Record recordValue;
   private final List<RecordError> errors;
 
   /**
    * Constructor, defaults errors to an empty non-modifiable list
    *
-   * @param record must not be null
+   * @param recordValue must not be null
    */
-  public RecordInfo(Record record) {
-    this(record, List.of());
+  public RecordInfo(Record recordValue) {
+    this(recordValue, List.of());
   }
 
   /**
    * Constructor, store errors as a list
    *
-   * @param record must not be null
+   * @param recordValue must not be null
    * @param errors must not be null
    */
-  public RecordInfo(Record record, List<RecordError> errors) {
-    this.record = record;
+  public RecordInfo(Record recordValue, List<RecordError> errors) {
+    this.recordValue = recordValue;
     this.errors = Collections.unmodifiableList(errors);
   }
 
-  public Record getRecord() {
-    return record;
+  public Record getRecordValue() {
+    return recordValue;
   }
 
   public List<RecordError> getErrors() {
@@ -49,12 +49,12 @@ public class RecordInfo {
       return false;
     }
     RecordInfo that = (RecordInfo) o;
-    return record.equals(that.record) && errors.equals(that.errors);
+    return recordValue.equals(that.recordValue) && errors.equals(that.errors);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(record, errors);
+    return Objects.hash(recordValue, errors);
   }
 
 }

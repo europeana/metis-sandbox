@@ -47,7 +47,6 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -426,10 +425,10 @@ class DatasetController {
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
         ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
-        if (Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
+        if (progressInfoDto.getStatus().equals(Status.COMPLETED) /*&&
+            "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
                     .map(DeBiasStatusDto::getState)
-                    .orElse("").equals("READY")
-            && progressInfoDto.getStatus().equals(Status.COMPLETED)) {
+                    .orElse(""))*/) {
             debiasStateService.cleanDeBiasReport(datasetId);
             return debiasStateService.process(datasetId);
         } else {

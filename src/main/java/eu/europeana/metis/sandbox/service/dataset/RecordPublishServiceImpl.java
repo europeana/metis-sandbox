@@ -36,7 +36,7 @@ class RecordPublishServiceImpl implements RecordPublishService {
       amqpTemplate.convertAndSend(createdQueue,
           new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
+      LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecordValue().getRecordId(), e);
     }
   }
 
@@ -46,7 +46,7 @@ class RecordPublishServiceImpl implements RecordPublishService {
       amqpTemplate.convertAndSend(transformationToEdmExternalQueue,
           new RecordProcessEvent(recordInfo, step, Status.SUCCESS));
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecord().getRecordId(), e);
+      LOGGER.error("There was an issue publishing the record: {} ", recordInfo.getRecordValue().getRecordId(), e);
     }
   }
 

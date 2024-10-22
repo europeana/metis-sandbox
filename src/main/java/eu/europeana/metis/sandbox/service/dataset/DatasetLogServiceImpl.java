@@ -77,7 +77,7 @@ public class DatasetLogServiceImpl implements DatasetLogService {
         return datasetLogRepository.findByDatasetDatasetId(Integer.parseInt(datasetId))
                 .stream()
                 .map(entity -> new DatasetLogDto(entity.getMessage(), entity.getStatus()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Throwable unwrapFromCompletionException(Throwable exception) {

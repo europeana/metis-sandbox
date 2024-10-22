@@ -124,7 +124,7 @@ public class HarvestServiceImpl implements HarvestService {
 
     return recordInfoList.stream()
                          .filter(Objects::nonNull)
-                         .collect(Collectors.toList());
+                         .toList();
   }
 
   private List<OaiRecordHeader> harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,
@@ -194,7 +194,7 @@ public class HarvestServiceImpl implements HarvestService {
       throw new ServiceException("Error harvesting records ", e);
     }
 
-    final List<RecordInfo> result = recordInfoList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    final List<RecordInfo> result = recordInfoList.stream().filter(Objects::nonNull).toList();
     publishHarvestedRecords(result, datasetId, "Error harvesting file records", Step.HARVEST_FILE);
   }
 

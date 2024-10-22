@@ -41,16 +41,16 @@ class ExternalValidationExecutorTest {
 
   @Test
   void validateExternal_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.validate(record)).thenReturn(new RecordInfo(record));
+    when(service.validate(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.validateExternal(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).validate(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.VALIDATE_EXTERNAL, captor.getValue().getStep());
@@ -58,31 +58,31 @@ class ExternalValidationExecutorTest {
 
   @Test
   void validateExternal_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.FAIL);
 
     consumer.validateExternal(recordEvent);
 
-    verify(service, never()).validate(record);
+    verify(service, never()).validate(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void validateExternal_serviceThrowException_expectFailStatus() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.validate(testRecord)).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.validateExternal(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).validate(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

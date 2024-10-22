@@ -41,7 +41,6 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
 
 @Service
 class DatasetReportServiceImpl implements DatasetReportService {
@@ -239,7 +238,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
                                         .map(ErrorLogView::getRecordId)
                                         .map(DatasetReportServiceImpl::createMessageRecordError)
                                         .sorted(String::compareTo)
-                                        .collect(toList())))));
+                                        .toList()))));
 
         errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
         return errorInfoDtoList;
@@ -248,10 +247,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
     private TiersZeroInfo prepareTiersInfo(String datasetId) {
         // get list of records with content tier 0
         List<String> listOfRecordsIdsWithContentZero = recordRepository.findTop10ByDatasetIdAndContentTierOrderByEuropeanaIdAsc(datasetId, MediaTier.T0.toString())
-                .stream().map(RecordEntity::getEuropeanaId).collect(Collectors.toUnmodifiableList());
+                .stream().map(RecordEntity::getEuropeanaId).toList();
         // get list of records with metadata tier 0
         List<String> listOfRecordsIdsWithMetadataZero = recordRepository.findTop10ByDatasetIdAndMetadataTierOrderByEuropeanaIdAsc(datasetId, MetadataTier.T0.toString())
-                .stream().map(RecordEntity::getEuropeanaId).collect(Collectors.toUnmodifiableList());
+                .stream().map(RecordEntity::getEuropeanaId).toList();
 
         // encapsulate values into TierStatistics. Cut list of record ids into limit number
         TierStatistics contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :

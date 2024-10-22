@@ -79,12 +79,28 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   @Query("SELECT rle FROM RecordLogEntity rle WHERE rle.recordId.datasetId = ?1 AND rle.step = ?2")
   Set<RecordLogEntity> findRecordLogByDatasetIdAndStep(String datasetId, Step step);
 
+  /**
+   * Find record log by dataset id and step and status set.
+   *
+   * @param datasetId the dataset id
+   * @param step the step
+   * @param status the status
+   * @return the set
+   */
   @Query("SELECT rle FROM RecordLogEntity rle WHERE rle.recordId.datasetId = ?1 AND rle.step = ?2 AND rle.status = ?3")
   Set<RecordLogEntity> findRecordLogByDatasetIdAndStepAndStatus(String datasetId, Step step, Status status);
 
+  /**
+   * Update by record id and step and status.
+   *
+   * @param recordId the record id
+   * @param step the step
+   * @param status the status
+   */
   @Modifying
   @Query("UPDATE RecordLogEntity rle SET rle.status = ?3 WHERE rle.recordId.id = ?1 AND rle.step = ?2")
   void updateByRecordIdAndStepAndStatus(Long recordId, Step step, Status status);
+
   /**
    * Delete records that belong to the given dataset id
    *

@@ -9,11 +9,11 @@ public interface XmlRecordProcessorService {
    * that contains an element called edm:ProvidedCHO with and attribute called rdf:about which
    * contains the record id
    *
-   * @param record must not be null. Xml to extract the record id
+   * @param recordContent must not be null. Xml to extract the record id
    * @return record id
    * @throws NullPointerException     if record is null
    * @throws IllegalArgumentException if record does not contain a valid id
    * @throws RecordParsingException   if fails parsing the record
    */
-  String getProviderId(byte[] record);
+  String getProviderId(byte[] recordContent);
 }

@@ -39,10 +39,10 @@ class RecordLogServiceImpl implements RecordLogService {
     @Override
     @Transactional
     public void logRecordEvent(RecordProcessEvent recordRecordProcessEvent) {
-        var record = recordRecordProcessEvent.getRecord();
+        var recordToLog = recordRecordProcessEvent.getRecord();
         var recordErrors = recordRecordProcessEvent.getRecordErrors();
 
-        RecordEntity recordEntity = recordRepository.getOne(record.getRecordId());
+        RecordEntity recordEntity = recordRepository.getReferenceById(recordToLog.getRecordId());
         var recordLogEntity = new RecordLogEntity(recordEntity, new String(
             recordRecordProcessEvent.getRecord().getContent(), StandardCharsets.UTF_8),
                 recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus());
@@ -50,13 +50,13 @@ class RecordLogServiceImpl implements RecordLogService {
                 .map(error -> new RecordErrorLogEntity(recordEntity,
                         recordRecordProcessEvent.getStep(), recordRecordProcessEvent.getStatus(), error.getMessage(),
                         error.getStackTrace()))
-                .collect(toList());
+                .toList();
         try {
             recordLogRepository.save(recordLogEntity);
             recordErrorLogRepository.saveAll(recordErrorLogEntities);
         } catch (RuntimeException e) {
             throw new ServiceException(
-                    format("Error saving record log for record: [%s]. ", record.getProviderId()), e);
+                    format("Error saving record log for record: [%s]. ", recordToLog.getProviderId()), e);
         }
     }
 

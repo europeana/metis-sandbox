@@ -9,10 +9,10 @@ public interface NormalizationService {
   /**
    * Normalize the provided record
    *
-   * @param record must not be null
+   * @param recordToNormalize must not be null
    * @return {@link RecordInfo} containing record normalized
    * @throws NullPointerException      if record is null
    * @throws RecordProcessingException if normalization fails
    */
-  RecordInfo normalize(Record record);
+  RecordInfo normalize(Record recordToNormalize);
 }

@@ -41,7 +41,7 @@ class InternalValidationValidationStepTest {
                 .country(Country.NETHERLANDS)
                 .content("info".getBytes(StandardCharsets.UTF_8))
                 .build();
-        Record record = recordBuilder.language(Language.NL)
+        Record testRecord = recordBuilder.language(Language.NL)
                 .country(Country.NETHERLANDS)
                 .datasetName("datasetName")
                 .datasetId("datasetId")
@@ -49,7 +49,7 @@ class InternalValidationValidationStepTest {
                 .providerId("providerId")
                 .content("info".getBytes(StandardCharsets.UTF_8))
                 .build();
-        RecordInfo recordInfo = new RecordInfo(record);
+        RecordInfo recordInfo = new RecordInfo(testRecord);
         when(internalValidationService.validate(any())).thenReturn(recordInfo);
 
         doNothing().when(recordLogService).logRecordEvent(any());

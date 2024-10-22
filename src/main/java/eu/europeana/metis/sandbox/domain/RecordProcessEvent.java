@@ -31,7 +31,7 @@ public class RecordProcessEvent {
   }
 
   public Record getRecord() {
-    return recordInfo.getRecord();
+    return recordInfo.getRecordValue();
   }
 
   public List<RecordError> getRecordErrors() {

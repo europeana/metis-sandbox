@@ -227,7 +227,8 @@ public class RecordEntity {
     /**
      * Constructor
      */
-    public RecordEntityBuilder(){
+    public RecordEntityBuilder() {
+      // no op
     }
 
     /**

@@ -44,7 +44,7 @@ class ExternalValidationServiceImplTest {
 
   @Test
   void validate_expectSuccess() throws TransformationException {
-    var record = Record.builder().recordId(1L).providerId("1")
+    var testRecord = Record.builder().recordId(1L).providerId("1")
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -57,28 +57,28 @@ class ExternalValidationServiceImplTest {
         .thenReturn(validationResult);
     doNothing().when(recordService).setEuropeanaIdAndProviderId(any());
 
-    var result = service.validate(record);
+    var result = service.validate(testRecord);
 
-    assertEquals(record, result.getRecord());
+    assertEquals(testRecord, result.getRecordValue());
   }
 
   @Test
   void validate_orderingError_expectFail() throws TransformationException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
     when(orderingService.performOrdering("".getBytes()))
         .thenThrow(new TransformationException(new Exception("issue")));
 
-    assertThrows(RecordProcessingException.class, () -> service.validate(record));
+    assertThrows(RecordProcessingException.class, () -> service.validate(testRecord));
 
     verifyNoInteractions(validationExecutionService);
   }
 
   @Test
   void validate_validationError_expectFail() throws TransformationException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -90,7 +90,7 @@ class ExternalValidationServiceImplTest {
     when(validationExecutionService.singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
-    assertThrows(RecordValidationException.class, () -> service.validate(record));
+    assertThrows(RecordValidationException.class, () -> service.validate(testRecord));
   }
 
   @Test

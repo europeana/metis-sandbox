@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.service.debias;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -156,6 +154,29 @@ class DeBiasStateServiceImplTest {
     datasetDeBiasEntity.setCreatedDate(createdDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(datasetId))
         .thenReturn(datasetDeBiasEntity);
+
+    DeBiasReportDto deBiasReportDto = debiasStateServiceImpl.getDeBiasReport(datasetId);
+
+    assertEquals(datasetId, deBiasReportDto.getDatasetId());
+    assertEquals(stateName, deBiasReportDto.getState());
+    assertEquals(createdDate, deBiasReportDto.getCreationDate());
+    assertEquals(0, deBiasReportDto.getTotal());
+    assertEquals(0, deBiasReportDto.getProcessed());
+  }
+
+  @Test
+  void testGetDetectionInfo_ObjectWhenExistsProcessing_expectSuccess() {
+    final Integer datasetId = 1;
+    final String stateName = "PROCESSING";
+    final ZonedDateTime createdDate = ZonedDateTime.now();
+    DatasetEntity dataset = new DatasetEntity();
+    dataset.setDatasetId(datasetId);
+    DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    datasetDeBiasEntity.setState(stateName);
+    datasetDeBiasEntity.setDatasetId(dataset);
+    datasetDeBiasEntity.setCreatedDate(createdDate);
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(datasetId))
+        .thenReturn(datasetDeBiasEntity);
     RecordDeBiasMainEntity recordDeBiasMainEntity = new RecordDeBiasMainEntity(
         new RecordEntityBuilder().setDatasetId(datasetId.toString()).build(),
         "literal", Language.NL, DeBiasSourceField.DC_DESCRIPTION);
@@ -164,11 +185,18 @@ class DeBiasStateServiceImplTest {
     when(recordDeBiasMainRepository.findByRecordIdDatasetId(anyString())).thenReturn(List.of(recordDeBiasMainEntity));
     when(recordDeBiasDetailRepository.findByDebiasIdId(anyLong())).thenReturn(List.of(recordDeBiasDetailEntity));
 
+    when(recordLogRepository.findRecordLogByDatasetIdAndStepAndStatus(datasetId.toString(), Step.DEBIAS, Status.SUCCESS))
+        .thenReturn(Set.of(new RecordLogEntity()));
+    when(recordLogRepository.findRecordLogByDatasetIdAndStep(datasetId.toString(), Step.NORMALIZE))
+        .thenReturn(Set.of(new RecordLogEntity(), new RecordLogEntity()));
+
     DeBiasReportDto deBiasReportDto = debiasStateServiceImpl.getDeBiasReport(datasetId);
 
     assertEquals(datasetId, deBiasReportDto.getDatasetId());
     assertEquals(stateName, deBiasReportDto.getState());
     assertEquals(createdDate, deBiasReportDto.getCreationDate());
+    assertEquals(2, deBiasReportDto.getTotal());
+    assertEquals(1, deBiasReportDto.getProcessed());
   }
 
   @Test

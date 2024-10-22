@@ -64,7 +64,7 @@ class DatasetServiceImpl implements DatasetService {
       return datasetRepository.getByCreatedDateBefore(date).stream()
           .map(DatasetIdView::getDatasetId)
           .map(Object::toString)
-          .collect(toList());
+          .toList();
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }
