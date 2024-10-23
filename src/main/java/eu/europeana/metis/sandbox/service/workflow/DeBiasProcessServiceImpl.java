@@ -137,7 +137,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param deBiasReport the DeBias report
    */
   private void doDeBiasAndGenerateReport(List<Record> recordList, List<DeBiasReportRow> deBiasReport) {
-    getDeBiasSourceFieldsFromRecords(recordList)
+    List<DeBiasInputRecord> info = getDeBiasSourceFieldsFromRecords(recordList);
+        info
         .stream()
         .collect(groupingBy(DeBiasInputRecord::language))
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
@@ -234,6 +235,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
       } catch (SerializationException e) {
         deBiasInputRecords = Collections.emptyList();
+        LOGGER.error("Serialization {}",e.getMessage(), e);
       }
       return deBiasInputRecords;
     }).flatMap(Collection::stream).toList();
