@@ -108,10 +108,6 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * Update progress
    */
   private void updateProgress(List<Record> recordList) {
-    LOGGER.info("updating progress records from queue: {}", recordList.stream()
-                                                        .map(item -> item.getRecordId()
-                                                                         .toString())
-                                                        .collect(Collectors.joining(",")));
     recordList.stream()
               .collect(groupingBy(Record::getDatasetId))
               .forEach( (datasetId, records) -> {
@@ -120,7 +116,6 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
                 updateDeBiasProgressCounters(datasetId);
               }
     );
-
   }
 
   private void updateDeBiasProgressCounters(String datasetId) {

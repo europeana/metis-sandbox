@@ -27,6 +27,8 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @param datasetId the dataset id
    * @param state the state
    * @param creationDate the creation date
+   * @param total the total records
+   * @param processed the processed records
    * @param deBiasReportRowList the de bias report row list
    */
   public DeBiasReportDto(Integer datasetId, String state, ZonedDateTime creationDate, int total, int processed, List<DeBiasReportRow> deBiasReportRowList) {
