@@ -1,13 +1,10 @@
 package eu.europeana.metis.sandbox.service.debias;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -17,7 +14,6 @@ import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.AmqpException;
@@ -54,7 +50,8 @@ class RecordPublishDeBiasQueueServiceTest {
 
   @Test
   void publishToDeBiasQueueException() {
-    doThrow(new AmqpException("error in queue")).when(amqpTemplate).convertAndSend(eq("deBiasReadyQueue"), any(RecordProcessEvent.class));
+    doThrow(new AmqpException("error in queue")).when(amqpTemplate)
+                                                .convertAndSend(eq("deBiasReadyQueue"), any(RecordProcessEvent.class));
     var testRecord = Record.builder()
                            .datasetId("1")
                            .datasetName("")

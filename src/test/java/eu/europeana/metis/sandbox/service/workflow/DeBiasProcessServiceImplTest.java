@@ -208,7 +208,7 @@ class DeBiasProcessServiceImplTest {
     deBiasProcessService.process(testRecords);
 
     verify(deBiasClient, times(5)).detect(any());
-    verify(datasetDeBiasRepository, times(1)).updateState(eq(1), eq("COMPLETED"));
+    verify(datasetDeBiasRepository, times(1)).updateState(1, eq("COMPLETED"));
     verify(recordDeBiasMainRepository, times(9)).save(any());
     verify(recordDeBiasDetailRepository, times(10)).save(any());
     verify(recordLogRepository, times(2)).updateByRecordIdAndStepAndStatus(anyLong(), eq(Step.DEBIAS), eq(Status.SUCCESS));
