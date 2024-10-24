@@ -264,17 +264,17 @@ class SandboxConfig {
     }
 
     private void addSchemaProperties(String key, Object value, Properties props) {
-        if (value instanceof String string) {
-            props.setProperty(key, string);
-        } else if (value instanceof Map<?, ?> map) {
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                String nestedKey = key + "." + entry.getKey().toString();
-                Object nestedValue = entry.getValue();
-                addSchemaProperties(nestedKey, nestedValue, props);
-            }
-        } else {
-            throw new IllegalArgumentException("Property value: " + value);
+      switch (value) {
+        case String string -> props.setProperty(key, string);
+        case Map<?, ?> map -> {
+          for (Map.Entry<?, ?> entry : map.entrySet()) {
+            String nestedKey = key + "." + entry.getKey().toString();
+            Object nestedValue = entry.getValue();
+            addSchemaProperties(nestedKey, nestedValue, props);
+          }
         }
+        case null, default -> throw new IllegalArgumentException("Property value: " + value);
+      }
     }
 
     private static class Schema {

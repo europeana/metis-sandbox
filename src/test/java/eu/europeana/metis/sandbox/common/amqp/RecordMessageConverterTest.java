@@ -43,12 +43,12 @@ class RecordMessageConverterTest {
 
   @Test
   void toMessage_expectSuccess() {
-    var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
+    var testRecord = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
                        .language(Language.IT)
                        .datasetId("1").datasetName("").recordId(1L).europeanaId("").build();
-    var event = new RecordProcessEvent(new RecordInfo(record), Step.TRANSFORM, Status.SUCCESS);
+    var event = new RecordProcessEvent(new RecordInfo(testRecord), Step.TRANSFORM, Status.SUCCESS);
 
-    var result = MessageBuilder.withBody(record.getContent())
+    var result = MessageBuilder.withBody(testRecord.getContent())
                                .build();
 
     var message = converter.toMessage(event, MessagePropertiesBuilder.newInstance().build());
@@ -58,15 +58,15 @@ class RecordMessageConverterTest {
 
   @Test
   void toMessage_recordWithErrors_expectSuccess() {
-    var record = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
+    var testRecord = Record.builder().content("This is the content".getBytes()).country(Country.ITALY)
                        .language(Language.IT)
                        .datasetId("1").datasetName("").recordId(1L).europeanaId("").build();
     var recordError = new RecordError(
         new RecordProcessingException("23", new Exception("failed here")));
-    var event = new RecordProcessEvent(new RecordInfo(record, List.of(recordError)), Step.TRANSFORM,
+    var event = new RecordProcessEvent(new RecordInfo(testRecord, List.of(recordError)), Step.TRANSFORM,
         Status.SUCCESS);
 
-    var result = MessageBuilder.withBody(record.getContent())
+    var result = MessageBuilder.withBody(testRecord.getContent())
                                .build();
 
     var message = converter.toMessage(event, MessagePropertiesBuilder.newInstance().build());

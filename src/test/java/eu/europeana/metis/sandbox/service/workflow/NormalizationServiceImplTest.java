@@ -38,29 +38,29 @@ class NormalizationServiceImplTest {
   @Test
   void normalize_expectSuccess()
       throws NormalizationConfigurationException, NormalizationException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
     when(normalizerFactory.getNormalizer()).thenReturn(normalizer);
     when(normalizer.normalize(any(InputStream.class))).thenReturn("success".getBytes());
 
-    var result = service.normalize(record);
+    var result = service.normalize(testRecord);
 
-    assertArrayEquals("success".getBytes(), result.getRecord().getContent());
+    assertArrayEquals("success".getBytes(), result.getRecordValue().getContent());
   }
 
   @Test
   void normalize_normalizationConfigException_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
     when(normalizerFactory.getNormalizer())
         .thenThrow(new NormalizationConfigurationException("issue", new Exception()));
 
-    assertThrows(RecordProcessingException.class, () -> service.normalize(record));
+    assertThrows(RecordProcessingException.class, () -> service.normalize(testRecord));
 
     verify(normalizer, never()).normalize(anyString());
   }
@@ -68,7 +68,7 @@ class NormalizationServiceImplTest {
   @Test
   void normalize_normalizationException_expectFail()
       throws NormalizationConfigurationException, NormalizationException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("1").build();
 
@@ -76,7 +76,7 @@ class NormalizationServiceImplTest {
     when(normalizer.normalize(any(InputStream.class)))
         .thenThrow(new NormalizationException("issue", new Exception()));
 
-    assertThrows(RecordProcessingException.class, () -> service.normalize(record));
+    assertThrows(RecordProcessingException.class, () -> service.normalize(testRecord));
   }
 
   @Test

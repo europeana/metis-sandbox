@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -124,7 +123,7 @@ public class HarvestServiceImpl implements HarvestService {
 
     return recordInfoList.stream()
                          .filter(Objects::nonNull)
-                         .collect(Collectors.toList());
+                         .toList();
   }
 
   private List<OaiRecordHeader> harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,
@@ -194,7 +193,7 @@ public class HarvestServiceImpl implements HarvestService {
       throw new ServiceException("Error harvesting records ", e);
     }
 
-    final List<RecordInfo> result = recordInfoList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    final List<RecordInfo> result = recordInfoList.stream().filter(Objects::nonNull).toList();
     publishHarvestedRecords(result, datasetId, "Error harvesting file records", Step.HARVEST_FILE);
   }
 

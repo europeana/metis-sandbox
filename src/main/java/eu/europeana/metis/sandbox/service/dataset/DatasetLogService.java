@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;

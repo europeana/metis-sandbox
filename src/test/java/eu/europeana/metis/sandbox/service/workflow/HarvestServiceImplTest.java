@@ -803,11 +803,11 @@ class HarvestServiceImplTest {
     private void assertHarvestProcess(RecordPublishService recordPublishService, int times, Step step,
                                       Long numberOfRecords) {
         verify(datasetService).updateNumberOfTotalRecord(eq("datasetId"), eq(numberOfRecords));
-        assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecord().getDatasetId().equals("datasetId")));
-        assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecord().getContent() != null));
-        assertEquals(Country.NETHERLANDS, captorRecordInfo.getValue().getRecord().getCountry());
-        assertEquals(Language.NL, captorRecordInfo.getValue().getRecord().getLanguage());
-        assertEquals("datasetName", captorRecordInfo.getValue().getRecord().getDatasetName());
+        assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecordValue().getDatasetId().equals("datasetId")));
+        assertTrue(captorRecordInfo.getAllValues().stream().allMatch(x -> x.getRecordValue().getContent() != null));
+        assertEquals(Country.NETHERLANDS, captorRecordInfo.getValue().getRecordValue().getCountry());
+        assertEquals(Language.NL, captorRecordInfo.getValue().getRecordValue().getLanguage());
+        assertEquals("datasetName", captorRecordInfo.getValue().getRecordValue().getDatasetName());
     }
 
     private void assertHarvestProcessWithXslt(RecordPublishService recordPublishService, int times, Step step,

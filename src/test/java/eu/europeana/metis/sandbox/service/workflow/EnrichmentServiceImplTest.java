@@ -36,21 +36,21 @@ class EnrichmentServiceImplTest {
     void enrich_expectSuccess() {
         var content = "This is the content";
         var newContent = "This is new content".getBytes();
-        var record = Record.builder().recordId(1L)
+        var testRecord = Record.builder().recordId(1L)
                 .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
                 .datasetName("").datasetId("1").build();
         ProcessedResult<byte[]> processedResult = new ProcessedResult<>(newContent);
 
         when(enrichmentWorker.process(any(InputStream.class))).thenReturn(processedResult);
-        var result = service.enrich(record);
+        var result = service.enrich(testRecord);
 
-        assertArrayEquals(newContent, result.getRecord().getContent());
+        assertArrayEquals(newContent, result.getRecordValue().getContent());
     }
 
     @Test
     void enrich_withReport_expectFail() {
         var content = "This is the content";
-        var record = Record.builder().recordId(1L)
+        var testRecord = Record.builder().recordId(1L)
                 .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
                 .datasetName("").datasetId("1").build();
         Report report = Report.buildEnrichmentWarn();
@@ -59,9 +59,9 @@ class EnrichmentServiceImplTest {
         ProcessedResult<byte[]> processedResult = new ProcessedResult<>(content.getBytes(), reports);
         when(enrichmentWorker.process(any(InputStream.class)))
                 .thenReturn(processedResult);
-        var recordInfo = service.enrich(record);
+        var recordInfo = service.enrich(testRecord);
 
-        assertEquals(1L, recordInfo.getRecord().getRecordId());
+        assertEquals(1L, recordInfo.getRecordValue().getRecordId());
         assertEquals(1, recordInfo.getErrors().size());
     }
 
@@ -73,19 +73,19 @@ class EnrichmentServiceImplTest {
     @Test
     void enrich_withException_expectFail() {
         var content = "This is the content";
-        var record = Record.builder().recordId(1L)
+        var testRecord = Record.builder().recordId(1L)
                 .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
                 .datasetName("").datasetId("1").build();
         when(enrichmentWorker.process(any(InputStream.class)))
                 .thenThrow(new RuntimeException());
 
-        assertThrows(RuntimeException.class, () -> service.enrich(record));
+        assertThrows(RuntimeException.class, () -> service.enrich(testRecord));
     }
 
     @Test
     void enrich_withErrorTypeReport_expectFail() {
         var content = "This is the content";
-        var record = Record.builder().recordId(1L)
+        var testRecord = Record.builder().recordId(1L)
                 .content(content.getBytes()).language(Language.IT).country(Country.ITALY)
                 .datasetName("").datasetId("1").build();
         Report report = Report.buildEnrichmentError();
@@ -94,7 +94,7 @@ class EnrichmentServiceImplTest {
         ProcessedResult<byte[]> processedResult = new ProcessedResult<>(content.getBytes(), reports);
         when(enrichmentWorker.process(any(InputStream.class)))
                 .thenReturn(processedResult);
-        assertThrows(RecordProcessingException.class, () -> service.enrich(record));
+        assertThrows(RecordProcessingException.class, () -> service.enrich(testRecord));
     }
 
 }

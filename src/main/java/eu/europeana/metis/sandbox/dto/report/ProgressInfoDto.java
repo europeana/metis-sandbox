@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Step;
 import io.swagger.annotations.ApiModel;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class ProgressInfoDto {
                            List<DatasetLogDto> datasetLogs, TiersZeroInfo tiersZeroInfo) {
         this.processedRecords = processedRecords;
         this.tiersZeroInfo = tiersZeroInfo;
-        if (!errorType.equals("")) {
+        if (!errorType.isEmpty()) {
             this.status = Status.FAILED;
             this.totalRecords = totalRecords != null ? totalRecords : 0L;
         } else if (totalRecords == null) {
@@ -91,7 +92,7 @@ public class ProgressInfoDto {
     }
 
     public List<ProgressByStepDto> getProgressByStep() {
-        return progressByStep;
+        return Collections.unmodifiableList(progressByStep);
     }
 
     public boolean getRecordLimitExceeded() {

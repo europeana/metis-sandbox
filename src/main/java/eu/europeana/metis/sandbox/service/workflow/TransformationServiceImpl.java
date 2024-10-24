@@ -104,8 +104,8 @@ class TransformationServiceImpl implements TransformationService {
     return new XsltTransformer("xsltKey", xsltInputStream, datasetName, edmCountry, edmLanguage);
   }
 
-  private String getJoinDatasetIdDatasetName(Record record) {
-    return getJoinDatasetIdDatasetName(record.getDatasetId(), record.getDatasetName());
+  private String getJoinDatasetIdDatasetName(Record recordToTransform) {
+    return getJoinDatasetIdDatasetName(recordToTransform.getDatasetId(), recordToTransform.getDatasetName());
   }
 
   private String getJoinDatasetIdDatasetName(String datasetId, String datasetName) {

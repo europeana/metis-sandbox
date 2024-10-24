@@ -7,12 +7,12 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 public interface EnrichmentService {
 
   /**
-   * Enrich given record
+   * Enrich given recordToEnrich
    *
-   * @param record must not be null
-   * @return {@link RecordInfo} containing enriched record
-   * @throws NullPointerException      if record is null
-   * @throws RecordProcessingException if there is an issue processing the record
+   * @param recordToEnrich must not be null
+   * @return {@link RecordInfo} containing enriched recordToEnrich
+   * @throws NullPointerException      if recordToEnrich is null
+   * @throws RecordProcessingException if there is an issue processing the recordToEnrich
    */
-  RecordInfo enrich(Record record);
+  RecordInfo enrich(Record recordToEnrich);
 }

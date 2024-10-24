@@ -41,16 +41,16 @@ class EnrichmentExecutorTest {
 
   @Test
   void enrich_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.NORMALIZE, Status.SUCCESS);
 
-    when(service.enrich(record)).thenReturn(new RecordInfo(record));
+    when(service.enrich(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.enrich(recordEvent);
 
-    verify(service).enrich(record);
+    verify(service).enrich(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.ENRICH, captor.getValue().getStep());
@@ -58,15 +58,15 @@ class EnrichmentExecutorTest {
 
   @Test
   void enrich_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.NORMALIZE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.NORMALIZE, Status.FAIL);
 
     consumer.enrich(recordEvent);
 
-    verify(service, never()).enrich(record);
+    verify(service, never()).enrich(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 

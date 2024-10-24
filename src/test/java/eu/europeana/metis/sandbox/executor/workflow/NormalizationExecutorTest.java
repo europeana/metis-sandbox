@@ -41,16 +41,16 @@ class NormalizationExecutorTest {
 
   @Test
   void normalize_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.normalize(record)).thenReturn(new RecordInfo(record));
+    when(service.normalize(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.normalize(recordEvent);
 
-    verify(service).normalize(record);
+    verify(service).normalize(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.NORMALIZE, captor.getValue().getStep());
@@ -58,31 +58,31 @@ class NormalizationExecutorTest {
 
   @Test
   void normalize_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.FAIL);
 
     consumer.normalize(recordEvent);
 
-    verify(service, never()).normalize(record);
+    verify(service, never()).normalize(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void normalize_serviceThrowException_expectFailStatus() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.normalize(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.normalize(testRecord)).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.normalize(recordEvent);
 
-    verify(service).normalize(record);
+    verify(service).normalize(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

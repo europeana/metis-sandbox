@@ -3,9 +3,7 @@ package eu.europeana.metis.sandbox.service.util;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.io.ByteArrayInputStream;
-import java.util.UUID;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.springframework.beans.factory.ObjectFactory;

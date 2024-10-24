@@ -42,17 +42,17 @@ class InternalValidationExecutorTest {
 
   @Test
   void validateInternal_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.VALIDATE_INTERNAL,
         Status.SUCCESS);
 
-    when(service.validate(record)).thenReturn(new RecordInfo(record));
+    when(service.validate(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.validateInternal(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).validate(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.VALIDATE_INTERNAL, captor.getValue().getStep());
@@ -60,33 +60,33 @@ class InternalValidationExecutorTest {
 
   @Test
   void validateInternal_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.VALIDATE_INTERNAL,
         Status.FAIL);
 
     consumer.validateInternal(recordEvent);
 
-    verify(service, never()).validate(record);
+    verify(service, never()).validate(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void validateInternal_serviceThrowException_expectFailStatus() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_INTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.VALIDATE_INTERNAL,
         Status.SUCCESS);
 
-    when(service.validate(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.validate(testRecord)).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.validateInternal(recordEvent);
 
-    verify(service).validate(record);
+    verify(service).validate(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

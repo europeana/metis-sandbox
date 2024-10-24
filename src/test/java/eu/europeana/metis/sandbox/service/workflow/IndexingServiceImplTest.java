@@ -55,7 +55,7 @@ class IndexingServiceImplTest {
 
   @Test
   void indexPublish_expectSuccess() throws IndexingException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
     ContentTierBreakdown contentTierBreakdown = new ContentTierBreakdown.Builder()
@@ -78,31 +78,31 @@ class IndexingServiceImplTest {
     when(publishIndexer.indexAndGetTierCalculations(any(InputStream.class), any(IndexingProperties.class)))
             .thenReturn(tierResultsMock);
 
-    service.index(record);
+    service.index(testRecord);
     verify(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
-    verify(recordService).setTierResults(record, tierResultsMock);
+    verify(recordService).setTierResults(testRecord, tierResultsMock);
   }
 
   @Test
   void indexPublish_IndexingIssue_expectFail() throws IndexingException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
         .content("".getBytes()).language(Language.IT).country(Country.ITALY)
         .datasetName("").datasetId("").build();
 
     doThrow(new IndexerRelatedIndexingException("Failed"))
         .when(publishIndexer).indexAndGetTierCalculations(any(InputStream.class), any());
     assertThrows(RecordProcessingException.class,
-        () -> service.index(record));
+        () -> service.index(testRecord));
   }
 
   @Test
   void indexPublish_TierCalculationIssue_expectFail() {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
             .content("".getBytes()).language(Language.IT).country(Country.ITALY)
             .datasetName("").datasetId("").build();
 
     RecordProcessingException exception = assertThrows(RecordProcessingException.class,
-            () -> service.index(record));
+            () -> service.index(testRecord));
     assertTrue(exception.getReportMessage().contains("Something went wrong with tier calculations with record"));
   }
 

@@ -40,16 +40,16 @@ class MediaProcessingExecutorTest {
 
   @Test
   void processMedia_expectSuccess() {
-    Record record = Record.builder()
+    Record testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
+    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(testRecord),
             Step.ENRICH, Status.SUCCESS);
-    when(service.processMedia(record)).thenReturn(new RecordInfo(record));
+    when(service.processMedia(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.processMedia(recordRecordProcessEvent);
 
-    verify(service).processMedia(record);
+    verify(service).processMedia(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.MEDIA_PROCESS, captor.getValue().getStep());
@@ -57,19 +57,19 @@ class MediaProcessingExecutorTest {
 
   @Test
   void processMedia_serviceThrowException_expectFailStatus() {
-    Record record = Record.builder()
+    Record testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(record),
+    RecordProcessEvent recordRecordProcessEvent = new RecordProcessEvent(new RecordInfo(testRecord),
             Step.ENRICH, Status.SUCCESS);
 
-    when(service.processMedia(record))
+    when(service.processMedia(testRecord))
         .thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.processMedia(recordRecordProcessEvent);
 
-    verify(service).processMedia(record);
+    verify(service).processMedia(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

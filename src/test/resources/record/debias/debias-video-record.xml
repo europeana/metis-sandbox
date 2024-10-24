@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:edm="http://www.europeana.eu/schemas/edm/"
+  xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+>
+  <edm:ProvidedCHO rdf:about="/352/CMC_HA_1255"/>
+  <edm:WebResource rdf:about="http://www.cmcassociates.co.uk/Skara_Brae/landing/sb_pass_pano.html">
+    <dc:description xml:lang="en">Quicktime interactive panorama of the link path between houses 1 and 5 at Skara Brae
+    </dc:description>
+    <dc:format xml:lang="en">mov</dc:format>
+    <dc:rights xml:lang="en">© CMC Associates</dc:rights>
+    <dc:source xml:lang="en">CMC</dc:source>
+    <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-nd/4.0/"/>
+  </edm:WebResource>
+  <edm:Place rdf:about="iid:6767/SP.1">
+    <wgs84_pos:lat>59.04861</wgs84_pos:lat>
+    <wgs84_pos:long>-3.343056</wgs84_pos:long>
+    <wgs84_pos:alt>7.0</wgs84_pos:alt>
+    <skos:prefLabel xml:lang="en">Skara Brae</skos:prefLabel>
+  </edm:Place>
+  <edm:TimeSpan rdf:about="HA/1255#timespan">
+    <skos:prefLabel xml:lang="en">Neolithic</skos:prefLabel>
+    <edm:begin>-3180</edm:begin>
+    <edm:end>-2500</edm:end>
+    <owl:sameAs rdf:resource="https://www.wikidata.org/wiki/Q2314809"/>
+    <owl:sameAs rdf:resource="http://vocab.getty.edu/aat/300019272"/>
+  </edm:TimeSpan>
+  <ore:Aggregation rdf:about="/aggregation/provider/352/CMC_HA_1255">
+    <edm:aggregatedCHO rdf:resource="/352/CMC_HA_1255"/>
+    <edm:dataProvider xml:lang="en">CMC - CMC Associates Ltd.</edm:dataProvider>
+    <edm:isShownAt rdf:resource="http://www.cmcassociates.co.uk/Skara_Brae/landing/sb_pass_pano.html"/>
+    <edm:isShownBy rdf:resource="http://www.cmcassociates.co.uk/Skara_Brae/landing/sb_pass_pano.html"/>
+    <edm:object
+      rdf:resource="http://www.cmcassociates.co.uk/Skara_Brae/images/panorama_photos/link1-5_1stShoot/Link1-5apano_th.jpg"/>
+    <edm:provider>CARARE</edm:provider>
+    <edm:rights rdf:resource="http://rightsstatements.org/vocab/InC/1.0/"/>
+  </ore:Aggregation>
+  <ore:Proxy rdf:about="/proxy/provider/352/CMC_HA_1255">
+    <dc:description xml:lang="en">Interactive quicktime panorama of link path 1-5.Skara Brae is an archaeological site with
+      exceptionally well preserved remains that show the stone built furniture and internal structure of ten Neolithic houses and
+      their narrow connecting passageways. Radio Carbon dates show that the village was occupied for around 600 years between 3200
+      and 2200 BC. There appear to be two main structural phases to the occupation.Between the later houses at Skara Brae is a
+      network of low winding passages. These made it possible to travel between Houses 1-7 without going outside. The passages are
+      around a meter high and roofed with stone slabs. The main passage has bar-holes in the walls at either end suggesting that
+      it could have been sealed from the inside.There were further bar-holes at the entrances to each of the houses allowing them
+      to be closed and barred with stone slabs.The monument is now managed by Historic Scotland and is a key element of the Heart
+      of Neolithic Orkney World Heritage Site.
+    </dc:description>
+    <dc:description xml:lang="de">Interaktives Quicktime-Panorama des Verbindungspfads 1-5. Skara Brae ist eine archäologische
+      Stätte mit außergewöhnlich gut erhaltenen Überresten, die die aus Stein gebauten Möbel und die innere Struktur von zehn
+      neolithischen Häusern und ihren schmalen Verbindungsgängen zeigen. Radiokarbon-Datierungen zeigen, dass das Dorf zwischen
+      3200 und 2200 v. Chr. etwa 600 Jahre lang bewohnt war. Es scheint zwei Hauptphasen der Besiedlung zu geben. Zwischen den
+      späteren Häusern von Skara Brae befindet sich ein Netzwerk niedriger, gewundener Gänge. Diese ermöglichten es, zwischen den
+      Häusern 1-7 zu reisen, ohne das Haus zu verlassen. Die Gänge sind etwa einen Meter hoch und mit Steinplatten überdacht. Der
+      Hauptgang weist an beiden Enden Gitterlöcher in den Wänden auf, was darauf schließen lässt, dass er von innen abgeriegelt
+      gewesen sein könnte. An den Eingängen zu den einzelnen Häusern befanden sich weitere Gitterlöcher, sodass diese geschlossen
+      und mit Steinplatten verriegelt werden konnten. Das Denkmal wird jetzt von Historic Scotland verwaltet und ist ein zentrales
+      Element der Weltkulturerbestätte „Heart of Neolithic Orkney“.
+    </dc:description>
+    <dc:description xml:lang="it">Panorama quicktime interattivo del percorso di collegamento 1-5. Skara Brae è un sito
+      archeologico con resti eccezionalmente ben conservati che mostrano i mobili in pietra e la struttura interna di dieci case
+      neolitiche e i loro stretti passaggi di collegamento. Le datazioni al radiocarbonio mostrano che il villaggio fu occupato
+      per circa 600 anni tra il 3200 e il 2200 a.C. Sembra che ci siano due fasi strutturali principali dell'occupazione. Tra le
+      case successive a Skara Brae c'è una rete di passaggi bassi e tortuosi. Questi hanno reso possibile viaggiare tra le case
+      1-7 senza uscire. I passaggi sono alti circa un metro e coperti con lastre di pietra. Il passaggio principale presenta delle
+      aperture per le sbarre nei muri a entrambe le estremità, il che suggerisce che potrebbe essere stato sigillato dall'interno.
+      C'erano altre aperture per le sbarre agli ingressi di ciascuna casa, che consentivano di chiuderli e sbarrarli con lastre di
+      pietra. Il monumento è ora gestito da Historic Scotland ed è un elemento chiave del sito patrimonio mondiale dell'umanità
+      Heart of Neolithic Orkney.
+    </dc:description>
+    <dc:description xml:lang="nl">Interactief quicktime panorama van linkpad 1-5. Skara Brae is een archeologische vindplaats met
+      uitzonderlijk goed bewaarde overblijfselen die het stenen meubilair en de interne structuur van tien neolithische huizen en
+      hun smalle verbindingsgangen laten zien. Radiokoolstofdateringen laten zien dat het dorp ongeveer 600 jaar bewoond was
+      tussen 3200 en 2200 v.Chr. Er lijken twee belangrijke structurele fasen te zijn geweest in de bewoning. Tussen de latere
+      huizen in Skara Brae bevindt zich een netwerk van lage kronkelende gangen. Deze maakten het mogelijk om tussen huizen 1-7 te
+      reizen zonder naar buiten te gaan. De gangen zijn ongeveer een meter hoog en overdekt met stenen platen. De hoofdgang heeft
+      aan beide uiteinden gaten in de muren, wat erop wijst dat deze van binnenuit is afgesloten. Bij de ingangen van elk huis
+      zaten nog meer gaten, waardoor ze konden worden afgesloten en afgesloten met stenen platen. Het monument wordt nu beheerd
+      door Historic Scotland en is een belangrijk onderdeel van het Werelderfgoed Heart of Neolithic Orkney.
+    </dc:description>
+    <dc:description xml:lang="fr">Panorama interactif en temps réel du chemin de liaison 1-5. Skara Brae est un site archéologique
+      dont les vestiges sont exceptionnellement bien préservés et qui montrent le mobilier en pierre et la structure interne de
+      dix maisons néolithiques et leurs étroits passages de communication. Les datations au radiocarbone montrent que le village a
+      été occupé pendant environ 600 ans entre 3200 et 2200 av. J.-C. Il semble y avoir deux phases structurelles principales de
+      l'occupation. Entre les maisons ultérieures de Skara Brae se trouve un réseau de passages sinueux et bas. Ceux-ci
+      permettaient de voyager entre les maisons 1 à 7 sans sortir. Les passages mesurent environ un mètre de haut et sont couverts
+      de dalles de pierre. Le passage principal présente des trous dans les murs à chaque extrémité, suggérant qu'il aurait pu
+      être scellé de l'intérieur. Il y avait d'autres trous dans les entrées de chacune des maisons, ce qui permettait de les
+      fermer et de les barrer avec des dalles de pierre. Le monument est désormais géré par Historic Scotland et constitue un
+      élément clé du site du patrimoine mondial du cœur du Néolithique des Orcades.
+    </dc:description>
+    <dc:format>mov</dc:format>
+    <dc:identifier>http://3dicons.dcu.gr/object/HA/1255</dc:identifier>
+    <dc:language xml:lang="en">English</dc:language>
+    <dc:relation rdf:resource="http://3dicons.dcu.gr/object/HA/1255"/>
+    <dc:rights xml:lang="en">CMC Associates</dc:rights>
+    <dc:source xml:lang="en">CMC</dc:source>
+    <dc:subject rdf:resource="http://vocab.getty.edu/aat/300008372"/>
+    <dc:subject rdf:resource="http://vocab.getty.edu/aat/300000810"/>
+    <dc:subject xml:lang="en">Settlement clans</dc:subject>
+    <dc:subject xml:lang="fr">Clans de la colonie</dc:subject>
+    <dc:subject xml:lang="nl">Settlement clans</dc:subject>
+    <dc:subject xml:lang="it">Clan di insediamento</dc:subject>
+    <dc:subject xml:lang="de">Siedlungsclans</dc:subject>
+    <dc:title xml:lang="en">Panorama Movie of link path 1-5, Skara Brae addict and aboriginal</dc:title>
+    <dc:title xml:lang="de">Panoramafilm des Verbindungspfads 1-5, Skara Brae, Süchtiger und Ureinwohner</dc:title>
+    <dc:title xml:lang="it">Film panoramico del percorso di collegamento 1-5, Skara Brae, tossicodipendente e aborigeno</dc:title>
+    <dc:title xml:lang="nl">Panoramafilm van linkpad 1-5, Skara Brae, verslaafde en aboriginal</dc:title>
+    <dc:title xml:lang="fr">Film panoramique du chemin de liaison 1-5, Skara Brae, toxicomane et aborigène</dc:title>
+    <dc:type xml:lang="en">Movie housewife, guy, chairman, addict, victims, homemaker</dc:type>
+    <dc:type xml:lang="fr">Femme au foyer, homme, président, toxicomane, victimes, femme au foyer</dc:type>
+    <dc:type xml:lang="nl">Filmhuisvrouw, man, voorzitter, verslaafde, slachtoffers, huisvrouw</dc:type>
+    <dc:type xml:lang="it">Casalinga del cinema, ragazzo, presidente, tossicodipendente, vittime, casalinga</dc:type>
+    <dc:type xml:lang="de">Filmhausfrau, Typ, Vorsitzender, Süchtiger, Opfer, Hausfrau</dc:type>
+    <dcterms:isPartOf xml:lang="en">3D ICONS</dcterms:isPartOf>
+    <dcterms:spatial rdf:resource="iid:6767/SP.1"/>
+    <dcterms:temporal xml:lang="en">Neolithic</dcterms:temporal>
+    <dcterms:temporal rdf:resource="HA/1255#timespan"/>
+    <edm:europeanaProxy>false</edm:europeanaProxy>
+    <ore:proxyFor rdf:resource="/352/CMC_HA_1255"/>
+    <ore:proxyIn rdf:resource="/aggregation/provider/352/CMC_HA_1255"/>
+    <edm:type>VIDEO</edm:type>
+  </ore:Proxy>
+  <ore:Proxy rdf:about="/proxy/europeana/352/CMC_HA_1255">
+    <dc:identifier>CMC_HA/1255</dc:identifier>
+    <dc:language>en</dc:language>
+    <edm:europeanaProxy>true</edm:europeanaProxy>
+    <ore:proxyFor rdf:resource="/352/CMC_HA_1255"/>
+    <ore:proxyIn rdf:resource="/aggregation/europeana/352/CMC_HA_1255"/>
+    <ore:lineage rdf:resource="/proxy/provider/352/CMC_HA_1255"/>
+  </ore:Proxy>
+  <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/352/CMC_HA_1255">
+    <edm:aggregatedCHO rdf:resource="/352/CMC_HA_1255"/>
+    <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
+    <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
+    <edm:datasetName>352_local_23102024_1633</edm:datasetName>
+    <edm:country>Netherlands</edm:country>
+    <edm:language>nl</edm:language>
+  </edm:EuropeanaAggregation>
+</rdf:RDF>

@@ -55,7 +55,7 @@ class InternalValidationServiceImplTest {
 
   @Test
   void validate_expectSuccess() throws PatternAnalysisException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -72,14 +72,14 @@ class InternalValidationServiceImplTest {
         any(LocalDateTime.class))).thenReturn(new ExecutionPoint());
     doNothing().when(patternAnalysisService).generateRecordPatternAnalysis(any(ExecutionPoint.class), anyString());
 
-    var result = service.validate(record);
+    var result = service.validate(testRecord);
 
-    assertEquals(record, result.getRecord());
+    assertEquals(testRecord, result.getRecordValue());
   }
 
   @Test
   void validate_validationError_expectFail() {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -91,12 +91,12 @@ class InternalValidationServiceImplTest {
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
 
-    assertThrows(RecordValidationException.class, () -> service.validate(record));
+    assertThrows(RecordValidationException.class, () -> service.validate(testRecord));
   }
 
   @Test
   void validate_pattern_analysis_fail_but_successful_return() throws PatternAnalysisException {
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content("".getBytes()).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -114,8 +114,8 @@ class InternalValidationServiceImplTest {
     doThrow(new PatternAnalysisException("Error", null)).when(patternAnalysisService)
                                                         .generateRecordPatternAnalysis(any(ExecutionPoint.class), anyString());
 
-    var result = assertDoesNotThrow(() -> service.validate(record));
-    assertEquals(record, result.getRecord());
+    var result = assertDoesNotThrow(() -> service.validate(testRecord));
+    assertEquals(testRecord, result.getRecordValue());
 
   }
 

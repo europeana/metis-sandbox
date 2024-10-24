@@ -41,16 +41,16 @@ class PublishExecutorTest {
 
   @Test
   void publish_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.index(record)).thenReturn(new RecordInfo(record));
+    when(service.index(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.publish(recordEvent);
 
-    verify(service).index(record);
+    verify(service).index(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.PUBLISH, captor.getValue().getStep());
@@ -58,32 +58,32 @@ class PublishExecutorTest {
 
   @Test
   void publish_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record),Step.HARVEST_FILE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord),Step.HARVEST_FILE, Status.FAIL);
 
     consumer.publish(recordEvent);
 
-    verify(service, never()).index(record);
+    verify(service, never()).index(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void publish_serviceThrowException_expectFailStatus() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.index(record))
+    when(service.index(testRecord))
         .thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.publish(recordEvent);
 
-    verify(service).index(record);
+    verify(service).index(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

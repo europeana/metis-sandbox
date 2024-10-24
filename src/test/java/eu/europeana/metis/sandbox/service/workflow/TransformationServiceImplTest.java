@@ -1,6 +1,8 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
@@ -13,17 +15,12 @@ import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Optional;
-
-import eu.europeana.metis.transformation.service.TransformationException;
-import eu.europeana.metis.transformation.service.XsltTransformer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -128,11 +125,11 @@ class TransformationServiceImplTest {
     var input = testUtils.readFileToString(
         "record" + File.separator + "record-missing-id.xml");
 
-    var record = createRecord(input);
+    var testRecord = createRecord(input);
 
     RecordProcessingException exception =
         assertThrows(RecordProcessingException.class,
-            () -> transformationService.transformToEdmInternal(record));
+            () -> transformationService.transformToEdmInternal(testRecord));
 
     assertEquals("1", exception.getRecordId());
   }

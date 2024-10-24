@@ -287,7 +287,7 @@ public class DeBiasRdfInfoExtractor {
     int partitions = (sourceList.size() - 1) / partitionSize;
     return IntStream.rangeClosed(0, partitions).mapToObj(partition -> {
       int startIndex = partition * partitionSize;
-      int endIndex = (partition == partitions) ? sourceList.size() : (partition + 1) * partitionSize;
+      int endIndex = (partition == partitions) ? sourceList.size() : ((partition + 1) * partitionSize);
       return sourceList.subList(startIndex, endIndex);
     });
   }

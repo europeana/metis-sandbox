@@ -41,17 +41,17 @@ class TransformationExecutorTest {
 
   @Test
   void transform_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_EXTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.VALIDATE_EXTERNAL,
         Status.SUCCESS);
 
-    when(service.transformToEdmInternal(record)).thenReturn(new RecordInfo(record));
+    when(service.transformToEdmInternal(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.transform(recordEvent);
 
-    verify(service).transformToEdmInternal(record);
+    verify(service).transformToEdmInternal(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.TRANSFORM, captor.getValue().getStep());
@@ -59,34 +59,34 @@ class TransformationExecutorTest {
 
   @Test
   void transform_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_EXTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.VALIDATE_EXTERNAL,
         Status.FAIL);
 
     consumer.transform(recordEvent);
 
-    verify(service, never()).transformToEdmInternal(record);
+    verify(service, never()).transformToEdmInternal(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void transform_serviceThrowException_expectFailStatus() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.VALIDATE_EXTERNAL,
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.VALIDATE_EXTERNAL,
         Status.SUCCESS);
 
-    when(service.transformToEdmInternal(record)).thenThrow(
+    when(service.transformToEdmInternal(testRecord)).thenThrow(
         new RecordProcessingException("1", new Exception()));
 
     consumer.transform(recordEvent);
 
-    verify(service).transformToEdmInternal(record);
+    verify(service).transformToEdmInternal(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

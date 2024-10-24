@@ -35,7 +35,7 @@ class HarvestValidationStepTest {
         //given
         doNothing().when(recordLogService).logRecordEvent(any());
 
-        Record record = new Record.RecordBuilder()
+        Record testRecord = new Record.RecordBuilder()
                 .recordId(1L)
                 .datasetId("datasetId")
                 .europeanaId("europeanaId")
@@ -46,7 +46,7 @@ class HarvestValidationStepTest {
                 .build();
 
         //when
-        ValidationStepContent validationStepContent = harvestValidationStep.performStep(record);
+        ValidationStepContent validationStepContent = harvestValidationStep.performStep(testRecord);
 
         //then
         ValidationResult result = validationStepContent.getValidationStepResult();
@@ -64,7 +64,7 @@ class HarvestValidationStepTest {
         //given
         doThrow(new RuntimeException("Validation error")).doNothing().when(recordLogService).logRecordEvent(any());
 
-        Record record = new Record.RecordBuilder()
+        Record testRecord = new Record.RecordBuilder()
                 .recordId(1L)
                 .datasetId("datasetId")
                 .europeanaId("europeanaId")
@@ -75,7 +75,7 @@ class HarvestValidationStepTest {
                 .build();
 
         //when
-        ValidationStepContent validationStepContent = harvestValidationStep.performStep(record);
+        ValidationStepContent validationStepContent = harvestValidationStep.performStep(testRecord);
 
         //then
         ValidationResult result = validationStepContent.getValidationStepResult();

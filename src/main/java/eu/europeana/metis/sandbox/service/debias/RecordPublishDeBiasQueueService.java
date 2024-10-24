@@ -44,7 +44,7 @@ public class RecordPublishDeBiasQueueService implements RecordDeBiasPublishable 
     try {
       amqpTemplate.convertAndSend(deBiasReadyQueue, new RecordProcessEvent(recordToAnalyse, Step.DEBIAS, Status.PENDING));
     } catch (AmqpException e) {
-      LOGGER.error("There was an issue publishing the record: {} ", recordToAnalyse.getRecord().getRecordId(), e);
+      LOGGER.error("There was an issue publishing the record: {} ", recordToAnalyse.getRecordValue().getRecordId(), e);
     }
   }
 }

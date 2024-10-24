@@ -34,7 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
-public class HarvestPublishServiceImplTest {
+class HarvestPublishServiceImplTest {
 
   @Mock
   private HarvestService harvestService;
