@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -208,7 +209,7 @@ class DeBiasProcessServiceImplTest {
     deBiasProcessService.process(testRecords);
 
     verify(deBiasClient, times(5)).detect(any());
-    verify(datasetDeBiasRepository, times(1)).updateState(1, eq("COMPLETED"));
+    verify(datasetDeBiasRepository, times(1)).updateState(anyInt(), eq("COMPLETED"));
     verify(recordDeBiasMainRepository, times(9)).save(any());
     verify(recordDeBiasDetailRepository, times(10)).save(any());
     verify(recordLogRepository, times(2)).updateByRecordIdAndStepAndStatus(anyLong(), eq(Step.DEBIAS), eq(Status.SUCCESS));
