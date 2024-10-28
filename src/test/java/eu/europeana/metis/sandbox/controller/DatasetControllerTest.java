@@ -856,7 +856,9 @@ class DatasetControllerTest {
        .andExpect(jsonPath("$.dataset-id", is(datasetId)))
        .andExpect(jsonPath("$.state", is(status)))
        .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))));
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+       .andExpect(jsonPath("$.total-records", is(1)))
+       .andExpect(jsonPath("$.processed-records", is(1)));
   }
 
   @ParameterizedTest
@@ -873,7 +875,9 @@ class DatasetControllerTest {
        .andExpect(jsonPath("$.dataset-id", is(datasetId)))
        .andExpect(jsonPath("$.state", is(status)))
        .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))));
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+       .andExpect(jsonPath("$.total-records", is(1)))
+       .andExpect(jsonPath("$.processed-records", is(1)));
   }
 
   @ParameterizedTest

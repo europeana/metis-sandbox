@@ -110,18 +110,22 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   private void updateProgress(List<Record> recordList) {
     recordList.stream()
               .collect(groupingBy(Record::getDatasetId))
-              .forEach( (datasetId, records) -> {
-                records.forEach(recordToProcess ->
-                    recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(),Step.DEBIAS, Status.SUCCESS));
-                updateDeBiasProgressCounters(datasetId);
-              }
-    );
+              .forEach((datasetId, records) -> {
+                LOGGER.info("Updating progress for datasetId: {}", datasetId);
+                    records.forEach(recordToProcess ->
+                        recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(), Step.DEBIAS, Status.SUCCESS));
+                    updateDeBiasProgressCounters(datasetId);
+                  }
+              );
   }
 
   private void updateDeBiasProgressCounters(String datasetId) {
-    Set<RecordLogEntity> recordLogDeBiasList = recordLogRepository.findRecordLogByDatasetIdAndStepAndStatus(datasetId, Step.DEBIAS, Status.SUCCESS);
-    Set<RecordLogEntity> recordLogNormalizeList = recordLogRepository.findRecordLogByDatasetIdAndStep(datasetId, Step.NORMALIZE);
-    LOGGER.info("DeBias PROGRESS datasetId: {}/{}",  recordLogDeBiasList.size() ,recordLogNormalizeList.size());
+    Set<RecordLogEntity> recordLogDeBiasList = recordLogRepository
+        .findRecordLogByDatasetIdAndStepAndStatus(datasetId, Step.DEBIAS, Status.SUCCESS);
+    Set<RecordLogEntity> recordLogNormalizeList = recordLogRepository
+        .findRecordLogByDatasetIdAndStep(datasetId, Step.NORMALIZE);
+    LOGGER.info("DeBias PROGRESS datasetId: {}/{}",
+        recordLogDeBiasList.size(), recordLogNormalizeList.size());
     if (recordLogDeBiasList.size() == recordLogNormalizeList.size()) {
       datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
       LOGGER.info("DeBias COMPLETED datasetId: {}", datasetId);
@@ -137,8 +141,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param deBiasReport the DeBias report
    */
   private void doDeBiasAndGenerateReport(List<Record> recordList, List<DeBiasReportRow> deBiasReport) {
-    List<DeBiasInputRecord> info = getDeBiasSourceFieldsFromRecords(recordList);
-        info
+    List<DeBiasInputRecord> deBiasSourceFieldsFromRecords = getDeBiasSourceFieldsFromRecords(recordList);
+    deBiasSourceFieldsFromRecords
         .stream()
         .collect(groupingBy(DeBiasInputRecord::language))
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
@@ -235,7 +239,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
       } catch (SerializationException e) {
         deBiasInputRecords = Collections.emptyList();
-        LOGGER.error("Serialization {}",e.getMessage(), e);
+        LOGGER.error("Serialization {}", e.getMessage(), e);
       }
       return deBiasInputRecords;
     }).flatMap(Collection::stream).toList();

@@ -26,10 +26,10 @@ public class DeBiasStatusDto {
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
   private final ZonedDateTime creationDate;
 
-  @JsonProperty("total")
+  @JsonProperty("total-records")
   private final Integer total;
 
-  @JsonProperty("processed")
+  @JsonProperty("processed-records")
   private final Integer processed;
 
   /**
