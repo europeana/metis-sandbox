@@ -46,5 +46,7 @@ public interface RecordErrorLogRepository extends JpaRepository<RecordErrorLogEn
    * @param datasetId must not be null
    */
   @Modifying
+  @Query("DELETE FROM RecordErrorLogEntity ele WHERE EXISTS (SELECT 1 FROM RecordEntity rec "
+      + "WHERE rec.id = ele.recordId.id AND rec.datasetId = ?1)")
   void deleteByRecordIdDatasetId(String datasetId);
 }

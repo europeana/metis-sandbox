@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * The interface Record DeBias main repository.
@@ -26,5 +27,7 @@ public interface RecordDeBiasMainRepository extends JpaRepository<RecordDeBiasMa
    * @param datasetId the dataset id
    */
   @Modifying
+  @Query("DELETE FROM RecordDeBiasMainEntity rdm WHERE EXISTS "
+      + "(SELECT 1 FROM RecordEntity rec WHERE rec.id=rdm.recordId.id AND rec.datasetId = ?1)")
   void deleteByRecordIdDatasetId(String datasetId);
 }
