@@ -124,7 +124,8 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @param datasetId the dataset id
    * @return the total de bias counter by dataset id
    */
-  @Query("SELECT coalesce(count(rle.recordId), 0) FROM RecordLogEntity rle WHERE rle.recordId.datasetId = ?1 AND rle.step = 'NORMALIZE'")
+  @Query("SELECT coalesce(count(rle.recordId), 0) FROM RecordLogEntity rle "
+      + "WHERE rle.recordId.datasetId = ?1 AND rle.step = 'NORMALIZE'")
   int getTotalDeBiasCounterByDatasetId(String datasetId);
 
   /**
@@ -133,6 +134,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @param datasetId the dataset id
    * @return the progress de bias counter by dataset id
    */
-  @Query("SELECT coalesce(count(rle.recordId), 0) FROM RecordLogEntity rle WHERE rle.recordId.datasetId = ?1 AND rle.step = 'DEBIAS' AND rle.status = 'SUCCESS'")
+  @Query("SELECT coalesce(count(rle.recordId), 0) FROM RecordLogEntity rle "
+      + "WHERE rle.recordId.datasetId = ?1 AND rle.step = 'DEBIAS' AND rle.status = 'SUCCESS'")
   int getProgressDeBiasCounterByDatasetId(String datasetId);
 }
