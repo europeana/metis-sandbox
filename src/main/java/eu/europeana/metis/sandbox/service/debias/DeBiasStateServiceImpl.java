@@ -127,15 +127,13 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
   @Override
   public DeBiasStatusDto getDeBiasStatus(Integer datasetId) {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(datasetId);
-    Set<RecordLogEntity> recordLogDeBiasList = recordLogRepository.findRecordLogByDatasetIdAndStepAndStatus(datasetId.toString(), Step.DEBIAS, Status.SUCCESS);
-    Set<RecordLogEntity> recordLogNormalizeList = recordLogRepository.findRecordLogByDatasetIdAndStep(datasetId.toString(), Step.NORMALIZE);
+    final int progressDeBias = recordLogRepository.getProgressDeBiasCounterByDatasetId(datasetId.toString());
+    final int totalDeBias = recordLogRepository.getTotalDeBiasCounterByDatasetId(datasetId.toString());
     if (datasetDeBiasEntity == null) {
-      return new DeBiasStatusDto(datasetId, READY_STATE, ZonedDateTime.now(),
-          recordLogNormalizeList.size(), recordLogDeBiasList.size());
+      return new DeBiasStatusDto(datasetId, READY_STATE, ZonedDateTime.now(), totalDeBias, progressDeBias);
     } else {
       return new DeBiasStatusDto(datasetId, datasetDeBiasEntity.getState(),
-          datasetDeBiasEntity.getCreatedDate(), recordLogNormalizeList.size(),
-          recordLogDeBiasList.size());
+          datasetDeBiasEntity.getCreatedDate(), totalDeBias, progressDeBias);
     }
   }
 

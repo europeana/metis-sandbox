@@ -90,7 +90,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    *
    * @param recordList the records to process
    */
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   @Override
   public void process(List<Record> recordList) {
     Objects.requireNonNull(recordList, "List of records is required");
@@ -112,7 +112,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
     recordList.stream()
               .collect(groupingBy(Record::getDatasetId))
               .forEach((datasetId, records) -> {
-                LOGGER.info("Updating progress for datasetId: {}", datasetId);
+                LOGGER.info("========================Updating DeBias progress for datasetId: {}========================", datasetId);
                     records.forEach(recordToProcess ->
                         recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(), Step.DEBIAS, Status.SUCCESS));
                     updateDeBiasProgressCounters(datasetId);
@@ -121,13 +121,10 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   }
 
   private void updateDeBiasProgressCounters(String datasetId) {
-    Set<RecordLogEntity> recordLogDeBiasList = recordLogRepository
-        .findRecordLogByDatasetIdAndStepAndStatus(datasetId, Step.DEBIAS, Status.SUCCESS);
-    Set<RecordLogEntity> recordLogNormalizeList = recordLogRepository
-        .findRecordLogByDatasetIdAndStep(datasetId, Step.NORMALIZE);
-    LOGGER.info("DeBias PROGRESS datasetId: {}/{}",
-        recordLogDeBiasList.size(), recordLogNormalizeList.size());
-    if (recordLogDeBiasList.size() == recordLogNormalizeList.size()) {
+    final int totalDeBias = recordLogRepository.getTotalDeBiasCounterByDatasetId(datasetId);
+    final int progressDeBias = recordLogRepository.getProgressDeBiasCounterByDatasetId(datasetId);
+    LOGGER.info("DeBias PROGRESS datasetId: {}/{}", progressDeBias, totalDeBias);
+    if (progressDeBias == totalDeBias) {
       datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
       LOGGER.info("DeBias COMPLETED datasetId: {}", datasetId);
     } else {

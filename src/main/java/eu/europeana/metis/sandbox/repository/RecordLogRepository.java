@@ -43,7 +43,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   /**
    * Get record given a record id, dataset id and step.
    * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
-   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
+   * RecordLogEntity#getRecordId().getEuropeanaId()}* together with {@link RecordLogEntity#getStep()}.</p>
    *
    * @param recordId the record id
    * @param datasetId the dataset id
@@ -58,7 +58,7 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
   /**
    * Get set of records given a record id, dataset id and steps.
    * <p>The record id will be searched against both {@link RecordLogEntity#getRecordId().getProviderId()} and {@link
-   * RecordLogEntity#getRecordId().getEuropeanaId()} together with {@link RecordLogEntity#getStep()}.</p>
+   * RecordLogEntity#getRecordId().getEuropeanaId()}* together with {@link RecordLogEntity#getStep()}.</p>
    *
    * @param recordId the record id
    * @param datasetId the dataset id
@@ -117,4 +117,22 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    */
   @Modifying
   void deleteByRecordIdDatasetIdAndStep(String datasetId, Step step);
+
+  /**
+   * Gets total de bias counter by dataset id.
+   *
+   * @param datasetId the dataset id
+   * @return the total de bias counter by dataset id
+   */
+  @Query("SELECT coalesce(count(rle.recordId), 0) FROM RecordLogEntity rle WHERE rle.recordId.datasetId = ?1 AND rle.step = 'NORMALIZE'")
+  int getTotalDeBiasCounterByDatasetId(String datasetId);
+
+  /**
+   * Gets progress de bias counter by dataset id.
+   *
+   * @param datasetId the dataset id
+   * @return the progress de bias counter by dataset id
+   */
+  @Query("SELECT coalesce(count(rle.recordId), 0) FROM RecordLogEntity rle WHERE rle.recordId.datasetId = ?1 AND rle.step = 'DEBIAS' AND rle.status = 'SUCCESS'")
+  int getProgressDeBiasCounterByDatasetId(String datasetId);
 }
