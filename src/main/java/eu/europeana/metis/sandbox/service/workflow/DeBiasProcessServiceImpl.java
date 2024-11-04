@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -89,7 +90,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    *
    * @param recordList the records to process
    */
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
   public void process(List<Record> recordList) {
     Objects.requireNonNull(recordList, "List of records is required");
