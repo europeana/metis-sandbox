@@ -213,8 +213,8 @@ class DeBiasProcessServiceImplTest {
     verify(recordDeBiasMainRepository, times(9)).save(any());
     verify(recordDeBiasDetailRepository, times(10)).save(any());
     verify(recordLogRepository, times(2)).updateByRecordIdAndStepAndStatus(anyLong(), eq(Step.DEBIAS), eq(Status.SUCCESS));
-    verify(recordLogRepository, times(1)).findRecordLogByDatasetIdAndStepAndStatus(anyString(), eq(Step.DEBIAS), eq(Status.SUCCESS));
-    verify(recordLogRepository, times(1)).findRecordLogByDatasetIdAndStep(anyString(), eq(Step.NORMALIZE));
+    verify(recordLogRepository, times(1)).getTotalDeBiasCounterByDatasetId(anyString());
+    verify(recordLogRepository, times(1)).getProgressDeBiasCounterByDatasetId(anyString());
     verify(recordRepository, times(9)).findById(anyLong());
   }
 }
