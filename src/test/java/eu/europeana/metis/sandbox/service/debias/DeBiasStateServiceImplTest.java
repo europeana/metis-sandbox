@@ -185,10 +185,10 @@ class DeBiasStateServiceImplTest {
     when(recordDeBiasMainRepository.findByRecordIdDatasetId(anyString())).thenReturn(List.of(recordDeBiasMainEntity));
     when(recordDeBiasDetailRepository.findByDebiasIdId(anyLong())).thenReturn(List.of(recordDeBiasDetailEntity));
 
-    when(recordLogRepository.findRecordLogByDatasetIdAndStepAndStatus(datasetId.toString(), Step.DEBIAS, Status.SUCCESS))
-        .thenReturn(Set.of(new RecordLogEntity()));
-    when(recordLogRepository.findRecordLogByDatasetIdAndStep(datasetId.toString(), Step.NORMALIZE))
-        .thenReturn(Set.of(new RecordLogEntity(), new RecordLogEntity()));
+    when(recordLogRepository.getProgressDeBiasCounterByDatasetId(datasetId.toString()))
+        .thenReturn(1);
+    when(recordLogRepository.getTotalDeBiasCounterByDatasetId(datasetId.toString()))
+        .thenReturn(2);
 
     DeBiasReportDto deBiasReportDto = debiasStateServiceImpl.getDeBiasReport(datasetId);
 
