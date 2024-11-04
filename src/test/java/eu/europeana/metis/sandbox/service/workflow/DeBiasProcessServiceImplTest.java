@@ -30,11 +30,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.locks.ReentrantLock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.integration.support.locks.LockRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class DeBiasProcessServiceImplTest {
@@ -51,6 +53,8 @@ class DeBiasProcessServiceImplTest {
   RecordLogRepository recordLogRepository;
   @Mock
   RecordRepository recordRepository;
+  @Mock
+  LockRegistry lockRegistry;
 
   @InjectMocks
   DeBiasProcessServiceImpl deBiasProcessService;
@@ -199,7 +203,7 @@ class DeBiasProcessServiceImplTest {
               .datasetName("datasetName")
               .datasetId("1")
               .build());
-
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
     when(deBiasClient.detect(any(BiasInputLiterals.class)))
         .thenReturn(getDetectionDeBiasResult(Language.NL))
         .thenReturn(getDetectionDeBiasResult(Language.FR))
@@ -216,5 +220,6 @@ class DeBiasProcessServiceImplTest {
     verify(recordLogRepository, times(1)).getTotalDeBiasCounterByDatasetId(anyString());
     verify(recordLogRepository, times(1)).getProgressDeBiasCounterByDatasetId(anyString());
     verify(recordRepository, times(9)).findById(anyLong());
+    verify(lockRegistry, times(1)).obtain(anyString());
   }
 }
