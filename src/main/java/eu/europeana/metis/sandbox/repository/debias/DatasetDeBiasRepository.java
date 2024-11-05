@@ -29,4 +29,12 @@ public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEnti
   @Query("UPDATE DatasetDeBiasEntity dec SET dec.state = ?2 WHERE dec.datasetId.datasetId = ?1")
   void updateState(Integer datasetId, String state);
 
+  /**
+   * Delete by dataset id.
+   *
+   * @param datasetId the dataset id
+   */
+  @Modifying
+  @Query("DELETE FROM DatasetDeBiasEntity dec WHERE dec.datasetId.datasetId = ?1")
+  void deleteByDatasetId(String datasetId);
 }

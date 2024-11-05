@@ -58,25 +58,25 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
       datasets.forEach(dataset -> {
         try {
           // remove thumbnails (s3)
-          LOGGER.debug("Remove thumbnails for dataset id: [{}]", dataset);
+          LOGGER.info("Remove thumbnails for dataset id: [{}]", dataset);
           thumbnailStoreService.remove(dataset);
           // remove from mongo and solr
-          LOGGER.debug("Remove index for dataset id: [{}]", dataset);
+          LOGGER.info("Remove index for dataset id: [{}]", dataset);
           indexingService.remove(dataset);
           // remove from sandbox
-          LOGGER.debug("Remove record logs for dataset id: [{}]", dataset);
+          LOGGER.info("Remove record logs for dataset id: [{}]", dataset);
           recordLogService.remove(dataset);
-          LOGGER.debug("Remove records for dataset id: [{}]", dataset);
+          LOGGER.info("Remove records for dataset id: [{}]", dataset);
           recordService.remove(dataset);
-          LOGGER.debug("Remove logs for dataset id: [{}]", dataset);
+          LOGGER.info("Remove logs for dataset id: [{}]", dataset);
           datasetLogService.remove(dataset);
-          LOGGER.debug("Remove harvesting parameters for dataset id: [{}]", dataset);
+          LOGGER.info("Remove harvesting parameters for dataset id: [{}]", dataset);
           harvestingParameterService.remove(dataset);
-          LOGGER.debug("Remove problem pattern data associated with dataset id: [{}]", dataset);
+          LOGGER.info("Remove problem pattern data associated with dataset id: [{}]", dataset);
           problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
-          LOGGER.debug("Remove dataset with id: [{}]", dataset);
+          LOGGER.info("Remove dataset with id: [{}]", dataset);
           datasetService.remove(dataset);
-          LOGGER.debug("Remove debias report with id: [{}]", dataset);
+          LOGGER.info("Remove debias report with id: [{}]", dataset);
           debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
