@@ -120,8 +120,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
     recordList.stream()
               .collect(groupingBy(Record::getDatasetId))
               .forEach((datasetId, records) -> {
-                    LOGGER.info("========================Updating DeBias progress for datasetId: {}========================",
-                        datasetId);
+                    LOGGER.info("Updating DeBias record progress for datasetId: {}",datasetId);
                     records.forEach(recordToProcess ->
                         recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(), Step.DEBIAS,
                             Status.SUCCESS));
