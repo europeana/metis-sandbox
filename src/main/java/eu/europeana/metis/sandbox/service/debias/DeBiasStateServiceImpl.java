@@ -114,6 +114,7 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
     Objects.requireNonNull(datasetId, "Dataset id must not be null");
     this.recordDeBiasDetailRepository.deleteByDebiasIdRecordIdDatasetId(datasetId.toString());
     this.recordDeBiasMainRepository.deleteByRecordIdDatasetId(datasetId.toString());
+    this.datasetDeBiasRepository.deleteByDatasetId(datasetId.toString());
   }
 
   /**

@@ -107,6 +107,8 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @param datasetId must not be null
    */
   @Modifying
+  @Query("DELETE FROM RecordLogEntity rle WHERE EXISTS (SELECT 1 FROM RecordEntity rec "
+      + "WHERE rec.id = rle.recordId.id AND rec.datasetId = ?1)")
   void deleteByRecordIdDatasetId(String datasetId);
 
   /**
@@ -116,6 +118,9 @@ public interface RecordLogRepository extends JpaRepository<RecordLogEntity, Long
    * @param step the step
    */
   @Modifying
+  @Query("DELETE FROM RecordLogEntity rle WHERE "+
+      " EXISTS (SELECT 1 FROM RecordEntity rec WHERE rec.id = rle.recordId.id AND rec.datasetId = ?1)"+
+      " AND rle.step = ?2")
   void deleteByRecordIdDatasetIdAndStep(String datasetId, Step step);
 
   /**

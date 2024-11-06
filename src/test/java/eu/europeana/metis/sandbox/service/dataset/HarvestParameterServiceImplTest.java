@@ -141,12 +141,12 @@ class HarvestParameterServiceImplTest {
     @Test
     void remove_expectSuccess(){
         harvestingParameterService.remove("1");
-        verify(harvestingParameterRepository).deleteByDatasetId_DatasetId(1);
+        verify(harvestingParameterRepository).deleteByDatasetIdDatasetId(1);
     }
 
     @Test
     void remove_expectFail(){
-        doThrow(new RuntimeException("error")).when(harvestingParameterRepository).deleteByDatasetId_DatasetId(1);
+        doThrow(new RuntimeException("error")).when(harvestingParameterRepository).deleteByDatasetIdDatasetId(1);
         assertThrows(ServiceException.class, () -> harvestingParameterService.remove("1"));
     }
 
