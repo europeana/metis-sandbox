@@ -57,7 +57,7 @@ class StepExecutorTest {
 
     verify(amqpTemplate).convertAndSend(eq(routingKey), captor.capture());
 
-    assertRecordId_CreatedStepAndStatus(getRecordInfo().getRecord().getRecordId(), Status.SUCCESS);
+    assertRecordId_CreatedStepAndStatus(getRecordInfo().getRecordValue().getRecordId(), Status.SUCCESS);
   }
 
   @Test

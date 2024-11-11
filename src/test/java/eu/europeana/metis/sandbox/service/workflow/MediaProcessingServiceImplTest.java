@@ -62,7 +62,7 @@ class MediaProcessingServiceImplTest {
   @Test
   void processMedia_expectSuccess() throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -86,9 +86,9 @@ class MediaProcessingServiceImplTest {
     when(extraction2.getMetadata()).thenReturn(metadata);
     when(extraction2.getThumbnails()).thenReturn(List.of(thumbnail));
 
-    var result = service.processMedia(record);
+    var result = service.processMedia(testRecord);
 
-    assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
+    assertArrayEquals("This is new content".getBytes(), result.getRecordValue().getContent());
 
     verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
     verify(extraction1, times(2)).getThumbnails();
@@ -105,7 +105,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_getResourceExtractionResults_MediaExtractionException_expectSuccess()
       throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -119,9 +119,9 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
 
-    var result = service.processMedia(record);
+    var result = service.processMedia(testRecord);
 
-    assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
+    assertArrayEquals("This is new content".getBytes(), result.getRecordValue().getContent());
     assertFalse(result.getErrors().isEmpty());
 
     verify(extractor, times(1)).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
@@ -133,7 +133,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_getResourceExtractionResults_returnNull_expectSuccess()
       throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -148,9 +148,9 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn(content);
 
-    var result = service.processMedia(record);
+    var result = service.processMedia(testRecord);
 
-    assertArrayEquals(content, result.getRecord().getContent());
+    assertArrayEquals(content, result.getRecordValue().getContent());
 
     verifyNoMoreInteractions(thumbnailStoreService);
     verifyNoMoreInteractions(enrichedRdf);
@@ -160,7 +160,7 @@ class MediaProcessingServiceImplTest {
   void processMedia_storeThumbnails_expectSuccess()
       throws RdfDeserializationException, MediaExtractionException, RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -186,9 +186,9 @@ class MediaProcessingServiceImplTest {
     when(deserializer.getRdfForResourceEnriching(content)).thenReturn(enrichedRdf);
     when(serializer.serialize(enrichedRdf)).thenReturn("This is new content".getBytes());
 
-    var result = service.processMedia(record);
+    var result = service.processMedia(testRecord);
 
-    assertArrayEquals("This is new content".getBytes(), result.getRecord().getContent());
+    assertArrayEquals("This is new content".getBytes(), result.getRecordValue().getContent());
     assertFalse(result.getErrors().isEmpty());
 
     verify(extractor, times(2)).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
@@ -202,14 +202,14 @@ class MediaProcessingServiceImplTest {
   void processMedia_getEnrichedRdf_RdfDeserializationException_expectFail()
       throws RdfDeserializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
     when(deserializer.getRdfForResourceEnriching(content))
         .thenThrow(new RdfDeserializationException("", new Exception()));
 
-    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
+    assertThrows(RecordProcessingException.class, () -> service.processMedia(testRecord));
 
     verify(deserializer).getRdfForResourceEnriching(content);
   }
@@ -219,7 +219,7 @@ class MediaProcessingServiceImplTest {
       throws RdfDeserializationException, MediaExtractionException,
       RdfSerializationException {
     var content = "this is the content".getBytes();
-    var record = Record.builder().recordId(1L)
+    var testRecord = Record.builder().recordId(1L)
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
@@ -240,7 +240,7 @@ class MediaProcessingServiceImplTest {
     when(serializer.serialize(enrichedRdf))
         .thenThrow(new RdfSerializationException("", new Exception()));
 
-    assertThrows(RecordProcessingException.class, () -> service.processMedia(record));
+    assertThrows(RecordProcessingException.class, () -> service.processMedia(testRecord));
 
     verify(serializer).serialize(enrichedRdf);
   }

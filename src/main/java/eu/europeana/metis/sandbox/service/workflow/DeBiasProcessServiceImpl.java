@@ -13,7 +13,6 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
@@ -30,11 +29,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +62,10 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
   private final DatasetDeBiasRepository datasetDeBiasRepository;
 
+  private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
+
+  private final LockRegistry lockRegistry;
+
   /**
    * Instantiates a new DeBias process service.
    *
@@ -69,19 +75,22 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param datasetDeBiasRepository the dataset de bias repository
    * @param recordLogRepository the record log repository
    * @param recordRepository the record repository
+   * @param lockRegistry the lock registry
    */
   public DeBiasProcessServiceImpl(DeBiasClient deBiasClient,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository,
       DatasetDeBiasRepository datasetDeBiasRepository,
       RecordLogRepository recordLogRepository,
-      RecordRepository recordRepository) {
+      RecordRepository recordRepository,
+      LockRegistry lockRegistry) {
     this.deBiasClient = deBiasClient;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
     this.recordRepository = recordRepository;
     this.recordLogRepository = recordLogRepository;
     this.datasetDeBiasRepository = datasetDeBiasRepository;
+    this.lockRegistry = lockRegistry;
   }
 
   /**
@@ -110,21 +119,36 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   private void updateProgress(List<Record> recordList) {
     recordList.stream()
               .collect(groupingBy(Record::getDatasetId))
-              .forEach( (datasetId, records) -> {
-                records.forEach(recordToProcess ->
-                    recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(),Step.DEBIAS, Status.SUCCESS));
-          Set<RecordLogEntity> recordLogDeBiasList = recordLogRepository.findRecordLogByDatasetIdAndStepAndStatus(datasetId, Step.DEBIAS, Status.SUCCESS);
-          Set<RecordLogEntity> recordLogNormalizeList = recordLogRepository.findRecordLogByDatasetIdAndStep(datasetId, Step.NORMALIZE);
-          if (recordLogDeBiasList.size() == recordLogNormalizeList.size()) {
-            datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
-            LOGGER.info("DeBias COMPLETED datasetId: {}",  datasetId);
-          } else {
-            datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "PROCESSING");
-          }
-        }
-    );
-
+              .forEach((datasetId, records) -> {
+                    LOGGER.info("Updating DeBias record progress for datasetId: {}",datasetId);
+                    records.forEach(recordToProcess ->
+                        recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(), Step.DEBIAS,
+                            Status.SUCCESS));
+                    updateDeBiasProgressCounters(datasetId);
+                  }
+              );
   }
+
+  private void updateDeBiasProgressCounters(String datasetId) {
+    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasUpdateCounters_" + datasetId));
+    try {
+      lock.lock();
+      LOGGER.info("DeBias counters: {} lock, Locked", datasetId);
+      final int totalDeBias = recordLogRepository.getTotalDeBiasCounterByDatasetId(datasetId);
+      final int progressDeBias = recordLogRepository.getProgressDeBiasCounterByDatasetId(datasetId);
+      LOGGER.info("DeBias PROGRESS datasetId: {}/{}", progressDeBias, totalDeBias);
+      if (progressDeBias == totalDeBias) {
+        datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
+        LOGGER.info("DeBias COMPLETED datasetId: {}", datasetId);
+      } else {
+        datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "PROCESSING");
+      }
+    } finally {
+      lock.unlock();
+      LOGGER.info("DeBias counters: {} lock, Unlocked", datasetId);
+    }
+  }
+
   /**
    * Do DeBias and generate report.
    *
@@ -132,7 +156,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param deBiasReport the DeBias report
    */
   private void doDeBiasAndGenerateReport(List<Record> recordList, List<DeBiasReportRow> deBiasReport) {
-    getDeBiasSourceFieldsFromRecords(recordList)
+    List<DeBiasInputRecord> deBiasSourceFieldsFromRecords = getDeBiasSourceFieldsFromRecords(recordList);
+    deBiasSourceFieldsFromRecords
         .stream()
         .collect(groupingBy(DeBiasInputRecord::language))
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
@@ -229,6 +254,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
       } catch (SerializationException e) {
         deBiasInputRecords = Collections.emptyList();
+        LOGGER.error("Serialization {}", e.getMessage(), e);
       }
       return deBiasInputRecords;
     }).flatMap(Collection::stream).toList();

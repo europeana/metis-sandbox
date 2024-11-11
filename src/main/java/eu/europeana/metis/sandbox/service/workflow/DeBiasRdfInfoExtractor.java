@@ -128,6 +128,33 @@ public class DeBiasRdfInfoExtractor {
   }
 
   /**
+   * Gets contextual class labels by rdf about.
+   *
+   * @return the contextual class labels by rdf about
+   */
+  private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout() {
+    final Map<String, List<PrefLabel>> result = new HashMap<>();
+    Optional.ofNullable(rdf.getAgentList())
+            .stream().flatMap(Collection::stream)
+            .forEach(agent -> result.put(agent.getAbout(), agent.getPrefLabelList()));
+    Optional.ofNullable(rdf.getConceptList()).stream().flatMap(Collection::stream).forEach(
+        concept -> result.put(concept.getAbout(),
+            Optional.ofNullable(concept.getChoiceList())
+                    .stream().flatMap(Collection::stream).filter(Concept.Choice::ifPrefLabel)
+                    .map(Concept.Choice::getPrefLabel).filter(Objects::nonNull).toList()));
+    Optional.ofNullable(rdf.getOrganizationList())
+            .stream().flatMap(Collection::stream)
+            .forEach(organization -> result.put(organization.getAbout(), organization.getPrefLabelList()));
+    Optional.ofNullable(rdf.getPlaceList())
+            .stream().flatMap(Collection::stream)
+            .forEach(place -> result.put(place.getAbout(), place.getPrefLabelList()));
+    Optional.ofNullable(rdf.getTimeSpanList())
+            .stream().flatMap(Collection::stream)
+            .forEach(timespan -> result.put(timespan.getAbout(), timespan.getPrefLabelList()));
+    return result;
+  }
+
+  /**
    * Gets descriptions and language from rdf.
    *
    * @return the descriptions and language from rdf
@@ -242,33 +269,6 @@ public class DeBiasRdfInfoExtractor {
   }
 
   /**
-   * Gets contextual class labels by rdf about.
-   *
-   * @return the contextual class labels by rdf about
-   */
-  private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout() {
-    final Map<String, List<PrefLabel>> result = new HashMap<>();
-    Optional.ofNullable(rdf.getAgentList())
-            .stream().flatMap(Collection::stream)
-            .forEach(agent -> result.put(agent.getAbout(), agent.getPrefLabelList()));
-    Optional.ofNullable(rdf.getConceptList()).stream().flatMap(Collection::stream).forEach(
-        concept -> result.put(concept.getAbout(),
-            Optional.ofNullable(concept.getChoiceList())
-                    .stream().flatMap(Collection::stream).filter(Concept.Choice::ifPrefLabel)
-                    .map(Concept.Choice::getPrefLabel).filter(Objects::nonNull).toList()));
-    Optional.ofNullable(rdf.getOrganizationList())
-            .stream().flatMap(Collection::stream)
-            .forEach(organization -> result.put(organization.getAbout(), organization.getPrefLabelList()));
-    Optional.ofNullable(rdf.getPlaceList())
-            .stream().flatMap(Collection::stream)
-            .forEach(place -> result.put(place.getAbout(), place.getPrefLabelList()));
-    Optional.ofNullable(rdf.getTimeSpanList())
-            .stream().flatMap(Collection::stream)
-            .forEach(timespan -> result.put(timespan.getAbout(), timespan.getPrefLabelList()));
-    return result;
-  }
-
-  /**
    * Partition list stream.
    *
    * @param <T> the type parameter
@@ -279,7 +279,7 @@ public class DeBiasRdfInfoExtractor {
   static <T> Stream<List<T>> partitionList(List<T> sourceList, int partitionSize) {
     if (partitionSize <= 0) {
       throw new IllegalArgumentException(
-          String.format("The partition size cannot be smaller than 0. Actual value: %s", partitionSize));
+          String.format("The partition size cannot be smaller than or equal 0. Actual value: %s", partitionSize));
     }
     if (sourceList.isEmpty()) {
       return Stream.empty();
@@ -287,7 +287,7 @@ public class DeBiasRdfInfoExtractor {
     int partitions = (sourceList.size() - 1) / partitionSize;
     return IntStream.rangeClosed(0, partitions).mapToObj(partition -> {
       int startIndex = partition * partitionSize;
-      int endIndex = (partition == partitions) ? sourceList.size() : (partition + 1) * partitionSize;
+      int endIndex = (partition == partitions) ? sourceList.size() : ((partition + 1) * partitionSize);
       return sourceList.subList(startIndex, endIndex);
     });
   }

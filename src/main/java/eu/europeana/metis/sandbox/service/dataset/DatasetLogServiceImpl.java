@@ -6,11 +6,8 @@ import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.entity.DatasetLogEntity;
 import eu.europeana.metis.sandbox.repository.DatasetLogRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +74,7 @@ public class DatasetLogServiceImpl implements DatasetLogService {
         return datasetLogRepository.findByDatasetDatasetId(Integer.parseInt(datasetId))
                 .stream()
                 .map(entity -> new DatasetLogDto(entity.getMessage(), entity.getStatus()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Throwable unwrapFromCompletionException(Throwable exception) {

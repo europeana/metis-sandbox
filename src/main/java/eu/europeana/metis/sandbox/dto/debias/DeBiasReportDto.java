@@ -27,38 +27,13 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @param datasetId the dataset id
    * @param state the state
    * @param creationDate the creation date
+   * @param total the total records
+   * @param processed the processed records
    * @param deBiasReportRowList the de bias report row list
    */
-  public DeBiasReportDto(Integer datasetId, String state, ZonedDateTime creationDate, List<DeBiasReportRow> deBiasReportRowList) {
-    super(datasetId, state, creationDate);
-    this.deBiasReportRowList = deBiasReportRowList;
-  }
-
-  /**
-   * Gets dataset id.
-   *
-   * @return the dataset id
-   */
-  public Integer getDatasetId() {
-    return super.getDatasetId();
-  }
-
-  /**
-   * Gets state.
-   *
-   * @return the state
-   */
-  public String getState() {
-    return super.getState();
-  }
-
-  /**
-   * Gets creation date.
-   *
-   * @return the creation date
-   */
-  public ZonedDateTime getCreationDate() {
-    return super.getCreationDate();
+  public DeBiasReportDto(Integer datasetId, String state, ZonedDateTime creationDate, int total, int processed, List<DeBiasReportRow> deBiasReportRowList) {
+    super(datasetId, state, creationDate, total, processed);
+    this.deBiasReportRowList = Collections.unmodifiableList(deBiasReportRowList);
   }
 
   /**

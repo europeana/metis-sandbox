@@ -18,9 +18,9 @@ class OrderingServiceImpl implements OrderingService {
   }
 
   @Override
-  public byte[] performOrdering(byte[] record) throws TransformationException {
-    requireNonNull(record, "Record must not be null");
-    return getEdmSorter().transformToBytes(record, null);
+  public byte[] performOrdering(byte[] recordToOrder) throws TransformationException {
+    requireNonNull(recordToOrder, "Record must not be null");
+    return getEdmSorter().transformToBytes(recordToOrder, null);
   }
 
   private XsltTransformer getEdmSorter() {

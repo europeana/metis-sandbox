@@ -36,6 +36,8 @@ public class DeBiasConfig {
    * @param datasetRepository the dataset repository
    * @param recordLogRepository the record log repository
    * @param recordDeBiasPublishable the record publishable
+   * @param recordDeBiasMainRepository the record de bias main repository
+   * @param recordDeBiasDetailRepository the record de bias detail repository
    * @return the detect service
    */
   @Bean

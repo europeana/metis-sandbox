@@ -30,11 +30,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -45,7 +43,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -172,7 +169,7 @@ public class PatternAnalysisController {
                                 .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
                                 .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
                                 .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
-                                .collect(Collectors.toList()),
+                                .toList(),
                         HttpStatus.OK);
     }
 
@@ -187,7 +184,6 @@ public class PatternAnalysisController {
     @ApiResponse(responseCode = "404", description = "Not able to retrieve all timestamps values")
     @GetMapping(value = "execution-timestamps", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
     public Set<LocalDateTime> getAllExecutionTimestamps() {
         return executionPointService.getAllExecutionTimestamps();
     }
@@ -250,7 +246,7 @@ public class PatternAnalysisController {
                     .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
                     .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
                     .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 
@@ -267,7 +263,7 @@ public class PatternAnalysisController {
                     problemPattern.getRecordAnalysisList()
                             .stream()
                             .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
-                            .collect(Collectors.toList()));
+                            .toList());
         }
 
         /**
@@ -286,9 +282,9 @@ public class PatternAnalysisController {
                                         recordAnalysis.getProblemOccurrenceList()
                                                 .stream()
                                                 .map(problemOccurrence -> new ProblemOccurrence("", problemOccurrence.getAffectedRecordIds()))
-                                                .collect(Collectors.toList())
+                                                .toList()
                                 ))
-                                .collect(Collectors.toList()));
+                                .toList());
             } else {
                 return problemPattern;
             }

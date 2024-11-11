@@ -44,20 +44,20 @@ public final class Record {
   /**
    * Creates a record based on the provided record but replacing the content with the one provided
    *
-   * @param record must not be null
+   * @param recordValue must not be null
    * @param content must not be null. Xml representation of the record
    * @return record object
    */
-  public static Record from(Record record, byte[] content) {
+  public static Record from(Record recordValue, byte[] content) {
 
     return Record.builder()
-        .recordId(record.getRecordId())
-        .europeanaId(record.getEuropeanaId())
-        .datasetId(record.getDatasetId())
-        .datasetName(record.getDatasetName())
+        .recordId(recordValue.getRecordId())
+        .europeanaId(recordValue.getEuropeanaId())
+        .datasetId(recordValue.getDatasetId())
+        .datasetName(recordValue.getDatasetName())
         .content(content)
-        .country(record.getCountry())
-        .language(record.getLanguage())
+        .country(recordValue.getCountry())
+        .language(recordValue.getLanguage())
         .build();
   }
 
@@ -130,10 +130,10 @@ public final class Record {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    Record record = (Record) o;
+    Record recordToCompare = (Record) o;
     return
-        recordId.equals(record.recordId) &&
-            datasetId.equals(record.datasetId);
+        recordId.equals(recordToCompare.recordId) &&
+            datasetId.equals(recordToCompare.datasetId);
   }
 
   @Override

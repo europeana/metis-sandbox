@@ -426,10 +426,10 @@ class DatasetController {
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
         ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
-        if (Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
-                    .map(DeBiasStatusDto::getState)
-                    .orElse("").equals("READY")
-            && progressInfoDto.getStatus().equals(Status.COMPLETED)) {
+        if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
+            "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
+                                   .map(DeBiasStatusDto::getState)
+                                   .orElse(""))) {
             debiasStateService.cleanDeBiasReport(datasetId);
             return debiasStateService.process(datasetId);
         } else {

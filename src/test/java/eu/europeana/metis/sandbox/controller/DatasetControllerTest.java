@@ -849,14 +849,16 @@ class DatasetControllerTest {
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
     when(deBiasStateService.getDeBiasStatus(datasetId))
-        .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime));
+        .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime, 1, 1));
 
     mvc.perform(get("/dataset/{id}/debias/info", datasetId))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.dataset-id", is(datasetId)))
        .andExpect(jsonPath("$.state", is(status)))
        .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))));
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+       .andExpect(jsonPath("$.total-records", is(1)))
+       .andExpect(jsonPath("$.processed-records", is(1)));
   }
 
   @ParameterizedTest
@@ -866,14 +868,16 @@ class DatasetControllerTest {
     final ZonedDateTime dateTime = ZonedDateTime.now();
 
     when(deBiasStateService.getDeBiasReport(datasetId))
-        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, List.of()));
+        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, 1, 1, List.of()));
 
     mvc.perform(get("/dataset/{id}/debias/report", datasetId))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.dataset-id", is(datasetId)))
        .andExpect(jsonPath("$.state", is(status)))
        .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))));
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+       .andExpect(jsonPath("$.total-records", is(1)))
+       .andExpect(jsonPath("$.processed-records", is(1)));
   }
 
   @ParameterizedTest
@@ -883,7 +887,7 @@ class DatasetControllerTest {
     when(datasetReportService.getReport(datasetId.toString())).thenReturn(
         new ProgressInfoDto("url",1L,1L,
         List.of(), false,"",List.of(),null));
-    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now()));
+    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now(), 1, 1));
     when(deBiasStateService.process(datasetId)).thenReturn(process);
     mvc.perform(post("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())

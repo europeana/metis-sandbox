@@ -21,18 +21,18 @@ class NormalizationServiceImpl implements NormalizationService {
   }
 
   @Override
-  public RecordInfo normalize(Record record) {
-    requireNonNull(record, "Record must not be null");
+  public RecordInfo normalize(Record recordToNormalize) {
+    requireNonNull(recordToNormalize, "Record must not be null");
 
     final Normalizer normalizer;
     final byte[] result;
     try {
       normalizer = normalizerFactory.getNormalizer();
-      result = normalizer.normalize(record.getContentInputStream());
+      result = normalizer.normalize(recordToNormalize.getContentInputStream());
     } catch (NormalizationConfigurationException | NormalizationException e) {
-      throw new RecordProcessingException(record.getProviderId(), e);
+      throw new RecordProcessingException(recordToNormalize.getProviderId(), e);
     }
 
-    return new RecordInfo(Record.from(record, result));
+    return new RecordInfo(Record.from(recordToNormalize, result));
   }
 }

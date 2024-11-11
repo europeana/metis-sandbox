@@ -51,34 +51,74 @@ public class DatasetDeBiasEntity {
     this.state = state;
   }
 
+  /**
+   * Gets id.
+   *
+   * @return the id
+   */
   public Long getId() {
     return id;
   }
 
+  /**
+   * Sets id.
+   *
+   * @param id the id
+   */
   public void setId(Long id) {
     this.id = id;
   }
 
+  /**
+   * Gets dataset id.
+   *
+   * @return the dataset id
+   */
   public DatasetEntity getDatasetId() {
     return datasetId;
   }
 
+  /**
+   * Sets dataset id.
+   *
+   * @param datasetId the dataset id
+   */
   public void setDatasetId(DatasetEntity datasetId) {
     this.datasetId = datasetId;
   }
 
+  /**
+   * Gets state.
+   *
+   * @return the state
+   */
   public String getState() {
     return state;
   }
 
+  /**
+   * Sets state.
+   *
+   * @param state the state
+   */
   public void setState(String state) {
     this.state = state;
   }
 
+  /**
+   * Gets created date.
+   *
+   * @return the created date
+   */
   public ZonedDateTime getCreatedDate() {
     return createdDate;
   }
 
+  /**
+   * Sets created date.
+   *
+   * @param createdDate the created date
+   */
   public void setCreatedDate(ZonedDateTime createdDate) {
     this.createdDate = createdDate;
   }

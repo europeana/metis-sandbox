@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
