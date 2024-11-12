@@ -88,6 +88,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           // remove from sandbox
           LOGGER.info("Remove record logs for dataset id: [{}]", dataset);
           recordLogService.remove(dataset);
+          LOGGER.info("Remove debias report with id: [{}]", dataset);
+          debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
           LOGGER.info("Remove records for dataset id: [{}]", dataset);
           recordService.remove(dataset);
           LOGGER.info("Remove logs for dataset id: [{}]", dataset);
@@ -98,8 +100,6 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
           LOGGER.info("Remove dataset with id: [{}]", dataset);
           datasetService.remove(dataset);
-          LOGGER.info("Remove debias report with id: [{}]", dataset);
-          debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
         }
