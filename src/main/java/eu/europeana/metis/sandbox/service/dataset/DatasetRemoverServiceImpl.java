@@ -6,12 +6,16 @@ import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemo
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
+import eu.europeana.metis.sandbox.service.util.VacuumService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * The type Dataset remover service.
+ */
 @Service
 class DatasetRemoverServiceImpl implements DatasetRemoverService {
 
@@ -26,6 +30,22 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   private final ProblemPatternDataRemover problemPatternDataRemover;
   private final HarvestingParameterService harvestingParameterService;
   private final DeBiasStateService debiasStateService;
+  private final VacuumService vacuumService;
+
+  /**
+   * Instantiates a new Dataset remover service.
+   *
+   * @param datasetService the dataset service
+   * @param datasetLogService the dataset log service
+   * @param recordLogService the record log service
+   * @param indexingService the indexing service
+   * @param thumbnailStoreService the thumbnail store service
+   * @param recordService the record service
+   * @param problemPatternDataRemover the problem pattern data remover
+   * @param harvestingParameterService the harvesting parameter service
+   * @param debiasStateService the debias state service
+   * @param vacuumService the vacuum service
+   */
   DatasetRemoverServiceImpl(
           DatasetService datasetService,
           DatasetLogService datasetLogService,
@@ -35,7 +55,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           RecordService recordService,
           ProblemPatternDataRemover problemPatternDataRemover,
           HarvestingParameterService harvestingParameterService,
-          DeBiasStateService debiasStateService) {
+          DeBiasStateService debiasStateService,
+          VacuumService vacuumService) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
     this.recordLogService = recordLogService;
@@ -45,6 +66,7 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
     this.problemPatternDataRemover = problemPatternDataRemover;
     this.harvestingParameterService = harvestingParameterService;
     this.debiasStateService = debiasStateService;
+    this.vacuumService = vacuumService;
   }
 
   @Override
@@ -66,6 +88,8 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           // remove from sandbox
           LOGGER.info("Remove record logs for dataset id: [{}]", dataset);
           recordLogService.remove(dataset);
+          LOGGER.info("Remove debias report with id: [{}]", dataset);
+          debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
           LOGGER.info("Remove records for dataset id: [{}]", dataset);
           recordService.remove(dataset);
           LOGGER.info("Remove logs for dataset id: [{}]", dataset);
@@ -76,12 +100,12 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           problemPatternDataRemover.removeProblemPatternDataFromDatasetId(dataset);
           LOGGER.info("Remove dataset with id: [{}]", dataset);
           datasetService.remove(dataset);
-          LOGGER.info("Remove debias report with id: [{}]", dataset);
-          debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
         }
       });
+      LOGGER.info("Data removal completed, performing vacuum cleaning...");
+      vacuumService.vacuum();
     } catch (RuntimeException exception) {
       LOGGER.error("General failure to remove dataset", exception);
     }
