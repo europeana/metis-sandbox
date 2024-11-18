@@ -47,15 +47,13 @@ public class DeBiasConfig {
       RecordLogRepository recordLogRepository,
       RecordDeBiasPublishable recordDeBiasPublishable,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
-      RecordDeBiasDetailRepository recordDeBiasDetailRepository,
-      LockRegistry lockRegistry) {
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
     return new DeBiasStateServiceImpl(datasetDeBiasRepository,
         datasetRepository,
         recordLogRepository,
         recordDeBiasPublishable,
         recordDeBiasMainRepository,
-        recordDeBiasDetailRepository,
-        lockRegistry);
+        recordDeBiasDetailRepository);
   }
 
   /**
