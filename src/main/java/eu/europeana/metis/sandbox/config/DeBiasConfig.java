@@ -13,6 +13,7 @@ import eu.europeana.metis.sandbox.service.debias.RecordDeBiasPublishable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.support.locks.LockRegistry;
 
 /**
  * The type DeBias config.
@@ -46,13 +47,15 @@ public class DeBiasConfig {
       RecordLogRepository recordLogRepository,
       RecordDeBiasPublishable recordDeBiasPublishable,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
-      RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository,
+      LockRegistry lockRegistry) {
     return new DeBiasStateServiceImpl(datasetDeBiasRepository,
         datasetRepository,
         recordLogRepository,
         recordDeBiasPublishable,
         recordDeBiasMainRepository,
-        recordDeBiasDetailRepository);
+        recordDeBiasDetailRepository,
+        lockRegistry);
   }
 
   /**

@@ -22,10 +22,14 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -41,6 +45,8 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
   private final DatasetRepository datasetRepository;
   private final RecordLogRepository recordLogRepository;
   private final RecordDeBiasPublishable recordDeBiasPublishable;
+  private final Map<Integer, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
+  private final LockRegistry lockRegistry;
 
   /**
    * Instantiates a new DeBias detect service.
@@ -51,26 +57,33 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
    * @param recordDeBiasPublishable the record publishable
    * @param recordDeBiasMainRepository the record de bias main repository
    * @param recordDeBiasDetailRepository the record de bias detail repository
+   * @param lockRegistry the lock registry
    */
   public DeBiasStateServiceImpl(DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
       RecordLogRepository recordLogRepository,
       RecordDeBiasPublishable recordDeBiasPublishable,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
-      RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository,
+      LockRegistry lockRegistry) {
     this.datasetDeBiasRepository = datasetDeBiasRepository;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
     this.datasetRepository = datasetRepository;
     this.recordLogRepository = recordLogRepository;
     this.recordDeBiasPublishable = recordDeBiasPublishable;
+    this.lockRegistry = lockRegistry;
   }
 
   @Transactional
   @Override
   public boolean process(Integer datasetId) {
+    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
     LOGGER.info("{} {}", READY_STATE, datasetId);
+
     try {
+      lock.lock();
+      LOGGER.info("DeBias processing: {} lock, Locked", datasetId);
       DatasetDeBiasEntity dataset = getDatasetDeBiasEntity(datasetId);
 
       processDatasetAndPublishToDeBiasReadyQueue(dataset);
@@ -79,6 +92,9 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
     } catch (RuntimeException e) {
       LOGGER.warn("fail {} {}", READY_STATE, datasetId, e);
       return false;
+    } finally {
+      lock.unlock();
+      LOGGER.info("DeBias processing: {} lock, Unlocked", datasetId);
     }
     return true;
   }
