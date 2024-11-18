@@ -34,13 +34,11 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.integration.support.locks.LockRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class DeBiasStateServiceImplTest {
@@ -63,9 +61,6 @@ class DeBiasStateServiceImplTest {
   @Mock
   RecordDeBiasDetailRepository recordDeBiasDetailRepository;
 
-  @Mock
-  LockRegistry lockRegistry;
-
   @InjectMocks
   DeBiasStateServiceImpl debiasStateServiceImpl;
 
@@ -77,7 +72,7 @@ class DeBiasStateServiceImplTest {
     datasetDeBiasEntity.setCreatedDate(ZonedDateTime.now());
 
     when(datasetRepository.findById(anyInt())).thenThrow(NoSuchElementException.class);
-    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
+
     boolean result = debiasStateServiceImpl.process(datasetId);
 
     assertFalse(result);
@@ -87,7 +82,6 @@ class DeBiasStateServiceImplTest {
     verify(datasetDeBiasRepository, times(0)).updateState(anyInt(), anyString());
     verify(recordLogRepository, times(0)).findRecordLogByDatasetIdAndStep(anyString(),any());
     verify(recordDeBiasPublishable, times(0)).publishToDeBiasQueue(any());
-    verify(lockRegistry, times(1)).obtain(anyString());
   }
 
 
@@ -113,7 +107,7 @@ class DeBiasStateServiceImplTest {
         .thenReturn(null)
         .thenReturn(datasetDeBiasEntity)
         .thenReturn(datasetDeBiasEntity);
-    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
+
     boolean result = debiasStateServiceImpl.process(datasetId);
 
     assertTrue(result);
@@ -123,7 +117,6 @@ class DeBiasStateServiceImplTest {
     verify(datasetDeBiasRepository, times(0)).updateState(anyInt(), anyString());
     verify(recordLogRepository, times(1)).findRecordLogByDatasetIdAndStep(anyString(),any());
     verify(recordDeBiasPublishable, times(1)).publishToDeBiasQueue(any());
-    verify(lockRegistry, times(1)).obtain(anyString());
   }
 
   @Test
@@ -138,7 +131,7 @@ class DeBiasStateServiceImplTest {
     when(datasetRepository.findById(anyInt())).thenReturn(Optional.of(datasetEntity));
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(anyInt()))
         .thenThrow(new RuntimeException("Error"));
-    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
+
     boolean result = debiasStateServiceImpl.process(datasetId);
 
     assertFalse(result);
@@ -146,7 +139,6 @@ class DeBiasStateServiceImplTest {
     verify(datasetDeBiasRepository, times(1)).findDetectionEntityByDatasetIdDatasetId(datasetId);
     verify(datasetDeBiasRepository, times(0)).save(any(DatasetDeBiasEntity.class));
     verify(datasetDeBiasRepository, times(0)).updateState(anyInt(), anyString());
-    verify(lockRegistry, times(1)).obtain(anyString());
   }
 
   @Test
