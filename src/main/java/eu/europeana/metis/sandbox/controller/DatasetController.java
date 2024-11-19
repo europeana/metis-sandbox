@@ -47,12 +47,18 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,6 +102,7 @@ class DatasetController {
     private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
 
     private static final String APPLICATION_RDF_XML = "application/rdf+xml";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetController.class);
 
     private final DatasetService datasetService;
     private final DatasetLogService datasetLogService;
@@ -106,6 +113,8 @@ class DatasetController {
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
     private final DeBiasStateService debiasStateService;
+    private final Map<Integer, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
+    private final LockRegistry lockRegistry;
 
     /**
      * Instantiates a new Dataset controller.
@@ -118,11 +127,13 @@ class DatasetController {
      * @param recordTierCalculationService the record tier calculation service
      * @param harvestPublishService the harvest publish service
      * @param debiasStateService the debias detect service
+     * @param lockRegistry the lock registry
      */
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService, DeBiasStateService debiasStateService) {
+                             HarvestPublishService harvestPublishService, DeBiasStateService debiasStateService,
+                             LockRegistry lockRegistry) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -132,6 +143,7 @@ class DatasetController {
         this.harvestPublishService = harvestPublishService;
         urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
         this.debiasStateService = debiasStateService;
+        this.lockRegistry = lockRegistry;
     }
 
     /**
@@ -425,15 +437,23 @@ class DatasetController {
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public boolean processDeBias(@PathVariable("id") Integer datasetId) {
-        ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
-        if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
-            "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
-                                   .map(DeBiasStatusDto::getState)
-                                   .orElse(""))) {
-            debiasStateService.cleanDeBiasReport(datasetId);
-            return debiasStateService.process(datasetId);
-        } else {
-            return false;
+        final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
+        try {
+            lock.lock();
+            LOGGER.info("DeBias process: {} lock, Locked", datasetId);
+            ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
+            if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
+                "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
+                                       .map(DeBiasStatusDto::getState)
+                                       .orElse(""))) {
+                debiasStateService.cleanDeBiasReport(datasetId);
+                return debiasStateService.process(datasetId);
+            } else {
+                return false;
+            }
+        } finally {
+            lock.unlock();
+            LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
         }
     }
 
