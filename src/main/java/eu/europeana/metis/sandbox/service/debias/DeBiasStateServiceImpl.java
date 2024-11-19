@@ -26,7 +26,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -67,7 +66,7 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
     this.recordDeBiasPublishable = recordDeBiasPublishable;
   }
 
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional
   @Override
   public boolean process(Integer datasetId) {
     LOGGER.info("{} {}", READY_STATE, datasetId);
