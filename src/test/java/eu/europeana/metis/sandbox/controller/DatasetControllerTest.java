@@ -70,6 +70,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +83,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -122,6 +124,9 @@ class DatasetControllerTest {
 
   @MockBean
   private HarvestPublishService harvestPublishService;
+
+  @MockBean
+  private LockRegistry lockRegistry;
 
   @Mock
   private CompletableFuture<Void> asyncResult;
@@ -889,6 +894,7 @@ class DatasetControllerTest {
         List.of(), false,"",List.of(),null));
     when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now(), 1, 1));
     when(deBiasStateService.process(datasetId)).thenReturn(process);
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
     mvc.perform(post("/dataset/{id}/debias", datasetId))
        .andExpect(status().isOk())
        .andExpect(content().string(String.valueOf(process)));
