@@ -164,6 +164,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
             // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
             partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE).forEach(partition -> {
               BiasInputLiterals biasInputLiterals = new BiasInputLiterals();
+              biasInputLiterals.setUseLLM(true);
+              biasInputLiterals.setUseNER(true);
               biasInputLiterals.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
               biasInputLiterals.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
               try {
