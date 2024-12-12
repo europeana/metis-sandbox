@@ -32,7 +32,7 @@
   <properties>
     <version.java>21</version.java>
     <version.springdoc-openapi-starter-webmvc-ui>2.3.0</version.springdoc-openapi-starter-webmvc-ui>
-    <version.metis>14-SNAPSHOT</version.metis>
+    <version.metis>15-SNAPSHOT</version.metis>
     <version.metis.normalization>14-SNAPSHOT</version.metis.normalization>
     <version.spring.boot>3.2.3</version.spring.boot>
     <version.europeana>2.16.7</version.europeana>

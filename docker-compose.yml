@@ -18,7 +18,7 @@ services:
       - ./src/main/resources/database/schema_lockrepository.sql:/docker-entrypoint-initdb.d/schema_lockrepository.sql
       - ./src/main/resources/database/schema_validation.sql:/docker-entrypoint-initdb.d/schema_validation.sql
   rabbitmq:
-    image: rabbitmq:3.9.12-management
+    image: rabbitmq:3.11.2-management-alpine
     container_name: metis-sandbox-rabbitmq
     environment:
       - RABBIT_DEFAULT_VHOST=/
@@ -28,7 +28,7 @@ services:
       - '5672:5672'
       - '15672:15672'
   mongo:
-    image: mongo:4.2.9
+    image: mongo:6.0.12
     container_name: metis-sandbox-mongo
     environment:
       MONGO_INITDB_DATABASE: metis-sandbox
@@ -36,6 +36,34 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: guest
     ports:
       - '27017:27017'
+  solr:
+    build:
+      context: docker/solr/
+      dockerfile: Dockerfile
+    container_name: metis-sandbox-solr
+    restart: always
+    ports:
+      - "8983:8983"
+      - "9983:9983"
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr
+      - start
+      - -c
+      - -f
+  minio:
+    image: minio/minio
+    container_name: metis-sandbox-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: sandbox
+      MINIO_ROOT_PASSWORD: metis-sandbox
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - .data/minio:/data
+    command: minio server /data/minio --console-address ":9001"
   metis-sandbox-local:
     image: europeana/metis-sandbox:develop
     container_name: metis-sandbox-local

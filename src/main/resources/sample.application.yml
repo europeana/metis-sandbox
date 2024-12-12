@@ -138,6 +138,7 @@ sandbox:
     endpoint:
     signing-region:
     thumbnails-bucket:
+    local-enabled: true
   portal:
     publish:
       dataset-base-url:
