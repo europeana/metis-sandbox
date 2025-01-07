@@ -52,7 +52,7 @@ public class ProgressInfoDto {
                            List<DatasetLogDto> datasetLogs, TiersZeroInfo tiersZeroInfo) {
         this.processedRecords = processedRecords;
         this.tiersZeroInfo = tiersZeroInfo;
-        if (!errorType.equals("")) {
+        if (!errorType.isEmpty()) {
             this.status = Status.FAILED;
             this.totalRecords = totalRecords != null ? totalRecords : 0L;
         } else if (totalRecords == null) {
@@ -66,7 +66,7 @@ public class ProgressInfoDto {
             this.totalRecords = totalRecords;
         }
         this.datasetLogs = datasetLogs;
-        this.progressByStep = Collections.unmodifiableList(progressByStep);
+        this.progressByStep = progressByStep.stream().filter(s -> s.getStep()!=Step.DEBIAS).toList();
         this.recordLimitExceeded = recordLimitExceeded;
         this.errorType = errorType;
         this.recordsPublishedSuccessfully =
@@ -92,7 +92,7 @@ public class ProgressInfoDto {
     }
 
     public List<ProgressByStepDto> getProgressByStep() {
-        return progressByStep;
+        return Collections.unmodifiableList(progressByStep);
     }
 
     public boolean getRecordLimitExceeded() {

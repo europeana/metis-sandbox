@@ -62,7 +62,7 @@ public class HarvestingParameterServiceImpl implements HarvestingParameterServic
     public void remove(String datasetId) {
         requireNonNull(datasetId, "Dataset id must not be null");
         try {
-            harvestingParameterRepository.deleteByDatasetId_DatasetId(Integer.parseInt(datasetId));
+            harvestingParameterRepository.deleteByDatasetIdDatasetId(Integer.parseInt(datasetId));
         } catch (RuntimeException e) {
             throw new ServiceException(
                     format("Error removing records for dataset id: [%s]. ", datasetId), e);

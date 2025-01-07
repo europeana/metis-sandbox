@@ -11,14 +11,12 @@ import eu.europeana.metis.sandbox.repository.RecordJdbcRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service to modify Records in database
@@ -50,7 +48,7 @@ public class RecordServiceImpl implements RecordService {
     return recordEntities.stream()
             .filter(this::areAllTierValuesNotNullOrEmpty)
             .map(RecordTiersInfoDto::new)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Override
@@ -84,20 +82,22 @@ public class RecordServiceImpl implements RecordService {
   }
 
   private void handleUpdateQueryResult(int updatedRecords, String providerId, String europeanaId, Record recordToUpdate){
-    if (updatedRecords == 0) {
-      LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
-      throw new RecordDuplicatedException(
-              String.format("Duplicated record has been found: ProviderId: %s | EuropeanaId: %s", providerId, europeanaId));
-
-    } else if(updatedRecords == -1) {
-      LOGGER.debug("Primary key in record table is corrupted (dataset_id,provider_id,europeana_id)");
-      throw new ServiceException("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)"
-              + ". providerId & europeanaId updated multiple times", null);
-
-    } else {
-      LOGGER.debug("Setting ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
-      recordToUpdate.setEuropeanaId(europeanaId);
-      recordToUpdate.setProviderId(providerId);
+    switch (updatedRecords) {
+      case 0 -> {
+        LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
+        throw new RecordDuplicatedException(
+            String.format("Duplicated record has been found: ProviderId: %s | EuropeanaId: %s", providerId, europeanaId));
+      }
+      case -1 -> {
+        LOGGER.debug("Primary key in record table is corrupted (dataset_id,provider_id,europeana_id)");
+        throw new ServiceException("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)"
+            + ". providerId & europeanaId updated multiple times", null);
+      }
+      default -> {
+        LOGGER.debug("Setting ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
+        recordToUpdate.setEuropeanaId(europeanaId);
+        recordToUpdate.setProviderId(providerId);
+      }
     }
   }
 

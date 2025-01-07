@@ -8,10 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
+import eu.europeana.metis.sandbox.service.util.VacuumService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,12 @@ class DatasetRemoverServiceImplTest {
   @Mock
   private HarvestingParameterService harvestingParameterService;
 
+  @Mock
+  private DeBiasStateService deBiasStateService;
+
+  @Mock
+  private VacuumService vacuumService;
+
   @InjectMocks
   private DatasetRemoverServiceImpl service;
 
@@ -65,6 +73,8 @@ class DatasetRemoverServiceImplTest {
     verify(datasetLogService, times(4)).remove(anyString());
     verify(recordService, times(4)).remove(anyString());
     verify(problemPatternDataRemover, times(4)).removeProblemPatternDataFromDatasetId(anyString());
+    verify(deBiasStateService, times(4)).cleanDeBiasReport(anyInt());
+    verify(vacuumService, times(1)).vacuum();
   }
 
   @Test
@@ -86,6 +96,7 @@ class DatasetRemoverServiceImplTest {
     verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());
     verify(problemPatternDataRemover, times(3)).removeProblemPatternDataFromDatasetId(anyString());
+    verify(deBiasStateService, times(3)).cleanDeBiasReport(anyInt());
   }
 
   @Test

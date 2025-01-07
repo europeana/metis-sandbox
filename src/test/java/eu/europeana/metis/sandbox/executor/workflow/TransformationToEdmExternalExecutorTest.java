@@ -41,16 +41,16 @@ class TransformationToEdmExternalExecutorTest {
 
   @Test
   void transformationToEdmExternal_expectSuccess() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.transform(record)).thenReturn(new RecordInfo(record));
+    when(service.transform(testRecord)).thenReturn(new RecordInfo(testRecord));
     consumer.transformationToEdmExternal(recordEvent);
 
-    verify(service).transform(record);
+    verify(service).transform(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Step.TRANSFORM_TO_EDM_EXTERNAL, captor.getValue().getStep());
@@ -58,31 +58,31 @@ class TransformationToEdmExternalExecutorTest {
 
   @Test
   void transformationToEdmExternal_inputMessageWithFailStatus_expectNoInteractions() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.FAIL);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.FAIL);
 
     consumer.transformationToEdmExternal(recordEvent);
 
-    verify(service, never()).transform(record);
+    verify(service, never()).transform(testRecord);
     verify(amqpTemplate, never()).convertAndSend(any(), any(RecordProcessEvent.class));
   }
 
   @Test
   void transformationToEdmExternal_serviceThrowException_expectFailStatus() {
-    var record = Record.builder()
+    var testRecord = Record.builder()
         .datasetId("1").datasetName("").country(Country.ITALY).language(Language.IT)
         .content("".getBytes())
         .recordId(1L).build();
-    var recordEvent = new RecordProcessEvent(new RecordInfo(record), Step.HARVEST_FILE, Status.SUCCESS);
+    var recordEvent = new RecordProcessEvent(new RecordInfo(testRecord), Step.HARVEST_FILE, Status.SUCCESS);
 
-    when(service.transform(record)).thenThrow(new RecordProcessingException("1", new Exception()));
+    when(service.transform(testRecord)).thenThrow(new RecordProcessingException("1", new Exception()));
 
     consumer.transformationToEdmExternal(recordEvent);
 
-    verify(service).transform(record);
+    verify(service).transform(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
     assertEquals(Status.FAIL, captor.getValue().getStatus());

@@ -116,22 +116,22 @@ class RecordServiceImplTest {
   @Test
   void setEuropeanaIdAndProviderId_expectSuccess() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-    Record record = getRecord(content);
+    Record testRecord = getRecord(content);
     final String providerId = "providerId";
     final String europeanaId = "/1/providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
     when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(1);
-    recordService.setEuropeanaIdAndProviderId(record);
+    recordService.setEuropeanaIdAndProviderId(testRecord);
 
-    assertEquals(providerId, record.getProviderId());
-    assertEquals(europeanaId, record.getEuropeanaId());
+    assertEquals(providerId, testRecord.getProviderId());
+    assertEquals(europeanaId, testRecord.getEuropeanaId());
   }
 
   @Test
   void setEuropeanaIdAndProviderId_expectServiceExpection() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-    Record record = getRecord(content);
+    Record testRecord = getRecord(content);
     final String datasetId = "1";
     final String providerId = "providerId";
     final String europeanaId = "/1/providerId";
@@ -139,31 +139,31 @@ class RecordServiceImplTest {
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
     when(recordJdbcRepository.updateRecord(1, europeanaId, providerId, datasetId)).thenReturn(-1);
     ServiceException serviceException = assertThrows(ServiceException.class, () ->
-            recordService.setEuropeanaIdAndProviderId(record));
+            recordService.setEuropeanaIdAndProviderId(testRecord));
 
     assertEquals("primary key in record table is corrupted (dataset_id,provider_id,europeana_id)."
             +" providerId & europeanaId updated multiple times",
         serviceException.getMessage());
-    assertNull(record.getProviderId());
-    assertNull(record.getEuropeanaId());
+    assertNull(testRecord.getProviderId());
+    assertNull(testRecord.getEuropeanaId());
   }
 
   @Test
   void setEuropeanaIdAndProviderId_expectProviderAndEuropeanaIdRecordDuplicatedException() {
     final byte[] content = "content".getBytes(StandardCharsets.UTF_8);
-    Record record = getRecord(content);
+    Record testRecord = getRecord(content);
     final String providerId = "providerId";
 
     when(xmlRecordProcessorService.getProviderId(content)).thenReturn(providerId);
     when(recordJdbcRepository.updateRecord(anyLong(), anyString(), anyString(), anyString())).thenReturn(0);
     RecordDuplicatedException recordDuplicatedException = assertThrows(RecordDuplicatedException.class, () -> {
-          recordService.setEuropeanaIdAndProviderId(record);
+          recordService.setEuropeanaIdAndProviderId(testRecord);
         }
     );
     assertEquals("Duplicated record has been found: ProviderId: providerId | EuropeanaId: /1/providerId",
             recordDuplicatedException.getMessage());
-    assertNull(record.getProviderId());
-    assertNull(record.getEuropeanaId());
+    assertNull(testRecord.getProviderId());
+    assertNull(testRecord.getEuropeanaId());
   }
 
   @Test

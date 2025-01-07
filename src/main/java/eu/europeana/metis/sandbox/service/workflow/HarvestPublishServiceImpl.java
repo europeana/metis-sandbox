@@ -43,17 +43,12 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
   }
 
   @Override
-  public CompletableFuture<Void> runHarvestFileAsync(MultipartFile file, DatasetMetadata datasetMetadata,
+  public CompletableFuture<Void> runHarvestProvidedFileAsync(MultipartFile file, DatasetMetadata datasetMetadata,
       CompressedFileExtension compressedFileExtension) {
     try {
-      Record.RecordBuilder recordDataEncapsulated = Record.builder()
-                                                          .datasetId(datasetMetadata.getDatasetId())
-                                                          .datasetName(datasetMetadata.getDatasetName())
-                                                          .country(datasetMetadata.getCountry())
-                                                          .language(datasetMetadata.getLanguage());
       harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
           new FileHarvestingDto(file.getOriginalFilename(), compressedFileExtension.name()));
-      return runHarvestFileAsync(file.getInputStream(), recordDataEncapsulated, datasetMetadata, compressedFileExtension);
+      return runHarvestFileAsync(file.getInputStream(), datasetMetadata, compressedFileExtension);
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records from file " + file.getName(), e);
     }
@@ -62,43 +57,40 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
   @Override
   public CompletableFuture<Void> runHarvestHttpFileAsync(String url, DatasetMetadata datasetMetadata,
       CompressedFileExtension compressedFileExtension) {
-    Record.RecordBuilder recordDataEncapsulated = Record.builder()
-                                                        .datasetId(datasetMetadata.getDatasetId())
-                                                        .datasetName(datasetMetadata.getDatasetName())
-                                                        .country(datasetMetadata.getCountry())
-                                                        .language(datasetMetadata.getLanguage());
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
-    return CompletableFuture.runAsync(() -> {
-      try (InputStream input = new URI(url).toURL().openStream()) {
-        harvestService.harvest(input, datasetMetadata.getDatasetId(), recordDataEncapsulated,
-            datasetMetadata.getStepSize(), compressedFileExtension);
-      } catch (UnknownHostException e) {
-        throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
-            + " - unknown host: " + e.getMessage());
-      } catch (IOException | URISyntaxException | HarvesterException e) {
-        throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
-      }
-    }, asyncServiceTaskExecutor);
+    try {
+      final InputStream inputStreamToHarvest = new URI(url).toURL().openStream();
+      return runHarvestFileAsync(inputStreamToHarvest, datasetMetadata, compressedFileExtension);
+    } catch (UnknownHostException e) {
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
+          + " - unknown host: " + e.getMessage());
+    } catch (IOException | URISyntaxException e) {
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
+    }
   }
 
   private CompletableFuture<Void> runHarvestFileAsync(InputStream inputStreamToHarvest,
-      Record.RecordBuilder recordDataEncapsulated,
-      DatasetMetadata datasetMetadata,
-      CompressedFileExtension compressedFileExtension) {
+      DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension) {
     return CompletableFuture.runAsync(() -> {
+      final Record.RecordBuilder recordDataEncapsulated = Record.builder()
+          .datasetId(datasetMetadata.getDatasetId())
+          .datasetName(datasetMetadata.getDatasetName())
+          .country(datasetMetadata.getCountry())
+          .language(datasetMetadata.getLanguage());
       try {
-        harvestService.harvest(inputStreamToHarvest, datasetMetadata.getDatasetId(), recordDataEncapsulated,
+        harvestService.harvestFromCompressedArchive(inputStreamToHarvest,
+            datasetMetadata.getDatasetId(), recordDataEncapsulated,
             datasetMetadata.getStepSize(), compressedFileExtension);
       } catch (HarvesterException e) {
         throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
+      } finally {
+        try {
+          inputStreamToHarvest.close();
+        } catch (IOException e) {
+          LOGGER.warn("Could not close input stream", e);
+        }
       }
-    }, asyncServiceTaskExecutor).whenComplete((result, exception) -> {
-      try {
-        inputStreamToHarvest.close();
-      } catch (IOException e) {
-        LOGGER.warn("Could not close input stream", e);
-      }
-    });
+    }, asyncServiceTaskExecutor);
   }
 
   @Override
@@ -113,7 +105,7 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
         new OAIPmhHarvestingDto(oaiHarvestData.getUrl(), oaiHarvestData.getSetspec(),
             oaiHarvestData.getMetadataformat()));
     return CompletableFuture.runAsync(
-        () -> harvestService.harvestOaiPmh(datasetMetadata.getDatasetId(), recordDataEncapsulated, oaiHarvestData,
+        () -> harvestService.harvestFromOaiPmh(datasetMetadata.getDatasetId(), recordDataEncapsulated, oaiHarvestData,
             datasetMetadata.getStepSize()), asyncServiceTaskExecutor);
   }
 }

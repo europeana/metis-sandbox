@@ -34,7 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
-public class HarvestPublishServiceImplTest {
+class HarvestPublishServiceImplTest {
 
   @Mock
   private HarvestService harvestService;
@@ -64,9 +64,9 @@ public class HarvestPublishServiceImplTest {
                                                      .withLanguage(Language.NL)
                                                      .withStepSize(5)
                                                      .build();
-    asyncHarvestPublishService.runHarvestFileAsync(datasetFile, datasetMetadata, CompressedFileExtension.ZIP);
+    asyncHarvestPublishService.runHarvestProvidedFileAsync(datasetFile, datasetMetadata, CompressedFileExtension.ZIP);
 
-    verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5),
+    verify(harvestService, times(1)).harvestFromCompressedArchive(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5),
             eq(CompressedFileExtension.ZIP));
 
   }
@@ -87,7 +87,7 @@ public class HarvestPublishServiceImplTest {
     when(datasetFile.getInputStream()).thenThrow(new IOException("error test"));
 
     assertThrows(ServiceException.class, () ->
-        asyncHarvestPublishService.runHarvestFileAsync(datasetFile, datasetMetadata, CompressedFileExtension.ZIP));
+        asyncHarvestPublishService.runHarvestProvidedFileAsync(datasetFile, datasetMetadata, CompressedFileExtension.ZIP));
 
   }
 
@@ -105,7 +105,7 @@ public class HarvestPublishServiceImplTest {
         "http://ftp.eanadev.org/uploads/Hauenstein-0.zip", datasetMetadata, CompressedFileExtension.ZIP);
 
     assertTrue(!future.isCompletedExceptionally() || future.isCancelled());
-    verify(harvestService, times(1)).harvest(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5),
+    verify(harvestService, times(1)).harvestFromCompressedArchive(any(InputStream.class), eq("datasetId"), any(Record.RecordBuilder.class), eq(5),
             eq(CompressedFileExtension.ZIP));
   }
 
@@ -118,11 +118,8 @@ public class HarvestPublishServiceImplTest {
                                                      .withLanguage(Language.NL)
                                                      .withStepSize(5)
                                                      .build();
-
-    CompletableFuture<Void> future = asyncHarvestPublishService.runHarvestHttpFileAsync("http://myfake-test-url.com",
-        datasetMetadata,null);
-
-    assertTrue(future.isCompletedExceptionally() && !future.isCancelled());
+    assertThrows(ServiceException.class, ()-> asyncHarvestPublishService.runHarvestHttpFileAsync("http://myfake-test-url.com",
+        datasetMetadata,null));
   }
 
   @Test
@@ -136,8 +133,7 @@ public class HarvestPublishServiceImplTest {
                                                      .build();
     asyncHarvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
         new OaiHarvestData("url", "setspec", "metadataformat", "oaiIdentifier"));
-    verify(harvestService, times(1)).harvestOaiPmh(eq("datasetId"), any(Record.RecordBuilder.class), any(OaiHarvestData.class),
+    verify(harvestService, times(1)).harvestFromOaiPmh(eq("datasetId"), any(Record.RecordBuilder.class), any(OaiHarvestData.class),
         eq(5));
   }
-
 }

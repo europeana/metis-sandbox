@@ -20,10 +20,23 @@ class StepExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(StepExecutor.class);
   private final AmqpTemplate amqpTemplate;
 
+  /**
+   * Instantiates a new Step executor.
+   *
+   * @param amqpTemplate the amqp template
+   */
   StepExecutor(AmqpTemplate amqpTemplate) {
     this.amqpTemplate = amqpTemplate;
   }
 
+  /**
+   * Consume.
+   *
+   * @param routingKey the routing key
+   * @param input the input
+   * @param step the step
+   * @param recordInfoSupplier the record info supplier
+   */
   public void consume(String routingKey, RecordProcessEvent input, Step step,
       Supplier<RecordInfo> recordInfoSupplier) {
     if (input.getStatus() == Status.FAIL) {
@@ -51,7 +64,8 @@ class StepExecutor {
   private RecordProcessEvent createFailEvent(RecordProcessEvent input, Step step, RecordProcessingException ex) {
     final String stepName = step.value();
     final RecordError recordError = new RecordError(ex);
-    final RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)), step, Status.FAIL);
+    final RecordProcessEvent output = new RecordProcessEvent(new RecordInfo(input.getRecord(), List.of(recordError)), step,
+        Status.FAIL);
     LOGGER.error("Exception while performing step: [{}]. ", stepName, ex);
     return output;
   }

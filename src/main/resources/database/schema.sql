@@ -97,12 +97,50 @@ CREATE TABLE IF NOT EXISTS harvesting_parameter
     FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
 );
 
+CREATE TABLE IF NOT EXISTS dataset_debias_detect
+(
+    id           BIGSERIAL,
+    dataset_id   BIGINT      NOT NULL,
+    state        VARCHAR(30) NOT NULL,
+    created_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (id),
+    FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
+);
+
+CREATE TABLE IF NOT EXISTS record_debias_main
+(
+    id           BIGSERIAL,
+    record_id    BIGINT      NOT NULL,
+    literal      TEXT        NOT NULL,
+    language     VARCHAR(2)  NOT NULL,
+    source_field VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (record_id) REFERENCES record (id)
+);
+
+CREATE TABLE IF NOT EXISTS record_debias_detail
+(
+    id           BIGSERIAL,
+    debias_id    BIGINT      NOT NULL,
+    tag_start    INT         NOT NULL,
+    tag_end      INT         NOT NULL,
+    tag_length   INT         NOT NULL,
+    tag_uri      TEXT        NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (debias_id) REFERENCES record_debias_main (id)
+);
+
+CREATE INDEX ON record_debias_detail (debias_id);
+CREATE INDEX ON record_debias_main (record_id, source_field, language);
+CREATE INDEX ON dataset_debias_detect (dataset_id);
 CREATE INDEX ON harvesting_parameter (dataset_id);
 CREATE INDEX ON dataset_log (dataset_id);
 CREATE INDEX ON record_log (record_id);
+CREATE INDEX ON record_log (step, status);
 CREATE INDEX ON record_error_log (record_id);
 CREATE INDEX ON record (dataset_id, europeana_id, provider_id);
 CREATE INDEX ON record (dataset_id, content_tier);
 CREATE INDEX ON record (dataset_id, metadata_tier);
+CREATE INDEX ON record (dataset_id);
 CREATE INDEX ON thumbnail (dataset_id);
 COMMIT;

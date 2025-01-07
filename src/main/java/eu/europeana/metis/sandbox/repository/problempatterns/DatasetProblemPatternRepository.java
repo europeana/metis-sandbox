@@ -18,15 +18,18 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
    * @param datasetId the dataset id
    */
   @Modifying
+  @Query("DELETE FROM DatasetProblemPattern dpp WHERE EXISTS ("
+      + " SELECT 1 FROM ExecutionPoint ep WHERE dpp.executionPoint.executionPointId = ep.executionPointId AND ep.datasetId = ?1)")
   void deleteByExecutionPointDatasetId(String datasetId);
 
   /**
-   * Get metrics by problem pattern ocurrences for a given time using custom query
+   * Get metrics by problem pattern occurrences for a given time using custom query
    *
    * @return metrics Dataset Problem Pattern Statistics
    * @see DatasetProblemPatternStatistic
    */
-  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic(dpp.datasetProblemPatternCompositeKey.patternId, SUM(dpp.recordOccurrences)) "
+  @Query(value = "SELECT new eu.europeana.metis.sandbox.common.aggregation.DatasetProblemPatternStatistic("
+      + "dpp.datasetProblemPatternCompositeKey.patternId, SUM(dpp.recordOccurrences)) "
       + "FROM DatasetProblemPattern dpp "
       + "GROUP BY dpp.datasetProblemPatternCompositeKey.patternId")
   List<DatasetProblemPatternStatistic> getMetricProblemPatternStatistics();

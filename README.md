@@ -101,7 +101,7 @@ In the action sections of metis-sandbox repository now exists a new action calle
 ## Technologies
 Project created with:
 
-* Java 11
+* Java 21
 * [Spring Boot](https://spring.io/projects/spring-boot)
 * [RabbitMQ](https://www.rabbitmq.com/)
 * [Postgresql](https://www.postgresql.org/)

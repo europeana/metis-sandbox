@@ -15,7 +15,6 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +28,6 @@ class RecordPublishServiceImplTest {
 
   @Mock
   private AmqpTemplate amqpTemplate;
-
-  private final Executor taskExecutor = Runnable::run;
 
   private RecordPublishService service;
 
@@ -51,7 +48,7 @@ class RecordPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    dataset.getRecords().forEach(record -> service.publishToHarvestQueue(new RecordInfo(record), Step.HARVEST_FILE));
+    dataset.getRecords().forEach(testRecord -> service.publishToHarvestQueue(new RecordInfo(testRecord), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
@@ -69,7 +66,7 @@ class RecordPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    dataset.getRecords().forEach(record -> service.publishToHarvestQueue(new RecordInfo(record), Step.HARVEST_FILE));
+    dataset.getRecords().forEach(testRecord -> service.publishToHarvestQueue(new RecordInfo(testRecord), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("createdQueue"), any(RecordProcessEvent.class));
   }
@@ -84,7 +81,7 @@ class RecordPublishServiceImplTest {
 
     Dataset dataset = new Dataset("1234", Set.of(record1, record2), 0);
 
-    dataset.getRecords().forEach(record -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(record), Step.HARVEST_FILE));
+    dataset.getRecords().forEach(testRecord -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(testRecord), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }
@@ -102,7 +99,7 @@ class RecordPublishServiceImplTest {
     doThrow(new AmqpException("Issue publishing this record")).when(amqpTemplate)
         .convertAndSend(anyString(), any(RecordProcessEvent.class));
 
-    dataset.getRecords().forEach(record -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(record), Step.HARVEST_FILE));
+    dataset.getRecords().forEach(testRecord -> service.publishToTransformationToEdmExternalQueue(new RecordInfo(testRecord), Step.HARVEST_FILE));
 
     verify(amqpTemplate, times(2)).convertAndSend(eq("transformationEdmExternalQueue"), any(RecordProcessEvent.class));
   }

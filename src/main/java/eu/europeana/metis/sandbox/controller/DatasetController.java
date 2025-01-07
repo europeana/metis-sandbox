@@ -18,10 +18,14 @@ import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -43,11 +47,18 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,6 +102,7 @@ class DatasetController {
     private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
 
     private static final String APPLICATION_RDF_XML = "application/rdf+xml";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetController.class);
 
     private final DatasetService datasetService;
     private final DatasetLogService datasetLogService;
@@ -100,22 +112,28 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
+    private final DeBiasStateService debiasStateService;
+    private final Map<Integer, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
+    private final LockRegistry lockRegistry;
 
     /**
      * Instantiates a new Dataset controller.
      *
-     * @param datasetService               the dataset service
-     * @param datasetLogService            the dataset log service
-     * @param reportService                the report service
-     * @param recordService                the record service
-     * @param recordLogService             the record log service
+     * @param datasetService the dataset service
+     * @param datasetLogService the dataset log service
+     * @param reportService the report service
+     * @param recordService the record service
+     * @param recordLogService the record log service
      * @param recordTierCalculationService the record tier calculation service
-     * @param harvestPublishService        the harvest publish service
+     * @param harvestPublishService the harvest publish service
+     * @param debiasStateService the debias detect service
+     * @param lockRegistry the lock registry
      */
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService) {
+                             HarvestPublishService harvestPublishService, DeBiasStateService debiasStateService,
+                             LockRegistry lockRegistry) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -124,17 +142,19 @@ class DatasetController {
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
         urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
+        this.debiasStateService = debiasStateService;
+        this.lockRegistry = lockRegistry;
     }
 
     /**
      * POST API calls for harvesting and processing the records given a zip, tar or tar.gz file
      *
      * @param datasetName the given name of the dataset to be processed
-     * @param country     the given country from which the records refer to
-     * @param language    the given language that the records contain
-     * @param stepsize    the stepsize
-     * @param dataset     the given dataset itself to be processed as a compressed file
-     * @param xsltFile    the xslt file used for transformation to edm external
+     * @param country the given country from which the records refer to
+     * @param language the given language that the records contain
+     * @param stepsize the stepsize
+     * @param dataset the given dataset itself to be processed as a compressed file
+     * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
     @Operation(summary = "Harvest dataset from file", description = "Process the given dataset by HTTP providing a file")
@@ -163,7 +183,7 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestFileAsync(dataset, datasetMetadata, compressedFileExtension)
+        harvestPublishService.runHarvestProvidedFileAsync(dataset, datasetMetadata, compressedFileExtension)
                 .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
         return new DatasetIdDto(createdDatasetId);
     }
@@ -172,11 +192,11 @@ class DatasetController {
      * POST API calls for harvesting and processing the records given a URL of a compressed file
      *
      * @param datasetName the given name of the dataset to be processed
-     * @param country     the given country from which the records refer to
-     * @param language    the given language that the records contain
-     * @param stepsize    the stepsize
-     * @param url         the given dataset itself to be processed as a URL of a zip file
-     * @param xsltFile    the xslt file used for transformation to edm external
+     * @param country the given country from which the records refer to
+     * @param language the given language that the records contain
+     * @param stepsize the stepsize
+     * @param url the given dataset itself to be processed as a URL of a zip file
+     * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
     @Operation(summary = "Harvest dataset from url", description = "Process the given dataset by HTTP providing an URL")
@@ -217,16 +237,16 @@ class DatasetController {
     /**
      * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
      *
-     * @param datasetName    the given name of the dataset to be processed
-     * @param country        the given country from which the records refer to
-     * @param language       the given language that the records contain
-     * @param stepsize       the stepsize
-     * @param url            the given URL of the OAI-PMH repository to be processed
-     * @param setspec        forms a unique identifier for the set within the repository, it must be
-     *                       unique for each set.
+     * @param datasetName the given name of the dataset to be processed
+     * @param country the given country from which the records refer to
+     * @param language the given language that the records contain
+     * @param stepsize the stepsize
+     * @param url the given URL of the OAI-PMH repository to be processed
+     * @param setspec forms a unique identifier for the set within the repository, it must be
+     * unique for eac set.
      * @param metadataformat or metadata prefix is a string to specify the metadata format in OAI-PMH
-     *                       requests issued to the repository
-     * @param xsltFile       the xslt file used for transformation to edm external
+     * requests issued to the repository
+     * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
     @Operation(summary = "Harvest dataset from OAI-PMH protocol", description = "Process the given dataset using OAI-PMH")
@@ -309,7 +329,7 @@ class DatasetController {
      * GET API returns the generated tier calculation view for a stored record.
      *
      * @param datasetId the dataset id
-     * @param recordId  the record id
+     * @param recordId the record id
      * @return the record tier calculation view
      * @throws NoRecordFoundException if record was not found
      */
@@ -328,8 +348,8 @@ class DatasetController {
      * GET API returns the string representation of the stored record.
      *
      * @param datasetId the dataset id
-     * @param recordId  the record id
-     * @param step      the step name
+     * @param recordId the record id
+     * @param step the step name
      * @return the string representation of the stored record
      * @throws NoRecordFoundException if record was not found
      */
@@ -348,7 +368,6 @@ class DatasetController {
      *
      * @param datasetId the dataset id
      * @return the records tier of a given dataset
-     *
      */
     @Operation(summary = "Gets a list of records tier", description = "Get list of records tiers")
     @ApiResponse(responseCode = "200", description = "List of records tiers")
@@ -403,6 +422,71 @@ class DatasetController {
     @ResponseStatus(HttpStatus.OK)
     public List<LanguageView> getAllLanguages() {
         return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
+    }
+
+    /**
+     * Process DeBias boolean.
+     *
+     * @param datasetId the dataset id
+     * @return the boolean
+     */
+    @Operation(description = "Process debias detection dataset")
+    @ApiResponse(responseCode = "200", description = "Process debias detection feature", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE)})
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public boolean processDeBias(@PathVariable("id") Integer datasetId) {
+        final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
+        try {
+            lock.lock();
+            LOGGER.info("DeBias process: {} lock, Locked", datasetId);
+            ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
+            if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
+                "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
+                                       .map(DeBiasStatusDto::getState)
+                                       .orElse(""))) {
+                debiasStateService.cleanDeBiasReport(datasetId);
+                return debiasStateService.process(datasetId);
+            } else {
+                return false;
+            }
+        } finally {
+            lock.unlock();
+            LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
+        }
+    }
+
+    /**
+     * Gets DeBias detection information.
+     *
+     * @param datasetId the dataset id
+     * @return the DeBias detection
+     */
+    @Operation(description = "Get Bias detection report for a dataset")
+    @ApiResponse(responseCode = "200", description = "Get detection information about DeBias detection", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE)})
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "{id}/debias/report", produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public DeBiasReportDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
+        return debiasStateService.getDeBiasReport(datasetId);
+    }
+
+    /**
+     * Gets DeBias detection information.
+     *
+     * @param datasetId the dataset id
+     * @return the DeBias detection
+     */
+    @Operation(description = "Get DeBias detection status for a dataset")
+    @ApiResponse(responseCode = "200", description = "Get status about DeBias detection", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE)})
+    @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+    @GetMapping(value = "{id}/debias/info", produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public DeBiasStatusDto getDeBiasStatus(@PathVariable("id") Integer datasetId) {
+        return debiasStateService.getDeBiasStatus(datasetId);
     }
 
     private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {

@@ -3,9 +3,9 @@ package eu.europeana.metis.sandbox.controller;
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
 import static java.util.Collections.emptyList;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +41,8 @@ import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -49,33 +51,39 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Paths;
-import java.time.*;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
-
-import eu.europeana.metis.utils.CompressedFileExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -89,6 +97,9 @@ class DatasetControllerTest {
 
   @Autowired
   private MockMvc mvc;
+
+  @MockBean
+  private DeBiasStateService deBiasStateService;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -114,27 +125,31 @@ class DatasetControllerTest {
   @MockBean
   private HarvestPublishService harvestPublishService;
 
+  @MockBean
+  private LockRegistry lockRegistry;
+
   @Mock
   private CompletableFuture<Void> asyncResult;
 
   private static Stream<MultipartFile> provideDifferentCompressedFiles() {
     return Stream.of(
-            new MockMultipartFile("dataset", "dataset.txt", "application/zip",
-                    "<test></test>".getBytes()),
-            new MockMultipartFile("dataset", "dataset.txt", "application/x-tar",
-                    "<test></test>".getBytes()),
-            new MockMultipartFile("dataset", "dataset.txt", "application/gzip",
-                    "<test></test>".getBytes())
+        new MockMultipartFile("dataset", "dataset.txt", "application/zip",
+            "<test></test>".getBytes()),
+        new MockMultipartFile("dataset", "dataset.txt", "application/x-tar",
+            "<test></test>".getBytes()),
+        new MockMultipartFile("dataset", "dataset.txt", "application/gzip",
+            "<test></test>".getBytes())
     );
   }
 
   private static Stream<String> provideDifferentUrlsOfCompressedFiles() {
     return Stream.of(
-            Paths.get("zip", "dataset-valid.zip").toUri().toString(),
-            Paths.get("zip", "sandbox.tar.gz").toUri().toString(),
-            Paths.get("zip", "records_to_test.tar").toUri().toString()
+        Paths.get("zip", "dataset-valid.zip").toUri().toString(),
+        Paths.get("zip", "sandbox.tar.gz").toUri().toString(),
+        Paths.get("zip", "records_to_test.tar").toUri().toString()
     );
   }
+
   private static Stream<Arguments> steps() {
     return Stream.of(
         arguments(null, Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
@@ -160,13 +175,14 @@ class DatasetControllerTest {
         arguments("PUBLISH", Set.of(Step.PUBLISH), status().isOk(),
             content().string("exampleString")),
         arguments("CLOSE", Set.of(Step.CLOSE), status().isOk(), content().string("exampleString")),
-        arguments("NON_SENSE", Set.of(), status().isBadRequest(), content().string("{\"statusCode\":400,\"status\":\"BAD_REQUEST\",\"message\":\"Invalid step name NON_SENSE\"}"))
+        arguments("NON_SENSE", Set.of(), status().isBadRequest(),
+            content().string("{\"statusCode\":400,\"status\":\"BAD_REQUEST\",\"message\":\"Invalid step name NON_SENSE\"}"))
     );
   }
 
   @BeforeEach
   public void setup() {
-    when(harvestPublishService.runHarvestFileAsync(any(), any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(asyncResult);
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
@@ -180,12 +196,12 @@ class DatasetControllerTest {
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-            .file(mockMultipart)
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("stepsize", "2"))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+           .file(mockMultipart)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -203,13 +219,13 @@ class DatasetControllerTest {
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-            .file(mockMultipart)
-            .file(xsltMock)
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("stepsize", "2"))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+           .file(mockMultipart)
+           .file(xsltMock)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -223,12 +239,12 @@ class DatasetControllerTest {
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("stepsize", "2"))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -246,13 +262,13 @@ class DatasetControllerTest {
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
-            .file(xsltMock)
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("stepsize", "2"))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+           .file(xsltMock)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -267,14 +283,14 @@ class DatasetControllerTest {
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm")
-            .param("stepsize", "2"))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -315,15 +331,15 @@ class DatasetControllerTest {
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .file(xsltMock)
-            .param("country", ITALY.xmlValue())
-            .param("language", IT.xmlValue())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm")
-            .param("stepsize", "2"))
-        .andExpect(status().isAccepted())
-        .andExpect(jsonPath("$.dataset-id", is("12345")));
+           .file(xsltMock)
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -335,12 +351,12 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data=set")
-            .file(dataset)
-            .param("country", ITALY.name())
-            .param("language", IT.name()))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("dataset name can only include letters, numbers, _ or - characters")));
+           .file(dataset)
+           .param("country", ITALY.name())
+           .param("language", IT.name()))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("dataset name can only include letters, numbers, _ or - characters")));
   }
 
   @Test
@@ -350,29 +366,29 @@ class DatasetControllerTest {
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-            .file(dataset)
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("stepsize", "-1"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("Step size must be a number higher than zero")));
+           .file(dataset)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "-1"))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("Step size must be a number higher than zero")));
   }
 
   @Test
   void processDatasetFromFile_invalidFileType_expectFail() throws Exception {
 
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
-            "<test></test>".getBytes());
+        "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
-                    .file(dataset)
-                    .param("country", ITALY.name())
-                    .param("language", IT.name())
-                    .param("stepsize", "-1"))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message",
-                    is("File provided is not valid compressed file. ")));
+           .file(dataset)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "-1"))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("File provided is not valid compressed file. ")));
   }
 
   @Test
@@ -381,13 +397,13 @@ class DatasetControllerTest {
     final String url = "zip" + File.separator + "dataset-valid.zip";
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data=set")
-            .param("name", "invalidDatasetName")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("dataset name can only include letters, numbers, _ or - characters")));
+           .param("name", "invalidDatasetName")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("dataset name can only include letters, numbers, _ or - characters")));
   }
 
   @Test
@@ -396,14 +412,14 @@ class DatasetControllerTest {
     final String url = Paths.get("zip" + File.separator + "dataset-valid.zip").toUri().toString();
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
-            .param("name", "invalidDatasetName")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("stepsize", "-1"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("Step size must be a number higher than zero")));
+           .param("name", "invalidDatasetName")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "-1"))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("Step size must be a number higher than zero")));
   }
 
   @Test
@@ -412,15 +428,15 @@ class DatasetControllerTest {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data=set")
-            .param("name", "invalidDatasetName")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("dataset name can only include letters, numbers, _ or - characters")));
+           .param("name", "invalidDatasetName")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm"))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("dataset name can only include letters, numbers, _ or - characters")));
   }
 
   @Test
@@ -429,16 +445,16 @@ class DatasetControllerTest {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("name", "invalidDatasetName")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm")
-            .param("stepsize", "-1"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("Step size must be a number higher than zero")));
+           .param("name", "invalidDatasetName")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "-1"))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("Step size must be a number higher than zero")));
   }
 
   @Test
@@ -450,18 +466,18 @@ class DatasetControllerTest {
         any(InputStream.class)))
         .thenReturn("12345");
     doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
-        .runHarvestOaiPmhAsync(any(DatasetMetadata.class),
-            any(OaiHarvestData.class));
+                                                          .runHarvestOaiPmhAsync(any(DatasetMetadata.class),
+                                                              any(OaiHarvestData.class));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm"))
-        .andExpect(status().isBadRequest())
-        .andExpect(result -> assertTrue(
-            result.getResolvedException() instanceof IllegalArgumentException));
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm"))
+       .andExpect(status().isBadRequest())
+       .andExpect(result -> assertTrue(
+           result.getResolvedException() instanceof IllegalArgumentException));
   }
 
   @Test
@@ -474,14 +490,14 @@ class DatasetControllerTest {
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm"))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.message",
-            is("Failed Please retry, if problem persists contact provider.")));
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm"))
+       .andExpect(status().isInternalServerError())
+       .andExpect(jsonPath("$.message",
+           is("Failed Please retry, if problem persists contact provider.")));
   }
 
 
@@ -494,15 +510,15 @@ class DatasetControllerTest {
         "string".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
-            .file(xsltMock)
-            .param("country", ITALY.name())
-            .param("language", IT.name())
-            .param("url", url)
-            .param("setspec", "oai_integration_test")
-            .param("metadataformat", "edm"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("The given xslt file should be a single xml file.")));
+           .file(xsltMock)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm"))
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("The given xslt file should be a single xml file.")));
   }
 
   @Test
@@ -522,13 +538,13 @@ class DatasetControllerTest {
     when(datasetReportService.getReport("1")).thenReturn(report);
 
     mvc.perform(get("/dataset/{id}/progress", "1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.status",
-            is("COMPLETED")))
-        .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
-            is(message1)))
-        .andExpect(jsonPath("$.progress-by-step[1].errors[1].message",
-            is(message2)));
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.status",
+           is("COMPLETED")))
+       .andExpect(jsonPath("$.progress-by-step[1].errors[0].message",
+           is(message1)))
+       .andExpect(jsonPath("$.progress-by-step[1].errors[1].message",
+           is(message2)));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -540,9 +556,9 @@ class DatasetControllerTest {
         .thenThrow(new InvalidDatasetException("1"));
 
     mvc.perform(get("/dataset/{id}/progress", "1"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message",
-            is("Provided dataset id: [1] is not valid. ")));
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message",
+           is("Provided dataset id: [1] is not valid. ")));
   }
 
   @Test
@@ -552,9 +568,9 @@ class DatasetControllerTest {
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(get("/dataset/{id}/progress", "1"))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.message",
-            is("Failed Please retry, if problem persists contact provider.")));
+       .andExpect(status().isInternalServerError())
+       .andExpect(jsonPath("$.message",
+           is("Failed Please retry, if problem persists contact provider.")));
   }
 
   @Test
@@ -562,23 +578,23 @@ class DatasetControllerTest {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
     DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
-            new FileHarvestingDto("fileName", "fileType"),false);
+        new FileHarvestingDto("fileName", "fileType"), false);
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
     mvc.perform(get("/dataset/{id}/info", "1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.dataset-id", is("1")))
-            .andExpect(jsonPath("$.dataset-name", is("datasetName")))
-            .andExpect(jsonPath("$.creation-date", is("-292275055-05-16T16:47:04.192Z")))
-            .andExpect(jsonPath("$.language", is("Italian")))
-            .andExpect(jsonPath("$.country", is("Italy")))
-            .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
-            .andExpect(jsonPath("$.harvesting-parameters.file-name", is("fileName")))
-            .andExpect(jsonPath("$.harvesting-parameters.file-type", is("fileType")))
-            .andExpect(jsonPath("$.harvesting-parameters.url").doesNotExist())
-            .andExpect(jsonPath("$.harvesting-parameters.set-spec").doesNotExist())
-            .andExpect(jsonPath("$.harvesting-parameters.metadata-format").doesNotExist());
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.dataset-id", is("1")))
+       .andExpect(jsonPath("$.dataset-name", is("datasetName")))
+       .andExpect(jsonPath("$.creation-date", is("-292275055-05-16T16:47:04.192Z")))
+       .andExpect(jsonPath("$.language", is("Italian")))
+       .andExpect(jsonPath("$.country", is("Italy")))
+       .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
+       .andExpect(jsonPath("$.harvesting-parameters.file-name", is("fileName")))
+       .andExpect(jsonPath("$.harvesting-parameters.file-type", is("fileType")))
+       .andExpect(jsonPath("$.harvesting-parameters.url").doesNotExist())
+       .andExpect(jsonPath("$.harvesting-parameters.set-spec").doesNotExist())
+       .andExpect(jsonPath("$.harvesting-parameters.metadata-format").doesNotExist());
 
   }
 
@@ -587,23 +603,23 @@ class DatasetControllerTest {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
     DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
-            new HttpHarvestingDto("http://url-to-test.com"),false);
+        new HttpHarvestingDto("http://url-to-test.com"), false);
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
     mvc.perform(get("/dataset/{id}/info", "1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.dataset-id", is("1")))
-            .andExpect(jsonPath("$.dataset-name", is("datasetName")))
-            .andExpect(jsonPath("$.creation-date", is("-292275055-05-16T16:47:04.192Z")))
-            .andExpect(jsonPath("$.language", is("Italian")))
-            .andExpect(jsonPath("$.country", is("Italy")))
-            .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
-            .andExpect(jsonPath("$.harvesting-parameters.url", is("http://url-to-test.com")))
-            .andExpect(jsonPath("$.harvesting-parameters.file-name").doesNotExist())
-            .andExpect(jsonPath("$.harvesting-parameters.file-type").doesNotExist())
-            .andExpect(jsonPath("$.harvesting-parameters.set-spec").doesNotExist())
-            .andExpect(jsonPath("$.harvesting-parameters.metadata-format").doesNotExist());
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.dataset-id", is("1")))
+       .andExpect(jsonPath("$.dataset-name", is("datasetName")))
+       .andExpect(jsonPath("$.creation-date", is("-292275055-05-16T16:47:04.192Z")))
+       .andExpect(jsonPath("$.language", is("Italian")))
+       .andExpect(jsonPath("$.country", is("Italy")))
+       .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
+       .andExpect(jsonPath("$.harvesting-parameters.url", is("http://url-to-test.com")))
+       .andExpect(jsonPath("$.harvesting-parameters.file-name").doesNotExist())
+       .andExpect(jsonPath("$.harvesting-parameters.file-type").doesNotExist())
+       .andExpect(jsonPath("$.harvesting-parameters.set-spec").doesNotExist())
+       .andExpect(jsonPath("$.harvesting-parameters.metadata-format").doesNotExist());
 
   }
 
@@ -612,23 +628,23 @@ class DatasetControllerTest {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
     DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
-            new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"),false);
+        new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"), false);
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
     mvc.perform(get("/dataset/{id}/info", "1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.dataset-id", is("1")))
-            .andExpect(jsonPath("$.dataset-name", is("datasetName")))
-            .andExpect(jsonPath("$.creation-date", is("-292275055-05-16T16:47:04.192Z")))
-            .andExpect(jsonPath("$.language", is("Italian")))
-            .andExpect(jsonPath("$.country", is("Italy")))
-            .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
-            .andExpect(jsonPath("$.harvesting-parameters.url", is("http://url-to-test.com")))
-            .andExpect(jsonPath("$.harvesting-parameters.set-spec", is("setSpec")))
-            .andExpect(jsonPath("$.harvesting-parameters.metadata-format", is("metadataFormat")))
-            .andExpect(jsonPath("$.harvesting-parameters.file-name").doesNotExist())
-            .andExpect(jsonPath("$.harvesting-parameters.file-type").doesNotExist());
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.dataset-id", is("1")))
+       .andExpect(jsonPath("$.dataset-name", is("datasetName")))
+       .andExpect(jsonPath("$.creation-date", is("-292275055-05-16T16:47:04.192Z")))
+       .andExpect(jsonPath("$.language", is("Italian")))
+       .andExpect(jsonPath("$.country", is("Italy")))
+       .andExpect(jsonPath("$.transformed-to-edm-external", is(false)))
+       .andExpect(jsonPath("$.harvesting-parameters.url", is("http://url-to-test.com")))
+       .andExpect(jsonPath("$.harvesting-parameters.set-spec", is("setSpec")))
+       .andExpect(jsonPath("$.harvesting-parameters.metadata-format", is("metadataFormat")))
+       .andExpect(jsonPath("$.harvesting-parameters.file-name").doesNotExist())
+       .andExpect(jsonPath("$.harvesting-parameters.file-type").doesNotExist());
 
   }
 
@@ -637,8 +653,8 @@ class DatasetControllerTest {
     when(datasetService.getDatasetInfo("1")).thenThrow(new InvalidDatasetException("1"));
 
     mvc.perform(get("/dataset/{id}/info", "1"))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message", is("Provided dataset id: [1] is not valid. ")));
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message", is("Provided dataset id: [1] is not valid. ")));
 
   }
 
@@ -657,9 +673,9 @@ class DatasetControllerTest {
         recordTierCalculationView);
 
     mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
-            .param("recordId", recordId))
-        .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is("europeanaId")))
-        .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
+           .param("recordId", recordId))
+       .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is("europeanaId")))
+       .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -671,10 +687,10 @@ class DatasetControllerTest {
     when(recordTierCalculationService.calculateTiers(anyString(), anyString())).thenThrow(
         new NoRecordFoundException("record not found"));
     mvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
-            .param("recordId", recordId))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message",
-            is("record not found")));
+           .param("recordId", recordId))
+       .andExpect(status().isNotFound())
+       .andExpect(jsonPath("$.message",
+           is("record not found")));
   }
 
   @ParameterizedTest
@@ -688,10 +704,10 @@ class DatasetControllerTest {
         .thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
-            .param("recordId", recordId)
-            .param("step", step))
-        .andExpect(expectedStatus)
-        .andExpect(expectedContent);
+           .param("recordId", recordId)
+           .param("step", step))
+       .andExpect(expectedStatus)
+       .andExpect(expectedContent);
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -706,8 +722,8 @@ class DatasetControllerTest {
         .thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
-            .param("recordId", recordId))
-        .andExpect(content().string(returnString));
+           .param("recordId", recordId))
+       .andExpect(content().string(returnString));
 
     verify(datasetLogService, never()).logException(any(), any());
   }
@@ -722,41 +738,41 @@ class DatasetControllerTest {
         new NoRecordFoundException("record not found"));
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
-            .param("recordId", recordId)
-            .param("step", step))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message",
-            is("record not found")));
+           .param("recordId", recordId)
+           .param("step", step))
+       .andExpect(status().isNotFound())
+       .andExpect(jsonPath("$.message",
+           is("record not found")));
   }
 
   @Test
   void getRecordsTier_expectSuccess() throws Exception {
     RecordTiersInfoDto recordTiersInfoDto1 = new RecordTiersInfoDto.RecordTiersInfoDtoBuilder()
-            .setRecordId("recordId")
-            .setContentTier(MediaTier.T3)
-            .setContentTierBeforeLicenseCorrection(MediaTier.T4)
-            .setLicense(LicenseType.OPEN)
-            .setMetadataTier(MetadataTier.TA)
-            .setMetadataTierLanguage(MetadataTier.TB)
-            .setMetadataTierEnablingElements(MetadataTier.TC)
-            .setMetadataTierContextualClasses(MetadataTier.T0)
-            .build();
+        .setRecordId("recordId")
+        .setContentTier(MediaTier.T3)
+        .setContentTierBeforeLicenseCorrection(MediaTier.T4)
+        .setLicense(LicenseType.OPEN)
+        .setMetadataTier(MetadataTier.TA)
+        .setMetadataTierLanguage(MetadataTier.TB)
+        .setMetadataTierEnablingElements(MetadataTier.TC)
+        .setMetadataTierContextualClasses(MetadataTier.T0)
+        .build();
 
     List<RecordTiersInfoDto> resultMock = List.of(recordTiersInfoDto1);
 
     when(recordService.getRecordsTiers("datasetId")).thenReturn(resultMock);
 
     mvc.perform(get("/dataset/{id}/records-tiers", "datasetId"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(1)))
-            .andExpect(jsonPath("$[0].record-id", is("recordId")))
-            .andExpect(jsonPath("$[0].content-tier", is("3")))
-            .andExpect(jsonPath("$[0].content-tier-before-license-correction", is("4")))
-            .andExpect(jsonPath("$[0].license", is("OPEN")))
-            .andExpect(jsonPath("$[0].metadata-tier", is("A")))
-            .andExpect(jsonPath("$[0].metadata-tier-language", is("B")))
-            .andExpect(jsonPath("$[0].metadata-tier-enabling-elements", is("C")))
-            .andExpect(jsonPath("$[0].metadata-tier-contextual-classes", is("0")));
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$", hasSize(1)))
+       .andExpect(jsonPath("$[0].record-id", is("recordId")))
+       .andExpect(jsonPath("$[0].content-tier", is("3")))
+       .andExpect(jsonPath("$[0].content-tier-before-license-correction", is("4")))
+       .andExpect(jsonPath("$[0].license", is("OPEN")))
+       .andExpect(jsonPath("$[0].metadata-tier", is("A")))
+       .andExpect(jsonPath("$[0].metadata-tier-language", is("B")))
+       .andExpect(jsonPath("$[0].metadata-tier-enabling-elements", is("C")))
+       .andExpect(jsonPath("$[0].metadata-tier-contextual-classes", is("0")));
 
   }
 
@@ -766,8 +782,8 @@ class DatasetControllerTest {
     when(recordService.getRecordsTiers("datasetId")).thenThrow(invalidDatasetException);
 
     mvc.perform(get("/dataset/{id}/records-tiers", "datasetId"))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message", is("Provided dataset id: [datasetId] is not valid. ")));
+       .andExpect(status().isBadRequest())
+       .andExpect(jsonPath("$.message", is("Provided dataset id: [datasetId] is not valid. ")));
 
   }
 
@@ -779,7 +795,7 @@ class DatasetControllerTest {
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestFileAsync(any(), any(), eq(CompressedFileExtension.ZIP))).thenReturn(
+    when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), eq(CompressedFileExtension.ZIP))).thenReturn(
         CompletableFuture.failedFuture(exception));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -829,5 +845,58 @@ class DatasetControllerTest {
         .param("stepsize", "2"));
 
     verify(datasetLogService).logException("12345", exception);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
+  void getDebiasStatus_expectSuccess(String status) throws Exception {
+    final Integer datasetId = 1;
+    final ZonedDateTime dateTime = ZonedDateTime.now();
+
+    when(deBiasStateService.getDeBiasStatus(datasetId))
+        .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime, 1, 1));
+
+    mvc.perform(get("/dataset/{id}/debias/info", datasetId))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
+       .andExpect(jsonPath("$.state", is(status)))
+       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+       .andExpect(jsonPath("$.total-records", is(1)))
+       .andExpect(jsonPath("$.processed-records", is(1)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
+  void getDebiasReport_expectSuccess(String status) throws Exception {
+    final Integer datasetId = 1;
+    final ZonedDateTime dateTime = ZonedDateTime.now();
+
+    when(deBiasStateService.getDeBiasReport(datasetId))
+        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, 1, 1, List.of()));
+
+    mvc.perform(get("/dataset/{id}/debias/report", datasetId))
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
+       .andExpect(jsonPath("$.state", is(status)))
+       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
+                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+       .andExpect(jsonPath("$.total-records", is(1)))
+       .andExpect(jsonPath("$.processed-records", is(1)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void processDebias_expectSuccess(boolean process) throws Exception {
+    final Integer datasetId = 1;
+    when(datasetReportService.getReport(datasetId.toString())).thenReturn(
+        new ProgressInfoDto("url",1L,1L,
+        List.of(), false,"",List.of(),null));
+    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now(), 1, 1));
+    when(deBiasStateService.process(datasetId)).thenReturn(process);
+    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
+    mvc.perform(post("/dataset/{id}/debias", datasetId))
+       .andExpect(status().isOk())
+       .andExpect(content().string(String.valueOf(process)));
   }
 }

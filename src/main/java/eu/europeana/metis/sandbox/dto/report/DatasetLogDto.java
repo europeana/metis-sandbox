@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.dto.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.Status;
 import io.swagger.annotations.ApiModel;
-import java.util.Objects;
 
 /**
  * Represent errors or warnings in the dataset report

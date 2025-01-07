@@ -92,6 +92,10 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
+  debias:
+    url:
+    connectTimeout: 300
+    requestTimeout: 300
   metrics:
     frequency: '*/5 * * * * *' # every five seconds.
   validation:
@@ -227,6 +231,15 @@ sandbox:
           concurrency: 2
           max-concurrency: 2
           prefetch: 1
+        debias:
+          ready:
+            queue: sandbox.record.debias.ready
+            dlq: ${sandbox.rabbitmq.queues.record.debias.ready.queue}.dlq
+            auto-start: true
+            concurrency: 2
+            max-concurrency: 2
+            prefetch: 1
+            batch-size: 20
 elastic:
   apm:
     service_name: metis-sandbox-rest-dev

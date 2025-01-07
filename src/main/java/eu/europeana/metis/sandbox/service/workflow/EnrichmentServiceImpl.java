@@ -30,22 +30,22 @@ class EnrichmentServiceImpl implements EnrichmentService {
     }
 
     @Override
-    public RecordInfo enrich(Record record) {
-        requireNonNull(record, "Record must not be null");
+    public RecordInfo enrich(Record recordToEnrich) {
+        requireNonNull(recordToEnrich, "Record must not be null");
 
         List<RecordError> recordErrors = new LinkedList<>();
-        ProcessedResult<byte[]> result = enrichmentWorker.process(record.getContentInputStream());
+        ProcessedResult<byte[]> result = enrichmentWorker.process(recordToEnrich.getContentInputStream());
         Set<Report> reports = result.getReport();
 
         if (result.getRecordStatus().equals(ProcessedResult.RecordStatus.STOP)) {
-            handleRecordStopException(reports, record.getProviderId());
+            handleRecordStopException(reports, recordToEnrich.getProviderId());
         }
 
         reports.stream().filter(report -> Objects.equals(report.getMessageType(), Type.WARN))
-                .forEach(report -> recordErrors.add(new RecordError(new RecordProcessingException(record.getProviderId(),
+                .forEach(report -> recordErrors.add(new RecordError(new RecordProcessingException(recordToEnrich.getProviderId(),
                         new ServiceException(createErrorMessage(report), null)))));
 
-        return new RecordInfo(Record.from(record, result.getProcessedRecord()), recordErrors);
+        return new RecordInfo(Record.from(recordToEnrich, result.getProcessedRecord()), recordErrors);
     }
 
     private String createErrorMessage(Report report) {

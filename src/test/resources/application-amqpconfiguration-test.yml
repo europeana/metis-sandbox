@@ -31,3 +31,6 @@ sandbox:
           queue: sandbox.record.previewed-amqpconfiguration-test
         published:
           queue: sandbox.record.published-amqpconfiguration-test
+        debias:
+          ready:
+            queue: sandbox.record.debias.ready-amqpconfiguration-test
