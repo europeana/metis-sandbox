@@ -63,12 +63,16 @@ Installing latest docker-compose:
 After creating the container execute the schema and collection configuration and creation
 the script is located inside the container `/opt/solr/search/solr-schema.sh`
 
-### Local S3 bucket with Minio
-After creating the container execute the bucket and keys creation for a local S3 bucket
+### S3 bucket with localstack
+Use the following example configuration for a local S3 bucket
 ```
-mc alias set minio http://localhost:9000 sandbox metis-sandbox     # setup Minio client
-mc mb minio/metis-sandbox-bucket || true                           # create a test bucket
-mc admin accesskey create minio/ --access-key bT3iWI27KcAQyLQCIOYT --secret-key pMDcycDwMnKbLvkqa2Cxb2KJVeU1u67lE7Fb1Ie     # create accesskey
+sandbox:
+    s3:    
+        access-key: bT3iWI27KcAQyLQCIOYT
+        secret-key: pMDcycDwMnKbLvkqa2Cxb2KJVeU1u67lE7Fb1Ie
+        endpoint: http://localhost:4566
+        signing-region: eu-west-2
+        thumbnails-bucket: metis-sandbox-bucket
 ```
 The above keys are for local development
 

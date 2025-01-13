@@ -17,4 +17,7 @@ RUN solr start -c \
     && solr create_collection -c metis_sandbox_publish_local -p 8983  \
     && solr stop \
     && mkdir -p /opt/solr/server/solr/metis_sandbox_publish_local_shard1_replica_n1/conf \
-    && cp /opt/solr/search/solr_confs/metadata/conf/query_aliases.xml /opt/solr/server/solr/metis_sandbox_publish_local_shard1_replica_n1/conf/query_aliases.xml
+    && cp /opt/solr/search/solr_confs/metadata/conf/query_aliases.xml /opt/solr/server/solr/metis_sandbox_publish_local_shard1_replica_n1/conf/query_aliases.xml \
+    && solr start -c \
+    && cd /opt/solr/search && /opt/solr/search/solr-schema.sh \
+    && solr stop
