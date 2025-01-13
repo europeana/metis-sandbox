@@ -50,18 +50,18 @@ services:
       - start
       - -c
       - -f
-  minio:
-    image: minio/minio
-    container_name: metis-sandbox-minio
+
+  metis-sandbox-localstack-s3:
+    image: localstack/localstack:s3-latest
     environment:
-      MINIO_ROOT_USER: sandbox
-      MINIO_ROOT_PASSWORD: metis-sandbox
+      - DEBUG=${DEBUG:-0}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "4566:4566"
     volumes:
-      - .data/minio:/data
-    command: minio server /data/minio --console-address ":9001"
+      - "${LOCALSTACK_VOLUME_DIR:-./docker/volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./docker/localstack/bucket.sh:/etc/localstack/init/ready.d/bucket.sh"
+
   metis-sandbox-local:
     image: europeana/metis-sandbox:develop
     container_name: metis-sandbox-local
