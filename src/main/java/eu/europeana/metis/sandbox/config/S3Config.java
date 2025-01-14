@@ -33,7 +33,7 @@ class S3Config {
   private String thumbnailsBucket;
 
   @Bean
-  AmazonS3 s3ClientHttps() {
+  AmazonS3 s3Client() {
     AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
     return AmazonS3ClientBuilder
         .standard()

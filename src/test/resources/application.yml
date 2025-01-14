@@ -138,7 +138,6 @@ sandbox:
     endpoint:
     signing-region:
     thumbnails-bucket:
-    local-enabled: false
   portal:
     publish:
       dataset-base-url: "http://metis-test"
