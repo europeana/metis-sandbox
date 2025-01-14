@@ -51,7 +51,7 @@ services:
       - -c
       - -f
 
-  metis-sandbox-localstack-s3:
+  localstack-s3:
     image: localstack/localstack:s3-latest
     environment:
       - DEBUG=${DEBUG:-0}
