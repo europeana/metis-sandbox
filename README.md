@@ -59,9 +59,15 @@ Installing latest docker-compose:
 > chmod +x docker-compose-linux-x86_64  
 > sudo mv docker-compose-linux-x86_64 /usr/bin/docker-compose  
 
-### Local SOLR server
-After creating the container execute the schema and collection configuration and creation
-the script is located inside the container `/opt/solr/search/solr-schema.sh`
+### Local SOLR & Zookeeper server
+**SOLR** is available on http://localhost:8983 running in cloud mode with one node. 
+The configured collection is `metis_sandbox_publish_local`
+```
+sandbox:
+    solr:
+        hosts: http://localhost:8983/solr/metis_sandbox_publish_local
+```        
+**Zookeeper** is available on http://localhost:9983
 
 ### S3 bucket with localstack
 Use the following example configuration for a local S3 bucket
