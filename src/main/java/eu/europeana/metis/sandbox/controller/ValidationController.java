@@ -60,10 +60,12 @@ public class ValidationController {
     @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
     @ResponseStatus(HttpStatus.OK)
     public ValidationWorkflowReport validate(
-            @Parameter(description = "country of the record") @RequestParam(required = false, defaultValue = "Europe") Country country,
-            @Parameter(description = "language of the record") @RequestParam(required = false, defaultValue = "Multilingual Content") Language language,
+        @Parameter(description = "country of the record")
+        @RequestParam(value = "country", required = false, defaultValue = "Europe") Country country,
+        @Parameter(description = "language of the record")
+        @RequestParam(value = "language", required = false, defaultValue = "Multilingual Content") Language language,
         @Parameter(description = "record file to be validated", required = true)
-        @RequestParam MultipartFile recordToValidate) throws SerializationException, IOException {
+        @RequestParam("recordToValidate") MultipartFile recordToValidate) throws SerializationException, IOException {
         checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
         return workflowService.validate(recordToValidate, country, language);
     }
