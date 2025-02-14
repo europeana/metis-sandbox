@@ -54,7 +54,7 @@
     <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
     <version.elastic.apm>1.48.1</version.elastic.apm>
-    <version.netty>4.1.108.Final</version.netty>
+    <version.netty>4.1.118.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
     <version.rabbittest>2.4.5</version.rabbittest>
     <version.bucket4j>8.3.0</version.bucket4j>
