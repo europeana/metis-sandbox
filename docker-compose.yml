@@ -18,7 +18,7 @@ services:
       - ./src/main/resources/database/schema_lockrepository.sql:/docker-entrypoint-initdb.d/schema_lockrepository.sql
       - ./src/main/resources/database/schema_validation.sql:/docker-entrypoint-initdb.d/schema_validation.sql
   rabbitmq:
-    image: rabbitmq:3.9.12-management
+    image: rabbitmq:3.11.2-management-alpine
     container_name: metis-sandbox-rabbitmq
     environment:
       - RABBIT_DEFAULT_VHOST=/
@@ -28,7 +28,7 @@ services:
       - '5672:5672'
       - '15672:15672'
   mongo:
-    image: mongo:4.2.9
+    image: mongo:6.0.12
     container_name: metis-sandbox-mongo
     environment:
       MONGO_INITDB_DATABASE: metis-sandbox
@@ -36,6 +36,30 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: guest
     ports:
       - '27017:27017'
+  solr:
+    build:
+      context: docker/solr/
+      dockerfile: Dockerfile
+    container_name: metis-sandbox-solr
+    ports:
+      - "8983:8983"
+      - "9983:9983"
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr
+      - start
+      - -c
+      - -f
+
+  localstack-s3:
+    image: localstack/localstack:s3-latest
+    ports:
+      - "4566:4566"
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./docker/volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./docker/localstack/bucket.sh:/etc/localstack/init/ready.d/bucket.sh"
+
   metis-sandbox-local:
     image: europeana/metis-sandbox:develop
     container_name: metis-sandbox-local
