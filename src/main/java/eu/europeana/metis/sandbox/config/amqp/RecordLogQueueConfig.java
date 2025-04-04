@@ -62,6 +62,7 @@ class RecordLogQueueConfig extends QueueConsumerConfig {
     @Bean
     Queue logQueue() {
         return QueueBuilder.durable(queue)
+                .quorum()
                 .deadLetterExchange(exchangeDlq)
                 .deadLetterRoutingKey(dlq)
                 .build();

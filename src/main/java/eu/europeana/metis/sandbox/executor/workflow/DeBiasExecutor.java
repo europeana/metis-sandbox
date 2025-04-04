@@ -37,7 +37,7 @@ class DeBiasExecutor extends StepExecutor {
    */
   @RabbitListener(queues = "${sandbox.rabbitmq.queues.record.debias.ready.queue}",
       containerFactory = "deBiasFactory",
-      autoStartup = "${sandbox.rabbitmq.queues.record.transformed.auto-start:true}")
+      autoStartup = "${sandbox.rabbitmq.queues.record.debias.ready.auto-start:true}")
   public void debiasProcess(List<RecordProcessEvent> input) {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("pulling records from queue: {}", input.stream()

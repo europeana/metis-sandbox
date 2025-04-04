@@ -174,13 +174,6 @@ sandbox:
               concurrency: 2
               max-concurrency: 2
               prefetch: 1
-        ordered:
-          queue: sandbox.record.ordered
-          dlq: ${sandbox.rabbitmq.queues.record.ordered.queue}.dlq
-          auto-start: true
-          concurrency: 2
-          max-concurrency: 2
-          prefetch: 1
         validated:
           external:
             queue: sandbox.record.validated.external
