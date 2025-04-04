@@ -117,16 +117,16 @@ public class AmqpConfiguration {
   @Bean
   Declarables deadQueues() {
     return new Declarables(
-        QueueBuilder.durable(createdDlq).build(),
-        QueueBuilder.durable(transformationToEdmExternalDlq).build(),
-        QueueBuilder.durable(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedDlq).build(),
-        QueueBuilder.durable(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(publishedDlq).build(),
-        QueueBuilder.durable(deBiasReadyDlq).build()
+        QueueBuilder.durable(createdDlq).quorum().build(),
+        QueueBuilder.durable(transformationToEdmExternalDlq).quorum().build(),
+        QueueBuilder.durable(externalValidatedDlq).quorum().build(),
+        QueueBuilder.durable(transformedDlq).quorum().build(),
+        QueueBuilder.durable(normalizedDlq).quorum().build(),
+        QueueBuilder.durable(internalValidatedDlq).quorum().build(),
+        QueueBuilder.durable(enrichedDlq).quorum().build(),
+        QueueBuilder.durable(mediaProcessedDlq).quorum().build(),
+        QueueBuilder.durable(publishedDlq).quorum().build(),
+        QueueBuilder.durable(deBiasReadyDlq).quorum().build()
     );
   }
 
@@ -189,7 +189,7 @@ public class AmqpConfiguration {
                     .deadLetterRoutingKey(mediaProcessedDlq).build(),
         QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(publishedDlq).build(),
-        QueueBuilder.durable(deBiasReadyQueue).deadLetterExchange(deBiasReadyDlq)
+        QueueBuilder.durable(deBiasReadyQueue).deadLetterExchange(exchangeDlq)
             .deadLetterRoutingKey(deBiasReadyDlq).build()
     );
   }

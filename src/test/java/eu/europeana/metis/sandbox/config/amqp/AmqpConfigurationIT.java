@@ -75,6 +75,7 @@ public class AmqpConfigurationIT {
     amqpAdmin.purgeQueue(amqpConfiguration.getEnrichedQueue());
     amqpAdmin.purgeQueue(amqpConfiguration.getMediaProcessedQueue());
     amqpAdmin.purgeQueue(amqpConfiguration.getPublishedQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getDeBiasReadyQueue());
 
     amqpAdmin.purgeQueue(amqpConfiguration.getCreatedDlq());
     amqpAdmin.purgeQueue(amqpConfiguration.getExternalValidatedDlq());
@@ -85,6 +86,7 @@ public class AmqpConfigurationIT {
     amqpAdmin.purgeQueue(amqpConfiguration.getEnrichedDlq());
     amqpAdmin.purgeQueue(amqpConfiguration.getMediaProcessedDlq());
     amqpAdmin.purgeQueue(amqpConfiguration.getPublishedDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getDeBiasReadyDlq());
   }
 
   @Test
@@ -98,6 +100,7 @@ public class AmqpConfigurationIT {
     assertDefaultQueueSendAndReceive(amqpConfiguration.getEnrichedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getMediaProcessedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getPublishedQueue());
+    assertDefaultQueueSendAndReceive(amqpConfiguration.getDeBiasReadyQueue());
 
     assertDlqQueueSendAndReceive(amqpConfiguration.getCreatedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getExternalValidatedDlq());
@@ -108,6 +111,7 @@ public class AmqpConfigurationIT {
     assertDlqQueueSendAndReceive(amqpConfiguration.getEnrichedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getMediaProcessedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getPublishedDlq());
+    assertDlqQueueSendAndReceive(amqpConfiguration.getDeBiasReadyDlq());
   }
 
   private void assertDefaultQueueSendAndReceive(String routingKey) {
@@ -142,7 +146,8 @@ public class AmqpConfigurationIT {
         amqpConfiguration.getNormalizedQueue(),
         amqpConfiguration.getEnrichedQueue(),
         amqpConfiguration.getMediaProcessedQueue(),
-        amqpConfiguration.getPublishedQueue());
+        amqpConfiguration.getPublishedQueue(),
+        amqpConfiguration.getDeBiasReadyQueue());
     throwingListenerContainer.setDefaultRequeueRejected(false);
     throwingListenerContainer.setMessageListener(message -> {
       messagesCounter.getAndIncrement();
@@ -165,6 +170,7 @@ public class AmqpConfigurationIT {
       amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getMediaProcessedQueue(),
           recordProcessEvent);
       amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getPublishedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getDeBiasReadyQueue(), recordProcessEvent);
 
       //Await and check all dlqs
       awaitDlqMessages(amqpConfiguration.getCreatedDlq());
@@ -176,12 +182,13 @@ public class AmqpConfigurationIT {
       awaitDlqMessages(amqpConfiguration.getEnrichedDlq());
       awaitDlqMessages(amqpConfiguration.getMediaProcessedDlq());
       awaitDlqMessages(amqpConfiguration.getPublishedDlq());
+      awaitDlqMessages(amqpConfiguration.getDeBiasReadyDlq());
     } finally {
       //Stop if awaiting failed, so that other tests won't be impacted.
       throwingListenerContainer.stop();
     }
 
-    assertEquals(9, messagesCounter.get());
+    assertEquals(10, messagesCounter.get());
   }
 
   private void awaitDlqMessages(String routingKey) {
