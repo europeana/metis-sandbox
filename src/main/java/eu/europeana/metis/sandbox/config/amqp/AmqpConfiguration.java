@@ -170,26 +170,25 @@ public class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(createdQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(createdDlq).build(),
-        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
-                    .deadLetterRoutingKey(
-                        transformationToEdmExternalDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(transformationToEdmExternalQueue).quorum().deadLetterExchange(exchangeDlq)
+                    .deadLetterRoutingKey(transformationToEdmExternalDlq).build(),
+        QueueBuilder.durable(externalValidatedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(transformedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(normalizedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(internalValidatedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(enrichedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(mediaProcessedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(publishedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(publishedDlq).build(),
-        QueueBuilder.durable(deBiasReadyQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(deBiasReadyQueue).quorum().deadLetterExchange(exchangeDlq)
             .deadLetterRoutingKey(deBiasReadyDlq).build()
     );
   }

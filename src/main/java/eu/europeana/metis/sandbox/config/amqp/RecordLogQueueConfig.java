@@ -75,7 +75,7 @@ class RecordLogQueueConfig extends QueueConsumerConfig {
      */
     @Bean
     Queue logDlq() {
-        return QueueBuilder.durable(dlq).build();
+        return QueueBuilder.durable(dlq).quorum().build();
     }
 
     /**
