@@ -91,6 +91,15 @@ public class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.debias.ready.dlq:#{null}}")
   private String deBiasReadyDlq;
 
+  @Value("${sandbox.rabbitmq.queues.record.log.queue:#{null}}")
+  private String logQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.log.dlq:#{null}}")
+  private String logDlq;
+
+  @Value("${sandbox.rabbitmq.queues.record.log.routing-key:#{null}}")
+  private String logRoutingKey;
+
   public AmqpConfiguration(MessageConverter messageConverter, AmqpAdmin amqpAdmin) {
     this.messageConverter = messageConverter;
     this.amqpAdmin = amqpAdmin;
@@ -126,6 +135,7 @@ public class AmqpConfiguration {
         QueueBuilder.durable(enrichedDlq).quorum().build(),
         QueueBuilder.durable(mediaProcessedDlq).quorum().build(),
         QueueBuilder.durable(publishedDlq).quorum().build(),
+        QueueBuilder.durable(logDlq).quorum().build(),
         QueueBuilder.durable(deBiasReadyDlq).quorum().build()
     );
   }
@@ -142,6 +152,14 @@ public class AmqpConfiguration {
     return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
         externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
         mediaProcessedDlq, publishedDlq, deBiasReadyDlq);
+  }
+
+  @Bean
+  Declarables logBindings() {
+    return new Declarables(
+        new Binding(logQueue, DestinationType.QUEUE, exchange, logRoutingKey, null),
+        new Binding(logDlq, DestinationType.QUEUE, exchange, logDlq, null)
+    );
   }
 
   //Suppress: Methods should not have too many parameters warning
@@ -188,8 +206,10 @@ public class AmqpConfiguration {
                     .deadLetterRoutingKey(mediaProcessedDlq).build(),
         QueueBuilder.durable(publishedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(publishedDlq).build(),
+        QueueBuilder.durable(logQueue).quorum().deadLetterExchange(exchangeDlq)
+                    .deadLetterRoutingKey(logDlq).build(),
         QueueBuilder.durable(deBiasReadyQueue).quorum().deadLetterExchange(exchangeDlq)
-            .deadLetterRoutingKey(deBiasReadyDlq).build()
+                    .deadLetterRoutingKey(deBiasReadyDlq).build()
     );
   }
 
@@ -279,6 +299,14 @@ public class AmqpConfiguration {
     return publishedDlq;
   }
 
+  public String getLogQueue() {
+    return logQueue;
+  }
+
+  public String getLogDlq() {
+    return logDlq;
+  }
+
   public String getDeBiasReadyQueue() {
     return deBiasReadyQueue;
   }
@@ -287,14 +315,14 @@ public class AmqpConfiguration {
     return deBiasReadyDlq;
   }
 
-  public AmqpAdmin getAmqpAdmin(){
+  public AmqpAdmin getAmqpAdmin() {
     return amqpAdmin;
   }
 
-  public List<String> getAllQueuesNames(){
+  public List<String> getAllQueuesNames() {
     return List.of(createdQueue, createdDlq, transformationToEdmExternalQueue, transformationToEdmExternalDlq,
-            externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
-            internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
-            mediaProcessedDlq, publishedQueue, publishedDlq, deBiasReadyQueue, deBiasReadyDlq);
+        externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
+        internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
+        mediaProcessedDlq, publishedQueue, publishedDlq, logQueue, logDlq, deBiasReadyQueue, deBiasReadyDlq);
   }
 }
