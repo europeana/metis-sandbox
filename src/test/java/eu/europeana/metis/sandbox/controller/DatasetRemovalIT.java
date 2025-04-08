@@ -2,10 +2,12 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,12 +16,14 @@ import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.test.utils.TestContainer;
 import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import eu.europeana.metis.security.test.JwtUtils;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
@@ -28,6 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -44,8 +49,17 @@ class DatasetRemovalIT {
 
     private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
+    @MockBean
+    JwtDecoder jwtDecoder;
+
     @LocalServerPort
     private int port;
+
+    private final JwtUtils jwtUtils;
+
+    public DatasetRemovalIT() {
+        jwtUtils = new JwtUtils(List.of());
+    }
 
     @DynamicPropertySource
     public static void dynamicProperties(DynamicPropertyRegistry registry) {
@@ -108,9 +122,11 @@ class DatasetRemovalIT {
     }
 
     private ResponseEntity<String> makeHarvestingByFile(FileSystemResource dataset, FileSystemResource xsltFile) {
+        when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
 
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+        requestHeaders.setBearerAuth(MOCK_VALID_TOKEN);
         MultiValueMap<String, Object> body
                 = new LinkedMultiValueMap<>();
         body.add("dataset", dataset);

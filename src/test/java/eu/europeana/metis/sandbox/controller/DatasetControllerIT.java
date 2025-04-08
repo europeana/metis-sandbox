@@ -2,10 +2,12 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,6 +20,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.test.utils.TestContainer;
 import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
 import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import eu.europeana.metis.security.test.JwtUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -32,12 +35,14 @@ import java.util.Objects;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionEvaluationLogger;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.FileSystemResource;
@@ -46,6 +51,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
@@ -57,11 +63,25 @@ import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
     classes = SandboxApplication.class)
 class DatasetControllerIT {
 
+  @MockBean
+  JwtDecoder jwtDecoder;
+
+  private final JwtUtils jwtUtils;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
   @LocalServerPort
   private int port;
+
+  public DatasetControllerIT() {
+    jwtUtils = new JwtUtils(List.of());
+  }
+
+  @BeforeEach
+  public void setup() {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+  }
 
   @DynamicPropertySource
   public static void dynamicProperties(DynamicPropertyRegistry registry) {
@@ -120,6 +140,7 @@ class DatasetControllerIT {
     //As a request it is possible to upload a xsltFile, even if we don't want to include it,
     //hence we set content ty as multipart_form_data
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    requestHeaders.setBearerAuth(MOCK_VALID_TOKEN);
     MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
     body.add("url", datasetPath.toUri().toString());
     body.add("country", ITALY.xmlValue());
@@ -146,6 +167,7 @@ class DatasetControllerIT {
 
     HttpHeaders requestHeaders = new HttpHeaders();
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    requestHeaders.setBearerAuth(MOCK_VALID_TOKEN);
     MultiValueMap<String, Object> body
         = new LinkedMultiValueMap<>();
     body.add("url", datasetPath.toUri().toString());
@@ -228,6 +250,7 @@ class DatasetControllerIT {
   private ResponseEntity<String> makeHarvestingByOAIPMH() throws URISyntaxException {
     HttpHeaders requestHeaders = new HttpHeaders();
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    requestHeaders.setBearerAuth(MOCK_VALID_TOKEN);
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
     body.add("country", ITALY.xmlValue());
@@ -245,6 +268,7 @@ class DatasetControllerIT {
 
     HttpHeaders requestHeaders = new HttpHeaders();
     requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+    requestHeaders.setBearerAuth(MOCK_VALID_TOKEN);
     MultiValueMap<String, Object> body
         = new LinkedMultiValueMap<>();
     body.add("dataset", dataset);
