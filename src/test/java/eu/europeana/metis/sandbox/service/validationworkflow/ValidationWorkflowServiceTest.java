@@ -1,5 +1,17 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -17,16 +29,6 @@ import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.mock.web.MockMultipartFile;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -36,18 +38,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class ValidationWorkflowServiceTest {
@@ -158,7 +157,7 @@ class ValidationWorkflowServiceTest {
     }
 
     private void prepareBaseMocks() throws PatternAnalysisException {
-        when(datasetService.createEmptyDataset(anyString(), any(), any(), any())).thenReturn("datasetId");
+        when(datasetService.createEmptyDataset(anyString(), any(), any(), any(), any())).thenReturn("datasetId");
         doNothing().when(datasetService).updateNumberOfTotalRecord(anyString(), anyLong());
         RecordEntity recordEntity = new RecordEntity("providerId", "datasetId");
         doReturn(recordEntity).when(recordRepository).save(any());
@@ -183,6 +182,6 @@ class ValidationWorkflowServiceTest {
     }
 
     private void verifyMocks() {
-        verify(datasetService, times(1)).createEmptyDataset(anyString(), any(), any(), any());
+        verify(datasetService, times(1)).createEmptyDataset(anyString(), any(), any(), any(), any());
     }
 }

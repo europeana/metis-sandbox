@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>eu.europeana.metis</groupId>
@@ -33,7 +34,8 @@
     <version.java>21</version.java>
     <version.springdoc-openapi-starter-webmvc-ui>2.3.0</version.springdoc-openapi-starter-webmvc-ui>
     <version.metis>14</version.metis>
-    <version.metis.normalization>14</version.metis.normalization>
+    <version.metis-common>16-SNAPSHOT</version.metis-common>
+    <version.metis-normalization>14</version.metis-normalization>
     <version.spring.boot>3.2.3</version.spring.boot>
     <version.europeana>2.16.10-SNAPSHOT</version.europeana>
     <version.postgresql>42.7.2</version.postgresql>
@@ -81,12 +83,12 @@
         </exclusion>
       </exclusions>
     </dependency>
-      <!-- guava -->
-      <dependency>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-          <version>${version.guava}</version>
-      </dependency>
+    <!-- guava -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${version.guava}</version>
+    </dependency>
     <!-- Spring boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -104,6 +106,14 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
     <dependency>
@@ -114,12 +124,18 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-jdbc</artifactId>
     </dependency>
     <!-- Europeana -->
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-common-security</artifactId>
+      <version>${version.metis-common}</version>
+    </dependency>
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-transformation-service</artifactId>
@@ -135,7 +151,7 @@
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-normalization</artifactId>
-      <version>${version.metis.normalization}</version>
+      <version>${version.metis-normalization}</version>
       <exclusions>
         <exclusion>
           <groupId>org.mockito</groupId>
@@ -373,6 +389,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-log4j2</artifactId>
+      <scope>runtime</scope>
       <exclusions>
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
@@ -503,7 +520,7 @@
     <dependency>
       <groupId>co.elastic.apm</groupId>
       <artifactId>apm-agent-attach</artifactId>
-        <version>${version.elastic.apm}</version>
+      <version>${version.elastic.apm}</version>
     </dependency>
 
     <!-- jakarta xml -->

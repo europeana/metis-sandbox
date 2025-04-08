@@ -22,9 +22,8 @@ public class DatasetEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer datasetId;
-
   private String datasetName;
-
+  private String createdById;
   private Long recordsQuantity;
 
   @Column(insertable = false, updatable = false)
@@ -40,9 +39,10 @@ public class DatasetEntity {
 
   private Boolean recordLimitExceeded;
 
-  public DatasetEntity(String datasetName, Long recordsQuantity, Language language, Country country,
+  public DatasetEntity(String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded) {
     this.datasetName = datasetName;
+    this.createdById = createdById;
     this.recordsQuantity = recordsQuantity;
     this.language = language;
     this.country = country;
@@ -50,9 +50,9 @@ public class DatasetEntity {
 
   }
 
-  public DatasetEntity(String datasetName, Long recordsQuantity, Language language, Country country,
+  public DatasetEntity(String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded, String xsltEdmExternalContent) {
-    this(datasetName, recordsQuantity, language, country, recordLimitExceeded);
+    this(datasetName, createdById, recordsQuantity, language, country, recordLimitExceeded);
     this.xsltEdmExternalContent = xsltEdmExternalContent;
   }
 
@@ -74,6 +74,14 @@ public class DatasetEntity {
 
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
+  }
+
+  public String getCreatedById() {
+    return createdById;
+  }
+
+  public void setCreatedById(String createdById) {
+    this.createdById = createdById;
   }
 
   public Long getRecordsQuantity() {

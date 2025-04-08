@@ -39,13 +39,13 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public String createEmptyDataset(String datasetName, Country country, Language language,
+  public String createEmptyDataset(String datasetName, String createdById, Country country, Language language,
       InputStream xsltEdmExternalContentStream) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
 
-    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, null, language, country, false),
+    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, createdById, null, language, country, false),
             xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
@@ -98,7 +98,7 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public DatasetInfoDto getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow(() -> new InvalidDatasetException(datasetId));
-    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
+    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedById(), datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
             datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
   }
 

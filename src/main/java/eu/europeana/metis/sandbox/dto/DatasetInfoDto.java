@@ -17,6 +17,9 @@ public class DatasetInfoDto {
   @JsonProperty("dataset-name")
   private final String datasetName;
 
+  @JsonProperty("created-by-id")
+  private final String createdById;
+
   @JsonProperty("creation-date")
   private final ZonedDateTime creationDate;
 
@@ -32,7 +35,7 @@ public class DatasetInfoDto {
   @JsonProperty("harvesting-parameters")
   private final HarvestingParametricDto harvestingParametricDto;
 
-  public DatasetInfoDto(String datasetId, String datasetName, ZonedDateTime creationDate,
+  public DatasetInfoDto(String datasetId, String datasetName, String createdById, ZonedDateTime creationDate,
                         Language language, Country country, HarvestingParametricDto harvestingParametricDto,
                         boolean transformedToEdmExternal) {
 
@@ -41,6 +44,7 @@ public class DatasetInfoDto {
     this.country = country;
     this.datasetId = datasetId;
     this.datasetName = datasetName;
+    this.createdById = createdById;
     this.harvestingParametricDto = harvestingParametricDto;
     this.transformedToEdmExternal = transformedToEdmExternal;
   }
@@ -51,6 +55,10 @@ public class DatasetInfoDto {
 
   public String getDatasetName() {
     return datasetName;
+  }
+
+  public String getCreatedById() {
+    return createdById;
   }
 
   public ZonedDateTime getCreationDate() {

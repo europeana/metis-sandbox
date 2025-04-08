@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS dataset
 (
     dataset_id                SERIAL,
     dataset_name              VARCHAR(255) NOT NULL,
+    created_by_id             VARCHAR(100) NULL,
     records_quantity          INTEGER      NULL,
     created_date              TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     country                   VARCHAR(35)  NOT NULL,

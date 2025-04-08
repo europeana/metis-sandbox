@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.controller;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
@@ -59,6 +60,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -164,13 +167,15 @@ class DatasetController {
     @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     public DatasetIdDto harvestDatasetFromFile(
-            @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+        @AuthenticationPrincipal Jwt jwtPrincipal,
+        @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
         @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
         @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
         @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile dataset,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+        final String userId = getUserId(jwtPrincipal);
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(dataset);
         if (stepsize != null) {
@@ -178,7 +183,7 @@ class DatasetController {
         }
 
         final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-        final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
+        final String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country,
                 language, xsltInputStream);
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
@@ -207,14 +212,15 @@ class DatasetController {
     @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     public DatasetIdDto harvestDatasetFromURL(
-            @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+        @AuthenticationPrincipal Jwt jwtPrincipal,
+        @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
         @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
         @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
         @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
-
+        final String userId = getUserId(jwtPrincipal);
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(url);
         if (stepsize != null) {
@@ -224,7 +230,7 @@ class DatasetController {
         checkArgument(urlValidator.isValid(url),
                 "The provided url is invalid. Please provide a valid url.");
         final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-        final String createdDatasetId = datasetService.createEmptyDataset(datasetName, country,
+        final String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country,
                 language, xsltInputStream);
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
@@ -257,7 +263,8 @@ class DatasetController {
     @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     public DatasetIdDto harvestDatasetOaiPmh(
-            @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+        @AuthenticationPrincipal Jwt jwtPrincipal,
+        @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
         @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
         @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
@@ -266,6 +273,7 @@ class DatasetController {
         @Parameter(description = "dataset specification") @RequestParam(name = "setspec", required = false) String setspec,
         @Parameter(description = "metadata format") @RequestParam("metadataformat") String metadataformat,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+        final String userId = getUserId(jwtPrincipal);
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
@@ -274,7 +282,7 @@ class DatasetController {
                 "The provided url is invalid. Please provide a valid url.");
 
         InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-        String createdDatasetId = datasetService.createEmptyDataset(datasetName, country, language,
+        String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country, language,
                 xsltInputStream);
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
@@ -436,7 +444,22 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public boolean processDeBias(@PathVariable("id") Integer datasetId) {
+    public boolean processDeBias(@AuthenticationPrincipal Jwt jwtPrincipal, @PathVariable("id") Integer datasetId) {
+        final DatasetInfoDto datasetInfo = datasetService.getDatasetInfo(datasetId.toString());
+
+        //Check ownership
+        if (StringUtils.isNotBlank(datasetInfo.getCreatedById())) {
+            if (jwtPrincipal == null) {
+                return false;
+            }
+
+            final String userId = getUserId(jwtPrincipal);
+            if (!datasetInfo.getCreatedById().equals(userId)) {
+                LOGGER.warn("User {} is not the owner of dataset {}. Ignoring request.", userId, datasetId);
+                return false;
+            }
+        }
+
         final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
         try {
             lock.lock();

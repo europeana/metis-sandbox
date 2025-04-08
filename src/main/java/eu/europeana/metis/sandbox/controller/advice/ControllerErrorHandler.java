@@ -25,7 +25,7 @@ import java.io.IOException;
  * Handles controller exceptions to report correct http status code to client
  */
 @ControllerAdvice
-class ControllerErrorHandler {
+public class ControllerErrorHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ControllerErrorHandler.class);
 

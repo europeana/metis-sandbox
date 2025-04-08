@@ -25,7 +25,7 @@ public interface DatasetService {
    * @throws RecordParsingException if fails to parse a record from the records list
    * @see Dataset
    */
-  String createEmptyDataset(String datasetName, Country country, Language language,
+  String createEmptyDataset(String datasetName, String createdById, Country country, Language language,
       InputStream xsltEdmExternalContentStream);
 
   /**
