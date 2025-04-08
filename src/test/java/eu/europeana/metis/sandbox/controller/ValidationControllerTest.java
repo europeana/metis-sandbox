@@ -1,6 +1,17 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static eu.europeana.metis.sandbox.common.locale.Country.NETHERLANDS;
+import static eu.europeana.metis.sandbox.common.locale.Language.NL;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.config.SecurityConfig;
+import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult;
@@ -10,41 +21,52 @@ import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.multipart.MultipartFile;
 
-import static eu.europeana.metis.sandbox.common.locale.Country.NETHERLANDS;
-import static eu.europeana.metis.sandbox.common.locale.Language.NL;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@ExtendWith(SpringExtension.class)
 @WebMvcTest(ValidationController.class)
+@ContextConfiguration(classes = {ValidationController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class ValidationControllerTest {
     @MockBean
     ValidationWorkflowService validationWorkflowService;
-    @Autowired
-    private MockMvc mvc;
+    @MockBean
+    JwtDecoder jwtDecoder;
     @MockBean
     private RateLimitInterceptor rateLimitInterceptor;
+
+    private static MockMvc mvc;
+
+    @BeforeAll
+    static void setup(WebApplicationContext context) {
+        mvc = MockMvcBuilders.webAppContextSetup(context)
+                             .apply(SecurityMockMvcConfigurers.springSecurity())
+                             .defaultRequest(get("/"))
+                             .build();
+    }
+
+    @BeforeEach
+    void resetMocks() {
+        reset(validationWorkflowService, jwtDecoder);
+    }
 
     @NotNull
     private static ProblemPatternAnalysis getProblemPatternAnalysis() {

@@ -18,7 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.controller.PatternAnalysisController.ProblemPatternAnalysisStatus;
+import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
@@ -46,22 +48,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
-@ExtendWith(SpringExtension.class)
 @WebMvcTest(PatternAnalysisController.class)
+@ContextConfiguration(classes = {PatternAnalysisController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class PatternAnalysisControllerTest {
-
-  @Autowired
-  private MockMvc mvc;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -81,12 +83,24 @@ class PatternAnalysisControllerTest {
   @MockBean
   private LockRegistry lockRegistry;
 
+  @MockBean
+  JwtDecoder jwtDecoder;
+
+  private static MockMvc mvc;
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+
+  @BeforeAll
+  static void setup(WebApplicationContext context) {
+    mvc = MockMvcBuilders.webAppContextSetup(context)
+                             .apply(SecurityMockMvcConfigurers.springSecurity())
+                             .defaultRequest(get("/"))
+                             .build();
+  }
 
   @BeforeEach
   void resetMocks() {
     reset(mockPatternAnalysisService, mockExecutionPointService, mockRecordLogService,
-        mockDatasetReportService, lockRegistry);
+        mockDatasetReportService, lockRegistry, jwtDecoder);
   }
 
   @Test
