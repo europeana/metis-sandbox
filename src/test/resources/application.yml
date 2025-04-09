@@ -119,7 +119,8 @@ sandbox:
     enrichment-properties:
       entity-management-url: https://entity-management-production.eanadev.org/entity
       entity-api-url: https://entity-api-v2-production.eanadev.org/entity
-      entity-api-key: api2demo
+      entity-api-token-endpoint: https://auth.europeana.eu/auth/realms/europeana/protocol/openid-connect/token
+      entity-api-grant-params: metis-enrichment&client_secret=&grant_type=client_credentials
   publish:
     mongo:
       application-name:
