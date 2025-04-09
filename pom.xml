@@ -138,6 +138,11 @@
     </dependency>
     <dependency>
       <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-common-utils</artifactId>
+      <version>${version.metis-common}</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-transformation-service</artifactId>
       <version>${version.metis}</version>
     </dependency>

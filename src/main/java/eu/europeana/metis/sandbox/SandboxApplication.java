@@ -1,14 +1,15 @@
 package eu.europeana.metis.sandbox;
 
+import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * The Spring boot application entry point.
  */
 @SpringBootApplication
-@EnableScheduling
+@EnableConfigurationProperties({ElasticAPMConfiguration.class})
 public class SandboxApplication {
 
   /**
