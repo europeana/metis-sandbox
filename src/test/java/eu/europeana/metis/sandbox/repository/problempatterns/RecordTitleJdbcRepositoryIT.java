@@ -7,36 +7,41 @@ import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
-import eu.europeana.metis.sandbox.test.utils.PostgreSQLContainerIT;
-import eu.europeana.metis.sandbox.test.utils.TestContainer;
-import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
-import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 @ExtendWith(SpringExtension.class)
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) //Do not allow JdbcTest to replace the Datasource
 @ContextConfiguration(classes = RecordTitleJdbcRepository.class)
+@Import({PostgresTestContainersConfiguration.class})
 class RecordTitleJdbcRepositoryIT {
 
-  @DynamicPropertySource
-  public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
-    postgresql.dynamicProperties(registry);
-    postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
+  @BeforeAll
+  static void beforeAll() {
+    //Sandbox specific properties
+    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.jdbcUrl", PostgreSQLContainer::getJdbcUrl);
+    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.username", PostgreSQLContainer::getUsername);
+    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.password", PostgreSQLContainer::getPassword);
+    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.driverClassName", container -> "org.postgresql.Driver");
+
+    PostgresTestContainersConfiguration.runScripts(List.of(
+        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"
+    ));
   }
 
   public static final String SELECT_RECORD_TITLES_QUERY = "SELECT * FROM problem_patterns.record_title";

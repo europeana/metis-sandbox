@@ -16,9 +16,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepos
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
-import eu.europeana.metis.sandbox.test.utils.TestContainer;
-import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
-import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -40,6 +38,7 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -47,10 +46,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -61,6 +59,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @ComponentScan({"eu.europeana.metis.sandbox.service.problempatterns",
         "eu.europeana.metis.sandbox.repository.problempatterns"})
+@Import(PostgresTestContainersConfiguration.class)
 class PatternAnalysisServiceImplIT {
 
     final String rdfStringNoProblems = IOUtils.toString(
@@ -108,13 +107,12 @@ class PatternAnalysisServiceImplIT {
         //Required for the RDFs initializations
     }
 
-    @DynamicPropertySource
-    public static void dynamicProperties(DynamicPropertyRegistry registry) {
-        TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
-        postgresql.dynamicProperties(registry);
-        postgresql.runScripts(
-                List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
-                        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql"));
+    @BeforeAll
+    static void beforeAll() {
+        PostgresTestContainersConfiguration.runScripts(List.of(
+            "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
+            "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql"
+        ));
     }
 
     @AfterEach

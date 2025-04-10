@@ -52,7 +52,7 @@
     <version.commons.collections4>4.4</version.commons.collections4>
     <version.stax2-api>4.2</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
-    <version.testcontainers>1.19.7</version.testcontainers>
+    <version.testcontainers>1.20.2</version.testcontainers>
     <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.10.6</version.micrometer>
     <version.elastic.apm>1.48.1</version.elastic.apm>

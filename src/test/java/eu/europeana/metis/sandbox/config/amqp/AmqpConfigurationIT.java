@@ -12,9 +12,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-import eu.europeana.metis.sandbox.test.utils.TestContainer;
-import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
-import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import eu.europeana.metis.sandbox.test.utils.RabbitMQTestContainersConfiguration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,22 +26,16 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
 @ActiveProfiles("amqpconfiguration-test") // Use profile to avoid interfering queue listeners from other contexts
+@Import({RabbitMQTestContainersConfiguration.class})
 public class AmqpConfigurationIT {
-
-  @DynamicPropertySource
-  public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    TestContainer rabbitMQ = TestContainerFactoryIT.getContainer(TestContainerType.RABBITMQ);
-    rabbitMQ.dynamicProperties(registry);
-  }
 
   private static RecordProcessEvent recordProcessEvent;
   @Autowired

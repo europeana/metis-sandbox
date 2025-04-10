@@ -1,30 +1,30 @@
 package eu.europeana.metis.sandbox.test.utils;
 
 import java.io.IOException;
-import java.util.List;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.RabbitMQContainer;
 
-public class RabbitMQContainerIT extends TestContainer {
+@TestConfiguration
+public class RabbitMQTestContainersConfiguration {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMQContainerIT.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   //Use the *-management versions that contain the rabbitmqadmin cli command, otherwise the commands will fail.
   public static final String RABBITMQ_VERSION = "rabbitmq:3.9.12-management-alpine";
   public static final String VIRTUAL_HOST = "testVhost";
-  private static RabbitMQContainer rabbitMQContainer;
+  private static final RabbitMQContainer rabbitMQContainer;
 
-  public RabbitMQContainerIT() {
-    rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION)
-        .withVhost(VIRTUAL_HOST);
+  static {
+    rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION).withVhost(VIRTUAL_HOST);
     rabbitMQContainer.start();
-
+    dynamicProperties();
     logConfiguration();
   }
-  @Override
-  public void logConfiguration() {
+
+  public static void logConfiguration() {
     LOGGER.info("Rabbitmq container created:");
     LOGGER.info("Host: {}", rabbitMQContainer.getHost());
     LOGGER.info("Amqp Port: {}", rabbitMQContainer.getAmqpPort());
@@ -45,17 +45,11 @@ public class RabbitMQContainerIT extends TestContainer {
     }
   }
 
-  @Override
-  public void dynamicProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.rabbitmq.host", rabbitMQContainer::getHost);
-    registry.add("spring.rabbitmq.port", rabbitMQContainer::getAmqpPort);
-    registry.add("spring.rabbitmq.username", rabbitMQContainer::getAdminUsername);
-    registry.add("spring.rabbitmq.password", rabbitMQContainer::getAdminPassword);
-    registry.add("spring.rabbitmq.virtual-host", VIRTUAL_HOST::toString);
-  }
-
-  @Override
-  public void runScripts(List<String> scripts) {
-    //nothing to do at this moment
+  private static void dynamicProperties() {
+    System.setProperty("spring.rabbitmq.host", rabbitMQContainer.getHost());
+    System.setProperty("spring.rabbitmq.port", rabbitMQContainer.getAmqpPort().toString());
+    System.setProperty("spring.rabbitmq.username", rabbitMQContainer.getAdminUsername());
+    System.setProperty("spring.rabbitmq.password", rabbitMQContainer.getAdminPassword());
+    System.setProperty("spring.rabbitmq.virtual-host", VIRTUAL_HOST);
   }
 }
