@@ -112,8 +112,7 @@ class PatternAnalysisServiceImplIT {
     @BeforeAll
     static void beforeAll() {
         PostgresTestContainersConfiguration.runScripts(List.of(
-            "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
-            "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql"
+            "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"
         ));
     }
 

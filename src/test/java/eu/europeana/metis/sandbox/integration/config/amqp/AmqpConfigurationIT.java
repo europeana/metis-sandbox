@@ -50,6 +50,8 @@ public class AmqpConfigurationIT {
 
   @BeforeAll
   static void beforeAll() {
+    RabbitMQTestContainersConfiguration.configureVHost("amqpconfiguration-test");
+
     final Record recordObject = Record.builder().recordId(100L).country(Country.GREECE).language(Language.EL)
                                       .content(new byte[]{}).build();
     final RecordInfo recordInfo = new RecordInfo(recordObject);

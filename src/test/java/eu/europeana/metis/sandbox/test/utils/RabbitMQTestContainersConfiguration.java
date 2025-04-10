@@ -14,42 +14,52 @@ public class RabbitMQTestContainersConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   //Use the *-management versions that contain the rabbitmqadmin cli command, otherwise the commands will fail.
   public static final String RABBITMQ_VERSION = "rabbitmq:3.9.12-management-alpine";
-  public static final String VIRTUAL_HOST = "testVhost";
   private static final RabbitMQContainer rabbitMQContainer;
 
   static {
-    rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION).withVhost(VIRTUAL_HOST);
+    rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION);
     rabbitMQContainer.start();
-    dynamicProperties();
+    setDefaultProperties();
     logConfiguration();
   }
 
-  public static void logConfiguration() {
+  public static void configureVHost(String vhost) {
+    createVHost(vhost);
+    setDynamicProperties(vhost);
+  }
+
+  private static void createVHost(String vhost) {
+    try {
+      rabbitMQContainer.execInContainer("rabbitmqctl", "add_vhost", vhost);
+      rabbitMQContainer.execInContainer(
+          "rabbitmqctl", "set_permissions", "-p", vhost, rabbitMQContainer.getAdminUsername(), ".*", ".*", ".*");
+      LOGGER.info("Created and configured vhost: {}", vhost);
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException("Failed to create vhost: " + vhost, e);
+    }
+  }
+
+  private static void logConfiguration() {
     LOGGER.info("Rabbitmq container created:");
     LOGGER.info("Host: {}", rabbitMQContainer.getHost());
     LOGGER.info("Amqp Port: {}", rabbitMQContainer.getAmqpPort());
     LOGGER.info("Http Port: {}", rabbitMQContainer.getHttpPort());
     try {
-      final ExecResult execResult = rabbitMQContainer.execInContainer("rabbitmqctl", "list_vhosts");
-      if (execResult.getStdout().contains(VIRTUAL_HOST)) {
-        LOGGER.info("Virtual host: {}", VIRTUAL_HOST);
-      } else {
-        throw new RuntimeException("Virtual host not found in container");
-      }
+      ExecResult result = rabbitMQContainer.execInContainer("rabbitmqctl", "list_vhosts");
+      LOGGER.info("Available vhosts: {}", result.getStdout());
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-
-    if (!rabbitMQContainer.getAdminUsername().isBlank() && !rabbitMQContainer.getAdminPassword().isBlank()) {
-      LOGGER.info("Admin username and password were loaded");
+      throw new RuntimeException("Failed to retrieve vhosts", e);
     }
   }
+  private static void setDefaultProperties() {
+    setDynamicProperties("/");
+  }
 
-  private static void dynamicProperties() {
+  private static void setDynamicProperties(String vhost) {
     System.setProperty("spring.rabbitmq.host", rabbitMQContainer.getHost());
     System.setProperty("spring.rabbitmq.port", rabbitMQContainer.getAmqpPort().toString());
     System.setProperty("spring.rabbitmq.username", rabbitMQContainer.getAdminUsername());
     System.setProperty("spring.rabbitmq.password", rabbitMQContainer.getAdminPassword());
-    System.setProperty("spring.rabbitmq.virtual-host", VIRTUAL_HOST);
+    System.setProperty("spring.rabbitmq.virtual-host", vhost);
   }
 }
