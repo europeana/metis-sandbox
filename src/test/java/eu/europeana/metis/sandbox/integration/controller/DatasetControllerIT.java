@@ -94,20 +94,23 @@ class DatasetControllerIT {
     PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.jdbcUrl", PostgreSQLContainer::getJdbcUrl);
     PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.username", PostgreSQLContainer::getUsername);
     PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.password", PostgreSQLContainer::getPassword);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.driverClassName", container -> "org.postgresql.Driver");
+    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.driverClassName",
+        container -> "org.postgresql.Driver");
 
     PostgresTestContainersConfiguration.runScripts(List.of(
         "database/schema_drop.sql", "database/schema.sql",
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
         "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql",
         "database/schema_validation_drop.sql", "database/schema_validation.sql"
-        ));
+    ));
 
     //Sandbox specific datasource properties
-    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.application-name", container -> "mongo-testcontainer-test");
+    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.application-name",
+        container -> "mongo-testcontainer-test");
     MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.db", container -> "test");
     MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.hosts", MongoDBContainer::getHost);
-    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.ports", container -> container.getFirstMappedPort().toString());
+    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.ports",
+        container -> container.getFirstMappedPort().toString());
 
     //Sandbox specific datasource properties
     SolrTestContainersConfiguration.dynamicProperty("sandbox.publish.solr.hosts",
@@ -116,7 +119,8 @@ class DatasetControllerIT {
     //Sandbox specific datasource properties
     S3TestContainersConfiguration.dynamicProperty("sandbox.s3.access-key", LocalStackContainer::getAccessKey);
     S3TestContainersConfiguration.dynamicProperty("sandbox.s3.secret-key", LocalStackContainer::getSecretKey);
-    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.endpoint", container -> container.getEndpointOverride(S3).toString());
+    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.endpoint",
+        container -> container.getEndpointOverride(S3).toString());
     S3TestContainersConfiguration.dynamicProperty("sandbox.s3.signing-region", LocalStackContainer::getRegion);
     S3TestContainersConfiguration.dynamicProperty("sandbox.s3.thumbnails-bucket", container -> BUCKET_NAME);
   }
@@ -314,6 +318,7 @@ class DatasetControllerIT {
     jsonObject.remove("creation-date");
     return jsonObject.toString();
   }
+
   @Disabled
   @Test
   void retrieveDatasetInfo_expectStatus_ok() throws IOException {
@@ -361,8 +366,8 @@ class DatasetControllerIT {
               .atMost(10, MINUTES).with().pollInterval(Duration.ofSeconds(5))
               .until(() -> testRestTemplate.getForEntity(
                   getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
-        String.class, expectedDatasetId, "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6").getStatusCode()
-        != HttpStatus.NOT_FOUND);
+                  String.class, expectedDatasetId, "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6").getStatusCode()
+                  != HttpStatus.NOT_FOUND);
     ResponseEntity<String> response =
         testRestTemplate.getForEntity(getBaseUrl() + "/dataset/{id}/record/compute-tier-calculation?recordId={recordId}",
             String.class, expectedDatasetId, "/" + expectedDatasetId + "/URN_NBN_SI_doc_B1HM2TA6");
