@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.problempatterns;
+package eu.europeana.metis.sandbox.integration.service.problempatterns;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +16,8 @@ import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepos
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
+import eu.europeana.metis.sandbox.service.problempatterns.PatternAnalysisServiceImpl;
+import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternsRepositories;
 import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;

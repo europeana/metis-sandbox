@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.repository.problempatterns;
+package eu.europeana.metis.sandbox.integration.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,6 +7,7 @@ import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
+import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
 import java.sql.ResultSet;
 import java.sql.SQLException;

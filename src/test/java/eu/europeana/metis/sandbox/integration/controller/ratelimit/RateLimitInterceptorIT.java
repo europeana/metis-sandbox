@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.controller.ratelimit;
+package eu.europeana.metis.sandbox.integration.controller.ratelimit;
 
 
 import static eu.europeana.metis.sandbox.test.utils.S3TestContainersConfiguration.BUCKET_NAME;
@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import eu.europeana.metis.sandbox.SandboxApplication;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.test.utils.MongoTestContainersConfiguration;
 import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.test.utils.RabbitMQTestContainersConfiguration;

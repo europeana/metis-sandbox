@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox;
+package eu.europeana.metis.sandbox.integration;
 
 import static eu.europeana.metis.sandbox.test.utils.S3TestContainersConfiguration.BUCKET_NAME;
 import static eu.europeana.metis.sandbox.test.utils.SolrTestContainersConfiguration.SOLR_COLLECTION_NAME;

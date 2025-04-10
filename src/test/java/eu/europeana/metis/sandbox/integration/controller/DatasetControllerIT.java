@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.controller;
+package eu.europeana.metis.sandbox.integration.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
