@@ -38,6 +38,7 @@ import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
+import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
@@ -100,7 +101,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(DatasetController.class)
-@ContextConfiguration(classes = {DatasetController.class, SecurityConfig.class, ControllerErrorHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, DatasetController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class DatasetControllerTest {
 
   @MockBean
@@ -312,8 +313,8 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
-           .param("country", ITALY.name())
-           .param("language", IT.name())
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
            .param("url", url)
            .param("setspec", "oai_integration_test")
            .param("metadataformat", "edm")
@@ -335,8 +336,8 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
-           .param("country", ITALY.name())
-           .param("language", IT.name())
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
            .param("url", url)
            .param("setspec", "")
            .param("metadataformat", "edm")
@@ -363,8 +364,8 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .file(xsltMock)
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
-           .param("country", ITALY.name())
-           .param("language", IT.name())
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
            .param("url", url)
            .param("setspec", "oai_integration_test")
            .param("metadataformat", "edm")
@@ -884,8 +885,8 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
         .header("Authorization", BEARER + MOCK_VALID_TOKEN)
-        .param("country", ITALY.name())
-        .param("language", IT.name())
+        .param("country", ITALY.xmlValue())
+        .param("language", IT.xmlValue())
         .param("url", url)
         .param("setspec", "1073")
         .param("metadataformat", "rdf")

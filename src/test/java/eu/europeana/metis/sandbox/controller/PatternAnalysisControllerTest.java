@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
+import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.PatternAnalysisController.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
@@ -62,7 +63,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(PatternAnalysisController.class)
-@ContextConfiguration(classes = {PatternAnalysisController.class, SecurityConfig.class, ControllerErrorHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, PatternAnalysisController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class PatternAnalysisControllerTest {
 
   @MockBean

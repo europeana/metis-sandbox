@@ -15,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * contains CORS configuration.
  */
 @Configuration
-class WebMvcConfig implements WebMvcConfigurer {
+public class WebMvcConfig implements WebMvcConfigurer {
 
   @Value("${sandbox.cors.mapping}")
   private String[] corsMapping;

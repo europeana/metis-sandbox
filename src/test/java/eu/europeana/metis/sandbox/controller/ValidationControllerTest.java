@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
+import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
@@ -44,7 +45,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(ValidationController.class)
-@ContextConfiguration(classes = {ValidationController.class, SecurityConfig.class, ControllerErrorHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, ValidationController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class ValidationControllerTest {
     @MockBean
     ValidationWorkflowService validationWorkflowService;
