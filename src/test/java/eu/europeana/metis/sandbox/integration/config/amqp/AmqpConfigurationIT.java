@@ -2,8 +2,6 @@ package eu.europeana.metis.sandbox.integration.config.amqp;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -125,13 +123,16 @@ class AmqpConfigurationIT {
 
   void assertQueueSendAndReceive(String exchange, String routingKey) {
     amqpTemplate.convertAndSend(exchange, routingKey, recordProcessEvent);
-    final Object receivedObject = amqpTemplate.receiveAndConvert(routingKey);
-    assertTrue(receivedObject instanceof RecordProcessEvent);
-    assertInstanceOf(RecordProcessEvent.class, receivedObject);
-    RecordProcessEvent receivedRecordProcessEvent = (RecordProcessEvent) receivedObject;
+    RecordProcessEvent receivedRecordProcessEvent = awaitMessage(routingKey);
     assertEquals(recordProcessEvent.getRecord().getRecordId(), receivedRecordProcessEvent.getRecord().getRecordId());
     assertEquals(recordProcessEvent.getStep(), receivedRecordProcessEvent.getStep());
     assertEquals(recordProcessEvent.getStatus(), receivedRecordProcessEvent.getStatus());
+  }
+
+  private RecordProcessEvent awaitMessage(String routingKey) {
+    return (RecordProcessEvent) Awaitility.await().atMost(2, SECONDS)
+                                          .until(() -> amqpTemplate.receiveAndConvert(routingKey),
+                                              RecordProcessEvent.class::isInstance);
   }
 
   @Test
@@ -164,16 +165,16 @@ class AmqpConfigurationIT {
           amqpConfiguration.getDeBiasReadyQueue(), recordProcessEvent);
 
       //Await and check all dlqs
-      awaitDlqMessages(amqpConfiguration.getCreatedDlq());
-      awaitDlqMessages(amqpConfiguration.getExternalValidatedDlq());
-      awaitDlqMessages(amqpConfiguration.getTransformedDlq());
-      awaitDlqMessages(amqpConfiguration.getTransformationToEdmExternalDlq());
-      awaitDlqMessages(amqpConfiguration.getInternalValidatedDlq());
-      awaitDlqMessages(amqpConfiguration.getNormalizedDlq());
-      awaitDlqMessages(amqpConfiguration.getEnrichedDlq());
-      awaitDlqMessages(amqpConfiguration.getMediaProcessedDlq());
-      awaitDlqMessages(amqpConfiguration.getPublishedDlq());
-      awaitDlqMessages(amqpConfiguration.getDeBiasReadyDlq());
+      awaitMessage(amqpConfiguration.getCreatedDlq());
+      awaitMessage(amqpConfiguration.getExternalValidatedDlq());
+      awaitMessage(amqpConfiguration.getTransformedDlq());
+      awaitMessage(amqpConfiguration.getTransformationToEdmExternalDlq());
+      awaitMessage(amqpConfiguration.getInternalValidatedDlq());
+      awaitMessage(amqpConfiguration.getNormalizedDlq());
+      awaitMessage(amqpConfiguration.getEnrichedDlq());
+      awaitMessage(amqpConfiguration.getMediaProcessedDlq());
+      awaitMessage(amqpConfiguration.getPublishedDlq());
+      awaitMessage(amqpConfiguration.getDeBiasReadyDlq());
     } finally {
       //Stop if awaiting failed, so that other tests won't be impacted.
       throwingListenerContainer.stop();
@@ -200,14 +201,9 @@ class AmqpConfigurationIT {
       messagesCounter.getAndIncrement();
       throw new RuntimeException("exception");
     });
-    throwingListenerContainer.setErrorHandler(t -> {
-      LOGGER.warn("Forced exception to route to dlq message [{}]", messagesCounter.get());
-    });
+    throwingListenerContainer.setErrorHandler(
+        t -> LOGGER.warn("Forced exception to route to dlq message [{}]", messagesCounter.get()));
     throwingListenerContainer.start();
     return throwingListenerContainer;
-  }
-
-  private void awaitDlqMessages(String routingKey) {
-    Awaitility.await().atMost(2, SECONDS).until(() -> amqpTemplate.receiveAndConvert(routingKey) != null);
   }
 }
