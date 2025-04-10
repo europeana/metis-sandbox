@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.test.utils;
+package eu.europeana.metis.sandbox.integration.testcontainers;
 
 import java.lang.invoke.MethodHandles;
 import java.util.List;
@@ -14,14 +14,26 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 public class PostgresTestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String POSTGRES_VERSION = "postgres:14-alpine";
   private static final PostgreSQLContainer<?> postgreSQLContainer;
-  public static final String POSTGRES_VERSION = "postgres:14-alpine";
 
   static {
     postgreSQLContainer = new PostgreSQLContainer<>(POSTGRES_VERSION);
     postgreSQLContainer.start();
-    dynamicProperties();
+    setDynamicProperties();
     logConfiguration();
+  }
+
+  private static void setDynamicProperties() {
+    System.setProperty("spring.datasource.url", postgreSQLContainer.getJdbcUrl());
+    System.setProperty("spring.datasource.username", postgreSQLContainer.getUsername());
+    System.setProperty("spring.datasource.password", postgreSQLContainer.getPassword());
+    System.setProperty("spring.jpa.hibernate.ddl-auto", "none");
+    System.setProperty("spring.datasource.driver-class-name", "org.postgresql.Driver");
+  }
+
+  public static void setDynamicProperty(String key, Function<PostgreSQLContainer<?>, String> getValue){
+    System.setProperty(key, getValue.apply(postgreSQLContainer));
   }
 
   private static void logConfiguration() {
@@ -35,20 +47,8 @@ public class PostgresTestContainersConfiguration {
     }
   }
 
-  private static void dynamicProperties() {
-    System.setProperty("spring.datasource.url", postgreSQLContainer.getJdbcUrl());
-    System.setProperty("spring.datasource.username", postgreSQLContainer.getUsername());
-    System.setProperty("spring.datasource.password", postgreSQLContainer.getPassword());
-    System.setProperty("spring.jpa.hibernate.ddl-auto", "none");
-    System.setProperty("spring.datasource.driver-class-name", "org.postgresql.Driver");
-  }
-
-  public static void dynamicProperty(String key, Function<PostgreSQLContainer<?>, String> getValue){
-    System.setProperty(key, getValue.apply(postgreSQLContainer));
-  }
-
   public static void runScripts(List<String> sqlScriptsInOrder) {
-    var containerDelegate = new JdbcDatabaseDelegate(postgreSQLContainer, "");
+    JdbcDatabaseDelegate containerDelegate = new JdbcDatabaseDelegate(postgreSQLContainer, "");
     sqlScriptsInOrder.forEach(sqlScript -> ScriptUtils.runInitScript(containerDelegate, sqlScript));
   }
 }

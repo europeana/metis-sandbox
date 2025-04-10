@@ -17,14 +17,14 @@ sandbox:
         transformation:
           edm:
             external:
-              queue: sandbox.record.transformation.edm.amqpconfiguration-test.external
+              queue: sandbox.record.amqpconfiguration-test.transformation.edm.external
               dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
         validated:
           external:
-            queue: sandbox.record.validated.amqpconfiguration-test.external
+            queue: sandbox.record.amqpconfiguration-test.validated.external
             dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
           internal:
-            queue: sandbox.record.validated.amqpconfiguration-test.internal
+            queue: sandbox.record.amqpconfiguration-test.validated.internal
             dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
         transformed:
           queue: sandbox.record.amqpconfiguration-test.transformed
@@ -36,12 +36,12 @@ sandbox:
           queue: sandbox.record.amqpconfiguration-test.enriched
           dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
         media:
-          queue: sandbox.record.media.amqpconfiguration-test.processed
+          queue: sandbox.record.amqpconfiguration-test.media.processed
           dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
         published:
           queue: sandbox.record.amqpconfiguration-test.published
           dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
         debias:
           ready:
-            queue: sandbox.record.debias.amqpconfiguration-test.ready
+            queue: sandbox.record.amqpconfiguration-test.debias.ready
             dlq: ${sandbox.rabbitmq.queues.record.debias.ready.queue}.dlq

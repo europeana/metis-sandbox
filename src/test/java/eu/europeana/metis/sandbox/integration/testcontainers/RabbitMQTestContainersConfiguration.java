@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.test.utils;
+package eu.europeana.metis.sandbox.integration.testcontainers;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -19,24 +19,16 @@ public class RabbitMQTestContainersConfiguration {
   static {
     rabbitMQContainer = new RabbitMQContainer(RABBITMQ_VERSION);
     rabbitMQContainer.start();
-    setDefaultProperties();
+    setDynamicProperties();
     logConfiguration();
   }
 
-  public static void configureVHost(String vhost) {
-    createVHost(vhost);
-    setDynamicProperties(vhost);
-  }
-
-  private static void createVHost(String vhost) {
-    try {
-      rabbitMQContainer.execInContainer("rabbitmqctl", "add_vhost", vhost);
-      rabbitMQContainer.execInContainer(
-          "rabbitmqctl", "set_permissions", "-p", vhost, rabbitMQContainer.getAdminUsername(), ".*", ".*", ".*");
-      LOGGER.info("Created and configured vhost: {}", vhost);
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException("Failed to create vhost: " + vhost, e);
-    }
+  private static void setDynamicProperties() {
+    System.setProperty("spring.rabbitmq.host", rabbitMQContainer.getHost());
+    System.setProperty("spring.rabbitmq.port", rabbitMQContainer.getAmqpPort().toString());
+    System.setProperty("spring.rabbitmq.username", rabbitMQContainer.getAdminUsername());
+    System.setProperty("spring.rabbitmq.password", rabbitMQContainer.getAdminPassword());
+    System.setProperty("spring.rabbitmq.virtual-host", "/");
   }
 
   private static void logConfiguration() {
@@ -51,15 +43,19 @@ public class RabbitMQTestContainersConfiguration {
       throw new RuntimeException("Failed to retrieve vhosts", e);
     }
   }
-  private static void setDefaultProperties() {
-    setDynamicProperties("/");
+  public static void configureCustomVHost(String vhost) {
+    createVHost(vhost);
+    System.setProperty("spring.rabbitmq.virtual-host", vhost);
   }
 
-  private static void setDynamicProperties(String vhost) {
-    System.setProperty("spring.rabbitmq.host", rabbitMQContainer.getHost());
-    System.setProperty("spring.rabbitmq.port", rabbitMQContainer.getAmqpPort().toString());
-    System.setProperty("spring.rabbitmq.username", rabbitMQContainer.getAdminUsername());
-    System.setProperty("spring.rabbitmq.password", rabbitMQContainer.getAdminPassword());
-    System.setProperty("spring.rabbitmq.virtual-host", vhost);
+  private static void createVHost(String vhost) {
+    try {
+      rabbitMQContainer.execInContainer("rabbitmqctl", "add_vhost", vhost);
+      rabbitMQContainer.execInContainer(
+          "rabbitmqctl", "set_permissions", "-p", vhost, rabbitMQContainer.getAdminUsername(), ".*", ".*", ".*");
+      LOGGER.info("Created and configured vhost: {}", vhost);
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException("Failed to create vhost: " + vhost, e);
+    }
   }
 }

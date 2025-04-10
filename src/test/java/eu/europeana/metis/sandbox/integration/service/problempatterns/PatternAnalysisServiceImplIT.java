@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
+import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -18,7 +19,7 @@ import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatter
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.sandbox.service.problempatterns.PatternAnalysisServiceImpl;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternsRepositories;
-import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -88,21 +89,21 @@ class PatternAnalysisServiceImplIT {
             rdfStringP2MultipleOccurrences);
     final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
     final RDF rdfRecordP12 = new RdfConversionUtils().convertStringToRdf(rdfStringP12);
-    @jakarta.annotation.Resource
+    @Resource
     private PatternAnalysisServiceImpl patternAnalysisServiceImpl;
-    @jakarta.annotation.Resource
+    @Resource
     private PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2;
-    @jakarta.annotation.Resource
+    @Resource
     private ProblemPatternsRepositories problemPatternsRepositories;
-    @jakarta.annotation.Resource
+    @Resource
     private ExecutionPointRepository executionPointRepository;
-    @jakarta.annotation.Resource
+    @Resource
     private DatasetProblemPatternRepository datasetProblemPatternRepository;
-    @jakarta.annotation.Resource
+    @Resource
     private RecordProblemPatternRepository recordProblemPatternRepository;
     @Resource
     private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
-    @jakarta.annotation.Resource
+    @Resource
     private RecordTitleRepository recordTitleRepository;
 
     PatternAnalysisServiceImplIT() throws IOException, SerializationException {
@@ -111,13 +112,11 @@ class PatternAnalysisServiceImplIT {
 
     @BeforeAll
     static void beforeAll() {
-        PostgresTestContainersConfiguration.runScripts(List.of(
-            "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"
-        ));
+        SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
     }
 
     @AfterEach
-    public void cleanup() {
+    void cleanup() {
         recordTitleRepository.deleteAll();
         recordProblemPatternOccurrenceRepository.deleteAll();
         recordProblemPatternRepository.deleteAll();

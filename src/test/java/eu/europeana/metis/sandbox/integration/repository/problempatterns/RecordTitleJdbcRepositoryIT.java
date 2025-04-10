@@ -7,8 +7,9 @@ import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
+import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
-import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 @ExtendWith(SpringExtension.class)
 @JdbcTest
@@ -34,15 +34,7 @@ class RecordTitleJdbcRepositoryIT {
 
   @BeforeAll
   static void beforeAll() {
-    //Sandbox specific properties
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.jdbcUrl", PostgreSQLContainer::getJdbcUrl);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.username", PostgreSQLContainer::getUsername);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.password", PostgreSQLContainer::getPassword);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.driverClassName", container -> "org.postgresql.Driver");
-
-    PostgresTestContainersConfiguration.runScripts(List.of(
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"
-    ));
+    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
   }
 
   public static final String SELECT_RECORD_TITLES_QUERY = "SELECT * FROM problem_patterns.record_title";

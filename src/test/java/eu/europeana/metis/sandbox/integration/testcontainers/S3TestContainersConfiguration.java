@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.test.utils;
+package eu.europeana.metis.sandbox.integration.testcontainers;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
@@ -17,9 +17,9 @@ import org.testcontainers.utility.DockerImageName;
 public class S3TestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String S3_VERSION = "localstack/localstack:1.1.0";
   private static final LocalStackContainer s3Container;
   private static final AmazonS3 s3Client;
-  private static final String S3_VERSION = "localstack/localstack:1.1.0";
   public static final String BUCKET_NAME = "test-thumbnails-bucket";
 
   static {
@@ -34,8 +34,20 @@ public class S3TestContainersConfiguration {
                 s3Container.getRegion()))
         .build();
     s3Client.createBucket(BUCKET_NAME);
-    dynamicProperties();
+    setDynamicProperties();
     logConfiguration();
+  }
+
+  private static void setDynamicProperties() {
+    System.setProperty("spring.aws.accessKeyId", s3Container.getAccessKey());
+    System.setProperty("spring.aws.secretKey", s3Container.getSecretKey());
+    System.setProperty("spring.s3.endpoint", s3Container.getEndpointOverride(S3).toString());
+    System.setProperty("spring.s3.region", s3Container.getRegion());
+    System.setProperty("spring.s3.bucket", BUCKET_NAME);
+  }
+
+  public static void setDynamicProperty(String key, Function<LocalStackContainer, String> getValue) {
+    System.setProperty(key, getValue.apply(s3Container));
   }
 
   private static void logConfiguration() {
@@ -46,17 +58,4 @@ public class S3TestContainersConfiguration {
     LOGGER.info("Endpoint: {}", s3Container.getEndpointOverride(S3));
     LOGGER.info("Signing Region: {}", s3Container.getRegion());
   }
-
-  private static void dynamicProperties() {
-    System.setProperty("spring.aws.accessKeyId", s3Container.getAccessKey());
-    System.setProperty("spring.aws.secretKey", s3Container.getSecretKey());
-    System.setProperty("spring.s3.endpoint", s3Container.getEndpointOverride(S3).toString());
-    System.setProperty("spring.s3.region", s3Container.getRegion());
-    System.setProperty("spring.s3.bucket", BUCKET_NAME);
-  }
-
-  public static void dynamicProperty(String key, Function<LocalStackContainer, String> getValue){
-    System.setProperty(key, getValue.apply(s3Container));
-  }
-
 }

@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.integration.config.amqp;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.Status;
@@ -13,13 +14,17 @@ import eu.europeana.metis.sandbox.config.amqp.AmqpConfiguration;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.RabbitMQTestContainersConfiguration;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.awaitility.Awaitility;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -36,8 +41,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
 @ActiveProfiles("amqpconfiguration-test") // Use profile to avoid interfering queue listeners from other contexts
 @Import({RabbitMQTestContainersConfiguration.class})
-public class AmqpConfigurationIT {
+class AmqpConfigurationIT {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static RecordProcessEvent recordProcessEvent;
   @Autowired
   private ConnectionFactory connectionFactory;
@@ -50,7 +56,7 @@ public class AmqpConfigurationIT {
 
   @BeforeAll
   static void beforeAll() {
-    RabbitMQTestContainersConfiguration.configureVHost("amqpconfiguration-test");
+    RabbitMQTestContainersConfiguration.configureCustomVHost("amqpconfiguration-test");
 
     final Record recordObject = Record.builder().recordId(100L).country(Country.GREECE).language(Language.EL)
                                       .content(new byte[]{}).build();
@@ -121,6 +127,7 @@ public class AmqpConfigurationIT {
     amqpTemplate.convertAndSend(exchange, routingKey, recordProcessEvent);
     final Object receivedObject = amqpTemplate.receiveAndConvert(routingKey);
     assertTrue(receivedObject instanceof RecordProcessEvent);
+    assertInstanceOf(RecordProcessEvent.class, receivedObject);
     RecordProcessEvent receivedRecordProcessEvent = (RecordProcessEvent) receivedObject;
     assertEquals(recordProcessEvent.getRecord().getRecordId(), receivedRecordProcessEvent.getRecord().getRecordId());
     assertEquals(recordProcessEvent.getStep(), receivedRecordProcessEvent.getStep());
@@ -131,41 +138,30 @@ public class AmqpConfigurationIT {
   void testRoutingToDlq() {
     //Create and start all listener container throwing exception to force the dlq routing
     AtomicInteger messagesCounter = new AtomicInteger();
-    final SimpleMessageListenerContainer throwingListenerContainer = new SimpleMessageListenerContainer(connectionFactory);
-    throwingListenerContainer.setQueueNames(
-        amqpConfiguration.getCreatedQueue(),
-        amqpConfiguration.getExternalValidatedQueue(),
-        amqpConfiguration.getTransformedQueue(),
-        amqpConfiguration.getTransformationToEdmExternalQueue(),
-        amqpConfiguration.getInternalValidatedQueue(),
-        amqpConfiguration.getNormalizedQueue(),
-        amqpConfiguration.getEnrichedQueue(),
-        amqpConfiguration.getMediaProcessedQueue(),
-        amqpConfiguration.getPublishedQueue(),
-        amqpConfiguration.getDeBiasReadyQueue());
-    throwingListenerContainer.setDefaultRequeueRejected(false);
-    throwingListenerContainer.setMessageListener(message -> {
-      messagesCounter.getAndIncrement();
-      throw new RuntimeException("exception");
-    });
-    throwingListenerContainer.start();
+    final SimpleMessageListenerContainer throwingListenerContainer = getSimpleMessageListenerContainer(messagesCounter);
 
     try {
-      //Send to all queues
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getCreatedQueue(), recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getExternalValidatedQueue(),
-          recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformedQueue(), recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getTransformationToEdmExternalQueue(),
-          recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getInternalValidatedQueue(),
-          recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getNormalizedQueue(), recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getEnrichedQueue(), recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getMediaProcessedQueue(),
-          recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getPublishedQueue(), recordProcessEvent);
-      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(), amqpConfiguration.getDeBiasReadyQueue(), recordProcessEvent);
+      //Send a message to all queues
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getCreatedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getExternalValidatedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getTransformedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getTransformationToEdmExternalQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getInternalValidatedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getNormalizedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getEnrichedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getMediaProcessedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getPublishedQueue(), recordProcessEvent);
+      amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
+          amqpConfiguration.getDeBiasReadyQueue(), recordProcessEvent);
 
       //Await and check all dlqs
       awaitDlqMessages(amqpConfiguration.getCreatedDlq());
@@ -184,6 +180,31 @@ public class AmqpConfigurationIT {
     }
 
     assertEquals(10, messagesCounter.get());
+  }
+
+  private @NotNull SimpleMessageListenerContainer getSimpleMessageListenerContainer(AtomicInteger messagesCounter) {
+    final SimpleMessageListenerContainer throwingListenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+    throwingListenerContainer.setQueueNames(
+        amqpConfiguration.getCreatedQueue(),
+        amqpConfiguration.getExternalValidatedQueue(),
+        amqpConfiguration.getTransformedQueue(),
+        amqpConfiguration.getTransformationToEdmExternalQueue(),
+        amqpConfiguration.getInternalValidatedQueue(),
+        amqpConfiguration.getNormalizedQueue(),
+        amqpConfiguration.getEnrichedQueue(),
+        amqpConfiguration.getMediaProcessedQueue(),
+        amqpConfiguration.getPublishedQueue(),
+        amqpConfiguration.getDeBiasReadyQueue());
+    throwingListenerContainer.setDefaultRequeueRejected(false);
+    throwingListenerContainer.setMessageListener(message -> {
+      messagesCounter.getAndIncrement();
+      throw new RuntimeException("exception");
+    });
+    throwingListenerContainer.setErrorHandler(t -> {
+      LOGGER.warn("Forced exception to route to dlq message [{}]", messagesCounter.get());
+    });
+    throwingListenerContainer.start();
+    return throwingListenerContainer;
   }
 
   private void awaitDlqMessages(String routingKey) {

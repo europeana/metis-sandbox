@@ -2,15 +2,12 @@ package eu.europeana.metis.sandbox.integration.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
-import static eu.europeana.metis.sandbox.test.utils.S3TestContainersConfiguration.BUCKET_NAME;
-import static eu.europeana.metis.sandbox.test.utils.SolrTestContainersConfiguration.SOLR_COLLECTION_NAME;
 import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,11 +17,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.test.utils.MongoTestContainersConfiguration;
-import eu.europeana.metis.sandbox.test.utils.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.test.utils.RabbitMQTestContainersConfiguration;
-import eu.europeana.metis.sandbox.test.utils.S3TestContainersConfiguration;
-import eu.europeana.metis.sandbox.test.utils.SolrTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.MongoTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.RabbitMQTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.S3TestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.SolrTestContainersConfiguration;
 import eu.europeana.metis.security.test.JwtUtils;
 import java.io.File;
 import java.io.IOException;
@@ -61,16 +59,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SandboxApplication.class)
-@Import({PostgresTestContainersConfiguration.class, RabbitMQTestContainersConfiguration.class,
-    MongoTestContainersConfiguration.class, SolrTestContainersConfiguration.class, S3TestContainersConfiguration.class})
+@Import({
+    PostgresTestContainersConfiguration.class,
+    RabbitMQTestContainersConfiguration.class,
+    MongoTestContainersConfiguration.class,
+    SolrTestContainersConfiguration.class,
+    S3TestContainersConfiguration.class
+})
 class DatasetControllerIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -90,43 +90,11 @@ class DatasetControllerIT {
 
   @BeforeAll
   static void beforeAll() {
-    //Sandbox specific properties
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.jdbcUrl", PostgreSQLContainer::getJdbcUrl);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.username", PostgreSQLContainer::getUsername);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.password", PostgreSQLContainer::getPassword);
-    PostgresTestContainersConfiguration.dynamicProperty("sandbox.datasource.driverClassName",
-        container -> "org.postgresql.Driver");
-
-    PostgresTestContainersConfiguration.runScripts(List.of(
-        "database/schema_drop.sql", "database/schema.sql",
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
-        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql",
-        "database/schema_validation_drop.sql", "database/schema_validation.sql"
-    ));
-
-    //Sandbox specific datasource properties
-    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.application-name",
-        container -> "mongo-testcontainer-test");
-    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.db", container -> "test");
-    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.hosts", MongoDBContainer::getHost);
-    MongoTestContainersConfiguration.dynamicProperty("sandbox.publish.mongo.ports",
-        container -> container.getFirstMappedPort().toString());
-
-    //Sandbox specific datasource properties
-    SolrTestContainersConfiguration.dynamicProperty("sandbox.publish.solr.hosts",
-        container -> "http://" + container.getHost() + ":" + container.getSolrPort() + "/solr/" + SOLR_COLLECTION_NAME);
-
-    //Sandbox specific datasource properties
-    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.access-key", LocalStackContainer::getAccessKey);
-    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.secret-key", LocalStackContainer::getSecretKey);
-    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.endpoint",
-        container -> container.getEndpointOverride(S3).toString());
-    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.signing-region", LocalStackContainer::getRegion);
-    S3TestContainersConfiguration.dynamicProperty("sandbox.s3.thumbnails-bucket", container -> BUCKET_NAME);
+    SandboxIntegrationConfiguration.testContainersConfiguration();
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
   }
 
