@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.integration.config.amqp;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -42,6 +43,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class AmqpConfigurationIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int TOTAL_STEP_QUEUES = 10;
   private static RecordProcessEvent recordProcessEvent;
   @Autowired
   private ConnectionFactory connectionFactory;
@@ -75,6 +77,7 @@ class AmqpConfigurationIT {
     amqpAdmin.purgeQueue(amqpConfiguration.getMediaProcessedQueue());
     amqpAdmin.purgeQueue(amqpConfiguration.getPublishedQueue());
     amqpAdmin.purgeQueue(amqpConfiguration.getDeBiasReadyQueue());
+    amqpAdmin.purgeQueue(amqpConfiguration.getLogQueue());
 
     amqpAdmin.purgeQueue(amqpConfiguration.getCreatedDlq());
     amqpAdmin.purgeQueue(amqpConfiguration.getExternalValidatedDlq());
@@ -86,6 +89,7 @@ class AmqpConfigurationIT {
     amqpAdmin.purgeQueue(amqpConfiguration.getMediaProcessedDlq());
     amqpAdmin.purgeQueue(amqpConfiguration.getPublishedDlq());
     amqpAdmin.purgeQueue(amqpConfiguration.getDeBiasReadyDlq());
+    amqpAdmin.purgeQueue(amqpConfiguration.getLogDlq());
   }
 
   @Test
@@ -101,6 +105,8 @@ class AmqpConfigurationIT {
     assertDefaultQueueSendAndReceive(amqpConfiguration.getPublishedQueue());
     assertDefaultQueueSendAndReceive(amqpConfiguration.getDeBiasReadyQueue());
 
+    assertRoutingToLogQueue();
+
     assertDlqQueueSendAndReceive(amqpConfiguration.getCreatedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getExternalValidatedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getTransformedDlq());
@@ -111,6 +117,13 @@ class AmqpConfigurationIT {
     assertDlqQueueSendAndReceive(amqpConfiguration.getMediaProcessedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getPublishedDlq());
     assertDlqQueueSendAndReceive(amqpConfiguration.getDeBiasReadyDlq());
+  }
+
+  private void assertRoutingToLogQueue() {
+    for (int i = 0; i < TOTAL_STEP_QUEUES; i++) {
+      awaitMessage(amqpConfiguration.getLogQueue());
+    }
+    assertNull(amqpTemplate.receiveAndConvert(amqpConfiguration.getLogQueue()));
   }
 
   private void assertDefaultQueueSendAndReceive(String routingKey) {
@@ -164,6 +177,8 @@ class AmqpConfigurationIT {
       amqpTemplate.convertAndSend(amqpConfiguration.getExchange(),
           amqpConfiguration.getDeBiasReadyQueue(), recordProcessEvent);
 
+      assertRoutingToLogQueue();
+
       //Await and check all dlqs
       awaitMessage(amqpConfiguration.getCreatedDlq());
       awaitMessage(amqpConfiguration.getExternalValidatedDlq());
@@ -180,7 +195,7 @@ class AmqpConfigurationIT {
       throwingListenerContainer.stop();
     }
 
-    assertEquals(10, messagesCounter.get());
+    assertEquals(TOTAL_STEP_QUEUES, messagesCounter.get());
   }
 
   private @NotNull SimpleMessageListenerContainer getSimpleMessageListenerContainer(AtomicInteger messagesCounter) {

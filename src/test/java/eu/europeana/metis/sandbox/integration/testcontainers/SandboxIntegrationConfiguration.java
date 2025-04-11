@@ -5,11 +5,27 @@ import static eu.europeana.metis.sandbox.integration.testcontainers.SolrTestCont
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import java.util.List;
+import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
+/**
+ * Helper class for setting dynamic properties for Testcontainers.
+ * <p>
+ * The static methods of this class are generally meant to be executed in {@link BeforeAll} methods so that after the required
+ * containers are initialized the required properties are set in time and before the beans' autoconfiguration is finished.
+ * @see MongoTestContainersConfiguration
+ * @see PostgresTestContainersConfiguration
+ * @see RabbitMQTestContainersConfiguration
+ * @see S3TestContainersConfiguration
+ * @see SolrTestContainersConfiguration
+ */
 public final class SandboxIntegrationConfiguration {
+
+  private SandboxIntegrationConfiguration() {
+    // private constructor
+  }
 
   public static void testContainersConfiguration() {
     testContainersPostgresConfiguration();
