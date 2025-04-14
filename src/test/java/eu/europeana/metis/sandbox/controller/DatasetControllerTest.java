@@ -258,6 +258,17 @@ class DatasetControllerTest {
   }
 
   @ParameterizedTest
+  @MethodSource("provideDifferentCompressedFiles")
+  void processDatasetFromZipFile_Unauthenticated(MockMultipartFile mockMultipart) throws Exception {
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+           .file(mockMultipart)
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "2"))
+       .andExpect(status().isUnauthorized());
+  }
+
+  @ParameterizedTest
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void processDatasetFromURL_withoutXsltFile_expectSuccess(String url) throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
@@ -300,6 +311,17 @@ class DatasetControllerTest {
        .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideDifferentUrlsOfCompressedFiles")
+  void processDatasetFromURL_Unauthenticated(String url) throws Exception {
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "2"))
+       .andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -374,6 +396,19 @@ class DatasetControllerTest {
        .andExpect(jsonPath("$.dataset-id", is("12345")));
 
     verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromOAI_Unauthenticated() throws Exception {
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isUnauthorized());
   }
 
   @Test
