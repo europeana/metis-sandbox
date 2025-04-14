@@ -7,7 +7,6 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
 /**
@@ -35,12 +34,6 @@ public final class SandboxIntegrationConfiguration {
   }
 
   public static void testContainersPostgresConfiguration() {
-    PostgresTestContainersConfiguration.setDynamicProperty("sandbox.datasource.jdbcUrl", PostgreSQLContainer::getJdbcUrl);
-    PostgresTestContainersConfiguration.setDynamicProperty("sandbox.datasource.username", PostgreSQLContainer::getUsername);
-    PostgresTestContainersConfiguration.setDynamicProperty("sandbox.datasource.password", PostgreSQLContainer::getPassword);
-    PostgresTestContainersConfiguration.setDynamicProperty("sandbox.datasource.driverClassName",
-        container -> "org.postgresql.Driver");
-
     PostgresTestContainersConfiguration.runScripts(List.of(
         "database/schema_drop.sql", "database/schema.sql",
         "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",

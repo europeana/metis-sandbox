@@ -8,6 +8,9 @@ info:
       name: Europeana Foundation
       email: info@europeana.eu
       url: www.europeana.eu
+truststore:
+  path:
+  password:
 spring:
   profiles:
     active: default
@@ -20,6 +23,18 @@ spring:
   servlet:
     multipart:
       max-file-size: 5MB
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:7080/realms/europeana/protocol/openid-connect/certs
+  datasource:
+    jdbcUrl: jdbc:postgresql://localhost:5432/sandbox
+    driverClassName: org.postgresql.Driver
+    username: sandbox
+    password:
+    maximumPoolSize: 10           # this is the default we make it explicit in the config.
+    leakDetectionThreshold: 5000  # five second should be enough
   rabbitmq:
     virtual-host: sandbox-develop
     host: localhost
@@ -68,16 +83,6 @@ management:
 sandbox:
   cors:
     mapping: '*'
-  truststore:
-    path:
-    password:
-  datasource:
-    jdbcUrl: jdbc:postgresql://localhost:5432/sandbox
-    driverClassName: org.postgresql.Driver
-    username: sandbox
-    password:
-    maximumPoolSize: 10           # this is the default we make it explicit in the config.
-    leakDetectionThreshold: 5000  # five second should be enough
   rate-limit:
     bandwidth:
       capacity:

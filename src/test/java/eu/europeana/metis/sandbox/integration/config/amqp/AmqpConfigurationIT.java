@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.amqp.RecordMessageConverter;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.config.TruststoreConfig;
 import eu.europeana.metis.sandbox.config.amqp.AmqpConfiguration;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -37,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 //Use RabbitAutoConfiguration so that the connectionFactory will connect properly to the container
-@SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class})
+@SpringBootTest(classes = {AmqpConfiguration.class, RecordMessageConverter.class, RabbitAutoConfiguration.class, TruststoreConfig.class})
 @ActiveProfiles("amqpconfiguration-test") // Use profile to avoid interfering queue listeners from other contexts
 @Import({RabbitMQTestContainersConfiguration.class})
 class AmqpConfigurationIT {
