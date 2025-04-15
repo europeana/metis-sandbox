@@ -42,11 +42,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,6 +81,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Dataset Controller")
 class DatasetController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final String MESSAGE_OPEN_TAG_STYLE = "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">";
     private static final String MESSAGE_BODY = " - The response body will contain an object of type"
             + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">";
@@ -103,9 +106,7 @@ class DatasetController {
     private static final String MESSAGE_FOR_STEP_SIZE_VALID_VALUE = "Step size must be a number higher than zero";
     private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
     private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
-
     private static final String APPLICATION_RDF_XML = "application/rdf+xml";
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetController.class);
 
     private final DatasetService datasetService;
     private final DatasetLogService datasetLogService;
@@ -152,6 +153,7 @@ class DatasetController {
     /**
      * POST API calls for harvesting and processing the records given a zip, tar or tar.gz file
      *
+     * @param jwtPrincipal the authenticated user provided as a Jwt token
      * @param datasetName the given name of the dataset to be processed
      * @param country the given country from which the records refer to
      * @param language the given language that the records contain
@@ -196,6 +198,7 @@ class DatasetController {
     /**
      * POST API calls for harvesting and processing the records given a URL of a compressed file
      *
+     * @param jwtPrincipal the authenticated JWT principal containing user information
      * @param datasetName the given name of the dataset to be processed
      * @param country the given country from which the records refer to
      * @param language the given language that the records contain
@@ -222,13 +225,13 @@ class DatasetController {
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
         final String userId = getUserId(jwtPrincipal);
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-        CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(url);
+        checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
+        URI uri = URI.create(url);
+        CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
 
-        checkArgument(urlValidator.isValid(url),
-                "The provided url is invalid. Please provide a valid url.");
         final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
         final String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country,
                 language, xsltInputStream);
@@ -243,6 +246,7 @@ class DatasetController {
     /**
      * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
      *
+     * @param jwtPrincipal the authenticated JWT principal containing user information
      * @param datasetName the given name of the dataset to be processed
      * @param country the given country from which the records refer to
      * @param language the given language that the records contain
@@ -275,11 +279,10 @@ class DatasetController {
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
         final String userId = getUserId(jwtPrincipal);
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+        checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
-        checkArgument(urlValidator.isValid(url),
-                "The provided url is invalid. Please provide a valid url.");
 
         InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
         String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country, language,
@@ -435,6 +438,7 @@ class DatasetController {
     /**
      * Process DeBias boolean.
      *
+     * @param jwtPrincipal the authenticated user's JWT token
      * @param datasetId the dataset id
      * @return the boolean
      */
@@ -530,30 +534,35 @@ class DatasetController {
         return new ByteArrayInputStream(new byte[0]);
     }
 
-    private CompressedFileExtension getCompressedFileExtensionTypeFromUrl(String url) {
-
+    private CompressedFileExtension getCompressedFileExtensionTypeFromUrl(URI uri) {
         try {
-            if (url.startsWith("file:/")) {
-                Path path = Path.of(url);
-                String fileContentType = Files.probeContentType(path);
+            final String scheme = uri.getScheme();
 
-                return getCompressedFileExtensionType(fileContentType);
-            } else {
-
-                URLConnection urlConnection = new URI(url).toURL().openConnection();
-                String fileContentType = urlConnection.getContentType();
-
-                if (StringUtils.isEmpty(fileContentType)) {
-                    throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
-                }
-
-                return getCompressedFileExtensionType(fileContentType);
-
-
+            if ((!"file".equalsIgnoreCase(scheme) &&
+                !"http".equalsIgnoreCase(scheme) &&
+                !"https".equalsIgnoreCase(scheme))) {
+                throw new InvalidCompressedFileException(
+                    new IllegalArgumentException("Unsupported or unsafe URL scheme: " + scheme));
             }
-        } catch (IOException | URISyntaxException e) {
-            throw new InvalidCompressedFileException(e);
 
+            final String fileContentType;
+            if ("file".equalsIgnoreCase(scheme)) {
+                Path path = Paths.get(uri).normalize();
+                fileContentType = Files.probeContentType(path);
+            } else {
+                URL url = uri.toURL();
+                URLConnection connection = url.openConnection();
+                fileContentType = connection.getContentType();
+            }
+
+            if (fileContentType == null || fileContentType.isBlank()) {
+                throw new InvalidCompressedFileException(
+                    new Exception("Could not determine file's content type"));
+            }
+
+            return getCompressedFileExtensionType(fileContentType);
+        } catch (IOException e) {
+            throw new InvalidCompressedFileException(e);
         }
     }
 

@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasReportRow;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class DeBiasStateServiceImpl implements DeBiasStateService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasStateServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String READY_STATE = "READY";
   private final DatasetDeBiasRepository datasetDeBiasRepository;
   private final RecordDeBiasMainRepository recordDeBiasMainRepository;

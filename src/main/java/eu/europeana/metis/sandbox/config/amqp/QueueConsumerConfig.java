@@ -4,7 +4,6 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Queue consumer configuration for workflow listeners.
@@ -12,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * <br /> If changes like increasing concurrency for a listener are needed,
  * every subclass can be customized by using the SimpleRabbitListenerContainerFactory.
  */
-@Configuration
-public abstract class QueueConsumerConfig {
+public class QueueConsumerConfig {
     private final MessageConverter messageConverter;
 
     /**
@@ -21,7 +19,7 @@ public abstract class QueueConsumerConfig {
      *
      * @param messageConverter the message converter
      */
-    public QueueConsumerConfig(MessageConverter messageConverter) {
+    protected QueueConsumerConfig(MessageConverter messageConverter) {
         this.messageConverter = messageConverter;
     }
 

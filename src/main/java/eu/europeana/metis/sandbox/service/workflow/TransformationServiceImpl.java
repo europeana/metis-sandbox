@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 class TransformationServiceImpl implements TransformationService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TransformationServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 

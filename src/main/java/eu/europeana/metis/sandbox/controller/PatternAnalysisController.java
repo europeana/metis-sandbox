@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
+import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableScheduling
 public class PatternAnalysisController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PatternAnalysisController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
     private final ExecutionPointService executionPointService;

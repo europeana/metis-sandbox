@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.io.ByteArrayInputStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 class DatasetGeneratorServiceImpl implements DatasetGeneratorService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetGeneratorServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final RecordRepository recordRepository;
 

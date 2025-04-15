@@ -22,8 +22,7 @@ public class ProgressByStepDto {
   @JsonInclude(Include.NON_EMPTY)
   private final List<ErrorInfoDto> errors;
 
-  public ProgressByStepDto(Step step, long success, long fail, long warn,
-      List<ErrorInfoDto> errors) {
+  public ProgressByStepDto(Step step, long success, long fail, long warn, List<ErrorInfoDto> errors) {
     this.step = step;
     this.total = success + fail + warn;
     this.success = success;
@@ -61,11 +60,9 @@ public class ProgressByStepDto {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ProgressByStepDto)) {
+    if (!(o instanceof ProgressByStepDto that)) {
       return false;
     }
-
-    ProgressByStepDto that = (ProgressByStepDto) o;
 
     if (total != that.total) {
       return false;

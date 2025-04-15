@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -14,8 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 class RecordPublishServiceImpl implements RecordPublishService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      RecordPublishServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final AmqpTemplate amqpTemplate;
   private final String createdQueue;

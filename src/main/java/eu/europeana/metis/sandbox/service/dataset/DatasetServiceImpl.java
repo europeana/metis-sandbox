@@ -132,18 +132,10 @@ class DatasetServiceImpl implements DatasetService {
   private HarvestingParametricDto getHarvestingParameterDto(String datasetId){
     HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
-    switch(entity.getProtocol()){
-      case FILE:
-        return new FileHarvestingDto(entity.getFileName(), entity.getFileType());
-
-      case HTTP:
-        return new HttpHarvestingDto(entity.getUrl());
-
-      case OAI_PMH:
-        return new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
-
-      default:
-        throw new ServiceException("Something went wrong while getting data about harvesting parameters");
-    }
+    return switch (entity.getProtocol()) {
+      case FILE -> new FileHarvestingDto(entity.getFileName(), entity.getFileType());
+      case HTTP -> new HttpHarvestingDto(entity.getUrl());
+      case OAI_PMH -> new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
+    };
   }
 }

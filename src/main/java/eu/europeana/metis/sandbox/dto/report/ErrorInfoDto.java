@@ -20,8 +20,14 @@ public class ErrorInfoDto {
   @JsonProperty("records")
   private final List<String> recordIds;
 
-  public ErrorInfoDto(String errorMessage, Status type,
-      List<String> recordIds) {
+  /**
+   * Constructor for creating an instance of ErrorInfoDto.
+   *
+   * @param errorMessage The error message associated with the dataset report.
+   * @param type         The status type of the error.
+   * @param recordIds    The list of record IDs associated with the error.
+   */
+  public ErrorInfoDto(String errorMessage, Status type, List<String> recordIds) {
     this.recordIds = Collections.unmodifiableList(recordIds);
     this.type = type;
     this.errorMessage = errorMessage;
@@ -44,11 +50,9 @@ public class ErrorInfoDto {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ErrorInfoDto)) {
+    if (!(o instanceof ErrorInfoDto that)) {
       return false;
     }
-
-    ErrorInfoDto that = (ErrorInfoDto) o;
 
     if (!errorMessage.equals(that.errorMessage)) {
       return false;

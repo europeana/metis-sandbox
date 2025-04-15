@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.scheduler;
 
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class XsltUrlUpdateScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(XsltUrlUpdateScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final XsltUrlUpdateService xsltUrlUpdateService;
 
