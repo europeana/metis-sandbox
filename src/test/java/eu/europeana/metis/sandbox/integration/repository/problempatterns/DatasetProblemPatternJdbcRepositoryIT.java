@@ -32,17 +32,18 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 @Import({PostgresTestContainersConfiguration.class})
 class DatasetProblemPatternJdbcRepositoryIT {
 
-  @BeforeAll
-  static void beforeAll() {
-    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
-  }
-
   public static final String SELECT_DATASET_PROBLEM_PATTERN_QUERY = "SELECT * FROM problem_patterns.dataset_problem_pattern";
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
   @Autowired
   private DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
+
+  @BeforeAll
+  static void beforeAll() {
+    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
+  }
 
   @Test
   void upsertUpdateCounterTest() {

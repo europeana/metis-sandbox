@@ -32,16 +32,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Import({PostgresTestContainersConfiguration.class})
 class RecordTitleJdbcRepositoryIT {
 
-  @BeforeAll
-  static void beforeAll() {
-    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
-  }
-
   public static final String SELECT_RECORD_TITLES_QUERY = "SELECT * FROM problem_patterns.record_title";
+
   @Autowired
   private JdbcTemplate jdbcTemplate;
   @Autowired
   private RecordTitleJdbcRepository recordTitleJdbcRepository;
+
+  @BeforeAll
+  static void beforeAll() {
+    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
+  }
 
   @Test
   void deleteRedundantRecordTitlesTest() {
