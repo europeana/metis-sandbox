@@ -47,8 +47,6 @@ import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -57,7 +55,6 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -72,12 +69,10 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,11 +80,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
@@ -103,9 +96,6 @@ import org.springframework.web.multipart.MultipartFile;
 @WebMvcTest(DatasetController.class)
 @ContextConfiguration(classes = {WebMvcConfig.class, DatasetController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class DatasetControllerTest {
-
-  @MockBean
-  private DeBiasStateService deBiasStateService;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -130,9 +120,6 @@ class DatasetControllerTest {
 
   @MockBean
   private HarvestPublishService harvestPublishService;
-
-  @MockBean
-  private LockRegistry lockRegistry;
 
   @MockBean
   JwtDecoder jwtDecoder;
@@ -928,64 +915,5 @@ class DatasetControllerTest {
         .param("stepsize", "2"));
 
     verify(datasetLogService).logException("12345", exception);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
-  void getDebiasStatus_expectSuccess(String status) throws Exception {
-    final Integer datasetId = 1;
-    final ZonedDateTime dateTime = ZonedDateTime.now();
-
-    when(deBiasStateService.getDeBiasStatus(datasetId))
-        .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime, 1, 1));
-
-    mvc.perform(get("/dataset/{id}/debias/info", datasetId))
-       .andExpect(status().isOk())
-       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
-       .andExpect(jsonPath("$.state", is(status)))
-       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
-       .andExpect(jsonPath("$.total-records", is(1)))
-       .andExpect(jsonPath("$.processed-records", is(1)));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
-  void getDebiasReport_expectSuccess(String status) throws Exception {
-    final Integer datasetId = 1;
-    final ZonedDateTime dateTime = ZonedDateTime.now();
-
-    when(deBiasStateService.getDeBiasReport(datasetId))
-        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, 1, 1, List.of()));
-
-    mvc.perform(get("/dataset/{id}/debias/report", datasetId))
-       .andExpect(status().isOk())
-       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
-       .andExpect(jsonPath("$.state", is(status)))
-       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
-       .andExpect(jsonPath("$.total-records", is(1)))
-       .andExpect(jsonPath("$.processed-records", is(1)));
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void processDebias_expectSuccess(boolean process) throws Exception {
-    final Integer datasetId = 1;
-    Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
-    ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", null, mockTime, IT, ITALY,
-        new FileHarvestingDto("fileName", "fileType"), false);
-    when(datasetService.getDatasetInfo("1")).thenReturn(mock);
-
-    when(datasetReportService.getReport(datasetId.toString())).thenReturn(
-        new ProgressInfoDto("url",1L,1L,
-        List.of(), false,"",List.of(),null));
-    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now(), 1, 1));
-    when(deBiasStateService.process(datasetId)).thenReturn(process);
-    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
-    mvc.perform(post("/dataset/{id}/debias", datasetId))
-       .andExpect(status().isOk())
-       .andExpect(content().string(String.valueOf(process)));
   }
 }

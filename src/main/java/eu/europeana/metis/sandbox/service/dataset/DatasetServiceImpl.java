@@ -46,7 +46,7 @@ class DatasetServiceImpl implements DatasetService {
     requireNonNull(language, "Language must not be null");
 
     DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, createdById, null, language, country, false),
-            xsltEdmExternalContentStream);
+        xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
 
@@ -55,14 +55,14 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public List<String> getDatasetIdsCreatedBefore(int days) {
     ZonedDateTime date = ZonedDateTime.now()
-        .truncatedTo(ChronoUnit.DAYS)
-        .minusDays(days);
+                                      .truncatedTo(ChronoUnit.DAYS)
+                                      .minusDays(days);
 
     try {
       return datasetRepository.getByCreatedDateBefore(date).stream()
-          .map(DatasetIdView::getDatasetId)
-          .map(Object::toString)
-          .toList();
+                              .map(DatasetIdView::getDatasetId)
+                              .map(Object::toString)
+                              .toList();
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }
@@ -97,9 +97,11 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public DatasetInfoDto getDatasetInfo(String datasetId) {
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow(() -> new InvalidDatasetException(datasetId));
-    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedById(), datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
-            datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
+                                                   .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedById(),
+        datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
+        datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
   }
 
   private boolean isInputStreamAvailable(InputStream stream) {
@@ -110,15 +112,16 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
-  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, InputStream xsltEdmExternalContentStream){
+  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, InputStream xsltEdmExternalContentStream) {
     if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
       try {
-        datasetEntityToSave.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
+        datasetEntityToSave.setXsltEdmExternalContent(
+            new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
         //We reset the stream to it again later
         xsltEdmExternalContentStream.reset();
       } catch (IOException e) {
         throw new XsltProcessingException(
-                "Something went wrong while checking the content of the xslt file", e);
+            "Something went wrong while checking the content of the xslt file", e);
       }
     }
 
@@ -129,7 +132,7 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
-  private HarvestingParametricDto getHarvestingParameterDto(String datasetId){
+  private HarvestingParametricDto getHarvestingParameterDto(String datasetId) {
     HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
     return switch (entity.getProtocol()) {

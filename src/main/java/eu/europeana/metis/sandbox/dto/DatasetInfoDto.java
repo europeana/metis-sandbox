@@ -6,6 +6,10 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
 
+
+/**
+ * Represents information about a dataset.
+ */
 @ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
 public class DatasetInfoDto {
 
@@ -35,9 +39,21 @@ public class DatasetInfoDto {
   @JsonProperty("harvesting-parameters")
   private final HarvestingParametricDto harvestingParametricDto;
 
+  /**
+   * Constructs a new DatasetInfoDto object with the provided dataset information.
+   *
+   * @param datasetId the identifier of the dataset.
+   * @param datasetName the name of the dataset.
+   * @param createdById the identifier of the creator.
+   * @param creationDate the date when the dataset was created.
+   * @param language the language of the dataset.
+   * @param country the country of the dataset.
+   * @param harvestingParametricDto parameters related to the method of harvesting data.
+   * @param transformedToEdmExternal a flag indicating whether the dataset was transformed to EDM for external purposes.
+   */
   public DatasetInfoDto(String datasetId, String datasetName, String createdById, ZonedDateTime creationDate,
-                        Language language, Country country, HarvestingParametricDto harvestingParametricDto,
-                        boolean transformedToEdmExternal) {
+      Language language, Country country, HarvestingParametricDto harvestingParametricDto,
+      boolean transformedToEdmExternal) {
 
     this.creationDate = creationDate;
     this.language = language;
@@ -76,7 +92,9 @@ public class DatasetInfoDto {
   public HarvestingParametricDto getHarvestingParametricDto() {
     return harvestingParametricDto;
   }
+
   public boolean isTransformedToEdmExternal() {
     return transformedToEdmExternal;
   }
 }
+
