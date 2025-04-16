@@ -13,6 +13,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -210,6 +211,7 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
            .file(mockMultipart)
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "2"))
@@ -235,6 +237,32 @@ class DatasetControllerTest {
            .file(mockMultipart)
            .file(xsltMock)
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideDifferentCompressedFiles")
+  void processDatasetFromZipFile_withXsltFile_NonBrowser_Allowed(MockMultipartFile mockMultipart) throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
+        "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), isNull(), eq(ITALY), eq(IT),
+        any(ByteArrayInputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+           .file(mockMultipart)
+           .file(xsltMock)
+           .header("User-Agent", "non-browser")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "2"))
@@ -249,6 +277,7 @@ class DatasetControllerTest {
   void processDatasetFromZipFile_Unauthenticated(MockMultipartFile mockMultipart) throws Exception {
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
            .file(mockMultipart)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "2"))
@@ -265,6 +294,7 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -290,6 +320,32 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
            .file(xsltMock)
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideDifferentUrlsOfCompressedFiles")
+  void processDatasetFromURL_withXsltFile_NonBrowser_Allowed(String url) throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
+        "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), isNull(), eq(ITALY), eq(IT),
+        any(ByteArrayInputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+           .file(xsltMock)
+           .header("User-Agent", "non-browser")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -304,6 +360,7 @@ class DatasetControllerTest {
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void processDatasetFromURL_Unauthenticated(String url) throws Exception {
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -322,6 +379,7 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -345,6 +403,7 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -373,6 +432,35 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .file(xsltMock)
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromOAIWithXsltFile_NonBrowser_Allowed() throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
+
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
+        "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), isNull(), eq(ITALY), eq(IT),
+        any(InputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .file(xsltMock)
+           .header("User-Agent", "non-browser")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -389,6 +477,7 @@ class DatasetControllerTest {
   void processDatasetFromOAI_Unauthenticated() throws Exception {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -553,6 +642,7 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -866,6 +956,7 @@ class DatasetControllerTest {
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
         .file(mockMultipart)
         .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+        .header("User-Agent", "Mozilla")
         .param("country", ITALY.name())
         .param("language", IT.name())
         .param("stepsize", "2"));
@@ -886,6 +977,7 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
         .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+        .header("User-Agent", "Mozilla")
         .param("country", ITALY.name())
         .param("language", IT.name())
         .param("url", url)
@@ -907,6 +999,7 @@ class DatasetControllerTest {
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
         .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+        .header("User-Agent", "Mozilla")
         .param("country", ITALY.xmlValue())
         .param("language", IT.xmlValue())
         .param("url", url)

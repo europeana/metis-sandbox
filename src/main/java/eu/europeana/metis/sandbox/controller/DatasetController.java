@@ -160,7 +160,13 @@ class DatasetController {
         @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile dataset,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
-        final String userId = getUserId(jwtPrincipal);
+        //Check user id if any. This is temporarily allowed due to api and ui user security.
+        final String userId;
+        if (jwtPrincipal == null) {
+            userId = null;
+        } else {
+            userId = getUserId(jwtPrincipal);
+        }
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(dataset);
         if (stepsize != null) {
@@ -206,7 +212,13 @@ class DatasetController {
         @RequestParam(name = "stepsize", required = false) Integer stepsize,
         @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
-        final String userId = getUserId(jwtPrincipal);
+        //Check user id if any. This is temporarily allowed due to api and ui user security.
+        final String userId;
+        if (jwtPrincipal == null) {
+          userId = null;
+        } else {
+          userId = getUserId(jwtPrincipal);
+        }
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
         URI uri = URI.create(url);
@@ -260,7 +272,13 @@ class DatasetController {
         @Parameter(description = "dataset specification") @RequestParam(name = "setspec", required = false) String setspec,
         @Parameter(description = "metadata format") @RequestParam("metadataformat") String metadataformat,
         @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
-        final String userId = getUserId(jwtPrincipal);
+        //Check user id if any. This is temporarily allowed due to api and ui user security.
+        final String userId;
+        if (jwtPrincipal == null) {
+          userId = null;
+        } else {
+          userId = getUserId(jwtPrincipal);
+        }
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
         checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
         if (stepsize != null) {
