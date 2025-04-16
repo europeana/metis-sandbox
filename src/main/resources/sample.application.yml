@@ -45,7 +45,7 @@ elastic:
     enabled: true
     recording: true
     instrument: true
-    service_name: metis-sandbox-rest-local
+    service_name: metis-sandbox
     server_url: http://localhost:8200
     environment: local
     application_packages: org.europeana,eu.europeana.metis.sandbox
@@ -158,6 +158,10 @@ sandbox:
       db:
       hosts:
       ports:
+      authentication-db:
+      username:
+      password:
+      ssl-enable: false
     solr:
       hosts:
       zookeeper:

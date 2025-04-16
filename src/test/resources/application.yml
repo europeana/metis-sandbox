@@ -158,6 +158,10 @@ sandbox:
       db:
       hosts:
       ports:
+      authentication-db:
+      username:
+      password:
+      ssl-enable: false
     solr:
       hosts:
       zookeeper:
