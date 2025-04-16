@@ -15,6 +15,13 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties({InfoAppConfigurationProperties.class})
 public class OpenApiConfig {
 
+  /**
+   * Creates and configures an OpenAPI object for API documentation using the provided configuration properties.
+   *
+   * @param infoAppConfigurationProperties the configuration properties containing details such as title, version, description,
+   * and contact information for the API documentation
+   * @return an OpenAPI instance configured with the provided details for documentation generation
+   */
   @Bean
   public OpenAPI openApi(InfoAppConfigurationProperties infoAppConfigurationProperties) {
     final Contact contact = new Contact();
