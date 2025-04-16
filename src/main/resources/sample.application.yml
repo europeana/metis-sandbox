@@ -37,7 +37,7 @@ management:
 # Truststore
 truststore:
   path: /data/certificates/custom-truststore.jks
-  password: AsRgzVh3JXRTKE0fTB02Nkbo
+  password:
 
 # Elastic APM
 elastic:
