@@ -33,11 +33,11 @@
   <properties>
     <version.java>21</version.java>
     <version.springdoc-openapi-starter-webmvc-api>2.8.6</version.springdoc-openapi-starter-webmvc-api>
-    <version.metis>14</version.metis>
+    <version.metis>15-SNAPSHOT</version.metis>
     <version.metis-common>16-SNAPSHOT</version.metis-common>
     <version.metis-normalization>14</version.metis-normalization>
     <version.spring.boot>3.2.3</version.spring.boot>
-    <version.europeana>2.16.10-SNAPSHOT</version.europeana>
+    <version.europeana>2.17.3-SNAPSHOT</version.europeana>
     <version.postgresql>42.7.2</version.postgresql>
     <version.aws.s3>1.12.261</version.aws.s3>
     <version.maven.compiler.plugin>3.12.1</version.maven.compiler.plugin>
