@@ -149,7 +149,6 @@ sandbox:
     enrichment-properties:
       entity-management-url:
       entity-api-url:
-      entity-api-key:
       entity-api-token-endpoint:
       entity-api-grant-params:
   publish:
