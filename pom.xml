@@ -8,7 +8,7 @@
   <version>10.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>metis-sandbox</name>
-  <description>Metis sandbox pilot</description>
+  <description>Metis Sandbox to process Datasets</description>
   <!-- GitHub connection -->
   <scm>
     <connection>scm:git:https://github.com/europeana/metis-sandbox</connection>
@@ -44,6 +44,7 @@
     <version.coveralls>4.0.0</version.coveralls>
     <version.surefire.plugin>3.1.2</version.surefire.plugin>
     <version.failsafe.plugin>3.1.2</version.failsafe.plugin>
+    <version.git-commit-id-plugin>4.0.4</version.git-commit-id-plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.slf4j>2.0.12</version.slf4j>
     <version.log4j>2.21.1</version.log4j>
@@ -600,7 +601,28 @@
               <goal>repackage</goal>
             </goals>
           </execution>
+          <execution>
+            <id>build-info</id>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+          </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <version>${version.git-commit-id-plugin}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
