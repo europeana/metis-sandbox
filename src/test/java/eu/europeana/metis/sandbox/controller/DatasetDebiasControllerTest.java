@@ -28,12 +28,10 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -44,8 +42,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(DatasetDebiasController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, DatasetDebiasController.class, SecurityConfig.class, ControllerErrorHandler.class})
-public class DatasetDebiasControllerTest {
+@ContextConfiguration(classes = {WebMvcConfig.class, DatasetDebiasController.class, SecurityConfig.class,
+    ControllerErrorHandler.class})
+class DatasetDebiasControllerTest {
 
   @MockBean
   private DeBiasStateService deBiasStateService;
@@ -61,9 +60,6 @@ public class DatasetDebiasControllerTest {
 
   @MockBean
   private LockRegistry lockRegistry;
-
-  @Mock
-  private CompletableFuture<Void> asyncResult;
 
   private static MockMvc mvc;
 
@@ -119,14 +115,22 @@ public class DatasetDebiasControllerTest {
     final Integer datasetId = 1;
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", null, mockTime, IT, ITALY,
-        new FileHarvestingDto("fileName", "fileType"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new FileHarvestingDto("fileName", "fileType"))
+        .transformedToEdmExternal(false)
+        .build();
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
     when(datasetReportService.getReport(datasetId.toString())).thenReturn(
-        new ProgressInfoDto("url",1L,1L,
-            List.of(), false,"",List.of(),null));
-    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now(), 1, 1));
+        new ProgressInfoDto("url", 1L, 1L,
+            List.of(), false, "", List.of(), null));
+    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(
+        new DeBiasStatusDto(datasetId, "READY", ZonedDateTime.now(), 1, 1));
     when(deBiasStateService.process(datasetId)).thenReturn(process);
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
     mvc.perform(post("/dataset/{id}/debias", datasetId))

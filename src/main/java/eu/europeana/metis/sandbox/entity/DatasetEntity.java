@@ -39,6 +39,16 @@ public class DatasetEntity {
 
   private Boolean recordLimitExceeded;
 
+  /**
+   * Constructs a DatasetEntity.
+   *
+   * @param datasetName Name of the dataset.
+   * @param createdById Identifier of the dataset creator.
+   * @param recordsQuantity The number of records in the dataset.
+   * @param language The language associated with the dataset.
+   * @param country The country associated with the dataset.
+   * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
+   */
   public DatasetEntity(String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded) {
     this.datasetName = datasetName;
@@ -50,6 +60,17 @@ public class DatasetEntity {
 
   }
 
+  /**
+   * Constructs a DatasetEntity.
+   *
+   * @param datasetName Name of the dataset.
+   * @param createdById Identifier of the dataset creator.
+   * @param recordsQuantity The number of records in the dataset.
+   * @param language The language associated with the dataset.
+   * @param country The country associated with the dataset.
+   * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
+   * @param xsltEdmExternalContent External XSLT EDM content associated with the dataset.
+   */
   public DatasetEntity(String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded, String xsltEdmExternalContent) {
     this(datasetName, createdById, recordsQuantity, language, country, recordLimitExceeded);
@@ -123,6 +144,7 @@ public class DatasetEntity {
   public void setRecordLimitExceeded(Boolean hasReachedRecordLimit) {
     this.recordLimitExceeded = hasReachedRecordLimit;
   }
+
   public String getXsltEdmExternalContent() {
     return xsltEdmExternalContent;
   }

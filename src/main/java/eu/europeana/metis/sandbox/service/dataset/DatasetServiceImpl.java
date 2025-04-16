@@ -99,9 +99,16 @@ class DatasetServiceImpl implements DatasetService {
   public DatasetInfoDto getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
-    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedById(),
-        datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
-        datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
+    return new DatasetInfoDto.Builder()
+        .datasetId(datasetId)
+        .datasetName(datasetEntity.getDatasetName())
+        .createdById(datasetEntity.getCreatedById())
+        .creationDate(datasetEntity.getCreatedDate())
+        .language(datasetEntity.getLanguage())
+        .country(datasetEntity.getCountry())
+        .harvestingParametricDto(getHarvestingParameterDto(datasetId))
+        .transformedToEdmExternal(isXsltPresent(datasetId))
+        .build();
   }
 
   private boolean isInputStreamAvailable(InputStream stream) {

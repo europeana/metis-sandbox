@@ -731,8 +731,15 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_fileHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", null, mockTime, IT, ITALY,
-        new FileHarvestingDto("fileName", "fileType"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new FileHarvestingDto("fileName", "fileType"))
+        .transformedToEdmExternal(false)
+        .build();
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
@@ -756,8 +763,15 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_httpHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", null, mockTime, IT, ITALY,
-        new HttpHarvestingDto("http://url-to-test.com"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new HttpHarvestingDto("http://url-to-test.com"))
+        .transformedToEdmExternal(false)
+        .build();
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
@@ -781,8 +795,15 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_oaiPmhHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", null, mockTime, IT, ITALY,
-        new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"))
+        .transformedToEdmExternal(false)
+        .build();
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
