@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.executor.workflow;
 
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessService;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 class DeBiasExecutor extends StepExecutor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasExecutor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final DeBiasProcessService service;
 
   /**

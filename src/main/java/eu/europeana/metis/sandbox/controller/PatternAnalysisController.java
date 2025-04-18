@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
+import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,11 +34,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,9 +55,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/pattern-analysis/")
 @Tag(name = "Pattern Analysis Controller")
+@EnableScheduling
 public class PatternAnalysisController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PatternAnalysisController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
     private final ExecutionPointService executionPointService;
@@ -96,25 +100,26 @@ public class PatternAnalysisController {
     @GetMapping(value = "{id}/get-dataset-pattern-analysis", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<DatasetProblemPatternAnalysisView<Step>> getDatasetPatternAnalysis(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
+        final String escapedDatasetId = StringEscapeUtils.escapeJava(datasetId);
 
         // Get the execution point. If it does not exist, we are done.
         final ExecutionPoint executionPoint = executionPointService
-            .getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString()).orElse(null);
+            .getExecutionPoint(escapedDatasetId, Step.VALIDATE_INTERNAL.toString()).orElse(null);
         if (executionPoint == null) {
-            return new ResponseEntity<>(DatasetProblemPatternAnalysisView.getEmptyAnalysis(datasetId,
+            return new ResponseEntity<>(DatasetProblemPatternAnalysisView.getEmptyAnalysis(escapedDatasetId,
                 ProblemPatternAnalysisStatus.PENDING), HttpStatus.NOT_FOUND);
         }
 
         // Finalize the problem pattern analysis if we can (i.e. if the dataset finished processing).
-        final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
+        final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(escapedDatasetId, executionPoint);
 
         // Now get the pattern analysis.
         final DatasetProblemPatternAnalysisView<Step> analysisView = patternAnalysisService.getDatasetPatternAnalysis(
-                datasetId, Step.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp())
+                escapedDatasetId, Step.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp())
             .map(analysis -> new DatasetProblemPatternAnalysisView<>(analysis, status))
             .orElseGet(() -> {
                 LOGGER.error("Result not expected to be empty when there is a non-null execution point.");
-                return DatasetProblemPatternAnalysisView.getEmptyAnalysis(datasetId,
+                return DatasetProblemPatternAnalysisView.getEmptyAnalysis(escapedDatasetId,
                     ProblemPatternAnalysisStatus.ERROR);
             });
 

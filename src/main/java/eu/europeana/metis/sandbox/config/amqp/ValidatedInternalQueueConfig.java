@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Validated internal queue configuration.
  */
 @Configuration
-public class ValidatedInternalQueueConfig extends QueueConsumerConfig {
+public class ValidatedInternalQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.validated.internal.concurrency}")
     private int concurrentConsumers;

@@ -8,6 +8,7 @@ import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.util.VacuumService;
 import eu.europeana.metis.sandbox.service.workflow.IndexingService;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 class DatasetRemoverServiceImpl implements DatasetRemoverService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final DatasetService datasetService;
   private final DatasetLogService datasetLogService;

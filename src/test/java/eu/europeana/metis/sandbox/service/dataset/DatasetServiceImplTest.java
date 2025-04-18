@@ -82,7 +82,7 @@ class DatasetServiceImplTest {
     datasetEntity.setDatasetId(1);
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
 
-    String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0]));
+    String result = service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0]));
     assertEquals("1", result);
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
@@ -94,7 +94,7 @@ class DatasetServiceImplTest {
 
     when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
 
-    String result = service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+    String result = service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL, new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
     assertEquals("1", result);
     assertEquals( "record", captor.getValue().getXsltEdmExternalContent());
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
@@ -103,19 +103,19 @@ class DatasetServiceImplTest {
   @Test
   void createEmptyDataset_nullDatasetName_expectFail(){
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset(null, Country.AUSTRIA, Language.BE, null));
+            () -> service.createEmptyDataset(null, null, Country.AUSTRIA, Language.BE, null));
   }
 
   @Test
   void createEmptyDataset_nullCountry_expectFail(){
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset("datasetName", null, Language.BE, null));
+            () -> service.createEmptyDataset("datasetName", null, null, Language.BE, null));
   }
 
   @Test
   void createEmptyDataset_nullLanguage_expectFail(){
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset("datasetName", Country.AUSTRIA, null, null));
+            () -> service.createEmptyDataset("datasetName", null, Country.AUSTRIA, null, null));
   }
 
   @Test
@@ -123,7 +123,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenThrow(new RuntimeException("error test"));
 
     assertThrows(ServiceException.class,
-            () -> service.createEmptyDataset("datasetName", Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0])));
+            () -> service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0])));
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 

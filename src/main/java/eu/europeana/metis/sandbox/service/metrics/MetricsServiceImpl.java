@@ -14,6 +14,7 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +30,7 @@ import org.springframework.amqp.core.QueueInformation;
 
 public class MetricsServiceImpl implements MetricsService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MetricsServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String METRICS_NAMESPACE = "sandbox.metrics.dataset";
   public static final String BASE_UNIT_RECORD = "Record";
   public static final String BASE_UNIT_DATASET = "Dataset";

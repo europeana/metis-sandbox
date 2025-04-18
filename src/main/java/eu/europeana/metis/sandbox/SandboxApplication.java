@@ -2,13 +2,11 @@ package eu.europeana.metis.sandbox;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * The Spring boot application entry point.
  */
 @SpringBootApplication
-@EnableScheduling
 public class SandboxApplication {
 
   /**

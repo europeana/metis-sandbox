@@ -1,43 +1,5 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import eu.europeana.indexing.tiers.model.MediaTier;
-import eu.europeana.indexing.tiers.model.MetadataTier;
-import eu.europeana.metis.sandbox.common.HarvestProtocol;
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
-import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.TierStatistics;
-import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
-import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
-import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
-import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
@@ -45,6 +7,38 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.report.TierStatistics;
+import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordLogRepository;
+import eu.europeana.metis.sandbox.repository.RecordRepository;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetReportServiceImplTest {
@@ -80,7 +74,7 @@ class DatasetReportServiceImplTest {
 
     @NotNull
     private static DatasetEntity createDataset(Long recordsQuantity) {
-        DatasetEntity dataset = new DatasetEntity("test", recordsQuantity, Language.NL, Country.NETHERLANDS, false);
+        DatasetEntity dataset = new DatasetEntity("test", null, recordsQuantity, Language.NL, Country.NETHERLANDS, false);
         dataset.setDatasetId(1);
         return dataset;
     }

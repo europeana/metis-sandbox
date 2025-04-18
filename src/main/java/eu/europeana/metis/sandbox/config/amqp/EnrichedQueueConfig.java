@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Enriched queue configuration.
  */
 @Configuration
-public class EnrichedQueueConfig extends QueueConsumerConfig {
+public class EnrichedQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.enriched.concurrency}")
     private int concurrentConsumers;

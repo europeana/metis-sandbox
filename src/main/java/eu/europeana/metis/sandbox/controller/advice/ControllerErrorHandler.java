@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.schema.convert.SerializationException;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -25,9 +26,9 @@ import java.io.IOException;
  * Handles controller exceptions to report correct http status code to client
  */
 @ControllerAdvice
-class ControllerErrorHandler {
+public class ControllerErrorHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ControllerErrorHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final String RETRY_MSG = "%s Please retry, if problem persists contact provider.";
 

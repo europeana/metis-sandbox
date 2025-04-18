@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Transform edm external queue configuration.
  */
 @Configuration
-public class TransformEdmExternalQueueConfig extends QueueConsumerConfig {
+public class TransformEdmExternalQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.concurrency}")
     private int concurrentConsumers;

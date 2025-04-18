@@ -2,6 +2,8 @@ package eu.europeana.metis.sandbox.controller;
 
 import static eu.europeana.metis.sandbox.common.locale.Country.ITALY;
 import static eu.europeana.metis.sandbox.common.locale.Language.IT;
+import static eu.europeana.metis.security.test.JwtUtils.BEARER;
+import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -11,8 +13,10 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,6 +38,9 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.config.SecurityConfig;
+import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
+import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
@@ -41,8 +48,6 @@ import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -51,11 +56,11 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
+import eu.europeana.metis.security.test.JwtUtils;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -65,41 +70,33 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
-
-@ExtendWith(SpringExtension.class)
 @WebMvcTest(DatasetController.class)
+@ContextConfiguration(classes = {WebMvcConfig.class, DatasetController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class DatasetControllerTest {
-
-  @Autowired
-  private MockMvc mvc;
-
-  @MockBean
-  private DeBiasStateService deBiasStateService;
 
   @MockBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -126,10 +123,33 @@ class DatasetControllerTest {
   private HarvestPublishService harvestPublishService;
 
   @MockBean
-  private LockRegistry lockRegistry;
+  JwtDecoder jwtDecoder;
 
   @Mock
   private CompletableFuture<Void> asyncResult;
+
+  private static MockMvc mvc;
+  private final JwtUtils jwtUtils;
+
+  public DatasetControllerTest() {
+    jwtUtils = new JwtUtils(List.of());
+  }
+
+  @BeforeAll
+  static void setup(WebApplicationContext context) {
+    mvc = MockMvcBuilders.webAppContextSetup(context)
+                         .apply(SecurityMockMvcConfigurers.springSecurity())
+                         .defaultRequest(get("/"))
+                         .build();
+  }
+
+  @BeforeEach
+  public void setup() {
+    reset(jwtDecoder);
+    when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(asyncResult);
+    when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
+  }
 
   private static Stream<MultipartFile> provideDifferentCompressedFiles() {
     return Stream.of(
@@ -180,23 +200,18 @@ class DatasetControllerTest {
     );
   }
 
-  @BeforeEach
-  public void setup() {
-    when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
-  }
-
   @ParameterizedTest
   @MethodSource("provideDifferentCompressedFiles")
   void processDatasetFromZipFile_withoutXsltFile_expectSuccess(MockMultipartFile mockMultipart) throws Exception {
-
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
            .file(mockMultipart)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "2"))
@@ -209,18 +224,20 @@ class DatasetControllerTest {
   @ParameterizedTest
   @MethodSource("provideDifferentCompressedFiles")
   void processDatasetFromZipFile_withXsltFile_expectSuccess(MockMultipartFile mockMultipart) throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
            .file(mockMultipart)
            .file(xsltMock)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "2"))
@@ -231,14 +248,53 @@ class DatasetControllerTest {
   }
 
   @ParameterizedTest
+  @MethodSource("provideDifferentCompressedFiles")
+  void processDatasetFromZipFile_withXsltFile_NonBrowser_Allowed(MockMultipartFile mockMultipart) throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
+        "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), isNull(), eq(ITALY), eq(IT),
+        any(ByteArrayInputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+           .file(mockMultipart)
+           .file(xsltMock)
+           .header("User-Agent", "non-browser")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideDifferentCompressedFiles")
+  void processDatasetFromZipFile_Unauthenticated(MockMultipartFile mockMultipart) throws Exception {
+    mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
+           .file(mockMultipart)
+           .header("User-Agent", "Mozilla")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("stepsize", "2"))
+       .andExpect(status().isUnauthorized());
+  }
+
+  @ParameterizedTest
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void processDatasetFromURL_withoutXsltFile_expectSuccess(String url) throws Exception {
-
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -252,17 +308,19 @@ class DatasetControllerTest {
   @ParameterizedTest
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void processDatasetFromURL_withXsltFile_expectSuccess(String url) throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
            .file(xsltMock)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -273,16 +331,55 @@ class DatasetControllerTest {
     verify(datasetLogService, never()).logException(any(), any());
   }
 
+  @ParameterizedTest
+  @MethodSource("provideDifferentUrlsOfCompressedFiles")
+  void processDatasetFromURL_withXsltFile_NonBrowser_Allowed(String url) throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
+        "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), isNull(), eq(ITALY), eq(IT),
+        any(ByteArrayInputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
+           .file(xsltMock)
+           .header("User-Agent", "non-browser")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideDifferentUrlsOfCompressedFiles")
+  void processDatasetFromURL_Unauthenticated(String url) throws Exception {
+    mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+           .header("User-Agent", "Mozilla")
+           .param("country", ITALY.name())
+           .param("language", IT.name())
+           .param("url", url)
+           .param("stepsize", "2"))
+       .andExpect(status().isUnauthorized());
+  }
+
   @Test
   void processDatasetFromOAI_expectSuccess() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -297,14 +394,16 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAIWithEmptySetSpec_expectSuccess() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -319,19 +418,21 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAIWithXsltFile_expectSuccess() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(InputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .file(xsltMock)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.xmlValue())
            .param("language", IT.xmlValue())
            .param("url", url)
@@ -345,13 +446,56 @@ class DatasetControllerTest {
   }
 
   @Test
-  void processDatasetFromFile_invalidName_expectFail() throws Exception {
+  void processDatasetFromOAIWithXsltFile_NonBrowser_Allowed() throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
+    MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl",
+        "application/xslt+xml",
+        "string".getBytes());
+
+    when(datasetService.createEmptyDataset(eq("my-data-set"), isNull(), eq(ITALY), eq(IT),
+        any(InputStream.class)))
+        .thenReturn("12345");
+
+    mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .file(xsltMock)
+           .header("User-Agent", "non-browser")
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isAccepted())
+       .andExpect(jsonPath("$.dataset-id", is("12345")));
+
+    verify(datasetLogService, never()).logException(any(), any());
+  }
+
+  @Test
+  void processDatasetFromOAI_Unauthenticated() throws Exception {
+    final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
+    mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("User-Agent", "Mozilla")
+           .param("country", ITALY.xmlValue())
+           .param("language", IT.xmlValue())
+           .param("url", url)
+           .param("setspec", "oai_integration_test")
+           .param("metadataformat", "edm")
+           .param("stepsize", "2"))
+       .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void processDatasetFromFile_invalidName_expectFail() throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data=set")
            .file(dataset)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("country", ITALY.name())
            .param("language", IT.name()))
        .andExpect(status().isBadRequest())
@@ -361,12 +505,13 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromFile_invalidStepSize_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
            .file(dataset)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "-1"))
@@ -377,12 +522,13 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromFile_invalidFileType_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     var dataset = new MockMultipartFile("dataset", "dataset.txt", "text/plain",
         "<test></test>".getBytes());
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
            .file(dataset)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("stepsize", "-1"))
@@ -393,10 +539,11 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromURL_invalidName_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = "zip" + File.separator + "dataset-valid.zip";
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data=set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("name", "invalidDatasetName")
            .param("country", ITALY.name())
            .param("language", IT.name())
@@ -408,10 +555,11 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromURL_invalidStepSize_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = Paths.get("zip" + File.separator + "dataset-valid.zip").toUri().toString();
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("name", "invalidDatasetName")
            .param("country", ITALY.name())
            .param("language", IT.name())
@@ -424,10 +572,11 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAI_invalidName_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data=set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("name", "invalidDatasetName")
            .param("country", ITALY.name())
            .param("language", IT.name())
@@ -441,10 +590,11 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAI_invalidStepSize_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("name", "invalidDatasetName")
            .param("country", ITALY.name())
            .param("language", IT.name())
@@ -459,10 +609,10 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAI_harvestServiceFails_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(InputStream.class)))
         .thenReturn("12345");
     doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
@@ -470,6 +620,7 @@ class DatasetControllerTest {
                                                               any(OaiHarvestData.class));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -482,14 +633,16 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAI_datasetServiceFails_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(InputStream.class)))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+           .header("User-Agent", "Mozilla")
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -503,7 +656,7 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAI_differentXsltFileType_expectFail() throws Exception {
-
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     MockMultipartFile xsltMock = new MockMultipartFile("xsltFile", "xslt.xsl", "application/zip",
@@ -511,6 +664,7 @@ class DatasetControllerTest {
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .file(xsltMock)
+           .header("Authorization", BEARER + MOCK_VALID_TOKEN)
            .param("country", ITALY.name())
            .param("language", IT.name())
            .param("url", url)
@@ -577,8 +731,15 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_fileHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
-        new FileHarvestingDto("fileName", "fileType"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new FileHarvestingDto("fileName", "fileType"))
+        .transformedToEdmExternal(false)
+        .build();
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
@@ -602,8 +763,15 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_httpHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
-        new HttpHarvestingDto("http://url-to-test.com"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new HttpHarvestingDto("http://url-to-test.com"))
+        .transformedToEdmExternal(false)
+        .build();
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
@@ -627,8 +795,15 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_oaiPmhHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto("1", "datasetName", mockTime, IT, ITALY,
-        new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"), false);
+    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .datasetName("datasetName")
+        .creationDate(mockTime)
+        .language(IT)
+        .country(ITALY)
+        .harvestingParametricDto(new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"))
+        .transformedToEdmExternal(false)
+        .build();
 
     when(datasetService.getDatasetInfo("1")).thenReturn(mock);
 
@@ -789,9 +964,10 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromZipFile_AsyncExecutionException_expectLogging() throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
@@ -800,6 +976,8 @@ class DatasetControllerTest {
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
         .file(mockMultipart)
+        .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+        .header("User-Agent", "Mozilla")
         .param("country", ITALY.name())
         .param("language", IT.name())
         .param("stepsize", "2"));
@@ -809,15 +987,18 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromURL_AsyncExecutionException_expectLogging() throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     ServiceException exception = new ServiceException("Test error");
     when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(
         CompletableFuture.failedFuture(exception));
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
+        .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+        .header("User-Agent", "Mozilla")
         .param("country", ITALY.name())
         .param("language", IT.name())
         .param("url", url)
@@ -828,15 +1009,18 @@ class DatasetControllerTest {
 
   @Test
   void processDatasetFromOAI_AsyncExecutionException_expectLogging() throws Exception {
+    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     ServiceException exception = new ServiceException("Test error");
     when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(
         CompletableFuture.failedFuture(exception));
     final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-    when(datasetService.createEmptyDataset(eq("my-data-set"), eq(ITALY), eq(IT),
+    when(datasetService.createEmptyDataset(eq("my-data-set"), anyString(), eq(ITALY), eq(IT),
         any(ByteArrayInputStream.class)))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
+        .header("Authorization", BEARER + MOCK_VALID_TOKEN)
+        .header("User-Agent", "Mozilla")
         .param("country", ITALY.xmlValue())
         .param("language", IT.xmlValue())
         .param("url", url)
@@ -845,58 +1029,5 @@ class DatasetControllerTest {
         .param("stepsize", "2"));
 
     verify(datasetLogService).logException("12345", exception);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
-  void getDebiasStatus_expectSuccess(String status) throws Exception {
-    final Integer datasetId = 1;
-    final ZonedDateTime dateTime = ZonedDateTime.now();
-
-    when(deBiasStateService.getDeBiasStatus(datasetId))
-        .thenReturn(new DeBiasStatusDto(datasetId, status, dateTime, 1, 1));
-
-    mvc.perform(get("/dataset/{id}/debias/info", datasetId))
-       .andExpect(status().isOk())
-       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
-       .andExpect(jsonPath("$.state", is(status)))
-       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
-       .andExpect(jsonPath("$.total-records", is(1)))
-       .andExpect(jsonPath("$.processed-records", is(1)));
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"COMPLETED", "PROCESSING", "ERROR"})
-  void getDebiasReport_expectSuccess(String status) throws Exception {
-    final Integer datasetId = 1;
-    final ZonedDateTime dateTime = ZonedDateTime.now();
-
-    when(deBiasStateService.getDeBiasReport(datasetId))
-        .thenReturn(new DeBiasReportDto(datasetId, status, dateTime, 1, 1, List.of()));
-
-    mvc.perform(get("/dataset/{id}/debias/report", datasetId))
-       .andExpect(status().isOk())
-       .andExpect(jsonPath("$.dataset-id", is(datasetId)))
-       .andExpect(jsonPath("$.state", is(status)))
-       .andExpect(jsonPath("$.creation-date", is(dateTime.toOffsetDateTime()
-                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
-       .andExpect(jsonPath("$.total-records", is(1)))
-       .andExpect(jsonPath("$.processed-records", is(1)));
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void processDebias_expectSuccess(boolean process) throws Exception {
-    final Integer datasetId = 1;
-    when(datasetReportService.getReport(datasetId.toString())).thenReturn(
-        new ProgressInfoDto("url",1L,1L,
-        List.of(), false,"",List.of(),null));
-    when(deBiasStateService.getDeBiasStatus(datasetId)).thenReturn(new DeBiasStatusDto(datasetId,"READY", ZonedDateTime.now(), 1, 1));
-    when(deBiasStateService.process(datasetId)).thenReturn(process);
-    when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
-    mvc.perform(post("/dataset/{id}/debias", datasetId))
-       .andExpect(status().isOk())
-       .andExpect(content().string(String.valueOf(process)));
   }
 }

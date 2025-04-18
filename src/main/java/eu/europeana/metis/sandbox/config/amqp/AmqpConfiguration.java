@@ -14,12 +14,14 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their bindings. <br /><br /> If there
  * is a need to add a new queue in the future here is the place to do it
  */
 @Configuration
+@DependsOn("truststoreConfig")
 public class AmqpConfiguration {
 
   private final MessageConverter messageConverter;

@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.util;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class VacuumService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(VacuumService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final JdbcTemplate jdbcTemplate;
 

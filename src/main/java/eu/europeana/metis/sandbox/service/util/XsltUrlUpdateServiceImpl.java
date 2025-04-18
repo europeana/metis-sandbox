@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,7 +18,7 @@ import org.springframework.integration.support.locks.LockRegistry;
 
 public class XsltUrlUpdateServiceImpl implements XsltUrlUpdateService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(XsltUrlUpdateServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final TransformXsltRepository transformXsltRepository;
 

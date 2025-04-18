@@ -1,32 +1,47 @@
 sandbox:
   rabbitmq:
     routing-key:
-      closed: sandbox.record.closed-amqpconfiguration-test
+      closed: sandbox.record.amqpconfiguration-test.closed
     exchange:
-      name: sandbox-amqpconfiguration-test
+      name: sandbox.amqpconfiguration-test
+      dlq: ${sandbox.rabbitmq.exchange.name}.dlq
     queues:
       record:
+        log:
+          queue: sandbox.record.amqpconfiguration-test.log
+          dlq: ${sandbox.rabbitmq.queues.record.log.queue}.dlq
+          routing-key: sandbox.record.amqpconfiguration-test.#
         created:
-          queue: sandbox.record.created-amqpconfiguration-test
+          queue: sandbox.record.amqpconfiguration-test.created
+          dlq: ${sandbox.rabbitmq.queues.record.created.queue}.dlq
         transformation:
           edm:
             external:
-              queue: sandbox.record.transformation.edm.external-amqpconfiguration-test
+              queue: sandbox.record.amqpconfiguration-test.transformation.edm.external
+              dlq: ${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}.dlq
         validated:
           external:
-            queue: sandbox.record.validated.external-amqpconfiguration-test
+            queue: sandbox.record.amqpconfiguration-test.validated.external
+            dlq: ${sandbox.rabbitmq.queues.record.validated.external.queue}.dlq
           internal:
-            queue: sandbox.record.validated.internal-amqpconfiguration-test
+            queue: sandbox.record.amqpconfiguration-test.validated.internal
+            dlq: ${sandbox.rabbitmq.queues.record.validated.internal.queue}.dlq
         transformed:
-          queue: sandbox.record.transformed-amqpconfiguration-test
+          queue: sandbox.record.amqpconfiguration-test.transformed
+          dlq: ${sandbox.rabbitmq.queues.record.transformed.queue}.dlq
         normalized:
-          queue: sandbox.record.normalized-amqpconfiguration-test
+          queue: sandbox.record.amqpconfiguration-test.normalized
+          dlq: ${sandbox.rabbitmq.queues.record.normalized.queue}.dlq
         enriched:
-          queue: sandbox.record.enriched-amqpconfiguration-test
+          queue: sandbox.record.amqpconfiguration-test.enriched
+          dlq: ${sandbox.rabbitmq.queues.record.enriched.queue}.dlq
         media:
-          queue: sandbox.record.media.processed-amqpconfiguration-test
+          queue: sandbox.record.amqpconfiguration-test.media.processed
+          dlq: ${sandbox.rabbitmq.queues.record.media.queue}.dlq
         published:
-          queue: sandbox.record.published-amqpconfiguration-test
+          queue: sandbox.record.amqpconfiguration-test.published
+          dlq: ${sandbox.rabbitmq.queues.record.published.queue}.dlq
         debias:
           ready:
-            queue: sandbox.record.debias.ready-amqpconfiguration-test
+            queue: sandbox.record.amqpconfiguration-test.debias.ready
+            dlq: ${sandbox.rabbitmq.queues.record.debias.ready.queue}.dlq

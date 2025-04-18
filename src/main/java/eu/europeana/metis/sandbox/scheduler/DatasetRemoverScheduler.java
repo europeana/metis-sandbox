@@ -1,9 +1,11 @@
 package eu.europeana.metis.sandbox.scheduler;
 
 import eu.europeana.metis.sandbox.service.dataset.DatasetRemoverService;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -11,9 +13,10 @@ import org.springframework.stereotype.Component;
  * Schedule to delete old datasets
  */
 @Component
+@EnableScheduling
 class DatasetRemoverScheduler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetRemoverScheduler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("${sandbox.dataset.clean.days-to-preserve:7}")
   private int daysToPreserve;

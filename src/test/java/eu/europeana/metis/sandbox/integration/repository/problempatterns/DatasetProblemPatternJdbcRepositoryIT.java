@@ -1,27 +1,27 @@
-package eu.europeana.metis.sandbox.repository.problempatterns;
+package eu.europeana.metis.sandbox.integration.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
-import eu.europeana.metis.sandbox.test.utils.TestContainer;
-import eu.europeana.metis.sandbox.test.utils.TestContainerFactoryIT;
-import eu.europeana.metis.sandbox.test.utils.TestContainerType;
+import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
+import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
@@ -29,21 +29,21 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) //Do not allow JdbcTest to replace the Datasource
 @ContextConfiguration(classes = DatasetProblemPatternJdbcRepository.class)
+@Import({PostgresTestContainersConfiguration.class})
 class DatasetProblemPatternJdbcRepositoryIT {
-
-  @DynamicPropertySource
-  public static void dynamicProperties(DynamicPropertyRegistry registry) {
-    TestContainer postgresql = TestContainerFactoryIT.getContainer(TestContainerType.POSTGRES);
-    postgresql.dynamicProperties(registry);
-    postgresql.runScripts(List.of("database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql"));
-  }
 
   public static final String SELECT_DATASET_PROBLEM_PATTERN_QUERY = "SELECT * FROM problem_patterns.dataset_problem_pattern";
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
   @Autowired
   private DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
+
+  @BeforeAll
+  static void beforeAll() {
+    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
+  }
 
   @Test
   void upsertUpdateCounterTest() {

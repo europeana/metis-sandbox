@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Validated external queue configuration.
  */
 @Configuration
-public class ValidatedExternalQueueConfig extends QueueConsumerConfig {
+public class ValidatedExternalQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.validated.external.concurrency}")
     private int concurrentConsumers;

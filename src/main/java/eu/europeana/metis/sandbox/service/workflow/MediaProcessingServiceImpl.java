@@ -19,6 +19,7 @@ import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
+import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
 @Service
 class MediaProcessingServiceImpl implements MediaProcessingService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MediaProcessingServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ThumbnailStoreService thumbnailStoreService;
   private final MediaExtractor mediaExtractor;

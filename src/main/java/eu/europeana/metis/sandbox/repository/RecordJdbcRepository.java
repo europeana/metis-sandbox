@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.repository;
 
+import java.lang.invoke.MethodHandles;
 import java.sql.PreparedStatement;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RecordJdbcRepository {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RecordJdbcRepository.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final JdbcTemplate jdbcTemplate;
 
   /**

@@ -1,34 +1,94 @@
+# Spring Actuator Info App
 info:
   app:
-    title: &name Metis Sandbox
-    description: Sandbox to process Datasets
+    title: &appTitle Metis Sandbox
+    description: Metis Sandbox to process Datasets
     version: 1.0.0
     repository: https://github.com/europeana/metis-sandbox
     contact:
       name: Europeana Foundation
       email: info@europeana.eu
       url: www.europeana.eu
+# Spring Actuator Management (https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/)
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: ["health", "info", "loggers", "metrics", "scheduledtasks", "beans"]
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    beans:
+      enabled: true
+  ## Enables info.app properties
+  info:
+    env:
+      enabled: true
+
+# Truststore
+truststore:
+  path: /data/certificates/custom-truststore.jks
+  password:
+
+# Elastic APM
+elastic:
+  apm:
+    enabled: true
+    recording: true
+    instrument: true
+    service_name: metis-sandbox
+    server_url: http://localhost:8200
+    environment: local
+    application_packages: org.europeana,eu.europeana.metis.sandbox
+    log_level: ERROR
+    capture_body: all
+    capture_headers: true
+    metrics_interval: 5s
+
+# Spring
 spring:
-  profiles:
-    active: default
+  application:
+    name: *appTitle
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-  application:
-    name: *name
   servlet:
     multipart:
       max-file-size: 5MB
+      max-request-size: 5MB
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:7080/realms/europeana/protocol/openid-connect/certs
+  ## Spring Data
+  datasource:
+    jdbcUrl: jdbc:postgresql://localhost:5432/sandbox
+    driverClassName: org.postgresql.Driver
+    username: sandbox
+    password:
+    maximumPoolSize: 10           # this is the default we make it explicit in the config.
+    leakDetectionThreshold: 5000  # five second should be enough
   rabbitmq:
-    virtual-host: sandbox-develop
+    virtual-host: sandbox-local
     host: localhost
+    #Https port for management UI 8081
     port: 5672
     username: sandbox
     password: sandbox
     ssl:
-      enabled:
-      algorithm:
+      enabled: false
+      algorithm: TLSv1.2
       trust-store:
       trust-store-password:
     listener:
@@ -44,44 +104,18 @@ spring:
   jpa:
     open-in-view: false
 
-# spring boot actuator see documentation at
-# https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/
-management:
-  endpoints:
-    enabled-by-default: false
-    web:
-      exposure:
-        include: [ "health", "info", "loggers", "metrics", "scheduledtasks", "beans" ]
-  endpoint:
-    health: # Shows application health information.
-      enabled: true
-    info: # Displays arbitrary application info.
-      enabled: true
-    loggers: # Shows and modifies the configuration of loggers in the application.
-      enabled: true
-    metrics: # Shows ‘metrics’ information for the current application.
-      enabled: true
-    scheduledtasks: # Displays the scheduled tasks in your application.
-      enabled: true
-    beans: # Displays beans in the application only test environment.
-      enabled: true
+# Metis Sandbox
 sandbox:
   cors:
     mapping: '*'
-  truststore:
-    path:
-    password:
-  datasource:
-    jdbcUrl: jdbc:postgresql://localhost:5432/sandbox
-    driverClassName: org.postgresql.Driver
-    username: sandbox
-    password:
-    maximumPoolSize: 10           # this is the default we make it explicit in the config.
-    leakDetectionThreshold: 5000  # five second should be enough
   rate-limit:
     bandwidth:
       capacity:
       time: # in seconds
+  debias:
+    url:
+    connectTimeout: 300
+    requestTimeout: 300
   dataset:
     clean:
       frequency: 0 0 0 * * ? # At 00:00:00am every day
@@ -92,12 +126,8 @@ sandbox:
         core-pool-size: 10
         max-pool-size: 40
         thread-prefix: sandbox-
-  debias:
-    url:
-    connectTimeout: 300
-    requestTimeout: 300
   metrics:
-    frequency: '*/5 * * * * *' # every five seconds.
+    frequency: '*/30 * * * * *' # every half a minute.
   validation:
     edm-sorter-url: http://ftp.eanadev.org/schema_zips/edm_sorter.xsl
     executor:
@@ -119,19 +149,27 @@ sandbox:
     enrichment-properties:
       entity-management-url:
       entity-api-url:
-      entity-api-key:
+      entity-api-token-endpoint:
+      entity-api-grant-params:
   publish:
     mongo:
-      application-name:
+      application-name: metis-sandbox-local
       db:
       hosts:
       ports:
       authentication-db:
       username:
       password:
-      ssl-enable:
+      ssl-enable: false
     solr:
       hosts:
+      zookeeper:
+        hosts:
+        ports:
+        chroot:
+        default:
+          collection:
+        timeout: 10
   s3:
     access-key:
     secret-key:
@@ -231,18 +269,5 @@ sandbox:
             auto-start: true
             concurrency: 2
             max-concurrency: 2
-            prefetch: 1
+            prefetch: 20
             batch-size: 20
-elastic:
-  apm:
-    service_name: metis-sandbox-rest-dev
-    application_packages: org.europeana,eu.europeana.metis.sandbox
-    server_url: http://localhost:8200
-    capture_body: all
-    capture_headers: true
-    metrics_interval: 5s
-    environment: dev
-    hostname: localhost
-    enabled: true
-    recording: true
-    instrument: true

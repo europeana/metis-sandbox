@@ -24,7 +24,7 @@ public class TierStatistics {
      */
     public TierStatistics(int totalNumberOfRecords, List<String> listRecordIds) {
         this.totalNumberOfRecords = totalNumberOfRecords;
-        this.listRecordIds = listRecordIds;
+        this.listRecordIds = List.copyOf(listRecordIds);
     }
 
     public int getTotalNumberOfRecords() {
@@ -41,13 +41,11 @@ public class TierStatistics {
             return true;
         }
 
-        if(!(o instanceof TierStatistics)){
+        if(!(o instanceof TierStatistics other)){
             return false;
         }
 
-        TierStatistics other = (TierStatistics) o;
-
-        return this.totalNumberOfRecords == other.totalNumberOfRecords &&
+      return this.totalNumberOfRecords == other.totalNumberOfRecords &&
                 this.listRecordIds.equals(other.listRecordIds);
     }
 

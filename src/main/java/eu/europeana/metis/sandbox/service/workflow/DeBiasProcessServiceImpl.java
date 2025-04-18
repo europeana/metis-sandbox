@@ -23,6 +23,7 @@ import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeBiasProcessServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final int DEBIAS_CLIENT_PARTITION_SIZE = 20;
 

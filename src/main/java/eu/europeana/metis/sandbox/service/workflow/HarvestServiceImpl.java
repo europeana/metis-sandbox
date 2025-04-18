@@ -29,6 +29,7 @@ import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class HarvestServiceImpl implements HarvestService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(HarvestServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int DEFAULT_STEP_SIZE = 1;
 
   private final HttpHarvester httpHarvester;

@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.executor.workflow;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 class CloseExecutor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CloseExecutor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final AmqpTemplate amqpTemplate;
 
   @Value("${sandbox.rabbitmq.routing-key.closed}")

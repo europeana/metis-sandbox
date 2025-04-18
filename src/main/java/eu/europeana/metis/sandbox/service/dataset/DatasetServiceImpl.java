@@ -39,14 +39,14 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public String createEmptyDataset(String datasetName, Country country, Language language,
+  public String createEmptyDataset(String datasetName, String createdById, Country country, Language language,
       InputStream xsltEdmExternalContentStream) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
 
-    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, null, language, country, false),
-            xsltEdmExternalContentStream);
+    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, createdById, null, language, country, false),
+        xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
 
@@ -55,14 +55,14 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public List<String> getDatasetIdsCreatedBefore(int days) {
     ZonedDateTime date = ZonedDateTime.now()
-        .truncatedTo(ChronoUnit.DAYS)
-        .minusDays(days);
+                                      .truncatedTo(ChronoUnit.DAYS)
+                                      .minusDays(days);
 
     try {
       return datasetRepository.getByCreatedDateBefore(date).stream()
-          .map(DatasetIdView::getDatasetId)
-          .map(Object::toString)
-          .toList();
+                              .map(DatasetIdView::getDatasetId)
+                              .map(Object::toString)
+                              .toList();
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
     }
@@ -97,9 +97,18 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   public DatasetInfoDto getDatasetInfo(String datasetId) {
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow(() -> new InvalidDatasetException(datasetId));
-    return new DatasetInfoDto(datasetId, datasetEntity.getDatasetName(), datasetEntity.getCreatedDate(), datasetEntity.getLanguage(),
-            datasetEntity.getCountry(), getHarvestingParameterDto(datasetId), isXsltPresent(datasetId));
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
+                                                   .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    return new DatasetInfoDto.Builder()
+        .datasetId(datasetId)
+        .datasetName(datasetEntity.getDatasetName())
+        .createdById(datasetEntity.getCreatedById())
+        .creationDate(datasetEntity.getCreatedDate())
+        .language(datasetEntity.getLanguage())
+        .country(datasetEntity.getCountry())
+        .harvestingParametricDto(getHarvestingParameterDto(datasetId))
+        .transformedToEdmExternal(isXsltPresent(datasetId))
+        .build();
   }
 
   private boolean isInputStreamAvailable(InputStream stream) {
@@ -110,15 +119,16 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
-  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, InputStream xsltEdmExternalContentStream){
+  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, InputStream xsltEdmExternalContentStream) {
     if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
       try {
-        datasetEntityToSave.setXsltEdmExternalContent(new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
+        datasetEntityToSave.setXsltEdmExternalContent(
+            new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
         //We reset the stream to it again later
         xsltEdmExternalContentStream.reset();
       } catch (IOException e) {
         throw new XsltProcessingException(
-                "Something went wrong while checking the content of the xslt file", e);
+            "Something went wrong while checking the content of the xslt file", e);
       }
     }
 
@@ -129,21 +139,13 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
-  private HarvestingParametricDto getHarvestingParameterDto(String datasetId){
+  private HarvestingParametricDto getHarvestingParameterDto(String datasetId) {
     HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
-    switch(entity.getProtocol()){
-      case FILE:
-        return new FileHarvestingDto(entity.getFileName(), entity.getFileType());
-
-      case HTTP:
-        return new HttpHarvestingDto(entity.getUrl());
-
-      case OAI_PMH:
-        return new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
-
-      default:
-        throw new ServiceException("Something went wrong while getting data about harvesting parameters");
-    }
+    return switch (entity.getProtocol()) {
+      case FILE -> new FileHarvestingDto(entity.getFileName(), entity.getFileType());
+      case HTTP -> new HttpHarvestingDto(entity.getUrl());
+      case OAI_PMH -> new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
+    };
   }
 }
