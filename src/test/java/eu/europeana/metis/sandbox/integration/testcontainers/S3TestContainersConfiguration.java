@@ -26,7 +26,7 @@ import org.testcontainers.utility.DockerImageName;
 public class S3TestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String S3_VERSION = "localstack/localstack:1.1.0";
+  private static final String S3_VERSION = "localstack/localstack:s3-latest";
   private static final LocalStackContainer s3Container;
   private static final AmazonS3 s3Client;
   public static final String BUCKET_NAME = "test-thumbnails-bucket";

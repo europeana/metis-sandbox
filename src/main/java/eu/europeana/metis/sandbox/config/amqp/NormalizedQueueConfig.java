@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Normalized queue configuration.
  */
 @Configuration
-public class NormalizedQueueConfig extends QueueConsumerConfig {
+public class NormalizedQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.normalized.concurrency}")
     private int concurrentConsumers;

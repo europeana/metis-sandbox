@@ -4,7 +4,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.util.List;
 import java.util.Locale;
-import org.apache.tika.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;

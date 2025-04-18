@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Created queue configuration.
  */
 @Configuration
-public class CreatedQueueConfig extends QueueConsumerConfig {
+public class CreatedQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.created.concurrency}")
     private int concurrentConsumers;

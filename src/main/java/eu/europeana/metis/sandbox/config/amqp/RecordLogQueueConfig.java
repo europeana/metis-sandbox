@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * the message broker
  */
 @Configuration
-class RecordLogQueueConfig extends QueueConsumerConfig {
+class RecordLogQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.log.concurrency}")
     private int concurrentConsumers;
