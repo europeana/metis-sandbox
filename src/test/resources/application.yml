@@ -13,23 +13,24 @@ info:
 # Spring Actuator Management (https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/)
 management:
   endpoints:
-    enabled-by-default: false
     web:
       exposure:
         include: ["health", "info", "loggers", "metrics", "scheduledtasks", "beans"]
+    access:
+      default: read_only
   endpoint:
     health:
-      enabled: true
+      access: read_only
     info:
-      enabled: true
+      access: read_only
     loggers:
-      enabled: true
+      access: read_only
     metrics:
-      enabled: true
+      access: read_only
     scheduledtasks:
-      enabled: true
+      access: read_only
     beans:
-      enabled: true
+      access: read_only
   ## Enables info.app properties
   info:
     env:
