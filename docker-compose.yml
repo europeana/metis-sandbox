@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Container will create database and execute scripts.
 # On re-starts it will contain data(and not execute scripts) but on re-builds it will not.
 services:
@@ -7,9 +5,9 @@ services:
     image: postgres:14-alpine
     container_name: metis-sandbox-postgres
     environment:
-      - POSTGRES_DB=sandbox_local
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=metis-sandbox
+      - POSTGRES_USER=local
+      - POSTGRES_PASSWORD=local
     ports:
       - '5432:5432'
     volumes:
@@ -22,8 +20,8 @@ services:
     container_name: metis-sandbox-rabbitmq
     environment:
       - RABBIT_DEFAULT_VHOST=/
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=local
+      - RABBITMQ_DEFAULT_PASS=local
     ports:
       - '5672:5672'
       - '15672:15672'
@@ -32,8 +30,8 @@ services:
     container_name: metis-sandbox-mongo
     environment:
       MONGO_INITDB_DATABASE: metis-sandbox
-      MONGO_INITDB_ROOT_USERNAME: guest
-      MONGO_INITDB_ROOT_PASSWORD: guest
+      MONGO_INITDB_ROOT_USERNAME: local
+      MONGO_INITDB_ROOT_PASSWORD: local
     ports:
       - '27017:27017'
   solr:
@@ -53,12 +51,15 @@ services:
 
   localstack-s3:
     image: localstack/localstack:s3-latest
+    container_name: metis-sandbox-localstack-s3
     ports:
       - "4566:4566"
+    environment:
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
     volumes:
-      - "${LOCALSTACK_VOLUME_DIR:-./docker/volume}:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./docker/localstack/bucket.sh:/etc/localstack/init/ready.d/bucket.sh"
+      - ./docker/localstack/setup-s3.sh:/etc/localstack/init/ready.d/init-aws.sh
+      - /tmp/localstack-data:/var/lib/localstack
 
   metis-sandbox-local:
     image: europeana/metis-sandbox:develop
