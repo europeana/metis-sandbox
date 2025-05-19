@@ -10,4 +10,6 @@ DROP TABLE IF EXISTS record_error_log;
 DROP TABLE IF EXISTS record;
 DROP TABLE IF EXISTS thumbnail;
 DROP TABLE IF EXISTS default_transform_xslt;
+
+DROP SCHEMA if EXISTS "batch-framework" CASCADE;
 COMMIT;

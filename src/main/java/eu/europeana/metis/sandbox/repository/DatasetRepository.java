@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
@@ -26,6 +27,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param datasetId The id of the dataset to update to
    * @param quantity The new value to update into the dataset
    */
+  @Transactional
   @Modifying
   @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
   void updateRecordsQuantity(int datasetId, Long quantity);

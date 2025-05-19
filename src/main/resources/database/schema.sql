@@ -144,4 +144,7 @@ CREATE INDEX ON record (dataset_id, content_tier);
 CREATE INDEX ON record (dataset_id, metadata_tier);
 CREATE INDEX ON record (dataset_id);
 CREATE INDEX ON thumbnail (dataset_id);
+
+CREATE SCHEMA "batch-framework";
+
 COMMIT;

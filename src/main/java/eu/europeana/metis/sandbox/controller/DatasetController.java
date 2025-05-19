@@ -7,7 +7,6 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
-import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -38,6 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -49,6 +49,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -69,6 +71,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/dataset/")
 @Tag(name = "Dataset Controller")
 class DatasetController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final String MESSAGE_OPEN_TAG_STYLE = "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">";
     private static final String MESSAGE_BODY = " - The response body will contain an object of type"
@@ -130,7 +134,7 @@ class DatasetController {
         this.recordLogService = recordLogService;
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
-        urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
+      urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
     }
 
     /**
@@ -292,9 +296,12 @@ class DatasetController {
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
         setspec = getDefaultSetSpecWhenNotAvailable(setspec);
-        harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
-                        new OaiHarvestData(url, setspec, metadataformat, ""))
-                .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+
+        reportService.execute(datasetMetadata, url, setspec, metadataformat);
+
+//        harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
+//                        new OaiHarvestData(url, setspec, metadataformat, ""))
+//                .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
 
         return new DatasetIdDto(createdDatasetId);
     }
@@ -319,7 +326,8 @@ class DatasetController {
     public ProgressInfoDto getDatasetProgress(
             @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
         //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
-        return reportService.getReport(datasetId);
+//        return reportService.getReport(datasetId);
+        return reportService.getProgress(datasetId);
     }
 
     /**
