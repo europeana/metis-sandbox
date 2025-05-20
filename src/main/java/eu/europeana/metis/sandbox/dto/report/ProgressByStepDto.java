@@ -24,7 +24,7 @@ public class ProgressByStepDto {
 
   public ProgressByStepDto(Step step, long success, long fail, long warn, List<ErrorInfoDto> errors) {
     this.step = step;
-    this.total = success + fail + warn;
+    this.total = success + fail;
     this.success = success;
     this.fail = fail;
     this.warn = warn;

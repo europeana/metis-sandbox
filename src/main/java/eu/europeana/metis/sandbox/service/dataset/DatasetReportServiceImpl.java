@@ -46,6 +46,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -81,6 +82,20 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private final ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
+  private record StepConfig(BatchJobType batchJob, BatchJobSubType subtype, Step step) {
+
+  }
+
+  private static final List<StepConfig> stepConfigs = List.of(
+      new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
+      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
+      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
+      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
+      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS)
+  );
+
   public DatasetReportServiceImpl(
       DatasetRepository datasetRepository,
       DatasetLogService datasetLogService,
@@ -102,49 +117,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   public ProgressInfoDto getProgress(String datasetId) {
-    StepStatisticsWrapper oaiStatisticsWrapper = getStepStatistics(datasetId, OaiHarvestJobConfig.BATCH_JOB,
-        null, Step.HARVEST_OAI_PMH);
-    StepStatisticsWrapper validationExternalStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
-        ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
-    StepStatisticsWrapper transformationStatisticsWrapper = getStepStatistics(datasetId, TransformationJobConfig.BATCH_JOB,
-        null, Step.TRANSFORM);
-    StepStatisticsWrapper validationInternalStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
-        ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
-    StepStatisticsWrapper normalizationStatisticsWrapper = getStepStatistics(datasetId, NormalizationJobConfig.BATCH_JOB,
-        null, Step.NORMALIZE);
-    StepStatisticsWrapper enrichmentStatisticsWrapper = getStepStatistics(datasetId, EnrichmentJobConfig.BATCH_JOB,
-        null, Step.ENRICH);
-    StepStatisticsWrapper mediaStatisticsWrapper = getStepStatistics(datasetId, MediaJobConfig.BATCH_JOB,
-        null, Step.MEDIA_PROCESS);
-
     List<StepStatistic> stepStatistics = new ArrayList<>();
-    stepStatistics.addAll(oaiStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(validationExternalStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(transformationStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(validationInternalStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(normalizationStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(enrichmentStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(mediaStatisticsWrapper.stepStatistics());
-
-    List<ErrorLogView> oaiErrorLogViews = getErrorView(datasetId, OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH);
-    List<ErrorLogView> validationExternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB,
-        ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
-    List<ErrorLogView> transformationErrorLogViews = getErrorView(datasetId, TransformationJobConfig.BATCH_JOB, null,
-        Step.TRANSFORM);
-    List<ErrorLogView> validationInternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB,
-        ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
-    List<ErrorLogView> normalizationErrorLogViews = getErrorView(datasetId, NormalizationJobConfig.BATCH_JOB, null,
-        Step.NORMALIZE);
-    List<ErrorLogView> enrichmentErrorLogViews = getErrorView(datasetId, EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH);
-    List<ErrorLogView> mediaErrorLogViews = getErrorView(datasetId, MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS);
     List<ErrorLogView> errorLogViews = new ArrayList<>();
-    errorLogViews.addAll(oaiErrorLogViews);
-    errorLogViews.addAll(validationExternalErrorLogViews);
-    errorLogViews.addAll(transformationErrorLogViews);
-    errorLogViews.addAll(validationInternalErrorLogViews);
-    errorLogViews.addAll(normalizationErrorLogViews);
-    errorLogViews.addAll(enrichmentErrorLogViews);
-    errorLogViews.addAll(mediaErrorLogViews);
+    Map<Step, StepStatisticsWrapper> statisticsMap = new EnumMap<>(Step.class);
+
+    for (StepConfig stepConfig : stepConfigs) {
+      StepStatisticsWrapper stepStatisticsWrapper = getStatistics(datasetId, stepConfig);
+      stepStatistics.addAll(stepStatisticsWrapper.stepStatistics());
+      statisticsMap.put(stepConfig.step(), stepStatisticsWrapper);
+
+      errorLogViews.addAll(getErrors(datasetId, stepConfig));
+    }
 
     final DatasetEntity dataset = getDataset(datasetId);
 
@@ -155,18 +138,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
           null, null);
     }
 
-    final long completedRecords = enrichmentStatisticsWrapper.totalSuccess;
+    final long completedRecords = statisticsMap.get(Step.ENRICH).totalSuccess;
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(stepStatistics);
 
     // get errors by step
-    Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(
-        errorLogViews);
+    Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(errorLogViews);
 
     // collect steps processing information
-    List<ProgressByStepDto> stepsInfo = new LinkedList<>();
-    recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
+    List<ProgressByStepDto> progressByStepDtos = new LinkedList<>();
+    recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(progressByStepDtos, statusMap, step,
         recordErrorsByStep));
 
     //todo: need to update with the new records
@@ -175,9 +157,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return new ProgressInfoDto(
         getPublishPortalUrl(dataset, completedRecords),
         dataset.getRecordsQuantity(), completedRecords,
-        stepsInfo, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
+        progressByStepDtos, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
         null, tiersZeroInfo);
 
+  }
+
+  private StepStatisticsWrapper getStatistics(String datasetId, StepConfig stepConfig) {
+    return getStepStatistics(datasetId, stepConfig.batchJob(), stepConfig.subtype(), stepConfig.step());
+  }
+
+  private List<ErrorLogView> getErrors(String datasetId, StepConfig config) {
+    return getErrorView(datasetId, config.batchJob(), config.subtype(), config.step());
   }
 
   private @NotNull DatasetReportServiceImpl.StepStatisticsWrapper getStepStatistics(
