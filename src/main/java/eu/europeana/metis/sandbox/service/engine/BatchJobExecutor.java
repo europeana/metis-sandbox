@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
@@ -68,6 +69,8 @@ public class BatchJobExecutor {
       (datasetMetadata, previousJobExecution) -> executeValidationInternal(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeNormalization(datasetMetadata,
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
+      (datasetMetadata, previousJobExecution) -> executeEnrichment(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
 
   public BatchJobExecutor(List<? extends Job> jobs,
@@ -192,6 +195,15 @@ public class BatchJobExecutor {
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(NormalizationJobConfig.BATCH_JOB);
+    return runJob(validationExternalJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeEnrichment(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .toJobParameters();
+
+    Job validationExternalJob = findJobByName(EnrichmentJobConfig.BATCH_JOB);
     return runJob(validationExternalJob, jobParameters);
   }
 

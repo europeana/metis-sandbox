@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningExceptionLog;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -21,6 +22,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
@@ -109,6 +111,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
         ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
     StepStatisticsWrapper normalizationStatisticsWrapper = getStepStatistics(datasetId, NormalizationJobConfig.BATCH_JOB,
         null, Step.NORMALIZE);
+    StepStatisticsWrapper enrichmentStatisticsWrapper = getStepStatistics(datasetId, EnrichmentJobConfig.BATCH_JOB,
+        null, Step.ENRICH);
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
     stepStatistics.addAll(oaiStatisticsWrapper.stepStatistics());
@@ -116,18 +120,25 @@ class DatasetReportServiceImpl implements DatasetReportService {
     stepStatistics.addAll(transformationStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(validationInternalStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(normalizationStatisticsWrapper.stepStatistics());
+    stepStatistics.addAll(enrichmentStatisticsWrapper.stepStatistics());
 
     List<ErrorLogView> oaiErrorLogViews = getErrorView(datasetId, OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH);
-    List<ErrorLogView> validationExternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
-    List<ErrorLogView> transformationErrorLogViews = getErrorView(datasetId, TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM);
-    List<ErrorLogView> validationInternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
-    List<ErrorLogView> normalizationErrorLogViews = getErrorView(datasetId, NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE);
+    List<ErrorLogView> validationExternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB,
+        ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
+    List<ErrorLogView> transformationErrorLogViews = getErrorView(datasetId, TransformationJobConfig.BATCH_JOB, null,
+        Step.TRANSFORM);
+    List<ErrorLogView> validationInternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB,
+        ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
+    List<ErrorLogView> normalizationErrorLogViews = getErrorView(datasetId, NormalizationJobConfig.BATCH_JOB, null,
+        Step.NORMALIZE);
+    List<ErrorLogView> enrichmentErrorLogViews = getErrorView(datasetId, EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH);
     List<ErrorLogView> errorLogViews = new ArrayList<>();
     errorLogViews.addAll(oaiErrorLogViews);
     errorLogViews.addAll(validationExternalErrorLogViews);
     errorLogViews.addAll(transformationErrorLogViews);
     errorLogViews.addAll(validationInternalErrorLogViews);
     errorLogViews.addAll(normalizationErrorLogViews);
+    errorLogViews.addAll(enrichmentErrorLogViews);
 
     final DatasetEntity dataset = getDataset(datasetId);
 
@@ -138,7 +149,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
           null, null);
     }
 
-    final long completedRecords = normalizationStatisticsWrapper.totalSuccess;
+    final long completedRecords = enrichmentStatisticsWrapper.totalSuccess;
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(stepStatistics);
@@ -175,15 +186,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
     final long totalProcessed = totalSuccess + totalFailure;
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
-    if (totalSuccess > 0) {
-      stepStatistics.add(new StepStatistic(step, Status.SUCCESS, totalSuccess));
-    }
-    if (totalFailure > 0) {
-      stepStatistics.add(new StepStatistic(step, Status.FAIL, totalFailure));
-    }
-    if (totalFailure > 0) {
-      stepStatistics.add(new StepStatistic(step, Status.WARN, totalWarning));
-    }
+    stepStatistics.add(new StepStatistic(step, Status.SUCCESS, totalSuccess));
+    stepStatistics.add(new StepStatistic(step, Status.FAIL, totalFailure));
+    stepStatistics.add(new StepStatistic(step, Status.WARN, totalWarning));
     return new StepStatisticsWrapper(totalSuccess, totalProcessed, stepStatistics);
   }
 
@@ -191,7 +196,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   }
 
-  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType, Step step) {
+  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType,
+      Step step) {
     String executionName =
         (batchJobSubType == null) ? batchJobType.name() : batchJobType.name() + "-" + batchJobSubType.getName();
 
@@ -204,6 +210,16 @@ class DatasetReportServiceImpl implements DatasetReportService {
       recordEntity.setDatasetId(datasetId);
       recordEntity.setProviderId(recordExceptionLog.getIdentifier().getRecordId());
       errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.FAIL, recordExceptionLog.getException()));
+    }
+
+    List<ExecutionRecordWarningExceptionLog> warningExceptionLogs = executionRecordWarningExceptionLogRepository.findByIdentifier_DatasetIdAndExecutionName(
+        datasetId, executionName);
+
+    for (ExecutionRecordWarningExceptionLog warningExceptionLog : warningExceptionLogs) {
+      RecordEntity recordEntity = new RecordEntity();
+      recordEntity.setDatasetId(datasetId);
+      recordEntity.setProviderId(warningExceptionLog.getIdentifier().getRecordId());
+      errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.WARN, warningExceptionLog.getException()));
     }
     return errorLogViews;
   }
@@ -351,7 +367,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return errorsLog
         .stream()
         .sorted(Comparator.comparingInt((ErrorLogView e) -> e.getStep().precedence())
-                          .thenComparing(x -> x.getRecordId().getId()))
+                          .thenComparing(x -> x.getRecordId().getProviderId()))
         .collect(groupingBy(ErrorLogView::getStep, LinkedHashMap::new,
             groupingBy(ErrorLogView::getStatus,
                 groupingBy(ErrorLogView::getMessage))));
