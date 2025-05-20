@@ -22,6 +22,7 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -72,8 +73,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Dataset Controller")
 class DatasetController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
     private static final String MESSAGE_OPEN_TAG_STYLE = "<span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">";
     private static final String MESSAGE_BODY = " - The response body will contain an object of type"
             + " <span style=\"font-style: normal; font-size: 125%; font-weight: 750;\">";
@@ -108,6 +107,7 @@ class DatasetController {
     private final RecordTierCalculationService recordTierCalculationService;
     private final HarvestPublishService harvestPublishService;
     private final UrlValidator urlValidator;
+    private final BatchJobExecutor batchJobExecutor;
 
     /**
      * Instantiates a new Dataset controller.
@@ -126,7 +126,7 @@ class DatasetController {
     public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
                              DatasetReportService reportService, RecordService recordService,
                              RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-                             HarvestPublishService harvestPublishService) {
+                             HarvestPublishService harvestPublishService, BatchJobExecutor batchJobExecutor) {
         this.datasetService = datasetService;
         this.datasetLogService = datasetLogService;
         this.reportService = reportService;
@@ -134,6 +134,7 @@ class DatasetController {
         this.recordLogService = recordLogService;
         this.recordTierCalculationService = recordTierCalculationService;
         this.harvestPublishService = harvestPublishService;
+      this.batchJobExecutor = batchJobExecutor;
       urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
     }
 
@@ -297,7 +298,7 @@ class DatasetController {
                 .withStepSize(stepsize).build();
         setspec = getDefaultSetSpecWhenNotAvailable(setspec);
 
-        reportService.execute(datasetMetadata, url, setspec, metadataformat);
+        batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat);
 
 //        harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
 //                        new OaiHarvestData(url, setspec, metadataformat, ""))
