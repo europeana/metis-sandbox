@@ -12,6 +12,7 @@ import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OA
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
@@ -57,12 +58,14 @@ public class BatchJobExecutor {
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
-  List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> jobExecutionOrder = List.of(
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> jobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
           previousJobExecution.getJobId().toString()),
       (datasetMetadata, previousJobExecution) -> executeTransformation(datasetMetadata,
           previousJobExecution.getJobId().toString()),
       (datasetMetadata, previousJobExecution) -> executeValidationInternal(datasetMetadata,
+          previousJobExecution.getJobId().toString()),
+      (datasetMetadata, previousJobExecution) -> executeNormalization(datasetMetadata,
           previousJobExecution.getJobId().toString()));
 
   public BatchJobExecutor(List<? extends Job> jobs,
@@ -167,6 +170,16 @@ public class BatchJobExecutor {
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
+    return runJob(validationExternalJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeNormalization(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters jobParameters = new JobParametersBuilder()
+        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
+        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
+        .toJobParameters();
+
+    Job validationExternalJob = findJobByName(NormalizationJobConfig.BATCH_JOB);
     return runJob(validationExternalJob, jobParameters);
   }
 

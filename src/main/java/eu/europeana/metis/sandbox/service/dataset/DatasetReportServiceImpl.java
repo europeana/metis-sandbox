@@ -21,6 +21,7 @@ import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
@@ -106,22 +107,27 @@ class DatasetReportServiceImpl implements DatasetReportService {
         null, Step.TRANSFORM);
     StepStatisticsWrapper validationInternalStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
         ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
+    StepStatisticsWrapper normalizationStatisticsWrapper = getStepStatistics(datasetId, NormalizationJobConfig.BATCH_JOB,
+        null, Step.NORMALIZE);
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
     stepStatistics.addAll(oaiStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(validationExternalStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(transformationStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(validationInternalStatisticsWrapper.stepStatistics());
+    stepStatistics.addAll(normalizationStatisticsWrapper.stepStatistics());
 
     List<ErrorLogView> oaiErrorLogViews = getErrorView(datasetId, OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH);
     List<ErrorLogView> validationExternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
     List<ErrorLogView> transformationErrorLogViews = getErrorView(datasetId, TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM);
     List<ErrorLogView> validationInternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
+    List<ErrorLogView> normalizationErrorLogViews = getErrorView(datasetId, NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE);
     List<ErrorLogView> errorLogViews = new ArrayList<>();
     errorLogViews.addAll(oaiErrorLogViews);
     errorLogViews.addAll(validationExternalErrorLogViews);
     errorLogViews.addAll(transformationErrorLogViews);
     errorLogViews.addAll(validationInternalErrorLogViews);
+    errorLogViews.addAll(normalizationErrorLogViews);
 
     final DatasetEntity dataset = getDataset(datasetId);
 
@@ -132,7 +138,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
           null, null);
     }
 
-    final long completedRecords = validationInternalStatisticsWrapper.totalSuccess;
+    final long completedRecords = normalizationStatisticsWrapper.totalSuccess;
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(stepStatistics);

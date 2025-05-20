@@ -54,12 +54,12 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
       } else {
         executionRecordExceptionLogs.add(ExecutionRecordUtil.converterToExecutionRecordExceptionLog(executionRecordDTO));
       }
-      LOGGER.info("In writer before saveAll");
-      executionRecordRepository.saveAll(executionRecords);
-      executionRecordExceptionLogRepository.saveAll(executionRecordExceptionLogs);
-      executionRecordWarningExceptionLogRepository.saveAll(executionRecordWarningExceptionLogs);
-      LOGGER.info("In writer finished writing chunk");
     }
+    LOGGER.info("In writer before saveAll");
+    executionRecordRepository.saveAll(executionRecords);
+    executionRecordExceptionLogRepository.saveAll(executionRecordExceptionLogs);
+    executionRecordWarningExceptionLogRepository.saveAll(executionRecordWarningExceptionLogs);
+    LOGGER.info("In writer finished writing chunk");
   }
 }
 
