@@ -1,7 +1,7 @@
-package eu.europeana.metis.sandbox.batch.config;
+package eu.europeana.metis.sandbox.batch.common;
 
-import static eu.europeana.metis.sandbox.batch.config.ExecutionRecordUtil.createFailureExecutionRecordDTO;
-import static eu.europeana.metis.sandbox.batch.config.ExecutionRecordUtil.createSuccessExecutionRecordDTO;
+import static eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil.createFailureExecutionRecordDTO;
+import static eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil.createSuccessExecutionRecordDTO;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import java.util.function.Function;

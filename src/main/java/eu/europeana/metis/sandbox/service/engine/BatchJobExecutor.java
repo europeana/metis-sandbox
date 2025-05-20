@@ -1,21 +1,21 @@
 package eu.europeana.metis.sandbox.service.engine;
 
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_BATCH_JOB_SUBTYPE;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_COUNTRY;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_ID;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_NAME;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_EXECUTION_ID;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_METADATA_PREFIX;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_OAI_ENDPOINT;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_OAI_SET;
-import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_XSLT_CONTENT;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_BATCH_JOB_SUBTYPE;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_COUNTRY;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_ID;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_NAME;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_EXECUTION_ID;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_METADATA_PREFIX;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_ENDPOINT;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_SET;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
-import eu.europeana.metis.sandbox.batch.config.BatchJobType;
-import eu.europeana.metis.sandbox.batch.config.OaiHarvestJobConfig;
-import eu.europeana.metis.sandbox.batch.config.TransformationJobConfig;
-import eu.europeana.metis.sandbox.batch.config.ValidationBatchBatchJobSubType;
-import eu.europeana.metis.sandbox.batch.config.ValidationJobConfig;
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
+import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;

@@ -1,11 +1,11 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static eu.europeana.metis.sandbox.batch.config.BatchJobType.VALIDATION;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATION;
 
-import eu.europeana.metis.sandbox.batch.config.BatchJobType;
-import eu.europeana.metis.sandbox.batch.config.ExecutionRecordUtil;
-import eu.europeana.metis.sandbox.batch.config.ItemProcessorUtil;
-import eu.europeana.metis.sandbox.batch.config.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.transformation.service.TransformationException;

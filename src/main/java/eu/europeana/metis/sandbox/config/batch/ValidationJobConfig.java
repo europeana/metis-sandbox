@@ -1,10 +1,14 @@
-package eu.europeana.metis.sandbox.batch.config;
+package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.config.BatchJobType.TRANSFORMATION;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATION;
 
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.processor.listener.LoggingChunkListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
+import eu.europeana.metis.sandbox.batch.processor.listener.LoggingJobExecutionListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import java.lang.invoke.MethodHandles;
@@ -30,67 +34,71 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class TransformationJobConfig {
+public class ValidationJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = TRANSFORMATION;
-  public static final String STEP_NAME = "transformationStep";
+  public static final BatchJobType BATCH_JOB = VALIDATION;
+  public static final String STEP_NAME = "validationStep";
 
-  @Value("${transformation.chunkSize:5}")
+  @Value("${validation.chunkSize:5}")
   public int chunkSize;
-  @Value("${transformation.parallelizationSize:1}")
+  @Value("${validation.parallelizationSize:1}")
   public int parallelization;
 
   @Bean
-  public Job transformationBatchJob(JobRepository jobRepository,
-      @Qualifier("tranformationStep") Step tranformationStep) {
+  public Job validationBatchJob(JobRepository jobRepository,
+      @Qualifier("validationStep") Step validationStep,
+      LoggingJobExecutionListener loggingJobExecutionListener) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
-        .start(tranformationStep)
+        .listener(loggingJobExecutionListener)
+        .start(validationStep)
         .build();
   }
 
-  @Bean("tranformationStep")
-  public Step tranformationStep(JobRepository jobRepository,
+  @Bean("validationStep")
+  public Step validationStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      @Qualifier("trasnformationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader,
-      @Qualifier("transformationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor,
+      @Qualifier("validationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
+      @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
+      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener,
+      LoggingChunkListener loggingChunkListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
-        .reader(trasnformationRepositoryItemReader)
-        .processor(transformationAsyncItemProcessor)
+        .reader(validationRepositoryItemReader)
+        .processor(validationAsyncItemProcessor)
         .listener(loggingItemProcessListener)
+        .listener(loggingChunkListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
-  @Bean("trasnformationRepositoryItemReader")
+  @Bean("validationRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader(
+  public RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean
-  public TaskExecutor transformationStepAsyncTaskExecutor() {
+  public TaskExecutor validationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(TRANSFORMATION.name() + "-");
+    executor.setThreadNamePrefix(VALIDATION.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
   }
 
-  @Bean("transformationAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor(
-      @Qualifier("transformationItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> transformationItemProcessor,
-      @Qualifier("transformationStepAsyncTaskExecutor") TaskExecutor transformationStepAsyncTaskExecutor) {
+  @Bean("validationAsyncItemProcessor")
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor(
+      @Qualifier("validationItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> validationItemProcessor,
+      @Qualifier("validationStepAsyncTaskExecutor") TaskExecutor validationStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(transformationItemProcessor);
-    asyncItemProcessor.setTaskExecutor(transformationStepAsyncTaskExecutor);
+    asyncItemProcessor.setDelegate(validationItemProcessor);
+    asyncItemProcessor.setTaskExecutor(validationStepAsyncTaskExecutor);
     return asyncItemProcessor;
   }
 }

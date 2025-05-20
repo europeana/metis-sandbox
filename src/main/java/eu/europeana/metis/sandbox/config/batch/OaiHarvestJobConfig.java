@@ -1,7 +1,9 @@
-package eu.europeana.metis.sandbox.batch.config;
+package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.config.BatchJobType.OAI_HARVEST;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.OAI_HARVEST;
 
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
@@ -15,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -43,15 +42,6 @@ public class OaiHarvestJobConfig {
     public int chunkSize;
     @Value("${oaiHarvest.parallelizationSize:1}")
     public int parallelization;
-
-    @Bean("asyncJobLauncher")
-    public JobLauncher jobLauncher(JobRepository jobRepository) throws Exception {
-        TaskExecutorJobLauncher jobLauncher = new TaskExecutorJobLauncher();
-        jobLauncher.setJobRepository(jobRepository);
-        jobLauncher.setTaskExecutor(new SimpleAsyncTaskExecutor());
-        jobLauncher.afterPropertiesSet();
-        return jobLauncher;
-    }
 
     @Bean
     public Job oaiHarvestJob(

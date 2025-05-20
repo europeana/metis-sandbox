@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.writer;
 
-import eu.europeana.metis.sandbox.batch.config.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.config;
+package eu.europeana.metis.sandbox.batch.common;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.JobParameters;

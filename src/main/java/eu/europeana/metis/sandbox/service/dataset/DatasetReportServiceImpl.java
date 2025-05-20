@@ -8,12 +8,12 @@ import static java.util.stream.Collectors.reducing;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
-import eu.europeana.metis.sandbox.batch.config.BatchJobSubType;
-import eu.europeana.metis.sandbox.batch.config.BatchJobType;
-import eu.europeana.metis.sandbox.batch.config.OaiHarvestJobConfig;
-import eu.europeana.metis.sandbox.batch.config.TransformationJobConfig;
-import eu.europeana.metis.sandbox.batch.config.ValidationBatchBatchJobSubType;
-import eu.europeana.metis.sandbox.batch.config.ValidationJobConfig;
+import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
+import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;

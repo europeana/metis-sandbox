@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.config;
+package eu.europeana.metis.sandbox.batch.common;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
