@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
-import eu.europeana.metis.sandbox.controller.PatternAnalysisController.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;

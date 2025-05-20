@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATION;
+import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
@@ -8,14 +9,20 @@ import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+import eu.europeana.patternanalysis.PatternAnalysisService;
+import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
 import jakarta.annotation.PostConstruct;
 import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 import lombok.Setter;
@@ -48,11 +55,16 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   private String schematronFileLocation;
   private ValidationExecutionService validationService;
   private final ItemProcessorUtil<String> itemProcessorUtil;
+  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private final ExecutionPointRepository executionPointRepository;
 
-  public ValidationItemProcessor() {
+  public ValidationItemProcessor(PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
+      ExecutionPointRepository executionPointRepository) {
     prepareProperties();
     validationService = new ValidationExecutionService(properties);
     itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+    this.patternAnalysisService = patternAnalysisService;
+    this.executionPointRepository = executionPointRepository;
   }
 
   @PostConstruct
@@ -108,10 +120,27 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-//    LOGGER.info("ValidationItemProcessor thread: {}", Thread.currentThread());
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, batchJobSubType,
-        jobInstanceId.toString());
+    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType,
+        batchJobSubType, jobInstanceId.toString());
+    if(batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
+      generatePatternAnalysis(executionRecordDTO);
+    }
+    return resultExecutionRecordDTO;
+  }
+
+  private void generatePatternAnalysis(ExecutionRecordDTO executionRecordDTO) {
+    Optional<ExecutionPoint> executionPoint = executionPointRepository.findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc(
+        executionRecordDTO.getDatasetId(), Step.VALIDATE_INTERNAL.name());
+    if (executionPoint.isEmpty()) {
+      throw new IllegalStateException("No execution point found for datasetId " + executionRecordDTO.getDatasetId());
+    }
+    try {
+      patternAnalysisService.generateRecordPatternAnalysis(executionPoint.get(), executionRecordDTO.getRecordData());
+    } catch (PatternAnalysisException e) {
+      LOGGER.error(format("An error occurred while processing pattern analysis with record id %s",
+          executionRecordDTO.getRecordId()), e);
+    }
   }
 
   private String reorderFileContent(String recordData) throws TransformationException {
@@ -124,5 +153,6 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @StandardException
   private static class ValidationFailureException extends Exception {
+
   }
 }

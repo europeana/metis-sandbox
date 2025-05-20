@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingChunkListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingJobExecutionListener;
+import eu.europeana.metis.sandbox.batch.processor.listener.ProblemPatternsStepExecutionListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import java.lang.invoke.MethodHandles;
@@ -64,13 +65,15 @@ public class ValidationJobConfig {
       @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener,
-      LoggingChunkListener loggingChunkListener) {
+      LoggingChunkListener loggingChunkListener,
+      ProblemPatternsStepExecutionListener problemPatternsStepExecutionListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(validationRepositoryItemReader)
         .processor(validationAsyncItemProcessor)
         .listener(loggingItemProcessListener)
         .listener(loggingChunkListener)
+        .listener(problemPatternsStepExecutionListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }

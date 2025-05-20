@@ -212,8 +212,6 @@ public class PatternAnalysisController {
         }
     }
 
-    enum ProblemPatternAnalysisStatus {PENDING, IN_PROGRESS, FINALIZED, ERROR}
-
     private static final class DatasetProblemPatternAnalysisView<T> {
 
         @JsonProperty
