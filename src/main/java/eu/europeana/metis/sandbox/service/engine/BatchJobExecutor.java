@@ -61,6 +61,8 @@ public class BatchJobExecutor {
       (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
           previousJobExecution.getJobId().toString()),
       (datasetMetadata, previousJobExecution) -> executeTransformation(datasetMetadata,
+          previousJobExecution.getJobId().toString()),
+      (datasetMetadata, previousJobExecution) -> executeValidationInternal(datasetMetadata,
           previousJobExecution.getJobId().toString()));
 
   public BatchJobExecutor(List<? extends Job> jobs,
@@ -154,6 +156,17 @@ public class BatchJobExecutor {
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(TransformationJobConfig.BATCH_JOB);
+    return runJob(validationExternalJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeValidationInternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters jobParameters = new JobParametersBuilder()
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.INTERNAL.getName())
+        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
+        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
+        .toJobParameters();
+
+    Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
     return runJob(validationExternalJob, jobParameters);
   }
 

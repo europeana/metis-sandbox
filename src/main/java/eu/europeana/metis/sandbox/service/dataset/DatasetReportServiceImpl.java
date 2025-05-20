@@ -94,15 +94,18 @@ class DatasetReportServiceImpl implements DatasetReportService {
   public ProgressInfoDto getProgress(String datasetId) {
     StepStatisticsWrapper oaiStatisticsWrapper = getStepStatistics(datasetId, OaiHarvestJobConfig.BATCH_JOB,
         null, Step.HARVEST_OAI_PMH);
-    StepStatisticsWrapper validationStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
+    StepStatisticsWrapper validationExternalStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
         ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
     StepStatisticsWrapper transformationStatisticsWrapper = getStepStatistics(datasetId, TransformationJobConfig.BATCH_JOB,
         null, Step.TRANSFORM);
+    StepStatisticsWrapper validationInternalStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
+        ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
     stepStatistics.addAll(oaiStatisticsWrapper.stepStatistics());
-    stepStatistics.addAll(validationStatisticsWrapper.stepStatistics());
+    stepStatistics.addAll(validationExternalStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(transformationStatisticsWrapper.stepStatistics());
+    stepStatistics.addAll(validationInternalStatisticsWrapper.stepStatistics());
 
     //    int page = 0;
     //    int size = 1000;
@@ -139,8 +142,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
     TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
 
     return new ProgressInfoDto(
-        getPublishPortalUrl(dataset, validationStatisticsWrapper.totalProcessed),
-        dataset.getRecordsQuantity(), validationStatisticsWrapper.totalProcessed,
+        getPublishPortalUrl(dataset, oaiStatisticsWrapper.totalProcessed),
+        dataset.getRecordsQuantity(), oaiStatisticsWrapper.totalProcessed,
         stepsInfo, dataset.getRecordLimitExceeded(), getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
         datasetLogs, tiersZeroInfo);
 
