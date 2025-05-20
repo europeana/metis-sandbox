@@ -18,6 +18,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRe
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
@@ -71,6 +72,8 @@ public class BatchJobExecutor {
       (datasetMetadata, previousJobExecution) -> executeNormalization(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeEnrichment(datasetMetadata,
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
+      (datasetMetadata, previousJobExecution) -> executeMedia(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
 
   public BatchJobExecutor(List<? extends Job> jobs,
@@ -203,8 +206,17 @@ public class BatchJobExecutor {
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .toJobParameters();
 
-    Job validationExternalJob = findJobByName(EnrichmentJobConfig.BATCH_JOB);
-    return runJob(validationExternalJob, jobParameters);
+    Job enrichmentJob = findJobByName(EnrichmentJobConfig.BATCH_JOB);
+    return runJob(enrichmentJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeMedia(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .toJobParameters();
+
+    Job mediaJob = findJobByName(MediaJobConfig.BATCH_JOB);
+    return runJob(mediaJob, jobParameters);
   }
 
   private @NotNull JobExecution runJob(Job oaiHarvestJob, JobParameters jobParameters) {

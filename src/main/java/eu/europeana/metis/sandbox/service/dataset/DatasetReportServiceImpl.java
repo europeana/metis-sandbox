@@ -23,6 +23,7 @@ import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
@@ -113,6 +114,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
         null, Step.NORMALIZE);
     StepStatisticsWrapper enrichmentStatisticsWrapper = getStepStatistics(datasetId, EnrichmentJobConfig.BATCH_JOB,
         null, Step.ENRICH);
+    StepStatisticsWrapper mediaStatisticsWrapper = getStepStatistics(datasetId, MediaJobConfig.BATCH_JOB,
+        null, Step.MEDIA_PROCESS);
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
     stepStatistics.addAll(oaiStatisticsWrapper.stepStatistics());
@@ -121,6 +124,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     stepStatistics.addAll(validationInternalStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(normalizationStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(enrichmentStatisticsWrapper.stepStatistics());
+    stepStatistics.addAll(mediaStatisticsWrapper.stepStatistics());
 
     List<ErrorLogView> oaiErrorLogViews = getErrorView(datasetId, OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH);
     List<ErrorLogView> validationExternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB,
@@ -132,6 +136,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<ErrorLogView> normalizationErrorLogViews = getErrorView(datasetId, NormalizationJobConfig.BATCH_JOB, null,
         Step.NORMALIZE);
     List<ErrorLogView> enrichmentErrorLogViews = getErrorView(datasetId, EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH);
+    List<ErrorLogView> mediaErrorLogViews = getErrorView(datasetId, MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS);
     List<ErrorLogView> errorLogViews = new ArrayList<>();
     errorLogViews.addAll(oaiErrorLogViews);
     errorLogViews.addAll(validationExternalErrorLogViews);
@@ -139,6 +144,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     errorLogViews.addAll(validationInternalErrorLogViews);
     errorLogViews.addAll(normalizationErrorLogViews);
     errorLogViews.addAll(enrichmentErrorLogViews);
+    errorLogViews.addAll(mediaErrorLogViews);
 
     final DatasetEntity dataset = getDataset(datasetId);
 
