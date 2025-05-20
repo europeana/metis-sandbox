@@ -10,18 +10,20 @@ import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
-import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
-import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionLogRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
+import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
+import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -31,6 +33,7 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
+import eu.europeana.metis.sandbox.entity.projection.ErrorLogViewImpl;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordLogRepository;
@@ -71,6 +74,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
   public DatasetReportServiceImpl(
@@ -80,6 +84,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       RecordErrorLogRepository errorLogRepository,
       RecordRepository recordRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository,
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
     this.datasetRepository = datasetRepository;
     this.datasetLogService = datasetLogService;
@@ -88,6 +93,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     this.recordRepository = recordRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordWarningExceptionLogRepository = executionRecordWarningExceptionLogRepository;
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
   }
 
@@ -107,31 +113,33 @@ class DatasetReportServiceImpl implements DatasetReportService {
     stepStatistics.addAll(transformationStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(validationInternalStatisticsWrapper.stepStatistics());
 
-    //    int page = 0;
-    //    int size = 1000;
-    //    Pageable pageable = PageRequest.of(page, size);
-    //    Page<ExecutionRecordExceptionLog> executionRecordExceptionLog = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndExecutionName(
-    //        datasetId, OaiHarvestJobConfig.BATCH_JOB.name(), pageable);
-    //todo: need to update with the new records
-    List<ErrorLogView> errorsLog = new ArrayList<>();
+    List<ErrorLogView> oaiErrorLogViews = getErrorView(datasetId, OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH);
+    List<ErrorLogView> validationExternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
+    List<ErrorLogView> transformationErrorLogViews = getErrorView(datasetId, TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM);
+    List<ErrorLogView> validationInternalErrorLogViews = getErrorView(datasetId, ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
+    List<ErrorLogView> errorLogViews = new ArrayList<>();
+    errorLogViews.addAll(oaiErrorLogViews);
+    errorLogViews.addAll(validationExternalErrorLogViews);
+    errorLogViews.addAll(transformationErrorLogViews);
+    errorLogViews.addAll(validationInternalErrorLogViews);
 
     final DatasetEntity dataset = getDataset(datasetId);
 
-    List<DatasetLogDto> datasetLogs = datasetLogService.getAllLogs(datasetId);
-    if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))
-        || getErrors(datasetLogs).findAny().isPresent()) {
+    if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))) {
       return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
           dataset.getRecordsQuantity(), 0L, List.of(),
-          dataset.getRecordLimitExceeded(), "errorType",
-          datasetLogs, null);
+          dataset.getRecordLimitExceeded(), "All records failed to be processed. ",
+          null, null);
     }
+
+    final long completedRecords = validationInternalStatisticsWrapper.totalSuccess;
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(stepStatistics);
 
     // get errors by step
     Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(
-        errorsLog);
+        errorLogViews);
 
     // collect steps processing information
     List<ProgressByStepDto> stepsInfo = new LinkedList<>();
@@ -142,10 +150,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
     TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
 
     return new ProgressInfoDto(
-        getPublishPortalUrl(dataset, oaiStatisticsWrapper.totalProcessed),
-        dataset.getRecordsQuantity(), oaiStatisticsWrapper.totalProcessed,
-        stepsInfo, dataset.getRecordLimitExceeded(), getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
-        datasetLogs, tiersZeroInfo);
+        getPublishPortalUrl(dataset, completedRecords),
+        dataset.getRecordsQuantity(), completedRecords,
+        stepsInfo, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
+        null, tiersZeroInfo);
 
   }
 
@@ -156,11 +164,20 @@ class DatasetReportServiceImpl implements DatasetReportService {
     long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId, executionName);
     long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId,
         executionName);
+    long totalWarning = executionRecordWarningExceptionLogRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId,
+        executionName);
     final long totalProcessed = totalSuccess + totalFailure;
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
-    stepStatistics.add(new StepStatistic(step, Status.SUCCESS, totalSuccess));
-    stepStatistics.add(new StepStatistic(step, Status.FAIL, totalFailure));
+    if (totalSuccess > 0) {
+      stepStatistics.add(new StepStatistic(step, Status.SUCCESS, totalSuccess));
+    }
+    if (totalFailure > 0) {
+      stepStatistics.add(new StepStatistic(step, Status.FAIL, totalFailure));
+    }
+    if (totalFailure > 0) {
+      stepStatistics.add(new StepStatistic(step, Status.WARN, totalWarning));
+    }
     return new StepStatisticsWrapper(totalSuccess, totalProcessed, stepStatistics);
   }
 
@@ -168,8 +185,25 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   }
 
+  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType, Step step) {
+    String executionName =
+        (batchJobSubType == null) ? batchJobType.name() : batchJobType.name() + "-" + batchJobSubType.getName();
+
+    List<ExecutionRecordExceptionLog> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndExecutionName(
+        datasetId, executionName);
+
+    List<ErrorLogView> errorLogViews = new ArrayList<>();
+    for (ExecutionRecordExceptionLog recordExceptionLog : recordExceptionLogs) {
+      RecordEntity recordEntity = new RecordEntity();
+      recordEntity.setDatasetId(datasetId);
+      recordEntity.setProviderId(recordExceptionLog.getIdentifier().getRecordId());
+      errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.FAIL, recordExceptionLog.getException()));
+    }
+    return errorLogViews;
+  }
+
   private static Stream<DatasetLogDto> getErrors(List<DatasetLogDto> datasetLogs) {
-    return datasetLogs.stream().filter(log -> log.getType() == eu.europeana.metis.sandbox.common.Status.FAIL);
+    return datasetLogs.stream().filter(log -> log.getType() == Status.FAIL);
   }
 
   private static String createMessageRecordError(RecordEntity recordEntity) {
@@ -247,6 +281,16 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     var datasetId = dataset.getDatasetId() + SEPARATOR + dataset.getDatasetName() + SUFFIX;
     return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
+  }
+
+  private String getErrorMessage(Long recordsQuantity) {
+    if (recordsQuantity == null) {
+      return "";
+    } else if (recordsQuantity == 0) {
+      return EMPTY_DATASET_MESSAGE;
+    } else {
+      return "";
+    }
   }
 
   private String getErrorMessage(List<DatasetLogDto> datasetLogs, Long recordsQuantity) {

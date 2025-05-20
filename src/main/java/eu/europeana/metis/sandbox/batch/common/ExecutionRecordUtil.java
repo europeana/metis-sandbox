@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningExceptionLog;
 
 public class ExecutionRecordUtil {
 
@@ -44,6 +45,18 @@ public class ExecutionRecordUtil {
     return executionRecordExceptionLog;
   }
 
+  public static ExecutionRecordWarningExceptionLog converterToExecutionRecordWarningExceptionLog(ExecutionRecordDTO executionRecordDTO){
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setDatasetId(executionRecordDTO.getDatasetId());
+    executionRecordIdentifier.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRecordIdentifier.setRecordId(executionRecordDTO.getRecordId());
+    final ExecutionRecordWarningExceptionLog executionRecordWarningExceptionLog = new ExecutionRecordWarningExceptionLog();
+    executionRecordWarningExceptionLog.setIdentifier(executionRecordIdentifier);
+    executionRecordWarningExceptionLog.setExecutionName(executionRecordDTO.getExecutionName());
+    executionRecordWarningExceptionLog.setException(executionRecordDTO.getException());
+    return executionRecordWarningExceptionLog;
+  }
+
   public static ExecutionRecordDTO createSuccessExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO, String updatedRecordString,
       String executionName, String executionId){
     final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
@@ -52,7 +65,7 @@ public class ExecutionRecordUtil {
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
     resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData(updatedRecordString);
-    resultExecutionRecordDTO.setException("");
+    resultExecutionRecordDTO.setException(executionRecordDTO.getException());
     return resultExecutionRecordDTO;
   }
 
