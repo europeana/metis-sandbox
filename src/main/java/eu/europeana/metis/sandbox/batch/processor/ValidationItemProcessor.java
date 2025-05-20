@@ -28,7 +28,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component
+@Component("validationItemProcessor")
 @StepScope
 @Setter
 public class ValidationItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {

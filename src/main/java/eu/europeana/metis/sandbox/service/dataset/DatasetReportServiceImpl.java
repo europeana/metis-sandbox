@@ -11,6 +11,7 @@ import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.config.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.config.BatchJobType;
 import eu.europeana.metis.sandbox.batch.config.OaiHarvestJobConfig;
+import eu.europeana.metis.sandbox.batch.config.TransformationJobConfig;
 import eu.europeana.metis.sandbox.batch.config.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.config.ValidationJobConfig;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
@@ -95,10 +96,13 @@ class DatasetReportServiceImpl implements DatasetReportService {
         null, Step.HARVEST_OAI_PMH);
     StepStatisticsWrapper validationStatisticsWrapper = getStepStatistics(datasetId, ValidationJobConfig.BATCH_JOB,
         ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
+    StepStatisticsWrapper transformationStatisticsWrapper = getStepStatistics(datasetId, TransformationJobConfig.BATCH_JOB,
+        null, Step.TRANSFORM);
 
     List<StepStatistic> stepStatistics = new ArrayList<>();
     stepStatistics.addAll(oaiStatisticsWrapper.stepStatistics());
     stepStatistics.addAll(validationStatisticsWrapper.stepStatistics());
+    stepStatistics.addAll(transformationStatisticsWrapper.stepStatistics());
 
     //    int page = 0;
     //    int size = 1000;

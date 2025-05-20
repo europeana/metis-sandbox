@@ -1,23 +1,32 @@
 package eu.europeana.metis.sandbox.service.engine;
 
 import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_BATCH_JOB_SUBTYPE;
+import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_COUNTRY;
 import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_ID;
+import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
+import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_DATASET_NAME;
 import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_METADATA_PREFIX;
 import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_OAI_ENDPOINT;
 import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_OAI_SET;
+import static eu.europeana.metis.sandbox.batch.config.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
 import eu.europeana.metis.sandbox.batch.config.BatchJobType;
 import eu.europeana.metis.sandbox.batch.config.OaiHarvestJobConfig;
+import eu.europeana.metis.sandbox.batch.config.TransformationJobConfig;
 import eu.europeana.metis.sandbox.batch.config.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.config.ValidationJobConfig;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +55,20 @@ public class BatchJobExecutor {
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final TaskExecutor taskExecutor;
   private final DatasetRepository datasetRepository;
+  private final TransformXsltRepository transformXsltRepository;
 
-  public BatchJobExecutor(List<? extends Job> jobs, JobLauncher jobLauncher, ExecutionRecordRepository executionRecordRepository,
+  List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> jobExecutionOrder = List.of(
+      (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
+          previousJobExecution.getJobId().toString()),
+      (datasetMetadata, previousJobExecution) -> executeTransformation(datasetMetadata,
+          previousJobExecution.getJobId().toString()));
+
+  public BatchJobExecutor(List<? extends Job> jobs,
+      @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor,
-      DatasetRepository datasetRepository) {
+      DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository) {
     this.jobs = jobs;
     this.jobLauncher = jobLauncher;
     this.executionRecordRepository = executionRecordRepository;
@@ -59,6 +76,7 @@ public class BatchJobExecutor {
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
     this.taskExecutor = taskExecutor;
     this.datasetRepository = datasetRepository;
+    this.transformXsltRepository = transformXsltRepository;
     LOGGER.info("Registered batch jobs: {}", jobs.stream().map(Job::getName).toList());
   }
 
@@ -71,9 +89,16 @@ public class BatchJobExecutor {
         long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndExecutionName(datasetMetadata.getDatasetId(),
             OaiHarvestJobConfig.BATCH_JOB.name());
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
-        JobExecution validationExternalExecution = executeValidationExternal(datasetMetadata,
-            harvestExecution.getJobId().toString());
-        waitForCompletion(validationExternalExecution);
+
+        JobExecution previousExecution = harvestExecution;
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : jobExecutionOrder) {
+          JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
+          waitForCompletion(jobExecution);
+          if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+            throw new RuntimeException("Batch job " + jobExecution.getJobId() + " failed");
+          }
+          previousExecution = jobExecution;
+        }
       }
     });
   }
@@ -112,6 +137,23 @@ public class BatchJobExecutor {
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
+    return runJob(validationExternalJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeTransformation(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findById(1);
+    String transformXsltContent = transformXsltEntity.map(TransformXsltEntity::getTransformXslt).orElseThrow();
+
+    JobParameters jobParameters = new JobParametersBuilder()
+        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
+        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
+        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
+        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase())
+        .addString(ARGUMENT_XSLT_CONTENT, transformXsltContent)
+        .toJobParameters();
+
+    Job validationExternalJob = findJobByName(TransformationJobConfig.BATCH_JOB);
     return runJob(validationExternalJob, jobParameters);
   }
 

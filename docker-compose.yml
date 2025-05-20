@@ -11,7 +11,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - ./src/main/resources/database/schema.sql:/docker-entrypoint-initdb.d/schema_spring_batch.sql
+      - ./src/main/resources/database/schema_spring_batch.sql:/docker-entrypoint-initdb.d/schema_spring_batch.sql
       - ./src/main/resources/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - ./src/main/resources/database/schema_problem_patterns.sql:/docker-entrypoint-initdb.d/schema_problem_patterns.sql
       - ./src/main/resources/database/schema_lockrepository.sql:/docker-entrypoint-initdb.d/schema_lockrepository.sql

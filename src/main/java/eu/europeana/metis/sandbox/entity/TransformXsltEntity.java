@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.entity;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +20,7 @@ public class TransformXsltEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
+  @Column(columnDefinition="TEXT")
   private String transformXslt;
 
 
