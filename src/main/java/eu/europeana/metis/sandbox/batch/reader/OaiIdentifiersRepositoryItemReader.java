@@ -16,8 +16,9 @@ import org.springframework.stereotype.Component;
 @StepScope
 public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
-    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
-    private Long jobInstanceId;
+    //This is target and not source because we just created them in the same job.
+    @Value("#{jobParameters['targetExecutionId']}")
+    private String targetExecutionId;
 
     private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
@@ -31,7 +32,7 @@ public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<Exe
         setRepository(executionRecordExternalIdentifierRepository);
         setSort(Collections.emptyMap());
         setMethodName("findByIdentifier_ExecutionId");
-        setArguments(List.of(jobInstanceId+""));
+        setArguments(List.of(targetExecutionId+""));
         Map<String, Direction> sorts = new HashMap<>();
         sorts.put("identifier.recordId", Direction.ASC);
         setSort(sorts);

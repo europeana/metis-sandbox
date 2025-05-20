@@ -30,6 +30,8 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
 
     final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
 
+    @Value("#{jobParameters['targetExecutionId']}")
+    private String targetExecutionId;
     @Value("#{jobParameters['oaiEndpoint']}")
     private String oaiEndpoint;
     @Value("#{jobParameters['oaiSet']}")
@@ -38,8 +40,6 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
     private String oaiMetadataPrefix;
     @Value("#{jobParameters['datasetId']}")
     private String datasetId;
-    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
-    private Long jobInstanceId;
 
     @Override
     public ExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
@@ -57,7 +57,7 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
         final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
         final ExecutionRecordDTO executionRecordDTO = new ExecutionRecordDTO();
         executionRecordDTO.setDatasetId(datasetId);
-        executionRecordDTO.setExecutionId(jobInstanceId.toString());
+        executionRecordDTO.setExecutionId(targetExecutionId);
         executionRecordDTO.setRecordId(europeanaGeneratedId);
         executionRecordDTO.setExecutionName(batchJobType.name());
         executionRecordDTO.setRecordData(resultString);

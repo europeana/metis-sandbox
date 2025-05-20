@@ -5,21 +5,22 @@ import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DA
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_NAME;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_METADATA_PREFIX;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_ENDPOINT;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_SET;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
-import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
-import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
-import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
+import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
+import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
+import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -27,6 +28,7 @@ import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -60,13 +62,13 @@ public class BatchJobExecutor {
 
   final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> jobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
-          previousJobExecution.getJobId().toString()),
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeTransformation(datasetMetadata,
-          previousJobExecution.getJobId().toString()),
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeValidationInternal(datasetMetadata,
-          previousJobExecution.getJobId().toString()),
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeNormalization(datasetMetadata,
-          previousJobExecution.getJobId().toString()));
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
 
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, ExecutionRecordRepository executionRecordRepository,
@@ -123,22 +125,35 @@ public class BatchJobExecutor {
 
   private @NotNull JobExecution executeOaiHarvest(DatasetMetadata datasetMetadata, String url, String setSpec,
       String metadataFormat) {
-    JobParameters jobParameters = new JobParametersBuilder()
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .addString(ARGUMENT_OAI_ENDPOINT, url)
         .addString(ARGUMENT_OAI_SET, setSpec)
         .addString(ARGUMENT_METADATA_PREFIX, metadataFormat)
-        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
         .toJobParameters();
 
     Job oaiHarvestJob = findJobByName(OaiHarvestJobConfig.BATCH_JOB);
     return runJob(oaiHarvestJob, jobParameters);
   }
 
-  private @NotNull JobExecution executeValidationExternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
-    JobParameters jobParameters = new JobParametersBuilder()
-        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.EXTERNAL.getName())
+  private static @NotNull JobParameters getDefaultJobParameters(DatasetMetadata datasetMetadata) {
+    return new JobParametersBuilder()
+        .addString(ARGUMENT_TARGET_EXECUTION_ID, UUID.randomUUID().toString())
         .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
-        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
+        .toJobParameters();
+  }
+
+  private static @NotNull JobParameters getDefaultJobParameters(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata);
+    return new JobParametersBuilder(defaultJobParameters)
+        .addString(ARGUMENT_SOURCE_EXECUTION_ID, sourceExecutionId)
+        .toJobParameters();
+  }
+
+  private @NotNull JobExecution executeValidationExternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.EXTERNAL.getName())
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
@@ -149,9 +164,8 @@ public class BatchJobExecutor {
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findById(1);
     String transformXsltContent = transformXsltEntity.map(TransformXsltEntity::getTransformXslt).orElseThrow();
 
-    JobParameters jobParameters = new JobParametersBuilder()
-        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
-        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
         .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase())
@@ -163,10 +177,9 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeValidationInternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
-    JobParameters jobParameters = new JobParametersBuilder()
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.INTERNAL.getName())
-        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
-        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
@@ -174,9 +187,8 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeNormalization(DatasetMetadata datasetMetadata, String sourceExecutionId) {
-    JobParameters jobParameters = new JobParametersBuilder()
-        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
-        .addString(ARGUMENT_EXECUTION_ID, sourceExecutionId)
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(NormalizationJobConfig.BATCH_JOB);

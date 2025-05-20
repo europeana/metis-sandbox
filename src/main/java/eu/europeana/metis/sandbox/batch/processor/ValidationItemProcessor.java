@@ -43,10 +43,10 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final BatchJobType batchJobType = VALIDATION;
 
+  @Value("#{jobParameters['targetExecutionId']}")
+  private String targetExecutionId;
   @Value("#{jobParameters['batchJobSubType']}")
   private ValidationBatchBatchJobSubType batchJobSubType;
-  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
-  private Long jobInstanceId;
 
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
   private static final Properties properties = new Properties();
@@ -122,7 +122,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
     ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType,
-        batchJobSubType, jobInstanceId.toString());
+        batchJobSubType, targetExecutionId);
     if(batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
       generatePatternAnalysis(executionRecordDTO);
     }

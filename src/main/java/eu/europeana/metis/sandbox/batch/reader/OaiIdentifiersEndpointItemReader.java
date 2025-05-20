@@ -29,16 +29,16 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+    @Value("#{jobParameters['targetExecutionId']}")
+    private String targetExecutionId;
+    @Value("#{jobParameters['datasetId']}")
+    private String datasetId;
     @Value("#{jobParameters['oaiEndpoint']}")
     private String oaiEndpoint;
     @Value("#{jobParameters['oaiSet']}")
     private String oaiSet;
     @Value("#{jobParameters['oaiMetadataPrefix']}")
     private String oaiMetadataPrefix;
-    @Value("#{jobParameters['datasetId']}")
-    private String datasetId;
-    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
-    private Long jobInstanceId;
 
     final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
     private final List<OaiRecordHeader> oaiRecordHeaders = new LinkedList<>();
@@ -56,7 +56,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
             ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
             executionRecordIdentifier.setDatasetId(datasetId);
             executionRecordIdentifier.setRecordId(oaiRecordHeader.getOaiIdentifier());
-            executionRecordIdentifier.setExecutionId(jobInstanceId.toString());
+            executionRecordIdentifier.setExecutionId(targetExecutionId);
 
             ExecutionRecordExternalIdentifier recordIdentifier = new ExecutionRecordExternalIdentifier();
             recordIdentifier.setIdentifier(executionRecordIdentifier);

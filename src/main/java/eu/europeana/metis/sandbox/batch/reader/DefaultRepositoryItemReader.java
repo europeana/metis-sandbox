@@ -15,8 +15,8 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
 
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
-  @Value("#{jobParameters['executionId']}")
-  private String executionId;
+  @Value("#{jobParameters['sourceExecutionId']}")
+  private String sourceExecutionId;
 
   private ExecutionRecordRepository executionRecordRepository;
   private final int chunkSize;
@@ -35,7 +35,7 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
 
     List<Object> queryMethodArguments = new ArrayList<>();
     queryMethodArguments.add(datasetId);
-    queryMethodArguments.add(executionId);
+    queryMethodArguments.add(sourceExecutionId);
 
     setArguments(queryMethodArguments);
     setPageSize(chunkSize);

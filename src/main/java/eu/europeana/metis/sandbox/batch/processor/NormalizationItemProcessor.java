@@ -23,8 +23,8 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
 
   private static final BatchJobType batchJobType = NORMALIZATION;
 
-  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
-  private Long jobInstanceId;
+  @Value("#{jobParameters['targetExecutionId']}")
+  private String targetExecutionId;
 
   private final ItemProcessorUtil<NormalizationResult> itemProcessorUtil;
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
@@ -41,6 +41,6 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, targetExecutionId);
   }
 }

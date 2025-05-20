@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,9 +21,6 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdentifier> 
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Value("#{stepExecution.jobExecution.jobInstance.id}")
-  private Long jobInstanceId;
-
   @Override
   public void beforeProcess(@NotNull T item) {
     LOGGER.debug("beforeProcess");
@@ -33,8 +29,7 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdentifier> 
   @Override
   public void afterProcess(@NotNull T item, Future<ExecutionRecordDTO> future) {
     ExecutionRecordIdentifier identifier = item.getIdentifier();
-    LOGGER.info("Processing jobId {}, datasetId, executionId, recordId: {}, {}, {}",
-        jobInstanceId, identifier.getDatasetId(), identifier.getExecutionId(), identifier.getRecordId());
+    LOGGER.info("Processing datasetId, executionId, recordId: {}, {}, {}", identifier.getDatasetId(), identifier.getExecutionId(), identifier.getRecordId());
   }
 
   @Override
