@@ -14,4 +14,12 @@ public class ExecutionRecordDTO {
   private String recordData;
   private String exceptionMessage;
   private String exception;
+
+  protected String contentTier;
+  protected String contentTierBeforeLicenseCorrection;
+  protected String metadataTier;
+  protected String metadataTierLanguage;
+  protected String metadataTierEnablingElements;
+  protected String metadataTierContextualClasses;
+  protected String license;
 }

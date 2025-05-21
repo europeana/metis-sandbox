@@ -1,6 +1,8 @@
 package eu.europeana.metis.sandbox.service.record;
 
 import eu.europeana.indexing.tiers.model.TierResults;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.RecordDuplicatedException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -29,6 +31,7 @@ public class RecordServiceImpl implements RecordService {
   private final RecordRepository recordRepository;
   private final RecordJdbcRepository recordJdbcRepository;
   private final XmlRecordProcessorService xmlRecordProcessorService;
+  private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   /**
    * Constructs an instance of RecordServiceImpl with the required dependencies.
@@ -38,10 +41,26 @@ public class RecordServiceImpl implements RecordService {
    * @param xmlRecordProcessorService the service for processing XML-based records
    */
   public RecordServiceImpl(RecordRepository recordRepository, RecordJdbcRepository recordJdbcRepository,
-      XmlRecordProcessorService xmlRecordProcessorService) {
+      XmlRecordProcessorService xmlRecordProcessorService,
+      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.recordRepository = recordRepository;
     this.recordJdbcRepository = recordJdbcRepository;
     this.xmlRecordProcessorService = xmlRecordProcessorService;
+    this.executionRecordTierContextRepository = executionRecordTierContextRepository;
+  }
+
+  @Override
+  public List<RecordTiersInfoDto> getRecordsTiersNew(String datasetId) {
+    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByIdentifier_DatasetId(datasetId);
+
+    if (executionRecordTierContext.isEmpty()) {
+      throw new InvalidDatasetException(datasetId);
+    }
+
+    return executionRecordTierContext.stream()
+                         .filter(this::areAllTierValuesNotNullOrEmpty)
+                         .map(RecordTiersInfoDto::new)
+                         .toList();
   }
 
   @Override
@@ -126,5 +145,23 @@ public class RecordServiceImpl implements RecordService {
         StringUtils.isNotBlank(recordEntity.getMetadataTierEnablingElements()) &&
         StringUtils.isNotBlank(recordEntity.getMetadataTierContextualClasses()) &&
         StringUtils.isNotBlank(recordEntity.getLicense());
+  }
+
+  private boolean areAllTierValuesNotNullOrEmpty(ExecutionRecordTierContext executionRecordTierContext) {
+    return isContentTierValid(executionRecordTierContext) &&
+        isMetadataTierValid(executionRecordTierContext);
+  }
+
+  private boolean isContentTierValid(ExecutionRecordTierContext executionRecordTierContext) {
+    return StringUtils.isNotBlank(executionRecordTierContext.getContentTier()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getContentTierBeforeLicenseCorrection());
+  }
+
+  private boolean isMetadataTierValid(ExecutionRecordTierContext executionRecordTierContext) {
+    return StringUtils.isNotBlank(executionRecordTierContext.getMetadataTier()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getMetadataTierLanguage()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getMetadataTierEnablingElements()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getMetadataTierContextualClasses()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getLicense());
   }
 }

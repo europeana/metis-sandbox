@@ -12,10 +12,13 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningExceptionLog;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionLogRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
@@ -81,6 +84,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   private final ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
+  private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   private record StepConfig(BatchJobType batchJob, BatchJobSubType subtype, Step step) {
 
@@ -105,7 +109,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
       RecordRepository recordRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository,
-      ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
+      ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
+      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.datasetRepository = datasetRepository;
     this.datasetLogService = datasetLogService;
     this.recordLogRepository = recordLogRepository;
@@ -115,6 +120,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
     this.executionRecordWarningExceptionLogRepository = executionRecordWarningExceptionLogRepository;
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
+    this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
   public ProgressInfoDto getProgress(String datasetId) {
@@ -153,7 +159,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
         recordErrorsByStep));
 
     //todo: need to update with the new records
-    TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
+    TiersZeroInfo tiersZeroInfo = prepareTiersInfoNew(datasetId);
 
     return new ProgressInfoDto(
         getPublishPortalUrl(dataset, completedRecords),
@@ -395,10 +401,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
         errorsMap.forEach((error, errorLogViews) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status,
                 errorLogViews.stream()
-                          .map(ErrorLogView::getRecordId)
-                          .map(DatasetReportServiceImpl::createMessageRecordError)
-                          .sorted(String::compareTo)
-                          .toList()))));
+                             .map(ErrorLogView::getRecordId)
+                             .map(DatasetReportServiceImpl::createMessageRecordError)
+                             .sorted(String::compareTo)
+                             .toList()))));
 
     errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().getFirst()));
     return errorInfoDtoList;
@@ -422,6 +428,40 @@ class DatasetReportServiceImpl implements DatasetReportService {
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
     TierStatistics metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
         new TierStatistics(recordRepository.getRecordWithDatasetIdAndMetadataTierCount(datasetId, MetadataTier.T0.toString()),
+            listOfRecordsIdsWithMetadataZero);
+
+    // encapsulate values into TiersZeroInfo
+    return contentTierInfo == null && metadataTierInfo == null ? null :
+        new TiersZeroInfo(contentTierInfo, metadataTierInfo);
+  }
+
+  private TiersZeroInfo prepareTiersInfoNew(String datasetId) {
+    // get list of records with content tier 0
+    List<String> listOfRecordsIdsWithContentZero =
+        executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
+                                            .stream().map(ExecutionRecordTierContext::getIdentifier)
+                                            .map(ExecutionRecordIdentifier::getRecordId).toList();
+    // get list of records with metadata tier 0
+    List<String> listOfRecordsIdsWithMetadataZero = executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndMetadataTier(
+                                                                                            datasetId, MetadataTier.T0.toString())
+                                                                                        .stream()
+                                                                                        .map(
+                                                                                            ExecutionRecordTierContext::getIdentifier)
+                                                                                        .map(
+                                                                                            ExecutionRecordIdentifier::getRecordId)
+                                                                                        .toList();
+
+    // encapsulate values into TierStatistics. Cut list of record ids into limit number
+    TierStatistics contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
+        new TierStatistics(
+            Math.toIntExact(executionRecordTierContextRepository.countByIdentifier_DatasetIdAndContentTier(datasetId,
+                MediaTier.T0.toString())), listOfRecordsIdsWithContentZero);
+
+    // encapsulate values into TierStatistics. Cut list of record ids into limit number
+    TierStatistics metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
+        new TierStatistics(
+            Math.toIntExact(executionRecordTierContextRepository.countByIdentifier_DatasetIdAndMetadataTier(datasetId,
+                MetadataTier.T0.toString())),
             listOfRecordsIdsWithMetadataZero);
 
     // encapsulate values into TiersZeroInfo

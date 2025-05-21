@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.utils.LicenseType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
 import io.swagger.annotations.ApiModel;
 
@@ -53,6 +54,17 @@ public class RecordTiersInfoDto {
         metadataTierLanguage = MetadataTier.getEnum(recordEntity.getMetadataTierLanguage());
         metadataTierEnablingElements = MetadataTier.getEnum(recordEntity.getMetadataTierEnablingElements());
         metadataTierContextualClasses = MetadataTier.getEnum(recordEntity.getMetadataTierContextualClasses());
+    }
+
+    public RecordTiersInfoDto(ExecutionRecordTierContext executionRecordTierContext){
+        recordId = executionRecordTierContext.getIdentifier().getRecordId();
+        contentTier = MediaTier.getEnum(executionRecordTierContext.getContentTier());
+        contentTierBeforeLicenseCorrection = MediaTier.getEnum(executionRecordTierContext.getContentTierBeforeLicenseCorrection());
+        license = LicenseType.valueOf(executionRecordTierContext.getLicense());
+        metadataTier = MetadataTier.getEnum(executionRecordTierContext.getMetadataTier());
+        metadataTierLanguage = MetadataTier.getEnum(executionRecordTierContext.getMetadataTierLanguage());
+        metadataTierEnablingElements = MetadataTier.getEnum(executionRecordTierContext.getMetadataTierEnablingElements());
+        metadataTierContextualClasses = MetadataTier.getEnum(executionRecordTierContext.getMetadataTierContextualClasses());
     }
 
     /**

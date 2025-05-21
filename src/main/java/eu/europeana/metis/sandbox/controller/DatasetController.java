@@ -38,7 +38,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -50,8 +49,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -396,7 +393,7 @@ class DatasetController {
     @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
     @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
     public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
-        return recordService.getRecordsTiers(datasetId);
+        return recordService.getRecordsTiersNew(datasetId);
     }
 
     private Set<Step> getSetFromStep(String step) {

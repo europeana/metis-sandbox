@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningExceptionLog;
 
 public class ExecutionRecordUtil {
@@ -31,6 +32,23 @@ public class ExecutionRecordUtil {
     executionRecord.setExecutionName(executionRecordDTO.getExecutionName());
     executionRecord.setRecordData(executionRecordDTO.getRecordData());
     return executionRecord;
+  }
+
+  public static ExecutionRecordTierContext converterToExecutionRecordTierContext(ExecutionRecordDTO executionRecordDTO){
+    ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setDatasetId(executionRecordDTO.getDatasetId());
+    executionRecordIdentifier.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRecordIdentifier.setRecordId(executionRecordDTO.getRecordId());
+    executionRecordTierContext.setIdentifier(executionRecordIdentifier);
+    executionRecordTierContext.setContentTier(executionRecordDTO.getContentTier());
+    executionRecordTierContext.setContentTierBeforeLicenseCorrection(executionRecordDTO.getContentTierBeforeLicenseCorrection());
+    executionRecordTierContext.setMetadataTier(executionRecordDTO.getMetadataTier());
+    executionRecordTierContext.setMetadataTierLanguage(executionRecordDTO.getMetadataTierLanguage());
+    executionRecordTierContext.setMetadataTierEnablingElements(executionRecordDTO.getMetadataTierEnablingElements());
+    executionRecordTierContext.setMetadataTierContextualClasses(executionRecordDTO.getMetadataTierContextualClasses());
+    executionRecordTierContext.setLicense(executionRecordDTO.getLicense());
+    return executionRecordTierContext;
   }
 
   public static ExecutionRecordExceptionLog converterToExecutionRecordExceptionLog(ExecutionRecordDTO executionRecordDTO){
@@ -69,6 +87,13 @@ public class ExecutionRecordUtil {
     resultExecutionRecordDTO.setRecordData(updatedRecordString);
     resultExecutionRecordDTO.setExceptionMessage(executionRecordDTO.getExceptionMessage());
     resultExecutionRecordDTO.setException(executionRecordDTO.getException());
+    resultExecutionRecordDTO.setContentTier(executionRecordDTO.getContentTier());
+    resultExecutionRecordDTO.setContentTierBeforeLicenseCorrection(executionRecordDTO.getContentTierBeforeLicenseCorrection());
+    resultExecutionRecordDTO.setMetadataTier(executionRecordDTO.getMetadataTier());
+    resultExecutionRecordDTO.setMetadataTierLanguage(executionRecordDTO.getMetadataTierLanguage());
+    resultExecutionRecordDTO.setMetadataTierEnablingElements(executionRecordDTO.getMetadataTierEnablingElements());
+    resultExecutionRecordDTO.setMetadataTierContextualClasses(executionRecordDTO.getMetadataTierContextualClasses());
+    resultExecutionRecordDTO.setLicense(executionRecordDTO.getLicense());
     return resultExecutionRecordDTO;
   }
 

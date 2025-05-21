@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface RecordService {
 
+  List<RecordTiersInfoDto> getRecordsTiersNew(String datasetId);
+
   /**
    * Returns a list of records and their data associated to a given dataset id
    *

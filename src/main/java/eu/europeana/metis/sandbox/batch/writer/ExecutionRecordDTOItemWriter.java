@@ -4,9 +4,11 @@ import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningExceptionLog;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionLogRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -28,14 +30,17 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   private final ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository;
+  private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   @Autowired
   public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
-      ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository) {
+      ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository,
+      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
     this.executionRecordWarningExceptionLogRepository = executionRecordWarningExceptionLogRepository;
+    this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
   @Override
@@ -44,9 +49,11 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
     final ArrayList<ExecutionRecord> executionRecords = new ArrayList<>();
     final ArrayList<ExecutionRecordExceptionLog> executionRecordExceptionLogs = new ArrayList<>();
     final ArrayList<ExecutionRecordWarningExceptionLog> executionRecordWarningExceptionLogs = new ArrayList<>();
+    final ArrayList<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
     for (ExecutionRecordDTO executionRecordDTO : chunk) {
       if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())) {
         executionRecords.add(ExecutionRecordUtil.converterToExecutionRecord(executionRecordDTO));
+        executionRecordTierContexts.add(ExecutionRecordUtil.converterToExecutionRecordTierContext(executionRecordDTO));
         if (StringUtils.isNotBlank(executionRecordDTO.getExceptionMessage())) {
           executionRecordWarningExceptionLogs.add(
               ExecutionRecordUtil.converterToExecutionRecordWarningExceptionLog(executionRecordDTO));
@@ -59,6 +66,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
     executionRecordRepository.saveAll(executionRecords);
     executionRecordExceptionLogRepository.saveAll(executionRecordExceptionLogs);
     executionRecordWarningExceptionLogRepository.saveAll(executionRecordWarningExceptionLogs);
+    executionRecordTierContextRepository.saveAll(executionRecordTierContexts);
     LOGGER.info("In writer finished writing chunk");
   }
 }
