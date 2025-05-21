@@ -23,6 +23,7 @@ import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.IndexingJobConfig;
 import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
@@ -93,7 +94,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
       new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
       new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
       new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
-      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS)
+      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
+      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
   );
 
   public DatasetReportServiceImpl(
@@ -138,7 +140,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
           null, null);
     }
 
-    final long completedRecords = statisticsMap.get(Step.ENRICH).totalSuccess;
+    final long completedRecords = statisticsMap.get(stepConfigs.getLast().step).totalSuccess;
 
     // get records processed by step
     Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(stepStatistics);
@@ -159,7 +161,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
         dataset.getRecordsQuantity(), completedRecords,
         progressByStepDtos, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
         null, tiersZeroInfo);
-
   }
 
   private StepStatisticsWrapper getStatistics(String datasetId, StepConfig stepConfig) {
@@ -172,8 +173,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private @NotNull DatasetReportServiceImpl.StepStatisticsWrapper getStepStatistics(
       String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType, Step step) {
-    String executionName =
-        (batchJobSubType == null) ? batchJobType.name() : batchJobType.name() + "-" + batchJobSubType.getName();
+    String executionName = getFullExecutionName(batchJobType, batchJobSubType);
     long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId, executionName);
     long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId,
         executionName);
@@ -188,14 +188,17 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return new StepStatisticsWrapper(totalSuccess, totalProcessed, stepStatistics);
   }
 
+  private static @NotNull String getFullExecutionName(BatchJobType batchJobType, BatchJobSubType batchJobSubType) {
+    return (batchJobSubType == null) ? batchJobType.name() : (batchJobType.name() + "-" + batchJobSubType.getName());
+  }
+
   private record StepStatisticsWrapper(long totalSuccess, long totalProcessed, List<StepStatistic> stepStatistics) {
 
   }
 
   private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType,
       Step step) {
-    String executionName =
-        (batchJobSubType == null) ? batchJobType.name() : batchJobType.name() + "-" + batchJobSubType.getName();
+    String executionName = getFullExecutionName(batchJobType, batchJobSubType);
 
     List<ExecutionRecordExceptionLog> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndExecutionName(
         datasetId, executionName);
@@ -390,9 +393,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<ErrorInfoDto> errorInfoDtoList = new LinkedList<>();
 
     statusMap.forEach((status, errorsMap) ->
-        errorsMap.forEach((error, recordList) -> errorInfoDtoList.add(
+        errorsMap.forEach((error, errorLogViews) -> errorInfoDtoList.add(
             new ErrorInfoDto(error, status,
-                recordList.stream()
+                errorLogViews.stream()
                           .map(ErrorLogView::getRecordId)
                           .map(DatasetReportServiceImpl::createMessageRecordError)
                           .sorted(String::compareTo)

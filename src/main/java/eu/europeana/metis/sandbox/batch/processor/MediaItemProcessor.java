@@ -23,8 +23,6 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
-import jakarta.annotation.PreDestroy;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -64,12 +62,6 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
     this.thumbnailStoreService = thumbnailStoreService;
     this.rdfSerializer = rdfSerializer;
     this.rdfDeserializer = rdfDeserializer;
-  }
-
-  @PreDestroy
-  public void destroy() throws IOException {
-    LOGGER.debug("Closing MediaExtractor");
-    mediaExtractor.close();
   }
 
   @Override

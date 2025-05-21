@@ -18,6 +18,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRe
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.IndexingJobConfig;
 import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
@@ -29,6 +30,7 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -62,6 +64,7 @@ public class BatchJobExecutor {
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
+  //This order is set because there is no orchestrator yet.
   final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> jobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
@@ -74,6 +77,8 @@ public class BatchJobExecutor {
       (datasetMetadata, previousJobExecution) -> executeEnrichment(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeMedia(datasetMetadata,
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
+      (datasetMetadata, previousJobExecution) -> executeIndex(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
 
   public BatchJobExecutor(List<? extends Job> jobs,
@@ -174,7 +179,7 @@ public class BatchJobExecutor {
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
-        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
         .addString(ARGUMENT_XSLT_CONTENT, transformXsltContent)
         .toJobParameters();
 
@@ -216,6 +221,15 @@ public class BatchJobExecutor {
         .toJobParameters();
 
     Job mediaJob = findJobByName(MediaJobConfig.BATCH_JOB);
+    return runJob(mediaJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeIndex(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .toJobParameters();
+
+    Job mediaJob = findJobByName(IndexingJobConfig.BATCH_JOB);
     return runJob(mediaJob, jobParameters);
   }
 
