@@ -1,7 +1,9 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.MEDIA;
-import static java.util.Objects.nonNull;
+import static eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil.formatException;
+import static java.lang.String.format;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
@@ -18,16 +20,18 @@ import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.Setter;
-import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,10 +75,9 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
   @Override
   public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
     return executionRecordDTO -> {
-      LOGGER.info("MediaItemProcessor thread: {}", Thread.currentThread());
+      LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
       final byte[] rdfBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
-      final EnrichedRdf enrichedRdf;
-      enrichedRdf = getEnrichedRdf(rdfBytes);
+      final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
       RdfResourceEntry resourceMainThumbnail;
       resourceMainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(rdfBytes);
@@ -85,23 +88,43 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       }
       List<RdfResourceEntry> remainingResourcesList;
       remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
+      List<RecordProcessingException> warningExceptions = new ArrayList<>();
       if (hasMainThumbnail) {
-        remainingResourcesList.forEach(entry ->
-            processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(),
-                executionRecordDTO.getRecordId()
-            )
-        );
+        safeProcessResource(
+            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(),
+                executionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
       } else {
-        remainingResourcesList.forEach(entry ->
-            processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(),
-                executionRecordDTO.getRecordId()
-            )
-        );
+        safeProcessResource(
+            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(),
+                executionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
       }
+
+      // Convert exceptions to a single formatted string with messages and stack traces
+      String prettyMessage = warningExceptions.stream()
+                                              .map(e -> formatException(e.getCause())) // getCause() is the ServiceException
+                                              .collect(Collectors.joining("\n\n"));
+      executionRecordDTO.setException(prettyMessage);
       final byte[] outputRdfBytes;
       outputRdfBytes = getOutputRdf(enrichedRdf);
       return new String(outputRdfBytes, StandardCharsets.UTF_8);
     };
+  }
+
+  @FunctionalInterface
+  private interface ResourceProcessor {
+
+    boolean process(RdfResourceEntry entry) throws RecordProcessingException;
+  }
+
+  private void safeProcessResource(ResourceProcessor resourceProcessor, List<RdfResourceEntry> entries,
+      List<RecordProcessingException> recordProcessingExceptions) {
+    for (RdfResourceEntry entry : entries) {
+      try {
+        resourceProcessor.process(entry);
+      } catch (RecordProcessingException e) {
+        recordProcessingExceptions.add(e);
+      }
+    }
   }
 
   @Override
@@ -130,39 +153,31 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
 
   private boolean processResource(RdfResourceEntry resourceToProcess, EnrichedRdf rdfForEnrichment, MediaExtractor extractor,
       boolean gotMainThumbnail, String datasetId, String recordId) {
-    ResourceExtractionResult extraction;
-    boolean successful = false;
-
+    final ResourceExtractionResult extraction;
     try {
-      // Perform media extraction
       extraction = extractor.performMediaExtraction(resourceToProcess, gotMainThumbnail);
-
-      // Check if extraction for media was successful
-      successful = extraction != null;
-
-      // If successful, then store data
-      if (successful) {
-        rdfForEnrichment.enrichResource(extraction.getMetadata());
-        if (!CollectionUtils.isEmpty(extraction.getThumbnails())) {
-          storeThumbnails(extraction.getThumbnails(), datasetId, recordId);
-        }
-      }
-
     } catch (MediaExtractionException e) {
-      LOGGER.warn("Error while extracting media for record {}. ", recordId, e);
+      LOGGER.warn(format("Error while extracting media for record %s", recordId), e);
+      throw new RecordProcessingException(recordId, e);
+    }
+
+    // Check if extraction for media was successful
+    boolean successful = (extraction != null);
+    if (successful) {
+      rdfForEnrichment.enrichResource(extraction.getMetadata());
+      storeThumbnails(extraction.getThumbnails(), datasetId, recordId);
     }
 
     return successful;
   }
 
-  private void storeThumbnails(List<Thumbnail> thumbnails, String datasetId, String recordId) {
-    if (nonNull(thumbnails)) {
+  private void storeThumbnails(List<Thumbnail> thumbnails, String datasetId, String recordId) throws RecordProcessingException {
+    if (isNotEmpty(thumbnails)) {
       try {
         thumbnailStoreService.store(thumbnails, datasetId);
       } catch (ThumbnailStoringException e) {
-        LOGGER.warn("Error while storing thumbnail for record {}. ", recordId, e);
-        // collect warn
-        //        recordErrors.add(new RecordError(new RecordProcessingException(recordThumbnail.getProviderId(), e)));
+        LOGGER.warn(format("Error while storing thumbnail for record %s", recordId), e);
+        throw new RecordProcessingException(recordId, e);
       }
     }
   }

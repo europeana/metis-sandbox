@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.ENRICHMENT;
+import static eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil.formatException;
 
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
@@ -19,8 +20,6 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import jakarta.annotation.PostConstruct;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -86,13 +85,6 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
       executionRecordDTO.setException(prettyMessage);
       return processedResult;
     };
-  }
-
-  private static String formatException(Throwable throwable) {
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter printWriter = new PrintWriter(stringWriter);
-    throwable.printStackTrace(printWriter);
-    return "**" + throwable.getMessage() + "**\n" + stringWriter;
   }
 
   private void handleRecordStopException(Set<Report> reports, String providerId) {

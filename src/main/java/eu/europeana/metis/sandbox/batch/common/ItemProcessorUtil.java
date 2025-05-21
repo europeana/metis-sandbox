@@ -4,6 +4,8 @@ import static eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil.create
 import static eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil.createSuccessExecutionRecordDTO;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +41,13 @@ public class ItemProcessorUtil<O> {
           createFailureExecutionRecordDTO(executionRecordDTO, exception.getMessage(), executionName, executionId);
     }
     return resultExecutionRecordDTO;
+  }
+
+  public static String formatException(Throwable throwable) {
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    throwable.printStackTrace(printWriter);
+    return "**" + throwable.getMessage() + "**\n" + stringWriter;
   }
 
 }

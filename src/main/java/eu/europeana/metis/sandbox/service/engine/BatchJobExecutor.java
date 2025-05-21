@@ -120,7 +120,7 @@ public class BatchJobExecutor {
     try {
       while (jobExecution.isRunning()) {
         LOGGER.info("Job still running...");
-        Thread.sleep(1000);
+        Thread.sleep(5000);
       }
       LOGGER.info("Job finished with status: {}", jobExecution.getStatus());
     } catch (InterruptedException e) {
