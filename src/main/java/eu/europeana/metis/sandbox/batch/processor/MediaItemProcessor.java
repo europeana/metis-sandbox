@@ -92,9 +92,10 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       }
 
       // Convert exceptions to a single formatted string with messages and stack traces
-      String warningMessages = warningExceptions.stream().map(Throwable::getMessage).collect(Collectors.joining("\n"));
+      String warningMessages = warningExceptions.stream().map(RecordProcessingException::getReportMessage).sorted()
+                                                .collect(Collectors.joining("\n"));
       String exceptionsStacktrace = warningExceptions.stream()
-                                                     .map(e -> formatException(e.getCause())) // getCause() is the ServiceException
+                                                     .map(e -> formatException(e.getCause()))
                                                      .collect(Collectors.joining("\n\n"));
       executionRecordDTO.setExceptionMessage(warningMessages);
       executionRecordDTO.setException(exceptionsStacktrace);

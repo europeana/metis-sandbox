@@ -4,11 +4,6 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.ENRICHMENT;
 import static eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil.formatException;
 
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
-import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
-import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
-import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
-import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
-import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
 import eu.europeana.enrichment.rest.client.report.Type;
@@ -19,7 +14,6 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,22 +35,13 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
-  @Value("${sandbox.enrichment.dereference-url}")
-  private String dereferenceURL;
-  @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
-  private String enrichmentEntityManagementUrl;
-  @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
-  private String enrichmentEntityApiUrl;
-  @Value("${sandbox.enrichment.enrichment-properties.entity-api-token-endpoint}")
-  private String enrichmentEntityApiTokenEndpoint;
-  @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
-  private String enrichmentEntityApiGrantParams;
 
   private final ItemProcessorUtil<ProcessedResult<String>> itemProcessorUtil;
   private EnrichmentWorker enrichmentWorker;
 
-  public EnrichmentItemProcessor() {
+  public EnrichmentItemProcessor(EnrichmentWorker enrichmentWorker) {
     itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), ProcessedResult::getProcessedRecord);
+    this.enrichmentWorker = enrichmentWorker;
   }
 
   @Override
@@ -79,11 +64,10 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
                  .toList();
 
       // Convert exceptions to a single formatted string with messages and stack traces
-      String warningMessages = warningExceptions.stream().map(RecordProcessingException::getReportMessage)
+      String warningMessages = warningExceptions.stream().map(RecordProcessingException::getReportMessage).sorted()
                                                 .collect(Collectors.joining("\n"));
       String exceptionsStacktraces = warningExceptions.stream()
-                                                      .map(e -> formatException(
-                                                          e.getCause())) // getCause() is the ServiceException
+                                                      .map(e -> formatException(e.getCause()))
                                                       .collect(Collectors.joining("\n\n"));
 
       executionRecordDTO.setExceptionMessage(warningMessages);
@@ -103,18 +87,6 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
 
   private String createErrorMessage(Report report) {
     return String.format("%s Value: %s", report.getMessage(), report.getValue());
-  }
-
-  @PostConstruct
-  private void postConstruct() throws DereferenceException, EnrichmentException {
-    final EnricherProvider enricherProvider = new EnricherProvider();
-    enricherProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
-        enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
-    final DereferencerProvider dereferencerProvider = new DereferencerProvider();
-    dereferencerProvider.setDereferenceUrl(dereferenceURL);
-    dereferencerProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
-        enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
-    enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
   }
 
   @Override
