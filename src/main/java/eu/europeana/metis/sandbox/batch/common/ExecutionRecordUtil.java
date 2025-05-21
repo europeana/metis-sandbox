@@ -41,6 +41,7 @@ public class ExecutionRecordUtil {
     final ExecutionRecordExceptionLog executionRecordExceptionLog = new ExecutionRecordExceptionLog();
     executionRecordExceptionLog.setIdentifier(executionRecordIdentifier);
     executionRecordExceptionLog.setExecutionName(executionRecordDTO.getExecutionName());
+    executionRecordExceptionLog.setMessage(executionRecordDTO.getExceptionMessage());
     executionRecordExceptionLog.setException(executionRecordDTO.getException());
     return executionRecordExceptionLog;
   }
@@ -53,6 +54,7 @@ public class ExecutionRecordUtil {
     final ExecutionRecordWarningExceptionLog executionRecordWarningExceptionLog = new ExecutionRecordWarningExceptionLog();
     executionRecordWarningExceptionLog.setIdentifier(executionRecordIdentifier);
     executionRecordWarningExceptionLog.setExecutionName(executionRecordDTO.getExecutionName());
+    executionRecordWarningExceptionLog.setMessage(executionRecordDTO.getExceptionMessage());
     executionRecordWarningExceptionLog.setException(executionRecordDTO.getException());
     return executionRecordWarningExceptionLog;
   }
@@ -65,19 +67,21 @@ public class ExecutionRecordUtil {
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
     resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData(updatedRecordString);
+    resultExecutionRecordDTO.setExceptionMessage(executionRecordDTO.getExceptionMessage());
     resultExecutionRecordDTO.setException(executionRecordDTO.getException());
     return resultExecutionRecordDTO;
   }
 
-  public static ExecutionRecordDTO createFailureExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO, String errorMessage,
-      String executionName, String executionId){
+  public static ExecutionRecordDTO createFailureExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO, String executionName,
+      String executionId, String exceptionMessage, String exception){
     final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
     resultExecutionRecordDTO.setDatasetId(executionRecordDTO.getDatasetId());
     resultExecutionRecordDTO.setExecutionId(executionId);
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
     resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData("");
-    resultExecutionRecordDTO.setException(errorMessage);
+    resultExecutionRecordDTO.setExceptionMessage(exceptionMessage);
+    resultExecutionRecordDTO.setException(exception);
     return resultExecutionRecordDTO;
   }
 }

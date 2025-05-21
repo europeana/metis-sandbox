@@ -12,5 +12,6 @@ public class ExecutionRecordDTO {
   private String recordId;
   private String executionName;
   private String recordData;
+  private String exceptionMessage;
   private String exception;
 }

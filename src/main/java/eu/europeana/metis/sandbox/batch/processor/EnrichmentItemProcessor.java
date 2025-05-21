@@ -77,12 +77,17 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
                      new RecordProcessingException(executionRecordDTO.getRecordId(),
                          new ServiceException(createErrorMessage(report), null)))
                  .toList();
-      // Convert exceptions to a single formatted string with messages and stack traces
-      String prettyMessage = warningExceptions.stream()
-                                              .map(e -> formatException(e.getCause())) // getCause() is the ServiceException
-                                              .collect(Collectors.joining("\n\n"));
 
-      executionRecordDTO.setException(prettyMessage);
+      // Convert exceptions to a single formatted string with messages and stack traces
+      String warningMessages = warningExceptions.stream().map(RecordProcessingException::getReportMessage)
+                                                .collect(Collectors.joining("\n"));
+      String exceptionsStacktraces = warningExceptions.stream()
+                                                      .map(e -> formatException(
+                                                          e.getCause())) // getCause() is the ServiceException
+                                                      .collect(Collectors.joining("\n\n"));
+
+      executionRecordDTO.setExceptionMessage(warningMessages);
+      executionRecordDTO.setException(exceptionsStacktraces);
       return processedResult;
     };
   }

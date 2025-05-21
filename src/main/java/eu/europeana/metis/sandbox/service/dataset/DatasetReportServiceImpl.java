@@ -64,7 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class DatasetReportServiceImpl implements DatasetReportService {
 
-  private static final int FIRST = 0;
   private static final String EMPTY_DATASET_MESSAGE = "Dataset is empty.";
   private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
   private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
@@ -218,7 +217,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       RecordEntity recordEntity = new RecordEntity();
       recordEntity.setDatasetId(datasetId);
       recordEntity.setProviderId(warningExceptionLog.getIdentifier().getRecordId());
-      errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.WARN, warningExceptionLog.getException()));
+      errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.WARN, warningExceptionLog.getMessage()));
     }
     return errorLogViews;
   }
@@ -401,7 +400,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
                           .sorted(String::compareTo)
                           .toList()))));
 
-    errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().get(FIRST)));
+    errorInfoDtoList.sort(Comparator.comparing(x -> x.getRecordIds().getFirst()));
     return errorInfoDtoList;
   }
 

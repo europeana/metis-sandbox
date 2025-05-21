@@ -20,5 +20,7 @@ public class ExecutionRecordExceptionLog implements HasExecutionRecordIdentifier
   @Column(length = 50)
   private String executionName;
   @Column(columnDefinition = "TEXT")
+  private String message;
+  @Column(columnDefinition = "TEXT")
   private String exception;
 }

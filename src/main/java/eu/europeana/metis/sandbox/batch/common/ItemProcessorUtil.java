@@ -38,7 +38,7 @@ public class ItemProcessorUtil<O> {
           createSuccessExecutionRecordDTO(executionRecordDTO, getRecordString.apply(result), executionName, executionId);
     } catch (Exception exception) {
       resultExecutionRecordDTO =
-          createFailureExecutionRecordDTO(executionRecordDTO, exception.getMessage(), executionName, executionId);
+          createFailureExecutionRecordDTO(executionRecordDTO, executionName, executionId, exception.getMessage(), formatException(exception));
     }
     return resultExecutionRecordDTO;
   }
@@ -47,7 +47,7 @@ public class ItemProcessorUtil<O> {
     StringWriter stringWriter = new StringWriter();
     PrintWriter printWriter = new PrintWriter(stringWriter);
     throwable.printStackTrace(printWriter);
-    return "**" + throwable.getMessage() + "**\n" + stringWriter;
+    return stringWriter.toString();
   }
 
 }

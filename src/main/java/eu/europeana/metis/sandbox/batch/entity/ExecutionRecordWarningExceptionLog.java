@@ -19,6 +19,7 @@ public class ExecutionRecordWarningExceptionLog implements HasExecutionRecordIde
   @Column(length = 50)
   private String executionName;
   @Column(columnDefinition = "TEXT")
+  private String message;
+  @Column(columnDefinition = "TEXT")
   private String exception;
-  //todo: split message and stack trace??
 }

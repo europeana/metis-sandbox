@@ -47,7 +47,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
     for (ExecutionRecordDTO executionRecordDTO : chunk) {
       if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())) {
         executionRecords.add(ExecutionRecordUtil.converterToExecutionRecord(executionRecordDTO));
-        if (StringUtils.isNotBlank(executionRecordDTO.getException())) {
+        if (StringUtils.isNotBlank(executionRecordDTO.getExceptionMessage())) {
           executionRecordWarningExceptionLogs.add(
               ExecutionRecordUtil.converterToExecutionRecordWarningExceptionLog(executionRecordDTO));
         }
