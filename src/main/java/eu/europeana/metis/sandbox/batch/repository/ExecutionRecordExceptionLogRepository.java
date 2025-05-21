@@ -10,8 +10,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ExecutionRecordExceptionLogRepository extends JpaRepository<ExecutionRecordExceptionLog, ExecutionRecordIdentifier> {
-  Page<ExecutionRecordExceptionLog> findByIdentifier_DatasetIdAndExecutionName(String datasetId, String executionName, Pageable pageable);
-  List<ExecutionRecordExceptionLog> findByIdentifier_DatasetIdAndExecutionName(String datasetId, String executionName);
-  long countByIdentifier_DatasetIdAndIdentifier_ExecutionId(String datasetId, String executionId);
-  long countByIdentifier_DatasetIdAndExecutionName(String datasetId, String executionName);
+  List<ExecutionRecordExceptionLog> findByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
+  long countByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
 }

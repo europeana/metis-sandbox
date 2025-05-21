@@ -104,7 +104,7 @@ public class BatchJobExecutor {
       waitForCompletion(harvestExecution);
 
       if (harvestExecution.getStatus() == BatchStatus.COMPLETED) {
-        long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndExecutionName(datasetMetadata.getDatasetId(),
+        long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetMetadata.getDatasetId(),
             OaiHarvestJobConfig.BATCH_JOB.name());
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 

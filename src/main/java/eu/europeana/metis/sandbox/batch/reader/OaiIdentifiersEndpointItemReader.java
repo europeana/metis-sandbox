@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.OAI_HARVEST;
+
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
@@ -7,6 +9,7 @@ import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import jakarta.annotation.PostConstruct;
@@ -28,6 +31,7 @@ import org.springframework.stereotype.Component;
 public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRecordExternalIdentifier> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final BatchJobType batchJobType = OAI_HARVEST;
 
     @Value("#{jobParameters['targetExecutionId']}")
     private String targetExecutionId;
@@ -57,6 +61,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
             executionRecordIdentifier.setDatasetId(datasetId);
             executionRecordIdentifier.setRecordId(oaiRecordHeader.getOaiIdentifier());
             executionRecordIdentifier.setExecutionId(targetExecutionId);
+            executionRecordIdentifier.setExecutionName(batchJobType.name());
 
             ExecutionRecordExternalIdentifier recordIdentifier = new ExecutionRecordExternalIdentifier();
             recordIdentifier.setIdentifier(executionRecordIdentifier);

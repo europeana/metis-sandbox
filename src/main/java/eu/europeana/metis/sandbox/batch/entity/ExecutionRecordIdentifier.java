@@ -19,4 +19,7 @@ public class ExecutionRecordIdentifier {
   @Column(length = 300)
   private String recordId;
 
+  @Column(length = 50)
+  private String executionName;
+
 }

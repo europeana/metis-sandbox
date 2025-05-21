@@ -1,10 +1,14 @@
 package eu.europeana.metis.sandbox.batch.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,9 +21,10 @@ public class ExecutionRecord implements HasExecutionRecordIdentifier {
   @EmbeddedId
   private ExecutionRecordIdentifier identifier;
 
-  @Column(length = 50)
-  private String executionName;
   @Column(columnDefinition = "TEXT")
   private String recordData;
+
+  @OneToMany(mappedBy = "executionRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ExecutionRecordWarningException> executionRecordWarningException = new ArrayList<>();
 }
 

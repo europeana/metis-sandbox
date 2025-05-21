@@ -17,8 +17,6 @@ public class ExecutionRecordExceptionLog implements HasExecutionRecordIdentifier
   @EmbeddedId
   private ExecutionRecordIdentifier identifier;
 
-  @Column(length = 50)
-  private String executionName;
   @Column(columnDefinition = "TEXT")
   private String message;
   @Column(columnDefinition = "TEXT")

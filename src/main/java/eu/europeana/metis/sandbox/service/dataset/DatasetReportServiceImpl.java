@@ -14,12 +14,12 @@ import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningExceptionLog;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
@@ -82,7 +82,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
-  private final ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository;
+  private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
@@ -108,7 +108,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       RecordErrorLogRepository errorLogRepository,
       RecordRepository recordRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
-      ExecutionRecordWarningExceptionLogRepository executionRecordWarningExceptionLogRepository,
+      ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.datasetRepository = datasetRepository;
@@ -118,7 +118,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     this.recordRepository = recordRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
-    this.executionRecordWarningExceptionLogRepository = executionRecordWarningExceptionLogRepository;
+    this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
@@ -158,7 +158,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
     recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(progressByStepDtos, statusMap, step,
         recordErrorsByStep));
 
-    //todo: need to update with the new records
     TiersZeroInfo tiersZeroInfo = prepareTiersInfoNew(datasetId);
 
     return new ProgressInfoDto(
@@ -179,10 +178,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private @NotNull DatasetReportServiceImpl.StepStatisticsWrapper getStepStatistics(
       String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType, Step step) {
     String executionName = getFullExecutionName(batchJobType, batchJobSubType);
-    long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId, executionName);
-    long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId,
+    long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+    long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         executionName);
-    long totalWarning = executionRecordWarningExceptionLogRepository.countByIdentifier_DatasetIdAndExecutionName(datasetId,
+    long totalWarning = executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(datasetId,
         executionName);
     final long totalProcessed = totalSuccess + totalFailure;
 
@@ -205,7 +204,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       Step step) {
     String executionName = getFullExecutionName(batchJobType, batchJobSubType);
 
-    List<ExecutionRecordExceptionLog> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndExecutionName(
+    List<ExecutionRecordExceptionLog> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(
         datasetId, executionName);
 
     List<ErrorLogView> errorLogViews = new ArrayList<>();
@@ -216,14 +215,14 @@ class DatasetReportServiceImpl implements DatasetReportService {
       errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.FAIL, recordExceptionLog.getException()));
     }
 
-    List<ExecutionRecordWarningExceptionLog> warningExceptionLogs = executionRecordWarningExceptionLogRepository.findByIdentifier_DatasetIdAndExecutionName(
-        datasetId, executionName);
+    List<ExecutionRecordWarningException> warningExceptions =
+        executionRecordWarningExceptionRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(datasetId, executionName);
 
-    for (ExecutionRecordWarningExceptionLog warningExceptionLog : warningExceptionLogs) {
+    for (ExecutionRecordWarningException warningException : warningExceptions) {
       RecordEntity recordEntity = new RecordEntity();
       recordEntity.setDatasetId(datasetId);
-      recordEntity.setProviderId(warningExceptionLog.getIdentifier().getRecordId());
-      errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.WARN, warningExceptionLog.getMessage()));
+      recordEntity.setProviderId(warningException.getExecutionRecord().getIdentifier().getRecordId());
+      errorLogViews.add(new ErrorLogViewImpl(null, recordEntity, step, Status.WARN, warningException.getMessage()));
     }
     return errorLogViews;
   }

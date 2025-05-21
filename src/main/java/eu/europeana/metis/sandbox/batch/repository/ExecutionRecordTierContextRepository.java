@@ -10,9 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface ExecutionRecordTierContextRepository extends
     JpaRepository<ExecutionRecordTierContext, ExecutionRecordIdentifier> {
 
-  //  Page<ExecutionRecord> findByIdentifier_DatasetIdAndIdentifier_ExecutionId(String datasetId, String executionId, Pageable pageable);
-  //  long countByIdentifier_DatasetIdAndIdentifier_ExecutionId(String datasetId, String executionId);
-  //  long countByIdentifier_DatasetIdAndExecutionName(String datasetId, String executionName);
   List<ExecutionRecordTierContext> findByIdentifier_DatasetId(String datasetId);
 
   List<ExecutionRecordTierContext> findTop10ByIdentifier_DatasetIdAndContentTier(String datasetId, String contentTier);
