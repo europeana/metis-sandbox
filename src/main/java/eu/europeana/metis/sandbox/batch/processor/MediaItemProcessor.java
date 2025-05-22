@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -18,7 +17,6 @@ import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.lang.invoke.MethodHandles;
@@ -72,19 +70,19 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
       boolean hasMainThumbnail = false;
       if (resourceMainThumbnail != null) {
         hasMainThumbnail = processResourceWithoutThumbnail(resourceMainThumbnail,
-            enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId(), successExecutionRecordDTO.getRecordId());
+            enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId());
       }
       List<RdfResourceEntry> remainingResourcesList;
       remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
-      List<RecordProcessingException> warningExceptions = new ArrayList<>();
+      List<Exception> warningExceptions = new ArrayList<>();
       if (hasMainThumbnail) {
         safeProcessResource(
-            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId(),
-                successExecutionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
+            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId()),
+            remainingResourcesList, warningExceptions);
       } else {
         safeProcessResource(
-            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId(),
-                successExecutionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
+            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor,
+                successExecutionRecordDTO.getDatasetId()), remainingResourcesList, warningExceptions);
       }
 
       final byte[] outputRdfBytes;
@@ -96,18 +94,12 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
     };
   }
 
-  @FunctionalInterface
-  private interface ResourceProcessor {
-
-    boolean process(RdfResourceEntry entry) throws RecordProcessingException;
-  }
-
-  private void safeProcessResource(ResourceProcessor resourceProcessor, List<RdfResourceEntry> entries,
-      List<RecordProcessingException> recordProcessingExceptions) {
+  private void safeProcessResource(ThrowingFunction<RdfResourceEntry, Boolean> resourceProcessor, List<RdfResourceEntry> entries,
+      List<Exception> recordProcessingExceptions) {
     for (RdfResourceEntry entry : entries) {
       try {
-        resourceProcessor.process(entry);
-      } catch (RecordProcessingException e) {
+        resourceProcessor.apply(entry);
+      } catch (Exception e) {
         recordProcessingExceptions.add(e);
       }
     }
@@ -129,43 +121,32 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
   }
 
   private boolean processResourceWithThumbnail(RdfResourceEntry resourceToProcess, EnrichedRdf rdfForEnrichment,
-      MediaExtractor extractor, String datasetId, String recordId) {
-    return processResource(resourceToProcess, rdfForEnrichment, extractor, true, datasetId, recordId);
+      MediaExtractor extractor, String datasetId) throws MediaExtractionException, ThumbnailStoringException {
+    return processResource(resourceToProcess, rdfForEnrichment, extractor, true, datasetId);
   }
 
   private boolean processResourceWithoutThumbnail(RdfResourceEntry resourceToProcess, EnrichedRdf rdfForEnrichment,
-      MediaExtractor extractor, String datasetId, String recordId) {
-    return processResource(resourceToProcess, rdfForEnrichment, extractor, false, datasetId, recordId);
+      MediaExtractor extractor, String datasetId) throws MediaExtractionException, ThumbnailStoringException {
+    return processResource(resourceToProcess, rdfForEnrichment, extractor, false, datasetId);
   }
 
   private boolean processResource(RdfResourceEntry resourceToProcess, EnrichedRdf rdfForEnrichment, MediaExtractor extractor,
-      boolean gotMainThumbnail, String datasetId, String recordId) {
-    final ResourceExtractionResult extraction;
-    try {
-      extraction = extractor.performMediaExtraction(resourceToProcess, gotMainThumbnail);
-    } catch (MediaExtractionException e) {
-      LOGGER.warn(format("Error while extracting media for record %s", recordId), e);
-      throw new RecordProcessingException(recordId, e);
-    }
+      boolean gotMainThumbnail, String datasetId) throws MediaExtractionException, ThumbnailStoringException {
+    final ResourceExtractionResult extraction = extractor.performMediaExtraction(resourceToProcess, gotMainThumbnail);
 
     // Check if extraction for media was successful
     boolean successful = (extraction != null);
     if (successful) {
       rdfForEnrichment.enrichResource(extraction.getMetadata());
-      storeThumbnails(extraction.getThumbnails(), datasetId, recordId);
+      storeThumbnails(extraction.getThumbnails(), datasetId);
     }
 
     return successful;
   }
 
-  private void storeThumbnails(List<Thumbnail> thumbnails, String datasetId, String recordId) throws RecordProcessingException {
+  private void storeThumbnails(List<Thumbnail> thumbnails, String datasetId) throws ThumbnailStoringException {
     if (isNotEmpty(thumbnails)) {
-      try {
-        thumbnailStoreService.store(thumbnails, datasetId);
-      } catch (ThumbnailStoringException e) {
-        LOGGER.warn(format("Error while storing thumbnail for record %s", recordId), e);
-        throw new RecordProcessingException(recordId, e);
-      }
+      thumbnailStoreService.store(thumbnails, datasetId);
     }
   }
 }

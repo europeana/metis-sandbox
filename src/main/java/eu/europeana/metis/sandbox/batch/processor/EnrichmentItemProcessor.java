@@ -9,7 +9,6 @@ import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.util.HashSet;
 import java.util.List;
@@ -46,14 +45,12 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
       Set<Report> reports = processedResult.getReport();
 
       if (processedResult.getRecordStatus().equals(ProcessedResult.RecordStatus.STOP)) {
-        handleRecordStopException(reports, successExecutionRecordDTO.getRecordId());
+        handleRecordStopException(reports);
       }
 
-      List<RecordProcessingException> warningExceptions =
+      List<ServiceException> warningExceptions =
           reports.stream().filter(report -> Objects.equals(report.getMessageType(), Type.WARN))
-                 .map(report ->
-                     new RecordProcessingException(successExecutionRecordDTO.getRecordId(),
-                         new ServiceException(createErrorMessage(report), null)))
+                 .map(report -> new ServiceException(createErrorMessage(report), null))
                  .toList();
 
       return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
@@ -63,13 +60,10 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
     };
   }
 
-  private void handleRecordStopException(Set<Report> reports, String providerId) {
-    Optional<Report> report = reports.stream().filter(rep -> Objects.equals(rep.getMessageType(), Type.ERROR)).findFirst();
-    if (report.isPresent()) {
-      throw new RecordProcessingException(providerId, new ServiceException(createErrorMessage(report.get()), null));
-    } else {
-      throw new RecordProcessingException(providerId, new ServiceException("Something went wrong when requesting report.", null));
-    }
+  private void handleRecordStopException(Set<Report> reports) {
+    Optional<Report> errorReport = reports.stream().filter(rep -> Objects.equals(rep.getMessageType(), Type.ERROR)).findFirst();
+    String errorMessage = errorReport.map(this::createErrorMessage).orElse("Something went wrong when processing record.");
+    throw new ServiceException(errorMessage);
   }
 
   private String createErrorMessage(Report report) {
