@@ -26,6 +26,7 @@ import eu.europeana.metis.sandbox.common.aggregation.StepStatistic;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.FileHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.IndexingJobConfig;
 import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
@@ -91,6 +92,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private static final List<StepConfig> stepConfigs = List.of(
+      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
       new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH),
       new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
       new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),

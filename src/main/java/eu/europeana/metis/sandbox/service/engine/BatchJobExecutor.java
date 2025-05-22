@@ -1,14 +1,16 @@
 package eu.europeana.metis.sandbox.service.engine;
 
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_BATCH_JOB_SUBTYPE;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_COMPRESSED_FILE_EXTENSION;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_COUNTRY;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_NAME;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_INPUT_FILE_PATH;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_METADATA_PREFIX;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_ENDPOINT;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_SET;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_STEP_SIZE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
@@ -18,6 +20,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRe
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.FileHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.IndexingJobConfig;
 import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
@@ -28,7 +31,9 @@ import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -104,7 +109,34 @@ public class BatchJobExecutor {
       waitForCompletion(harvestExecution);
 
       if (harvestExecution.getStatus() == BatchStatus.COMPLETED) {
-        long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetMetadata.getDatasetId(),
+        long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(
+            datasetMetadata.getDatasetId(),
+            OaiHarvestJobConfig.BATCH_JOB.name());
+        datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
+
+        JobExecution previousExecution = harvestExecution;
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : jobExecutionOrder) {
+          JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
+          waitForCompletion(jobExecution);
+          if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+            throw new RuntimeException("Batch job " + jobExecution.getJobId() + " failed");
+          }
+          previousExecution = jobExecution;
+        }
+      }
+    });
+  }
+
+  public void execute(DatasetMetadata datasetMetadata, Path datasetRecordsCompressedFilePath,
+      CompressedFileExtension compressedFileExtension, Integer stepSize) {
+    taskExecutor.execute(() -> {
+      JobExecution harvestExecution = executeFileHarvest(datasetMetadata, datasetRecordsCompressedFilePath,
+          compressedFileExtension, stepSize);
+      waitForCompletion(harvestExecution);
+
+      if (harvestExecution.getStatus() == BatchStatus.COMPLETED) {
+        long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(
+            datasetMetadata.getDatasetId(),
             OaiHarvestJobConfig.BATCH_JOB.name());
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 
@@ -139,11 +171,24 @@ public class BatchJobExecutor {
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .addString(ARGUMENT_OAI_ENDPOINT, url)
-        .addString(ARGUMENT_OAI_SET, setSpec)
+        .addString(ARGUMENT_INPUT_FILE_PATH, setSpec)
         .addString(ARGUMENT_METADATA_PREFIX, metadataFormat)
         .toJobParameters();
 
     Job oaiHarvestJob = findJobByName(OaiHarvestJobConfig.BATCH_JOB);
+    return runJob(oaiHarvestJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeFileHarvest(DatasetMetadata datasetMetadata, Path datasetRecordsCompressedFilePath,
+      CompressedFileExtension compressedFileExtension, Integer stepSize) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .addString(ARGUMENT_INPUT_FILE_PATH, datasetRecordsCompressedFilePath.toString())
+        .addString(ARGUMENT_COMPRESSED_FILE_EXTENSION, compressedFileExtension.name())
+        .addString(ARGUMENT_STEP_SIZE, String.valueOf(stepSize))
+        .toJobParameters();
+
+    Job oaiHarvestJob = findJobByName(FileHarvestJobConfig.BATCH_JOB);
     return runJob(oaiHarvestJob, jobParameters);
   }
 

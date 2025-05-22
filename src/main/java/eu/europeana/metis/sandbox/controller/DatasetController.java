@@ -44,6 +44,7 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -143,7 +144,7 @@ class DatasetController {
      * @param country the given country from which the records refer to
      * @param language the given language that the records contain
      * @param stepsize the stepsize
-     * @param dataset the given dataset itself to be processed as a compressed file
+     * @param datasetRecordsCompressedFile the given dataset itself to be processed as a compressed file
      * @param xsltFile the xslt file used for transformation to edm external
      * @return 202 if it's processed correctly, 4xx or 500 otherwise
      */
@@ -160,8 +161,9 @@ class DatasetController {
         @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
         @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
         @RequestParam(name = "stepsize", required = false) Integer stepsize,
-        @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile dataset,
-        @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+        @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile datasetRecordsCompressedFile,
+        @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile)
+        throws IOException {
         //Check user id if any. This is temporarily allowed due to api and ui user security.
         final String userId;
         if (jwtPrincipal == null) {
@@ -170,7 +172,8 @@ class DatasetController {
             userId = getUserId(jwtPrincipal);
         }
         checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-        CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(dataset);
+        CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
+            datasetRecordsCompressedFile);
         if (stepsize != null) {
             checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
         }
@@ -181,8 +184,18 @@ class DatasetController {
         DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                 .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                 .withStepSize(stepsize).build();
-        harvestPublishService.runHarvestProvidedFileAsync(dataset, datasetMetadata, compressedFileExtension)
-                .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+
+
+//        harvestPublishService.runHarvestProvidedFileAsync(dataset, datasetMetadata, compressedFileExtension)
+//                .exceptionally(e ->
+//                    datasetLogService.logException(createdDatasetId, e));
+
+
+        Path datasetRecordsCompressedFilePath = Files.createTempFile("dataset-"+createdDatasetId, "-" + datasetRecordsCompressedFile.getOriginalFilename());
+        Files.copy(datasetRecordsCompressedFile.getInputStream(), datasetRecordsCompressedFilePath, StandardCopyOption.REPLACE_EXISTING);
+        batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
+
+
         return new DatasetIdDto(createdDatasetId);
     }
 
