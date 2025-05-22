@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.batch.entity;
 
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,14 +13,13 @@ public class ExecutionRecordDTO {
   private String recordId;
   private String executionName;
   private String recordData;
-  private String exceptionMessage;
-  private String exception;
+  private Map<String, String> warnings = Map.of();
 
-  protected String contentTier;
-  protected String contentTierBeforeLicenseCorrection;
-  protected String metadataTier;
-  protected String metadataTierLanguage;
-  protected String metadataTierEnablingElements;
-  protected String metadataTierContextualClasses;
-  protected String license;
+  private String contentTier;
+  private String contentTierBeforeLicenseCorrection;
+  private String metadataTier;
+  private String metadataTierLanguage;
+  private String metadataTierEnablingElements;
+  private String metadataTierContextualClasses;
+  private String license;
 }

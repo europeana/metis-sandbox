@@ -8,4 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ExecutionRecordExternalIdentifierRepository extends JpaRepository<ExecutionRecordExternalIdentifier, ExecutionRecordIdentifier> {
 
+    Page<ExecutionRecordExternalIdentifier> findByIdentifier_ExecutionId(String executionId, Pageable pageable);
+//    long countByIdentifier_DatasetIdAndIdentifier_ExecutionId(String datasetId, String executionId);
+
 }

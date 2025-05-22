@@ -1,6 +1,8 @@
 package eu.europeana.metis.sandbox.batch.common;
 
 import static io.micrometer.common.util.StringUtils.isNotBlank;
+import static org.apache.commons.collections4.MapUtils.emptyIfNull;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
@@ -8,7 +10,9 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,14 +38,25 @@ public class ExecutionRecordUtil {
     executionRecord.setIdentifier(executionRecordIdentifier);
     executionRecord.setRecordData(executionRecordDTO.getRecordData());
 
-    if (isNotBlank(executionRecordDTO.getExceptionMessage()) && isNotBlank(
-        executionRecordDTO.getException())) {
+    List<ExecutionRecordWarningException> executionRecordWarningExceptions = new ArrayList<>();
+    for (Entry<String, String> warning : executionRecordDTO.getWarnings().entrySet()) {
       ExecutionRecordWarningException executionRecordWarningException = new ExecutionRecordWarningException();
-      executionRecordWarningException.setMessage(executionRecordDTO.getExceptionMessage());
-      executionRecordWarningException.setException(executionRecordDTO.getException());
+      executionRecordWarningException.setMessage(warning.getKey());
+      executionRecordWarningException.setException(warning.getValue());
       executionRecordWarningException.setExecutionRecord(executionRecord);
-      executionRecord.setExecutionRecordWarningException(List.of(executionRecordWarningException));
+      executionRecordWarningExceptions.add(executionRecordWarningException);
     }
+    executionRecord.setExecutionRecordWarningException(executionRecordWarningExceptions);
+
+//    if (isNotEmpty(executionRecordDTO.getWarnings())) {
+////    if (isNotBlank(executionRecordDTO.getExceptionMessage()) && isNotBlank(
+////        executionRecordDTO.getException())) {
+//      ExecutionRecordWarningException executionRecordWarningException = new ExecutionRecordWarningException();
+//      executionRecordWarningException.setMessage(executionRecordDTO.getExceptionMessage());
+//      executionRecordWarningException.setException(executionRecordDTO.getException());
+//      executionRecordWarningException.setExecutionRecord(executionRecord);
+//      executionRecord.setExecutionRecordWarningException(List.of(executionRecordWarningException));
+//    }
     return executionRecord;
   }
 
@@ -88,22 +103,25 @@ public class ExecutionRecordUtil {
 
     final ExecutionRecordExceptionLog executionRecordExceptionLog = new ExecutionRecordExceptionLog();
     executionRecordExceptionLog.setIdentifier(executionRecordIdentifier);
-    executionRecordExceptionLog.setMessage(executionRecordDTO.getExceptionMessage());
-    executionRecordExceptionLog.setException(executionRecordDTO.getException());
+
+    if (isNotEmpty(executionRecordDTO.getWarnings())) {
+      Optional<Entry<String, String>> entry = executionRecordDTO.getWarnings().entrySet().stream().findFirst();
+      executionRecordExceptionLog.setMessage(entry.get().getKey());
+      executionRecordExceptionLog.setException(entry.get().getValue());
+    }
+
     return executionRecordExceptionLog;
   }
 
   public static ExecutionRecordDTO createSuccessExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO,
-      String updatedRecordString,
-      String executionName, String executionId) {
+      String updatedRecordString, String executionName, String executionId) {
     final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
     resultExecutionRecordDTO.setDatasetId(executionRecordDTO.getDatasetId());
     resultExecutionRecordDTO.setExecutionId(executionId);
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
     resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData(updatedRecordString);
-    resultExecutionRecordDTO.setExceptionMessage(executionRecordDTO.getExceptionMessage());
-    resultExecutionRecordDTO.setException(executionRecordDTO.getException());
+    resultExecutionRecordDTO.setWarnings(emptyIfNull(executionRecordDTO.getWarnings()));
     resultExecutionRecordDTO.setContentTier(executionRecordDTO.getContentTier());
     resultExecutionRecordDTO.setContentTierBeforeLicenseCorrection(executionRecordDTO.getContentTierBeforeLicenseCorrection());
     resultExecutionRecordDTO.setMetadataTier(executionRecordDTO.getMetadataTier());
@@ -122,8 +140,7 @@ public class ExecutionRecordUtil {
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
     resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData("");
-    resultExecutionRecordDTO.setExceptionMessage(exceptionMessage);
-    resultExecutionRecordDTO.setException(exception);
+    resultExecutionRecordDTO.setWarnings(emptyIfNull(executionRecordDTO.getWarnings()));
     return resultExecutionRecordDTO;
   }
 }

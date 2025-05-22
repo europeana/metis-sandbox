@@ -14,6 +14,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -70,8 +71,11 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
                                                       .map(e -> formatException(e.getCause()))
                                                       .collect(Collectors.joining("\n\n"));
 
-      executionRecordDTO.setExceptionMessage(warningMessages);
-      executionRecordDTO.setException(exceptionsStacktraces);
+      HashMap<String, String> warnings = new HashMap<>();
+      warningExceptions.forEach(e -> warnings.put(e.getReportMessage(), formatException(e.getCause())));
+      executionRecordDTO.setWarnings(warnings);
+//      executionRecordDTO.setExceptionMessage(warningMessages);
+//      executionRecordDTO.setException(exceptionsStacktraces);
       return processedResult;
     };
   }

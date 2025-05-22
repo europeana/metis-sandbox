@@ -26,6 +26,7 @@ import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -97,8 +98,12 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       String exceptionsStacktrace = warningExceptions.stream()
                                                      .map(e -> formatException(e.getCause()))
                                                      .collect(Collectors.joining("\n\n"));
-      executionRecordDTO.setExceptionMessage(warningMessages);
-      executionRecordDTO.setException(exceptionsStacktrace);
+
+      HashMap<String, String> warnings = new HashMap<>();
+      warningExceptions.forEach(e -> warnings.put(e.getReportMessage(), formatException(e.getCause())));
+      executionRecordDTO.setWarnings(warnings);
+      //      executionRecordDTO.setExceptionMessage(warningMessages);
+      //      executionRecordDTO.setException(exceptionsStacktraces);
       final byte[] outputRdfBytes;
       outputRdfBytes = getOutputRdf(enrichedRdf);
       return new String(outputRdfBytes, StandardCharsets.UTF_8);
