@@ -51,7 +51,7 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
 
   public MediaItemProcessor(MediaExtractor mediaExtractor, ThumbnailStoreService thumbnailStoreService,
       RdfSerializer rdfSerializer, RdfDeserializer rdfDeserializer) {
-    this.itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
+    this.itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
     this.mediaExtractor = mediaExtractor;
     this.thumbnailStoreService = thumbnailStoreService;
     this.rdfSerializer = rdfSerializer;
@@ -59,10 +59,10 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
-    return successExecutionRecordDTO -> {
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return originSuccessExecutionRecordDTO -> {
       LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
-      final byte[] rdfBytes = successExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+      final byte[] rdfBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
       RdfResourceEntry resourceMainThumbnail;
@@ -70,24 +70,24 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
       boolean hasMainThumbnail = false;
       if (resourceMainThumbnail != null) {
         hasMainThumbnail = processResourceWithoutThumbnail(resourceMainThumbnail,
-            enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId());
+            enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId());
       }
       List<RdfResourceEntry> remainingResourcesList;
       remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
       List<Exception> warningExceptions = new ArrayList<>();
       if (hasMainThumbnail) {
         safeProcessResource(
-            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId()),
+            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId()),
             remainingResourcesList, warningExceptions);
       } else {
         safeProcessResource(
             entry -> processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor,
-                successExecutionRecordDTO.getDatasetId()), remainingResourcesList, warningExceptions);
+                originSuccessExecutionRecordDTO.getDatasetId()), remainingResourcesList, warningExceptions);
       }
 
       final byte[] outputRdfBytes;
       outputRdfBytes = getOutputRdf(enrichedRdf);
-      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
                                       .recordData(new String(outputRdfBytes, StandardCharsets.UTF_8))
                                       .exceptionWarnings(new HashSet<>(warningExceptions))
                                       .build();
@@ -107,9 +107,9 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
+    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws RdfDeserializationException {

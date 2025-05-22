@@ -13,15 +13,15 @@ public class ItemProcessorUtil {
   private final ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> function;
 
   @NotNull
-  public ExecutionRecordDTO processCapturingException(SuccessExecutionRecordDTO successExecutionRecordDTO, String executionId,
+  public ExecutionRecordDTO processCapturingException(SuccessExecutionRecordDTO originSuccessExecutionRecordDTO, String executionId,
       String executionName) {
     ExecutionRecordDTO resultExecutionRecordDTO;
     try {
-      resultExecutionRecordDTO = function.apply(successExecutionRecordDTO);
+      resultExecutionRecordDTO = function.apply(originSuccessExecutionRecordDTO);
     } catch (Exception exception) {
       return FailExecutionRecordDTO.builder()
-                                   .datasetId(successExecutionRecordDTO.getDatasetId())
-                                   .recordId(successExecutionRecordDTO.getRecordId())
+                                   .datasetId(originSuccessExecutionRecordDTO.getDatasetId())
+                                   .recordId(originSuccessExecutionRecordDTO.getRecordId())
                                    .executionId(executionId)
                                    .executionName(executionName)
                                    .exception(exception).build();

@@ -47,13 +47,13 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
   private final ItemProcessorUtil itemProcessorUtil;
 
   public TransformerItemProcessor() {
-    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
+    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
-    return successExecutionRecordDTO -> {
-      final byte[] contentBytes = successExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return originSuccessExecutionRecordDTO -> {
+      final byte[] contentBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
       InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
       String datasetIdDatasetName = getJoinDatasetIdDatasetName(datasetId, datasetName);
@@ -63,16 +63,16 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
         resultString = writer.toString();
       }
 
-      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
                                       .recordData(resultString).build();
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
+    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(byte[] content)

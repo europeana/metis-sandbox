@@ -4,9 +4,9 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import jakarta.annotation.PostConstruct;
-import java.util.function.Function;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.function.ThrowingFunction;
 
 public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<I, O> {
 
@@ -20,7 +20,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
     this.batchJobType = BatchJobType.valueOf(jobName);
   }
 
-  abstract Function<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord();
+  abstract ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction();
 
   String getExecutionName(BatchJobSubType batchJobSubType) {
     return getExecutionName() + "-" + batchJobSubType.getName();

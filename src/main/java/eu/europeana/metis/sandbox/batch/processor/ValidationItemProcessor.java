@@ -59,7 +59,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
       ExecutionPointRepository executionPointRepository) {
     prepareProperties();
     validationService = new ValidationExecutionService(properties);
-    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
+    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointRepository = executionPointRepository;
   }
@@ -96,35 +96,35 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
-    return successExecutionRecordDTO -> {
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return originSuccessExecutionRecordDTO -> {
       final String reorderedFileContent;
-      reorderedFileContent = reorderFileContent(successExecutionRecordDTO.getRecordData());
+      reorderedFileContent = reorderFileContent(originSuccessExecutionRecordDTO.getRecordData());
 
       ValidationResult result =
           validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
       if (result.isSuccess()) {
-        LOGGER.debug("Validation Success for datasetId {}, recordId {}", successExecutionRecordDTO.getDatasetId(),
-            successExecutionRecordDTO.getRecordId());
+        LOGGER.debug("Validation Success for datasetId {}, recordId {}", originSuccessExecutionRecordDTO.getDatasetId(),
+            originSuccessExecutionRecordDTO.getRecordId());
       } else {
-        LOGGER.info("Validation Failure for datasetId {}, recordId {}", successExecutionRecordDTO.getDatasetId(),
-            successExecutionRecordDTO.getRecordId());
+        LOGGER.info("Validation Failure for datasetId {}, recordId {}", originSuccessExecutionRecordDTO.getDatasetId(),
+            originSuccessExecutionRecordDTO.getRecordId());
         throw new ValidationFailureException(result.getMessage());
       }
 
-      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName(batchJobSubType))
-                                      .recordData(successExecutionRecordDTO.getRecordData()).build();
+      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName(batchJobSubType))
+                                      .recordData(originSuccessExecutionRecordDTO.getRecordData()).build();
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(successExecutionRecordDTO,
+    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO,
         targetExecutionId, getExecutionName(batchJobSubType));
     if (batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
-      generatePatternAnalysis(successExecutionRecordDTO);
+      generatePatternAnalysis(originSuccessExecutionRecordDTO);
     }
     return resultExecutionRecordDTO;
   }

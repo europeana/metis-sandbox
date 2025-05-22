@@ -34,14 +34,14 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
   private EnrichmentWorker enrichmentWorker;
 
   public EnrichmentItemProcessor(EnrichmentWorker enrichmentWorker) {
-    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
+    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
     this.enrichmentWorker = enrichmentWorker;
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
-    return successExecutionRecordDTO -> {
-      ProcessedResult<String> processedResult = enrichmentWorker.process(successExecutionRecordDTO.getRecordData());
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return originSuccessExecutionRecordDTO -> {
+      ProcessedResult<String> processedResult = enrichmentWorker.process(originSuccessExecutionRecordDTO.getRecordData());
       Set<Report> reports = processedResult.getReport();
 
       if (processedResult.getRecordStatus().equals(ProcessedResult.RecordStatus.STOP)) {
@@ -53,7 +53,7 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
                  .map(report -> new ServiceException(createErrorMessage(report), null))
                  .toList();
 
-      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
                                       .recordData(processedResult.getProcessedRecord())
                                       .exceptionWarnings(new HashSet<>(warningExceptions))
                                       .build();
@@ -72,9 +72,9 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
+    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
 }

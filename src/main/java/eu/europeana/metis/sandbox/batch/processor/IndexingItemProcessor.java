@@ -41,29 +41,29 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
   private final IndexingProperties indexingProperties;
 
   public IndexingItemProcessor(Indexer indexer) {
-    this.itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
+    this.itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
     this.indexer = indexer;
     this.indexingProperties = new IndexingProperties(new Date(), false, Collections.emptyList(), false,
         TierCalculationMode.OVERWRITE);
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
-    return successExecutionRecordDTO -> {
-      LOGGER.info("Indexing: {}", successExecutionRecordDTO.getRecordId());
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return originSuccessExecutionRecordDTO -> {
+      LOGGER.info("Indexing: {}", originSuccessExecutionRecordDTO.getRecordId());
 
       InputStream inputStream = new ByteArrayInputStream(
-          successExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8));
+          originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8));
       TierResults tierResults = indexer.indexAndGetTierCalculations(inputStream, indexingProperties);
 
       if (tierResults == null || isAllDataNull(tierResults)) {
         throw new IndexerRelatedIndexingException(
-            format("Something went wrong with tier calculations with record %s", successExecutionRecordDTO.getRecordId()));
+            format("Something went wrong with tier calculations with record %s", originSuccessExecutionRecordDTO.getRecordId()));
       }
 
-      LOGGER.info("Indexed: {}", successExecutionRecordDTO.getRecordId());
-      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
-                                      .recordData(successExecutionRecordDTO.getRecordData())
+      LOGGER.info("Indexed: {}", originSuccessExecutionRecordDTO.getRecordId());
+      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+                                      .recordData(originSuccessExecutionRecordDTO.getRecordData())
                                       .tierResults(tierResults)
                                       .build();
     };
@@ -71,9 +71,9 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
+    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private boolean isAllDataNull(TierResults tierResultsToCheck) {

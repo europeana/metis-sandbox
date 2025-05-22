@@ -26,22 +26,22 @@ public class NormalizationItemProcessor extends AbstractMetisItemProcessor<Execu
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
 
   public NormalizationItemProcessor() {
-    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
+    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
-    return successExecutionRecordDTO -> {
-      NormalizationResult normalizationResult = normalizerFactory.getNormalizer().normalize(successExecutionRecordDTO.getRecordData());
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return originSuccessExecutionRecordDTO -> {
+      NormalizationResult normalizationResult = normalizerFactory.getNormalizer().normalize(originSuccessExecutionRecordDTO.getRecordData());
 
-      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
                                       .recordData(normalizationResult.getNormalizedRecordInEdmXml()).build();
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(executionRecord);
+    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 }
