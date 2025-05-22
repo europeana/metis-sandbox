@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.OAI_HARVEST;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.FILE_HARVEST;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> {
 
-  private static final BatchJobType batchJobType = OAI_HARVEST;
+  private static final BatchJobType batchJobType = FILE_HARVEST;
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;

@@ -60,21 +60,22 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
 
   @Override
   public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
-      LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
+    return originSuccessExecutionRecordDTO -> {LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
       final byte[] rdfBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
       RdfResourceEntry resourceMainThumbnail;
       resourceMainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(rdfBytes);
       boolean hasMainThumbnail = false;
+      List<Exception> warningExceptions = new ArrayList<>();
       if (resourceMainThumbnail != null) {
-        hasMainThumbnail = processResourceWithoutThumbnail(resourceMainThumbnail,
-            enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId());
+        safeProcessResource(
+                entry -> processResourceWithoutThumbnail(entry,
+            enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId()), List.of(resourceMainThumbnail), warningExceptions);
+        hasMainThumbnail = warningExceptions.isEmpty();
       }
       List<RdfResourceEntry> remainingResourcesList;
       remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
-      List<Exception> warningExceptions = new ArrayList<>();
       if (hasMainThumbnail) {
         safeProcessResource(
             entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId()),
