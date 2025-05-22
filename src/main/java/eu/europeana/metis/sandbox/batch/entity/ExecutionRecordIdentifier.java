@@ -13,11 +13,11 @@ public class ExecutionRecordIdentifier {
   @Column(length = 50)
   private String datasetId;
 
-  @Column(length = 50)
-  private String executionId;
-
   @Column(length = 300)
   private String recordId;
+
+  @Column(length = 50)
+  private String executionId;
 
   @Column(length = 50)
   private String executionName;

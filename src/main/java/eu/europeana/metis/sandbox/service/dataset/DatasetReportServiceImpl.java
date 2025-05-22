@@ -11,7 +11,7 @@ import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExceptionLog;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
@@ -204,11 +204,11 @@ class DatasetReportServiceImpl implements DatasetReportService {
       Step step) {
     String executionName = getFullExecutionName(batchJobType, batchJobSubType);
 
-    List<ExecutionRecordExceptionLog> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(
+    List<ExecutionRecordException> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(
         datasetId, executionName);
 
     List<ErrorLogView> errorLogViews = new ArrayList<>();
-    for (ExecutionRecordExceptionLog recordExceptionLog : recordExceptionLogs) {
+    for (ExecutionRecordException recordExceptionLog : recordExceptionLogs) {
       RecordEntity recordEntity = new RecordEntity();
       recordEntity.setDatasetId(datasetId);
       recordEntity.setProviderId(recordExceptionLog.getIdentifier().getRecordId());

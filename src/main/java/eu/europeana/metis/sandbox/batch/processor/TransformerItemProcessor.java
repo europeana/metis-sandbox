@@ -1,12 +1,10 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.TRANSFORMATION;
-
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -16,7 +14,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,10 +27,9 @@ import org.springframework.util.function.ThrowingFunction;
 @Component("transformationItemProcessor")
 @StepScope
 @Setter
-public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
+public class TransformerItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final BatchJobType batchJobType = TRANSFORMATION;
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
@@ -48,16 +44,16 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
   @Value("#{jobParameters['xsltContent']}")
   private String xsltContent;
 
-  private final ItemProcessorUtil<String> itemProcessorUtil;
+  private final ItemProcessorUtil itemProcessorUtil;
 
   public TransformerItemProcessor() {
-    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
   }
 
   @Override
-  public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
-    return executionRecordDTO -> {
-      final byte[] contentBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
+    return successExecutionRecordDTO -> {
+      final byte[] contentBytes = successExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
       InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
       String datasetIdDatasetName = getJoinDatasetIdDatasetName(datasetId, datasetName);
@@ -66,14 +62,17 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
           StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
         resultString = writer.toString();
       }
-      return resultString;
+
+      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+                                      .recordData(resultString).build();
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, targetExecutionId);
+    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(byte[] content)

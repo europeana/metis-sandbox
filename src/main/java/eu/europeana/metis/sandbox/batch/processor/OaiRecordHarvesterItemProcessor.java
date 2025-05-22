@@ -7,60 +7,65 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
+public class OaiRecordHarvesterItemProcessor extends AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private static final BatchJobType batchJobType = OAI_HARVEST;
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
+  final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
 
-    @Value("#{jobParameters['targetExecutionId']}")
-    private String targetExecutionId;
-    @Value("#{jobParameters['oaiEndpoint']}")
-    private String oaiEndpoint;
-    @Value("#{jobParameters['oaiSet']}")
-    private String oaiSet;
-    @Value("#{jobParameters['oaiMetadataPrefix']}")
-    private String oaiMetadataPrefix;
-    @Value("#{jobParameters['datasetId']}")
-    private String datasetId;
+  @Value("#{jobParameters['targetExecutionId']}")
+  private String targetExecutionId;
+  @Value("#{jobParameters['oaiEndpoint']}")
+  private String oaiEndpoint;
+  @Value("#{jobParameters['oaiSet']}")
+  private String oaiSet;
+  @Value("#{jobParameters['oaiMetadataPrefix']}")
+  private String oaiMetadataPrefix;
+  @Value("#{jobParameters['datasetId']}")
+  private String datasetId;
 
-    @Override
-    public ExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
+  @Override
+  public ExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
 
-        LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
-        OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-        final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest, executionRecordExternalIdentifier.getIdentifier().getRecordId());
-        String resultString = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
-        return getExecutionRecordDTO(resultString);
-    }
+    LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
+    OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
+    final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest,
+        executionRecordExternalIdentifier.getIdentifier().getRecordId());
+    String resultString = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
+    return getExecutionRecordDTO(resultString);
+  }
 
-    private ExecutionRecordDTO getExecutionRecordDTO(String resultString) throws EuropeanaIdException {
-        EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
-        final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
-        final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
-        final ExecutionRecordDTO executionRecordDTO = new ExecutionRecordDTO();
-        executionRecordDTO.setDatasetId(datasetId);
-        executionRecordDTO.setExecutionId(targetExecutionId);
-        executionRecordDTO.setRecordId(europeanaGeneratedId);
-        executionRecordDTO.setExecutionName(batchJobType.name());
-        executionRecordDTO.setRecordData(resultString);
-        return executionRecordDTO;
-    }
+  private ExecutionRecordDTO getExecutionRecordDTO(String resultString) throws EuropeanaIdException {
+    EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
+    final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
+    final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
+    return SuccessExecutionRecordDTO.builder()
+                                    .datasetId(datasetId)
+                                    .executionId(targetExecutionId)
+                                    .recordId(europeanaGeneratedId)
+                                    .executionName(getExecutionName())
+                                    .recordData(resultString).build();
+  }
+
+  @Override
+  public Function<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
+    return null;
+  }
 }

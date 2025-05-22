@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.MEDIA;
-import static eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil.formatException;
 import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
@@ -15,21 +13,19 @@ import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -42,15 +38,14 @@ import org.springframework.util.function.ThrowingFunction;
 @Component("mediaItemProcessor")
 @StepScope
 @Setter
-public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
+public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final BatchJobType batchJobType = MEDIA;
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
 
-  private final ItemProcessorUtil<String> itemProcessorUtil;
+  private final ItemProcessorUtil itemProcessorUtil;
   private final MediaExtractor mediaExtractor;
   private final ThumbnailStoreService thumbnailStoreService;
   private final RdfSerializer rdfSerializer;
@@ -58,7 +53,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
 
   public MediaItemProcessor(MediaExtractor mediaExtractor, ThumbnailStoreService thumbnailStoreService,
       RdfSerializer rdfSerializer, RdfDeserializer rdfDeserializer) {
-    this.itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+    this.itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
     this.mediaExtractor = mediaExtractor;
     this.thumbnailStoreService = thumbnailStoreService;
     this.rdfSerializer = rdfSerializer;
@@ -66,10 +61,10 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
   }
 
   @Override
-  public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
-    return executionRecordDTO -> {
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
+    return successExecutionRecordDTO -> {
       LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
-      final byte[] rdfBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+      final byte[] rdfBytes = successExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
       RdfResourceEntry resourceMainThumbnail;
@@ -77,36 +72,27 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       boolean hasMainThumbnail = false;
       if (resourceMainThumbnail != null) {
         hasMainThumbnail = processResourceWithoutThumbnail(resourceMainThumbnail,
-            enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(), executionRecordDTO.getRecordId());
+            enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId(), successExecutionRecordDTO.getRecordId());
       }
       List<RdfResourceEntry> remainingResourcesList;
       remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
       List<RecordProcessingException> warningExceptions = new ArrayList<>();
       if (hasMainThumbnail) {
         safeProcessResource(
-            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(),
-                executionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
+            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId(),
+                successExecutionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
       } else {
         safeProcessResource(
-            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor, executionRecordDTO.getDatasetId(),
-                executionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
+            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, mediaExtractor, successExecutionRecordDTO.getDatasetId(),
+                successExecutionRecordDTO.getRecordId()), remainingResourcesList, warningExceptions);
       }
 
-      // Convert exceptions to a single formatted string with messages and stack traces
-      String warningMessages = warningExceptions.stream().map(RecordProcessingException::getReportMessage).sorted()
-                                                .collect(Collectors.joining("\n"));
-      String exceptionsStacktrace = warningExceptions.stream()
-                                                     .map(e -> formatException(e.getCause()))
-                                                     .collect(Collectors.joining("\n\n"));
-
-      HashMap<String, String> warnings = new HashMap<>();
-      warningExceptions.forEach(e -> warnings.put(e.getReportMessage(), formatException(e.getCause())));
-      executionRecordDTO.setWarnings(warnings);
-      //      executionRecordDTO.setExceptionMessage(warningMessages);
-      //      executionRecordDTO.setException(exceptionsStacktraces);
       final byte[] outputRdfBytes;
       outputRdfBytes = getOutputRdf(enrichedRdf);
-      return new String(outputRdfBytes, StandardCharsets.UTF_8);
+      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+                                      .recordData(new String(outputRdfBytes, StandardCharsets.UTF_8))
+                                      .exceptionWarnings(new HashSet<>(warningExceptions))
+                                      .build();
     };
   }
 
@@ -129,8 +115,9 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, targetExecutionId);
+    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws RdfDeserializationException {

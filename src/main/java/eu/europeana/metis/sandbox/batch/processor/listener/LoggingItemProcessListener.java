@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.HasExecutionRecordIdentifier;
 import java.lang.invoke.MethodHandles;

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.writer;
 
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.stereotype.Component;
 

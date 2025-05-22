@@ -4,7 +4,7 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.OAI_HARVEST;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersEndpointItemReader;

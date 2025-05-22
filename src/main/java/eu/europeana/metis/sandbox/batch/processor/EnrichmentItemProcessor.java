@@ -1,25 +1,21 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.ENRICHMENT;
-import static eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil.formatException;
-
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
 import eu.europeana.enrichment.rest.client.report.Type;
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -30,53 +26,40 @@ import org.springframework.util.function.ThrowingFunction;
 @Component("enrichmentItemProcessor")
 @StepScope
 @Setter
-public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, ProcessedResult<String>> {
-
-  private static final BatchJobType batchJobType = ENRICHMENT;
+public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
 
-  private final ItemProcessorUtil<ProcessedResult<String>> itemProcessorUtil;
+  private final ItemProcessorUtil itemProcessorUtil;
   private EnrichmentWorker enrichmentWorker;
 
   public EnrichmentItemProcessor(EnrichmentWorker enrichmentWorker) {
-    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), ProcessedResult::getProcessedRecord);
+    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
     this.enrichmentWorker = enrichmentWorker;
   }
 
   @Override
-  public ThrowingFunction<ExecutionRecordDTO, ProcessedResult<String>> getFunction() {
-    return executionRecordDTO -> {
-      ProcessedResult<String> processedResult = enrichmentWorker.process(executionRecordDTO.getRecordData());
-      //Add warnings
-      executionRecordDTO.setRecordData(processedResult.getProcessedRecord());
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
+    return successExecutionRecordDTO -> {
+      ProcessedResult<String> processedResult = enrichmentWorker.process(successExecutionRecordDTO.getRecordData());
       Set<Report> reports = processedResult.getReport();
 
       if (processedResult.getRecordStatus().equals(ProcessedResult.RecordStatus.STOP)) {
-        handleRecordStopException(reports, executionRecordDTO.getRecordId());
+        handleRecordStopException(reports, successExecutionRecordDTO.getRecordId());
       }
 
       List<RecordProcessingException> warningExceptions =
           reports.stream().filter(report -> Objects.equals(report.getMessageType(), Type.WARN))
                  .map(report ->
-                     new RecordProcessingException(executionRecordDTO.getRecordId(),
+                     new RecordProcessingException(successExecutionRecordDTO.getRecordId(),
                          new ServiceException(createErrorMessage(report), null)))
                  .toList();
 
-      // Convert exceptions to a single formatted string with messages and stack traces
-      String warningMessages = warningExceptions.stream().map(RecordProcessingException::getReportMessage).sorted()
-                                                .collect(Collectors.joining("\n"));
-      String exceptionsStacktraces = warningExceptions.stream()
-                                                      .map(e -> formatException(e.getCause()))
-                                                      .collect(Collectors.joining("\n\n"));
-
-      HashMap<String, String> warnings = new HashMap<>();
-      warningExceptions.forEach(e -> warnings.put(e.getReportMessage(), formatException(e.getCause())));
-      executionRecordDTO.setWarnings(warnings);
-//      executionRecordDTO.setExceptionMessage(warningMessages);
-//      executionRecordDTO.setException(exceptionsStacktraces);
-      return processedResult;
+      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+                                      .recordData(processedResult.getProcessedRecord())
+                                      .exceptionWarnings(new HashSet<>(warningExceptions))
+                                      .build();
     };
   }
 
@@ -95,8 +78,9 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, targetExecutionId);
+    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
 }

@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.INDEXING;
 import static java.lang.String.format;
 
 import eu.europeana.indexing.Indexer;
@@ -8,18 +7,17 @@ import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.tiers.TierCalculationMode;
 import eu.europeana.indexing.tiers.model.TierResults;
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
-import java.util.function.Function;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -32,57 +30,50 @@ import org.springframework.util.function.ThrowingFunction;
 @Component("indexingItemProcessor")
 @StepScope
 @Setter
-public class IndexingItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
+public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final BatchJobType batchJobType = INDEXING;
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
-  private final ItemProcessorUtil<String> itemProcessorUtil;
+  private final ItemProcessorUtil itemProcessorUtil;
   private final Indexer indexer;
   private final IndexingProperties indexingProperties;
 
   public IndexingItemProcessor(Indexer indexer) {
-    this.itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+    this.itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
     this.indexer = indexer;
     this.indexingProperties = new IndexingProperties(new Date(), false, Collections.emptyList(), false,
         TierCalculationMode.OVERWRITE);
   }
 
   @Override
-  public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
-    return executionRecordDTO -> {
-      LOGGER.info("Indexing: {}", executionRecordDTO.getRecordId());
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
+    return successExecutionRecordDTO -> {
+      LOGGER.info("Indexing: {}", successExecutionRecordDTO.getRecordId());
 
-      InputStream inputStream = new ByteArrayInputStream(executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8));
+      InputStream inputStream = new ByteArrayInputStream(
+          successExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8));
       TierResults tierResults = indexer.indexAndGetTierCalculations(inputStream, indexingProperties);
 
       if (tierResults == null || isAllDataNull(tierResults)) {
         throw new IndexerRelatedIndexingException(
-            format("Something went wrong with tier calculations with record %s", executionRecordDTO.getRecordId()));
+            format("Something went wrong with tier calculations with record %s", successExecutionRecordDTO.getRecordId()));
       }
 
-      setTierResults(executionRecordDTO, tierResults);
-      LOGGER.info("Indexed: {}", executionRecordDTO.getRecordId());
-      return executionRecordDTO.getRecordData();
+      LOGGER.info("Indexed: {}", successExecutionRecordDTO.getRecordId());
+      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
+                                      .recordData(successExecutionRecordDTO.getRecordData())
+                                      .tierResults(tierResults)
+                                      .build();
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, targetExecutionId);
-  }
-
-  public void setTierResults(ExecutionRecordDTO executionRecordDTO, TierResults tierResults) {
-    executionRecordDTO.setContentTier(tierResults.getMediaTier().toString());
-    executionRecordDTO.setMetadataTier(tierResults.getMetadataTier().toString());
-    executionRecordDTO.setContentTierBeforeLicenseCorrection(tierResults.getContentTierBeforeLicenseCorrection().toString());
-    executionRecordDTO.setMetadataTierLanguage(tierResults.getMetadataTierLanguage().toString());
-    executionRecordDTO.setMetadataTierEnablingElements(tierResults.getMetadataTierEnablingElements().toString());
-    executionRecordDTO.setMetadataTierContextualClasses(tierResults.getMetadataTierContextualClasses().toString());
-    executionRecordDTO.setLicense(tierResults.getLicenseType().toString());
+    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    return itemProcessorUtil.processCapturingException(successExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private boolean isAllDataNull(TierResults tierResultsToCheck) {

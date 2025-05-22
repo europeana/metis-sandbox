@@ -11,8 +11,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "batch-framework", indexes = {@Index(name = "exec_rec_exception_log_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
-public class ExecutionRecordExceptionLog implements HasExecutionRecordIdentifier {
+@Table(schema = "batch-framework", indexes = {@Index(name = "exec_rec_exception_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+public class ExecutionRecordException implements HasExecutionRecordIdentifier {
 
   @EmbeddedId
   private ExecutionRecordIdentifier identifier;

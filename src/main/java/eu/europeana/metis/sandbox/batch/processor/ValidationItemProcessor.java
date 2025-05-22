@@ -1,14 +1,13 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATION;
 import static java.lang.String.format;
 
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
@@ -24,7 +23,6 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Function;
 import lombok.Setter;
 import lombok.experimental.StandardException;
 import org.slf4j.Logger;
@@ -38,10 +36,9 @@ import org.springframework.util.function.ThrowingFunction;
 @Component("validationItemProcessor")
 @StepScope
 @Setter
-public class ValidationItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
+public class ValidationItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final BatchJobType batchJobType = VALIDATION;
 
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
@@ -54,7 +51,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   private String rootFileLocation;
   private String schematronFileLocation;
   private ValidationExecutionService validationService;
-  private final ItemProcessorUtil<String> itemProcessorUtil;
+  private final ItemProcessorUtil itemProcessorUtil;
   private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointRepository executionPointRepository;
 
@@ -62,7 +59,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
       ExecutionPointRepository executionPointRepository) {
     prepareProperties();
     validationService = new ValidationExecutionService(properties);
-    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+    itemProcessorUtil = new ItemProcessorUtil(processSuccessRecord());
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointRepository = executionPointRepository;
   }
@@ -99,47 +96,50 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   }
 
   @Override
-  public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
-    return executionRecord -> {
+  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> processSuccessRecord() {
+    return successExecutionRecordDTO -> {
       final String reorderedFileContent;
-      reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
+      reorderedFileContent = reorderFileContent(successExecutionRecordDTO.getRecordData());
 
       ValidationResult result =
           validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
       if (result.isSuccess()) {
-        LOGGER.debug("Validation Success for datasetId {}, recordId {}", executionRecord.getDatasetId(),
-            executionRecord.getRecordId());
+        LOGGER.debug("Validation Success for datasetId {}, recordId {}", successExecutionRecordDTO.getDatasetId(),
+            successExecutionRecordDTO.getRecordId());
       } else {
-        LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getDatasetId(),
-            executionRecord.getRecordId());
+        LOGGER.info("Validation Failure for datasetId {}, recordId {}", successExecutionRecordDTO.getDatasetId(),
+            successExecutionRecordDTO.getRecordId());
         throw new ValidationFailureException(result.getMessage());
       }
-      return executionRecord.getRecordData();
+
+      return successExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName(batchJobSubType))
+                                      .recordData(successExecutionRecordDTO.getRecordData()).build();
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType,
-        batchJobSubType, targetExecutionId);
-    if(batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
-      generatePatternAnalysis(executionRecordDTO);
+    final SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(successExecutionRecordDTO,
+        targetExecutionId, getExecutionName(batchJobSubType));
+    if (batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
+      generatePatternAnalysis(successExecutionRecordDTO);
     }
     return resultExecutionRecordDTO;
   }
 
-  private void generatePatternAnalysis(ExecutionRecordDTO executionRecordDTO) {
+  private void generatePatternAnalysis(SuccessExecutionRecordDTO successExecutionRecordDTO) {
     Optional<ExecutionPoint> executionPoint = executionPointRepository.findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc(
-        executionRecordDTO.getDatasetId(), Step.VALIDATE_INTERNAL.name());
+        successExecutionRecordDTO.getDatasetId(), Step.VALIDATE_INTERNAL.name());
     if (executionPoint.isEmpty()) {
-      throw new IllegalStateException("No execution point found for datasetId " + executionRecordDTO.getDatasetId());
+      throw new IllegalStateException("No execution point found for datasetId " + successExecutionRecordDTO.getDatasetId());
     }
     try {
-      patternAnalysisService.generateRecordPatternAnalysis(executionPoint.get(), executionRecordDTO.getRecordData());
+      patternAnalysisService.generateRecordPatternAnalysis(executionPoint.get(), successExecutionRecordDTO.getRecordData());
     } catch (PatternAnalysisException e) {
       LOGGER.error(format("An error occurred while processing pattern analysis with record id %s",
-          executionRecordDTO.getRecordId()), e);
+          successExecutionRecordDTO.getRecordId()), e);
     }
   }
 

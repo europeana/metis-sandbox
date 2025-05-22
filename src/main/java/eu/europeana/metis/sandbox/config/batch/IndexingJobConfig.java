@@ -1,11 +1,11 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.INDEXING;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.INDEX;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -35,7 +35,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class IndexingJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = INDEXING;
+  public static final BatchJobType BATCH_JOB = INDEX;
   public static final String STEP_NAME = "indexingStep";
 
   @Value("${indexing.chunkSize:5}")
@@ -90,7 +90,7 @@ public class IndexingJobConfig {
   @Bean
   public TaskExecutor indexingStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(INDEXING.name() + "-");
+    executor.setThreadNamePrefix(INDEX.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
