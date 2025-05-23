@@ -205,12 +205,13 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<ProgressByStepDto> progressByStepDtos = new LinkedList<>();
     recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(progressByStepDtos, statusMap, step,
         recordErrorsByStep));
+    long totalFailInWorkflow = progressByStepDtos.stream().mapToLong(ProgressByStepDto::getFail).sum();
 
     TiersZeroInfo tiersZeroInfo = prepareTiersInfoNew(datasetId);
 
     return new ProgressInfoDto(
         getPublishPortalUrl(dataset, completedRecords),
-        dataset.getRecordsQuantity(), completedRecords,
+        dataset.getRecordsQuantity(), completedRecords+totalFailInWorkflow,
         progressByStepDtos, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
         null, tiersZeroInfo);
   }
@@ -431,8 +432,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
       Step step,
       Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep
   ) {
-    stepsInfo
-        .add(new ProgressByStepDto(step,
+    stepsInfo.add(new ProgressByStepDto(step,
             statusMap.getOrDefault(Status.SUCCESS, 0L),
             statusMap.getOrDefault(Status.FAIL, 0L),
             statusMap.getOrDefault(Status.WARN, 0L),

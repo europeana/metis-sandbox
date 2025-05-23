@@ -46,6 +46,7 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
   private String xsltContent;
 
   private final ItemProcessorUtil itemProcessorUtil;
+  private boolean exceptionThrown = false;
 
   public TransformerItemProcessor() {
     itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
@@ -55,7 +56,8 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
     final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
+        getTargetExecutionId());
     return itemProcessorUtil.processCapturingException(jobMetadataDTO);
   }
 
