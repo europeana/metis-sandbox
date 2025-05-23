@@ -137,7 +137,7 @@ public class BatchJobExecutor {
       if (harvestExecution.getStatus() == BatchStatus.COMPLETED) {
         long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(
             datasetMetadata.getDatasetId(),
-            OaiHarvestJobConfig.BATCH_JOB.name());
+            FileHarvestJobConfig.BATCH_JOB.name());
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 
         JobExecution previousExecution = harvestExecution;
@@ -209,7 +209,7 @@ public class BatchJobExecutor {
   private @NotNull JobExecution executeValidationExternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
-        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.EXTERNAL.getName())
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.EXTERNAL.name())
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
@@ -235,7 +235,7 @@ public class BatchJobExecutor {
   private @NotNull JobExecution executeValidationInternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
-        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.INTERNAL.getName())
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.INTERNAL.name())
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);

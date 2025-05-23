@@ -16,6 +16,7 @@ import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
@@ -40,9 +40,6 @@ import org.springframework.util.function.ThrowingFunction;
 public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
 
   private final ItemProcessorUtil itemProcessorUtil;
   private final MediaExtractor mediaExtractor;
@@ -60,9 +57,18 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
+  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+  }
+
+  @Override
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return jobMetadataDTO -> {
       LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       final byte[] rdfBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
@@ -93,9 +99,12 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
       final byte[] outputRdfBytes;
       outputRdfBytes = getOutputRdf(enrichedRdf);
 
-      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(), b ->
-          b.recordData(new String(outputRdfBytes, StandardCharsets.UTF_8))
-           .exceptionWarnings(new HashSet<>(warningExceptions)));
+      return createCopyIdentifiersValidated(
+          originSuccessExecutionRecordDTO,
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
+          b -> b.recordData(new String(outputRdfBytes, StandardCharsets.UTF_8))
+                .exceptionWarnings(new HashSet<>(warningExceptions)));
     };
   }
 
@@ -108,13 +117,6 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
         recordProcessingExceptions.add(e);
       }
     }
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
-        executionRecord);
-    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws RdfDeserializationException {

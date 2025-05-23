@@ -195,7 +195,9 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private static @NotNull String getFullExecutionName(BatchJobType batchJobType, BatchJobSubType batchJobSubType) {
-    return (batchJobSubType == null) ? batchJobType.name() : (batchJobType.name() + "-" + batchJobSubType.getName());
+    return batchJobSubType == null
+        ? batchJobType.name()
+        : format("%s-%s", batchJobType.name(), batchJobSubType.name());
   }
 
   private record StepStatisticsWrapper(long totalSuccess, long totalProcessed, List<StepStatistic> stepStatistics) {

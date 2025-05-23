@@ -11,6 +11,7 @@ import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import java.io.ByteArrayInputStream;
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
@@ -35,8 +35,6 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
   private final ItemProcessorUtil itemProcessorUtil;
   private final Indexer indexer;
   private final IndexingProperties indexingProperties;
@@ -49,8 +47,17 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
+  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+  }
+
+  @Override
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return jobMetadataDTO -> {
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       LOGGER.info("Indexing: {}", originSuccessExecutionRecordDTO.getRecordId());
 
       InputStream inputStream = new ByteArrayInputStream(
@@ -63,17 +70,13 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
       }
 
       LOGGER.info("Indexed: {}", originSuccessExecutionRecordDTO.getRecordId());
-      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(), b ->
-          b.recordData(originSuccessExecutionRecordDTO.getRecordData())
-           .tierResults(tierResults));
+      return createCopyIdentifiersValidated(
+          originSuccessExecutionRecordDTO,
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
+          b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData())
+                .tierResults(tierResults));
     };
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
-        executionRecord);
-    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private boolean isAllDataNull(TierResults tierResultsToCheck) {

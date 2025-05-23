@@ -5,6 +5,7 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
@@ -33,8 +34,6 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
   @Value("#{jobParameters['datasetName']}")
@@ -53,8 +52,17 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
+  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+  }
+
+  @Override
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return jobMetadataDTO -> {
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       final byte[] contentBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
       InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
@@ -65,16 +73,12 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
         resultString = writer.toString();
       }
 
-      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(),
+      return createCopyIdentifiersValidated(
+          originSuccessExecutionRecordDTO,
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
           b -> b.recordData(resultString));
     };
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
-        executionRecord);
-    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
   private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(byte[] content)

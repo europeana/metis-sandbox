@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.entity;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,6 +29,7 @@ public class RecordLogEntity {
   @JoinColumn(name = "record_id", referencedColumnName = "id")
   private RecordEntity recordId;
 
+  @Column(columnDefinition="TEXT")
   protected String content;
 
   @Enumerated(EnumType.STRING)

@@ -5,6 +5,7 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.normalization.NormalizerFactory;
@@ -12,7 +13,6 @@ import eu.europeana.normalization.model.NormalizationResult;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
@@ -20,9 +20,6 @@ import org.springframework.util.function.ThrowingFunction;
 @StepScope
 @Setter
 public class NormalizationItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
-
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
 
   private final ItemProcessorUtil itemProcessorUtil;
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
@@ -32,20 +29,25 @@ public class NormalizationItemProcessor extends AbstractMetisItemProcessor<Execu
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
-      NormalizationResult normalizationResult = normalizerFactory.getNormalizer()
-                                                                 .normalize(originSuccessExecutionRecordDTO.getRecordData());
-
-      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(),
-          b -> b.recordData(normalizationResult.getNormalizedRecordInEdmXml()));
-    };
-  }
-
-  @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
     final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+  }
+
+  @Override
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return jobMetadataDTO -> {
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
+      NormalizationResult normalizationResult = normalizerFactory.getNormalizer()
+                                                                 .normalize(originSuccessExecutionRecordDTO.getRecordData());
+
+      return createCopyIdentifiersValidated(
+          originSuccessExecutionRecordDTO,
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
+          b -> b.recordData(normalizationResult.getNormalizedRecordInEdmXml()));
+    };
   }
 }

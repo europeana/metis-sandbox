@@ -7,6 +7,7 @@ import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUti
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.common.Step;
@@ -29,7 +30,6 @@ import lombok.experimental.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
@@ -40,11 +40,6 @@ import org.springframework.util.function.ThrowingFunction;
 public class ValidationItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
-  @Value("#{jobParameters['batchJobSubType']}")
-  private ValidationBatchBatchJobSubType batchJobSubType;
 
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
   private static final Properties properties = new Properties();
@@ -65,9 +60,22 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
     this.executionPointRepository = executionPointRepository;
   }
 
+  @Override
+  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
+        getTargetExecutionId());
+    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(jobMetadataDTO);
+    if (getBatchJobSubType() == ValidationBatchBatchJobSubType.INTERNAL) {
+      generatePatternAnalysis(originSuccessExecutionRecordDTO);
+    }
+    return resultExecutionRecordDTO;
+  }
+
   @PostConstruct
   private void postConstruct() {
-    switch (batchJobSubType) {
+    switch ((ValidationBatchBatchJobSubType)getBatchJobSubType()) {
       case EXTERNAL -> {
         schema = properties.getProperty("predefinedSchemas.edm-external.url");
         rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
@@ -78,7 +86,6 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
         rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
         schematronFileLocation = properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
       }
-      default -> throw new IllegalStateException("Unexpected value: " + batchJobSubType);
     }
   }
 
@@ -97,8 +104,9 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return jobMetadataDTO -> {
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       final String reorderedFileContent;
       reorderedFileContent = reorderFileContent(originSuccessExecutionRecordDTO.getRecordData());
 
@@ -113,21 +121,12 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
         throw new ValidationFailureException(result.getMessage());
       }
 
-      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(),
+      return createCopyIdentifiersValidated(
+          originSuccessExecutionRecordDTO,
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
           b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
-        executionRecord);
-    ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO,
-        targetExecutionId, getExecutionName(batchJobSubType));
-    if (batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
-      generatePatternAnalysis(originSuccessExecutionRecordDTO);
-    }
-    return resultExecutionRecordDTO;
   }
 
   private void generatePatternAnalysis(SuccessExecutionRecordDTO successExecutionRecordDTO) {

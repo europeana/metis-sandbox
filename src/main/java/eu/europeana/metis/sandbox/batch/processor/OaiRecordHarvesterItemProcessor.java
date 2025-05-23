@@ -7,6 +7,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
@@ -30,8 +31,6 @@ public class OaiRecordHarvesterItemProcessor extends
 
   final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
 
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
   @Value("#{jobParameters['oaiEndpoint']}")
   private String oaiEndpoint;
   @Value("#{jobParameters['oaiSet']}")
@@ -43,7 +42,6 @@ public class OaiRecordHarvesterItemProcessor extends
 
   @Override
   public ExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
-
     LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest,
@@ -58,14 +56,14 @@ public class OaiRecordHarvesterItemProcessor extends
     final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
     return createValidated(
         b -> b.datasetId(datasetId)
-              .executionId(targetExecutionId)
+              .executionId(getTargetExecutionId())
               .recordId(europeanaGeneratedId)
               .executionName(getExecutionName())
               .recordData(resultString));
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
     return null;
   }
 }

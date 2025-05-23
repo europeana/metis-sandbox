@@ -9,6 +9,7 @@ import eu.europeana.enrichment.rest.client.report.Type;
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -20,7 +21,6 @@ import java.util.Set;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
@@ -28,9 +28,6 @@ import org.springframework.util.function.ThrowingFunction;
 @StepScope
 @Setter
 public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
-
-  @Value("#{jobParameters['targetExecutionId']}")
-  private String targetExecutionId;
 
   private final ItemProcessorUtil itemProcessorUtil;
   private EnrichmentWorker enrichmentWorker;
@@ -41,8 +38,17 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
   }
 
   @Override
-  public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {
+  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+  }
+
+  @Override
+  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+    return jobMetadataDTO -> {
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       ProcessedResult<String> processedResult = enrichmentWorker.process(originSuccessExecutionRecordDTO.getRecordData());
       Set<Report> reports = processedResult.getReport();
 
@@ -55,9 +61,12 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
                  .map(report -> new ServiceException(createErrorMessage(report), null))
                  .toList();
 
-      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(), b ->
-          b.recordData(processedResult.getProcessedRecord())
-           .exceptionWarnings(new HashSet<>(warningExceptions)));
+      return createCopyIdentifiersValidated(
+          originSuccessExecutionRecordDTO,
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
+          b -> b.recordData(processedResult.getProcessedRecord())
+                .exceptionWarnings(new HashSet<>(warningExceptions)));
     };
   }
 
@@ -69,13 +78,6 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
 
   private String createErrorMessage(Report report) {
     return String.format("%s Value: %s", report.getMessage(), report.getValue());
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
-        executionRecord);
-    return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 
 }
