@@ -9,6 +9,7 @@ import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DA
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_INPUT_FILE_PATH;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_METADATA_PREFIX;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_ENDPOINT;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_SET;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_STEP_SIZE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
@@ -110,9 +111,9 @@ public class BatchJobExecutor {
     LOGGER.info("Registered batch jobs: {}", jobs.stream().map(Job::getName).toList());
   }
 
-  public void execute(DatasetMetadata datasetMetadata, String url, String setSpec, String metadataFormat) {
+  public void execute(DatasetMetadata datasetMetadata, String url, String setSpec, String metadataFormat, Integer stepSize) {
     taskExecutor.execute(() -> {
-      JobExecution harvestExecution = executeOaiHarvest(datasetMetadata, url, setSpec, metadataFormat);
+      JobExecution harvestExecution = executeOaiHarvest(datasetMetadata, url, setSpec, metadataFormat, stepSize);
       waitForCompletion(harvestExecution);
 
       if (harvestExecution.getStatus() == BatchStatus.COMPLETED) {
@@ -196,12 +197,13 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeOaiHarvest(DatasetMetadata datasetMetadata, String url, String setSpec,
-      String metadataFormat) {
+      String metadataFormat, Integer stepSize) {
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .addString(ARGUMENT_OAI_ENDPOINT, url)
-        .addString(ARGUMENT_INPUT_FILE_PATH, setSpec)
+        .addString(ARGUMENT_OAI_SET, setSpec)
         .addString(ARGUMENT_METADATA_PREFIX, metadataFormat)
+        .addString(ARGUMENT_STEP_SIZE, String.valueOf(stepSize))
         .toJobParameters();
 
     Job oaiHarvestJob = findJobByName(OaiHarvestJobConfig.BATCH_JOB);

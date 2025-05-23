@@ -337,7 +337,7 @@ class DatasetController {
                                                      .withStepSize(stepsize).build();
     setspec = getDefaultSetSpecWhenNotAvailable(setspec);
 
-    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat);
+    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat, stepsize);
 
     //        harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
     //                        new OaiHarvestData(url, setspec, metadataformat, ""))

@@ -39,10 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -80,7 +82,8 @@ public class HarvestServiceImpl implements HarvestService {
   }
 
   @Override
-  public void harvestFromOaiPmh(String datasetId, RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData, Integer stepSize) {
+  public void harvestFromOaiPmh(String datasetId, RecordBuilder recordDataEncapsulated, OaiHarvestData oaiHarvestData,
+      Integer stepSize) {
     publishHarvestedRecords(harvestOaiIdentifiers(datasetId, recordDataEncapsulated, oaiHarvestData, stepSize),
         datasetId,
         "Error harvesting OAI-PMH records",
@@ -98,7 +101,7 @@ public class HarvestServiceImpl implements HarvestService {
 
       List<OaiRecordHeader> filteredIterator = harvestOaiHeaders(recordHeaderIterator, datasetId, stepSize);
 
-      if(filteredIterator.isEmpty()){
+      if (filteredIterator.isEmpty()) {
         return Collections.emptyList();
       }
 
@@ -114,7 +117,7 @@ public class HarvestServiceImpl implements HarvestService {
 
             } catch (RuntimeException harvestException) {
               saveErrorWhileHarvesting(recordDataEncapsulated, recordHeader.getOaiIdentifier(),
-                      Step.HARVEST_OAI_PMH,
+                  Step.HARVEST_OAI_PMH,
                   harvestException);
             }
           }
@@ -129,11 +132,28 @@ public class HarvestServiceImpl implements HarvestService {
                          .toList();
   }
 
+  public List<OaiRecordHeader> harvestOaiIdentifiers(String datasetId,
+      @NotNull OaiHarvest oaiHarvest, Integer stepSize) {
+    try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
+        oaiHarvest)) {
+      return harvestOaiHeaders(recordHeaderIterator, datasetId, stepSize);
+    } catch (HarvesterException | IOException e) {
+      throw new ServiceException("Error harvesting OAI-PMH records ", e);
+    }
+  }
+
   private List<OaiRecordHeader> harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,
       OaiRecordHeader> iteratorToFilter, String datasetId, Integer stepSize) throws HarvesterException {
+    StopWatch watch = StopWatch.createStarted();
     final List<OaiRecordHeader> result = new ArrayList<>();
     harvestFromIterator(iteratorToFilter, datasetId, stepSize, entry -> {
       result.add(entry);
+
+      if (watch.getTime(TimeUnit.SECONDS) > 10) {
+        LOGGER.info("Already harvested {} records...", result.size());
+        watch.reset();
+        watch.start();
+      }
       return ReportingIteration.IterationResult.CONTINUE;
     }, OaiRecordHeader::isDeleted);
     return result;
@@ -152,17 +172,17 @@ public class HarvestServiceImpl implements HarvestService {
 
       recordEntity = recordRepository.save(recordEntity);
       Record harvestedRecord = recordToHarvest
-              .providerId(oaiHarvestData.getOaiIdentifier())
-              .content(recordContent)
-              .recordId(recordEntity.getId())
-              .build();
-        recordInfo = new RecordInfo(harvestedRecord, recordErrors);
+          .providerId(oaiHarvestData.getOaiIdentifier())
+          .content(recordContent)
+          .recordId(recordEntity.getId())
+          .build();
+      recordInfo = new RecordInfo(harvestedRecord, recordErrors);
 
       return recordInfo;
     } catch (HarvesterException e) {
       LOGGER.error("Error harvesting OAI-PMH Record Header: {} with exception {}", oaiHarvestData.getOaiIdentifier(), e);
       saveErrorWhileHarvesting(recordToHarvest, oaiHarvestData.getOaiIdentifier(),
-              Step.HARVEST_OAI_PMH, new RuntimeException(e));
+          Step.HARVEST_OAI_PMH, new RuntimeException(e));
       return null;
     }
   }
@@ -186,7 +206,6 @@ public class HarvestServiceImpl implements HarvestService {
           return ReportingIteration.IterationResult.TERMINATE;
         }
       }, FullRecord::isDeleted);
-
 
       if (!exception.isEmpty()) {
         throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
@@ -240,10 +259,10 @@ public class HarvestServiceImpl implements HarvestService {
     try {
       recordEntity = recordRepository.save(recordEntity);
       Record harvestedRecord = recordToHarvest
-              .providerId(tmpProviderId)
-              .content(IOUtils.toByteArray(inputStream))
-              .recordId(recordEntity.getId())
-              .build();
+          .providerId(tmpProviderId)
+          .content(IOUtils.toByteArray(inputStream))
+          .recordId(recordEntity.getId())
+          .build();
       recordInfo = new RecordInfo(harvestedRecord, new ArrayList<>());
 
       return recordInfo;
@@ -352,7 +371,7 @@ public class HarvestServiceImpl implements HarvestService {
     }
   }
 
-  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex, int nextIndexToSelect, int stepSize){
+  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex, int nextIndexToSelect, int stepSize) {
     return datasetSize == 0 && currentIndex > 0 && currentIndex <= nextIndexToSelect && nextIndexToSelect < stepSize;
   }
 }
