@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
@@ -16,6 +17,7 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
@@ -64,6 +66,7 @@ public class ValidationController {
   private final BatchJobExecutor batchJobExecutor;
   private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
+  private final HarvestingParameterService harvestingParameterService;
 
   /**
    * Instantiates a new Validation controller.
@@ -73,13 +76,14 @@ public class ValidationController {
   public ValidationController(ValidationWorkflowService validationWorkflowService, DatasetService datasetService,
       DatasetReportService datasetReportService,
       BatchJobExecutor batchJobExecutor, PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
-      ExecutionPointService executionPointService) {
+      ExecutionPointService executionPointService, HarvestingParameterService harvestingParameterService) {
     this.workflowService = validationWorkflowService;
     this.datasetService = datasetService;
     this.datasetReportService = datasetReportService;
     this.batchJobExecutor = batchJobExecutor;
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
+    this.harvestingParameterService = harvestingParameterService;
   }
 
   /**
@@ -123,6 +127,8 @@ public class ValidationController {
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                                                      .withStepSize(1).build();
+    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
+        new FileHarvestingDto(recordToValidate.getOriginalFilename(), "xml"));
     batchJobExecutor.executeBlocking(datasetMetadata, filePath);
     ProgressInfoDto progressInfoDto = datasetReportService.getProgress(datasetMetadata.getDatasetId());
 

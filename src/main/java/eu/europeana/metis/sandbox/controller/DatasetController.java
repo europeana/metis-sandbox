@@ -18,12 +18,16 @@ import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
@@ -111,6 +115,7 @@ class DatasetController {
   private final HarvestPublishService harvestPublishService;
   private final UrlValidator urlValidator;
   private final BatchJobExecutor batchJobExecutor;
+  private final HarvestingParameterService harvestingParameterService;
 
   /**
    * Instantiates a new Dataset controller.
@@ -129,7 +134,8 @@ class DatasetController {
   public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
       DatasetReportService reportService, RecordService recordService,
       RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-      HarvestPublishService harvestPublishService, BatchJobExecutor batchJobExecutor) {
+      HarvestPublishService harvestPublishService, BatchJobExecutor batchJobExecutor,
+      HarvestingParameterService harvestingParameterService) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
     this.reportService = reportService;
@@ -138,6 +144,7 @@ class DatasetController {
     this.recordTierCalculationService = recordTierCalculationService;
     this.harvestPublishService = harvestPublishService;
     this.batchJobExecutor = batchJobExecutor;
+    this.harvestingParameterService = harvestingParameterService;
     urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   }
 
@@ -182,16 +189,16 @@ class DatasetController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
+
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
         country, language, xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                                                      .withStepSize(stepsize).build();
+    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
+        new FileHarvestingDto(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
 
-    //        harvestPublishService.runHarvestProvidedFileAsync(dataset, datasetMetadata, compressedFileExtension)
-    //                .exceptionally(e ->
-    //                    datasetLogService.logException(createdDatasetId, e));
 
     final Path datasetRecordsCompressedFilePath;
     try {
@@ -256,9 +263,7 @@ class DatasetController {
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                                                      .withStepSize(stepsize).build();
-
-    //        harvestPublishService.runHarvestHttpFileAsync(url, datasetMetadata, compressedFileExtension)
-    //                .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
 
     final InputStream inputStreamToHarvest;
     try {
@@ -337,11 +342,10 @@ class DatasetController {
                                                      .withStepSize(stepsize).build();
     setspec = getDefaultSetSpecWhenNotAvailable(setspec);
 
-    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat, stepsize);
+    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
+        new OAIPmhHarvestingDto(url, setspec, metadataformat));
 
-    //        harvestPublishService.runHarvestOaiPmhAsync(datasetMetadata,
-    //                        new OaiHarvestData(url, setspec, metadataformat, ""))
-    //                .exceptionally(e -> datasetLogService.logException(createdDatasetId, e));
+    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat, stepsize);
 
     return new DatasetIdDto(createdDatasetId);
   }
