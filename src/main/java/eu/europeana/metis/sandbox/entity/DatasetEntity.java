@@ -39,6 +39,8 @@ public class DatasetEntity {
 
   private Boolean recordLimitExceeded;
 
+  private WorkflowType workflowType;
+
   /**
    * Constructs a DatasetEntity.
    *
@@ -49,8 +51,9 @@ public class DatasetEntity {
    * @param country The country associated with the dataset.
    * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
    */
-  public DatasetEntity(String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
+  public DatasetEntity(WorkflowType workflowType, String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded) {
+    this.workflowType = workflowType;
     this.datasetName = datasetName;
     this.createdById = createdById;
     this.recordsQuantity = recordsQuantity;
@@ -71,9 +74,9 @@ public class DatasetEntity {
    * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
    * @param xsltEdmExternalContent External XSLT EDM content associated with the dataset.
    */
-  public DatasetEntity(String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
+  public DatasetEntity(WorkflowType workflowType, String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
       Boolean recordLimitExceeded, String xsltEdmExternalContent) {
-    this(datasetName, createdById, recordsQuantity, language, country, recordLimitExceeded);
+    this(workflowType, datasetName, createdById, recordsQuantity, language, country, recordLimitExceeded);
     this.xsltEdmExternalContent = xsltEdmExternalContent;
   }
 
@@ -151,5 +154,13 @@ public class DatasetEntity {
 
   public void setXsltEdmExternalContent(String xsltTransformerEdmExternal) {
     this.xsltEdmExternalContent = xsltTransformerEdmExternal;
+  }
+
+  public WorkflowType getWorkflowType() {
+    return workflowType;
+  }
+
+  public void setWorkflowType(WorkflowType workflowType) {
+    this.workflowType = workflowType;
   }
 }

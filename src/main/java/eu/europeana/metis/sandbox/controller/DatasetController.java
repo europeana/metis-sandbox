@@ -20,6 +20,7 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -182,8 +183,8 @@ class DatasetController {
     }
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country,
-        language, xsltInputStream);
+    final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
+        country, language, xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                                                      .withStepSize(stepsize).build();
@@ -250,8 +251,8 @@ class DatasetController {
     }
 
     final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    final String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country,
-        language, xsltInputStream);
+    final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
+        country, language, xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                                                      .withStepSize(stepsize).build();
@@ -329,8 +330,8 @@ class DatasetController {
     }
 
     InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
-    String createdDatasetId = datasetService.createEmptyDataset(datasetName, userId, country, language,
-        xsltInputStream);
+    String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.OAI_HARVEST, datasetName, userId, country,
+        language, xsltInputStream);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
                                                      .withStepSize(stepsize).build();

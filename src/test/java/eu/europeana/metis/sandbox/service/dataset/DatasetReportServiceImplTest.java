@@ -74,7 +74,7 @@ class DatasetReportServiceImplTest {
 
     @NotNull
     private static DatasetEntity createDataset(Long recordsQuantity) {
-        DatasetEntity dataset = new DatasetEntity("test", null, recordsQuantity, Language.NL, Country.NETHERLANDS, false);
+        DatasetEntity dataset = new DatasetEntity(null,  "test", null, recordsQuantity, Language.NL, Country.NETHERLANDS, false);
         dataset.setDatasetId(1);
         return dataset;
     }

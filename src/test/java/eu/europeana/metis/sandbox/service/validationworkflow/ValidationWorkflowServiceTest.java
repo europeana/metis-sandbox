@@ -157,7 +157,7 @@ class ValidationWorkflowServiceTest {
     }
 
     private void prepareBaseMocks() throws PatternAnalysisException {
-        when(datasetService.createEmptyDataset(anyString(), any(), any(), any(), any())).thenReturn("datasetId");
+        when(datasetService.createEmptyDataset(any(), anyString(), any(), any(), any(), any())).thenReturn("datasetId");
         doNothing().when(datasetService).updateNumberOfTotalRecord(anyString(), anyLong());
         RecordEntity recordEntity = new RecordEntity("providerId", "datasetId");
         doReturn(recordEntity).when(recordRepository).save(any());
@@ -182,6 +182,6 @@ class ValidationWorkflowServiceTest {
     }
 
     private void verifyMocks() {
-        verify(datasetService, times(1)).createEmptyDataset(anyString(), any(), any(), any(), any());
+        verify(datasetService, times(1)).createEmptyDataset(any(), anyString(), any(), any(), any(), any());
     }
 }

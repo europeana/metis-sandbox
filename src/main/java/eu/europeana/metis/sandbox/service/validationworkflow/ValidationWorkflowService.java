@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -122,7 +123,7 @@ public class ValidationWorkflowService {
       throws IOException {
     final String datasetName = DATASET_ID_PREFIX + UUID.randomUUID();
     final String providerId = PROVIDER + UUID.randomUUID();
-    final String datasetId = datasetService.createEmptyDataset(datasetName, null, country, language, null);
+    final String datasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST_ONLY_VALIDATION, datasetName, null, country, language, null);
     datasetService.updateNumberOfTotalRecord(datasetId, 1L);
     RecordEntity recordEntity = new RecordEntity(providerId, datasetId);
     recordEntity = recordRepository.save(recordEntity);

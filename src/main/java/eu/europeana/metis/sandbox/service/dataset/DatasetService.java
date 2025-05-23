@@ -7,6 +7,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 
+import eu.europeana.metis.sandbox.entity.WorkflowType;
 import java.io.InputStream;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public interface DatasetService {
   /**
    * Creates a dataset id and publishes the given records for further processing
    *
+   * @param workflowType
    * @param datasetName must not be null
    * @param createdById the identifier of the user creating the dataset; can be null.
    * @param country must not be null
@@ -30,7 +32,7 @@ public interface DatasetService {
    * @throws RecordParsingException if fails to parse a record from the records list
    * @see Dataset
    */
-  String createEmptyDataset(String datasetName, String createdById, Country country, Language language,
+  String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country, Language language,
       InputStream xsltEdmExternalContentStream);
 
   /**

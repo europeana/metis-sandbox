@@ -39,6 +39,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,14 +70,16 @@ public class BatchJobExecutor {
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
-  //This order is set because there is no orchestrator yet.
-  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> jobExecutionOrder = List.of(
+  //Those fields and handling is temporary until we have an external orchestrator(e.g. metis-core).
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> validationJobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeTransformation(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeValidationInternal(datasetMetadata,
-          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
+
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> afterValidationJobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeNormalization(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeEnrichment(datasetMetadata,
@@ -85,6 +88,10 @@ public class BatchJobExecutor {
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
       (datasetMetadata, previousJobExecution) -> executeIndex(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
+
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> fullJobExecutionOrder =
+      Stream.concat(validationJobExecutionOrder.stream(), afterValidationJobExecutionOrder.stream())
+            .toList();
 
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, ExecutionRecordRepository executionRecordRepository,
@@ -115,7 +122,7 @@ public class BatchJobExecutor {
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 
         JobExecution previousExecution = harvestExecution;
-        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : jobExecutionOrder) {
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : fullJobExecutionOrder) {
           JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
           waitForCompletion(jobExecution);
           if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
@@ -141,7 +148,7 @@ public class BatchJobExecutor {
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 
         JobExecution previousExecution = harvestExecution;
-        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : jobExecutionOrder) {
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : fullJobExecutionOrder) {
           JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
           waitForCompletion(jobExecution);
           if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
@@ -151,6 +158,28 @@ public class BatchJobExecutor {
         }
       }
     });
+  }
+
+  public void executeBlocking(DatasetMetadata datasetMetadata, Path recordFilePath) {
+    JobExecution harvestExecution = executeFileHarvest(datasetMetadata, recordFilePath);
+    waitForCompletion(harvestExecution);
+
+    if (harvestExecution.getStatus() == BatchStatus.COMPLETED) {
+      long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(
+          datasetMetadata.getDatasetId(),
+          FileHarvestJobConfig.BATCH_JOB.name());
+      datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
+
+      JobExecution previousExecution = harvestExecution;
+      for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : validationJobExecutionOrder) {
+        JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
+        waitForCompletion(jobExecution);
+        if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+          throw new RuntimeException("Batch job " + jobExecution.getJobId() + " failed");
+        }
+        previousExecution = jobExecution;
+      }
+    }
   }
 
   private void waitForCompletion(JobExecution jobExecution) {
@@ -186,6 +215,16 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_INPUT_FILE_PATH, datasetRecordsCompressedFilePath.toString())
         .addString(ARGUMENT_COMPRESSED_FILE_EXTENSION, compressedFileExtension.name())
         .addString(ARGUMENT_STEP_SIZE, String.valueOf(stepSize))
+        .toJobParameters();
+
+    Job oaiHarvestJob = findJobByName(FileHarvestJobConfig.BATCH_JOB);
+    return runJob(oaiHarvestJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeFileHarvest(DatasetMetadata datasetMetadata, Path recordFilePath) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .addString(ARGUMENT_INPUT_FILE_PATH, recordFilePath.toString())
         .toJobParameters();
 
     Job oaiHarvestJob = findJobByName(FileHarvestJobConfig.BATCH_JOB);

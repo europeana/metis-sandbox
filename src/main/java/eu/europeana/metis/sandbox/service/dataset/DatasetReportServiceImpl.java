@@ -41,6 +41,7 @@ import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.RecordEntity;
+import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogViewImpl;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -87,12 +88,24 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
+  //Those are all temporary until we have a proper orchestrator(e.g. metis-core)
   private record StepConfig(BatchJobType batchJob, BatchJobSubType subtype, Step step) {
 
   }
 
-  private static final List<StepConfig> stepConfigs = List.of(
+  private static final List<StepConfig> oldHarvestStepConfigs = List.of(
+      new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH),
       new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
+      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
+      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
+      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
+      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
+      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
+  );
+
+  private static final List<StepConfig> oaiHarvestStepConfigs = List.of(
       new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH),
       new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
       new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
@@ -101,6 +114,31 @@ class DatasetReportServiceImpl implements DatasetReportService {
       new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
       new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
       new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
+  );
+
+  private static final List<StepConfig> fileHarvestStepConfigs = List.of(
+      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
+      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
+      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
+      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
+      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
+      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
+  );
+
+  private static final List<StepConfig> fileHarvestOnlyValidationStepConfigs = List.of(
+      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
+      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL)
+  );
+
+  private static final Map<WorkflowType, List<StepConfig>> stepConfigsByWorkflowType = Map.of(
+      WorkflowType.OAI_HARVEST, oaiHarvestStepConfigs,
+      WorkflowType.FILE_HARVEST, fileHarvestStepConfigs,
+      WorkflowType.FILE_HARVEST_ONLY_VALIDATION, fileHarvestOnlyValidationStepConfigs,
+      WorkflowType.OLD_HARVEST, oldHarvestStepConfigs
   );
 
   public DatasetReportServiceImpl(
@@ -129,6 +167,14 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<StepStatistic> stepStatistics = new ArrayList<>();
     List<ErrorLogView> errorLogViews = new ArrayList<>();
     Map<Step, StepStatisticsWrapper> statisticsMap = new EnumMap<>(Step.class);
+
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow(() -> new InvalidDatasetException(datasetId));
+
+    WorkflowType workflowType = datasetEntity.getWorkflowType();
+    if (workflowType == null) {
+      workflowType = WorkflowType.OLD_HARVEST;
+    }
+    final List<StepConfig> stepConfigs = stepConfigsByWorkflowType.get(workflowType);
 
     for (StepConfig stepConfig : stepConfigs) {
       StepStatisticsWrapper stepStatisticsWrapper = getStatistics(datasetId, stepConfig);

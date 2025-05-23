@@ -11,9 +11,14 @@ import jakarta.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.commons.io.IOUtils;
+import org.apache.tika.utils.StringUtils;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +51,15 @@ public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> 
   @PostConstruct
   private void prepare() throws IOException {
     InputStream inputStream = new FileInputStream(inputFilePath);
-    Map<String, String> recordIdAndContent = harvestServiceImpl.harvestFromCompressedArchive(inputStream, datasetId,
-        Integer.valueOf(stepSize), CompressedFileExtension.valueOf(compressedFileExtension));
+    String recordId = Paths.get(inputFilePath).getFileName().toString();
+
+    final Map<String, String> recordIdAndContent = new HashMap<>();
+    if (StringUtils.isBlank(compressedFileExtension)) {
+      recordIdAndContent.put(recordId, IOUtils.toString(inputStream, StandardCharsets.UTF_8));
+    } else {
+      recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(inputStream, datasetId,
+          Integer.valueOf(stepSize), CompressedFileExtension.valueOf(compressedFileExtension)));
+    }
     recordIdAndContentIterator = recordIdAndContent.entrySet().iterator();
   }
 
@@ -56,11 +68,11 @@ public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> 
     Entry<String, String> recordIdAndContent = takeRecordIdAndContent();
     if (recordIdAndContent != null) {
       SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
-                                                                                     .datasetId(datasetId)
-                                                                                     .recordId(recordIdAndContent.getKey())
-                                                                                     .executionId(targetExecutionId)
-                                                                                     .executionName(batchJobType.name())
-                                                                                     .recordData(recordIdAndContent.getValue()));
+          .datasetId(datasetId)
+          .recordId(recordIdAndContent.getKey())
+          .executionId(targetExecutionId)
+          .executionName(batchJobType.name())
+          .recordData(recordIdAndContent.getValue()));
       return successExecutionRecordDTO;
     } else {
       return null;

@@ -15,6 +15,7 @@ import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
+import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.IOException;
@@ -39,13 +40,13 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public String createEmptyDataset(String datasetName, String createdById, Country country, Language language,
+  public String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country, Language language,
       InputStream xsltEdmExternalContentStream) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
 
-    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(datasetName, createdById, null, language, country, false),
+    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(workflowType, datasetName, createdById, null, language, country, false),
         xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
