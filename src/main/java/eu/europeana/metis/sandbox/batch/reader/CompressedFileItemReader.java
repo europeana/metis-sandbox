@@ -55,13 +55,12 @@ public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> 
   public ExecutionRecordDTO read() {
     Entry<String, String> recordIdAndContent = takeRecordIdAndContent();
     if (recordIdAndContent != null) {
-      SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.builder()
+      SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
                                                                                      .datasetId(datasetId)
                                                                                      .recordId(recordIdAndContent.getKey())
                                                                                      .executionId(targetExecutionId)
                                                                                      .executionName(batchJobType.name())
-                                                                                     .recordData(recordIdAndContent.getValue())
-                                                                                     .build();
+                                                                                     .recordData(recordIdAndContent.getValue()));
       return successExecutionRecordDTO;
     } else {
       return null;

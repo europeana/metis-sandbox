@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 import static java.lang.String.format;
 
 import eu.europeana.indexing.Indexer;
@@ -62,10 +63,9 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
       }
 
       LOGGER.info("Indexed: {}", originSuccessExecutionRecordDTO.getRecordId());
-      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
-                                      .recordData(originSuccessExecutionRecordDTO.getRecordData())
-                                      .tierResults(tierResults)
-                                      .build();
+      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(), b ->
+          b.recordData(originSuccessExecutionRecordDTO.getRecordData())
+           .tierResults(tierResults));
     };
   }
 

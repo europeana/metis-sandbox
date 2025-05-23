@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
+
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
@@ -53,10 +55,9 @@ public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<Executio
                  .map(report -> new ServiceException(createErrorMessage(report), null))
                  .toList();
 
-      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
-                                      .recordData(processedResult.getProcessedRecord())
-                                      .exceptionWarnings(new HashSet<>(warningExceptions))
-                                      .build();
+      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(), b ->
+          b.recordData(processedResult.getProcessedRecord())
+           .exceptionWarnings(new HashSet<>(warningExceptions)));
     };
   }
 

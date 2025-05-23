@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createValidated;
+
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
@@ -21,7 +23,8 @@ import org.springframework.util.function.ThrowingFunction;
 
 @Component
 @StepScope
-public class OaiRecordHarvesterItemProcessor extends AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
+public class OaiRecordHarvesterItemProcessor extends
+    AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -53,12 +56,12 @@ public class OaiRecordHarvesterItemProcessor extends AbstractMetisItemProcessor<
     EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
     final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
     final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
-    return SuccessExecutionRecordDTO.builder()
-                                    .datasetId(datasetId)
-                                    .executionId(targetExecutionId)
-                                    .recordId(europeanaGeneratedId)
-                                    .executionName(getExecutionName())
-                                    .recordData(resultString).build();
+    return createValidated(
+        b -> b.datasetId(datasetId)
+              .executionId(targetExecutionId)
+              .recordId(europeanaGeneratedId)
+              .executionName(getExecutionName())
+              .recordData(resultString));
   }
 
   @Override

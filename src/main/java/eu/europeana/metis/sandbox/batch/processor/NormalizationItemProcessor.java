@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
+
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
@@ -32,16 +34,18 @@ public class NormalizationItemProcessor extends AbstractMetisItemProcessor<Execu
   @Override
   public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
     return originSuccessExecutionRecordDTO -> {
-      NormalizationResult normalizationResult = normalizerFactory.getNormalizer().normalize(originSuccessExecutionRecordDTO.getRecordData());
+      NormalizationResult normalizationResult = normalizerFactory.getNormalizer()
+                                                                 .normalize(originSuccessExecutionRecordDTO.getRecordData());
 
-      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
-                                      .recordData(normalizationResult.getNormalizedRecordInEdmXml()).build();
+      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(),
+          b -> b.recordData(normalizationResult.getNormalizedRecordInEdmXml()));
     };
   }
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(executionRecord);
+    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
+        executionRecord);
     return itemProcessorUtil.processCapturingException(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName());
   }
 }

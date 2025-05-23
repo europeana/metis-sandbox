@@ -22,12 +22,12 @@ public class ExecutionRecordAndDTOConverterUtil {
   }
 
   public static SuccessExecutionRecordDTO converterToExecutionRecordDTO(ExecutionRecord executionRecord) {
-    return SuccessExecutionRecordDTO.builder()
+    return SuccessExecutionRecordDTO.createValidated(b -> b
                                     .datasetId(executionRecord.getIdentifier().getDatasetId())
                                     .recordId(executionRecord.getIdentifier().getRecordId())
                                     .executionId(executionRecord.getIdentifier().getExecutionId())
                                     .executionName(executionRecord.getIdentifier().getExecutionName())
-                                    .recordData(executionRecord.getRecordData()).build();
+                                    .recordData(executionRecord.getRecordData()));
   }
 
   public static ExecutionRecord converterToExecutionRecord(SuccessExecutionRecordDTO executionRecordDTO) {

@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
+
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
@@ -63,8 +65,8 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
         resultString = writer.toString();
       }
 
-      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
-                                      .recordData(resultString).build();
+      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(),
+          b -> b.recordData(resultString));
     };
   }
 

@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
-//@AllArgsConstructor
-@SuperBuilder
+@SuperBuilder(builderMethodName = "internalBuilder")
 public abstract sealed class ExecutionRecordDTO permits SuccessExecutionRecordDTO, FailExecutionRecordDTO {
 
   @NotBlank

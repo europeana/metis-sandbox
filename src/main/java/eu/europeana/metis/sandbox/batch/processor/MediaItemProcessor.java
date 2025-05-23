@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -60,7 +61,8 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
 
   @Override
   public ThrowingFunction<SuccessExecutionRecordDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
-    return originSuccessExecutionRecordDTO -> {LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
+    return originSuccessExecutionRecordDTO -> {
+      LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
       final byte[] rdfBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
@@ -70,15 +72,17 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
       List<Exception> warningExceptions = new ArrayList<>();
       if (resourceMainThumbnail != null) {
         safeProcessResource(
-                entry -> processResourceWithoutThumbnail(entry,
-            enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId()), List.of(resourceMainThumbnail), warningExceptions);
+            entry -> processResourceWithoutThumbnail(entry,
+                enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId()), List.of(resourceMainThumbnail),
+            warningExceptions);
         hasMainThumbnail = warningExceptions.isEmpty();
       }
       List<RdfResourceEntry> remainingResourcesList;
       remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
       if (hasMainThumbnail) {
         safeProcessResource(
-            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor, originSuccessExecutionRecordDTO.getDatasetId()),
+            entry -> processResourceWithThumbnail(entry, enrichedRdf, mediaExtractor,
+                originSuccessExecutionRecordDTO.getDatasetId()),
             remainingResourcesList, warningExceptions);
       } else {
         safeProcessResource(
@@ -88,10 +92,10 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
 
       final byte[] outputRdfBytes;
       outputRdfBytes = getOutputRdf(enrichedRdf);
-      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName())
-                                      .recordData(new String(outputRdfBytes, StandardCharsets.UTF_8))
-                                      .exceptionWarnings(new HashSet<>(warningExceptions))
-                                      .build();
+
+      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(), b ->
+          b.recordData(new String(outputRdfBytes, StandardCharsets.UTF_8))
+           .exceptionWarnings(new HashSet<>(warningExceptions)));
     };
   }
 

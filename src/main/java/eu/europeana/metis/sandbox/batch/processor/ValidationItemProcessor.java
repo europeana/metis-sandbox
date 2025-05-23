@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
@@ -112,8 +113,8 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
         throw new ValidationFailureException(result.getMessage());
       }
 
-      return originSuccessExecutionRecordDTO.toBuilderOnlyIdentifiers(targetExecutionId, getExecutionName(batchJobSubType))
-                                      .recordData(originSuccessExecutionRecordDTO.getRecordData()).build();
+      return createCopyIdentifiersValidated(originSuccessExecutionRecordDTO, targetExecutionId, getExecutionName(),
+          b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
   }
 
