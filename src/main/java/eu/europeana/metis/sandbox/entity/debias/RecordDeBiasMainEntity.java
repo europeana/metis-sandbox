@@ -1,17 +1,13 @@
 package eu.europeana.metis.sandbox.entity.debias;
 
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasSourceField;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
@@ -30,9 +26,8 @@ public class RecordDeBiasMainEntity {
   /**
    * Reference to record od
    */
-  @ManyToOne(cascade = CascadeType.PERSIST)
-  @JoinColumn(name = "record_id", referencedColumnName = "id")
-  private RecordEntity recordId;
+  private String datasetId;
+  private String recordId;
   /**
    * The Language.
    */
@@ -56,7 +51,8 @@ public class RecordDeBiasMainEntity {
    * @param language the language
    * @param sourceField the DeBias source field
    */
-  public RecordDeBiasMainEntity(RecordEntity recordId, String literal, Language language, DeBiasSourceField sourceField) {
+  public RecordDeBiasMainEntity(String datasetId, String recordId, String literal, Language language, DeBiasSourceField sourceField) {
+    this.datasetId = datasetId;
     this.recordId = recordId;
     this.literal = literal;
     this.language = language;
@@ -75,7 +71,7 @@ public class RecordDeBiasMainEntity {
    *
    * @return the record id
    */
-  public RecordEntity getRecordId() {
+  public String getRecordId() {
     return recordId;
   }
 
@@ -84,7 +80,7 @@ public class RecordDeBiasMainEntity {
    *
    * @param recordId the record id
    */
-  public void setRecordId(RecordEntity recordId) {
+  public void setRecordId(String recordId) {
     this.recordId = recordId;
   }
 
@@ -158,5 +154,13 @@ public class RecordDeBiasMainEntity {
    */
   public void setSourceField(DeBiasSourceField deBiasSourceField) {
     this.sourceField = deBiasSourceField;
+  }
+
+  public String getDatasetId() {
+    return datasetId;
+  }
+
+  public void setDatasetId(String datasetId) {
+    this.datasetId = datasetId;
   }
 }

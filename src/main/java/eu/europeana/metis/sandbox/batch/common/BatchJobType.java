@@ -8,5 +8,6 @@ public enum BatchJobType {
   NORMALIZATION,
   ENRICHMENT,
   MEDIA,
-  INDEX
+  INDEX,
+  DEBIAS
 }

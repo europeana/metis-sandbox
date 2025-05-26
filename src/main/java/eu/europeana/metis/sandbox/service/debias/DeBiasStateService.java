@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.debias;
 
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 
 
 /**
@@ -9,21 +10,7 @@ import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
  */
 public interface DeBiasStateService {
 
-  /**
-   * Process boolean.
-   *
-   * @param datasetId the dataset id
-   * @return the boolean
-   */
-  boolean process(Integer datasetId);
-
-  /**
-   * Gets DeBias report.
-   *
-   * @param datasetId the dataset id
-   * @return the de bias report
-   */
-  DeBiasReportDto getDeBiasReport(Integer datasetId);
+  DeBiasReportDto getDeBiasReport(String datasetId);
 
   /**
    * Clean DeBias report.
@@ -32,11 +19,7 @@ public interface DeBiasStateService {
    */
   void cleanDeBiasReport(Integer datasetId);
 
-  /**
-   * Gets DeBias status.
-   *
-   * @param datasetId the dataset id
-   * @return the de bias status
-   */
-  DeBiasStatusDto getDeBiasStatus(Integer datasetId);
+  DeBiasStatusDto getDeBiasStatus(String datasetId);
+
+  DatasetDeBiasEntity createDatasetDeBiasEntity(Integer datasetId);
 }

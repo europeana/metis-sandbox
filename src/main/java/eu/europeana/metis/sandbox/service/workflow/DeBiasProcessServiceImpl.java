@@ -8,36 +8,22 @@ import eu.europeana.metis.debias.detect.model.error.ErrorDeBiasResult;
 import eu.europeana.metis.debias.detect.model.request.BiasInputLiterals;
 import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Record;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
-import eu.europeana.metis.sandbox.repository.RecordLogRepository;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
-import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,108 +43,39 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
 
   private final RecordDeBiasDetailRepository recordDeBiasDetailRepository;
 
-  private final RecordRepository recordRepository;
-
-  private final RecordLogRepository recordLogRepository;
-
-  private final DatasetDeBiasRepository datasetDeBiasRepository;
-
-  private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
-
-  private final LockRegistry lockRegistry;
-
   /**
    * Instantiates a new DeBias process service.
    *
    * @param deBiasClient the DeBias client
    * @param recordDeBiasMainRepository the record de bias main repository
    * @param recordDeBiasDetailRepository the record de bias detail repository
-   * @param datasetDeBiasRepository the dataset de bias repository
-   * @param recordLogRepository the record log repository
-   * @param recordRepository the record repository
-   * @param lockRegistry the lock registry
    */
   public DeBiasProcessServiceImpl(DeBiasClient deBiasClient,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
-      RecordDeBiasDetailRepository recordDeBiasDetailRepository,
-      DatasetDeBiasRepository datasetDeBiasRepository,
-      RecordLogRepository recordLogRepository,
-      RecordRepository recordRepository,
-      LockRegistry lockRegistry) {
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
     this.deBiasClient = deBiasClient;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
-    this.recordRepository = recordRepository;
-    this.recordLogRepository = recordLogRepository;
-    this.datasetDeBiasRepository = datasetDeBiasRepository;
-    this.lockRegistry = lockRegistry;
   }
 
-  /**
-   * Process batch of records with DeBias Tool and generate report
-   *
-   * @param recordList the records to process
-   */
   @Transactional
   @Override
-  public void process(List<Record> recordList) {
-    Objects.requireNonNull(recordList, "List of records is required");
-    List<DeBiasReportRow> deBiasReport = new ArrayList<>();
+  public void process(String recordContent, String datasetId, String recordId) {
 
-    doDeBiasAndGenerateReport(recordList, deBiasReport);
+    List<DeBiasInputRecord> deBiasInputRecords = getDeBiasSourceFieldsFromRecordsNew(
+        recordContent, recordId);
+    List<DeBiasReportRow> deBiasReportRows = doDeBiasAndGenerateReportNew(deBiasInputRecords);
 
-    if (!deBiasReport.isEmpty()) {
-      logReport(deBiasReport);
-      saveReport(deBiasReport);
-    }
-    updateProgress(recordList);
-  }
-
-  /**
-   * Update progress
-   */
-  private void updateProgress(List<Record> recordList) {
-    recordList.stream()
-              .collect(groupingBy(Record::getDatasetId))
-              .forEach((datasetId, records) -> {
-                    LOGGER.info("Updating DeBias record progress for datasetId: {}",datasetId);
-                    records.forEach(recordToProcess ->
-                        recordLogRepository.updateByRecordIdAndStepAndStatus(recordToProcess.getRecordId(), Step.DEBIAS,
-                            Status.SUCCESS));
-                    updateDeBiasProgressCounters(datasetId);
-                  }
-              );
-  }
-
-  private void updateDeBiasProgressCounters(String datasetId) {
-    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasUpdateCounters_" + datasetId));
-    try {
-      lock.lock();
-      LOGGER.info("DeBias counters: {} lock, Locked", datasetId);
-      final int totalDeBias = recordLogRepository.getTotalDeBiasCounterByDatasetId(datasetId);
-      final int progressDeBias = recordLogRepository.getProgressDeBiasCounterByDatasetId(datasetId);
-      LOGGER.info("DeBias PROGRESS datasetId: {}/{}", progressDeBias, totalDeBias);
-      if (progressDeBias == totalDeBias) {
-        datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "COMPLETED");
-        LOGGER.info("DeBias COMPLETED datasetId: {}", datasetId);
-      } else {
-        datasetDeBiasRepository.updateState(Integer.parseInt(datasetId), "PROCESSING");
-      }
-    } finally {
-      lock.unlock();
-      LOGGER.info("DeBias counters: {} lock, Unlocked", datasetId);
+    if (!deBiasReportRows.isEmpty()) {
+      logReport(deBiasReportRows);
+      saveReport(deBiasReportRows, datasetId, recordId);
     }
   }
 
-  /**
-   * Do DeBias and generate report.
-   *
-   * @param recordList the record list
-   * @param deBiasReport the DeBias report
-   */
-  private void doDeBiasAndGenerateReport(List<Record> recordList, List<DeBiasReportRow> deBiasReport) {
-    List<DeBiasInputRecord> deBiasSourceFieldsFromRecords = getDeBiasSourceFieldsFromRecords(recordList);
-    deBiasSourceFieldsFromRecords
+  public List<DeBiasReportRow> doDeBiasAndGenerateReportNew(List<DeBiasInputRecord> deBiasInputRecords) {
+    List<DeBiasReportRow> deBiasReportRows = new ArrayList<>();
+
+    deBiasInputRecords
         .stream()
         .collect(groupingBy(DeBiasInputRecord::language))
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
@@ -173,8 +90,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
                 switch (deBiasClient.detect(biasInputLiterals)) {
                   case DetectionDeBiasResult deBiasResult when deBiasResult.getDetections() != null -> {
                     for (int i = 0; i < partition.size(); i++) {
-                      deBiasReport.add(
-                          new DeBiasReportRow(partition.get(i).recordId(), partition.get(i).europeanaId(),
+                      deBiasReportRows.add(
+                          new DeBiasReportRow(partition.get(i).europeanaId(),
                               deBiasResult.getDetections().get(i), partition.get(i).sourceField())
                       );
                     }
@@ -189,22 +106,17 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
               }
               LOGGER.info("DeBias execution finished for partition: {}",
                   partition.stream()
-                           .map(DeBiasInputRecord::recordId)
+                           .map(DeBiasInputRecord::europeanaId)
                            .map(Object::toString)
                            .collect(Collectors.joining(",")));
             })));
+    return deBiasReportRows;
   }
 
-  /**
-   * Save DeBias report into database.
-   *
-   * @param report the report
-   */
-  private void saveReport(List<DeBiasReportRow> report) {
+  private void saveReport(List<DeBiasReportRow> report, String datasetId, String recordId) {
     report.forEach(row -> {
       if (!row.valueDetection().getTags().isEmpty()) {
-        RecordEntity recordEntity = recordRepository.findById(row.recordId()).orElse(null);
-        RecordDeBiasMainEntity recordDeBiasMain = new RecordDeBiasMainEntity(recordEntity, row.valueDetection().getLiteral(),
+        RecordDeBiasMainEntity recordDeBiasMain = new RecordDeBiasMainEntity(datasetId, recordId, row.valueDetection().getLiteral(),
             Language.valueOf(row.valueDetection().getLanguage().toUpperCase(Locale.US)), row.sourceField());
         recordDeBiasMainRepository.save(recordDeBiasMain);
         row.valueDetection().getTags().forEach(tag -> {
@@ -223,8 +135,8 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    */
   private void logReport(List<DeBiasReportRow> deBiasReport) {
     deBiasReport.forEach(row -> {
-      LOGGER.info("recordId: {} europeanaId: {} language: {} source: {} literal: {}",
-          row.recordId(), row.europeanaId(), row.valueDetection().getLanguage(),
+      LOGGER.info("europeanaId: {} language: {} source: {} literal: {}",
+          row.europeanaId(), row.valueDetection().getLanguage(),
           row.sourceField(), row.valueDetection().getLiteral());
       row.valueDetection().getTags()
          .forEach(tag -> LOGGER.info("tag {} {} {} {}",
@@ -232,18 +144,12 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
     });
   }
 
-  /**
-   * Gets descriptions from records.
-   *
-   * @param recordList the record list
-   * @return the descriptions from records
-   */
-  private List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(List<Record> recordList) {
-    return recordList.stream().map(recordToProcess -> {
+
+  public List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecordsNew(String recordContent, String recordId) {
       List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
       try {
-        RDF rdf = new RdfConversionUtils().convertStringToRdf(new String(recordToProcess.getContent(), StandardCharsets.UTF_8));
-        DeBiasRdfInfoExtractor deBiasRdfInfoExtractor = new DeBiasRdfInfoExtractor(rdf, recordToProcess);
+        RDF rdf = new RdfConversionUtils().convertStringToRdf(recordContent);
+        DeBiasRdfInfoExtractor deBiasRdfInfoExtractor = new DeBiasRdfInfoExtractor(rdf, recordId);
 
         // Get the literal values
         deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getDescriptionsAndLanguageFromRdf());
@@ -260,13 +166,12 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
         LOGGER.error("Serialization {}", e.getMessage(), e);
       }
       return deBiasInputRecords;
-    }).flatMap(Collection::stream).toList();
   }
 
   /**
    * The type DeBias input record.
    */
-  record DeBiasInputRecord(Long recordId, String europeanaId, String literal,
+  public record DeBiasInputRecord(String europeanaId, String literal,
                            DeBiasSupportedLanguage language,
                            DeBiasSourceField sourceField) {
 
@@ -275,7 +180,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   /**
    * The type DeBias report row.
    */
-  public record DeBiasReportRow(Long recordId, String europeanaId,
+  public record DeBiasReportRow(String europeanaId,
                                 ValueDetection valueDetection,
                                 DeBiasSourceField sourceField) {
 

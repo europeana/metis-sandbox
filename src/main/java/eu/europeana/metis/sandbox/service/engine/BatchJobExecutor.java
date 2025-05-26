@@ -15,11 +15,13 @@ import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_ST
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
+import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.config.batch.DebiasJobConfig;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
 import eu.europeana.metis.sandbox.config.batch.FileHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.IndexingJobConfig;
@@ -32,24 +34,31 @@ import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
@@ -64,12 +73,14 @@ public class BatchJobExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final List<? extends Job> jobs;
   private final JobLauncher jobLauncher;
+  private final JobExplorer jobExplorer;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final TaskExecutor taskExecutor;
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
+  private final DatasetReportService datasetReportService;
 
   //Those fields and handling is temporary until we have an external orchestrator(e.g. metis-core).
   final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> validationJobExecutionOrder = List.of(
@@ -94,20 +105,28 @@ public class BatchJobExecutor {
       Stream.concat(validationJobExecutionOrder.stream(), afterValidationJobExecutionOrder.stream())
             .toList();
 
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> debiasJobExecutionOrder = List.of(
+      (datasetMetadata, previousJobExecution) -> executeDebias(datasetMetadata,
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
+
   public BatchJobExecutor(List<? extends Job> jobs,
-      @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, ExecutionRecordRepository executionRecordRepository,
+      @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, JobExplorer jobExplorer,
+      ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor,
-      DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository) {
+      DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository,
+      DatasetReportService datasetReportService) {
     this.jobs = jobs;
     this.jobLauncher = jobLauncher;
+    this.jobExplorer = jobExplorer;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
     this.taskExecutor = taskExecutor;
     this.datasetRepository = datasetRepository;
     this.transformXsltRepository = transformXsltRepository;
+    this.datasetReportService = datasetReportService;
     LOGGER.info("Registered batch jobs: {}", jobs.stream().map(Job::getName).toList());
   }
 
@@ -181,6 +200,62 @@ public class BatchJobExecutor {
         previousExecution = jobExecution;
       }
     }
+  }
+
+  public void execute(DatasetMetadata datasetMetadata) {
+    taskExecutor.execute(() -> {
+      JobExecution validationExecution = findJobInstance(datasetMetadata, ValidationJobConfig.BATCH_JOB,
+          ValidationBatchBatchJobSubType.INTERNAL);
+      if (validationExecution == null) {
+        throw new RuntimeException("Batch job not found");
+      }
+
+      if (validationExecution.getStatus() == BatchStatus.COMPLETED) {
+        JobExecution previousExecution = validationExecution;
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : debiasJobExecutionOrder) {
+          JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
+          waitForCompletion(jobExecution);
+          if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+            throw new RuntimeException("Batch job " + jobExecution.getJobId() + " failed");
+          }
+          previousExecution = jobExecution;
+        }
+      }
+    });
+  }
+
+  private @Nullable JobExecution findJobInstance(DatasetMetadata datasetMetadata, BatchJobType batchJobType,
+      BatchJobSubType batchJobSubType) {
+    List<JobInstance> jobInstances = new ArrayList<>();
+    int start = 0;
+    int pageSize = 100;
+    List<JobInstance> page;
+
+    do {
+      page = jobExplorer.getJobInstances(batchJobType.name(), start, 100);
+      jobInstances.addAll(page);
+      start += pageSize;
+    } while (!page.isEmpty());
+
+    JobExecution matchingExecution = null;
+    for (JobInstance jobInstance : jobInstances) {
+      List<JobExecution> jobExecutions = jobExplorer.getJobExecutions(jobInstance);
+      for (JobExecution jobExecution : jobExecutions) {
+        JobParameters jobParameters = jobExecution.getJobParameters();
+        String jobSubTypeString = jobParameters.getString(ARGUMENT_BATCH_JOB_SUBTYPE);
+        String datasetId = jobParameters.getString(ARGUMENT_DATASET_ID);
+        boolean datasetMatches = Objects.equals(datasetId, datasetMetadata.getDatasetId());
+
+        if (datasetMatches) {
+          if (StringUtils.isBlank(jobSubTypeString) ||
+              (StringUtils.isNotBlank(jobSubTypeString) && batchJobSubType.name().equals(jobSubTypeString))) {
+            matchingExecution = jobExecution;
+          }
+        }
+
+      }
+    }
+    return matchingExecution;
   }
 
   private void waitForCompletion(JobExecution jobExecution) {
@@ -315,8 +390,17 @@ public class BatchJobExecutor {
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
         .toJobParameters();
 
-    Job mediaJob = findJobByName(IndexingJobConfig.BATCH_JOB);
-    return runJob(mediaJob, jobParameters);
+    Job indexJob = findJobByName(IndexingJobConfig.BATCH_JOB);
+    return runJob(indexJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeDebias(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .toJobParameters();
+
+    Job debiasJob = findJobByName(DebiasJobConfig.BATCH_JOB);
+    return runJob(debiasJob, jobParameters);
   }
 
   private @NotNull JobExecution runJob(Job oaiHarvestJob, JobParameters jobParameters) {

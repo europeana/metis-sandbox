@@ -47,9 +47,5 @@ class DeBiasExecutor extends StepExecutor {
                                                                            .toString())
                                                           .collect(Collectors.joining(",")));
     }
-    service.process(input.stream()
-                         .map(RecordProcessEvent::getRecord)
-                         .toList()
-    );
   }
 }

@@ -19,7 +19,7 @@ public interface RecordDeBiasMainRepository extends JpaRepository<RecordDeBiasMa
    * @param datasetId the dataset id
    * @return the list
    */
-  List<RecordDeBiasMainEntity> findByRecordIdDatasetId(String datasetId);
+  List<RecordDeBiasMainEntity> findByDatasetId(String datasetId);
 
   /**
    * Delete by record id dataset id.
@@ -27,7 +27,6 @@ public interface RecordDeBiasMainRepository extends JpaRepository<RecordDeBiasMa
    * @param datasetId the dataset id
    */
   @Modifying
-  @Query("DELETE FROM RecordDeBiasMainEntity rdm WHERE EXISTS "
-      + "(SELECT 1 FROM RecordEntity rec WHERE rec.id=rdm.recordId.id AND rec.datasetId = ?1)")
-  void deleteByRecordIdDatasetId(String datasetId);
+  @Query("DELETE FROM RecordDeBiasMainEntity rdm  WHERE rdm.datasetId = ?1")
+  void deleteByDatasetId(String datasetId);
 }

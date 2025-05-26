@@ -305,10 +305,6 @@ public class HarvestServiceImpl implements HarvestService {
       return Optional.ofNullable(result).orElse(ReportingIteration.IterationResult.CONTINUE);
     });
 
-    //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-    //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-    datasetService.updateNumberOfTotalRecord(datasetId, (long) numberOfSelectedHeaders.get());
-
     if (isStepSizeBiggerThanDatasetSize(numberOfSelectedHeaders.get(), currentIndex.get(),
         nextIndexToSelect.get(), numberOfRecordsToStepInto)) {
       throw new StepIsTooBigException(currentIndex.get());

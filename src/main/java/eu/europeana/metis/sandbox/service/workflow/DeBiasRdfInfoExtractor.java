@@ -30,6 +30,7 @@ import org.apache.commons.lang3.BooleanUtils;
 public class DeBiasRdfInfoExtractor {
 
   private final RDF rdf;
+  private final String recordId;
   private final Record recordToProcess;
 
   /**
@@ -41,6 +42,13 @@ public class DeBiasRdfInfoExtractor {
   public DeBiasRdfInfoExtractor(RDF rdf, Record recordToProcess) {
     this.rdf = rdf;
     this.recordToProcess = recordToProcess;
+    this.recordId = null;
+  }
+
+  public DeBiasRdfInfoExtractor(RDF rdf, String recordId) {
+    this.rdf = rdf;
+    this.recordId = recordId;
+    this.recordToProcess = null;
   }
 
   /**
@@ -120,8 +128,8 @@ public class DeBiasRdfInfoExtractor {
         .map(value -> Optional.of(getLanguage.apply(value))
                               .map(DeBiasSupportedLanguage::match)
                               .map(
-                                  language -> new DeBiasInputRecord(this.recordToProcess.getRecordId(),
-                                      this.recordToProcess.getEuropeanaId(), getString.apply(value),
+                                  language -> new DeBiasInputRecord(
+                                      recordId, getString.apply(value),
                                       language, sourceField)).orElse(null))
         .filter(Objects::nonNull)
         .toList();

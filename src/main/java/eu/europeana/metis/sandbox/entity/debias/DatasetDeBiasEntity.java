@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.entity.debias;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,7 +28,6 @@ public class DatasetDeBiasEntity {
 
   private String state;
 
-  @Column(insertable = false, updatable = false)
   private ZonedDateTime createdDate;
 
 
@@ -46,9 +44,10 @@ public class DatasetDeBiasEntity {
    * @param datasetId the dataset id
    * @param state the state
    */
-  public DatasetDeBiasEntity(DatasetEntity datasetId, String state) {
+  public DatasetDeBiasEntity(DatasetEntity datasetId, String state, ZonedDateTime createdDate) {
     this.datasetId = datasetId;
     this.state = state;
+    this.createdDate = createdDate;
   }
 
   /**

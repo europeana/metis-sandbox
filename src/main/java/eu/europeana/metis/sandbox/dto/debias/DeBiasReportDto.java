@@ -31,7 +31,7 @@ public class DeBiasReportDto extends DeBiasStatusDto {
    * @param processed the processed records
    * @param deBiasReportRowList the de bias report row list
    */
-  public DeBiasReportDto(Integer datasetId, String state, ZonedDateTime creationDate, int total, int processed, List<DeBiasReportRow> deBiasReportRowList) {
+  public DeBiasReportDto(Integer datasetId, String state, ZonedDateTime creationDate, long total, long processed, List<DeBiasReportRow> deBiasReportRowList) {
     super(datasetId, state, creationDate, total, processed);
     this.deBiasReportRowList = Collections.unmodifiableList(deBiasReportRowList);
   }

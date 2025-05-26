@@ -4,14 +4,18 @@ import static eu.europeana.metis.sandbox.controller.DatasetController.MESSAGE_FO
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
+import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -52,6 +56,7 @@ public class DatasetDebiasController {
   private final DatasetReportService reportService;
   private final Map<Integer, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
   private final LockRegistry lockRegistry;
+  private final BatchJobExecutor batchJobExecutor;
 
   /**
    * Constructs a new instance of {@link DatasetDebiasController}.
@@ -63,11 +68,12 @@ public class DatasetDebiasController {
    */
   @Autowired
   public DatasetDebiasController(DatasetService datasetService, DeBiasStateService debiasStateService,
-      DatasetReportService reportService, LockRegistry lockRegistry) {
+      DatasetReportService reportService, LockRegistry lockRegistry, BatchJobExecutor batchJobExecutor) {
     this.datasetService = datasetService;
     this.debiasStateService = debiasStateService;
     this.reportService = reportService;
     this.lockRegistry = lockRegistry;
+    this.batchJobExecutor = batchJobExecutor;
   }
 
   /**
@@ -103,13 +109,23 @@ public class DatasetDebiasController {
     try {
       lock.lock();
       LOGGER.info("DeBias process: {} lock, Locked", datasetId);
-      ProgressInfoDto progressInfoDto = reportService.getReport(datasetId.toString());
+      ProgressInfoDto progressInfoDto = reportService.getProgress(datasetId.toString());
+
       if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
-          "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(datasetId))
+          "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
                                  .map(DeBiasStatusDto::getState)
                                  .orElse(""))) {
         debiasStateService.cleanDeBiasReport(datasetId);
-        return debiasStateService.process(datasetId);
+
+        DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
+        DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
+        DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(datasetId.toString())
+                                                         .withDatasetName(datasetEntity.getDatasetName())
+                                                         .withCountry(datasetEntity.getCountry())
+                                                         .withLanguage(datasetEntity.getLanguage())
+                                                         .build();
+        batchJobExecutor.execute(datasetMetadata);
+        return true;
       } else {
         return false;
       }
@@ -132,7 +148,7 @@ public class DatasetDebiasController {
   @GetMapping(value = "{id}/debias/report", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public DeBiasReportDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
-    return debiasStateService.getDeBiasReport(datasetId);
+    return debiasStateService.getDeBiasReport(String.valueOf(datasetId));
   }
 
   /**
@@ -148,6 +164,6 @@ public class DatasetDebiasController {
   @GetMapping(value = "{id}/debias/info", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public DeBiasStatusDto getDeBiasStatus(@PathVariable("id") Integer datasetId) {
-    return debiasStateService.getDeBiasStatus(datasetId);
+    return debiasStateService.getDeBiasStatus(String.valueOf(datasetId));
   }
 }

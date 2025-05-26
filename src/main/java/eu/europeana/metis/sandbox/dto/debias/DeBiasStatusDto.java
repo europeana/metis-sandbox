@@ -27,10 +27,10 @@ public class DeBiasStatusDto {
   private final ZonedDateTime creationDate;
 
   @JsonProperty("total-records")
-  private final Integer total;
+  private final Long total;
 
   @JsonProperty("processed-records")
-  private final Integer processed;
+  private final Long processed;
 
   /**
    * Instantiates a new Detection info dto.
@@ -42,7 +42,7 @@ public class DeBiasStatusDto {
    * @param processed the proccessed
    */
   public DeBiasStatusDto(Integer datasetId, String state, ZonedDateTime creationDate,
-      Integer total, Integer processed) {
+      Long total, Long processed) {
     this.datasetId = datasetId;
     this.state = state;
     this.creationDate = creationDate;
@@ -82,7 +82,7 @@ public class DeBiasStatusDto {
    *
    * @return the total
    */
-  public Integer getTotal() {
+  public Long getTotal() {
     return total;
   }
 
@@ -91,7 +91,7 @@ public class DeBiasStatusDto {
    *
    * @return the success
    */
-  public Integer getProcessed() {
+  public Long getProcessed() {
     return processed;
   }
 }
