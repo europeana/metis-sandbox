@@ -1,5 +1,5 @@
 package eu.europeana.metis.sandbox.batch.common;
 
-public enum TransformationBatchJobSubType {
+public enum TransformationBatchJobSubType implements BatchJobSubType{
   EXTERNAL, INTERNAL
 }

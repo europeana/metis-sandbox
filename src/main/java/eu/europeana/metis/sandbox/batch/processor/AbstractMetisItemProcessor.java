@@ -1,13 +1,10 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static java.lang.String.format;
-
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.function.ThrowingFunction;
@@ -22,25 +19,16 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
   @Value("#{jobParameters['batchJobSubType']}")
   private String batchJobSubTypeString;
 
-  private BatchJobType batchJobType;
-  private Enum<?> batchJobSubType;
+  private FullBatchJobType fullBatchJobType;
 
   @PostConstruct
   public void init() {
-    this.batchJobType = BatchJobType.valueOf(jobName);
-
-    if (StringUtils.isNotBlank(batchJobSubTypeString)) {
-      final Class<? extends Enum<?>> subTypeClass = batchJobType.getSubTypeClass().orElseThrow();
-      this.batchJobSubType = Enum.valueOf(subTypeClass.asSubclass(Enum.class), batchJobSubTypeString);
-    }
+    fullBatchJobType = FullBatchJobType.validateAndGetFullBatchJobType(jobName, batchJobSubTypeString);
   }
-
 
   abstract ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction();
 
   String getExecutionName() {
-    return batchJobSubType == null
-        ? batchJobType.name()
-        : format("%s-%s", batchJobType.name(), batchJobSubType.name());
+    return fullBatchJobType.name();
   }
 }

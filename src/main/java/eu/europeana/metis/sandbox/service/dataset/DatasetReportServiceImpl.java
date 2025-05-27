@@ -8,7 +8,9 @@ import static java.util.stream.Collectors.reducing;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
@@ -90,7 +92,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   //Those are all temporary until we have a proper orchestrator(e.g. metis-core)
-  private record StepConfig(BatchJobType batchJob, Enum<?> subtype, Step step) {
+  private record StepConfig(BatchJobType batchJob, BatchJobSubType subtype, Step step) {
 
   }
 
@@ -245,8 +247,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private @NotNull DatasetReportServiceImpl.StepStatisticsWrapper getStepStatistics(
-      String datasetId, BatchJobType batchJobType, Enum<?> batchJobSubType, Step step) {
-    String executionName = getFullExecutionName(batchJobType, batchJobSubType);
+      String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType, Step step) {
+    String executionName = FullBatchJobType.validateAndGetFullBatchJobType(batchJobType, batchJobSubType).name();
     long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         executionName);
     long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
@@ -263,19 +265,13 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return new StepStatisticsWrapper(totalSuccess, totalProcessed, stepStatistics);
   }
 
-  private static @NotNull String getFullExecutionName(BatchJobType batchJobType, Enum<?> batchJobSubType) {
-    return batchJobSubType == null
-        ? batchJobType.name()
-        : format("%s-%s", batchJobType.name(), batchJobSubType.name());
-  }
-
   private record StepStatisticsWrapper(long totalSuccess, long totalProcessed, List<StepStatistic> stepStatistics) {
 
   }
 
-  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, Enum<?> batchJobSubType,
+  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType,
       Step step) {
-    String executionName = getFullExecutionName(batchJobType, batchJobSubType);
+    String executionName = FullBatchJobType.validateAndGetFullBatchJobType(batchJobType, batchJobSubType).name();
 
     List<ExecutionRecordException> recordExceptionLogs = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(
         datasetId, executionName);

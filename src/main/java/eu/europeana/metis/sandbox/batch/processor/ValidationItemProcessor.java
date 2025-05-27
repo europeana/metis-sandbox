@@ -67,7 +67,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
     JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
         getTargetExecutionId());
     ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(jobMetadataDTO);
-    if (getBatchJobSubType() == ValidationBatchJobSubType.INTERNAL) {
+    if (getFullBatchJobType().getBatchJobSubType() == ValidationBatchJobSubType.INTERNAL) {
       generatePatternAnalysis(originSuccessExecutionRecordDTO);
     }
     return resultExecutionRecordDTO;
@@ -75,7 +75,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
 
   @PostConstruct
   private void postConstruct() {
-    switch ((ValidationBatchJobSubType)getBatchJobSubType()) {
+    switch ((ValidationBatchJobSubType)getFullBatchJobType().getBatchJobSubType()) {
       case EXTERNAL -> {
         schema = properties.getProperty("predefinedSchemas.edm-external.url");
         rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");

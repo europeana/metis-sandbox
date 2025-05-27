@@ -60,7 +60,7 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
 
   @PostConstruct
   private void postConstruct() {
-    transformationFunction = switch ((TransformationBatchJobSubType) getBatchJobSubType()) {
+    transformationFunction = switch ((TransformationBatchJobSubType) getFullBatchJobType().getBatchJobSubType()) {
       case EXTERNAL -> (transformationInput) -> {
         try (XsltTransformer xsltTransformer =
             new XsltTransformer(transformationInput.recordId, transformationInput.xsltInputStream);

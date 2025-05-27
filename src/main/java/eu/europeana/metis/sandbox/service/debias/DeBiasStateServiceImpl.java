@@ -1,13 +1,10 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import static java.lang.String.format;
-
 import eu.europeana.metis.debias.detect.model.response.Tag;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.batch.DebiasJobConfig;
-import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -90,7 +87,7 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
         Integer.valueOf(datasetId));
     long totalToDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
-        format("%s-%s", ValidationJobConfig.BATCH_JOB.name(), ValidationBatchJobSubType.INTERNAL.name()));
+        FullBatchJobType.VALIDATION_INTERNAL.name());
     long progressDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name());
 
