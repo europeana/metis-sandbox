@@ -15,9 +15,9 @@ import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_ST
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
 
-import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +84,10 @@ public class BatchJobExecutor {
   private final DatasetReportService datasetReportService;
 
   //Those fields and handling is temporary until we have an external orchestrator(e.g. metis-core).
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> transformationToEdmExternalJobExecutionOrder = List.of(
+      (datasetMetadata, previousJobExecution) -> executeTransformationToEdmExternal(datasetMetadata,
+          previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
+
   final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> validationJobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeValidationExternal(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)),
@@ -101,9 +106,16 @@ public class BatchJobExecutor {
       (datasetMetadata, previousJobExecution) -> executeIndex(datasetMetadata,
           previousJobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)));
 
+  final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> fullJobExecutionOrderWithTransformationToEdmExternal =
+      Stream.of(transformationToEdmExternalJobExecutionOrder.stream(), validationJobExecutionOrder.stream(),
+                afterValidationJobExecutionOrder.stream())
+            .flatMap(Function.identity())
+            .toList();
+
   final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> fullJobExecutionOrder =
       Stream.concat(validationJobExecutionOrder.stream(), afterValidationJobExecutionOrder.stream())
             .toList();
+
 
   final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> debiasJobExecutionOrder = List.of(
       (datasetMetadata, previousJobExecution) -> executeDebias(datasetMetadata,
@@ -130,8 +142,15 @@ public class BatchJobExecutor {
     LOGGER.info("Registered batch jobs: {}", jobs.stream().map(Job::getName).toList());
   }
 
-  public void execute(DatasetMetadata datasetMetadata, String url, String setSpec, String metadataFormat, Integer stepSize) {
+  public void execute(DatasetMetadata datasetMetadata, String url, String setSpec, String metadataFormat, Integer stepSize,
+      String xsltToEdmExternal) {
     taskExecutor.execute(() -> {
+      final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> executionOrder;
+      if (StringUtils.isBlank(xsltToEdmExternal)) {
+        executionOrder = fullJobExecutionOrder;
+      } else {
+        executionOrder = fullJobExecutionOrderWithTransformationToEdmExternal;
+      }
       JobExecution harvestExecution = executeOaiHarvest(datasetMetadata, url, setSpec, metadataFormat, stepSize);
       waitForCompletion(harvestExecution);
 
@@ -142,7 +161,7 @@ public class BatchJobExecutor {
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 
         JobExecution previousExecution = harvestExecution;
-        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : fullJobExecutionOrder) {
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : executionOrder) {
           JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
           waitForCompletion(jobExecution);
           if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
@@ -155,8 +174,14 @@ public class BatchJobExecutor {
   }
 
   public void execute(DatasetMetadata datasetMetadata, Path datasetRecordsCompressedFilePath,
-      CompressedFileExtension compressedFileExtension, Integer stepSize) {
+      CompressedFileExtension compressedFileExtension, Integer stepSize, String xsltToEdmExternal) {
     taskExecutor.execute(() -> {
+      final List<BiFunction<DatasetMetadata, JobExecution, JobExecution>> executionOrder;
+      if (StringUtils.isBlank(xsltToEdmExternal)) {
+        executionOrder = fullJobExecutionOrder;
+      } else {
+        executionOrder = fullJobExecutionOrderWithTransformationToEdmExternal;
+      }
       JobExecution harvestExecution = executeFileHarvest(datasetMetadata, datasetRecordsCompressedFilePath,
           compressedFileExtension, stepSize);
       waitForCompletion(harvestExecution);
@@ -168,7 +193,7 @@ public class BatchJobExecutor {
         datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetMetadata.getDatasetId()), totalRecords);
 
         JobExecution previousExecution = harvestExecution;
-        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : fullJobExecutionOrder) {
+        for (BiFunction<DatasetMetadata, JobExecution, JobExecution> jobExecutionFunction : executionOrder) {
           JobExecution jobExecution = jobExecutionFunction.apply(datasetMetadata, previousExecution);
           waitForCompletion(jobExecution);
           if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
@@ -205,7 +230,7 @@ public class BatchJobExecutor {
   public void execute(DatasetMetadata datasetMetadata) {
     taskExecutor.execute(() -> {
       JobExecution validationExecution = findJobInstance(datasetMetadata, ValidationJobConfig.BATCH_JOB,
-          ValidationBatchBatchJobSubType.INTERNAL);
+          ValidationBatchJobSubType.INTERNAL);
       if (validationExecution == null) {
         throw new RuntimeException("Batch job not found");
       }
@@ -225,7 +250,7 @@ public class BatchJobExecutor {
   }
 
   private @Nullable JobExecution findJobInstance(DatasetMetadata datasetMetadata, BatchJobType batchJobType,
-      BatchJobSubType batchJobSubType) {
+      Enum<?> batchJobSubType) {
     List<JobInstance> jobInstances = new ArrayList<>();
     int start = 0;
     int pageSize = 100;
@@ -247,8 +272,9 @@ public class BatchJobExecutor {
         boolean datasetMatches = Objects.equals(datasetId, datasetMetadata.getDatasetId());
 
         if (datasetMatches) {
-          if (StringUtils.isBlank(jobSubTypeString) ||
-              (StringUtils.isNotBlank(jobSubTypeString) && batchJobSubType.name().equals(jobSubTypeString))) {
+          final boolean isMatchingWithoutSubtype = batchJobSubType == null && StringUtils.isBlank(jobSubTypeString);
+          final boolean isMatchingWithSubType = batchJobSubType != null && batchJobSubType.name().equals(jobSubTypeString);
+          if (isMatchingWithoutSubtype || isMatchingWithSubType) {
             matchingExecution = jobExecution;
           }
         }
@@ -325,7 +351,7 @@ public class BatchJobExecutor {
   private @NotNull JobExecution executeValidationExternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
-        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.EXTERNAL.name())
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchJobSubType.EXTERNAL.name())
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);
@@ -338,6 +364,26 @@ public class BatchJobExecutor {
 
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.INTERNAL.name())
+        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
+        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
+        .addString(ARGUMENT_XSLT_CONTENT, transformXsltContent)
+        .toJobParameters();
+
+    Job validationExternalJob = findJobByName(TransformationJobConfig.BATCH_JOB);
+    return runJob(validationExternalJob, jobParameters);
+  }
+
+  private @NotNull JobExecution executeTransformationToEdmExternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
+    final String transformXsltContent = datasetMetadata.getXsltToEdmExternal();
+    if (StringUtils.isBlank(transformXsltContent)) {
+      throw new IllegalArgumentException("xsltToEdmExternal is required");
+    }
+
+    JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
+    JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.EXTERNAL.name())
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
         .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
@@ -351,7 +397,7 @@ public class BatchJobExecutor {
   private @NotNull JobExecution executeValidationInternal(DatasetMetadata datasetMetadata, String sourceExecutionId) {
     JobParameters defaultJobParameters = getDefaultJobParameters(datasetMetadata, sourceExecutionId);
     JobParameters jobParameters = new JobParametersBuilder(defaultJobParameters)
-        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchBatchJobSubType.INTERNAL.name())
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchJobSubType.INTERNAL.name())
         .toJobParameters();
 
     Job validationExternalJob = findJobByName(ValidationJobConfig.BATCH_JOB);

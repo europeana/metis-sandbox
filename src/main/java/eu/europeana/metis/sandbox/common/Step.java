@@ -6,9 +6,9 @@ package eu.europeana.metis.sandbox.common;
 public enum Step {
   HARVEST_OAI_PMH("harvest OAI-PMH",1),
   HARVEST_FILE("harvest file", 2),
-  TRANSFORM_TO_EDM_EXTERNAL("transform to EDM external", 3),
+  TRANSFORM_EXTERNAL("transform (to edm internal)", 3),
   VALIDATE_EXTERNAL("validate (edm external)", 4),
-  TRANSFORM("transform", 5),
+  TRANSFORM_INTERNAL("transform (to edm internal)", 5),
   VALIDATE_INTERNAL("validate (edm internal)", 6),
   NORMALIZE("normalise", 7),
   ENRICH("enrich", 8),

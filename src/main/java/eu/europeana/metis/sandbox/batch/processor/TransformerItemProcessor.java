@@ -4,6 +4,7 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
+import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
@@ -12,6 +13,7 @@ import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -46,10 +48,39 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
   private String xsltContent;
 
   private final ItemProcessorUtil itemProcessorUtil;
-  private boolean exceptionThrown = false;
+  private ThrowingFunction<TransformationInput, String> transformationFunction;
+
+  private record TransformationInput(String recordId, byte[] contentBytes, InputStream xsltInputStream) {
+
+  }
 
   public TransformerItemProcessor() {
     itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
+  }
+
+  @PostConstruct
+  private void postConstruct() {
+    transformationFunction = switch ((TransformationBatchJobSubType) getBatchJobSubType()) {
+      case EXTERNAL -> (transformationInput) -> {
+        try (XsltTransformer xsltTransformer =
+            new XsltTransformer(transformationInput.recordId, transformationInput.xsltInputStream);
+            StringWriter writer = xsltTransformer.transform(transformationInput.contentBytes, null)) {
+          return writer.toString();
+        }
+      };
+
+      case INTERNAL -> (transformationInput) -> {
+        final String datasetIdDatasetName = getJoinDatasetIdDatasetName(datasetId, datasetName);
+        final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = prepareEuropeanaGeneratedIdsMap(
+            transformationInput.contentBytes);
+        try (XsltTransformer xsltTransformer =
+            new XsltTransformer("xsltKey", transformationInput.xsltInputStream, datasetIdDatasetName, datasetCountry,
+                datasetLanguage);
+            StringWriter writer = xsltTransformer.transform(transformationInput.contentBytes, europeanaGeneratedIdsMap)) {
+          return writer.toString();
+        }
+      };
+    };
   }
 
   @Override
@@ -66,14 +97,10 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       final byte[] contentBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
-      final String resultString;
       InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
-      String datasetIdDatasetName = getJoinDatasetIdDatasetName(datasetId, datasetName);
-      try (XsltTransformer xsltTransformer =
-          new XsltTransformer("xsltKey", xsltInputStream, datasetIdDatasetName, datasetCountry, datasetLanguage);
-          StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
-        resultString = writer.toString();
-      }
+
+      final String resultString = transformationFunction.apply(
+          new TransformationInput(originSuccessExecutionRecordDTO.getRecordId(), contentBytes, xsltInputStream));
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,

@@ -53,7 +53,7 @@ class TransformationToEdmExternalExecutorTest {
     verify(service).transform(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.TRANSFORM_TO_EDM_EXTERNAL, captor.getValue().getStep());
+    assertEquals(Step.TRANSFORM_EXTERNAL, captor.getValue().getStep());
   }
 
   @Test

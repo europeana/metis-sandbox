@@ -54,7 +54,7 @@ class TransformationExecutorTest {
     verify(service).transformToEdmInternal(testRecord);
     verify(amqpTemplate).convertAndSend(any(), captor.capture());
 
-    assertEquals(Step.TRANSFORM, captor.getValue().getStep());
+    assertEquals(Step.TRANSFORM_INTERNAL, captor.getValue().getStep());
   }
 
   @Test

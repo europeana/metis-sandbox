@@ -1,14 +1,14 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -16,8 +16,6 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -83,7 +81,7 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
 
     String result = service.createEmptyDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
-        new ByteArrayInputStream(new byte[0]));
+        "");
     assertEquals("1", result);
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
@@ -96,9 +94,9 @@ class DatasetServiceImplTest {
     when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
 
     String result = service.createEmptyDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
-        new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+        "record");
     assertEquals("1", result);
-    assertEquals( "record", captor.getValue().getXsltEdmExternalContent());
+    assertEquals( "record", captor.getValue().getXsltToEdmExternal());
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
@@ -126,7 +124,7 @@ class DatasetServiceImplTest {
 
     assertThrows(ServiceException.class,
             () -> service.createEmptyDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
-                new ByteArrayInputStream(new byte[0])));
+                ""));
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 

@@ -95,7 +95,7 @@ class ValidationControllerTest {
                 new ValidationResult(Step.VALIDATE_EXTERNAL,
                         new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                         ValidationResult.Status.PASSED),
-                new ValidationResult(Step.TRANSFORM,
+                new ValidationResult(Step.TRANSFORM_INTERNAL,
                         new RecordValidationMessage(RecordValidationMessage.Type.INFO, "success"),
                         ValidationResult.Status.PASSED),
                 new ValidationResult(Step.VALIDATE_INTERNAL,

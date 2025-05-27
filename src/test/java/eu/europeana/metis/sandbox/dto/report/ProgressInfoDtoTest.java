@@ -63,9 +63,9 @@ class ProgressInfoDtoTest {
     private static List<ProgressByStepDto> getProgressByStepDtoList(int mediaProcessed,
                                                                     int published) {
         return List.of(new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.TRANSFORM_TO_EDM_EXTERNAL, 5, 0, 0, List.of()),
+                new ProgressByStepDto(Step.TRANSFORM_EXTERNAL, 5, 0, 0, List.of()),
                 new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.TRANSFORM, 5, 0, 0, List.of()),
+                new ProgressByStepDto(Step.TRANSFORM_INTERNAL, 5, 0, 0, List.of()),
                 new ProgressByStepDto(Step.VALIDATE_INTERNAL, 5, 0, 0, List.of()),
                 new ProgressByStepDto(Step.NORMALIZE, 5, 0, 0, List.of()),
                 new ProgressByStepDto(Step.ENRICH, 5, 0, 0, List.of()),

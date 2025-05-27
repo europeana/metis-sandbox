@@ -2,9 +2,7 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static java.lang.String.format;
 
-import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import jakarta.annotation.PostConstruct;
@@ -25,15 +23,18 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
   private String batchJobSubTypeString;
 
   private BatchJobType batchJobType;
-  private BatchJobSubType batchJobSubType;
+  private Enum<?> batchJobSubType;
 
   @PostConstruct
   public void init() {
     this.batchJobType = BatchJobType.valueOf(jobName);
+
     if (StringUtils.isNotBlank(batchJobSubTypeString)) {
-      this.batchJobSubType = ValidationBatchBatchJobSubType.valueOf(batchJobSubTypeString);
+      final Class<? extends Enum<?>> subTypeClass = batchJobType.getSubTypeClass().orElseThrow();
+      this.batchJobSubType = Enum.valueOf(subTypeClass.asSubclass(Enum.class), batchJobSubTypeString);
     }
   }
+
 
   abstract ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction();
 
@@ -42,5 +43,4 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
         ? batchJobType.name()
         : format("%s-%s", batchJobType.name(), batchJobSubType.name());
   }
-
 }

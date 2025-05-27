@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -45,7 +46,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param datasetId The id of the dataset to update into
    * @return Returns 0 if there is no xslt, 1 otherwise
    */
-  @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltEdmExternalContent IS NOT NULL")
+  @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltToEdmExternal IS NOT NULL")
   int isXsltPresent(int datasetId);
 
   /**
@@ -55,10 +56,12 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @return xslt content associated to dataset
    */
   @Query("SELECT " +
-      "dataset.xsltEdmExternalContent " +
+      "dataset.xsltToEdmExternal " +
       "FROM " +
       "    DatasetEntity dataset " +
       "WHERE dataset.datasetId = ?1 ")
   String getXsltContentFromDatasetId(int datasetId);
+
+  Optional<DatasetEntity> findByDatasetId(int datasetId);
 
 }

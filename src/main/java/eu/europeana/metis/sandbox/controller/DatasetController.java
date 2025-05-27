@@ -41,7 +41,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -49,6 +48,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,6 +58,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -127,8 +128,6 @@ class DatasetController {
    * @param recordLogService the record log service
    * @param recordTierCalculationService the record tier calculation service
    * @param harvestPublishService the harvest publish service
-   * @param debiasStateService the debias detect service
-   * @param lockRegistry the lock registry
    */
   @Autowired
   public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
@@ -189,27 +188,17 @@ class DatasetController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-
-    final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
-        country, language, xsltInputStream);
+        country, language, xsltToEdmExternal);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(stepsize).build();
+                                                     .withStepSize(stepsize).withXsltToEdmExternal(xsltToEdmExternal).build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
         new FileHarvestingDto(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
 
-
-    final Path datasetRecordsCompressedFilePath;
-    try {
-      datasetRecordsCompressedFilePath = Files.createTempFile("dataset-" + createdDatasetId,
-          "-" + datasetRecordsCompressedFile.getOriginalFilename());
-      Files.copy(datasetRecordsCompressedFile.getInputStream(), datasetRecordsCompressedFilePath,
-          StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from file " + datasetRecordsCompressedFile.getOriginalFilename(), e);
-    }
-    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
+    final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, datasetRecordsCompressedFile);
+    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize, xsltToEdmExternal);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -257,12 +246,12 @@ class DatasetController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    final InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
-        country, language, xsltInputStream);
+        country, language, xsltToEdmExternal);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(stepsize).build();
+                                                     .withStepSize(stepsize).withXsltToEdmExternal(xsltToEdmExternal).build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
 
     final InputStream inputStreamToHarvest;
@@ -274,18 +263,33 @@ class DatasetController {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
     }
 
-    final Path datasetRecordsCompressedFilePath;
     final String urlFileName = url.substring(url.lastIndexOf("/") + 1);
-    try {
-      datasetRecordsCompressedFilePath = Files.createTempFile("dataset-" + createdDatasetId,
-          "-" + url.substring(url.lastIndexOf("/") + 1));
-      Files.copy(inputStreamToHarvest, datasetRecordsCompressedFilePath, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from file " + urlFileName, e);
-    }
-    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
+    final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, urlFileName, inputStreamToHarvest);
+    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize, xsltToEdmExternal);
 
     return new DatasetIdDto(createdDatasetId);
+  }
+
+  private static @NotNull Path getTempFilePath(String datasetId, String originalFilename, InputStream inputStream) {
+    final Path filePath;
+    try {
+      filePath = Files.createTempFile("dataset-" + datasetId, "-" + originalFilename);
+      Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new ServiceException("Error harvesting records from file " + originalFilename, e);
+    }
+    return filePath;
+  }
+
+  private static @NotNull Path getTempFilePath(String datasetId, MultipartFile multipartFile) {
+      final Path filePath;
+      try {
+        filePath = Files.createTempFile("dataset-" + datasetId, "-" + multipartFile.getOriginalFilename());
+        Files.copy(multipartFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        throw new ServiceException("Error harvesting records from file " + multipartFile.getOriginalFilename(), e);
+      }
+      return filePath;
   }
 
   /**
@@ -334,18 +338,18 @@ class DatasetController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    InputStream xsltInputStream = createXsltAsInputStreamIfPresent(xsltFile);
+    final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.OAI_HARVEST, datasetName, userId, country,
-        language, xsltInputStream);
+        language, xsltToEdmExternal);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
                                                      .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(stepsize).build();
+                                                     .withStepSize(stepsize).withXsltToEdmExternal(xsltToEdmExternal).build();
     setspec = getDefaultSetSpecWhenNotAvailable(setspec);
 
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
         new OAIPmhHarvestingDto(url, setspec, metadataformat));
 
-    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat, stepsize);
+    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat, stepsize, xsltToEdmExternal);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -489,7 +493,7 @@ class DatasetController {
   }
 
 
-  private InputStream createXsltAsInputStreamIfPresent(MultipartFile xslt) {
+  private String createXsltAsInputStreamIfPresent(MultipartFile xslt) {
     if (xslt != null && !xslt.isEmpty()) {
       final String contentType = xslt.getContentType();
       if (contentType == null) {
@@ -498,13 +502,13 @@ class DatasetController {
         throw new IllegalArgumentException("The given xslt file should be a single xml file.");
       }
       try {
-        return new ByteArrayInputStream(xslt.getBytes());
+        return new String(xslt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
       } catch (IOException e) {
         throw new XsltProcessingException("Something wrong happened while processing xslt file.",
             e);
       }
     }
-    return new ByteArrayInputStream(new byte[0]);
+    return StringUtils.EMPTY;
   }
 
   private CompressedFileExtension getCompressedFileExtensionTypeFromUrl(URI uri) {

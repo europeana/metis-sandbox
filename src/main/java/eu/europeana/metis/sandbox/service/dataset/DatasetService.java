@@ -6,9 +6,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-
 import eu.europeana.metis.sandbox.entity.WorkflowType;
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -33,7 +31,7 @@ public interface DatasetService {
    * @see Dataset
    */
   String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country, Language language,
-      InputStream xsltEdmExternalContentStream);
+      String xsltToEdmExternal);
 
   /**
    * Get dataset ids created before than the specified days

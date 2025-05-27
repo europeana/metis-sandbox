@@ -36,14 +36,14 @@ public class TransformationValidationStep implements ValidationStep {
         ValidationStepContent validationStepContent;
         try {
             RecordInfo recordInfoValidated = transformationService.transformToEdmInternal(recordToValidate);
-            validationStepContent = ValidatedRecordExtractor.extractValidationStepContent(Step.TRANSFORM, recordInfoValidated);
-            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.TRANSFORM, Status.SUCCESS));
+            validationStepContent = ValidatedRecordExtractor.extractValidationStepContent(Step.TRANSFORM_INTERNAL, recordInfoValidated);
+            recordLogService.logRecordEvent(new RecordProcessEvent(recordInfoValidated, Step.TRANSFORM_INTERNAL, Status.SUCCESS));
         } catch (Exception ex) {
             LOGGER.error("transformation validation step fail", ex);
-            validationStepContent = new ValidationStepContent(new ValidationResult(Step.TRANSFORM,
+            validationStepContent = new ValidationStepContent(new ValidationResult(Step.TRANSFORM_INTERNAL,
                     new RecordValidationMessage(RecordValidationMessage.Type.ERROR, ex.toString()),
                     ValidationResult.Status.FAILED), recordToValidate);
-            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.TRANSFORM, Status.FAIL));
+            recordLogService.logRecordEvent(new RecordProcessEvent(new RecordInfo(recordToValidate), Step.TRANSFORM_INTERNAL, Status.FAIL));
         }
         return validationStepContent;
     }

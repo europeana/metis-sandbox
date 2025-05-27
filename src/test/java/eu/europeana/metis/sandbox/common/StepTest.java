@@ -16,9 +16,9 @@ class StepTest {
     return Stream.of(
         Arguments.of(Step.HARVEST_OAI_PMH, "harvest OAI-PMH", 1),
         Arguments.of(Step.HARVEST_FILE, "harvest file", 2),
-        Arguments.of(Step.TRANSFORM_TO_EDM_EXTERNAL, "transform to EDM external", 3),
+        Arguments.of(Step.TRANSFORM_EXTERNAL, "transform to EDM external", 3),
         Arguments.of(Step.VALIDATE_EXTERNAL, "validate (edm external)", 4),
-        Arguments.of(Step.TRANSFORM, "transform", 5),
+        Arguments.of(Step.TRANSFORM_INTERNAL, "transform", 5),
         Arguments.of(Step.VALIDATE_INTERNAL, "validate (edm internal)", 6),
         Arguments.of(Step.NORMALIZE, "normalise", 7),
         Arguments.of(Step.ENRICH, "enrich", 8),

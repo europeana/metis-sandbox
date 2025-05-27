@@ -151,8 +151,6 @@ public class ValidationController {
 
     return new ValidationWorkflowReport(validationResults,
         datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::getProblemPatternList).orElse(List.of()));
-
-    //        return workflowService.validate(recordToValidate, country, language);
   }
 
   private boolean isFileTypeValid(MultipartFile fileToCheck) {

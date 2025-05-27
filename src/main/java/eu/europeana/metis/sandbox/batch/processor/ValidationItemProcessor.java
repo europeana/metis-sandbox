@@ -5,7 +5,7 @@ import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
@@ -67,7 +67,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
     JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
         getTargetExecutionId());
     ExecutionRecordDTO resultExecutionRecordDTO = itemProcessorUtil.processCapturingException(jobMetadataDTO);
-    if (getBatchJobSubType() == ValidationBatchBatchJobSubType.INTERNAL) {
+    if (getBatchJobSubType() == ValidationBatchJobSubType.INTERNAL) {
       generatePatternAnalysis(originSuccessExecutionRecordDTO);
     }
     return resultExecutionRecordDTO;
@@ -75,7 +75,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
 
   @PostConstruct
   private void postConstruct() {
-    switch ((ValidationBatchBatchJobSubType)getBatchJobSubType()) {
+    switch ((ValidationBatchJobSubType)getBatchJobSubType()) {
       case EXTERNAL -> {
         schema = properties.getProperty("predefinedSchemas.edm-external.url");
         rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");

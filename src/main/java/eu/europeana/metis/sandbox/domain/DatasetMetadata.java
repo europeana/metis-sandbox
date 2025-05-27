@@ -13,6 +13,7 @@ public final class DatasetMetadata {
   private final Country country;
   private final Language language;
   private final Integer stepSize;
+  private final String xsltToEdmExternal;
 
   private DatasetMetadata(DatasetMetadataBuilder datasetMetadataBuilder) {
     this.datasetId = datasetMetadataBuilder.datasetId;
@@ -20,6 +21,7 @@ public final class DatasetMetadata {
     this.country = datasetMetadataBuilder.country;
     this.language = datasetMetadataBuilder.language;
     this.stepSize = datasetMetadataBuilder.stepSize;
+    this.xsltToEdmExternal = datasetMetadataBuilder.xsltToEdmExternal;
   }
 
   /**
@@ -76,6 +78,10 @@ public final class DatasetMetadata {
     return stepSize;
   }
 
+  public String getXsltToEdmExternal() {
+    return xsltToEdmExternal;
+  }
+
   /**
    * {@code DatasetMetadata} builder static inner class.
    */
@@ -86,7 +92,7 @@ public final class DatasetMetadata {
     private Country country;
     private Language language;
     private Integer stepSize;
-
+    private String xsltToEdmExternal;
 
     /**
      * Sets the {@code datasetId} and returns a reference to this Builder enabling method chaining.
@@ -134,6 +140,11 @@ public final class DatasetMetadata {
 
     public DatasetMetadataBuilder withStepSize(Integer stepSize){
       this.stepSize = stepSize;
+      return this;
+    }
+
+    public DatasetMetadataBuilder withXsltToEdmExternal(String xsltToEdmExternal){
+      this.xsltToEdmExternal = xsltToEdmExternal;
       return this;
     }
 

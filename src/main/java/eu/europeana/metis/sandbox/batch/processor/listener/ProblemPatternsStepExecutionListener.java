@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.controller.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -26,7 +26,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   @Value("#{jobParameters['batchJobSubType']}")
-  private ValidationBatchBatchJobSubType batchJobSubType;
+  private ValidationBatchJobSubType batchJobSubType;
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
 
@@ -40,7 +40,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   @Override
   public void beforeStep(StepExecution stepExecution) {
     LOGGER.info("Running beforeStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
-    if (batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
+    if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       initializePatternAnalysisExecution();
     }
   }
@@ -48,7 +48,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
     LOGGER.info("Running beforeStep for afterStep: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
-    if (batchJobSubType == ValidationBatchBatchJobSubType.INTERNAL) {
+    if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       final ExecutionPoint executionPoint = executionPointService
           .getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString()).orElse(null);
       final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);

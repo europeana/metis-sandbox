@@ -20,10 +20,10 @@ import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,14 +40,16 @@ class DatasetServiceImpl implements DatasetService {
 
   @Override
   @Transactional
-  public String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country, Language language,
-      InputStream xsltEdmExternalContentStream) {
+  public String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country,
+      Language language,
+      String xsltToEdmExternal) {
     requireNonNull(datasetName, "Dataset name must not be null");
     requireNonNull(country, "Country must not be null");
     requireNonNull(language, "Language must not be null");
 
-    DatasetEntity entity = saveNewDatasetInDatabase(new DatasetEntity(workflowType, datasetName, createdById, null, language, country, false),
-        xsltEdmExternalContentStream);
+    DatasetEntity entity = saveNewDatasetInDatabase(
+        new DatasetEntity(workflowType, datasetName, createdById, null, language, country, false),
+        xsltToEdmExternal);
 
     return String.valueOf(entity.getDatasetId());
 
@@ -120,17 +122,9 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
-  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, InputStream xsltEdmExternalContentStream) {
-    if (isInputStreamAvailable(xsltEdmExternalContentStream)) {
-      try {
-        datasetEntityToSave.setXsltEdmExternalContent(
-            new String(xsltEdmExternalContentStream.readAllBytes(), StandardCharsets.UTF_8));
-        //We reset the stream to it again later
-        xsltEdmExternalContentStream.reset();
-      } catch (IOException e) {
-        throw new XsltProcessingException(
-            "Something went wrong while checking the content of the xslt file", e);
-      }
+  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, String xsltToEdmExternal) {
+    if (StringUtils.isNotBlank(xsltToEdmExternal)) {
+      datasetEntityToSave.setXsltToEdmExternal(xsltToEdmExternal);
     }
 
     try {

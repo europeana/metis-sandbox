@@ -35,7 +35,8 @@ public class DatasetEntity {
   @Enumerated(EnumType.STRING)
   private Country country;
 
-  private String xsltEdmExternalContent;
+  @Column(columnDefinition="TEXT")
+  private String xsltToEdmExternal;
 
   private Boolean recordLimitExceeded;
 
@@ -72,12 +73,12 @@ public class DatasetEntity {
    * @param language The language associated with the dataset.
    * @param country The country associated with the dataset.
    * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
-   * @param xsltEdmExternalContent External XSLT EDM content associated with the dataset.
+   * @param xsltToEdmExternal External XSLT EDM content associated with the dataset.
    */
   public DatasetEntity(WorkflowType workflowType, String datasetName, String createdById, Long recordsQuantity, Language language, Country country,
-      Boolean recordLimitExceeded, String xsltEdmExternalContent) {
+      Boolean recordLimitExceeded, String xsltToEdmExternal) {
     this(workflowType, datasetName, createdById, recordsQuantity, language, country, recordLimitExceeded);
-    this.xsltEdmExternalContent = xsltEdmExternalContent;
+    this.xsltToEdmExternal = xsltToEdmExternal;
   }
 
   public DatasetEntity() {
@@ -148,12 +149,12 @@ public class DatasetEntity {
     this.recordLimitExceeded = hasReachedRecordLimit;
   }
 
-  public String getXsltEdmExternalContent() {
-    return xsltEdmExternalContent;
+  public String getXsltToEdmExternal() {
+    return xsltToEdmExternal;
   }
 
-  public void setXsltEdmExternalContent(String xsltTransformerEdmExternal) {
-    this.xsltEdmExternalContent = xsltTransformerEdmExternal;
+  public void setXsltToEdmExternal(String xsltTransformerEdmExternal) {
+    this.xsltToEdmExternal = xsltTransformerEdmExternal;
   }
 
   public WorkflowType getWorkflowType() {

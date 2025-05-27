@@ -62,9 +62,7 @@ import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import eu.europeana.metis.security.test.JwtUtils;
 import eu.europeana.metis.utils.CompressedFileExtension;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -178,11 +176,11 @@ class DatasetControllerTest {
             content().string("exampleString")),
         arguments("HARVEST", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
             content().string("exampleString")),
-        arguments("TRANSFORM_TO_EDM_EXTERNAL", Set.of(Step.TRANSFORM_TO_EDM_EXTERNAL),
+        arguments("TRANSFORM_TO_EDM_EXTERNAL", Set.of(Step.TRANSFORM_EXTERNAL),
             status().isOk(), content().string("exampleString")),
         arguments("VALIDATE_EXTERNAL", Set.of(Step.VALIDATE_EXTERNAL), status().isOk(),
             content().string("exampleString")),
-        arguments("TRANSFORM", Set.of(Step.TRANSFORM), status().isOk(),
+        arguments("TRANSFORM", Set.of(Step.TRANSFORM_INTERNAL), status().isOk(),
             content().string("exampleString")),
         arguments("VALIDATE_INTERNAL", Set.of(Step.VALIDATE_INTERNAL), status().isOk(),
             content().string("exampleString")),
@@ -205,7 +203,7 @@ class DatasetControllerTest {
   void processDatasetFromZipFile_withoutXsltFile_expectSuccess(MockMultipartFile mockMultipart) throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -230,7 +228,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -256,7 +254,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -289,7 +287,7 @@ class DatasetControllerTest {
   void processDatasetFromURL_withoutXsltFile_expectSuccess(String url) throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -314,7 +312,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -340,7 +338,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -374,7 +372,7 @@ class DatasetControllerTest {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -398,7 +396,7 @@ class DatasetControllerTest {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -426,7 +424,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(InputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -455,7 +453,7 @@ class DatasetControllerTest {
         "string".getBytes());
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
-        eq(IT), any(InputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(multipart("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -613,7 +611,7 @@ class DatasetControllerTest {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(InputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
     doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
                                                           .runHarvestOaiPmhAsync(any(DatasetMetadata.class),
@@ -637,7 +635,7 @@ class DatasetControllerTest {
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(InputStream.class)))
+        eq(IT), anyString()))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
@@ -968,7 +966,7 @@ class DatasetControllerTest {
     MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
     when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), eq(CompressedFileExtension.ZIP))).thenReturn(
@@ -993,7 +991,7 @@ class DatasetControllerTest {
         CompletableFuture.failedFuture(exception));
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -1015,7 +1013,7 @@ class DatasetControllerTest {
         CompletableFuture.failedFuture(exception));
     final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
-        eq(IT), any(ByteArrayInputStream.class)))
+        eq(IT), anyString()))
         .thenReturn("12345");
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")

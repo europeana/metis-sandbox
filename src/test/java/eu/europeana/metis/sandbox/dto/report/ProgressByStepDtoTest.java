@@ -19,7 +19,7 @@ class ProgressByStepDtoTest {
   void getStep() {
     ProgressByStepDto progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(Step.TRANSFORM, progressByStepDto.getStep());
+    assertEquals(Step.TRANSFORM_INTERNAL, progressByStepDto.getStep());
   }
 
   @Test
@@ -77,7 +77,7 @@ class ProgressByStepDtoTest {
 
   @NotNull
   private static ProgressByStepDto getTestProgressByStepDto() {
-    return new ProgressByStepDto(Step.TRANSFORM,
+    return new ProgressByStepDto(Step.TRANSFORM_INTERNAL,
         12,
         5,
         2,

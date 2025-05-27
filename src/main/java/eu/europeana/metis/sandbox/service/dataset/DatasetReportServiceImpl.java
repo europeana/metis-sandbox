@@ -8,9 +8,9 @@ import static java.util.stream.Collectors.reducing;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
-import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
+import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
@@ -51,6 +51,7 @@ import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -89,50 +90,50 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   //Those are all temporary until we have a proper orchestrator(e.g. metis-core)
-  private record StepConfig(BatchJobType batchJob, BatchJobSubType subtype, Step step) {
+  private record StepConfig(BatchJobType batchJob, Enum<?> subtype, Step step) {
 
   }
 
-  private static final List<StepConfig> oldHarvestStepConfigs = List.of(
-      new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH),
-      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
-      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
-      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
-      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
-      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
-      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
+  private static final StepConfig HARVEST_OAI =
+      new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH);
+  private static final StepConfig HARVEST_FILE =
+      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE);
+  private static final StepConfig VALIDATE_EXTERNAL =
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL);
+  private static final StepConfig VALIDATE_INTERNAL =
+      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL);
+  private static final StepConfig TRANSFORM_EXTERNAL =
+      new StepConfig(TransformationJobConfig.BATCH_JOB, TransformationBatchJobSubType.EXTERNAL, Step.TRANSFORM_EXTERNAL);
+  private static final StepConfig TRANSFORM_INTERNAL =
+      new StepConfig(TransformationJobConfig.BATCH_JOB, TransformationBatchJobSubType.INTERNAL, Step.TRANSFORM_INTERNAL);
+  private static final StepConfig NORMALIZE =
+      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE);
+  private static final StepConfig ENRICH =
+      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH);
+  private static final StepConfig MEDIA_PROCESS =
+      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS);
+  private static final StepConfig PUBLISH =
+      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH);
+
+  private static final List<StepConfig> COMMON_POST_HARVEST = List.of(
+      VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA_PROCESS, PUBLISH
   );
 
-  private static final List<StepConfig> oaiHarvestStepConfigs = List.of(
-      new StepConfig(OaiHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_OAI_PMH),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
-      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
-      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
-      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
-      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
-      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
+  private static final List<StepConfig> ONLY_VALIDATION = List.of(
+      VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL
   );
 
-  private static final List<StepConfig> fileHarvestStepConfigs = List.of(
-      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
-      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL),
-      new StepConfig(NormalizationJobConfig.BATCH_JOB, null, Step.NORMALIZE),
-      new StepConfig(EnrichmentJobConfig.BATCH_JOB, null, Step.ENRICH),
-      new StepConfig(MediaJobConfig.BATCH_JOB, null, Step.MEDIA_PROCESS),
-      new StepConfig(IndexingJobConfig.BATCH_JOB, null, Step.PUBLISH)
-  );
+  private static final List<StepConfig> oldHarvestStepConfigs = prepend(HARVEST_OAI, prepend(HARVEST_FILE, COMMON_POST_HARVEST));
+  private static final List<StepConfig> oaiHarvestStepConfigs = prepend(HARVEST_OAI, COMMON_POST_HARVEST);
+  private static final List<StepConfig> fileHarvestStepConfigs = prepend(HARVEST_FILE, COMMON_POST_HARVEST);
+  private static final List<StepConfig> fileHarvestOnlyValidationStepConfigs = prepend(HARVEST_FILE, ONLY_VALIDATION);
 
-  private static final List<StepConfig> fileHarvestOnlyValidationStepConfigs = List.of(
-      new StepConfig(FileHarvestJobConfig.BATCH_JOB, null, Step.HARVEST_FILE),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.EXTERNAL, Step.VALIDATE_EXTERNAL),
-      new StepConfig(TransformationJobConfig.BATCH_JOB, null, Step.TRANSFORM),
-      new StepConfig(ValidationJobConfig.BATCH_JOB, ValidationBatchBatchJobSubType.INTERNAL, Step.VALIDATE_INTERNAL)
-  );
+  private static List<StepConfig> prepend(StepConfig first, List<StepConfig> rest) {
+    List<StepConfig> result = new ArrayList<>(rest.size() + 1);
+    result.add(first);
+    result.addAll(rest);
+    return Collections.unmodifiableList(result);
+  }
 
   private static final Map<WorkflowType, List<StepConfig>> stepConfigsByWorkflowType = Map.of(
       WorkflowType.OAI_HARVEST, oaiHarvestStepConfigs,
@@ -168,13 +169,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
     List<ErrorLogView> errorLogViews = new ArrayList<>();
     Map<Step, StepStatisticsWrapper> statisticsMap = new EnumMap<>(Step.class);
 
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow(() -> new InvalidDatasetException(datasetId));
+    DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
+                                                   .orElseThrow(() -> new InvalidDatasetException(datasetId));
 
-    WorkflowType workflowType = datasetEntity.getWorkflowType();
-    if (workflowType == null) {
-      workflowType = WorkflowType.OLD_HARVEST;
-    }
-    final List<StepConfig> stepConfigs = stepConfigsByWorkflowType.get(workflowType);
+    List<StepConfig> stepConfigs = getStepConfigsFor(datasetEntity);
 
     for (StepConfig stepConfig : stepConfigs) {
       StepStatisticsWrapper stepStatisticsWrapper = getStatistics(datasetId, stepConfig);
@@ -211,9 +209,31 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
     return new ProgressInfoDto(
         getPublishPortalUrl(dataset, completedRecords),
-        dataset.getRecordsQuantity(), completedRecords+totalFailInWorkflow,
+        dataset.getRecordsQuantity(), completedRecords + totalFailInWorkflow,
         progressByStepDtos, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
         null, tiersZeroInfo);
+  }
+
+  private static List<StepConfig> getStepConfigsFor(DatasetEntity datasetEntity) {
+    WorkflowType workflowType = Optional.ofNullable(datasetEntity.getWorkflowType())
+                                        .orElse(WorkflowType.OLD_HARVEST);
+
+    List<StepConfig> baseSteps = stepConfigsByWorkflowType.get(workflowType);
+
+    if (datasetEntity.getXsltToEdmExternal() == null || workflowType.equals(WorkflowType.FILE_HARVEST_ONLY_VALIDATION)) {
+      return baseSteps;
+    }
+
+    // Insert TRANSFORM_EXTERNAL before VALIDATE_EXTERNAL
+    List<StepConfig> modifiedSteps = new ArrayList<>();
+    for (StepConfig step : baseSteps) {
+      if (step.equals(VALIDATE_EXTERNAL)) {
+        modifiedSteps.add(TRANSFORM_EXTERNAL);
+      }
+      modifiedSteps.add(step);
+    }
+
+    return Collections.unmodifiableList(modifiedSteps);
   }
 
   private StepStatisticsWrapper getStatistics(String datasetId, StepConfig stepConfig) {
@@ -225,12 +245,14 @@ class DatasetReportServiceImpl implements DatasetReportService {
   }
 
   private @NotNull DatasetReportServiceImpl.StepStatisticsWrapper getStepStatistics(
-      String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType, Step step) {
+      String datasetId, BatchJobType batchJobType, Enum<?> batchJobSubType, Step step) {
     String executionName = getFullExecutionName(batchJobType, batchJobSubType);
-    long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+    long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+        executionName);
     long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         executionName);
-    long totalWarning = executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(datasetId,
+    long totalWarning = executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+        datasetId,
         executionName);
     final long totalProcessed = totalSuccess + totalFailure;
 
@@ -241,7 +263,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
     return new StepStatisticsWrapper(totalSuccess, totalProcessed, stepStatistics);
   }
 
-  private static @NotNull String getFullExecutionName(BatchJobType batchJobType, BatchJobSubType batchJobSubType) {
+  private static @NotNull String getFullExecutionName(BatchJobType batchJobType, Enum<?> batchJobSubType) {
     return batchJobSubType == null
         ? batchJobType.name()
         : format("%s-%s", batchJobType.name(), batchJobSubType.name());
@@ -251,7 +273,7 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   }
 
-  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, BatchJobSubType batchJobSubType,
+  private List<ErrorLogView> getErrorView(String datasetId, BatchJobType batchJobType, Enum<?> batchJobSubType,
       Step step) {
     String executionName = getFullExecutionName(batchJobType, batchJobSubType);
 
@@ -267,7 +289,8 @@ class DatasetReportServiceImpl implements DatasetReportService {
     }
 
     List<ExecutionRecordWarningException> warningExceptions =
-        executionRecordWarningExceptionRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(datasetId, executionName);
+        executionRecordWarningExceptionRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+            datasetId, executionName);
 
     for (ExecutionRecordWarningException warningException : warningExceptions) {
       RecordEntity recordEntity = new RecordEntity();
@@ -433,10 +456,10 @@ class DatasetReportServiceImpl implements DatasetReportService {
       Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep
   ) {
     stepsInfo.add(new ProgressByStepDto(step,
-            statusMap.getOrDefault(Status.SUCCESS, 0L),
-            statusMap.getOrDefault(Status.FAIL, 0L),
-            statusMap.getOrDefault(Status.WARN, 0L),
-            addStepErrors(recordErrorsByStep.get(step))));
+        statusMap.getOrDefault(Status.SUCCESS, 0L),
+        statusMap.getOrDefault(Status.FAIL, 0L),
+        statusMap.getOrDefault(Status.WARN, 0L),
+        addStepErrors(recordErrorsByStep.get(step))));
   }
 
   private List<ErrorInfoDto> addStepErrors(Map<Status, Map<String, List<ErrorLogView>>> statusMap) {
