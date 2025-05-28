@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.dataset;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.util.VacuumService;
@@ -24,7 +23,6 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
 
   private final DatasetService datasetService;
   private final DatasetLogService datasetLogService;
-  private final RecordLogService recordLogService;
   private final IndexingService indexingService;
   private final ThumbnailStoreService thumbnailStoreService;
   private final RecordService recordService;
@@ -50,7 +48,6 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
   DatasetRemoverServiceImpl(
           DatasetService datasetService,
           DatasetLogService datasetLogService,
-          RecordLogService recordLogService,
           IndexingService indexingService,
           ThumbnailStoreService thumbnailStoreService,
           RecordService recordService,
@@ -60,7 +57,6 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           VacuumService vacuumService) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
-    this.recordLogService = recordLogService;
     this.indexingService = indexingService;
     this.thumbnailStoreService = thumbnailStoreService;
     this.recordService = recordService;
@@ -86,9 +82,6 @@ class DatasetRemoverServiceImpl implements DatasetRemoverService {
           // remove from mongo and solr
           LOGGER.info("Remove index for dataset id: [{}]", dataset);
           indexingService.remove(dataset);
-          // remove from sandbox
-          LOGGER.info("Remove record logs for dataset id: [{}]", dataset);
-          recordLogService.remove(dataset);
           LOGGER.info("Remove debias report with id: [{}]", dataset);
           debiasStateService.cleanDeBiasReport(Integer.valueOf(dataset));
           LOGGER.info("Remove records for dataset id: [{}]", dataset);

@@ -3,10 +3,6 @@ package eu.europeana.metis.sandbox.domain;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 
-/**
- * DatasetMetadata class used in {@link eu.europeana.metis.sandbox.service.dataset.DatasetGeneratorService} to provide dataset
- * metadata to generate it.
- */
 public final class DatasetMetadata {
   private final String datasetId;
   private final String datasetName;

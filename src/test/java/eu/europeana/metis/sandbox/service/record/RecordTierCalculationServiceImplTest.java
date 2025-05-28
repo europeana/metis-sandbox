@@ -3,9 +3,6 @@ package eu.europeana.metis.sandbox.service.record;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
@@ -30,8 +27,6 @@ class RecordTierCalculationServiceImplTest {
   private final TestUtils testUtils = new TestUtils();
   private static final String PORTAL_PUBLISH_RECORD_BASE_URL = "https://example-domain.org/portal/search?view=grid&q=edm_datasetName:";
 
-  @Mock
-  private RecordLogService recordLogServiceMock;
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
   @Mock
@@ -77,7 +72,7 @@ class RecordTierCalculationServiceImplTest {
     final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep,
         Status.SUCCESS);
     recordEntity.setId(recordId);
-    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId, Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
+//    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId, Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
         providerId, datasetId);
@@ -88,7 +83,7 @@ class RecordTierCalculationServiceImplTest {
 
   @Test
   void calculateTiers_NoRecordFoundException() {
-    when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString(), any(Step.class))).thenReturn(null);
+//    when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString(), any(Step.class))).thenReturn(null);
     assertThrows(NoRecordFoundException.class, () -> recordTierCalculationService.calculateTiers("recordId", "datasetId"));
   }
 }

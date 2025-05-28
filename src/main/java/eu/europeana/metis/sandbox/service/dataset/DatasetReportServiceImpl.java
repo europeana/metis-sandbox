@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 
@@ -47,8 +46,6 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogViewImpl;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.repository.RecordErrorLogRepository;
-import eu.europeana.metis.sandbox.repository.RecordLogRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -67,7 +64,6 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class DatasetReportServiceImpl implements DatasetReportService {
@@ -78,9 +74,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
   private final DatasetRepository datasetRepository;
-  private final DatasetLogService datasetLogService;
-  private final RecordLogRepository recordLogRepository;
-  private final RecordErrorLogRepository errorLogRepository;
   private final RecordRepository recordRepository;
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
@@ -146,18 +139,12 @@ class DatasetReportServiceImpl implements DatasetReportService {
 
   public DatasetReportServiceImpl(
       DatasetRepository datasetRepository,
-      DatasetLogService datasetLogService,
-      RecordLogRepository recordLogRepository,
-      RecordErrorLogRepository errorLogRepository,
       RecordRepository recordRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.datasetRepository = datasetRepository;
-    this.datasetLogService = datasetLogService;
-    this.recordLogRepository = recordLogRepository;
-    this.errorLogRepository = errorLogRepository;
     this.recordRepository = recordRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
@@ -304,60 +291,6 @@ class DatasetReportServiceImpl implements DatasetReportService {
   private static String createMessageRecordError(RecordEntity recordEntity) {
     return Stream.of(recordEntity.getEuropeanaId(), recordEntity.getProviderId()).filter(
         Objects::nonNull).filter(id -> !id.isBlank()).collect(Collectors.joining(" | "));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgressInfoDto getReport(String datasetId) {
-    requireNonNull(datasetId, "Dataset id must not be null");
-
-    // pull records and errors data for the dataset
-    List<StepStatistic> stepStatistics;
-    List<ErrorLogView> errorsLog;
-    try {
-      stepStatistics = recordLogRepository.getStepStatistics(datasetId);
-      errorsLog = errorLogRepository.getByRecordIdDatasetId(datasetId);
-    } catch (RuntimeException exception) {
-      throw new ServiceException(format("Failed to get report for dataset id: [%s]. ", datasetId),
-          exception);
-    }
-
-    // get qty of records completely processed
-    final long completedRecords = getCompletedRecords(stepStatistics);
-
-    // search for dataset
-    final DatasetEntity dataset = getDataset(datasetId);
-
-    List<DatasetLogDto> datasetLogs = datasetLogService.getAllLogs(datasetId);
-    if (stepStatistics.isEmpty() || stepStatistics.stream().allMatch(step -> step.getStatus().equals(Status.FAIL))
-        || getErrors(datasetLogs).findAny().isPresent()) {
-      return new ProgressInfoDto(getPublishPortalUrl(dataset, 0L),
-          dataset.getRecordsQuantity(), 0L, List.of(),
-          dataset.getRecordLimitExceeded(), getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
-          datasetLogs,
-          null);
-    }
-
-    // get records processed by step
-    Map<Step, Map<Status, Long>> recordsProcessedByStep = getStatisticsByStep(
-        stepStatistics);
-
-    // get errors by step
-    Map<Step, Map<Status, Map<String, List<ErrorLogView>>>> recordErrorsByStep = getRecordErrorsByStep(
-        errorsLog);
-
-    // collect steps processing information
-    List<ProgressByStepDto> stepsInfo = new LinkedList<>();
-    recordsProcessedByStep.forEach((step, statusMap) -> addStepInfo(stepsInfo, statusMap, step,
-        recordErrorsByStep));
-
-    TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
-
-    return new ProgressInfoDto(
-        getPublishPortalUrl(dataset, completedRecords),
-        dataset.getRecordsQuantity(), completedRecords,
-        stepsInfo, dataset.getRecordLimitExceeded(), getErrorMessage(datasetLogs, dataset.getRecordsQuantity()),
-        datasetLogs, tiersZeroInfo);
   }
 
   private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords) {

@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import eu.europeana.metis.sandbox.service.util.VacuumService;
@@ -30,9 +29,6 @@ class DatasetRemoverServiceImplTest {
 
   @Mock
   private DatasetLogService datasetLogService;
-
-  @Mock
-  private RecordLogService recordLogService;
 
   @Mock
   private IndexingService indexingService;
@@ -67,7 +63,6 @@ class DatasetRemoverServiceImplTest {
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexingService, times(4)).remove(anyString());
-    verify(recordLogService, times(4)).remove(anyString());
     verify(harvestingParameterService, times(4)).remove(anyString());
     verify(datasetService, times(4)).remove(anyString());
     verify(datasetLogService, times(4)).remove(anyString());
@@ -90,7 +85,6 @@ class DatasetRemoverServiceImplTest {
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexingService, times(3)).remove(anyString());
-    verify(recordLogService, times(3)).remove(anyString());
     verify(harvestingParameterService, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
     verify(datasetLogService, times(3)).remove(anyString());
@@ -112,7 +106,6 @@ class DatasetRemoverServiceImplTest {
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexingService, times(3)).remove(anyString());
-    verify(recordLogService, times(3)).remove(anyString());
     verify(harvestingParameterService, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
     verify(datasetLogService, times(3)).remove(anyString());

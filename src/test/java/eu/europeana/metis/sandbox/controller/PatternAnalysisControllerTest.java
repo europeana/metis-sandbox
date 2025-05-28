@@ -29,7 +29,6 @@ import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.schema.jibx.RDF;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
@@ -76,9 +75,6 @@ class PatternAnalysisControllerTest {
   private ExecutionPointService mockExecutionPointService;
 
   @MockBean
-  private RecordLogService mockRecordLogService;
-
-  @MockBean
   private DatasetReportService mockDatasetReportService;
 
   @MockBean
@@ -100,7 +96,7 @@ class PatternAnalysisControllerTest {
 
   @BeforeEach
   void resetMocks() {
-    reset(mockPatternAnalysisService, mockExecutionPointService, mockRecordLogService,
+    reset(mockPatternAnalysisService, mockExecutionPointService,
         mockDatasetReportService, lockRegistry, jwtDecoder);
   }
 
@@ -125,7 +121,7 @@ class PatternAnalysisControllerTest {
     // First check with dataset that is still processing
     final ProgressInfoDto inProgressInfo = new ProgressInfoDto("", 1L, 0L,
         Collections.emptyList(), false, "", emptyList(), null);
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
+//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
     assertNotEquals(Status.COMPLETED, inProgressInfo.getStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -140,7 +136,7 @@ class PatternAnalysisControllerTest {
     // Now check with finalized dataset.
     final ProgressInfoDto completedInfo = new ProgressInfoDto("", 1L, 1L,
         Collections.emptyList(), false, "", emptyList(), null);
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
+//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
     assertEquals(Status.COMPLETED, completedInfo.getStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -178,8 +174,8 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -215,8 +211,8 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -257,8 +253,8 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.empty());
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
         .andExpect(status().isInternalServerError())
@@ -275,8 +271,8 @@ class PatternAnalysisControllerTest {
         new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem.xml"),
         StandardCharsets.UTF_8);
 
-    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
-        mockRecordLogEntity);
+//    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
+//        mockRecordLogEntity);
     when(mockRecordLogEntity.getContent()).thenReturn(recordContent);
     when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
         .thenReturn(problemPatternList);
@@ -293,8 +289,8 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getRecordPatternAnalysis_notFound_expectSuccess() throws Exception {
-    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
-        null);
+//    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
+//        null);
     mvc.perform(get("/pattern-analysis/{id}/get-record-pattern-analysis", "datasetId")
            .param("recordId", "recordId"))
        .andExpect(status().isNotFound());
@@ -337,8 +333,8 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -368,8 +364,8 @@ class PatternAnalysisControllerTest {
         new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem_with_P7.xml"),
         StandardCharsets.UTF_8);
 
-    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
-        mockRecordLogEntity);
+//    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
+//        mockRecordLogEntity);
     when(mockRecordLogEntity.getContent()).thenReturn(recordContent);
     when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
         .thenReturn(problemPatternList);

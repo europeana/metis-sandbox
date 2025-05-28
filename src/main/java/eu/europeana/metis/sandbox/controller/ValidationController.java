@@ -25,7 +25,6 @@ import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMes
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult.Status;
 import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowReport;
-import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowService;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
@@ -60,7 +59,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ValidationController {
 
   private static final String DATASET_ID_PREFIX = "direct_validation_";
-  private final ValidationWorkflowService workflowService;
   private final DatasetService datasetService;
   private final DatasetReportService datasetReportService;
   private final BatchJobExecutor batchJobExecutor;
@@ -73,11 +71,10 @@ public class ValidationController {
    *
    * @param validationWorkflowService the validation workflow service
    */
-  public ValidationController(ValidationWorkflowService validationWorkflowService, DatasetService datasetService,
+  public ValidationController(DatasetService datasetService,
       DatasetReportService datasetReportService,
       BatchJobExecutor batchJobExecutor, PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService, HarvestingParameterService harvestingParameterService) {
-    this.workflowService = validationWorkflowService;
     this.datasetService = datasetService;
     this.datasetReportService = datasetReportService;
     this.batchJobExecutor = batchJobExecutor;

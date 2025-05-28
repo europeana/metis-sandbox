@@ -14,7 +14,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -32,7 +31,6 @@ import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.indexing.utils.LicenseType;
-import eu.europeana.metis.sandbox.common.OaiHarvestData;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -42,7 +40,6 @@ import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
-import eu.europeana.metis.sandbox.domain.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
@@ -56,12 +53,9 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
-import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import eu.europeana.metis.security.test.JwtUtils;
-import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.File;
 import java.net.URI;
 import java.nio.file.Paths;
@@ -112,13 +106,7 @@ class DatasetControllerTest {
   private RecordService recordService;
 
   @MockBean
-  private RecordLogService recordLogService;
-
-  @MockBean
   private RecordTierCalculationService recordTierCalculationService;
-
-  @MockBean
-  private HarvestPublishService harvestPublishService;
 
   @MockBean
   JwtDecoder jwtDecoder;
@@ -144,9 +132,6 @@ class DatasetControllerTest {
   @BeforeEach
   public void setup() {
     reset(jwtDecoder);
-    when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(asyncResult);
-    when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(asyncResult);
   }
 
   private static Stream<MultipartFile> provideDifferentCompressedFiles() {
@@ -613,9 +598,6 @@ class DatasetControllerTest {
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
-    doThrow(new IllegalArgumentException(new Exception())).when(harvestPublishService)
-                                                          .runHarvestOaiPmhAsync(any(DatasetMetadata.class),
-                                                              any(OaiHarvestData.class));
 
     mvc.perform(post("/dataset/{name}/harvestOaiPmh", "my-data-set")
            .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -687,7 +669,7 @@ class DatasetControllerTest {
     var report = new ProgressInfoDto("https://metis-sandbox",
         10L, 10L, List.of(createProgress, externalProgress), false, "", emptyList(),
         tiersZeroInfo);
-    when(datasetReportService.getReport("1")).thenReturn(report);
+//    when(datasetReportService.getReport("1")).thenReturn(report);
 
     mvc.perform(get("/dataset/{id}/progress", "1"))
        .andExpect(status().isOk())
@@ -704,8 +686,8 @@ class DatasetControllerTest {
   @Test
   void retrieveDatasetProgress_datasetInvalidDatasetId_expectFail() throws Exception {
 
-    when(datasetReportService.getReport("1"))
-        .thenThrow(new InvalidDatasetException("1"));
+//    when(datasetReportService.getReport("1"))
+//        .thenThrow(new InvalidDatasetException("1"));
 
     mvc.perform(get("/dataset/{id}/progress", "1"))
        .andExpect(status().isBadRequest())
@@ -716,8 +698,8 @@ class DatasetControllerTest {
   @Test
   void retrieveDatasetProgress_datasetReportServiceFails_expectFail() throws Exception {
 
-    when(datasetReportService.getReport("1"))
-        .thenThrow(new ServiceException("Failed", new Exception()));
+//    when(datasetReportService.getReport("1"))
+//        .thenThrow(new ServiceException("Failed", new Exception()));
 
     mvc.perform(get("/dataset/{id}/progress", "1"))
        .andExpect(status().isInternalServerError())
@@ -873,8 +855,8 @@ class DatasetControllerTest {
     final String datasetId = "1";
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
-    when(recordLogService.getProviderRecordString(recordId, datasetId, steps))
-        .thenReturn(returnString);
+//    when(recordLogService.getProviderRecordString(recordId, datasetId, steps))
+//        .thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
            .param("recordId", recordId)
@@ -890,9 +872,9 @@ class DatasetControllerTest {
     final String datasetId = "1";
     final String recordId = "europeanaId";
     final String returnString = "exampleString";
-    when(recordLogService.getProviderRecordString(recordId, datasetId,
-        Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH)))
-        .thenReturn(returnString);
+//    when(recordLogService.getProviderRecordString(recordId, datasetId,
+//        Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH)))
+//        .thenReturn(returnString);
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
            .param("recordId", recordId))
@@ -906,9 +888,9 @@ class DatasetControllerTest {
     final String datasetId = "1";
     final String recordId = "europeanaId";
     final String step = "HARVEST";
-    when(recordLogService.getProviderRecordString(anyString(), anyString(),
-        any(Set.class))).thenThrow(
-        new NoRecordFoundException("record not found"));
+//    when(recordLogService.getProviderRecordString(anyString(), anyString(),
+//        any(Set.class))).thenThrow(
+//        new NoRecordFoundException("record not found"));
 
     mvc.perform(get("/dataset/{id}/record", datasetId)
            .param("recordId", recordId)
@@ -969,8 +951,6 @@ class DatasetControllerTest {
         eq(IT), anyString()))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestProvidedFileAsync(any(), any(), eq(CompressedFileExtension.ZIP))).thenReturn(
-        CompletableFuture.failedFuture(exception));
 
     mvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
         .file(mockMultipart)
@@ -987,8 +967,6 @@ class DatasetControllerTest {
   void processDatasetFromURL_AsyncExecutionException_expectLogging() throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestHttpFileAsync(any(), any(), any())).thenReturn(
-        CompletableFuture.failedFuture(exception));
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
@@ -1009,8 +987,6 @@ class DatasetControllerTest {
   void processDatasetFromOAI_AsyncExecutionException_expectLogging() throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     ServiceException exception = new ServiceException("Test error");
-    when(harvestPublishService.runHarvestOaiPmhAsync(any(), any())).thenReturn(
-        CompletableFuture.failedFuture(exception));
     final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
     when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))

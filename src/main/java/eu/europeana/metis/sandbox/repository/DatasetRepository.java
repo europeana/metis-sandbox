@@ -49,19 +49,6 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
   @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltToEdmExternal IS NOT NULL")
   int isXsltPresent(int datasetId);
 
-  /**
-   * Get xslt content based on datasetId
-   *
-   * @param datasetId must not be null
-   * @return xslt content associated to dataset
-   */
-  @Query("SELECT " +
-      "dataset.xsltToEdmExternal " +
-      "FROM " +
-      "    DatasetEntity dataset " +
-      "WHERE dataset.datasetId = ?1 ")
-  String getXsltContentFromDatasetId(int datasetId);
-
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 
 }

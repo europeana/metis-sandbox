@@ -6,14 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
-import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import eu.europeana.patternanalysis.view.ProblemPattern;
@@ -110,16 +108,13 @@ public class PatternAnalysisController {
           ProblemPatternAnalysisStatus.PENDING), HttpStatus.NOT_FOUND);
     }
 
-    // Finalize the problem pattern analysis if we can (i.e. if the dataset finished processing).
-    final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(escapedDatasetId, executionPoint);
-
     // Now get the pattern analysis.
     final DatasetProblemPatternAnalysisView<FullBatchJobType> analysisView =
         patternAnalysisService.getDatasetPatternAnalysis(
                                   escapedDatasetId, FullBatchJobType.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp())
                               .map(
                                   analysis -> new DatasetProblemPatternAnalysisView<>(
-                                      analysis, status))
+                                      analysis, ProblemPatternAnalysisStatus.FINALIZED))
                               .orElseGet(() -> {
                                 LOGGER.error(
                                     "Result not expected to be empty when there is a non-null execution point.");
@@ -132,28 +127,6 @@ public class PatternAnalysisController {
     final HttpStatus httpStatus = analysisView.analysisStatus == ProblemPatternAnalysisStatus.ERROR
         ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.OK;
     return new ResponseEntity<>(analysisView, httpStatus);
-  }
-
-  private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(String datasetId,
-      ExecutionPoint datasetExecutionPoint) {
-    if (datasetReportService.getReport(datasetId).getStatus() == Status.COMPLETED) {
-      final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId,
-          s -> lockRegistry.obtain("finalizePatternAnalysis_" + datasetId));
-      try {
-        lock.lock();
-        LOGGER.debug("Finalize analysis: {} lock, Locked", datasetId);
-        patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
-        return ProblemPatternAnalysisStatus.FINALIZED;
-      } catch (PatternAnalysisException e) {
-        LOGGER.error("Something went wrong during finalizing pattern analysis", e);
-        return ProblemPatternAnalysisStatus.ERROR;
-      } finally {
-        lock.unlock();
-        LOGGER.debug("Finalize analysis: {} lock, Unlocked", datasetId);
-      }
-    }
-    // This method is only executed if we have an execution point, i.e. if processing is underway.
-    return ProblemPatternAnalysisStatus.IN_PROGRESS;
   }
 
   /**

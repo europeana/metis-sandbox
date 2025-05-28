@@ -16,17 +16,8 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
-import eu.europeana.metis.sandbox.service.validationworkflow.ExternalValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.HarvestValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.InternalValidationValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.TransformationValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.ValidationStep;
-import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
-import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
-import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
@@ -66,15 +57,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 class SandboxConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-    @Value("${sandbox.rabbitmq.queues.record.created.queue}")
-    private String createdQueue;
-
-    @Value("${sandbox.rabbitmq.queues.record.debias.ready.queue}")
-    private String deBiasReadyQueue;
-
-    @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
-    private String transformationToEdmExternalQueue;
 
     @Value("${sandbox.dataset.creation.threads.core-pool-size}")
     private Integer corePoolSize;
@@ -148,21 +130,6 @@ class SandboxConfig {
         executor.setThreadNamePrefix(threadPrefix);
         executor.initialize();
         return executor;
-    }
-
-    @Bean(name = "createdQueue")
-    String createdQueue() {
-        return createdQueue;
-    }
-
-    @Bean(name = "deBiasReadyQueue")
-    String deBiasReadyQueue() {
-        return deBiasReadyQueue;
-    }
-
-    @Bean(name = "transformationToEdmExternalQueue")
-    String transformationToEdmExternalQueue() {
-        return transformationToEdmExternalQueue;
     }
 
     @Bean(name = "portalPublishRecordBaseUrl")
@@ -247,29 +214,6 @@ class SandboxConfig {
                 .followRedirects(Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
-    }
-
-    @Bean
-    ValidationStep harvestValidationStep(RecordLogService recordLogService) {
-        return new HarvestValidationStep(recordLogService);
-    }
-
-    @Bean
-    ValidationStep externalValidationStep(ExternalValidationService externalValidationService,
-                                          RecordLogService recordLogService) {
-        return new ExternalValidationStep(externalValidationService, recordLogService);
-    }
-
-    @Bean
-    ValidationStep transformationValidationStep(TransformationService transformationService,
-                                                RecordLogService recordLogService) {
-        return new TransformationValidationStep(transformationService, recordLogService);
-    }
-
-    @Bean
-    ValidationStep internalValidationValidationStep(InternalValidationService internalValidationService,
-                                                    RecordLogService recordLogService) {
-        return new InternalValidationValidationStep(internalValidationService, recordLogService);
     }
 
     private Properties schemaProperties() {

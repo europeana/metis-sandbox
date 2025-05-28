@@ -16,16 +16,6 @@ services:
       - ./src/main/resources/database/schema_problem_patterns.sql:/docker-entrypoint-initdb.d/schema_problem_patterns.sql
       - ./src/main/resources/database/schema_lockrepository.sql:/docker-entrypoint-initdb.d/schema_lockrepository.sql
       - ./src/main/resources/database/schema_validation.sql:/docker-entrypoint-initdb.d/schema_validation.sql
-  rabbitmq:
-    image: rabbitmq:3.11.2-management-alpine
-    container_name: metis-sandbox-rabbitmq
-    environment:
-      - RABBIT_DEFAULT_VHOST=/
-      - RABBITMQ_DEFAULT_USER=local
-      - RABBITMQ_DEFAULT_PASS=local
-    ports:
-      - '5672:5672'
-      - '15672:15672'
   mongo:
     image: mongo:6.0.12
     container_name: metis-sandbox-mongo

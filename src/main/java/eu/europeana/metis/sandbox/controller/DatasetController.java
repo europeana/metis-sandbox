@@ -27,15 +27,12 @@ import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
-import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
-import eu.europeana.metis.sandbox.service.workflow.HarvestPublishService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -111,12 +108,9 @@ class DatasetController {
   private static final String HARVESTING_ERROR_MESSAGE = "Error harvesting records for dataset: ";
 
   private final DatasetService datasetService;
-  private final DatasetLogService datasetLogService;
   private final DatasetReportService reportService;
   private final RecordService recordService;
-  private final RecordLogService recordLogService;
   private final RecordTierCalculationService recordTierCalculationService;
-  private final HarvestPublishService harvestPublishService;
   private final UrlValidator urlValidator;
   private final BatchJobExecutor batchJobExecutor;
   private final HarvestingParameterService harvestingParameterService;
@@ -134,18 +128,15 @@ class DatasetController {
    * @param harvestPublishService the harvest publish service
    */
   @Autowired
-  public DatasetController(DatasetService datasetService, DatasetLogService datasetLogService,
+  public DatasetController(DatasetService datasetService,
       DatasetReportService reportService, RecordService recordService,
-      RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
-      HarvestPublishService harvestPublishService, BatchJobExecutor batchJobExecutor,
+      RecordTierCalculationService recordTierCalculationService,
+      BatchJobExecutor batchJobExecutor,
       HarvestingParameterService harvestingParameterService, ExecutionRecordRepository executionRecordRepository) {
     this.datasetService = datasetService;
-    this.datasetLogService = datasetLogService;
     this.reportService = reportService;
     this.recordService = recordService;
-    this.recordLogService = recordLogService;
     this.recordTierCalculationService = recordTierCalculationService;
-    this.harvestPublishService = harvestPublishService;
     this.batchJobExecutor = batchJobExecutor;
     this.harvestingParameterService = harvestingParameterService;
     this.executionRecordRepository = executionRecordRepository;
@@ -459,7 +450,7 @@ class DatasetController {
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
   public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
-    return recordService.getRecordsTiersNew(datasetId);
+    return recordService.getRecordsTiers(datasetId);
   }
 
   private Set<Step> getSetFromStep(String step) {
