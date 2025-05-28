@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,5 +13,6 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   Page<ExecutionRecord> findByIdentifier_DatasetIdAndIdentifier_ExecutionId(String datasetId, String executionId, Pageable pageable);
   ExecutionRecord findByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
   ExecutionRecord findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(String datasetId, String recordId, String executionName);
+  Set<ExecutionRecord> findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(String datasetId, String recordId, Set<String> executionName);
   long countByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
 }

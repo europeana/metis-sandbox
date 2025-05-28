@@ -7,6 +7,9 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -117,6 +120,7 @@ class DatasetController {
   private final UrlValidator urlValidator;
   private final BatchJobExecutor batchJobExecutor;
   private final HarvestingParameterService harvestingParameterService;
+  private final ExecutionRecordRepository executionRecordRepository;
 
   /**
    * Instantiates a new Dataset controller.
@@ -134,7 +138,7 @@ class DatasetController {
       DatasetReportService reportService, RecordService recordService,
       RecordLogService recordLogService, RecordTierCalculationService recordTierCalculationService,
       HarvestPublishService harvestPublishService, BatchJobExecutor batchJobExecutor,
-      HarvestingParameterService harvestingParameterService) {
+      HarvestingParameterService harvestingParameterService, ExecutionRecordRepository executionRecordRepository) {
     this.datasetService = datasetService;
     this.datasetLogService = datasetLogService;
     this.reportService = reportService;
@@ -144,6 +148,7 @@ class DatasetController {
     this.harvestPublishService = harvestPublishService;
     this.batchJobExecutor = batchJobExecutor;
     this.harvestingParameterService = harvestingParameterService;
+    this.executionRecordRepository = executionRecordRepository;
     urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   }
 
@@ -198,7 +203,8 @@ class DatasetController {
         new FileHarvestingDto(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
 
     final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, datasetRecordsCompressedFile);
-    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize, xsltToEdmExternal);
+    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize,
+        xsltToEdmExternal);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -265,7 +271,8 @@ class DatasetController {
 
     final String urlFileName = url.substring(url.lastIndexOf("/") + 1);
     final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, urlFileName, inputStreamToHarvest);
-    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize, xsltToEdmExternal);
+    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize,
+        xsltToEdmExternal);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -282,14 +289,14 @@ class DatasetController {
   }
 
   private static @NotNull Path getTempFilePath(String datasetId, MultipartFile multipartFile) {
-      final Path filePath;
-      try {
-        filePath = Files.createTempFile("dataset-" + datasetId, "-" + multipartFile.getOriginalFilename());
-        Files.copy(multipartFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e) {
-        throw new ServiceException("Error harvesting records from file " + multipartFile.getOriginalFilename(), e);
-      }
-      return filePath;
+    final Path filePath;
+    try {
+      filePath = Files.createTempFile("dataset-" + datasetId, "-" + multipartFile.getOriginalFilename());
+      Files.copy(multipartFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new ServiceException("Error harvesting records from file " + multipartFile.getOriginalFilename(), e);
+    }
+    return filePath;
   }
 
   /**
@@ -428,7 +435,16 @@ class DatasetController {
   @GetMapping(value = "{id}/record", produces = APPLICATION_RDF_XML)
   public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
       @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
-    return recordLogService.getProviderRecordString(recordId, datasetId, getSetFromStep(step));
+    final Set<String> harvestJobTypes;
+    if (StringUtils.isBlank(step)) {
+      harvestJobTypes = Set.of(FullBatchJobType.HARVEST_FILE.name(), FullBatchJobType.HARVEST_OAI.name());
+    } else {
+      FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
+      harvestJobTypes = Set.of(fullBatchJobType.name());
+    }
+    Set<ExecutionRecord> executionRecords = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
+        datasetId, recordId, harvestJobTypes);
+    return executionRecords.stream().findFirst().map(ExecutionRecord::getRecordData).orElseThrow(() -> new NoRecordFoundException(recordId));
   }
 
   /**
