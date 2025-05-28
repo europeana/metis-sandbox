@@ -4,6 +4,7 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
@@ -48,10 +49,10 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
   private String schematronFileLocation;
   private ValidationExecutionService validationService;
   private final ItemProcessorUtil itemProcessorUtil;
-  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointRepository executionPointRepository;
 
-  public ValidationItemProcessor(PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
+  public ValidationItemProcessor(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointRepository executionPointRepository) {
     prepareProperties();
     validationService = new ValidationExecutionService(properties);

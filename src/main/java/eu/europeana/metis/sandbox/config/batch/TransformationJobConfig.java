@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.TRANSFORMATION;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.TRANSFORM;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -35,7 +35,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class TransformationJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = TRANSFORMATION;
+  public static final BatchJobType BATCH_JOB = TRANSFORM;
   public static final String STEP_NAME = "transformationStep";
 
   @Value("${transformation.chunkSize:5}")
@@ -79,7 +79,7 @@ public class TransformationJobConfig {
   @Bean
   public TaskExecutor transformationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(TRANSFORMATION.name() + "-");
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATION;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -38,7 +38,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class ValidationJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = VALIDATION;
+  public static final BatchJobType BATCH_JOB = VALIDATE;
   public static final String STEP_NAME = "validationStep";
 
   @Value("${validation.chunkSize:5}")
@@ -88,7 +88,7 @@ public class ValidationJobConfig {
   @Bean
   public TaskExecutor validationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(VALIDATION.name() + "-");
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

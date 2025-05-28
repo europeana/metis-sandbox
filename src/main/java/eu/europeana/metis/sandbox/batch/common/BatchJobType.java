@@ -1,12 +1,12 @@
 package eu.europeana.metis.sandbox.batch.common;
 
 public enum BatchJobType {
-  OAI_HARVEST,
-  FILE_HARVEST,
-  VALIDATION,
-  TRANSFORMATION,
-  NORMALIZATION,
-  ENRICHMENT,
+  HARVEST_OAI,
+  HARVEST_FILE,
+  VALIDATE,
+  TRANSFORM,
+  NORMALIZE,
+  ENRICH,
   MEDIA,
   INDEX,
   DEBIAS

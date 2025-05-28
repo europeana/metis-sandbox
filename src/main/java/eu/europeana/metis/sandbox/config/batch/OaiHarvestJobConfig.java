@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.OAI_HARVEST;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -34,7 +34,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class OaiHarvestJobConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    public static final BatchJobType BATCH_JOB = OAI_HARVEST;
+    public static final BatchJobType BATCH_JOB = HARVEST_OAI;
     public static final String IDENTIFIERS_HARVEST_STEP_NAME = "identifiersHarvest";
     public static final String RECORDS_HARVEST_STEP_NAME = "recordsHarvest";
 
@@ -103,7 +103,7 @@ public class OaiHarvestJobConfig {
     @Bean
     public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadNamePrefix(OAI_HARVEST.name() + "-");
+        executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
         executor.setCorePoolSize(parallelization);
         executor.setMaxPoolSize(parallelization);
         executor.initialize();

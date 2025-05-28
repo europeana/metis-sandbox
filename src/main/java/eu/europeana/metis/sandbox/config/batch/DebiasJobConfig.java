@@ -79,7 +79,7 @@ public class DebiasJobConfig {
   @Bean
   public TaskExecutor debiasStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(DEBIAS.name() + "-");
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

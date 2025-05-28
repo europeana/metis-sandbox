@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
@@ -37,7 +37,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   private static final Period MAP_EVICTION_PERIOD = Period.ofDays(1);
 
   private final ValidationExecutionService validator;
-  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   //Keep maps in memory for unique timestamps and locking between dataset ids
   private final Map<String, LocalDateTime> datasetIdTimestampMap = new ConcurrentHashMap<>();
@@ -45,7 +45,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
   private final LockRegistry lockRegistry;
 
   public InternalValidationServiceImpl(ValidationExecutionService validator,
-      PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
+      PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService,
       LockRegistry lockRegistry) {
     this.validator = validator;
@@ -81,7 +81,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
       LOGGER.debug("Generate analysis: {} lock, Locked", datasetId);
       final LocalDateTime timestamp = datasetIdTimestampMap.computeIfAbsent(datasetId, s -> getLocalDateTime(datasetId));
       //We have to attempt initialization everytime because we don't have an entry point for the start of the step
-      executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
+      executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId, FullBatchJobType.VALIDATE_INTERNAL, timestamp);
       patternAnalysisService.generateRecordPatternAnalysis(executionPoint, new String(recordContent, StandardCharsets.UTF_8));
     } finally {
       lock.unlock();
@@ -94,7 +94,7 @@ class InternalValidationServiceImpl implements InternalValidationService {
     //In metis for example this wouldn't work if there was already a valid execution of a step in the database
     //while we are trying to run a new execution of the same step
     Optional<ExecutionPoint> firstOccurrence = executionPointService.getExecutionPoint(datasetId,
-        Step.VALIDATE_INTERNAL.toString());
+        FullBatchJobType.VALIDATE_INTERNAL.toString());
     return firstOccurrence.map(ExecutionPoint::getExecutionTimestamp).orElseGet(LocalDateTime::now);
   }
 

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.FILE_HARVEST;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -26,7 +26,7 @@ public class FileHarvestJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String FILE_HARVEST_STEP_NAME = "fileHarvestStep";
-  public static final BatchJobType BATCH_JOB = FILE_HARVEST;
+  public static final BatchJobType BATCH_JOB = HARVEST_FILE;
 
   @Value("${fileHarvest.chunkSize:5}")
   public int chunkSize;

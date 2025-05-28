@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
@@ -69,7 +70,7 @@ class PatternAnalysisControllerTest {
   private RateLimitInterceptor rateLimitInterceptor;
 
   @MockBean
-  private PatternAnalysisService<Step, ExecutionPoint> mockPatternAnalysisService;
+  private PatternAnalysisService<FullBatchJobType, ExecutionPoint> mockPatternAnalysisService;
 
   @MockBean
   private ExecutionPointService mockExecutionPointService;
@@ -113,11 +114,11 @@ class PatternAnalysisControllerTest {
     executionPoint.setDatasetId("datasetId");
     executionPoint.setExecutionPointId(1);
     List<ProblemPattern> problemPatternList = new ArrayList<>();
-    DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+    DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
@@ -130,7 +131,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
         .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
         .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
         .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.IN_PROGRESS.name())));
@@ -169,11 +170,11 @@ class PatternAnalysisControllerTest {
     problemPatternList.add(new ProblemPattern(ProblemPatternDescription.P3, 3,
         List.of(recordAnalysis2, recordAnalysis3, recordAnalysis1)));
 
-    DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+    DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
@@ -183,7 +184,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+       .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
@@ -206,11 +207,11 @@ class PatternAnalysisControllerTest {
     executionPoint.setDatasetId("datasetId");
     executionPoint.setExecutionPointId(1);
     List<ProblemPattern> problemPatternList = new ArrayList<>();
-    DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+    DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
@@ -221,7 +222,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
         .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
         .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
         .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
@@ -231,9 +232,9 @@ class PatternAnalysisControllerTest {
   @Test
   void getDatasetAnalysis_getEmptyResult_expectSuccess() throws Exception {
     LocalDateTime executionTimestamp = LocalDateTime.now();
-    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.empty());
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.empty());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -250,9 +251,9 @@ class PatternAnalysisControllerTest {
     executionPoint.setExecutionTimestamp(executionTimestamp);
     executionPoint.setDatasetId("datasetId");
     executionPoint.setExecutionPointId(1);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.empty());
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
@@ -328,11 +329,11 @@ class PatternAnalysisControllerTest {
     problemPatternList.add(new ProblemPattern(ProblemPatternDescription.P7, 3,
         List.of(recordAnalysis2, recordAnalysis1, recordAnalysis3)));
 
-    DatasetProblemPatternAnalysis<Step> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", Step.VALIDATE_INTERNAL.toString()))
+    DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", Step.VALIDATE_INTERNAL, executionTimestamp))
+    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
@@ -342,7 +343,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+       .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",

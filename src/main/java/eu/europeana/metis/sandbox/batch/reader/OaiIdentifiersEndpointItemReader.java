@@ -1,6 +1,6 @@
   package eu.europeana.metis.sandbox.batch.reader;
 
-  import static eu.europeana.metis.sandbox.batch.common.BatchJobType.OAI_HARVEST;
+  import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
 
   import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
   import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
@@ -24,7 +24,7 @@
   public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRecordExternalIdentifier> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private static final BatchJobType batchJobType = OAI_HARVEST;
+    private static final BatchJobType batchJobType = HARVEST_OAI;
 
     @Value("#{jobParameters['targetExecutionId']}")
     private String targetExecutionId;

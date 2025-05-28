@@ -87,7 +87,7 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
         Integer.valueOf(datasetId));
     long totalToDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
-        FullBatchJobType.VALIDATION_INTERNAL.name());
+        FullBatchJobType.VALIDATE_INTERNAL.name());
     long progressDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name());
 

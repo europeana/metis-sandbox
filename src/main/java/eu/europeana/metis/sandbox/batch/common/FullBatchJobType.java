@@ -6,14 +6,14 @@ import java.util.Optional;
 import org.apache.tika.utils.StringUtils;
 
 public enum FullBatchJobType {
-  OAI_HARVEST(BatchJobType.OAI_HARVEST),
-  FILE_HARVEST(BatchJobType.FILE_HARVEST),
-  VALIDATION_EXTERNAL(BatchJobType.VALIDATION, ValidationBatchJobSubType.EXTERNAL),
-  VALIDATION_INTERNAL(BatchJobType.VALIDATION, ValidationBatchJobSubType.INTERNAL),
-  TRANSFORMATION_EXTERNAL(BatchJobType.TRANSFORMATION, TransformationBatchJobSubType.EXTERNAL),
-  TRANSFORMATION_INTERNAL(BatchJobType.TRANSFORMATION, TransformationBatchJobSubType.INTERNAL),
-  NORMALIZATION(BatchJobType.NORMALIZATION),
-  ENRICHMENT(BatchJobType.ENRICHMENT),
+  HARVEST_OAI(BatchJobType.HARVEST_OAI),
+  HARVEST_FILE(BatchJobType.HARVEST_FILE),
+  VALIDATE_EXTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.EXTERNAL),
+  VALIDATE_INTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.INTERNAL),
+  TRANSFORM_EXTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.EXTERNAL),
+  TRANSFORM_INTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.INTERNAL),
+  NORMALIZE(BatchJobType.NORMALIZE),
+  ENRICH(BatchJobType.ENRICH),
   MEDIA(BatchJobType.MEDIA),
   INDEX(BatchJobType.INDEX),
   DEBIAS(BatchJobType.DEBIAS);

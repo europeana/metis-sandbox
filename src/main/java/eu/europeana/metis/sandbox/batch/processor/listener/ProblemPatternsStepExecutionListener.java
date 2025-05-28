@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.controller.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 public class ProblemPatternsStepExecutionListener implements StepExecutionListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   @Value("#{jobParameters['batchJobSubType']}")
   private ValidationBatchJobSubType batchJobSubType;
@@ -31,7 +31,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   private String datasetId;
 
   //todo: Assuming datasetId uniqueness(therefore no lock) due to sandbox
-  public ProblemPatternsStepExecutionListener(PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
+  public ProblemPatternsStepExecutionListener(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService) {
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
@@ -50,7 +50,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
     LOGGER.info("Running beforeStep for afterStep: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       final ExecutionPoint executionPoint = executionPointService
-          .getExecutionPoint(datasetId, Step.VALIDATE_INTERNAL.toString()).orElse(null);
+          .getExecutionPoint(datasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
       final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
       LOGGER.info("Problem patterns analysis status for datasetId {}: {}", datasetId, status);
     }
@@ -59,7 +59,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
 
   private void initializePatternAnalysisExecution() {
     final LocalDateTime timestamp = LocalDateTime.now();
-    patternAnalysisService.initializePatternAnalysisExecution(datasetId, Step.VALIDATE_INTERNAL, timestamp);
+    patternAnalysisService.initializePatternAnalysisExecution(datasetId, FullBatchJobType.VALIDATE_INTERNAL, timestamp);
   }
 
   private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {

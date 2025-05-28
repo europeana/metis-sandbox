@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -64,7 +64,7 @@ public class ValidationController {
   private final DatasetService datasetService;
   private final DatasetReportService datasetReportService;
   private final BatchJobExecutor batchJobExecutor;
-  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   private final HarvestingParameterService harvestingParameterService;
 
@@ -75,7 +75,7 @@ public class ValidationController {
    */
   public ValidationController(ValidationWorkflowService validationWorkflowService, DatasetService datasetService,
       DatasetReportService datasetReportService,
-      BatchJobExecutor batchJobExecutor, PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
+      BatchJobExecutor batchJobExecutor, PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService, HarvestingParameterService harvestingParameterService) {
     this.workflowService = validationWorkflowService;
     this.datasetService = datasetService;
@@ -144,10 +144,10 @@ public class ValidationController {
     }
 
     final Optional<ExecutionPoint> executionPointOptional = executionPointService
-        .getExecutionPoint(datasetMetadata.getDatasetId(), Step.VALIDATE_INTERNAL.toString());
-    Optional<DatasetProblemPatternAnalysis<Step>> datasetPatternAnalysis =
+        .getExecutionPoint(datasetMetadata.getDatasetId(), FullBatchJobType.VALIDATE_INTERNAL.toString());
+    Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> datasetPatternAnalysis =
         executionPointOptional.flatMap(executionPoint -> patternAnalysisService.getDatasetPatternAnalysis(
-            datasetMetadata.getDatasetId(), Step.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp()));
+            datasetMetadata.getDatasetId(), FullBatchJobType.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp()));
 
     return new ValidationWorkflowReport(validationResults,
         datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::getProblemPatternList).orElse(List.of()));

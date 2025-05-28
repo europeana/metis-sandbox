@@ -11,7 +11,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.exception.RecordValidationException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -42,7 +42,7 @@ class InternalValidationServiceImplTest {
   private ValidationExecutionService validationExecutionService;
 
   @Mock
-  private PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
 
   @Mock
   private ExecutionPointService executionPointService;
@@ -66,9 +66,9 @@ class InternalValidationServiceImplTest {
     when(validationExecutionService
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
-    when(executionPointService.getExecutionPoint("1", Step.VALIDATE_INTERNAL.toString())).thenReturn(Optional.empty());
+    when(executionPointService.getExecutionPoint("1", FullBatchJobType.VALIDATE_INTERNAL.toString())).thenReturn(Optional.empty());
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
-    when(patternAnalysisService.initializePatternAnalysisExecution(anyString(), any(Step.class),
+    when(patternAnalysisService.initializePatternAnalysisExecution(anyString(), any(FullBatchJobType.class),
         any(LocalDateTime.class))).thenReturn(new ExecutionPoint());
     doNothing().when(patternAnalysisService).generateRecordPatternAnalysis(any(ExecutionPoint.class), anyString());
 
@@ -107,9 +107,9 @@ class InternalValidationServiceImplTest {
     when(validationExecutionService
         .singleValidation(eq(SCHEMA), isNull(), isNull(), any(InputStream.class)))
         .thenReturn(validationResult);
-    when(executionPointService.getExecutionPoint("1", Step.VALIDATE_INTERNAL.toString())).thenReturn(Optional.empty());
+    when(executionPointService.getExecutionPoint("1", FullBatchJobType.VALIDATE_INTERNAL.toString())).thenReturn(Optional.empty());
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
-    when(patternAnalysisService.initializePatternAnalysisExecution(anyString(), any(Step.class),
+    when(patternAnalysisService.initializePatternAnalysisExecution(anyString(), any(FullBatchJobType.class),
         any(LocalDateTime.class))).thenReturn(new ExecutionPoint());
     doThrow(new PatternAnalysisException("Error", null)).when(patternAnalysisService)
                                                         .generateRecordPatternAnalysis(any(ExecutionPoint.class), anyString());

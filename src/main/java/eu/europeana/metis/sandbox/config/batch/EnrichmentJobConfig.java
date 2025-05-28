@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.ENRICHMENT;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.ENRICH;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -35,7 +35,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class EnrichmentJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = ENRICHMENT;
+  public static final BatchJobType BATCH_JOB = ENRICH;
   public static final String STEP_NAME = "enrichmentStep";
 
   @Value("${enrichment.chunkSize:5}")
@@ -79,7 +79,7 @@ public class EnrichmentJobConfig {
   @Bean
   public TaskExecutor enrichmentStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(ENRICHMENT.name() + "-");
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

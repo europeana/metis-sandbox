@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -63,7 +64,7 @@ class ValidationWorkflowServiceTest {
     @Mock
     RecordRepository recordRepository;
     @Mock
-    PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+    PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
     @Mock
     ExecutionPointService executionPointService;
     @Mock

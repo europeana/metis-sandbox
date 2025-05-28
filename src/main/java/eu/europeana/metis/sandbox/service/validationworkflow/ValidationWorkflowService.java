@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -42,7 +43,7 @@ public class ValidationWorkflowService {
   private final ValidationStep externalValidationStep;
   private final ValidationStep transformationValidationStep;
   private final ValidationStep internalValidationValidationStep;
-  private final PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService;
+  private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   private final RecordRepository recordRepository;
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
@@ -69,7 +70,7 @@ public class ValidationWorkflowService {
       @Qualifier("internalValidationValidationStep") ValidationStep internalValidationValidationStep,
       DatasetService datasetService,
       RecordRepository recordRepository,
-      PatternAnalysisService<Step, ExecutionPoint> patternAnalysisService,
+      PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService,
       LockRegistry lockRegistry) {
     this.harvestValidationStep = harvestValidationStep;
@@ -101,13 +102,13 @@ public class ValidationWorkflowService {
       validationResults = performSteps(harvestedRecord);
       Optional<ExecutionPoint> datasetExecutionPointOptional = executionPointService.getExecutionPoint(
           harvestedRecord.getDatasetId(),
-          Step.VALIDATE_INTERNAL.toString());
+          FullBatchJobType.VALIDATE_INTERNAL.toString());
 
       final List<ValidationResult> finalValidationResults = validationResults;
       return datasetExecutionPointOptional.flatMap(executionPoint -> {
                                             finalizeValidationPatternAnalysis(harvestedRecord.getDatasetId(), executionPoint);
                                             return patternAnalysisService.getDatasetPatternAnalysis(
-                                                harvestedRecord.getDatasetId(), Step.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
+                                                harvestedRecord.getDatasetId(), FullBatchJobType.VALIDATE_INTERNAL, datasetExecutionPointOptional.get().getExecutionTimestamp());
                                           }).map(analysis -> new ValidationWorkflowReport(finalValidationResults, analysis.getProblemPatternList()))
                                           .orElseGet(() -> new ValidationWorkflowReport(finalValidationResults, List.of()));
     } catch (Exception ex) {

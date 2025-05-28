@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 import static java.util.Objects.nonNull;
 
 import com.google.common.collect.Sets;
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Problem pattern analysis service implementation.
  */
 @Service
-public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, ExecutionPoint> {
+public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBatchJobType, ExecutionPoint> {
 
   private static final int DEFAULT_MAX_CHARACTERS_TITLE_LENGTH = 255;
 
@@ -92,7 +92,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
   @Override
   @Transactional
-  public ExecutionPoint initializePatternAnalysisExecution(String datasetId, Step executionStep,
+  public ExecutionPoint initializePatternAnalysisExecution(String datasetId, FullBatchJobType executionStep,
       LocalDateTime executionTimestamp) {
     final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
@@ -307,7 +307,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<Step, 
 
   @Override
   @Transactional
-  public Optional<DatasetProblemPatternAnalysis<Step>> getDatasetPatternAnalysis(String datasetId, Step executionStep,
+  public Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> getDatasetPatternAnalysis(String datasetId, FullBatchJobType executionStep,
       LocalDateTime executionTimestamp) {
 
     final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
