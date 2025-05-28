@@ -8,6 +8,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -30,12 +32,17 @@ class RecordTierCalculationServiceImplTest {
 
   @Mock
   private RecordLogService recordLogServiceMock;
+  @Mock
+  private ExecutionRecordRepository executionRecordRepository;
+  @Mock
+  private ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   private RecordTierCalculationServiceImpl recordTierCalculationService;
 
   @BeforeEach
   public void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
-        new RecordTierCalculationServiceImpl(recordLogServiceMock, PORTAL_PUBLISH_RECORD_BASE_URL));
+        new RecordTierCalculationServiceImpl(executionRecordRepository, executionRecordExceptionLogRepository,
+            PORTAL_PUBLISH_RECORD_BASE_URL));
   }
 
   @Test
@@ -55,22 +62,22 @@ class RecordTierCalculationServiceImplTest {
     final String metadataTierContextualClasses = "metadataTierContextualClasses";
     final String license = "license";
     final RecordEntity recordEntity = new RecordEntity.RecordEntityBuilder()
-            .setEuropeanaId(europeanaId)
-            .setProviderId(providerId)
-            .setDatasetId(datasetId)
-            .setContentTier(contentTier)
-            .setContentTierBeforeLicenseCorrection(contentTierBeforeLicenseCorrection)
-            .setMetadataTier(metadataTier)
-            .setMetadataTierLanguage(metadataTierLanguage)
-            .setMetadataTierEnablingElements(metadataTierEnablingElements)
-            .setMetadataTierContextualClasses(metadataTierContextualClasses)
-            .setLicense(license)
-            .build();
+        .setEuropeanaId(europeanaId)
+        .setProviderId(providerId)
+        .setDatasetId(datasetId)
+        .setContentTier(contentTier)
+        .setContentTierBeforeLicenseCorrection(contentTierBeforeLicenseCorrection)
+        .setMetadataTier(metadataTier)
+        .setMetadataTierLanguage(metadataTierLanguage)
+        .setMetadataTierEnablingElements(metadataTierEnablingElements)
+        .setMetadataTierContextualClasses(metadataTierContextualClasses)
+        .setLicense(license)
+        .build();
     final Step mediaProcessStep = Step.MEDIA_PROCESS;
-    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep, Status.SUCCESS);
+    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep,
+        Status.SUCCESS);
     recordEntity.setId(recordId);
     when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId, Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
-
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
         providerId, datasetId);
@@ -80,8 +87,8 @@ class RecordTierCalculationServiceImplTest {
   }
 
   @Test
-  void calculateTiers_NoRecordFoundException(){
+  void calculateTiers_NoRecordFoundException() {
     when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString(), any(Step.class))).thenReturn(null);
-    assertThrows(NoRecordFoundException.class, ()->recordTierCalculationService.calculateTiers("recordId", "datasetId"));
+    assertThrows(NoRecordFoundException.class, () -> recordTierCalculationService.calculateTiers("recordId", "datasetId"));
   }
 }
