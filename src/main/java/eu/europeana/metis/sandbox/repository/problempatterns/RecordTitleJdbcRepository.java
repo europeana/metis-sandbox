@@ -49,22 +49,23 @@ public class RecordTitleJdbcRepository {
   private PreparedStatementCreator getDeleteRedundantPreparedStatementCreator(int executionPointId) {
     return connection -> {
       PreparedStatement deleteRedundantStatement = connection.prepareStatement(
-          "DELETE "
-              + "FROM problem_patterns.record_title "
-              + "WHERE (execution_point_id, record_id, title) IN ("
-              + "    /*Inner join the table with the non duplicates to get all columns*/"
-              + "    (SELECT x.* "
-              + "     FROM problem_patterns.record_title AS x INNER JOIN"
-              + "         /*Select all the relevant values that are non duplicates*/"
-              + "         (SELECT COUNT(record_id) AS duplicate_count, UPPER(title) as uppercase_title"
-              + "          FROM problem_patterns.record_title"
-              + "          WHERE execution_point_id = ?"
-              + "          GROUP BY uppercase_title"
-              + "          HAVING COUNT(record_id) = 1)"
-              + "     AS y ON (UPPER(x.title) = y.uppercase_title) "
-              + "     WHERE execution_point_id = ?"
-              + "    )"
-              + ")"
+          "DELETE FROM problem_patterns.record_title rt " +
+              "USING (" +
+              // Subquery selecting redundant (non-duplicate) titles for given execution point
+              "  SELECT x.execution_point_id, x.record_id, x.title " +
+              "  FROM problem_patterns.record_title x " +
+              "  INNER JOIN (" +
+              "    SELECT MIN(record_id) AS record_id, UPPER(title) AS uppercase_title " +
+              "    FROM problem_patterns.record_title " +
+              "    WHERE execution_point_id = ? " +
+              "    GROUP BY UPPER(title) " +
+              "    HAVING COUNT(*) = 1" +
+              "  ) y ON UPPER(x.title) = y.uppercase_title AND x.record_id = y.record_id " +
+              "  WHERE x.execution_point_id = ?" +
+              ") sub " +
+              "WHERE rt.execution_point_id = sub.execution_point_id " +
+              "AND rt.record_id = sub.record_id " +
+              "AND rt.title = sub.title"
       );
       deleteRedundantStatement.setInt(1, executionPointId);
       deleteRedundantStatement.setInt(2, executionPointId);
