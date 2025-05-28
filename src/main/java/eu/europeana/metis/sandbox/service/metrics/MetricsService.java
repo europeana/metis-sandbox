@@ -1,5 +1,157 @@
 package eu.europeana.metis.sandbox.service.metrics;
 
-public interface MetricsService {
-  void processMetrics();
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.DatasetStatisticProjection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
+import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository.DatasetProblemPatternStatisticProjection;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription;
+import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Metrics Service implementation class
+ */
+
+public class MetricsService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String METRICS_NAMESPACE = "sandbox.metrics.dataset";
+  public static final String BASE_UNIT_RECORD = "Record";
+  public static final String BASE_UNIT_DATASET = "Dataset";
+
+  private final ExecutionRecordRepository executionRecordRepository;
+  private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
+  private final DatasetProblemPatternRepository problemPatternRepository;
+  private final MeterRegistry meterRegistry;
+
+  private List<DatasetStatisticProjection> datasetStatistics;
+  private List<DatasetProblemPatternStatisticProjection> problemPatternStatistics;
+  private Map<FullBatchJobType, Long> successStepCounts;
+  private Map<FullBatchJobType, Long> warningStepCounts;
+  private Map<FullBatchJobType, Long> errorStepCounts;
+
+
+  public MetricsService(
+      ExecutionRecordRepository executionRecordRepository,
+      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
+      DatasetProblemPatternRepository problemPatternRepository,
+      MeterRegistry meterRegistry) {
+    this.executionRecordRepository = executionRecordRepository;
+    this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
+    this.problemPatternRepository = problemPatternRepository;
+    this.meterRegistry = meterRegistry;
+    initMetrics();
+  }
+
+  public void getDatabaseMetrics() {
+    datasetStatistics = executionRecordRepository.getDatasetStatistics();
+    problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
+
+    successStepCounts = mapStepStatistics(executionRecordRepository.getStepStatistics());
+    warningStepCounts = mapStepStatistics(executionRecordWarningExceptionRepository.getStepStatistics());
+    errorStepCounts = mapStepStatistics(executionRecordExceptionLogRepository.getStepStatistics());
+
+    LOGGER.debug("metrics report retrieval");
+  }
+
+  private Map<FullBatchJobType, Long> mapStepStatistics(List<StepStatisticProjection> stepStatisticProjections) {
+    return stepStatisticProjections.stream()
+                .collect(Collectors.toMap(
+                    stepStatisticProjection -> FullBatchJobType.valueOf(stepStatisticProjection.getStep()),
+                    StepStatisticProjection::getCount,
+                    (a, b) -> {
+                      throw new IllegalStateException("Duplicate step name detected: " + a);
+                    }
+                ));
+  }
+
+
+  private void initMetrics() {
+    try {
+      getDatabaseMetrics();
+      registerGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
+      registerGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
+
+
+      for (FullBatchJobType jobType : FullBatchJobType.values()) {
+        registerStepMetricGauge(jobType, Status.SUCCESS, successStepCounts);
+        registerStepMetricGauge(jobType, Status.WARN, warningStepCounts);
+        registerStepMetricGauge(jobType, Status.FAIL, errorStepCounts);
+      }
+
+      for (ProblemPatternId patternId : ProblemPatternId.values()) {
+        registerGauge(
+            getPatternMetricName(patternId),
+            String.format("Processed records with problem pattern %s: %s",
+                patternId.name(),
+                ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle()),
+            BASE_UNIT_RECORD,
+            () -> getTotalOccurrences(patternId)
+        );
+      }
+    } catch (RuntimeException ex) {
+      LOGGER.error("Unable to init metrics", ex);
+    }
+  }
+
+  private void registerStepMetricGauge(FullBatchJobType jobType, Status status, Map<FullBatchJobType, Long> jobTypeLongMap) {
+    Supplier<Number> supplier = () -> jobTypeLongMap.getOrDefault(jobType, 0L);
+    registerGauge(getStepMetricName(jobType, status),
+        String.format("%s processed records with status %s", jobType.name(), status.name()),
+        BASE_UNIT_RECORD,
+        supplier);
+  }
+
+  private void registerGauge(String name, String description, String unit, Supplier<Number> supplier) {
+    Gauge.builder(getMetricName(name), supplier)
+         .description(description)
+         .baseUnit(unit)
+         .register(meterRegistry);
+  }
+
+  private long getDatasetCount() {
+    return datasetStatistics == null ? 0 : datasetStatistics.size();
+  }
+
+  private long getTotalRecords() {
+    return datasetStatistics == null ? 0 : datasetStatistics.stream().mapToLong(DatasetStatisticProjection::getCount).sum();
+  }
+
+  private long getTotalOccurrences(ProblemPatternId patternId) {
+    return problemPatternStatistics == null ?
+        0 : problemPatternStatistics.stream()
+                                    .filter(p -> patternId.name().equals(p.getPatternId()))
+                                    .mapToLong(DatasetProblemPatternStatisticProjection::getTotalOccurrences)
+                                    .sum();
+  }
+
+  private String getMetricName(String name) {
+    return METRICS_NAMESPACE + "." + name;
+  }
+
+  private String getStepMetricName(FullBatchJobType fullBatchJobType, Status status) {
+    return fullBatchJobType.name().toLowerCase(Locale.US) + "." + status.name().toLowerCase(Locale.US);
+  }
+
+  private String getPatternMetricName(ProblemPatternId patternId) {
+    return patternId.name().toLowerCase(Locale.US);
+  }
 }
+
