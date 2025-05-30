@@ -20,6 +20,8 @@ import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+import eu.europeana.metis.sandbox.domain.ExecutionMetadata;
+import eu.europeana.metis.sandbox.domain.InputMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetIdDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
@@ -189,15 +191,26 @@ class DatasetController {
     final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
         country, language, xsltToEdmExternal);
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
-                                                     .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(stepsize).withXsltToEdmExternal(xsltToEdmExternal).build();
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(createdDatasetId)
+                                                     .datasetName(datasetName)
+                                                     .country(country)
+                                                     .language(language)
+                                                     .stepSize(stepsize)
+                                                     .workflowType(WorkflowType.FILE_HARVEST)
+                                                     .xsltToEdmExternal(xsltToEdmExternal)
+                                                     .build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
         new FileHarvestingDto(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
 
     final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, datasetRecordsCompressedFile);
-    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize,
-        xsltToEdmExternal);
+
+    InputMetadata inputMetadata = new InputMetadata(datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
+    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                           .datasetMetadata(datasetMetadata)
+                                                           .inputMetadata(inputMetadata)
+                                                           .build();
+    batchJobExecutor.execute(executionMetadata);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -248,9 +261,15 @@ class DatasetController {
     final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
     final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
         country, language, xsltToEdmExternal);
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
-                                                     .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(stepsize).withXsltToEdmExternal(xsltToEdmExternal).build();
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(createdDatasetId)
+                                                     .datasetName(datasetName)
+                                                     .country(country)
+                                                     .language(language)
+                                                     .stepSize(stepsize)
+                                                     .workflowType(WorkflowType.FILE_HARVEST)
+                                                     .xsltToEdmExternal(xsltToEdmExternal)
+                                                     .build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
 
     final InputStream inputStreamToHarvest;
@@ -264,8 +283,13 @@ class DatasetController {
 
     final String urlFileName = url.substring(url.lastIndexOf("/") + 1);
     final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, urlFileName, inputStreamToHarvest);
-    batchJobExecutor.execute(datasetMetadata, datasetRecordsCompressedFilePath, compressedFileExtension, stepsize,
-        xsltToEdmExternal);
+
+    InputMetadata inputMetadata = new InputMetadata(datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
+    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                           .datasetMetadata(datasetMetadata)
+                                                           .inputMetadata(inputMetadata)
+                                                           .build();
+    batchJobExecutor.execute(executionMetadata);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -341,15 +365,25 @@ class DatasetController {
     final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
     String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.OAI_HARVEST, datasetName, userId, country,
         language, xsltToEdmExternal);
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
-                                                     .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(stepsize).withXsltToEdmExternal(xsltToEdmExternal).build();
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(createdDatasetId)
+                                                     .datasetName(datasetName)
+                                                     .country(country)
+                                                     .language(language)
+                                                     .stepSize(stepsize)
+                                                     .workflowType(WorkflowType.OAI_HARVEST)
+                                                     .xsltToEdmExternal(xsltToEdmExternal)
+                                                     .build();
     setspec = getDefaultSetSpecWhenNotAvailable(setspec);
-
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
         new OAIPmhHarvestingDto(url, setspec, metadataformat));
 
-    batchJobExecutor.execute(datasetMetadata, url, setspec, metadataformat, stepsize, xsltToEdmExternal);
+    InputMetadata inputMetadata = new InputMetadata(url, setspec, metadataformat, stepsize);
+    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                           .datasetMetadata(datasetMetadata)
+                                                           .inputMetadata(inputMetadata)
+                                                           .build();
+    batchJobExecutor.execute(executionMetadata);
 
     return new DatasetIdDto(createdDatasetId);
   }
@@ -437,7 +471,8 @@ class DatasetController {
     }
     Set<ExecutionRecord> executionRecords = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
         datasetId, recordId, harvestJobTypes);
-    return executionRecords.stream().findFirst().map(ExecutionRecord::getRecordData).orElseThrow(() -> new NoRecordFoundException(recordId));
+    return executionRecords.stream().findFirst().map(ExecutionRecord::getRecordData)
+                           .orElseThrow(() -> new NoRecordFoundException(recordId));
   }
 
   /**
@@ -452,7 +487,8 @@ class DatasetController {
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
   public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
-    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByIdentifier_DatasetId(datasetId);
+    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByIdentifier_DatasetId(
+        datasetId);
 
     if (executionRecordTierContext.isEmpty()) {
       throw new InvalidDatasetException(datasetId);

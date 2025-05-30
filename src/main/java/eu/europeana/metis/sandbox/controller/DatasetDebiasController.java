@@ -5,12 +5,14 @@ import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+import eu.europeana.metis.sandbox.domain.ExecutionMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -119,12 +121,18 @@ public class DatasetDebiasController {
 
         DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
         DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
-        DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(datasetId.toString())
-                                                         .withDatasetName(datasetEntity.getDatasetName())
-                                                         .withCountry(datasetEntity.getCountry())
-                                                         .withLanguage(datasetEntity.getLanguage())
+        DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                         .datasetId(datasetId.toString())
+                                                         .datasetName(datasetEntity.getDatasetName())
+                                                         .country(datasetEntity.getCountry())
+                                                         .language(datasetEntity.getLanguage())
+                                                         .stepSize(1)
+                                                         .workflowType(WorkflowType.DEBIAS)
                                                          .build();
-        batchJobExecutor.execute(datasetMetadata);
+        ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                               .datasetMetadata(datasetMetadata)
+                                                               .build();
+        batchJobExecutor.executeDebiasWorkflow(executionMetadata);
         return true;
       } else {
         return false;

@@ -9,6 +9,8 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.DatasetMetadata;
+import eu.europeana.metis.sandbox.domain.ExecutionMetadata;
+import eu.europeana.metis.sandbox.domain.InputMetadata;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -121,12 +123,23 @@ public class ValidationController {
       throw new ServiceException("Error harvesting records from file " + recordToValidate.getOriginalFilename(), e);
     }
 
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder().withDatasetId(createdDatasetId)
-                                                     .withDatasetName(datasetName).withCountry(country).withLanguage(language)
-                                                     .withStepSize(1).build();
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(createdDatasetId)
+                                                     .datasetName(datasetName)
+                                                     .country(country)
+                                                     .language(language)
+                                                     .stepSize(1)
+                                                     .workflowType(WorkflowType.FILE_HARVEST_ONLY_VALIDATION)
+                                                     .build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
         new FileHarvestingDto(recordToValidate.getOriginalFilename(), "xml"));
-    batchJobExecutor.executeBlocking(datasetMetadata, filePath);
+
+    InputMetadata inputMetadata = new InputMetadata(filePath);
+    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                           .datasetMetadata(datasetMetadata)
+                                                           .inputMetadata(inputMetadata)
+                                                           .build();
+    batchJobExecutor.executeBlocking(executionMetadata);
     ProgressInfoDto progressInfoDto = datasetReportService.getProgress(datasetMetadata.getDatasetId());
 
     List<ValidationResult> validationResults = new ArrayList<>();

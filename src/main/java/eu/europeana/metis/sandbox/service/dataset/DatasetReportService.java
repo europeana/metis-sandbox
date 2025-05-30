@@ -1,15 +1,5 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.ENRICH;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_FILE;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_OAI;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.INDEX;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.MEDIA;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.NORMALIZE;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_EXTERNAL;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_INTERNAL;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_EXTERNAL;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.groupingBy;
@@ -37,14 +27,13 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogView;
 import eu.europeana.metis.sandbox.entity.projection.ErrorLogViewImpl;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -74,33 +63,6 @@ public class DatasetReportService {
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
-  //Those are all temporary until we have a proper orchestrator(e.g. metis-core)
-  private static final List<FullBatchJobType> COMMON_POST_HARVEST =
-      List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX);
-
-  private static final List<FullBatchJobType> ONLY_VALIDATION =
-      List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL);
-
-  private static final List<FullBatchJobType> oldHarvestStepConfigs =
-      prepend(HARVEST_OAI, prepend(HARVEST_FILE, COMMON_POST_HARVEST));
-  private static final List<FullBatchJobType> oaiHarvestWorkflow = prepend(HARVEST_OAI, COMMON_POST_HARVEST);
-  private static final List<FullBatchJobType> fileHarvestWorkflow = prepend(HARVEST_FILE, COMMON_POST_HARVEST);
-  private static final List<FullBatchJobType> fileHarvestOnlyValidationWorkflow = prepend(HARVEST_FILE, ONLY_VALIDATION);
-
-  private static List<FullBatchJobType> prepend(FullBatchJobType first, List<FullBatchJobType> rest) {
-    List<FullBatchJobType> result = new ArrayList<>(rest.size() + 1);
-    result.add(first);
-    result.addAll(rest);
-    return Collections.unmodifiableList(result);
-  }
-
-  private static final Map<WorkflowType, List<FullBatchJobType>> workflowByWorkflowType = Map.of(
-      WorkflowType.OAI_HARVEST, oaiHarvestWorkflow,
-      WorkflowType.FILE_HARVEST, fileHarvestWorkflow,
-      WorkflowType.FILE_HARVEST_ONLY_VALIDATION, fileHarvestOnlyValidationWorkflow,
-      WorkflowType.OLD_HARVEST, oldHarvestStepConfigs
-  );
-
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
@@ -123,7 +85,7 @@ public class DatasetReportService {
     DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
 
-    List<FullBatchJobType> workflowSteps = getWorkflowFor(datasetEntity);
+    List<FullBatchJobType> workflowSteps = WorkflowHelper.getWorkflow(datasetEntity);
 
     for (FullBatchJobType step : workflowSteps) {
       StepStatisticsWrapper stepStatisticsWrapper = getStatistics(datasetId, step);
@@ -163,28 +125,6 @@ public class DatasetReportService {
         dataset.getRecordsQuantity(), completedRecords + totalFailInWorkflow,
         progressByStepDtos, dataset.getRecordLimitExceeded(), getErrorMessage(dataset.getRecordsQuantity()),
         null, tiersZeroInfo);
-  }
-
-  private static List<FullBatchJobType> getWorkflowFor(DatasetEntity datasetEntity) {
-    WorkflowType workflowType = Optional.ofNullable(datasetEntity.getWorkflowType())
-                                        .orElse(WorkflowType.OLD_HARVEST);
-
-    List<FullBatchJobType> baseSteps = workflowByWorkflowType.get(workflowType);
-
-    if (datasetEntity.getXsltToEdmExternal() == null || workflowType.equals(WorkflowType.FILE_HARVEST_ONLY_VALIDATION)) {
-      return baseSteps;
-    }
-
-    // Insert TRANSFORM_EXTERNAL before VALIDATE_EXTERNAL
-    List<FullBatchJobType> modifiedSteps = new ArrayList<>();
-    for (FullBatchJobType step : baseSteps) {
-      if (step.equals(VALIDATE_EXTERNAL)) {
-        modifiedSteps.add(TRANSFORM_EXTERNAL);
-      }
-      modifiedSteps.add(step);
-    }
-
-    return Collections.unmodifiableList(modifiedSteps);
   }
 
   private StepStatisticsWrapper getStatistics(String datasetId, FullBatchJobType fullBatchJobType) {
