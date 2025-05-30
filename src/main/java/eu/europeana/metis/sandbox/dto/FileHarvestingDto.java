@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
  * Represents the data related to File harvesting
  */
 @ApiModel(FileHarvestingDto.SWAGGER_MODEL_NAME)
-public class FileHarvestingDto implements HarvestingParametricDto {
+public class FileHarvestingDto implements HarvestingParametersDto {
 
     public static final String SWAGGER_MODEL_NAME = "FileUpload";
 

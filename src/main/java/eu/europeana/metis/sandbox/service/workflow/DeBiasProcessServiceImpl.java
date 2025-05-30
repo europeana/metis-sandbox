@@ -62,9 +62,9 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   @Override
   public void process(String recordContent, String datasetId, String recordId) {
 
-    List<DeBiasInputRecord> deBiasInputRecords = getDeBiasSourceFieldsFromRecordsNew(
+    List<DeBiasInputRecord> deBiasInputRecords = getDeBiasSourceFieldsFromRecords(
         recordContent, recordId);
-    List<DeBiasReportRow> deBiasReportRows = doDeBiasAndGenerateReportNew(deBiasInputRecords);
+    List<DeBiasReportRow> deBiasReportRows = doDeBiasAndGenerateReport(deBiasInputRecords);
 
     if (!deBiasReportRows.isEmpty()) {
       logReport(deBiasReportRows);
@@ -72,7 +72,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
     }
   }
 
-  public List<DeBiasReportRow> doDeBiasAndGenerateReportNew(List<DeBiasInputRecord> deBiasInputRecords) {
+  public List<DeBiasReportRow> doDeBiasAndGenerateReport(List<DeBiasInputRecord> deBiasInputRecords) {
     List<DeBiasReportRow> deBiasReportRows = new ArrayList<>();
 
     deBiasInputRecords
@@ -145,7 +145,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   }
 
 
-  public List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecordsNew(String recordContent, String recordId) {
+  public List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(String recordContent, String recordId) {
       List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
       try {
         RDF rdf = new RdfConversionUtils().convertStringToRdf(recordContent);

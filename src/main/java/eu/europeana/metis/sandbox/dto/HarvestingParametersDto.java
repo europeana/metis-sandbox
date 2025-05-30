@@ -6,7 +6,7 @@ import eu.europeana.metis.sandbox.common.HarvestProtocol;
 /**
  * Interface that represents all type of harvesting with their parameters
  */
-public interface HarvestingParametricDto {
+public interface HarvestingParametersDto {
 
     @JsonIgnore
     HarvestProtocol getHarvestProtocol();

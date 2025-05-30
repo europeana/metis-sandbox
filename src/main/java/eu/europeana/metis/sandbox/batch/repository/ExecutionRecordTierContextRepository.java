@@ -19,5 +19,7 @@ public interface ExecutionRecordTierContextRepository extends
   long countByIdentifier_DatasetIdAndContentTier(String datasetId, String contentTier);
 
   long countByIdentifier_DatasetIdAndMetadataTier(String datasetId, String metadataTier);
+
+  void removeByIdentifier_DatasetId(String datasetId);
 }
 

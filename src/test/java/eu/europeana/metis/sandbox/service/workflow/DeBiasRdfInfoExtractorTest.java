@@ -6,14 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.TestUtils;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasInputRecord;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.jibx.RDF;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -30,17 +26,9 @@ class DeBiasRdfInfoExtractorTest {
   void setUp() throws Exception {
     String testRecordContent = new TestUtils().readFileToString(
         "record" + File.separator + "debias" + File.separator + "debias-video-record.xml");
-    var testRecord = Record.builder()
-                           .recordId(1L)
-                           .europeanaId("europeanaId1")
-                           .content(testRecordContent.getBytes(StandardCharsets.UTF_8))
-                           .language(Language.NL).country(Country.NETHERLANDS)
-                           .datasetName("datasetName")
-                           .datasetId("1")
-                           .build();
-    RDF rdf = new RdfConversionUtils().convertStringToRdf(new String(testRecord.getContent(), StandardCharsets.UTF_8));
+    RDF rdf = new RdfConversionUtils().convertStringToRdf(testRecordContent);
 
-    extractor = new DeBiasRdfInfoExtractor(rdf, testRecord);
+    extractor = new DeBiasRdfInfoExtractor(rdf, "recordId");
   }
 
   @Test

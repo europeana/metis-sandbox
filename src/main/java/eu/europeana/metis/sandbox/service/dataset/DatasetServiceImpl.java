@@ -9,7 +9,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HarvestingParametricDto;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -123,7 +123,7 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
-  private HarvestingParametricDto getHarvestingParameterDto(String datasetId) {
+  private HarvestingParametersDto getHarvestingParameterDto(String datasetId) {
     HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
     return switch (entity.getProtocol()) {

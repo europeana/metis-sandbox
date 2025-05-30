@@ -36,4 +36,6 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
     String getStep();
     long getCount();
   }
+
+  void removeByIdentifier_DatasetId(String datasetId);
 }

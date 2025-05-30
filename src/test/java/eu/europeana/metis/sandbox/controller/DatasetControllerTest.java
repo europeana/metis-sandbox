@@ -50,10 +50,8 @@ import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
-import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.security.test.JwtUtils;
 import java.io.File;
@@ -97,13 +95,7 @@ class DatasetControllerTest {
   private DatasetService datasetService;
 
   @MockBean
-  private DatasetLogService datasetLogService;
-
-  @MockBean
   private DatasetReportService datasetReportService;
-
-  @MockBean
-  private RecordService recordService;
 
   @MockBean
   private RecordTierCalculationService recordTierCalculationService;
@@ -200,8 +192,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @ParameterizedTest
@@ -226,8 +216,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @ParameterizedTest
@@ -251,8 +239,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @ParameterizedTest
@@ -284,8 +270,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @ParameterizedTest
@@ -310,8 +294,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @ParameterizedTest
@@ -335,8 +317,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @ParameterizedTest
@@ -371,8 +351,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -395,8 +373,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -424,8 +400,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -452,8 +426,6 @@ class DatasetControllerTest {
            .param("stepsize", "2"))
        .andExpect(status().isAccepted())
        .andExpect(jsonPath("$.dataset-id", is("12345")));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -679,8 +651,6 @@ class DatasetControllerTest {
            is(message1)))
        .andExpect(jsonPath("$.progress-by-step[1].errors[1].message",
            is(message2)));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -831,8 +801,6 @@ class DatasetControllerTest {
            .param("recordId", recordId))
        .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is("europeanaId")))
        .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -863,8 +831,6 @@ class DatasetControllerTest {
            .param("step", step))
        .andExpect(expectedStatus)
        .andExpect(expectedContent);
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -879,8 +845,6 @@ class DatasetControllerTest {
     mvc.perform(get("/dataset/{id}/record", datasetId)
            .param("recordId", recordId))
        .andExpect(content().string(returnString));
-
-    verify(datasetLogService, never()).logException(any(), any());
   }
 
   @Test
@@ -915,7 +879,7 @@ class DatasetControllerTest {
 
     List<RecordTiersInfoDto> resultMock = List.of(recordTiersInfoDto1);
 
-    when(recordService.getRecordsTiers("datasetId")).thenReturn(resultMock);
+//    when(recordService.getRecordsTiers("datasetId")).thenReturn(resultMock);
 
     mvc.perform(get("/dataset/{id}/records-tiers", "datasetId"))
        .andExpect(status().isOk())
@@ -934,7 +898,7 @@ class DatasetControllerTest {
   @Test
   void getRecordsTier_expectInvalidDatasetException() throws Exception {
     InvalidDatasetException invalidDatasetException = new InvalidDatasetException("datasetId");
-    when(recordService.getRecordsTiers("datasetId")).thenThrow(invalidDatasetException);
+//    when(recordService.getRecordsTiers("datasetId")).thenThrow(invalidDatasetException);
 
     mvc.perform(get("/dataset/{id}/records-tiers", "datasetId"))
        .andExpect(status().isBadRequest())
@@ -959,8 +923,6 @@ class DatasetControllerTest {
         .param("country", ITALY.name())
         .param("language", IT.name())
         .param("stepsize", "2"));
-
-    verify(datasetLogService).logException("12345", exception);
   }
 
   @Test
@@ -979,8 +941,6 @@ class DatasetControllerTest {
         .param("language", IT.name())
         .param("url", url)
         .param("stepsize", "2"));
-
-    verify(datasetLogService).logException("12345", exception);
   }
 
   @Test
@@ -1001,7 +961,5 @@ class DatasetControllerTest {
         .param("setspec", "1073")
         .param("metadataformat", "rdf")
         .param("stepsize", "2"));
-
-    verify(datasetLogService).logException("12345", exception);
   }
 }

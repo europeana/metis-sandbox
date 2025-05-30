@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HarvestingParametricDto;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -41,11 +41,11 @@ public class HarvestingParameterServiceImpl implements HarvestingParameterServic
 
     @Override
     @Transactional
-    public void createDatasetHarvestingParameters(String datasetId, HarvestingParametricDto harvestingParametricDto) {
+    public void createDatasetHarvestingParameters(String datasetId, HarvestingParametersDto harvestingParametersDto) {
         requireNonNull(datasetId, "Dataset name must not be null");
-        requireNonNull(harvestingParametricDto, "Type of harvesting must not be null");
+        requireNonNull(harvestingParametersDto, "Type of harvesting must not be null");
         try {
-            harvestingParameterRepository.save(createEntityToSave(datasetId, harvestingParametricDto));
+            harvestingParameterRepository.save(createEntityToSave(datasetId, harvestingParametersDto));
         } catch (RuntimeException e) {
             throw new ServiceException(format("Error saving harvesting parameters for dataset id: [%s]. ", datasetId), e);
         }
@@ -69,23 +69,23 @@ public class HarvestingParameterServiceImpl implements HarvestingParameterServic
         }
     }
 
-    private HarvestingParameterEntity createEntityToSave(String datasetId, HarvestingParametricDto harvestingParametricDto){
+    private HarvestingParameterEntity createEntityToSave(String datasetId, HarvestingParametersDto harvestingParametersDto){
 
         DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
 
-      return switch (harvestingParametricDto.getHarvestProtocol()) {
+      return switch (harvestingParametersDto.getHarvestProtocol()) {
         case FILE -> {
-          FileHarvestingDto fileHarvestingDto = (FileHarvestingDto) harvestingParametricDto;
+          FileHarvestingDto fileHarvestingDto = (FileHarvestingDto) harvestingParametersDto;
           yield new HarvestingParameterEntity(datasetEntity, FILE, fileHarvestingDto.getFileName(),
               fileHarvestingDto.getFileType(), null, null, null);
         }
         case HTTP -> {
-          HttpHarvestingDto httpHarvestingDto = (HttpHarvestingDto) harvestingParametricDto;
+          HttpHarvestingDto httpHarvestingDto = (HttpHarvestingDto) harvestingParametersDto;
           yield new HarvestingParameterEntity(datasetEntity, HTTP, null, null,
               httpHarvestingDto.getUrl(), null, null);
         }
         case OAI_PMH -> {
-          OAIPmhHarvestingDto oaiPmhHarvestingDto = (OAIPmhHarvestingDto) harvestingParametricDto;
+          OAIPmhHarvestingDto oaiPmhHarvestingDto = (OAIPmhHarvestingDto) harvestingParametersDto;
           yield new HarvestingParameterEntity(datasetEntity, OAI_PMH, null, null,
               oaiPmhHarvestingDto.getUrl(), oaiPmhHarvestingDto.getSetSpec(), oaiPmhHarvestingDto.getMetadataFormat());
         }

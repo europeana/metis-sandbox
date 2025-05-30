@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.sandbox.domain.Record;
 import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasInputRecord;
 import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
@@ -31,24 +30,10 @@ public class DeBiasRdfInfoExtractor {
 
   private final RDF rdf;
   private final String recordId;
-  private final Record recordToProcess;
-
-  /**
-   * Instantiates a new DeBias rdf info extractor.
-   *
-   * @param rdf the rdf
-   * @param recordToProcess the record to process
-   */
-  public DeBiasRdfInfoExtractor(RDF rdf, Record recordToProcess) {
-    this.rdf = rdf;
-    this.recordToProcess = recordToProcess;
-    this.recordId = null;
-  }
 
   public DeBiasRdfInfoExtractor(RDF rdf, String recordId) {
     this.rdf = rdf;
     this.recordId = recordId;
-    this.recordToProcess = null;
   }
 
   /**

@@ -9,9 +9,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
@@ -31,7 +33,6 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
-import eu.europeana.metis.sandbox.service.record.RecordService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import io.swagger.v3.oas.annotations.Operation;
@@ -109,12 +110,12 @@ class DatasetController {
 
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
-  private final RecordService recordService;
   private final RecordTierCalculationService recordTierCalculationService;
   private final UrlValidator urlValidator;
   private final BatchJobExecutor batchJobExecutor;
   private final HarvestingParameterService harvestingParameterService;
   private final ExecutionRecordRepository executionRecordRepository;
+  private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   /**
    * Instantiates a new Dataset controller.
@@ -129,17 +130,18 @@ class DatasetController {
    */
   @Autowired
   public DatasetController(DatasetService datasetService,
-      DatasetReportService reportService, RecordService recordService,
+      DatasetReportService reportService,
       RecordTierCalculationService recordTierCalculationService,
       BatchJobExecutor batchJobExecutor,
-      HarvestingParameterService harvestingParameterService, ExecutionRecordRepository executionRecordRepository) {
+      HarvestingParameterService harvestingParameterService, ExecutionRecordRepository executionRecordRepository,
+      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.datasetService = datasetService;
     this.reportService = reportService;
-    this.recordService = recordService;
     this.recordTierCalculationService = recordTierCalculationService;
     this.batchJobExecutor = batchJobExecutor;
     this.harvestingParameterService = harvestingParameterService;
     this.executionRecordRepository = executionRecordRepository;
+    this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   }
 
@@ -450,21 +452,34 @@ class DatasetController {
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
   public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
-    return recordService.getRecordsTiers(datasetId);
+    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByIdentifier_DatasetId(datasetId);
+
+    if (executionRecordTierContext.isEmpty()) {
+      throw new InvalidDatasetException(datasetId);
+    }
+
+    return executionRecordTierContext.stream()
+                                     .filter(this::areAllTierValuesNotNullOrEmpty)
+                                     .map(RecordTiersInfoDto::new)
+                                     .toList();
   }
 
-  private Set<Step> getSetFromStep(String step) {
-    Set<Step> steps;
-    if (step == null || step.isBlank() || "HARVEST".equals(step)) {
-      steps = Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH);
-    } else {
-      try {
-        steps = Set.of(Step.valueOf(step));
-      } catch (IllegalArgumentException iae) {
-        throw new IllegalArgumentException(String.format("Invalid step name %s", step), iae);
-      }
-    }
-    return steps;
+  private boolean areAllTierValuesNotNullOrEmpty(ExecutionRecordTierContext executionRecordTierContext) {
+    return isContentTierValid(executionRecordTierContext) &&
+        isMetadataTierValid(executionRecordTierContext);
+  }
+
+  private boolean isContentTierValid(ExecutionRecordTierContext executionRecordTierContext) {
+    return StringUtils.isNotBlank(executionRecordTierContext.getContentTier()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getContentTierBeforeLicenseCorrection());
+  }
+
+  private boolean isMetadataTierValid(ExecutionRecordTierContext executionRecordTierContext) {
+    return StringUtils.isNotBlank(executionRecordTierContext.getMetadataTier()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getMetadataTierLanguage()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getMetadataTierEnablingElements()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getMetadataTierContextualClasses()) &&
+        StringUtils.isNotBlank(executionRecordTierContext.getLicense());
   }
 
   /**

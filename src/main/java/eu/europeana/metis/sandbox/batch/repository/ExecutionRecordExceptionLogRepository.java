@@ -18,4 +18,6 @@ public interface ExecutionRecordExceptionLogRepository extends JpaRepository<Exe
       "FROM ExecutionRecordException r " +
       "GROUP BY r.identifier.executionName")
   List<StepStatisticProjection> getStepStatistics();
+
+  void removeByIdentifier_DatasetId(String datasetId);
 }

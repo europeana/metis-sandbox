@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import eu.europeana.metis.sandbox.dto.HarvestingParametricDto;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 
 /**
@@ -12,9 +12,9 @@ public interface HarvestingParameterService {
      * Creates a new entry into the database
      *
      * @param datasetId      The id of the dataset associated to the harvesting parameters
-     * @param harvestingParametricDto Object encapsulating data related to the harvesting related to the dataset
+     * @param harvestingParametersDto Object encapsulating data related to the harvesting related to the dataset
      */
-    void createDatasetHarvestingParameters(String datasetId, HarvestingParametricDto harvestingParametricDto);
+    void createDatasetHarvestingParameters(String datasetId, HarvestingParametersDto harvestingParametersDto);
 
     /**
      * Returns the entity based on the dataset id

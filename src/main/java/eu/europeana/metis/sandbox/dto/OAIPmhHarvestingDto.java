@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
  * Represents the data related to OAI-PMH harvesting
  */
 @ApiModel(OAIPmhHarvestingDto.SWAGGER_MODEL_NAME)
-public class OAIPmhHarvestingDto implements HarvestingParametricDto {
+public class OAIPmhHarvestingDto implements HarvestingParametersDto {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 

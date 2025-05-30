@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
-import eu.europeana.metis.sandbox.service.dataset.DatasetRemoverService;
+import eu.europeana.metis.sandbox.service.dataset.DataCleanupService;
 import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import java.lang.invoke.MethodHandles;
@@ -26,7 +26,7 @@ public class ScheduledConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final MetricsService metricsService;
     private final XsltUrlUpdateService xsltUrlUpdateService;
-    private final DatasetRemoverService datasetRemoverService;
+    private final DataCleanupService dataCleanupService;
     @Value("${sandbox.transformation.xslt-url}")
     private String defaultXsltUrl;
     @Value("${sandbox.dataset.clean.days-to-preserve:7}")
@@ -34,10 +34,10 @@ public class ScheduledConfig {
 
 
     ScheduledTasks(MetricsService metricsService, XsltUrlUpdateService xsltUrlUpdateService,
-        DatasetRemoverService datasetRemoverService) {
+        DataCleanupService dataCleanupService) {
       this.metricsService = metricsService;
       this.xsltUrlUpdateService = xsltUrlUpdateService;
-      this.datasetRemoverService = datasetRemoverService;
+      this.dataCleanupService = dataCleanupService;
     }
 
     @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *}")
@@ -58,7 +58,7 @@ public class ScheduledConfig {
     @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 * * ?}")
     void remove() {
       LOGGER.info("Start daily dataset clean up for last {} days", daysToPreserve);
-      datasetRemoverService.remove(daysToPreserve);
+      dataCleanupService.remove(daysToPreserve);
       LOGGER.info("Finish daily dataset clean up");
     }
   }

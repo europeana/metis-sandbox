@@ -20,4 +20,6 @@ public interface ExecutionRecordWarningExceptionRepository extends
       "FROM ExecutionRecord r " +
       "GROUP BY r.identifier.executionName")
   List<StepStatisticProjection> getStepStatistics();
+
+  void removeByExecutionRecord_Identifier_DatasetId(String datasetId);
 }

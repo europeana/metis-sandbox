@@ -10,10 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public interface DeBiasProcessService {
 
-  List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecordsNew(String recordContent, String recordId);
+  List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(String recordContent, String recordId);
 
   @Transactional
   void process(String recordContent, String datasetId, String recordId);
 
-  List<DeBiasReportRow> doDeBiasAndGenerateReportNew(List<DeBiasInputRecord> deBiasInputRecords);
+  List<DeBiasReportRow> doDeBiasAndGenerateReport(List<DeBiasInputRecord> deBiasInputRecords);
 }

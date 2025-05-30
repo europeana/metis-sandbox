@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
  * Represents the data related to Http harvesting
  */
 @ApiModel(HttpHarvestingDto.SWAGGER_MODEL_NAME)
-public class HttpHarvestingDto implements HarvestingParametricDto {
+public class HttpHarvestingDto implements HarvestingParametersDto {
 
     public static final String SWAGGER_MODEL_NAME = "HttpUpload";
 
