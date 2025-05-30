@@ -75,7 +75,7 @@ public class DeBiasStateServiceImpl implements DeBiasStateService {
    */
   @Transactional
   @Override
-  public void cleanDeBiasReport(Integer datasetId) {
+  public void remove(Integer datasetId) {
     Objects.requireNonNull(datasetId, "Dataset id must not be null");
     this.recordDeBiasDetailRepository.deleteAllByDatasetId(datasetId.toString());
     this.recordDeBiasMainRepository.deleteByDatasetId(datasetId.toString());

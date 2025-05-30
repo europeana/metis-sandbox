@@ -115,7 +115,7 @@ public class DatasetDebiasController {
           "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
                                  .map(DeBiasStatusDto::getState)
                                  .orElse(""))) {
-        debiasStateService.cleanDeBiasReport(datasetId);
+        debiasStateService.remove(datasetId);
 
         DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
         DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();

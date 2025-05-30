@@ -29,7 +29,7 @@ public class ProblemPatternDataRemover {
     }
 
     @Transactional
-    public void removeProblemPatternDataFromDatasetId(String datasetId){
+    public void remove(String datasetId){
         recordProblemPatternOccurrenceRepository.deleteByRecordProblemPatternExecutionPointDatasetId(datasetId);
         recordTitleRepository.deleteByExecutionPointDatasetId(datasetId);
         recordProblemPatternRepository.deleteByExecutionPointDatasetId(datasetId);

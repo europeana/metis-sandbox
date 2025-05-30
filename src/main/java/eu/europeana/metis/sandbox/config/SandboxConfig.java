@@ -47,11 +47,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
-@EnableScheduling
 @ComponentScan("eu.europeana.validation.service")
 @EnableConfigurationProperties({ElasticAPMConfiguration.class})
 class SandboxConfig {
@@ -86,9 +84,6 @@ class SandboxConfig {
     //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
     @Value("${sandbox.validation.edm-sorter-url}")
     private String edmSorterUrl;
-
-    @Value("${sandbox.transformation.xslt-url}")
-    private String defaultXsltUrl;
 
     @Value("${sandbox.portal.publish.record-base-url}")
     private String portalPublishRecordBaseUrl;

@@ -17,7 +17,7 @@ public interface DeBiasStateService {
    *
    * @param datasetId the dataset id
    */
-  void cleanDeBiasReport(Integer datasetId);
+  void remove(Integer datasetId);
 
   DeBiasStatusDto getDeBiasStatus(String datasetId);
 

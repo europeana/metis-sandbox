@@ -9,13 +9,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 @Configuration
-@EnableScheduling
 public class MetricsServiceConfig {
-
-  private MetricsService metricsService;
 
   @Bean
   MetricsService metricsService(
@@ -24,14 +20,8 @@ public class MetricsServiceConfig {
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       DatasetProblemPatternRepository problemPatternRepository,
       MeterRegistry meterRegistry) {
-    metricsService = new MetricsService(executionRecordRepository, executionRecordExceptionLogRepository,
+    return new MetricsService(executionRecordRepository, executionRecordExceptionLogRepository,
         executionRecordWarningExceptionRepository, problemPatternRepository,
         meterRegistry);
-    return metricsService;
-  }
-
-  @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *}")
-  void metricsReport() {
-    metricsService.getDatabaseMetrics();
   }
 }

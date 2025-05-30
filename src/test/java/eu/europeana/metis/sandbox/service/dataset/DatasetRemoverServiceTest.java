@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DatasetRemoverServiceImplTest {
+class DatasetRemoverServiceTest {
 
   @Mock
   private DatasetService datasetService;
@@ -52,7 +52,7 @@ class DatasetRemoverServiceImplTest {
   private VacuumService vacuumService;
 
   @InjectMocks
-  private DatasetRemoverServiceImpl service;
+  private DatasetRemoverService service;
 
   @Test
   void remove_expectSuccess() {
@@ -67,8 +67,8 @@ class DatasetRemoverServiceImplTest {
     verify(datasetService, times(4)).remove(anyString());
     verify(datasetLogService, times(4)).remove(anyString());
     verify(recordService, times(4)).remove(anyString());
-    verify(problemPatternDataRemover, times(4)).removeProblemPatternDataFromDatasetId(anyString());
-    verify(deBiasStateService, times(4)).cleanDeBiasReport(anyInt());
+    verify(problemPatternDataRemover, times(4)).remove(anyString());
+    verify(deBiasStateService, times(4)).remove(anyInt());
     verify(vacuumService, times(1)).vacuum();
   }
 
@@ -89,8 +89,8 @@ class DatasetRemoverServiceImplTest {
     verify(datasetService, times(3)).remove(anyString());
     verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());
-    verify(problemPatternDataRemover, times(3)).removeProblemPatternDataFromDatasetId(anyString());
-    verify(deBiasStateService, times(3)).cleanDeBiasReport(anyInt());
+    verify(problemPatternDataRemover, times(3)).remove(anyString());
+    verify(deBiasStateService, times(3)).remove(anyInt());
   }
 
   @Test
@@ -110,7 +110,7 @@ class DatasetRemoverServiceImplTest {
     verify(datasetService, times(3)).remove(anyString());
     verify(datasetLogService, times(3)).remove(anyString());
     verify(recordService, times(3)).remove(anyString());
-    verify(problemPatternDataRemover, times(3)).removeProblemPatternDataFromDatasetId(anyString());
+    verify(problemPatternDataRemover, times(3)).remove(anyString());
   }
 
   @Test

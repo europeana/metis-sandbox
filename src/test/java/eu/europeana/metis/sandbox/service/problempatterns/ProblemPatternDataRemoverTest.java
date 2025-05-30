@@ -36,8 +36,8 @@ class ProblemPatternDataRemoverTest {
   private ProblemPatternDataRemover problemPatternDataRemover;
 
   @Test
-  void removeProblemPatternDataFromDatasetId_expectSuccess() {
-    problemPatternDataRemover.removeProblemPatternDataFromDatasetId("1");
+  void remove_expectSuccess() {
+    problemPatternDataRemover.remove("1");
     verify(datasetProblemPatternRepository, times(1)).deleteByExecutionPointDatasetId("1");
     verify(recordTitleRepository, times(1)).deleteByExecutionPointDatasetId("1");
     verify(executionPointRepository, times(1)).deleteByDatasetId("1");
