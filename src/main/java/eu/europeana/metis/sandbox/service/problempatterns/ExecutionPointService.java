@@ -37,6 +37,6 @@ public class ExecutionPointService {
      * @return An optional object wrapping the execution point
      */
     public Optional<ExecutionPoint> getExecutionPoint(String datasetId, String executionStep){
-        return executionPointRepository.findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc(datasetId, executionStep);
+        return executionPointRepository.findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(datasetId, executionStep);
     }
 }

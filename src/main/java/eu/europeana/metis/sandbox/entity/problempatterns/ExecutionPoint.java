@@ -20,7 +20,7 @@ import java.util.Set;
 @Table(schema = "problem_patterns", name = "execution_point", indexes = {
     @Index(name = "execution_point_dataset_id_execution_step_execution_timesta_key",
         columnList = "dataset_id, execution_step, execution_timestamp", unique = true),
-    @Index(name = "execution_point_dataset_id_execution_step_idx", columnList = "dataset_id, execution_step")
+    @Index(name = "execution_point_dataset_id_execution_step_idx", columnList = "dataset_id, execution_name")
 })
 public class ExecutionPoint {
 
@@ -32,8 +32,8 @@ public class ExecutionPoint {
   @Column(name = "dataset_id", nullable = false, length = 20)
   private String datasetId;
 
-  @Column(name = "execution_step", nullable = false, length = 20)
-  private String executionStep;
+  @Column(name = "execution_name", nullable = false, length = 20)
+  private String executionName;
 
   @Column(name = "execution_timestamp", nullable = false)
   private LocalDateTime executionTimestamp;
@@ -75,12 +75,12 @@ public class ExecutionPoint {
     this.executionTimestamp = executionTimestamp;
   }
 
-  public String getExecutionStep() {
-    return executionStep;
+  public String getExecutionName() {
+    return executionName;
   }
 
-  public void setExecutionStep(String executionStep) {
-    this.executionStep = executionStep;
+  public void setExecutionName(String executionStep) {
+    this.executionName = executionStep;
   }
 
   public String getDatasetId() {

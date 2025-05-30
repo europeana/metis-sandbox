@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import io.swagger.annotations.ApiModel;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
 @ApiModel("ProgressByStep")
 public class ProgressByStepDto {
 
-  private final Step step;
+  private final FullBatchJobType step;
   private final long total;
   private final long success;
   private final long fail;
@@ -22,7 +22,7 @@ public class ProgressByStepDto {
   @JsonInclude(Include.NON_EMPTY)
   private final List<ErrorInfoDto> errors;
 
-  public ProgressByStepDto(Step step, long success, long fail, long warn, List<ErrorInfoDto> errors) {
+  public ProgressByStepDto(FullBatchJobType step, long success, long fail, long warn, List<ErrorInfoDto> errors) {
     this.step = step;
     this.total = success + fail;
     this.success = success;
@@ -31,7 +31,7 @@ public class ProgressByStepDto {
     this.errors = Collections.unmodifiableList(errors);
   }
 
-  public Step getStep() {
+  public FullBatchJobType getStep() {
     return step;
   }
 

@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
@@ -149,7 +148,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+       .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())));

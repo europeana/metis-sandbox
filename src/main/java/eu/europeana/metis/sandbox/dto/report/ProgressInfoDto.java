@@ -2,9 +2,8 @@ package eu.europeana.metis.sandbox.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import io.swagger.annotations.ApiModel;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -66,11 +65,11 @@ public class ProgressInfoDto {
             this.totalRecords = totalRecords;
         }
         this.datasetLogs = datasetLogs;
-        this.progressByStep = progressByStep.stream().filter(s -> s.getStep()!=Step.DEBIAS).toList();
+        this.progressByStep = progressByStep.stream().filter(s -> s.getStep()!= FullBatchJobType.DEBIAS).toList();
         this.recordLimitExceeded = recordLimitExceeded;
         this.errorType = errorType;
         this.recordsPublishedSuccessfully =
-                progressByStep.stream().filter(step -> step.getStep() == Step.PUBLISH).findAny()
+                progressByStep.stream().filter(step -> step.getStep() == FullBatchJobType.INDEX).findAny()
                         .map(step -> step.getSuccess() + step.getWarn() > 0).orElse(false);
         this.portalPublishUrl = this.recordsPublishedSuccessfully ? portalPublishUrl : "";
     }

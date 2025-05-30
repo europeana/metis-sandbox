@@ -131,14 +131,14 @@ class PatternAnalysisServiceImplIT {
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, now);
     assertEquals("1", executionPoint1.getDatasetId());
-    assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint1.getExecutionStep());
+    assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint1.getExecutionName());
     assertEquals(now, executionPoint1.getExecutionTimestamp());
 
     //Second time should give back the exact same object
     final ExecutionPoint executionPoint2 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, now);
     assertEquals("1", executionPoint2.getDatasetId());
-    assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint2.getExecutionStep());
+    assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint2.getExecutionName());
     // TODO: 24/11/2023 Truncated to seconds to avoid failure on milliseconds. The one that is retrieved from db
     //  has lost some of the decimal points on the milliseconds. This needs investigation.
     assertEquals(now.truncatedTo(ChronoUnit.SECONDS), executionPoint2.getExecutionTimestamp().truncatedTo(ChronoUnit.SECONDS));

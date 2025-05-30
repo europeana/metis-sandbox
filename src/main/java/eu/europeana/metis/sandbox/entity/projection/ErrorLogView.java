@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.entity.projection;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 
 public interface ErrorLogView {
 
@@ -9,7 +9,7 @@ public interface ErrorLogView {
 
   String getRecordId();
 
-  Step getStep();
+  FullBatchJobType getStep();
 
   Status getStatus();
 

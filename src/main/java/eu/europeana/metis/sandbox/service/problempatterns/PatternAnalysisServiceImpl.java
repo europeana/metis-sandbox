@@ -94,13 +94,13 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   @Transactional
   public ExecutionPoint initializePatternAnalysisExecution(String datasetId, FullBatchJobType executionStep,
       LocalDateTime executionTimestamp) {
-    final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
+    final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionNameAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
     final ExecutionPoint savedExecutionPoint;
     if (Objects.isNull(dbExecutionPoint)) {
       final ExecutionPoint executionPoint = new ExecutionPoint();
       executionPoint.setExecutionTimestamp(executionTimestamp);
-      executionPoint.setExecutionStep(executionStep.name());
+      executionPoint.setExecutionName(executionStep.name());
       executionPoint.setDatasetId(datasetId);
       savedExecutionPoint = this.executionPointRepository.save(executionPoint);
 
@@ -310,7 +310,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   public Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> getDatasetPatternAnalysis(String datasetId, FullBatchJobType executionStep,
       LocalDateTime executionTimestamp) {
 
-    final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionStepAndExecutionTimestamp(
+    final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionNameAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
     if (nonNull(executionPoint)) {
       final ArrayList<ProblemPattern> problemPatterns = constructProblemPatterns(executionPoint);

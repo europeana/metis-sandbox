@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class ProgressByStepDtoTest {
   void getStep() {
     ProgressByStepDto progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(Step.TRANSFORM_INTERNAL, progressByStepDto.getStep());
+    assertEquals(FullBatchJobType.TRANSFORM_INTERNAL, progressByStepDto.getStep());
   }
 
   @Test
@@ -77,7 +77,7 @@ class ProgressByStepDtoTest {
 
   @NotNull
   private static ProgressByStepDto getTestProgressByStepDto() {
-    return new ProgressByStepDto(Step.TRANSFORM_INTERNAL,
+    return new ProgressByStepDto(FullBatchJobType.TRANSFORM_INTERNAL,
         12,
         5,
         2,

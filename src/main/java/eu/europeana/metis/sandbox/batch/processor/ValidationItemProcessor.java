@@ -11,7 +11,6 @@ import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -131,8 +130,8 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
   }
 
   private void generatePatternAnalysis(SuccessExecutionRecordDTO successExecutionRecordDTO) {
-    Optional<ExecutionPoint> executionPoint = executionPointRepository.findFirstByDatasetIdAndExecutionStepOrderByExecutionTimestampDesc(
-        successExecutionRecordDTO.getDatasetId(), Step.VALIDATE_INTERNAL.name());
+    Optional<ExecutionPoint> executionPoint = executionPointRepository.findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(
+        successExecutionRecordDTO.getDatasetId(), getExecutionName());
     if (executionPoint.isEmpty()) {
       throw new IllegalStateException("No execution point found for datasetId " + successExecutionRecordDTO.getDatasetId());
     }

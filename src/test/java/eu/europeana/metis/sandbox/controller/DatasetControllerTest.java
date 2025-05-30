@@ -14,9 +14,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -31,8 +29,8 @@ import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.indexing.utils.LicenseType;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -147,29 +145,28 @@ class DatasetControllerTest {
 
   private static Stream<Arguments> steps() {
     return Stream.of(
-        arguments(null, Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments(null, Set.of(FullBatchJobType.HARVEST_FILE, FullBatchJobType.HARVEST_OAI), status().isOk(),
             content().string("exampleString")),
-        arguments("", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments("", Set.of(FullBatchJobType.HARVEST_FILE, FullBatchJobType.HARVEST_OAI), status().isOk(),
             content().string("exampleString")),
-        arguments("HARVEST", Set.of(Step.HARVEST_FILE, Step.HARVEST_OAI_PMH), status().isOk(),
+        arguments("HARVEST", Set.of(FullBatchJobType.HARVEST_FILE, FullBatchJobType.HARVEST_OAI), status().isOk(),
             content().string("exampleString")),
-        arguments("TRANSFORM_TO_EDM_EXTERNAL", Set.of(Step.TRANSFORM_EXTERNAL),
+        arguments("TRANSFORM_TO_EDM_EXTERNAL", Set.of(FullBatchJobType.TRANSFORM_EXTERNAL),
             status().isOk(), content().string("exampleString")),
-        arguments("VALIDATE_EXTERNAL", Set.of(Step.VALIDATE_EXTERNAL), status().isOk(),
+        arguments("VALIDATE_EXTERNAL", Set.of(FullBatchJobType.VALIDATE_EXTERNAL), status().isOk(),
             content().string("exampleString")),
-        arguments("TRANSFORM", Set.of(Step.TRANSFORM_INTERNAL), status().isOk(),
+        arguments("TRANSFORM", Set.of(FullBatchJobType.TRANSFORM_INTERNAL), status().isOk(),
             content().string("exampleString")),
-        arguments("VALIDATE_INTERNAL", Set.of(Step.VALIDATE_INTERNAL), status().isOk(),
+        arguments("VALIDATE_INTERNAL", Set.of(FullBatchJobType.VALIDATE_INTERNAL), status().isOk(),
             content().string("exampleString")),
-        arguments("NORMALIZE", Set.of(Step.NORMALIZE), status().isOk(),
+        arguments("NORMALIZE", Set.of(FullBatchJobType.NORMALIZE), status().isOk(),
             content().string("exampleString")),
-        arguments("ENRICH", Set.of(Step.ENRICH), status().isOk(),
+        arguments("ENRICH", Set.of(FullBatchJobType.ENRICH), status().isOk(),
             content().string("exampleString")),
-        arguments("MEDIA_PROCESS", Set.of(Step.MEDIA_PROCESS), status().isOk(),
+        arguments("MEDIA_PROCESS", Set.of(FullBatchJobType.MEDIA), status().isOk(),
             content().string("exampleString")),
-        arguments("PUBLISH", Set.of(Step.PUBLISH), status().isOk(),
+        arguments("PUBLISH", Set.of(FullBatchJobType.INDEX), status().isOk(),
             content().string("exampleString")),
-        arguments("CLOSE", Set.of(Step.CLOSE), status().isOk(), content().string("exampleString")),
         arguments("NON_SENSE", Set.of(), status().isBadRequest(),
             content().string("{\"statusCode\":400,\"status\":\"BAD_REQUEST\",\"message\":\"Invalid step name NON_SENSE\"}"))
     );
@@ -634,8 +631,8 @@ class DatasetControllerTest {
     var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
     var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
-    var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
-    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, errors);
+    var createProgress = new ProgressByStepDto(FullBatchJobType.HARVEST_FILE, 10, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(FullBatchJobType.VALIDATE_EXTERNAL, 7, 3, 0, errors);
     var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
         new TierStatistics(0, Collections.emptyList()));
     var report = new ProgressInfoDto("https://metis-sandbox",
@@ -818,7 +815,7 @@ class DatasetControllerTest {
 
   @ParameterizedTest
   @MethodSource("steps")
-  void getRecord_expectSuccess(String step, Set<Step> steps, ResultMatcher expectedStatus,
+  void getRecord_expectSuccess(String step, Set<FullBatchJobType> steps, ResultMatcher expectedStatus,
       ResultMatcher expectedContent) throws Exception {
     final String datasetId = "1";
     final String recordId = "europeanaId";

@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.validationworkflow;
 
-import eu.europeana.metis.sandbox.common.Step;
-
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +8,7 @@ import java.util.List;
  * The type Validation result.
  */
 public class ValidationResult {
-    private final Step step;
+    private final FullBatchJobType step;
     private final List<RecordValidationMessage> messages;
     private final Status status;
 
@@ -20,7 +19,7 @@ public class ValidationResult {
      * @param message the message
      * @param status  the status
      */
-    public ValidationResult(Step step, RecordValidationMessage message, Status status) {
+    public ValidationResult(FullBatchJobType step, RecordValidationMessage message, Status status) {
         this.step = step;
         this.messages = new ArrayList<>();
         this.messages.add(message);
@@ -34,7 +33,7 @@ public class ValidationResult {
      * @param messages the messages
      * @param status   the status
      */
-    public ValidationResult(Step step, List<RecordValidationMessage> messages, Status status) {
+    public ValidationResult(FullBatchJobType step, List<RecordValidationMessage> messages, Status status) {
         this.step = step;
         this.messages = new ArrayList<>();
         this.messages.addAll(messages);
@@ -64,7 +63,7 @@ public class ValidationResult {
      *
      * @return the step
      */
-    public Step getStep() {
+    public FullBatchJobType getStep() {
         return step;
     }
 

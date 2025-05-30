@@ -53,7 +53,7 @@ public class DatasetDebiasController {
 
   private final DatasetService datasetService;
   private final DeBiasStateService debiasStateService;
-  private final DatasetReportService reportService;
+  private final DatasetReportService datasetReportService;
   private final Map<Integer, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
   private final LockRegistry lockRegistry;
   private final BatchJobExecutor batchJobExecutor;
@@ -63,15 +63,15 @@ public class DatasetDebiasController {
    *
    * @param datasetService the service to handle dataset operations
    * @param debiasStateService the service to manage DeBias state
-   * @param reportService the service to handle dataset reports
+   * @param datasetReportService the service to handle dataset reports
    * @param lockRegistry the registry for managing dataset locks
    */
   @Autowired
   public DatasetDebiasController(DatasetService datasetService, DeBiasStateService debiasStateService,
-      DatasetReportService reportService, LockRegistry lockRegistry, BatchJobExecutor batchJobExecutor) {
+      DatasetReportService datasetReportService, LockRegistry lockRegistry, BatchJobExecutor batchJobExecutor) {
     this.datasetService = datasetService;
     this.debiasStateService = debiasStateService;
-    this.reportService = reportService;
+    this.datasetReportService = datasetReportService;
     this.lockRegistry = lockRegistry;
     this.batchJobExecutor = batchJobExecutor;
   }
@@ -109,7 +109,7 @@ public class DatasetDebiasController {
     try {
       lock.lock();
       LOGGER.info("DeBias process: {} lock, Locked", datasetId);
-      ProgressInfoDto progressInfoDto = reportService.getProgress(datasetId.toString());
+      ProgressInfoDto progressInfoDto = datasetReportService.getProgress(datasetId.toString());
 
       if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
           "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))

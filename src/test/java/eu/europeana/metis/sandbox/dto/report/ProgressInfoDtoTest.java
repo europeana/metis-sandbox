@@ -5,12 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.europeana.metis.sandbox.common.Step;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
-
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,15 +60,15 @@ class ProgressInfoDtoTest {
     @NotNull
     private static List<ProgressByStepDto> getProgressByStepDtoList(int mediaProcessed,
                                                                     int published) {
-        return List.of(new ProgressByStepDto(Step.HARVEST_FILE, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.TRANSFORM_EXTERNAL, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.TRANSFORM_INTERNAL, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.VALIDATE_INTERNAL, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.NORMALIZE, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.ENRICH, 5, 0, 0, List.of()),
-                new ProgressByStepDto(Step.MEDIA_PROCESS, mediaProcessed, 0, 0, List.of()),
-                new ProgressByStepDto(Step.PUBLISH, published, 0, 0, List.of()));
+        return List.of(new ProgressByStepDto(FullBatchJobType.HARVEST_FILE, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.TRANSFORM_EXTERNAL, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.VALIDATE_EXTERNAL, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.TRANSFORM_INTERNAL, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.VALIDATE_INTERNAL, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.NORMALIZE, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.ENRICH, 5, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.MEDIA, mediaProcessed, 0, 0, List.of()),
+                new ProgressByStepDto(FullBatchJobType.INDEX, published, 0, 0, List.of()));
     }
 
     @NotNull
@@ -78,7 +76,7 @@ class ProgressInfoDtoTest {
         return new ProgressInfoDto("http://metis-sandbox",
                 null,
                 0L,
-                List.of(new ProgressByStepDto(Step.HARVEST_FILE, 0, 0, 0, List.of())),
+                List.of(new ProgressByStepDto(FullBatchJobType.HARVEST_FILE, 0, 0, 0, List.of())),
                 false, "", emptyList(), null);
     }
 

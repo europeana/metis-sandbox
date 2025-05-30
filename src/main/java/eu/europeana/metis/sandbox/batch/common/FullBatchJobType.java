@@ -8,10 +8,10 @@ import org.apache.tika.utils.StringUtils;
 public enum FullBatchJobType {
   HARVEST_OAI(BatchJobType.HARVEST_OAI),
   HARVEST_FILE(BatchJobType.HARVEST_FILE),
-  VALIDATE_EXTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.EXTERNAL),
-  VALIDATE_INTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.INTERNAL),
   TRANSFORM_EXTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.EXTERNAL),
+  VALIDATE_EXTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.EXTERNAL),
   TRANSFORM_INTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.INTERNAL),
+  VALIDATE_INTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.INTERNAL),
   NORMALIZE(BatchJobType.NORMALIZE),
   ENRICH(BatchJobType.ENRICH),
   MEDIA(BatchJobType.MEDIA),
