@@ -4,7 +4,6 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.repository.RecordRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecordServiceImpl implements RecordService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final RecordRepository recordRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   /**
@@ -30,9 +28,7 @@ public class RecordServiceImpl implements RecordService {
    * @param recordJdbcRepository the JDBC repository for Record-related operations
    * @param xmlRecordProcessorService the service for processing XML-based records
    */
-  public RecordServiceImpl(RecordRepository recordRepository,
-      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
-    this.recordRepository = recordRepository;
+  public RecordServiceImpl(ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
@@ -53,7 +49,6 @@ public class RecordServiceImpl implements RecordService {
   @Override
   @Transactional
   public void remove(String datasetId) {
-    recordRepository.deleteByDatasetId(datasetId);
   }
 
   private boolean areAllTierValuesNotNullOrEmpty(ExecutionRecordTierContext executionRecordTierContext) {

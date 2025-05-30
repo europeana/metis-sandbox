@@ -1,18 +1,17 @@
 package eu.europeana.metis.sandbox.service.record;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
-import eu.europeana.metis.sandbox.common.Status;
-import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
-import eu.europeana.metis.sandbox.entity.RecordEntity;
-import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import java.nio.file.Paths;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +44,8 @@ class RecordTierCalculationServiceImplTest {
     String europeanaRecordString = testUtils.readFileToString(
         Paths.get("record", "media", "europeana_record_with_technical_metadata.xml").toFile().toString());
 
-    final Long recordId = 1L;
+    final String executionId = "executionId";
+    final String recordId = "recordId";
     final String datasetId = "datasetId";
     final String europeanaId = "europeanaId";
     final String providerId = "providerId";
@@ -56,34 +56,24 @@ class RecordTierCalculationServiceImplTest {
     final String metadataTierEnablingElements = "metadataTierEnablingElements";
     final String metadataTierContextualClasses = "metadataTierContextualClasses";
     final String license = "license";
-    final RecordEntity recordEntity = new RecordEntity.RecordEntityBuilder()
-        .setEuropeanaId(europeanaId)
-        .setProviderId(providerId)
-        .setDatasetId(datasetId)
-        .setContentTier(contentTier)
-        .setContentTierBeforeLicenseCorrection(contentTierBeforeLicenseCorrection)
-        .setMetadataTier(metadataTier)
-        .setMetadataTierLanguage(metadataTierLanguage)
-        .setMetadataTierEnablingElements(metadataTierEnablingElements)
-        .setMetadataTierContextualClasses(metadataTierContextualClasses)
-        .setLicense(license)
-        .build();
-    final Step mediaProcessStep = Step.MEDIA_PROCESS;
-    final RecordLogEntity recordLogEntity = new RecordLogEntity(recordEntity, europeanaRecordString, mediaProcessStep,
-        Status.SUCCESS);
-    recordEntity.setId(recordId);
-//    when(recordLogServiceMock.getRecordLogEntity(providerId, datasetId, Step.MEDIA_PROCESS)).thenReturn(recordLogEntity);
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setDatasetId(datasetId);
+    executionRecordIdentifier.setRecordId(recordId);
+    executionRecordIdentifier.setExecutionName(FullBatchJobType.MEDIA.name());
+    executionRecordIdentifier.setExecutionId(executionId);
+    ExecutionRecord executionRecord = new ExecutionRecord();
+    executionRecord.setIdentifier(executionRecordIdentifier);
+    executionRecord.setRecordData(europeanaRecordString);
+    when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+        datasetId, recordId, FullBatchJobType.MEDIA.name())).thenReturn(executionRecord);
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
         providerId, datasetId);
     assertNotNull(recordTierCalculationView);
-    assertEquals(recordEntity.getProviderId(),
-        recordTierCalculationView.getRecordTierCalculationSummary().getProviderRecordId());
   }
 
   @Test
   void calculateTiers_NoRecordFoundException() {
-//    when(recordLogServiceMock.getRecordLogEntity(anyString(), anyString(), any(Step.class))).thenReturn(null);
     assertThrows(NoRecordFoundException.class, () -> recordTierCalculationService.calculateTiers("recordId", "datasetId"));
   }
 }

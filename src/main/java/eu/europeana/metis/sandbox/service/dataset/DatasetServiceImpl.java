@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
@@ -18,8 +17,6 @@ import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -112,14 +109,6 @@ class DatasetServiceImpl implements DatasetService {
         .harvestingParametricDto(getHarvestingParameterDto(datasetId))
         .transformedToEdmExternal(isXsltPresent(datasetId))
         .build();
-  }
-
-  private boolean isInputStreamAvailable(InputStream stream) {
-    try {
-      return stream != null && stream.available() != 0;
-    } catch (IOException e) {
-      throw new XsltProcessingException("Something went wrong when checking xslt input stream.", e);
-    }
   }
 
   private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, String xsltToEdmExternal) {

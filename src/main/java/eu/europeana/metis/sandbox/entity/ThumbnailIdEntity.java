@@ -10,8 +10,8 @@ import jakarta.persistence.Table;
  * Entity to map to thumbnail table
  */
 @Entity
-@Table(name = "thumbnail")
-public class ThumbnailEntity {
+@Table(name = "thumbnailId")
+public class ThumbnailIdEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,12 +21,12 @@ public class ThumbnailEntity {
 
   private String thumbnailId;
 
-  public ThumbnailEntity(String datasetId, String thumbnailId) {
+  public ThumbnailIdEntity(String datasetId, String thumbnailId) {
     this.datasetId = datasetId;
     this.thumbnailId = thumbnailId;
   }
 
-  public ThumbnailEntity() {
+  public ThumbnailIdEntity() {
     // provide explicit no-args constructor as it is required for Hibernate
   }
 

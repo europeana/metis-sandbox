@@ -7,7 +7,6 @@ import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
-import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
@@ -27,19 +26,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,10 +54,7 @@ public class PatternAnalysisController {
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   private final ExecutionRecordRepository executionRecordRepository;
-  private final DatasetReportService datasetReportService;
   private final RdfConversionUtils rdfConversionUtils = new RdfConversionUtils();
-  private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
-  private final LockRegistry lockRegistry;
 
   /**
    * Constructor with required parameters.
@@ -76,14 +66,10 @@ public class PatternAnalysisController {
    * @param lockRegistry the lock registry
    */
   public PatternAnalysisController(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
-      ExecutionPointService executionPointService, ExecutionRecordRepository executionRecordRepository,
-      DatasetReportService datasetReportService,
-      LockRegistry lockRegistry) {
+      ExecutionPointService executionPointService, ExecutionRecordRepository executionRecordRepository) {
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
     this.executionRecordRepository = executionRecordRepository;
-    this.datasetReportService = datasetReportService;
-    this.lockRegistry = lockRegistry;
   }
 
   /**
@@ -173,25 +159,6 @@ public class PatternAnalysisController {
   @ResponseStatus(HttpStatus.OK)
   public Set<LocalDateTime> getAllExecutionTimestamps() {
     return executionPointService.getAllExecutionTimestamps();
-  }
-
-  /**
-   * Evict cache items every day.
-   */
-  @Scheduled(cron = "0 0 0 * * ?")
-  private void cleanCache() {
-    for (Entry<String, Lock> entry : datasetIdLocksMap.entrySet()) {
-      final Lock lock = entry.getValue();
-      try {
-        lock.lock();
-        LOGGER.debug("Cleaning cache: {} lock, Locked", entry.getKey());
-        datasetIdLocksMap.remove(entry.getKey());
-        LOGGER.debug("Dataset id maps cache cleaned");
-      } finally {
-        lock.unlock();
-        LOGGER.debug("Cleaning cache: {} lock, Unlocked", entry.getKey());
-      }
-    }
   }
 
   private static final class DatasetProblemPatternAnalysisView<T> {

@@ -18,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
@@ -25,7 +27,6 @@ import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
-import eu.europeana.metis.sandbox.entity.RecordLogEntity;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
@@ -62,7 +63,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(PatternAnalysisController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, PatternAnalysisController.class, SecurityConfig.class, ControllerErrorHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, PatternAnalysisController.class, SecurityConfig.class,
+    ControllerErrorHandler.class})
 class PatternAnalysisControllerTest {
 
   @MockBean
@@ -73,6 +75,9 @@ class PatternAnalysisControllerTest {
 
   @MockBean
   private ExecutionPointService mockExecutionPointService;
+
+  @MockBean
+  private ExecutionRecordRepository mockExecutionRecordRepository;
 
   @MockBean
   private DatasetReportService mockDatasetReportService;
@@ -89,14 +94,14 @@ class PatternAnalysisControllerTest {
   @BeforeAll
   static void setup(WebApplicationContext context) {
     mvc = MockMvcBuilders.webAppContextSetup(context)
-                             .apply(SecurityMockMvcConfigurers.springSecurity())
-                             .defaultRequest(get("/"))
-                             .build();
+                         .apply(SecurityMockMvcConfigurers.springSecurity())
+                         .defaultRequest(get("/"))
+                         .build();
   }
 
   @BeforeEach
   void resetMocks() {
-    reset(mockPatternAnalysisService, mockExecutionPointService,
+    reset(mockPatternAnalysisService, mockExecutionPointService, mockExecutionRecordRepository,
         mockDatasetReportService, lockRegistry, jwtDecoder);
   }
 
@@ -111,41 +116,43 @@ class PatternAnalysisControllerTest {
     executionPoint.setExecutionPointId(1);
     List<ProblemPattern> problemPatternList = new ArrayList<>();
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
+            problemPatternList);
     when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
+    when(
+        mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     // First check with dataset that is still processing
     final ProgressInfoDto inProgressInfo = new ProgressInfoDto("", 1L, 0L,
         Collections.emptyList(), false, "", emptyList(), null);
-//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
+    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
     assertNotEquals(Status.COMPLETED, inProgressInfo.getStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
-        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
-        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.IN_PROGRESS.name())));
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
+       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.IN_PROGRESS.name())));
     verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
 
     // Now check with finalized dataset.
     final ProgressInfoDto completedInfo = new ProgressInfoDto("", 1L, 1L,
         Collections.emptyList(), false, "", emptyList(), null);
-//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
+    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
     assertEquals(Status.COMPLETED, completedInfo.getStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
-        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
-        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())));
+       .andExpect(status().isOk())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.executionStep", is(Step.VALIDATE_INTERNAL.name())))
+       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())));
     verify(mockPatternAnalysisService, times(1)).finalizeDatasetPatternAnalysis(executionPoint);
   }
 
@@ -167,15 +174,17 @@ class PatternAnalysisControllerTest {
         List.of(recordAnalysis2, recordAnalysis3, recordAnalysis1)));
 
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
+            problemPatternList);
     when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
+    when(
+        mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -204,24 +213,26 @@ class PatternAnalysisControllerTest {
     executionPoint.setExecutionPointId(1);
     List<ProblemPattern> problemPatternList = new ArrayList<>();
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
+            problemPatternList);
     when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
+    when(
+        mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
     doThrow(PatternAnalysisException.class).when(mockPatternAnalysisService).finalizeDatasetPatternAnalysis(executionPoint);
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
-        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
-        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
+       .andExpect(status().isInternalServerError())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
+       .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
+       .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
     verify(mockPatternAnalysisService, times(1)).finalizeDatasetPatternAnalysis(executionPoint);
   }
 
@@ -230,13 +241,14 @@ class PatternAnalysisControllerTest {
     LocalDateTime executionTimestamp = LocalDateTime.now();
     when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.empty());
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
+    when(
+        mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.empty());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.PENDING.name())));
+       .andExpect(status().isNotFound())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.PENDING.name())));
     verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
   }
 
@@ -249,33 +261,33 @@ class PatternAnalysisControllerTest {
     executionPoint.setExecutionPointId(1);
     when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
+    when(
+        mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.empty());
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-        .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
+       .andExpect(status().isInternalServerError())
+       .andExpect(jsonPath("$.datasetId", is("datasetId")))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
   }
 
   @Test
   void getRecordPatternAnalysis_expectSuccess() throws Exception {
     ProblemPattern problemPattern = new ProblemPattern(ProblemPatternDescription.P2, 0, new ArrayList<>());
-    RecordLogEntity mockRecordLogEntity = mock(RecordLogEntity.class);
     List<ProblemPattern> problemPatternList = List.of(problemPattern);
     String recordContent = IOUtils.toString(
         new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem.xml"),
         StandardCharsets.UTF_8);
 
-//    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
-//        mockRecordLogEntity);
-    when(mockRecordLogEntity.getContent()).thenReturn(recordContent);
-    when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
-        .thenReturn(problemPatternList);
+    ExecutionRecord mockExecutionRecord = mock(ExecutionRecord.class);
+    when(mockExecutionRecord.getRecordData()).thenReturn(recordContent);
+    when(mockExecutionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+        anyString(), anyString(), anyString()));
+    when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class))).thenReturn(problemPatternList);
 
     mvc.perform(get("/pattern-analysis/{id}/get-record-pattern-analysis", "datasetId")
            .param("recordId", "recordId"))
@@ -289,8 +301,8 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getRecordPatternAnalysis_notFound_expectSuccess() throws Exception {
-//    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
-//        null);
+    //    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
+    //        null);
     mvc.perform(get("/pattern-analysis/{id}/get-record-pattern-analysis", "datasetId")
            .param("recordId", "recordId"))
        .andExpect(status().isNotFound());
@@ -326,15 +338,17 @@ class PatternAnalysisControllerTest {
         List.of(recordAnalysis2, recordAnalysis1, recordAnalysis3)));
 
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
-        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp, problemPatternList);
+        new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
+            problemPatternList);
     when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
-    when(mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
+    when(
+        mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-//    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-//        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
+    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
+    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -355,7 +369,6 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getRecordPatternAnalysis_withCleanMessageReportP7AndSorted_expectSuccess() throws Exception {
-    RecordLogEntity mockRecordLogEntity = mock(RecordLogEntity.class);
     List<ProblemPattern> problemPatternList = new ArrayList<>();
     RecordAnalysis recordAnalysis1 = new RecordAnalysis("recordId1", List.of(new ProblemOccurrence("text1", List.of())));
     problemPatternList.add(new ProblemPattern(ProblemPatternDescription.P7, 1,
@@ -364,9 +377,10 @@ class PatternAnalysisControllerTest {
         new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem_with_P7.xml"),
         StandardCharsets.UTF_8);
 
-//    when(mockRecordLogService.getRecordLogEntity("recordId", "datasetId", Step.VALIDATE_INTERNAL)).thenReturn(
-//        mockRecordLogEntity);
-    when(mockRecordLogEntity.getContent()).thenReturn(recordContent);
+    ExecutionRecord mockExecutionRecord = mock(ExecutionRecord.class);
+    when(mockExecutionRecord.getRecordData()).thenReturn(recordContent);
+    when(mockExecutionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+        anyString(), anyString(), anyString()));
     when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
         .thenReturn(problemPatternList);
 
