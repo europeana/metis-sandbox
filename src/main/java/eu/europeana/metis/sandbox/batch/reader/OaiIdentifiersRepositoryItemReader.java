@@ -34,7 +34,7 @@ public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<Exe
         setMethodName("findByIdentifier_ExecutionId");
         setArguments(List.of(targetExecutionId+""));
         Map<String, Direction> sorts = new HashMap<>();
-        sorts.put("identifier.recordId", Direction.ASC);
+        sorts.put("identifier.sourceRecordId", Direction.ASC);
         setSort(sorts);
 
         super.afterPropertiesSet();

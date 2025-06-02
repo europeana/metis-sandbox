@@ -8,13 +8,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Embeddable
-public class ExecutionRecordIdentifier {
+public class ExecutionRecordIdentifierKey implements ExecutionRecordIdAccess {
 
   @Column(length = 50)
   private String datasetId;
-
-  @Column(length = 300)
-  private String recordId;
 
   @Column(length = 50)
   private String executionId;
@@ -22,4 +19,9 @@ public class ExecutionRecordIdentifier {
   @Column(length = 50)
   private String executionName;
 
+  @Column(length = 300)
+  private String sourceRecordId;
+
+  @Column(length = 300)
+  private String recordId;
 }

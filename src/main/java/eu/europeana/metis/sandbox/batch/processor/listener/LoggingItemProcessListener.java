@@ -1,8 +1,9 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
-import eu.europeana.metis.sandbox.batch.entity.HasExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdAccess;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
+import eu.europeana.metis.sandbox.batch.entity.HasExecutionRecordIdAccess;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import lombok.Setter;
@@ -16,8 +17,8 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class LoggingItemProcessListener<T extends HasExecutionRecordIdentifier> implements
-    ItemProcessListener<T, Future<ExecutionRecordDTO>> {
+public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? extends ExecutionRecordIdAccess>>
+    implements ItemProcessListener<T, Future<ExecutionRecordDTO>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -28,8 +29,23 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdentifier> 
 
   @Override
   public void afterProcess(@NotNull T item, Future<ExecutionRecordDTO> future) {
-    ExecutionRecordIdentifier identifier = item.getIdentifier();
-    LOGGER.info("Processing datasetId, executionId, recordId: {}, {}, {}", identifier.getDatasetId(), identifier.getExecutionId(), identifier.getRecordId());
+    ExecutionRecordIdAccess executionRecordIdAccess = item.getIdentifier();
+
+    final StringBuilder logBuilder = new StringBuilder(String.format(
+        "Processing datasetId: %s, executionId: %s, executionName: %s, sourceRecordId: %s",
+        executionRecordIdAccess.getDatasetId(),
+        executionRecordIdAccess.getExecutionId(),
+        executionRecordIdAccess.getExecutionName(),
+        executionRecordIdAccess.getSourceRecordId()
+    ));
+
+    if (executionRecordIdAccess instanceof ExecutionRecordIdentifierKey executionRecordIdentifierKey) {
+      logBuilder.append(String.format(", recordId: %s", executionRecordIdentifierKey.getRecordId()));
+    }
+
+    LOGGER.info(logBuilder.toString());
+
+
   }
 
   @Override

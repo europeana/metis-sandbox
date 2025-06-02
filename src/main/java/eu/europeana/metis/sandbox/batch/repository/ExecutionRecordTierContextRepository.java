@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ExecutionRecordTierContextRepository extends
-    JpaRepository<ExecutionRecordTierContext, ExecutionRecordIdentifier> {
+    JpaRepository<ExecutionRecordTierContext, ExecutionRecordIdentifierKey> {
 
   List<ExecutionRecordTierContext> findByIdentifier_DatasetId(String datasetId);
 

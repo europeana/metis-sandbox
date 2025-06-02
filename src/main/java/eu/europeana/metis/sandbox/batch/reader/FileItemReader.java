@@ -72,10 +72,10 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
     if (recordIdAndContent != null) {
       EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
       final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordIdAndContent.getValue(), datasetId);
-      final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
       return SuccessExecutionRecordDTO.createValidated(b -> b
           .datasetId(datasetId)
-          .recordId(europeanaGeneratedId)
+          .sourceRecordId(europeanaGeneratedIdsMap.getSourceProvidedChoAbout())
+          .recordId(europeanaGeneratedIdsMap.getEuropeanaGeneratedId())
           .executionId(targetExecutionId)
           .executionName(batchJobType.name())
           .recordData(recordIdAndContent.getValue()));

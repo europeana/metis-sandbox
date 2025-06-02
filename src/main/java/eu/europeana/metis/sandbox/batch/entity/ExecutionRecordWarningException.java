@@ -29,6 +29,7 @@ public class ExecutionRecordWarningException {
   @JoinColumns({
       @JoinColumn(name = "datasetId", referencedColumnName = "datasetId"),
       @JoinColumn(name = "executionId", referencedColumnName = "executionId"),
+      @JoinColumn(name = "sourceRecordId", referencedColumnName = "sourceRecordId"),
       @JoinColumn(name = "recordId", referencedColumnName = "recordId"),
       @JoinColumn(name = "executionName", referencedColumnName = "executionName")
   })

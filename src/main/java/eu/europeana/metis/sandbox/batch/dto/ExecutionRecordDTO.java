@@ -11,6 +11,8 @@ public abstract sealed class ExecutionRecordDTO permits SuccessExecutionRecordDT
   @NotBlank
   private String datasetId;
   @NotBlank
+  private String sourceRecordId;
+  @NotBlank
   private String recordId;
   @NotBlank
   private String executionId;

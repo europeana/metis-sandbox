@@ -9,7 +9,7 @@ import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
@@ -280,7 +280,7 @@ public class DatasetReportService {
     List<String> listOfRecordsIdsWithContentZero =
         executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
                                             .stream().map(ExecutionRecordTierContext::getIdentifier)
-                                            .map(ExecutionRecordIdentifier::getRecordId).toList();
+                                            .map(ExecutionRecordIdentifierKey::getRecordId).toList();
     // get list of records with metadata tier 0
     List<String> listOfRecordsIdsWithMetadataZero = executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndMetadataTier(
                                                                                             datasetId, MetadataTier.T0.toString())
@@ -288,7 +288,7 @@ public class DatasetReportService {
                                                                                         .map(
                                                                                             ExecutionRecordTierContext::getIdentifier)
                                                                                         .map(
-                                                                                            ExecutionRecordIdentifier::getRecordId)
+                                                                                            ExecutionRecordIdentifierKey::getRecordId)
                                                                                         .toList();
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number

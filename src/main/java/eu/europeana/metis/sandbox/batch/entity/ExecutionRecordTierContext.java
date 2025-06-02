@@ -12,10 +12,10 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(schema = "batch-framework", indexes = {@Index(name = "exec_rec_tier_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
-public class ExecutionRecordTierContext implements HasExecutionRecordIdentifier {
+public class ExecutionRecordTierContext implements HasExecutionRecordIdAccess {
 
   @EmbeddedId
-  private ExecutionRecordIdentifier identifier;
+  private ExecutionRecordIdentifierKey identifier;
 
   @Column(length = 1)
   protected String contentTier;

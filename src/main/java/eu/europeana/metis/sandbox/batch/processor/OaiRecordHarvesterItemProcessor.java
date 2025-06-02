@@ -45,7 +45,7 @@ public class OaiRecordHarvesterItemProcessor extends
     LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest,
-        executionRecordExternalIdentifier.getIdentifier().getRecordId());
+        executionRecordExternalIdentifier.getIdentifier().getSourceRecordId());
     String resultString = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
     return getExecutionRecordDTO(resultString);
   }
@@ -53,11 +53,11 @@ public class OaiRecordHarvesterItemProcessor extends
   private ExecutionRecordDTO getExecutionRecordDTO(String resultString) throws EuropeanaIdException {
     EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
     final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
-    final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
     return createValidated(
         b -> b.datasetId(datasetId)
               .executionId(getTargetExecutionId())
-              .recordId(europeanaGeneratedId)
+              .sourceRecordId(europeanaGeneratedIdsMap.getSourceProvidedChoAbout())
+              .recordId(europeanaGeneratedIdsMap.getEuropeanaGeneratedId())
               .executionName(getExecutionName())
               .recordData(resultString));
   }

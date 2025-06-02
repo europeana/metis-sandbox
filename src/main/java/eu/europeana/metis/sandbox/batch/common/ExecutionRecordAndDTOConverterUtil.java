@@ -6,7 +6,7 @@ import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
 import java.io.PrintWriter;
@@ -24,6 +24,7 @@ public class ExecutionRecordAndDTOConverterUtil {
   public static SuccessExecutionRecordDTO converterToExecutionRecordDTO(ExecutionRecord executionRecord) {
     return SuccessExecutionRecordDTO.createValidated(b -> b
                                     .datasetId(executionRecord.getIdentifier().getDatasetId())
+                                    .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
                                     .recordId(executionRecord.getIdentifier().getRecordId())
                                     .executionId(executionRecord.getIdentifier().getExecutionId())
                                     .executionName(executionRecord.getIdentifier().getExecutionName())
@@ -31,10 +32,10 @@ public class ExecutionRecordAndDTOConverterUtil {
   }
 
   public static ExecutionRecord converterToExecutionRecord(SuccessExecutionRecordDTO executionRecordDTO) {
-    ExecutionRecordIdentifier executionRecordIdentifier = getExecutionRecordIdentifier(executionRecordDTO);
+    ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(executionRecordDTO);
 
     final ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setIdentifier(executionRecordIdentifier);
+    executionRecord.setIdentifier(executionRecordIdentifierKey);
     executionRecord.setRecordData(executionRecordDTO.getRecordData());
 
     List<ExecutionRecordWarningException> executionRecordWarningExceptions = new ArrayList<>();
@@ -58,10 +59,10 @@ public class ExecutionRecordAndDTOConverterUtil {
 
     final Optional<ExecutionRecordTierContext> result;
     if (containsTierFields) {
-      ExecutionRecordIdentifier executionRecordIdentifier = getExecutionRecordIdentifier(successExecutionRecordDTO);
+      ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(successExecutionRecordDTO);
 
       ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
-      executionRecordTierContext.setIdentifier(executionRecordIdentifier);
+      executionRecordTierContext.setIdentifier(executionRecordIdentifierKey);
       executionRecordTierContext.setContentTier(tierResults.getMediaTier().toString());
       executionRecordTierContext.setContentTierBeforeLicenseCorrection(
           tierResults.getContentTierBeforeLicenseCorrection().toString());
@@ -79,22 +80,23 @@ public class ExecutionRecordAndDTOConverterUtil {
     return result;
   }
 
-  private static @NotNull ExecutionRecordIdentifier getExecutionRecordIdentifier(ExecutionRecordDTO executionRecordDTO) {
-    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
-    executionRecordIdentifier.setDatasetId(executionRecordDTO.getDatasetId());
-    executionRecordIdentifier.setExecutionId(executionRecordDTO.getExecutionId());
-    executionRecordIdentifier.setRecordId(executionRecordDTO.getRecordId());
-    executionRecordIdentifier.setExecutionName(executionRecordDTO.getExecutionName());
-    return executionRecordIdentifier;
+  private static @NotNull ExecutionRecordIdentifierKey getExecutionRecordIdentifier(ExecutionRecordDTO executionRecordDTO) {
+    ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
+    executionRecordIdentifierKey.setDatasetId(executionRecordDTO.getDatasetId());
+    executionRecordIdentifierKey.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRecordIdentifierKey.setSourceRecordId(executionRecordDTO.getSourceRecordId());
+    executionRecordIdentifierKey.setRecordId(executionRecordDTO.getRecordId());
+    executionRecordIdentifierKey.setExecutionName(executionRecordDTO.getExecutionName());
+    return executionRecordIdentifierKey;
   }
 
   public static ExecutionRecordException converterToExecutionRecordExceptionLog(
       FailExecutionRecordDTO failExecutionRecordDTO) {
-    ExecutionRecordIdentifier executionRecordIdentifier = getExecutionRecordIdentifier(
+    ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(
         failExecutionRecordDTO);
 
     final ExecutionRecordException executionRecordException = new ExecutionRecordException();
-    executionRecordException.setIdentifier(executionRecordIdentifier);
+    executionRecordException.setIdentifier(executionRecordIdentifierKey);
 
     if (failExecutionRecordDTO.getException() != null) {
       executionRecordException.setMessage(failExecutionRecordDTO.getException().getMessage());

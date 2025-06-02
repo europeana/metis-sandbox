@@ -6,7 +6,7 @@
   import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
   import eu.europeana.metis.sandbox.batch.common.BatchJobType;
   import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
-  import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+  import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifierKey;
   import eu.europeana.metis.sandbox.service.workflow.HarvestServiceImpl;
   import jakarta.annotation.PostConstruct;
   import java.lang.invoke.MethodHandles;
@@ -56,14 +56,14 @@
 
       final OaiRecordHeader oaiRecordHeader = takeIdentifier();
       if (oaiRecordHeader != null) {
-        ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
-        executionRecordIdentifier.setDatasetId(datasetId);
-        executionRecordIdentifier.setRecordId(oaiRecordHeader.getOaiIdentifier());
-        executionRecordIdentifier.setExecutionId(targetExecutionId);
-        executionRecordIdentifier.setExecutionName(batchJobType.name());
+        ExecutionRecordExternalIdentifierKey executionRecordIdentifierKey = new ExecutionRecordExternalIdentifierKey();
+        executionRecordIdentifierKey.setDatasetId(datasetId);
+        executionRecordIdentifierKey.setExecutionId(targetExecutionId);
+        executionRecordIdentifierKey.setExecutionName(batchJobType.name());
+        executionRecordIdentifierKey.setSourceRecordId(oaiRecordHeader.getOaiIdentifier());
 
         ExecutionRecordExternalIdentifier recordIdentifier = new ExecutionRecordExternalIdentifier();
-        recordIdentifier.setIdentifier(executionRecordIdentifier);
+        recordIdentifier.setIdentifier(executionRecordIdentifierKey);
         recordIdentifier.setDeleted(oaiRecordHeader.isDeleted());
 
         return recordIdentifier;

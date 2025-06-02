@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -48,13 +48,13 @@ class RecordTierCalculationServiceTest {
     final String recordId = "recordId";
     final String datasetId = "datasetId";
     final String providerId = "providerId";
-    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
-    executionRecordIdentifier.setDatasetId(datasetId);
-    executionRecordIdentifier.setRecordId(recordId);
-    executionRecordIdentifier.setExecutionName(FullBatchJobType.MEDIA.name());
-    executionRecordIdentifier.setExecutionId(executionId);
+    ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
+    executionRecordIdentifierKey.setDatasetId(datasetId);
+    executionRecordIdentifierKey.setRecordId(recordId);
+    executionRecordIdentifierKey.setExecutionName(FullBatchJobType.MEDIA.name());
+    executionRecordIdentifierKey.setExecutionId(executionId);
     ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setIdentifier(executionRecordIdentifier);
+    executionRecord.setIdentifier(executionRecordIdentifierKey);
     executionRecord.setRecordData(europeanaRecordString);
     when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name())).thenReturn(executionRecord);

@@ -10,9 +10,9 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(schema = "batch-framework")
-public class ExecutionRecordExternalIdentifier implements HasExecutionRecordIdentifier {
+public class ExecutionRecordExternalIdentifier implements HasExecutionRecordIdAccess<ExecutionRecordExternalIdentifierKey> {
 
     @EmbeddedId
-    private ExecutionRecordIdentifier identifier;
+    private ExecutionRecordExternalIdentifierKey identifier;
     private boolean isDeleted;
 }
