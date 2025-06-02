@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
  * Config to define publish indexer
  */
 @Configuration
-class IndexingConfig {
+class IndexConfig {
 
   @Value("${sandbox.publish.mongo.hosts}")
   private String[] mongoPublishHosts;

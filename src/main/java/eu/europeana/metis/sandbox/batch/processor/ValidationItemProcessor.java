@@ -28,6 +28,7 @@ import lombok.experimental.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
@@ -38,17 +39,19 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
-  private String schema;
-  private ValidationExecutionService validationExecutionService;
+  private final ValidationExecutionService validationExecutionService;
+  private final ObjectFactory<XsltTransformer> xsltTransformerFactory;
   private final ItemProcessorUtil itemProcessorUtil;
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointRepository executionPointRepository;
+  private String schema;
 
   public ValidationItemProcessor(ValidationExecutionService validationExecutionService,
+      ObjectFactory<XsltTransformer> xsltTransformerFactory,
       PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointRepository executionPointRepository) {
     this.validationExecutionService = validationExecutionService;
+    this.xsltTransformerFactory = xsltTransformerFactory;
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointRepository = executionPointRepository;
     itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
@@ -116,7 +119,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
 
   private String reorderFileContent(String recordData) throws TransformationException {
     LOGGER.debug("Reordering the file");
-    try (XsltTransformer xsltTransformer = new XsltTransformer(EDM_SORTER_FILE_URL)) {
+    try (XsltTransformer xsltTransformer = xsltTransformerFactory.getObject()) {
       StringWriter writer = xsltTransformer.transform(recordData.getBytes(StandardCharsets.UTF_8), null);
       return writer.toString();
     }

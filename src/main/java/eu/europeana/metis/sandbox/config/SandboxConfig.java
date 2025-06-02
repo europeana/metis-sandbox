@@ -18,29 +18,19 @@ import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
-import eu.europeana.metis.transformation.service.TransformationException;
-import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
 import eu.europeana.normalization.NormalizerFactory;
-import eu.europeana.validation.service.ClasspathResourceResolver;
-import eu.europeana.validation.service.PredefinedSchemasGenerator;
-import eu.europeana.validation.service.SchemaProvider;
 import java.lang.invoke.MethodHandles;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -81,11 +71,6 @@ class SandboxConfig {
     @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
     private String entityApiGrantParams;
 
-    //TODO: 04-03-2021 We should remove this configuration once
-    //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
-    @Value("${sandbox.validation.edm-sorter-url}")
-    private String edmSorterUrl;
-
     @Value("${sandbox.portal.publish.record-base-url}")
     private String portalPublishRecordBaseUrl;
 
@@ -104,12 +89,6 @@ class SandboxConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     XPathFactory xPathFactory() {
         return XPathFactory.newDefaultInstance();
-    }
-
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    XsltTransformer xsltEdmSorter() throws TransformationException {
-        return new XsltTransformer(edmSorterUrl);
     }
 
     @Bean
@@ -141,16 +120,6 @@ class SandboxConfig {
     @Bean
     HttpHarvester httpHarvester() {
         return HarvesterFactory.createHttpHarvester();
-    }
-
-    @Bean
-    ClasspathResourceResolver lsResourceResolver() {
-        return new ClasspathResourceResolver();
-    }
-
-    @Bean
-    SchemaProvider schemaProvider() {
-        return new SchemaProvider(PredefinedSchemasGenerator.generate(schemaProperties()));
     }
 
     @Bean
@@ -199,12 +168,6 @@ class SandboxConfig {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "sandbox.validation")
-    Schema schema() {
-        return new Schema();
-    }
-
-    @Bean
     HttpClient httpClient() {
         return HttpClient.newBuilder().version(Version.HTTP_2)
                 .followRedirects(Redirect.NORMAL)
@@ -212,34 +175,5 @@ class SandboxConfig {
                 .build();
     }
 
-    private Properties schemaProperties() {
-        Schema schema = schema();
-        Map<String, Object> predefinedSchemas = schema.getPredefinedSchemas();
-        Properties schemaProps = new Properties();
-        schemaProps.put(Schema.PREDEFINED_SCHEMAS, String.join(",", predefinedSchemas.keySet()));
-        addSchemaProperties(Schema.PREDEFINED_SCHEMAS, predefinedSchemas, schemaProps);
-        return schemaProps;
-    }
-
-    private void addSchemaProperties(String key, Object value, Properties props) {
-      switch (value) {
-        case String string -> props.setProperty(key, string);
-        case Map<?, ?> map -> {
-          for (Map.Entry<?, ?> entry : map.entrySet()) {
-            String nestedKey = key + "." + entry.getKey().toString();
-            Object nestedValue = entry.getValue();
-            addSchemaProperties(nestedKey, nestedValue, props);
-          }
-        }
-        case null, default -> throw new IllegalArgumentException("Property value: " + value);
-      }
-    }
-
-    @Getter
-    private static class Schema {
-
-        public static final String PREDEFINED_SCHEMAS = "predefinedSchemas";
-        private final Map<String, Object> predefinedSchemas = new HashMap<>();
-    }
 
 }
