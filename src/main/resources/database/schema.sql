@@ -13,18 +13,6 @@ CREATE TABLE IF NOT EXISTS dataset
     PRIMARY KEY (dataset_id)
 );
 
-CREATE TABLE IF NOT EXISTS dataset_log
-(
-    id           BIGSERIAL,
-    dataset_id   BIGINT      NOT NULL,
-    status       VARCHAR(30) NOT NULL,
-    message      TEXT        NOT NULL,
-    stack_trace  TEXT        NOT NULL,
-    created_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    PRIMARY KEY (id),
-    FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
-);
-
 CREATE TABLE IF NOT EXISTS thumbnail
 (
     id           BIGSERIAL,

@@ -4,7 +4,6 @@ import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import java.util.List;
@@ -28,7 +27,6 @@ public interface DatasetService {
    * @throws NullPointerException if any input is null
    * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    * @throws RecordParsingException if fails to parse a record from the records list
-   * @see Dataset
    */
   String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country, Language language,
       String xsltToEdmExternal);

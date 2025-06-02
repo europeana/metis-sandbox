@@ -16,7 +16,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
  * containers are initialized the required properties are set in time and before the beans' autoconfiguration is finished.
  * @see MongoTestContainersConfiguration
  * @see PostgresTestContainersConfiguration
- * @see RabbitMQTestContainersConfiguration
  * @see S3TestContainersConfiguration
  * @see SolrTestContainersConfiguration
  */

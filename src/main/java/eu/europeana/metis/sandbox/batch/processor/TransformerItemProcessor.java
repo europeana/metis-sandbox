@@ -34,8 +34,6 @@ import org.springframework.util.function.ThrowingFunction;
 @Setter
 public class TransformerItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
   @Value("#{jobParameters['datasetName']}")

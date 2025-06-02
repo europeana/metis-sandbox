@@ -59,7 +59,7 @@ public class ThumbnailStoreService {
       try (thumbnail) {
         store(thumbnail);
       } catch (IOException | SdkClientException e) {
-        throw new ThumbnailStoringException(thumbnail.getTargetName(), e);
+        throw new ThumbnailStoringException(format("Issue processing thumbnail: [%s] ", thumbnail.getTargetName()), e);
       }
     }
 

@@ -8,7 +8,6 @@ import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.integration.testcontainers.MongoTestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.RabbitMQTestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.S3TestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.SolrTestContainersConfiguration;
@@ -25,7 +24,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SandboxApplication.class)
 @Import({
     PostgresTestContainersConfiguration.class,
-    RabbitMQTestContainersConfiguration.class,
     MongoTestContainersConfiguration.class,
     SolrTestContainersConfiguration.class,
     S3TestContainersConfiguration.class

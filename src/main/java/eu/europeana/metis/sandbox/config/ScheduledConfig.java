@@ -62,5 +62,4 @@ public class ScheduledConfig {
       LOGGER.info("Finish daily dataset clean up");
     }
   }
-
 }

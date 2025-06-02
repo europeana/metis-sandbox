@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.batch.common;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import org.apache.tika.utils.StringUtils;
 
 public enum FullBatchJobType {
@@ -37,11 +36,6 @@ public enum FullBatchJobType {
 
   public BatchJobSubType getBatchJobSubType() {
     return batchJobSubType;
-  }
-
-  public static FullBatchJobType validateAndGetFullBatchJobType(BatchJobType batchJobType, BatchJobSubType batchJobSubType) {
-    return validateAndGetFullBatchJobType(batchJobType.name(),
-        Optional.ofNullable(batchJobSubType).map(BatchJobSubType::name).orElse(null));
   }
 
   public static FullBatchJobType validateAndGetFullBatchJobType(String prefix, String suffix) {

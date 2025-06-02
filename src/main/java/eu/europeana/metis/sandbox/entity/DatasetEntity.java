@@ -26,7 +26,7 @@ public class DatasetEntity {
   private String createdById;
   private Long recordsQuantity;
 
-  @Column(insertable = false, updatable = false)
+  @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT NOW()", insertable = false, updatable = false)
   private ZonedDateTime createdDate;
 
   @Enumerated(EnumType.STRING)

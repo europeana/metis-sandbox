@@ -21,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RecordTierCalculationServiceImplTest {
+class RecordTierCalculationServiceTest {
 
   private final TestUtils testUtils = new TestUtils();
   private static final String PORTAL_PUBLISH_RECORD_BASE_URL = "https://example-domain.org/portal/search?view=grid&q=edm_datasetName:";
@@ -30,12 +30,12 @@ class RecordTierCalculationServiceImplTest {
   private ExecutionRecordRepository executionRecordRepository;
   @Mock
   private ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
-  private RecordTierCalculationServiceImpl recordTierCalculationService;
+  private RecordTierCalculationService recordTierCalculationService;
 
   @BeforeEach
   public void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
-        new RecordTierCalculationServiceImpl(executionRecordRepository, executionRecordExceptionLogRepository,
+        new RecordTierCalculationService(executionRecordRepository, executionRecordExceptionLogRepository,
             PORTAL_PUBLISH_RECORD_BASE_URL));
   }
 
@@ -47,15 +47,7 @@ class RecordTierCalculationServiceImplTest {
     final String executionId = "executionId";
     final String recordId = "recordId";
     final String datasetId = "datasetId";
-    final String europeanaId = "europeanaId";
     final String providerId = "providerId";
-    final String contentTier = "contentTier";
-    final String contentTierBeforeLicenseCorrection = "contentTierBeforeLicenseCorrection";
-    final String metadataTier = "metadataTier";
-    final String metadataTierLanguage = "metadataTierLanguage";
-    final String metadataTierEnablingElements = "metadataTierEnablingElements";
-    final String metadataTierContextualClasses = "metadataTierContextualClasses";
-    final String license = "license";
     ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
     executionRecordIdentifier.setDatasetId(datasetId);
     executionRecordIdentifier.setRecordId(recordId);
