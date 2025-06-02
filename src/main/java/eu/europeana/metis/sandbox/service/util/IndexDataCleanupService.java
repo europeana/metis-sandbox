@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.util;
 
 import static java.util.Objects.requireNonNull;
 
@@ -10,15 +10,14 @@ import java.io.IOException;
 import org.springframework.stereotype.Service;
 
 @Service
-class IndexingServiceImpl implements IndexingService {
+public class IndexDataCleanupService {
 
   private final Indexer publishIndexer;
 
-  public IndexingServiceImpl(Indexer publishIndexer) {
+  public IndexDataCleanupService(Indexer publishIndexer) {
     this.publishIndexer = publishIndexer;
   }
 
-  @Override
   public void remove(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 

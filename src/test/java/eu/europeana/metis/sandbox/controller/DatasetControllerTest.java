@@ -36,7 +36,7 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
-import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
+import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
@@ -83,7 +83,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(DatasetController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, DatasetController.class, SecurityConfig.class, ControllerErrorHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, DatasetController.class, SecurityConfig.class, RestResponseExceptionHandler.class})
 class DatasetControllerTest {
 
   @MockBean

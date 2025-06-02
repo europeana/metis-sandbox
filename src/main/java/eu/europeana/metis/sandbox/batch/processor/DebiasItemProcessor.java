@@ -8,16 +8,14 @@ import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessService;
-import lombok.Setter;
+import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component("debiasItemProcessor")
 @StepScope
-@Setter
+@Component("debiasItemProcessor")
 public class DebiasItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private final ItemProcessorUtil itemProcessorUtil;
@@ -56,3 +54,4 @@ public class DebiasItemProcessor extends AbstractMetisItemProcessor<ExecutionRec
   }
 
 }
+

@@ -10,7 +10,6 @@ import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort.Direction;
 
-@Setter
 public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionRecord> {
 
   @Value("#{jobParameters['datasetId']}")

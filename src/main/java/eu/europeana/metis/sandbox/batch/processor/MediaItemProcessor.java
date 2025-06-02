@@ -34,9 +34,8 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component("mediaItemProcessor")
 @StepScope
-@Setter
+@Component("mediaItemProcessor")
 public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

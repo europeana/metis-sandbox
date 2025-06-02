@@ -24,8 +24,6 @@ import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.Properties;
-import lombok.Setter;
 import lombok.experimental.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,30 +32,26 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component("validationItemProcessor")
 @StepScope
-@Setter
+@Component("validationItemProcessor")
 public class ValidationItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
-  private static final Properties properties = new Properties();
   private String schema;
-  private String rootFileLocation;
-  private String schematronFileLocation;
-  private ValidationExecutionService validationService;
+  private ValidationExecutionService validationExecutionService;
   private final ItemProcessorUtil itemProcessorUtil;
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointRepository executionPointRepository;
 
-  public ValidationItemProcessor(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
+  public ValidationItemProcessor(ValidationExecutionService validationExecutionService,
+      PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointRepository executionPointRepository) {
-    prepareProperties();
-    validationService = new ValidationExecutionService(properties);
-    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
+    this.validationExecutionService = validationExecutionService;
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointRepository = executionPointRepository;
+    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
@@ -75,32 +69,10 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
 
   @PostConstruct
   private void postConstruct() {
-    switch ((ValidationBatchJobSubType)getFullBatchJobType().getBatchJobSubType()) {
-      case EXTERNAL -> {
-        schema = properties.getProperty("predefinedSchemas.edm-external.url");
-        rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
-        schematronFileLocation = properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
-      }
-      case INTERNAL -> {
-        schema = properties.getProperty("predefinedSchemas.edm-internal.url");
-        rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
-        schematronFileLocation = properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
-      }
+    switch ((ValidationBatchJobSubType) getFullBatchJobType().getBatchJobSubType()) {
+      case EXTERNAL -> schema = "EDM-EXTERNAL";
+      case INTERNAL -> schema = "EDM-INTERNAL";
     }
-  }
-
-  private void prepareProperties() {
-    properties.setProperty("predefinedSchemas", "localhost");
-
-    properties.setProperty("predefinedSchemas.edm-internal.url",
-        "http://ftp.eanadev.org/schema_zips/europeana_schemas-20241127.zip");
-    properties.setProperty("predefinedSchemas.edm-internal.rootLocation", "EDM-INTERNAL.xsd");
-    properties.setProperty("predefinedSchemas.edm-internal.schematronLocation", "schematron/schematron-internal.xsl");
-
-    properties.setProperty("predefinedSchemas.edm-external.url",
-        "http://ftp.eanadev.org/schema_zips/europeana_schemas-20241127.zip");
-    properties.setProperty("predefinedSchemas.edm-external.rootLocation", "EDM.xsd");
-    properties.setProperty("predefinedSchemas.edm-external.schematronLocation", "schematron/schematron.xsl");
   }
 
   @Override
@@ -110,8 +82,7 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
       final String reorderedFileContent;
       reorderedFileContent = reorderFileContent(originSuccessExecutionRecordDTO.getRecordData());
 
-      ValidationResult result =
-          validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
+      ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
       if (result.isSuccess()) {
         LOGGER.debug("Validation Success for datasetId {}, recordId {}", originSuccessExecutionRecordDTO.getDatasetId(),
             originSuccessExecutionRecordDTO.getRecordId());

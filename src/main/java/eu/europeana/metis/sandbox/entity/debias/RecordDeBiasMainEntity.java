@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.entity.debias;
 
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.service.workflow.DeBiasSourceField;
+import eu.europeana.metis.sandbox.service.debias.DeBiasSourceField;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

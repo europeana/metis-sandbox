@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import javax.xml.xpath.XPathFactory;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -234,15 +235,11 @@ class SandboxConfig {
       }
     }
 
+    @Getter
     private static class Schema {
 
         public static final String PREDEFINED_SCHEMAS = "predefinedSchemas";
-
         private final Map<String, Object> predefinedSchemas = new HashMap<>();
-
-        public Map<String, Object> getPredefinedSchemas() {
-            return this.predefinedSchemas;
-        }
     }
 
 }

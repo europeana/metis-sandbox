@@ -7,7 +7,6 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
-import eu.europeana.metis.sandbox.service.debias.DeBiasStateServiceImpl;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +42,7 @@ public class DeBiasConfig {
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository,
       ExecutionRecordRepository executionRecordRepository) {
-    return new DeBiasStateServiceImpl(datasetDeBiasRepository,
+    return new DeBiasStateService(datasetDeBiasRepository,
         datasetRepository,
         recordDeBiasMainRepository,
         recordDeBiasDetailRepository,

@@ -11,8 +11,8 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.ExecutionRecordRemover;
+import eu.europeana.metis.sandbox.service.util.IndexDataCleanupService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
-import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +30,7 @@ class DataCleanupServiceTest {
   private ExecutionRecordRemover executionRecordRemover;
 
   @Mock
-  private IndexingService indexingService;
+  private IndexDataCleanupService indexDataCleanupService;
 
   @Mock
   private ThumbnailStoreService thumbnailStoreService;
@@ -55,7 +55,7 @@ class DataCleanupServiceTest {
     dataCleanupService.remove(7);
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
-    verify(indexingService, times(4)).remove(anyString());
+    verify(indexDataCleanupService, times(4)).remove(anyString());
     verify(harvestingParameterService, times(4)).remove(anyString());
     verify(executionRecordRemover, times(4)).remove(anyString());
     verify(datasetService, times(4)).remove(anyString());
@@ -75,7 +75,7 @@ class DataCleanupServiceTest {
     dataCleanupService.remove(7);
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
-    verify(indexingService, times(3)).remove(anyString());
+    verify(indexDataCleanupService, times(3)).remove(anyString());
     verify(harvestingParameterService, times(3)).remove(anyString());
     verify(executionRecordRemover, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());

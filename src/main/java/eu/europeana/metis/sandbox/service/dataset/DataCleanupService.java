@@ -4,8 +4,8 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataRemover;
 import eu.europeana.metis.sandbox.service.record.ExecutionRecordRemover;
+import eu.europeana.metis.sandbox.service.util.IndexDataCleanupService;
 import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
-import eu.europeana.metis.sandbox.service.workflow.IndexingService;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class DataCleanupService {
 
   private final DatasetService datasetService;
   private final ExecutionRecordRemover executionRecordRemover;
-  private final IndexingService indexingService;
+  private final IndexDataCleanupService indexDataCleanupService;
   private final ThumbnailStoreService thumbnailStoreService;
   private final ProblemPatternDataRemover problemPatternDataRemover;
   private final HarvestingParameterService harvestingParameterService;
@@ -34,7 +34,7 @@ public class DataCleanupService {
    * @param datasetService the dataset service
    * @param datasetLogService the dataset log service
    * @param recordLogService the record log service
-   * @param indexingService the indexing service
+   * @param indexDataCleanupService the indexing service
    * @param thumbnailStoreService the thumbnail store service
    * @param recordService the record service
    * @param problemPatternDataRemover the problem pattern data remover
@@ -44,14 +44,14 @@ public class DataCleanupService {
    */
   DataCleanupService(
       DatasetService datasetService, ExecutionRecordRemover executionRecordRemover,
-      IndexingService indexingService,
+      IndexDataCleanupService indexDataCleanupService,
       ThumbnailStoreService thumbnailStoreService,
       ProblemPatternDataRemover problemPatternDataRemover,
       HarvestingParameterService harvestingParameterService,
       DeBiasStateService debiasStateService) {
     this.datasetService = datasetService;
     this.executionRecordRemover = executionRecordRemover;
-    this.indexingService = indexingService;
+    this.indexDataCleanupService = indexDataCleanupService;
     this.thumbnailStoreService = thumbnailStoreService;
     this.problemPatternDataRemover = problemPatternDataRemover;
     this.harvestingParameterService = harvestingParameterService;
@@ -72,7 +72,7 @@ public class DataCleanupService {
           thumbnailStoreService.remove(dataset);
           // remove from mongo and solr
           LOGGER.info("Remove index for dataset id: [{}]", dataset);
-          indexingService.remove(dataset);
+          indexDataCleanupService.remove(dataset);
           LOGGER.info("Remove debias report with id: [{}]", dataset);
           debiasStateService.remove(Integer.valueOf(dataset));
           LOGGER.info("Remove harvesting parameters for dataset id: [{}]", dataset);

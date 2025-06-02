@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.debias;
 
 import java.util.Arrays;
 import java.util.Objects;

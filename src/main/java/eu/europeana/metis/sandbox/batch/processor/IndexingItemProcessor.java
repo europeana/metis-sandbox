@@ -28,9 +28,8 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component("indexingItemProcessor")
 @StepScope
-@Setter
+@Component("indexingItemProcessor")
 public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

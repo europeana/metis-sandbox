@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.dto.debias;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasReportRow;
+import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasReportRow;
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
 import java.util.Collections;

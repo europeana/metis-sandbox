@@ -1,6 +1,6 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.debias;
 
-import static eu.europeana.metis.sandbox.service.workflow.DeBiasRdfInfoExtractor.partitionList;
+import static eu.europeana.metis.sandbox.service.debias.DeBiasRdfInfoExtractor.partitionList;
 import static java.util.stream.Collectors.groupingBy;
 
 import eu.europeana.metis.debias.detect.client.DeBiasClient;
@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  * The type DeBias process service.
  */
 @Service
-public class DeBiasProcessServiceImpl implements DeBiasProcessService {
+public class DeBiasProcessService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -50,7 +50,7 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
    * @param recordDeBiasMainRepository the record de bias main repository
    * @param recordDeBiasDetailRepository the record de bias detail repository
    */
-  public DeBiasProcessServiceImpl(DeBiasClient deBiasClient,
+  public DeBiasProcessService(DeBiasClient deBiasClient,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
     this.deBiasClient = deBiasClient;
@@ -59,7 +59,6 @@ public class DeBiasProcessServiceImpl implements DeBiasProcessService {
   }
 
   @Transactional
-  @Override
   public void process(String recordContent, String datasetId, String recordId) {
 
     List<DeBiasInputRecord> deBiasInputRecords = getDeBiasSourceFieldsFromRecords(

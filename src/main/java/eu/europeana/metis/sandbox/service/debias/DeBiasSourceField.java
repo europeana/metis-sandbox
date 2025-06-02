@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.debias;
 
 /**
  * The enum DeBias source field.

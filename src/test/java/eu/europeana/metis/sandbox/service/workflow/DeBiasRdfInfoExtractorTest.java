@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.TestUtils;
-import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasInputRecord;
+import eu.europeana.metis.sandbox.service.debias.DeBiasRdfInfoExtractor;
+import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasInputRecord;
+import eu.europeana.metis.sandbox.service.debias.DeBiasSourceField;
+import eu.europeana.metis.sandbox.service.debias.DeBiasSupportedLanguage;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.jibx.RDF;
 import java.io.File;

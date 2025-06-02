@@ -24,9 +24,8 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component("enrichmentItemProcessor")
 @StepScope
-@Setter
+@Component("enrichmentItemProcessor")
 public class EnrichmentItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private final ItemProcessorUtil itemProcessorUtil;

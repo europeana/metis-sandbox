@@ -22,7 +22,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
-import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
+import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
@@ -63,7 +63,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(PatternAnalysisController.class)
 @ContextConfiguration(classes = {WebMvcConfig.class, PatternAnalysisController.class, SecurityConfig.class,
-    ControllerErrorHandler.class})
+    RestResponseExceptionHandler.class})
 class PatternAnalysisControllerTest {
 
   @MockBean

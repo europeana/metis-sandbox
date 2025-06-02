@@ -16,9 +16,8 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
-@Component("normalizationItemProcessor")
 @StepScope
-@Setter
+@Component("normalizationItemProcessor")
 public class NormalizationItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private final ItemProcessorUtil itemProcessorUtil;

@@ -19,8 +19,8 @@
   import org.springframework.beans.factory.annotation.Value;
   import org.springframework.stereotype.Component;
 
-  @Component
   @StepScope
+  @Component
   public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRecordExternalIdentifier> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

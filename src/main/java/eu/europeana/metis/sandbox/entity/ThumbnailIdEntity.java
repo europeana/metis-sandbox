@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
  * Entity to map to thumbnail table
  */
 @Entity
-@Table(name = "thumbnailId")
+@Table(name = "thumbnail_id")
 public class ThumbnailIdEntity {
 
   @Id

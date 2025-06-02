@@ -27,8 +27,8 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component
 @StepScope
+@Component
 public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
 
   private static final BatchJobType batchJobType = HARVEST_FILE;

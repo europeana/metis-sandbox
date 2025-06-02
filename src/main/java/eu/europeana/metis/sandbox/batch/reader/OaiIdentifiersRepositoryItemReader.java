@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
 
-@Component
 @StepScope
+@Component
 public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
     //This is target and not source because we just created them in the same job.

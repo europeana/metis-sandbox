@@ -1,6 +1,6 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.debias;
 
-import eu.europeana.metis.sandbox.service.workflow.DeBiasProcessServiceImpl.DeBiasInputRecord;
+import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasInputRecord;
 import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
@@ -152,7 +152,7 @@ public class DeBiasRdfInfoExtractor {
    *
    * @return the descriptions and language from rdf
    */
-  List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf() {
+  public List<DeBiasInputRecord> getDescriptionsAndLanguageFromRdf() {
     return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifDescription,
         EuropeanaType.Choice::getDescription,
@@ -167,7 +167,7 @@ public class DeBiasRdfInfoExtractor {
    *
    * @return the titles and language from rdf
    */
-  List<DeBiasInputRecord> getTitlesAndLanguageFromRdf() {
+  public List<DeBiasInputRecord> getTitlesAndLanguageFromRdf() {
     return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifTitle,
         EuropeanaType.Choice::getTitle,
@@ -182,7 +182,7 @@ public class DeBiasRdfInfoExtractor {
    *
    * @return the alternative and language from rdf
    */
-  List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf() {
+  public List<DeBiasInputRecord> getAlternativeAndLanguageFromRdf() {
     return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifAlternative,
         EuropeanaType.Choice::getAlternative,
@@ -197,7 +197,7 @@ public class DeBiasRdfInfoExtractor {
    *
    * @return the subject and language from rdf
    */
-  List<DeBiasInputRecord> getSubjectAndLanguageFromRdf() {
+  public List<DeBiasInputRecord> getSubjectAndLanguageFromRdf() {
     return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifSubject,
         EuropeanaType.Choice::getSubject,
@@ -212,7 +212,7 @@ public class DeBiasRdfInfoExtractor {
    *
    * @return the type and language from rdf
    */
-  List<DeBiasInputRecord> getTypeAndLanguageFromRdf() {
+  public List<DeBiasInputRecord> getTypeAndLanguageFromRdf() {
     return getLiteralsAndLanguagesFromRdf(
         EuropeanaType.Choice::ifType,
         EuropeanaType.Choice::getType,
@@ -227,7 +227,7 @@ public class DeBiasRdfInfoExtractor {
    *
    * @return the subject references and type references from rdf
    */
-  List<DeBiasInputRecord> getSubjectReferencesAndTypeReferencesFromRdf() {
+  public List<DeBiasInputRecord> getSubjectReferencesAndTypeReferencesFromRdf() {
     Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout();
     List<DeBiasInputRecord> result = new ArrayList<>();
     result.addAll(getReferencesAndLanguageFromRdf(contextualClassesLabels,
@@ -269,7 +269,7 @@ public class DeBiasRdfInfoExtractor {
    * @param partitionSize the batch size
    * @return the stream
    */
-  static <T> Stream<List<T>> partitionList(List<T> sourceList, int partitionSize) {
+  public static <T> Stream<List<T>> partitionList(List<T> sourceList, int partitionSize) {
     if (partitionSize <= 0) {
       throw new IllegalArgumentException(
           String.format("The partition size cannot be smaller than or equal 0. Actual value: %s", partitionSize));

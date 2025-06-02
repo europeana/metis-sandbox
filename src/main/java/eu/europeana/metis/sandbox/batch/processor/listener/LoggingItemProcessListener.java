@@ -6,7 +6,6 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.HasExecutionRecordIdAccess;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,8 @@ import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
-@Component
 @StepScope
-@Setter
+@Component
 public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? extends ExecutionRecordIdAccess>>
     implements ItemProcessListener<T, Future<ExecutionRecordDTO>> {
 
