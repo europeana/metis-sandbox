@@ -5,7 +5,7 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.reader.CompressedFileItemReader;
+import eu.europeana.metis.sandbox.batch.reader.FileItemReader;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,7 @@ public class FileHarvestJobConfig {
   @Value("${fileHarvest.parallelizationSize:1}")
   public int parallelization;
 
+  //This can alternatively be divided similarly to oai. First read all file names and store them in db and then as a second step process those files(ids)
   @Bean
   public Job fileHarvestJob(JobRepository jobRepository,
       @Qualifier("fileHarvestStep") Step fileHarvestStep) {
@@ -46,11 +47,11 @@ public class FileHarvestJobConfig {
   @Bean("fileHarvestStep")
   public Step fileHarvestStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      CompressedFileItemReader compressedFileItemReader,
+      FileItemReader fileItemReader,
       ItemWriter<ExecutionRecordDTO> executionRecordWriter) {
     return new StepBuilder(FILE_HARVEST_STEP_NAME, jobRepository)
         .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
-        .reader(compressedFileItemReader)
+        .reader(fileItemReader)
         .writer(executionRecordWriter)
         .build();
   }

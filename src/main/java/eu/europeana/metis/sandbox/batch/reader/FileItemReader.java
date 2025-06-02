@@ -1,11 +1,15 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
+import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.service.workflow.HarvestServiceImpl;
+import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
+import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.annotation.PostConstruct;
 import java.io.FileInputStream;
@@ -18,7 +22,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
-import org.apache.tika.utils.StringUtils;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +29,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> {
+public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
 
   private static final BatchJobType batchJobType = HARVEST_FILE;
 
@@ -44,7 +47,7 @@ public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> 
   private final HarvestServiceImpl harvestServiceImpl;
   private Iterator<Entry<String, String>> recordIdAndContentIterator;
 
-  public CompressedFileItemReader(HarvestServiceImpl harvestServiceImpl) {
+  public FileItemReader(HarvestServiceImpl harvestServiceImpl) {
     this.harvestServiceImpl = harvestServiceImpl;
   }
 
@@ -54,7 +57,7 @@ public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> 
     String recordId = Paths.get(inputFilePath).getFileName().toString();
 
     final Map<String, String> recordIdAndContent = new HashMap<>();
-    if (StringUtils.isBlank(compressedFileExtension)) {
+    if (isBlank(compressedFileExtension)) {
       recordIdAndContent.put(recordId, IOUtils.toString(inputStream, StandardCharsets.UTF_8));
     } else {
       recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(inputStream, datasetId,
@@ -64,16 +67,18 @@ public class CompressedFileItemReader implements ItemReader<ExecutionRecordDTO> 
   }
 
   @Override
-  public ExecutionRecordDTO read() {
+  public ExecutionRecordDTO read() throws EuropeanaIdException {
     Entry<String, String> recordIdAndContent = takeRecordIdAndContent();
     if (recordIdAndContent != null) {
-      SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
+      EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
+      final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordIdAndContent.getValue(), datasetId);
+      final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
+      return SuccessExecutionRecordDTO.createValidated(b -> b
           .datasetId(datasetId)
-          .recordId(recordIdAndContent.getKey())
+          .recordId(europeanaGeneratedId)
           .executionId(targetExecutionId)
           .executionName(batchJobType.name())
           .recordData(recordIdAndContent.getValue()));
-      return successExecutionRecordDTO;
     } else {
       return null;
     }
