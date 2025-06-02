@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
+import eu.europeana.metis.sandbox.entity.projection.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -53,12 +53,12 @@ class DatasetServiceImplTest {
 
   @Test
   void getDatasetIdsBefore_expectSuccess() {
-    var id1 = new DatasetIdViewImpl(1);
-    var id2 = new DatasetIdViewImpl(2);
-    var id3 = new DatasetIdViewImpl(3);
-    var id4 = new DatasetIdViewImpl(4);
+    var id1 = new DatasetIdProjectionImpl(1);
+    var id2 = new DatasetIdProjectionImpl(2);
+    var id3 = new DatasetIdProjectionImpl(3);
+    var id4 = new DatasetIdProjectionImpl(4);
 
-    when(datasetRepository.getByCreatedDateBefore(any(ZonedDateTime.class)))
+    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenReturn(List.of(id1, id2, id3, id4));
 
     var result = service.getDatasetIdsCreatedBefore(7);
@@ -68,7 +68,7 @@ class DatasetServiceImplTest {
 
   @Test
   void getDatasetIdsBefore_failToGetIds_expectFail() {
-    when(datasetRepository.getByCreatedDateBefore(any(ZonedDateTime.class)))
+    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenThrow(new RuntimeException("Issue"));
 
     assertThrows(ServiceException.class, () -> service.getDatasetIdsCreatedBefore(7));
@@ -154,11 +154,11 @@ class DatasetServiceImplTest {
 
   }
 
-  private static class DatasetIdViewImpl implements DatasetIdView {
+  private static class DatasetIdProjectionImpl implements DatasetIdProjection {
 
     private final Integer datasetId;
 
-    public DatasetIdViewImpl(Integer datasetId) {
+    public DatasetIdProjectionImpl(Integer datasetId) {
       this.datasetId = datasetId;
     }
 

@@ -15,7 +15,7 @@ import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
+import eu.europeana.metis.sandbox.entity.projection.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -59,8 +59,8 @@ class DatasetServiceImpl implements DatasetService {
                                       .minusDays(days);
 
     try {
-      return datasetRepository.getByCreatedDateBefore(date).stream()
-                              .map(DatasetIdView::getDatasetId)
+      return datasetRepository.findByCreatedDateBefore(date).stream()
+                              .map(DatasetIdProjection::getDatasetId)
                               .map(Object::toString)
                               .toList();
     } catch (RuntimeException e) {
