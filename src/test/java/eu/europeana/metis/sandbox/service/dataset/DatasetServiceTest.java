@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DatasetServiceImplTest {
+class DatasetServiceTest {
 
   @Mock
   private DatasetRepository datasetRepository;
@@ -36,7 +36,7 @@ class DatasetServiceImplTest {
   private ArgumentCaptor<DatasetEntity> captor;
 
   @InjectMocks
-  private DatasetServiceImpl service;
+  private DatasetService service;
 
 
   @Test

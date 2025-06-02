@@ -1,79 +1,128 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
+import eu.europeana.metis.sandbox.entity.projection.DatasetIdProjection;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Interface representing services related to datasets, including creation, retrieval,
- * deletion, and updating of dataset-related metadata and records.
- */
-public interface DatasetService {
+@Service
+public class DatasetService {
 
-  /**
-   * Creates a dataset id and publishes the given records for further processing
-   *
-   * @param workflowType
-   * @param datasetName must not be null
-   * @param createdById the identifier of the user creating the dataset; can be null.
-   * @param country must not be null
-   * @param language must not be null
-   * @param xsltEdmExternalContentStream an input stream containing XSLT EDM content for external purposes; can be null.
-   * @return the created dataset
-   * @throws NullPointerException if any input is null
-   * @throws ServiceException if any unhandled exception happens, exception will contain original exception
-   * @throws RecordParsingException if fails to parse a record from the records list
-   */
-  String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country, Language language,
-      String xsltToEdmExternal);
+  private final DatasetRepository datasetRepository;
+  private final HarvestingParameterService harvestingParameterService;
 
-  /**
-   * Get dataset ids created before than the specified days
-   *
-   * @param days to ignore
-   * @return dataset ids
-   * @throws ServiceException if any unhandled exception happens, exception will contain original
-   *                          exception
-   */
-  List<String> getDatasetIdsCreatedBefore(int days);
+  public DatasetService(DatasetRepository datasetRepository, HarvestingParameterService harvestingParameterService) {
+    this.datasetRepository = datasetRepository;
+    this.harvestingParameterService = harvestingParameterService;
+  }
 
-  /**
-   * Remove matching dataset id
-   *
-   * @param datasetId must not be null
-   * @throws NullPointerException if dataset id is null
-   * @throws ServiceException     if removing dataset fails
-   */
-  void remove(String datasetId);
+  @Transactional
+  public String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country,
+      Language language,
+      String xsltToEdmExternal) {
+    requireNonNull(datasetName, "Dataset name must not be null");
+    requireNonNull(country, "Country must not be null");
+    requireNonNull(language, "Language must not be null");
 
-  /**
-   * Updates the value of recordQuantity in the database to the given dataset
-   * @param datasetId The id of the dataset to update to
-   * @param numberOfRecords The new value to update into the dataset
-   */
-  void updateNumberOfTotalRecord(String datasetId, Long numberOfRecords);
+    DatasetEntity entity = saveNewDatasetInDatabase(
+        new DatasetEntity(workflowType, datasetName, createdById, null, language, country, false),
+        xsltToEdmExternal);
 
-  /**
-   * Sets to true the boolean recordLimitExceeded in the database
-   * @param datasetId The id of the dataset to update this into
-   */
-  void setRecordLimitExceeded(String datasetId);
+    return String.valueOf(entity.getDatasetId());
 
-  /**
-   * A boolean type of query to check if dataset has xslt content in the database
-   * @param datasetId The id of the dataset to update into
-   * @return Returns 0 if there is no xslt, 1 otherwise
-   */
-  boolean isXsltPresent(String datasetId);
+  }
 
-  /**
-   * Returns an object encapsulating all data related to a dataset
-   * @param datasetId The id of the dataset to get information of
-   * @return An object encapsulating all data related to a dataset
-   */
-  DatasetInfoDto getDatasetInfo(String datasetId);
+  public List<String> getDatasetIdsCreatedBefore(int days) {
+    ZonedDateTime date = ZonedDateTime.now()
+                                      .truncatedTo(ChronoUnit.DAYS)
+                                      .minusDays(days);
+
+    try {
+      return datasetRepository.findByCreatedDateBefore(date).stream()
+                              .map(DatasetIdProjection::getDatasetId)
+                              .map(Object::toString)
+                              .toList();
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
+    }
+  }
+
+  @Transactional
+  public void remove(String datasetId) {
+    try {
+      datasetRepository.deleteById(Integer.valueOf(datasetId));
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
+    }
+  }
+
+  @Transactional
+  public void updateNumberOfTotalRecord(String datasetId, Long numberOfRecords) {
+    datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetId), numberOfRecords);
+  }
+
+  @Transactional
+  public void setRecordLimitExceeded(String datasetId) {
+    datasetRepository.setRecordLimitExceeded(Integer.parseInt(datasetId));
+  }
+
+  public boolean isXsltPresent(String datasetId) {
+    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0;
+  }
+
+  public DatasetInfoDto getDatasetInfo(String datasetId) {
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
+                                                   .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    return new DatasetInfoDto.Builder()
+        .datasetId(datasetId)
+        .datasetName(datasetEntity.getDatasetName())
+        .createdById(datasetEntity.getCreatedById())
+        .creationDate(datasetEntity.getCreatedDate())
+        .language(datasetEntity.getLanguage())
+        .country(datasetEntity.getCountry())
+        .harvestingParametricDto(getHarvestingParameterDto(datasetId))
+        .transformedToEdmExternal(isXsltPresent(datasetId))
+        .build();
+  }
+
+  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, String xsltToEdmExternal) {
+    if (StringUtils.isNotBlank(xsltToEdmExternal)) {
+      datasetEntityToSave.setXsltToEdmExternal(xsltToEdmExternal);
+    }
+
+    try {
+      return datasetRepository.save(datasetEntityToSave);
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetEntityToSave.getDatasetName()), e);
+    }
+  }
+
+  private HarvestingParametersDto getHarvestingParameterDto(String datasetId) {
+    HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
+
+    return switch (entity.getProtocol()) {
+      case FILE -> new FileHarvestingDto(entity.getFileName(), entity.getFileType());
+      case HTTP -> new HttpHarvestingDto(entity.getUrl());
+      case OAI_PMH -> new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
+    };
+  }
 }
