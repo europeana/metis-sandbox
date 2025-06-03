@@ -17,7 +17,7 @@ import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
-import eu.europeana.metis.sandbox.domain.Bucket;
+import eu.europeana.metis.sandbox.common.S3Bucket;
 import eu.europeana.metis.sandbox.entity.ThumbnailIdEntity;
 import eu.europeana.metis.sandbox.repository.ThumbnailIdRepository;
 import java.io.IOException;
@@ -33,15 +33,13 @@ public class ThumbnailStoreService {
 
   private final AmazonS3 s3client;
 
-  private final Bucket thumbnailsBucket;
+  private final String thumbnailsS3BucketName;
 
   private final ThumbnailIdRepository thumbnailIdRepository;
 
-  public ThumbnailStoreService(AmazonS3 s3client,
-      Bucket thumbnailsBucket,
-      ThumbnailIdRepository thumbnailIdRepository) {
+  public ThumbnailStoreService(AmazonS3 s3client, S3Bucket thumbnailsS3Bucket, ThumbnailIdRepository thumbnailIdRepository) {
     this.s3client = s3client;
-    this.thumbnailsBucket = thumbnailsBucket;
+    this.thumbnailsS3BucketName = requireNonNull(thumbnailsS3Bucket.name(), "Thumbnails bucket name must not be null");
     this.thumbnailIdRepository = thumbnailIdRepository;
   }
 
@@ -106,7 +104,7 @@ public class ThumbnailStoreService {
     metadata.setContentType(thumbnail.getMimeType());
 
     var request = new PutObjectRequest(
-        thumbnailsBucket.getName(), thumbnail.getTargetName(),
+        thumbnailsS3BucketName, thumbnail.getTargetName(),
         thumbnail.getContentStream(), metadata);
 
     s3client.putObject(request);
@@ -122,7 +120,7 @@ public class ThumbnailStoreService {
   }
 
   private void deleteBatch(List<KeyVersion> list) {
-    var request = new DeleteObjectsRequest(thumbnailsBucket.getName())
+    var request = new DeleteObjectsRequest(thumbnailsS3BucketName)
         .withKeys(list).withQuiet(true);
 
     try {

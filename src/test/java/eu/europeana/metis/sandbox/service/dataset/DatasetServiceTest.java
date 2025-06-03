@@ -14,7 +14,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdProjection;
+import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -61,7 +61,7 @@ class DatasetServiceTest {
     when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenReturn(List.of(id1, id2, id3, id4));
 
-    var result = service.getDatasetIdsCreatedBefore(7);
+    var result = service.findDatasetIdsByCreatedBefore(7);
 
     assertEquals(List.of("1", "2", "3", "4"), result);
   }
@@ -71,7 +71,7 @@ class DatasetServiceTest {
     when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenThrow(new RuntimeException("Issue"));
 
-    assertThrows(ServiceException.class, () -> service.getDatasetIdsCreatedBefore(7));
+    assertThrows(ServiceException.class, () -> service.findDatasetIdsByCreatedBefore(7));
   }
 
   @Test

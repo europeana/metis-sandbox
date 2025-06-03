@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdProjection;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -51,4 +50,8 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
 
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 
+  interface DatasetIdProjection {
+
+    Integer getDatasetId();
+  }
 }

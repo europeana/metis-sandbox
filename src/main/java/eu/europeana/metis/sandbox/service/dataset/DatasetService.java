@@ -7,15 +7,15 @@ import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDTO;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdProjection;
+import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -51,7 +51,7 @@ public class DatasetService {
 
   }
 
-  public List<String> getDatasetIdsCreatedBefore(int days) {
+  public List<String> findDatasetIdsByCreatedBefore(int days) {
     ZonedDateTime date = ZonedDateTime.now()
                                       .truncatedTo(ChronoUnit.DAYS)
                                       .minusDays(days);
@@ -89,10 +89,10 @@ public class DatasetService {
     return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0;
   }
 
-  public DatasetInfoDto getDatasetInfo(String datasetId) {
+  public DatasetInfoDTO getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
-    return new DatasetInfoDto.Builder()
+    return new DatasetInfoDTO.Builder()
         .datasetId(datasetId)
         .datasetName(datasetEntity.getDatasetName())
         .createdById(datasetEntity.getCreatedById())
@@ -116,13 +116,13 @@ public class DatasetService {
     }
   }
 
-  private HarvestingParametersDto getHarvestingParameterDto(String datasetId) {
+  private HarvestingParametersDTO getHarvestingParameterDto(String datasetId) {
     HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
     return switch (entity.getProtocol()) {
-      case FILE -> new FileHarvestingDto(entity.getFileName(), entity.getFileType());
-      case HTTP -> new HttpHarvestingDto(entity.getUrl());
-      case OAI_PMH -> new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
+      case FILE -> new FileHarvestingDTO(entity.getFileName(), entity.getFileType());
+      case HTTP -> new HttpHarvestingDTO(entity.getUrl());
+      case OAI_PMH -> new OAIPmhHarvestingDTO(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
     };
   }
 }

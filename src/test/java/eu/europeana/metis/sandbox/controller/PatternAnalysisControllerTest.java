@@ -24,8 +24,8 @@ import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
@@ -125,7 +125,7 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     // First check with dataset that is still processing
-    final ProgressInfoDto inProgressInfo = new ProgressInfoDto("", 1L, 0L,
+    final ProgressInfoDTO inProgressInfo = new ProgressInfoDTO("", 1L, 0L,
         Collections.emptyList(), false, "", emptyList(), null);
     //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
     assertNotEquals(Status.COMPLETED, inProgressInfo.getStatus());
@@ -140,7 +140,7 @@ class PatternAnalysisControllerTest {
     verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
 
     // Now check with finalized dataset.
-    final ProgressInfoDto completedInfo = new ProgressInfoDto("", 1L, 1L,
+    final ProgressInfoDTO completedInfo = new ProgressInfoDTO("", 1L, 1L,
         Collections.emptyList(), false, "", emptyList(), null);
     //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
     assertEquals(Status.COMPLETED, completedInfo.getStatus());

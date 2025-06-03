@@ -38,16 +38,16 @@ import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
-import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.TierStatistics;
-import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
+import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
@@ -628,14 +628,14 @@ class DatasetControllerTest {
   void retrieveDatasetProgress_expectSuccess() throws Exception {
     var message1 = "cvc-complex-type.4: Attribute 'resource' must appear on element 'edm:object'.";
     var message2 = "cvc-complex-type.2.4.b: The content of element 'edm:ProvidedCHO' is not complete.";
-    var error1 = new ErrorInfoDto(message1, Status.FAIL, List.of("1", "2"));
-    var error2 = new ErrorInfoDto(message2, Status.FAIL, List.of("3", "4"));
+    var error1 = new ErrorInfoDTO(message1, Status.FAIL, List.of("1", "2"));
+    var error2 = new ErrorInfoDTO(message2, Status.FAIL, List.of("3", "4"));
     var errors = List.of(error1, error2);
-    var createProgress = new ProgressByStepDto(FullBatchJobType.HARVEST_FILE, 10, 0, 0, List.of());
-    var externalProgress = new ProgressByStepDto(FullBatchJobType.VALIDATE_EXTERNAL, 7, 3, 0, errors);
-    var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
-        new TierStatistics(0, Collections.emptyList()));
-    var report = new ProgressInfoDto("https://metis-sandbox",
+    var createProgress = new ProgressByStepDTO(FullBatchJobType.HARVEST_FILE, 10, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDTO(FullBatchJobType.VALIDATE_EXTERNAL, 7, 3, 0, errors);
+    var tiersZeroInfo = new TiersZeroInfoDTO(new TierStatisticsDTO(0, Collections.emptyList()),
+        new TierStatisticsDTO(0, Collections.emptyList()));
+    var report = new ProgressInfoDTO("https://metis-sandbox",
         10L, 10L, List.of(createProgress, externalProgress), false, "", emptyList(),
         tiersZeroInfo);
 //    when(datasetReportService.getReport("1")).thenReturn(report);
@@ -678,13 +678,13 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_fileHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+    DatasetInfoDTO mock = new DatasetInfoDTO.Builder()
         .datasetId("1")
         .datasetName("datasetName")
         .creationDate(mockTime)
         .language(IT)
         .country(ITALY)
-        .harvestingParametricDto(new FileHarvestingDto("fileName", "fileType"))
+        .harvestingParametricDto(new FileHarvestingDTO("fileName", "fileType"))
         .transformedToEdmExternal(false)
         .build();
 
@@ -710,13 +710,13 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_httpHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+    DatasetInfoDTO mock = new DatasetInfoDTO.Builder()
         .datasetId("1")
         .datasetName("datasetName")
         .creationDate(mockTime)
         .language(IT)
         .country(ITALY)
-        .harvestingParametricDto(new HttpHarvestingDto("http://url-to-test.com"))
+        .harvestingParametricDto(new HttpHarvestingDTO("http://url-to-test.com"))
         .transformedToEdmExternal(false)
         .build();
 
@@ -742,13 +742,13 @@ class DatasetControllerTest {
   void retrieveDatasetInfo_oaiPmhHarvesting_expectSuccess() throws Exception {
     Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
     ZonedDateTime mockTime = minInstant.atZone(ZoneOffset.UTC);
-    DatasetInfoDto mock = new DatasetInfoDto.Builder()
+    DatasetInfoDTO mock = new DatasetInfoDTO.Builder()
         .datasetId("1")
         .datasetName("datasetName")
         .creationDate(mockTime)
         .language(IT)
         .country(ITALY)
-        .harvestingParametricDto(new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat"))
+        .harvestingParametricDto(new OAIPmhHarvestingDTO("http://url-to-test.com", "setSpec", "metadataFormat"))
         .transformedToEdmExternal(false)
         .build();
 
@@ -863,7 +863,7 @@ class DatasetControllerTest {
 
   @Test
   void getRecordsTier_expectSuccess() throws Exception {
-    RecordTiersInfoDto recordTiersInfoDto1 = new RecordTiersInfoDto.RecordTiersInfoDtoBuilder()
+    RecordTiersInfoDTO recordTiersInfoDTO1 = new RecordTiersInfoDTO.RecordTiersInfoDtoBuilder()
         .setRecordId("recordId")
         .setContentTier(MediaTier.T3)
         .setContentTierBeforeLicenseCorrection(MediaTier.T4)
@@ -874,7 +874,7 @@ class DatasetControllerTest {
         .setMetadataTierContextualClasses(MetadataTier.T0)
         .build();
 
-    List<RecordTiersInfoDto> resultMock = List.of(recordTiersInfoDto1);
+    List<RecordTiersInfoDTO> resultMock = List.of(recordTiersInfoDTO1);
 
 //    when(recordService.getRecordsTiers("datasetId")).thenReturn(resultMock);
 

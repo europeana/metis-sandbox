@@ -4,13 +4,13 @@ import static eu.europeana.metis.sandbox.controller.DatasetController.MESSAGE_FO
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import eu.europeana.metis.sandbox.domain.DatasetMetadata;
-import eu.europeana.metis.sandbox.domain.ExecutionMetadata;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
+import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
@@ -92,7 +92,7 @@ public class DatasetDebiasController {
   @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public boolean processDeBias(@AuthenticationPrincipal Jwt jwtPrincipal, @PathVariable("id") Integer datasetId) {
-    final DatasetInfoDto datasetInfo = datasetService.getDatasetInfo(datasetId.toString());
+    final DatasetInfoDTO datasetInfo = datasetService.getDatasetInfo(datasetId.toString());
 
     //Check ownership
     if (StringUtils.isNotBlank(datasetInfo.getCreatedById())) {
@@ -111,11 +111,11 @@ public class DatasetDebiasController {
     try {
       lock.lock();
       LOGGER.info("DeBias process: {} lock, Locked", datasetId);
-      ProgressInfoDto progressInfoDto = datasetReportService.getProgress(datasetId.toString());
+      ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(datasetId.toString());
 
       if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
           "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
-                                 .map(DeBiasStatusDto::getState)
+                                 .map(DeBiasStatusDTO::getState)
                                  .orElse(""))) {
         debiasStateService.remove(datasetId);
 
@@ -155,7 +155,7 @@ public class DatasetDebiasController {
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/debias/report", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public DeBiasReportDto getDeBiasReport(@PathVariable("id") Integer datasetId) {
+  public DeBiasReportDTO getDeBiasReport(@PathVariable("id") Integer datasetId) {
     return debiasStateService.getDeBiasReport(String.valueOf(datasetId));
   }
 
@@ -171,7 +171,7 @@ public class DatasetDebiasController {
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/debias/info", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public DeBiasStatusDto getDeBiasStatus(@PathVariable("id") Integer datasetId) {
+  public DeBiasStatusDTO getDeBiasStatus(@PathVariable("id") Integer datasetId) {
     return debiasStateService.getDeBiasStatus(String.valueOf(datasetId));
   }
 }

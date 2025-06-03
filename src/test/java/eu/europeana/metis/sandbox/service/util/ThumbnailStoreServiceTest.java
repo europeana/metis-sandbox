@@ -20,7 +20,7 @@ import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailRemoveException;
 import eu.europeana.metis.sandbox.common.exception.ThumbnailStoringException;
-import eu.europeana.metis.sandbox.domain.Bucket;
+import eu.europeana.metis.sandbox.common.S3Bucket;
 import eu.europeana.metis.sandbox.entity.ThumbnailIdEntity;
 import eu.europeana.metis.sandbox.repository.ThumbnailIdRepository;
 import java.io.IOException;
@@ -44,7 +44,7 @@ class ThumbnailStoreServiceTest {
 
   @BeforeEach
   public void setup() {
-    service = new ThumbnailStoreService(s3client, new Bucket("bucket"), thumbnailIdRepository);
+    service = new ThumbnailStoreService(s3client, new S3Bucket("bucket"), thumbnailIdRepository);
   }
 
   @Test

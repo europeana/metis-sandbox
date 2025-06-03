@@ -11,7 +11,6 @@ import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
-import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
 import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
 import eu.europeana.normalization.NormalizerFactory;
 import java.net.http.HttpClient;
@@ -69,7 +68,7 @@ class SandboxConfig {
     @Bean
     XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
                                               LockRegistry lockRegistry, HttpClient httpClient) {
-        return new XsltUrlUpdateServiceImpl(transformXsltRepository, lockRegistry, httpClient);
+        return new XsltUrlUpdateService(transformXsltRepository, lockRegistry, httpClient);
     }
 
     @Bean

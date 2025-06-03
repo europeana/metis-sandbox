@@ -12,6 +12,9 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
+import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -19,17 +22,14 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.DatasetMetadata;
-import eu.europeana.metis.sandbox.domain.ExecutionMetadata;
-import eu.europeana.metis.sandbox.domain.InputMetadata;
-import eu.europeana.metis.sandbox.dto.DatasetIdDto;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
-import eu.europeana.metis.sandbox.dto.RecordTiersInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.DatasetIdDTO;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.RecordTiersInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -90,18 +90,18 @@ class DatasetController {
   private static final String MESSAGE_FOR_PROCESS_DATASET =
       MESSAGE_OPEN_TAG_STYLE + "Accepted" + MESSAGE_CLOSE_TAG_STYLE
           + MESSAGE_BODY
-          + DatasetIdDto.SWAGGER_MODEL_NAME + MESSAGE_CLOSE_TAG_STYLE;
+          + DatasetIdDTO.SWAGGER_MODEL_NAME + MESSAGE_CLOSE_TAG_STYLE;
 
   private static final String MESSAGE_FOR_RETRIEVE_DATASET =
       MESSAGE_OPEN_TAG_STYLE + "OK" + MESSAGE_CLOSE_TAG_STYLE
           + MESSAGE_BODY
-          + ProgressInfoDto.PROGRESS_SWAGGER_MODEL_NAME + MESSAGE_CLOSE_TAG_STYLE;
+          + ProgressInfoDTO.PROGRESS_SWAGGER_MODEL_NAME + MESSAGE_CLOSE_TAG_STYLE;
 
   public static final String MESSAGE_FOR_400_CODE =
       MESSAGE_OPEN_TAG_STYLE + "Bad Request" + MESSAGE_CLOSE_TAG_STYLE
           + " (or any other 4xx or 5xx error status code)"
           + MESSAGE_BODY
-          + ExceptionModelDto.SWAGGER_MODEL_NAME + MESSAGE_CLOSE_TAG_STYLE;
+          + ExceptionModelDTO.SWAGGER_MODEL_NAME + MESSAGE_CLOSE_TAG_STYLE;
 
   private static final String MESSAGE_FOR_DATASET_VALID_NAME = "dataset name can only include letters, numbers, _ or - characters";
   private static final String MESSAGE_FOR_STEP_SIZE_VALID_VALUE = "Step size must be a number higher than zero";
@@ -165,7 +165,7 @@ class DatasetController {
   @PostMapping(value = "{name}/harvestByFile", produces = APPLICATION_JSON_VALUE, consumes = MULTIPART_FORM_DATA_VALUE)
   @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDto harvestDatasetFromFile(
+  public DatasetIdDTO harvestDatasetFromFile(
       @AuthenticationPrincipal Jwt jwtPrincipal,
       @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
@@ -201,7 +201,7 @@ class DatasetController {
                                                      .xsltToEdmExternal(xsltToEdmExternal)
                                                      .build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-        new FileHarvestingDto(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
+        new FileHarvestingDTO(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
 
     final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, datasetRecordsCompressedFile);
 
@@ -212,7 +212,7 @@ class DatasetController {
                                                            .build();
     batchJobExecutor.execute(executionMetadata);
 
-    return new DatasetIdDto(createdDatasetId);
+    return new DatasetIdDTO(createdDatasetId);
   }
 
   /**
@@ -234,7 +234,7 @@ class DatasetController {
       MULTIPART_FORM_DATA_VALUE, "*/*"})
   @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDto harvestDatasetFromURL(
+  public DatasetIdDTO harvestDatasetFromURL(
       @AuthenticationPrincipal Jwt jwtPrincipal,
       @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
@@ -270,7 +270,7 @@ class DatasetController {
                                                      .workflowType(WorkflowType.FILE_HARVEST)
                                                      .xsltToEdmExternal(xsltToEdmExternal)
                                                      .build();
-    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDto(url));
+    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDTO(url));
 
     final InputStream inputStreamToHarvest;
     try {
@@ -291,7 +291,7 @@ class DatasetController {
                                                            .build();
     batchJobExecutor.execute(executionMetadata);
 
-    return new DatasetIdDto(createdDatasetId);
+    return new DatasetIdDTO(createdDatasetId);
   }
 
   private static @NotNull Path getTempFilePath(String datasetId, String originalFilename, InputStream inputStream) {
@@ -338,7 +338,7 @@ class DatasetController {
       MULTIPART_FORM_DATA_VALUE, "*/*"})
   @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDto harvestDatasetOaiPmh(
+  public DatasetIdDTO harvestDatasetOaiPmh(
       @AuthenticationPrincipal Jwt jwtPrincipal,
       @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
       @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
@@ -376,7 +376,7 @@ class DatasetController {
                                                      .build();
     setspec = getDefaultSetSpecWhenNotAvailable(setspec);
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-        new OAIPmhHarvestingDto(url, setspec, metadataformat));
+        new OAIPmhHarvestingDTO(url, setspec, metadataformat));
 
     InputMetadata inputMetadata = new InputMetadata(url, setspec, metadataformat, stepsize);
     ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
@@ -385,7 +385,7 @@ class DatasetController {
                                                            .build();
     batchJobExecutor.execute(executionMetadata);
 
-    return new DatasetIdDto(createdDatasetId);
+    return new DatasetIdDTO(createdDatasetId);
   }
 
   private static String getDefaultSetSpecWhenNotAvailable(String setspec) {
@@ -405,7 +405,7 @@ class DatasetController {
   @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/progress", produces = APPLICATION_JSON_VALUE)
-  public ProgressInfoDto getDatasetProgress(
+  public ProgressInfoDTO getDatasetProgress(
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
     //        return reportService.getReport(datasetId);
@@ -422,7 +422,7 @@ class DatasetController {
   @ApiResponse(responseCode = "200", description = MESSAGE_FOR_RETRIEVE_DATASET)
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/info", produces = APPLICATION_JSON_VALUE)
-  public DatasetInfoDto getDatasetInfo(
+  public DatasetInfoDTO getDatasetInfo(
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     return datasetService.getDatasetInfo(datasetId);
   }
@@ -486,7 +486,7 @@ class DatasetController {
   @ApiResponse(responseCode = "404", description = "Records not found")
   @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
   @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
-  public List<RecordTiersInfoDto> getRecordsTiers(@PathVariable("id") String datasetId) {
+  public List<RecordTiersInfoDTO> getRecordsTiers(@PathVariable("id") String datasetId) {
     List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByIdentifier_DatasetId(
         datasetId);
 
@@ -496,7 +496,7 @@ class DatasetController {
 
     return executionRecordTierContext.stream()
                                      .filter(this::areAllTierValuesNotNullOrEmpty)
-                                     .map(RecordTiersInfoDto::new)
+                                     .map(RecordTiersInfoDTO::new)
                                      .toList();
   }
 
@@ -622,6 +622,7 @@ class DatasetController {
     }
   }
 
+  //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
   private static class CountryView {
 
     @JsonProperty("name")
@@ -640,6 +641,7 @@ class DatasetController {
     }
   }
 
+  //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
   private static class LanguageView {
 
     @JsonProperty("name")

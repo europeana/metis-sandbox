@@ -5,16 +5,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.domain.DatasetMetadata;
-import eu.europeana.metis.sandbox.domain.ExecutionMetadata;
-import eu.europeana.metis.sandbox.domain.InputMetadata;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -132,7 +132,7 @@ public class ValidationController {
                                                      .workflowType(WorkflowType.FILE_HARVEST_ONLY_VALIDATION)
                                                      .build();
     harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-        new FileHarvestingDto(recordToValidate.getOriginalFilename(), "xml"));
+        new FileHarvestingDTO(recordToValidate.getOriginalFilename(), "xml"));
 
     InputMetadata inputMetadata = new InputMetadata(filePath);
     ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
@@ -140,12 +140,12 @@ public class ValidationController {
                                                            .inputMetadata(inputMetadata)
                                                            .build();
     batchJobExecutor.executeBlocking(executionMetadata);
-    ProgressInfoDto progressInfoDto = datasetReportService.getProgress(datasetMetadata.getDatasetId());
+    ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(datasetMetadata.getDatasetId());
 
     List<ValidationResult> validationResults = new ArrayList<>();
-    for (ProgressByStepDto progressByStepDto : progressInfoDto.getProgressByStep()) {
+    for (ProgressByStepDTO progressByStepDto : progressInfoDto.getProgressByStep()) {
       final ValidationResult validationResult;
-      Optional<ErrorInfoDto> errorInfoDto = progressByStepDto.getErrors().stream().findFirst();
+      Optional<ErrorInfoDTO> errorInfoDto = progressByStepDto.getErrors().stream().findFirst();
       validationResult = errorInfoDto.map(infoDto -> new ValidationResult(progressByStepDto.getStep(),
                                          new RecordValidationMessage(Type.ERROR, infoDto.getErrorMessage()), Status.FAILED))
                                      .orElseGet(() -> new ValidationResult(progressByStepDto.getStep(),

@@ -2,10 +2,10 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
-import eu.europeana.metis.sandbox.dto.HarvestingParametersDto;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.HarvestingParametersDTO;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -39,7 +39,7 @@ class HarvestParameterServiceImplTest {
     private DatasetRepository datasetRepository;
 
     @InjectMocks
-    private HarvestingParameterServiceImpl harvestingParameterService;
+    private HarvestingParameterService harvestingParameterService;
 
     @Captor
     ArgumentCaptor<HarvestingParameterEntity> entityArgumentCaptor;
@@ -51,7 +51,7 @@ class HarvestParameterServiceImplTest {
         datasetEntity.setDatasetId(1);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(harvestingParameterRepository.save(entityArgumentCaptor.capture())).thenReturn(entity);
-        HarvestingParametersDto harvestingParametersDto = new FileHarvestingDto("fileName", "fileType");
+        HarvestingParametersDTO harvestingParametersDto = new FileHarvestingDTO("fileName", "fileType");
 
         harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametersDto);
 
@@ -74,7 +74,7 @@ class HarvestParameterServiceImplTest {
         datasetEntity.setDatasetId(1);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(harvestingParameterRepository.save(entityArgumentCaptor.capture())).thenReturn(entity);
-        HarvestingParametersDto harvestingParametersDto = new HttpHarvestingDto("http://url-to-test.com");
+        HarvestingParametersDTO harvestingParametersDto = new HttpHarvestingDTO("http://url-to-test.com");
 
         harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametersDto);
 
@@ -97,7 +97,7 @@ class HarvestParameterServiceImplTest {
         datasetEntity.setDatasetId(1);
         when(datasetRepository.findById(1)).thenReturn(Optional.of(datasetEntity));
         when(harvestingParameterRepository.save(entityArgumentCaptor.capture())).thenReturn(entity);
-        HarvestingParametersDto harvestingParametersDto = new OAIPmhHarvestingDto("http://url-to-test.com", "setSpec", "metadataFormat");
+        HarvestingParametersDTO harvestingParametersDto = new OAIPmhHarvestingDTO("http://url-to-test.com", "setSpec", "metadataFormat");
 
         harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametersDto);
 
@@ -118,7 +118,7 @@ class HarvestParameterServiceImplTest {
     void createDatasetHarvestingParameters_expectFail(){
 
         when(harvestingParameterRepository.save(any())).thenThrow(new RuntimeException());
-        HarvestingParametersDto harvestingParametersDto = new FileHarvestingDto("fileName", "fileType");
+        HarvestingParametersDTO harvestingParametersDto = new FileHarvestingDTO("fileName", "fileType");
 
         assertThrows(ServiceException.class, () ->
                 harvestingParameterService.createDatasetHarvestingParameters("1", harvestingParametersDto));

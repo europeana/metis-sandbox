@@ -5,8 +5,8 @@ import eu.europeana.metis.debias.detect.model.response.ValueDetection;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.batch.DebiasJobConfig;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDto;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDto;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
@@ -55,9 +55,9 @@ public class DeBiasStateService {
     this.executionRecordRepository = executionRecordRepository;
   }
 
-  public DeBiasReportDto getDeBiasReport(String datasetId) {
-    DeBiasStatusDto deBiasStatusDto = getDeBiasStatus(datasetId);
-    return new DeBiasReportDto(Integer.valueOf(datasetId), deBiasStatusDto.getState(),
+  public DeBiasReportDTO getDeBiasReport(String datasetId) {
+    DeBiasStatusDTO deBiasStatusDto = getDeBiasStatus(datasetId);
+    return new DeBiasReportDTO(Integer.valueOf(datasetId), deBiasStatusDto.getState(),
         deBiasStatusDto.getCreationDate(), deBiasStatusDto.getTotal(),
         deBiasStatusDto.getProcessed(), getReportFromDbEntities(datasetId));
 
@@ -76,7 +76,7 @@ public class DeBiasStateService {
     this.datasetDeBiasRepository.deleteByDatasetId(datasetId.toString());
   }
 
-  public DeBiasStatusDto getDeBiasStatus(String datasetId) {
+  public DeBiasStatusDTO getDeBiasStatus(String datasetId) {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
         Integer.valueOf(datasetId));
     long totalToDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
@@ -96,9 +96,9 @@ public class DeBiasStateService {
     }
 
     if (datasetDeBiasEntity == null) {
-      return new DeBiasStatusDto(Integer.valueOf(datasetId), state, ZonedDateTime.now(), totalToDebias, progressDebias);
+      return new DeBiasStatusDTO(Integer.valueOf(datasetId), state, ZonedDateTime.now(), totalToDebias, progressDebias);
     } else {
-      return new DeBiasStatusDto(Integer.valueOf(datasetId), state,
+      return new DeBiasStatusDTO(Integer.valueOf(datasetId), state,
           datasetDeBiasEntity.getCreatedDate(), totalToDebias, progressDebias);
     }
   }

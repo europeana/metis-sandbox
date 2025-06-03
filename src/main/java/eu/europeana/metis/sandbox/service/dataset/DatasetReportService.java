@@ -13,11 +13,11 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRep
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
-import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-import eu.europeana.metis.sandbox.dto.report.TierStatistics;
-import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
+import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
+import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
@@ -60,29 +60,29 @@ public class DatasetReportService {
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
-  public ProgressInfoDto getProgress(String datasetId) {
+  public ProgressInfoDTO getProgress(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
 
     List<FullBatchJobType> workflowSteps = WorkflowHelper.getWorkflow(datasetEntity);
 
-    List<ProgressByStepDto> progressByStepDtos = new LinkedList<>();
+    List<ProgressByStepDTO> progressByStepDTOS = new LinkedList<>();
     for (FullBatchJobType step : workflowSteps) {
       StepStatistics stepStatistics = getStepStatistics(datasetId, step);
-      List<ErrorInfoDto> errorInfoDtoList = getErrorInfo(datasetId, step);
-      ProgressByStepDto progressByStepDto = new ProgressByStepDto(step, stepStatistics.totalSuccess,
-          stepStatistics.totalFail, stepStatistics.totalWarning, errorInfoDtoList);
-      progressByStepDtos.add(progressByStepDto);
+      List<ErrorInfoDTO> errorInfoDTOList = getErrorInfo(datasetId, step);
+      ProgressByStepDTO progressByStepDto = new ProgressByStepDTO(step, stepStatistics.totalSuccess,
+          stepStatistics.totalFail, stepStatistics.totalWarning, errorInfoDTOList);
+      progressByStepDTOS.add(progressByStepDto);
     }
-    final long completedRecords = progressByStepDtos.getLast().getSuccess();
-    final long totalFailInWorkflow = progressByStepDtos.stream().mapToLong(ProgressByStepDto::getFail).sum();
-    final TiersZeroInfo tiersZeroInfo = prepareTiersInfo(datasetId);
+    final long completedRecords = progressByStepDTOS.getLast().getSuccess();
+    final long totalFailInWorkflow = progressByStepDTOS.stream().mapToLong(ProgressByStepDTO::getFail).sum();
+    final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
-    return new ProgressInfoDto(
+    return new ProgressInfoDTO(
         getPublishPortalUrl(datasetEntity, completedRecords),
         datasetEntity.getRecordsQuantity(), completedRecords + totalFailInWorkflow,
-        progressByStepDtos, datasetEntity.getRecordLimitExceeded(), "",
-        null, tiersZeroInfo);
+        progressByStepDTOS, datasetEntity.getRecordLimitExceeded(), "",
+        null, tiersZeroInfoDTO);
   }
 
   private @NotNull StepStatistics getStepStatistics(
@@ -97,13 +97,13 @@ public class DatasetReportService {
     return new StepStatistics(totalSuccess, totalFailure, totalWarning);
   }
 
-  private List<ErrorInfoDto> getErrorInfo(String datasetId, FullBatchJobType fullBatchJobType) {
+  private List<ErrorInfoDTO> getErrorInfo(String datasetId, FullBatchJobType fullBatchJobType) {
     Map<GroupedExceptionKey, List<String>> groupedExceptions = collectGroupedExceptions(datasetId, fullBatchJobType);
 
-    List<ErrorInfoDto> result = new ArrayList<>();
+    List<ErrorInfoDTO> result = new ArrayList<>();
     for (Map.Entry<GroupedExceptionKey, List<String>> entry : groupedExceptions.entrySet()) {
       List<String> sortedRecordIds = entry.getValue().stream().sorted().toList();
-      result.add(new ErrorInfoDto(entry.getKey().message(), entry.getKey().status(), sortedRecordIds
+      result.add(new ErrorInfoDTO(entry.getKey().message(), entry.getKey().status(), sortedRecordIds
       ));
     }
 
@@ -153,7 +153,7 @@ public class DatasetReportService {
     return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
   }
 
-  private TiersZeroInfo prepareTiersInfo(String datasetId) {
+  private TiersZeroInfoDTO prepareTiersInfo(String datasetId) {
     // get list of records with content tier 0
     List<String> listOfRecordsIdsWithContentZero =
         executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
@@ -169,21 +169,21 @@ public class DatasetReportService {
                                             .toList();
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
-    TierStatistics contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
-        new TierStatistics(
+    TierStatisticsDTO contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
+        new TierStatisticsDTO(
             Math.toIntExact(executionRecordTierContextRepository.countByIdentifier_DatasetIdAndContentTier(datasetId,
                 MediaTier.T0.toString())), listOfRecordsIdsWithContentZero);
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
-    TierStatistics metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
-        new TierStatistics(
+    TierStatisticsDTO metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
+        new TierStatisticsDTO(
             Math.toIntExact(executionRecordTierContextRepository.countByIdentifier_DatasetIdAndMetadataTier(datasetId,
                 MetadataTier.T0.toString())),
             listOfRecordsIdsWithMetadataZero);
 
     // encapsulate values into TiersZeroInfo
     return contentTierInfo == null && metadataTierInfo == null ? null :
-        new TiersZeroInfo(contentTierInfo, metadataTierInfo);
+        new TiersZeroInfoDTO(contentTierInfo, metadataTierInfo);
   }
 
   private record StepStatistics(long totalSuccess, long totalFail, long totalWarning) {

@@ -8,7 +8,7 @@ import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
-import eu.europeana.metis.sandbox.dto.ExceptionModelDto;
+import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.schema.convert.SerializationException;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(XsltProcessingException.class)
     public ResponseEntity<Object> handleXsltProcessingException(XsltProcessingException ex) {
         var message = format(RETRY_MSG, ex.getMessage());
-        var exceptionModel = new ExceptionModelDto(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR, message);
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -43,7 +43,7 @@ public class RestResponseExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
-        var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -51,7 +51,7 @@ public class RestResponseExceptionHandler {
 
     @ExceptionHandler(InvalidCompressedFileException.class)
     public ResponseEntity<Object> handleInvalidCompressedFileException(InvalidCompressedFileException ex) {
-        var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -60,7 +60,7 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<Object> handleServiceException(ServiceException ex) {
         var message = format(RETRY_MSG, ex.getMessage());
-        var exceptionModel = new ExceptionModelDto(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR, message);
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -69,7 +69,7 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(RecordParsingException.class)
     public ResponseEntity<Object> handleNonRecoverableServiceException(
             RecordParsingException ex) {
-        var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -78,7 +78,7 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(InvalidDatasetException.class)
     public ResponseEntity<Object> handleInvalidDatasetException(
             InvalidDatasetException ex) {
-        var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -87,7 +87,7 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(SerializationException.class)
     public ResponseEntity<Object> handleSerializationException(
             SerializationException ex) {
-        var exceptionModel = new ExceptionModelDto(HttpStatus.BAD_REQUEST.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -96,7 +96,7 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(IOException.class)
     public ResponseEntity<Object> handleIOException(
             IOException ex) {
-        var exceptionModel = new ExceptionModelDto(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
@@ -115,7 +115,7 @@ public class RestResponseExceptionHandler {
                 .findAnnotation(e.getClass(), ResponseStatus.class);
         HttpStatus status = annotationResponseStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR
                 : annotationResponseStatus.value();
-        var exceptionModel = new ExceptionModelDto(status.value(), status, e.getMessage());
+        var exceptionModel = new ExceptionModelDTO(status.value(), status, e.getMessage());
         LOGGER.error(e.getMessage(), e);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
     }
