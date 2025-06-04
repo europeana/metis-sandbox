@@ -60,7 +60,7 @@ class DataCleanupServiceTest {
     verify(executionRecordCleaner, times(4)).remove(anyString());
     verify(datasetService, times(4)).remove(anyString());
     verify(problemPatternDataCleaner, times(4)).remove(anyString());
-    verify(deBiasStateService, times(4)).remove(anyInt());
+    verify(deBiasStateService, times(4)).remove(anyString());
   }
 
   @Test
@@ -80,7 +80,7 @@ class DataCleanupServiceTest {
     verify(executionRecordCleaner, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
     verify(problemPatternDataCleaner, times(3)).remove(anyString());
-    verify(deBiasStateService, times(3)).remove(anyInt());
+    verify(deBiasStateService, times(3)).remove(anyString());
   }
 
   @Test

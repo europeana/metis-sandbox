@@ -1,10 +1,16 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static eu.europeana.metis.sandbox.entity.WorkflowType.DEBIAS;
+import static eu.europeana.metis.sandbox.entity.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
@@ -12,52 +18,265 @@ import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
 import eu.europeana.metis.sandbox.dto.HarvestingParametersDTO;
 import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
-import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
+import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
+import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
+import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
+import eu.europeana.metis.utils.CompressedFileExtension;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class DatasetService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String HARVESTING_ERROR_MESSAGE = "Error harvesting records for dataset: ";
+
   private final DatasetRepository datasetRepository;
   private final HarvestingParameterService harvestingParameterService;
+  private final DeBiasStateService debiasStateService;
+  private final DatasetReportService datasetReportService;
+  private final LockRegistry lockRegistry;
+  private final BatchJobExecutor batchJobExecutor;
+  private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
 
-  public DatasetService(DatasetRepository datasetRepository, HarvestingParameterService harvestingParameterService) {
+  public DatasetService(DatasetRepository datasetRepository, HarvestingParameterService harvestingParameterService,
+      DeBiasStateService debiasStateService, DatasetReportService datasetReportService, LockRegistry lockRegistry,
+      BatchJobExecutor batchJobExecutor) {
     this.datasetRepository = datasetRepository;
     this.harvestingParameterService = harvestingParameterService;
+    this.debiasStateService = debiasStateService;
+    this.datasetReportService = datasetReportService;
+    this.lockRegistry = lockRegistry;
+    this.batchJobExecutor = batchJobExecutor;
   }
 
-  @Transactional
-  public String createEmptyDataset(WorkflowType workflowType, String datasetName, String createdById, Country country,
-      Language language,
-      String xsltToEdmExternal) {
-    requireNonNull(datasetName, "Dataset name must not be null");
-    requireNonNull(country, "Country must not be null");
-    requireNonNull(language, "Language must not be null");
+  @NotNull
+  public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
+      String url, String setSpec, String metadataFormat,
+      MultipartFile xsltFile, String userId) {
+    String xslt = readXslt(xsltFile);
+    String datasetId = createDataset(WorkflowType.OAI_HARVEST, datasetName, userId, country, language, xslt);
 
-    DatasetEntity entity = saveNewDatasetInDatabase(
-        new DatasetEntity(workflowType, datasetName, createdById, null, language, country, false),
-        xsltToEdmExternal);
+    DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, stepsize, xslt,
+        WorkflowType.OAI_HARVEST);
+    harvestingParameterService.createDatasetHarvestingParameters(datasetId,
+        new OAIPmhHarvestingDTO(url, normalizeSetSpec(setSpec), metadataFormat));
 
-    return String.valueOf(entity.getDatasetId());
+    InputMetadata inputMetadata = new InputMetadata(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
+    submitToExecutor(datasetMetadata, inputMetadata);
+    return datasetId;
+  }
 
+  @NotNull
+  public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
+      MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
+    String xslt = readXslt(xsltFile);
+    String datasetId = createDataset(WorkflowType.FILE_HARVEST, datasetName, userId, country, language, xslt);
+
+    DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, stepsize, xslt,
+        WorkflowType.FILE_HARVEST);
+    harvestingParameterService.createDatasetHarvestingParameters(datasetId,
+        new FileHarvestingDTO(compressedFile.getOriginalFilename(), extension.name()));
+
+    Path filePath = saveToTempFile(datasetId, compressedFile);
+    InputMetadata inputMetadata = new InputMetadata(filePath, extension, stepsize);
+
+    submitToExecutor(datasetMetadata, inputMetadata);
+    return datasetId;
+  }
+
+  @NotNull
+  public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
+      String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
+    String xslt = readXslt(xsltFile);
+    String datasetId = createDataset(WorkflowType.FILE_HARVEST, datasetName, userId, country, language, xslt);
+
+    DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, stepsize, xslt,
+        WorkflowType.FILE_HARVEST);
+    harvestingParameterService.createDatasetHarvestingParameters(datasetId, new HttpHarvestingDTO(url));
+
+    try (InputStream in = new URI(url).toURL().openStream()) {
+      String filename = Path.of(url).getFileName().toString();
+      Path filePath = saveToTempFile(datasetId, filename, in);
+      InputMetadata inputMetadata = new InputMetadata(filePath, extension, stepsize);
+      submitToExecutor(datasetMetadata, inputMetadata);
+    } catch (UnknownHostException e) {
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetId + " - Unknown host", e);
+    } catch (IOException | URISyntaxException e) {
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetId, e);
+    }
+    return datasetId;
+  }
+
+  public String createAndExecuteDatasetForFileValidationBlocking(String datasetName,
+      MultipartFile recordFile, Country country, Language language) {
+    String datasetId = createDataset(FILE_HARVEST_ONLY_VALIDATION, datasetName, null, country, language, null);
+
+    harvestingParameterService.createDatasetHarvestingParameters(datasetId,
+        new FileHarvestingDTO(recordFile.getOriginalFilename(), "xml"));
+    Path filePath = saveToTempFile(datasetId, recordFile);
+    DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, 1, null,
+        FILE_HARVEST_ONLY_VALIDATION);
+
+    InputMetadata inputMetadata = new InputMetadata(filePath);
+    submitToExecutorBlocking(datasetMetadata, inputMetadata);
+    return datasetId;
+  }
+
+  public boolean createAndExecuteDatasetForDebias(String datasetId) {
+
+    //todo: if the debias db creates DatasetDeBiasEntity that is unique a lock is not needed perse.
+    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
+    try {
+      lock.lock();
+      LOGGER.info("DeBias process: {} lock, Locked", datasetId);
+      ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(datasetId);
+
+      if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
+          "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
+                                 .map(DeBiasStatusDTO::getState)
+                                 .orElse(""))) {
+        debiasStateService.remove(datasetId);
+
+        DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
+        DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
+        DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetEntity.getDatasetName(),
+            datasetEntity.getCountry(), datasetEntity.getLanguage(), 1, null, DEBIAS);
+
+        ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                               .datasetMetadata(datasetMetadata)
+                                                               .build();
+        batchJobExecutor.executeDebiasWorkflow(executionMetadata);
+        return true;
+      } else {
+        return false;
+      }
+    } finally {
+      lock.unlock();
+      LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
+    }
+
+  }
+
+  private String readXslt(MultipartFile xsltFile) {
+    if (xsltFile != null && !xsltFile.isEmpty()) {
+      try {
+        if (!StringUtils.containsIgnoreCase(requireNonNull(xsltFile.getContentType()), "xml")) {
+          throw new IllegalArgumentException("XSLT file must be XML.");
+        }
+        return new String(xsltFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        throw new XsltProcessingException("Failed to process XSLT file.", e);
+      }
+    }
+    return StringUtils.EMPTY;
+  }
+
+  private DatasetMetadata buildDatasetMetadata(String id, String name, Country country, Language lang, Integer stepsize,
+      String xslt, WorkflowType type) {
+    return DatasetMetadata.builder()
+                          .datasetId(id)
+                          .datasetName(name)
+                          .country(country)
+                          .language(lang)
+                          .stepSize(stepsize)
+                          .workflowType(type)
+                          .xsltToEdmExternal(xslt)
+                          .build();
+  }
+
+
+  private void submitToExecutor(DatasetMetadata metadata, InputMetadata inputMetadata) {
+    batchJobExecutor.execute(ExecutionMetadata.builder()
+                                              .datasetMetadata(metadata)
+                                              .inputMetadata(inputMetadata)
+                                              .build());
+  }
+
+  private void submitToExecutorBlocking(DatasetMetadata metadata, InputMetadata inputMetadata) {
+    batchJobExecutor.executeBlocking(ExecutionMetadata.builder()
+                                                      .datasetMetadata(metadata)
+                                                      .inputMetadata(inputMetadata)
+                                                      .build());
+  }
+
+  private String normalizeSetSpec(String setSpec) {
+    return StringUtils.isBlank(setSpec) ? null : setSpec;
+  }
+
+  private Path saveToTempFile(String datasetId, MultipartFile file) {
+    try {
+      Path path = Files.createTempFile("dataset-" + datasetId, "-" + file.getOriginalFilename());
+      Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+      return path;
+    } catch (IOException e) {
+      throw new ServiceException("Failed to save uploaded file for dataset " + datasetId, e);
+    }
+  }
+
+  private Path saveToTempFile(String datasetId, String fileName, InputStream inputStream) {
+    try {
+      Path path = Files.createTempFile("dataset-" + datasetId, "-" + fileName);
+      Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+      return path;
+    } catch (IOException e) {
+      throw new ServiceException("Failed to download file " + fileName + " for dataset " + datasetId, e);
+    }
+  }
+
+  public String createDataset(WorkflowType workflowType, String name, String userId, Country country,
+      Language language, String xslt) {
+    requireNonNull(name, "Dataset name is required");
+    requireNonNull(country, "Country is required");
+    requireNonNull(language, "Language is required");
+
+    DatasetEntity datasetEntity = new DatasetEntity(workflowType, name, userId, null, language, country, false);
+    if (StringUtils.isNotBlank(xslt)) {
+      datasetEntity.setXsltToEdmExternal(xslt);
+    }
+
+    try {
+      return String.valueOf(datasetRepository.save(datasetEntity).getDatasetId());
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Failed to create dataset [%s]", name), e);
+    }
   }
 
   public List<String> findDatasetIdsByCreatedBefore(int days) {
-    ZonedDateTime date = ZonedDateTime.now()
-                                      .truncatedTo(ChronoUnit.DAYS)
-                                      .minusDays(days);
+    ZonedDateTime retentionDate = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(days);
 
     try {
-      return datasetRepository.findByCreatedDateBefore(date).stream()
+      return datasetRepository.findByCreatedDateBefore(retentionDate).stream()
                               .map(DatasetIdProjection::getDatasetId)
                               .map(Object::toString)
                               .toList();
@@ -66,32 +285,14 @@ public class DatasetService {
     }
   }
 
-  @Transactional
-  public void remove(String datasetId) {
-    try {
-      datasetRepository.deleteById(Integer.valueOf(datasetId));
-    } catch (RuntimeException e) {
-      throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
-    }
-  }
-
-  @Transactional
-  public void updateNumberOfTotalRecord(String datasetId, Long numberOfRecords) {
-    datasetRepository.updateRecordsQuantity(Integer.parseInt(datasetId), numberOfRecords);
-  }
-
-  @Transactional
   public void setRecordLimitExceeded(String datasetId) {
     datasetRepository.setRecordLimitExceeded(Integer.parseInt(datasetId));
-  }
-
-  public boolean isXsltPresent(String datasetId) {
-    return datasetRepository.isXsltPresent(Integer.parseInt(datasetId)) != 0;
   }
 
   public DatasetInfoDTO getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    boolean isXsltPresent = StringUtils.isNotBlank(datasetEntity.getXsltToEdmExternal());
     return new DatasetInfoDTO.Builder()
         .datasetId(datasetId)
         .datasetName(datasetEntity.getDatasetName())
@@ -100,29 +301,26 @@ public class DatasetService {
         .language(datasetEntity.getLanguage())
         .country(datasetEntity.getCountry())
         .harvestingParametricDto(getHarvestingParameterDto(datasetId))
-        .transformedToEdmExternal(isXsltPresent(datasetId))
+        .transformedToEdmExternal(isXsltPresent)
         .build();
   }
 
-  private DatasetEntity saveNewDatasetInDatabase(DatasetEntity datasetEntityToSave, String xsltToEdmExternal) {
-    if (StringUtils.isNotBlank(xsltToEdmExternal)) {
-      datasetEntityToSave.setXsltToEdmExternal(xsltToEdmExternal);
-    }
+  private HarvestingParametersDTO getHarvestingParameterDto(String datasetId) {
+    HarvestingParameterEntity harvestingParameterEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
-    try {
-      return datasetRepository.save(datasetEntityToSave);
-    } catch (RuntimeException e) {
-      throw new ServiceException(format("Error creating dataset: [%s]. ", datasetEntityToSave.getDatasetName()), e);
-    }
+    return switch (harvestingParameterEntity.getProtocol()) {
+      case FILE -> new FileHarvestingDTO(harvestingParameterEntity.getFileName(), harvestingParameterEntity.getFileType());
+      case HTTP -> new HttpHarvestingDTO(harvestingParameterEntity.getUrl());
+      case OAI_PMH -> new OAIPmhHarvestingDTO(harvestingParameterEntity.getUrl(), harvestingParameterEntity.getSetSpec(),
+          harvestingParameterEntity.getMetadataFormat());
+    };
   }
 
-  private HarvestingParametersDTO getHarvestingParameterDto(String datasetId) {
-    HarvestingParameterEntity entity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
-
-    return switch (entity.getProtocol()) {
-      case FILE -> new FileHarvestingDTO(entity.getFileName(), entity.getFileType());
-      case HTTP -> new HttpHarvestingDTO(entity.getUrl());
-      case OAI_PMH -> new OAIPmhHarvestingDTO(entity.getUrl(), entity.getSetSpec(), entity.getMetadataFormat());
-    };
+  public void remove(String datasetId) {
+    try {
+      datasetRepository.deleteById(Integer.valueOf(datasetId));
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error removing dataset id: [%s]. ", datasetId), e);
+    }
   }
 }

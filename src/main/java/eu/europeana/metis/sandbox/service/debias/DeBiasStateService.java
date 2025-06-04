@@ -69,11 +69,11 @@ public class DeBiasStateService {
    * @param datasetId the dataset id
    */
   @Transactional
-  public void remove(Integer datasetId) {
+  public void remove(String datasetId) {
     Objects.requireNonNull(datasetId, "Dataset id must not be null");
-    this.recordDeBiasDetailRepository.deleteAllByDatasetId(datasetId.toString());
-    this.recordDeBiasMainRepository.deleteByDatasetId(datasetId.toString());
-    this.datasetDeBiasRepository.deleteByDatasetId(datasetId.toString());
+    this.recordDeBiasDetailRepository.deleteByDatasetId(datasetId);
+    this.recordDeBiasMainRepository.deleteByDatasetId(datasetId);
+    this.datasetDeBiasRepository.deleteByDatasetId(datasetId);
   }
 
   public DeBiasStatusDTO getDeBiasStatus(String datasetId) {
@@ -88,7 +88,7 @@ public class DeBiasStateService {
     if (totalToDebias > 0 && (totalToDebias == progressDebias)) {
       state = "COMPLETED";
     } else if (totalToDebias >= 0 && progressDebias == 0) {
-      state = "READY";
+      state = READY_STATE;
     } else if (totalToDebias > 0 && progressDebias > 0) {
       state = "PROCESSING";
     } else {
@@ -103,9 +103,9 @@ public class DeBiasStateService {
     }
   }
 
-  public @NotNull DatasetDeBiasEntity createDatasetDeBiasEntity(Integer datasetId) {
-    DatasetEntity dataset = datasetRepository.findById(datasetId).orElseThrow();
-    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(datasetId);
+  public @NotNull DatasetDeBiasEntity createDatasetDeBiasEntity(String datasetId) {
+    DatasetEntity dataset = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId));
     if (datasetDeBiasEntity == null) {
       datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, READY_STATE, ZonedDateTime.now());
       datasetDeBiasEntity = datasetDeBiasRepository.save(datasetDeBiasEntity);

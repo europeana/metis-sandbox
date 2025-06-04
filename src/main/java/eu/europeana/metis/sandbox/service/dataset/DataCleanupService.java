@@ -74,7 +74,7 @@ public class DataCleanupService {
           LOGGER.info("Remove index for dataset id: [{}]", dataset);
           indexDataCleaner.remove(dataset);
           LOGGER.info("Remove debias report with id: [{}]", dataset);
-          debiasStateService.remove(Integer.valueOf(dataset));
+          debiasStateService.remove(dataset);
           LOGGER.info("Remove harvesting parameters for dataset id: [{}]", dataset);
           harvestingParameterService.remove(dataset);
           LOGGER.info("Remove problem pattern data associated with dataset id: [{}]", dataset);

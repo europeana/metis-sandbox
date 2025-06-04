@@ -176,7 +176,7 @@ class DatasetControllerTest {
   @MethodSource("provideDifferentCompressedFiles")
   void processDatasetFromZipFile_withoutXsltFile_expectSuccess(MockMultipartFile mockMultipart) throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -199,7 +199,7 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -223,7 +223,7 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -254,7 +254,7 @@ class DatasetControllerTest {
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void processDatasetFromURL_withoutXsltFile_expectSuccess(String url) throws Exception {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -277,7 +277,7 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -301,7 +301,7 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -333,7 +333,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -355,7 +355,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -381,7 +381,7 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -408,7 +408,7 @@ class DatasetControllerTest {
         "application/xslt+xml",
         "string".getBytes());
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), isNull(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -564,7 +564,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -585,7 +585,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     final String url = new URI("https://metis-repository-rest.test.eanadev.org/repository/oai").toString();
 
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenThrow(new ServiceException("Failed", new Exception()));
 
@@ -908,7 +908,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     MockMultipartFile mockMultipart = new MockMultipartFile("dataset", "dataset.txt", "application/zip",
         "<test></test>".getBytes());
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
     ServiceException exception = new ServiceException("Test error");
@@ -927,7 +927,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     ServiceException exception = new ServiceException("Test error");
     String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 
@@ -945,7 +945,7 @@ class DatasetControllerTest {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
     ServiceException exception = new ServiceException("Test error");
     final String url = new URI("http://panic.image.ntua.gr:9000/efg/oai").toString();
-    when(datasetService.createEmptyDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
+    when(datasetService.createDataset(any(), eq("my-data-set"), anyString(), eq(ITALY),
         eq(IT), anyString()))
         .thenReturn("12345");
 

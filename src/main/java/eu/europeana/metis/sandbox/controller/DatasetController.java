@@ -12,29 +12,18 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
-import eu.europeana.metis.sandbox.common.DatasetMetadata;
-import eu.europeana.metis.sandbox.common.ExecutionMetadata;
-import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDTO;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
 import eu.europeana.metis.sandbox.dto.RecordTiersInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
-import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,23 +34,17 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -108,14 +91,11 @@ class DatasetController {
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
   private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
   private static final String APPLICATION_RDF_XML = "application/rdf+xml";
-  private static final String HARVESTING_ERROR_MESSAGE = "Error harvesting records for dataset: ";
 
   private final DatasetService datasetService;
   private final DatasetReportService reportService;
   private final RecordTierCalculationService recordTierCalculationService;
   private final UrlValidator urlValidator;
-  private final BatchJobExecutor batchJobExecutor;
-  private final HarvestingParameterService harvestingParameterService;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
@@ -133,187 +113,14 @@ class DatasetController {
   @Autowired
   public DatasetController(DatasetService datasetService,
       DatasetReportService reportService,
-      RecordTierCalculationService recordTierCalculationService,
-      BatchJobExecutor batchJobExecutor,
-      HarvestingParameterService harvestingParameterService, ExecutionRecordRepository executionRecordRepository,
+      RecordTierCalculationService recordTierCalculationService, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.datasetService = datasetService;
     this.reportService = reportService;
     this.recordTierCalculationService = recordTierCalculationService;
-    this.batchJobExecutor = batchJobExecutor;
-    this.harvestingParameterService = harvestingParameterService;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
-  }
-
-  /**
-   * POST API calls for harvesting and processing the records given a zip, tar or tar.gz file
-   *
-   * @param jwtPrincipal the authenticated user provided as a Jwt token
-   * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param stepsize the stepsize
-   * @param datasetRecordsCompressedFile the given dataset itself to be processed as a compressed file
-   * @param xsltFile the xslt file used for transformation to edm external
-   * @return 202 if it's processed correctly, 4xx or 500 otherwise
-   */
-  @Operation(summary = "Harvest dataset from file", description = "Process the given dataset by HTTP providing a file")
-  @ApiResponse(responseCode = "202", description = MESSAGE_FOR_PROCESS_DATASET)
-  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
-  @PostMapping(value = "{name}/harvestByFile", produces = APPLICATION_JSON_VALUE, consumes = MULTIPART_FORM_DATA_VALUE)
-  @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDTO harvestDatasetFromFile(
-      @AuthenticationPrincipal Jwt jwtPrincipal,
-      @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
-      @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
-      @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
-      @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
-      @RequestParam(name = "stepsize", required = false) Integer stepsize,
-      @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset") MultipartFile datasetRecordsCompressedFile,
-      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
-    //Check user id if any. This is temporarily allowed due to api and ui user security.
-    final String userId;
-    if (jwtPrincipal == null) {
-      userId = null;
-    } else {
-      userId = getUserId(jwtPrincipal);
-    }
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
-        datasetRecordsCompressedFile);
-    if (stepsize != null) {
-      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
-    }
-
-    final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
-    final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
-        country, language, xsltToEdmExternal);
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                     .datasetId(createdDatasetId)
-                                                     .datasetName(datasetName)
-                                                     .country(country)
-                                                     .language(language)
-                                                     .stepSize(stepsize)
-                                                     .workflowType(WorkflowType.FILE_HARVEST)
-                                                     .xsltToEdmExternal(xsltToEdmExternal)
-                                                     .build();
-    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-        new FileHarvestingDTO(datasetRecordsCompressedFile.getOriginalFilename(), compressedFileExtension.name()));
-
-    final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, datasetRecordsCompressedFile);
-
-    InputMetadata inputMetadata = new InputMetadata(datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
-    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
-                                                           .datasetMetadata(datasetMetadata)
-                                                           .inputMetadata(inputMetadata)
-                                                           .build();
-    batchJobExecutor.execute(executionMetadata);
-
-    return new DatasetIdDTO(createdDatasetId);
-  }
-
-  /**
-   * POST API calls for harvesting and processing the records given a URL of a compressed file
-   *
-   * @param jwtPrincipal the authenticated JWT principal containing user information
-   * @param datasetName the given name of the dataset to be processed
-   * @param country the given country from which the records refer to
-   * @param language the given language that the records contain
-   * @param stepsize the stepsize
-   * @param url the given dataset itself to be processed as a URL of a zip file
-   * @param xsltFile the xslt file used for transformation to edm external
-   * @return 202 if it's processed correctly, 4xx or 500 otherwise
-   */
-  @Operation(summary = "Harvest dataset from url", description = "Process the given dataset by HTTP providing an URL")
-  @ApiResponse(responseCode = "202", description = MESSAGE_FOR_PROCESS_DATASET)
-  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
-  @PostMapping(value = "{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE, consumes = {
-      MULTIPART_FORM_DATA_VALUE, "*/*"})
-  @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public DatasetIdDTO harvestDatasetFromURL(
-      @AuthenticationPrincipal Jwt jwtPrincipal,
-      @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
-      @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
-      @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
-      @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
-      @RequestParam(name = "stepsize", required = false) Integer stepsize,
-      @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
-      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
-    //Check user id if any. This is temporarily allowed due to api and ui user security.
-    final String userId;
-    if (jwtPrincipal == null) {
-      userId = null;
-    } else {
-      userId = getUserId(jwtPrincipal);
-    }
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
-    URI uri = URI.create(url);
-    CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
-    if (stepsize != null) {
-      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
-    }
-
-    final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
-    final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST, datasetName, userId,
-        country, language, xsltToEdmExternal);
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                     .datasetId(createdDatasetId)
-                                                     .datasetName(datasetName)
-                                                     .country(country)
-                                                     .language(language)
-                                                     .stepSize(stepsize)
-                                                     .workflowType(WorkflowType.FILE_HARVEST)
-                                                     .xsltToEdmExternal(xsltToEdmExternal)
-                                                     .build();
-    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(), new HttpHarvestingDTO(url));
-
-    final InputStream inputStreamToHarvest;
-    try {
-      inputStreamToHarvest = new URI(url).toURL().openStream();
-    } catch (UnknownHostException e) {
-      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId() + " - Unknown host", e);
-    } catch (IOException | URISyntaxException e) {
-      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
-    }
-
-    final String urlFileName = url.substring(url.lastIndexOf("/") + 1);
-    final Path datasetRecordsCompressedFilePath = getTempFilePath(createdDatasetId, urlFileName, inputStreamToHarvest);
-
-    InputMetadata inputMetadata = new InputMetadata(datasetRecordsCompressedFilePath, compressedFileExtension, stepsize);
-    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
-                                                           .datasetMetadata(datasetMetadata)
-                                                           .inputMetadata(inputMetadata)
-                                                           .build();
-    batchJobExecutor.execute(executionMetadata);
-
-    return new DatasetIdDTO(createdDatasetId);
-  }
-
-  private static @NotNull Path getTempFilePath(String datasetId, String originalFilename, InputStream inputStream) {
-    final Path filePath;
-    try {
-      filePath = Files.createTempFile("dataset-" + datasetId, "-" + originalFilename);
-      Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from file " + originalFilename, e);
-    }
-    return filePath;
-  }
-
-  private static @NotNull Path getTempFilePath(String datasetId, MultipartFile multipartFile) {
-    final Path filePath;
-    try {
-      filePath = Files.createTempFile("dataset-" + datasetId, "-" + multipartFile.getOriginalFilename());
-      Files.copy(multipartFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from file " + multipartFile.getOriginalFilename(), e);
-    }
-    return filePath;
   }
 
   /**
@@ -362,37 +169,109 @@ class DatasetController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    final String xsltToEdmExternal = createXsltAsInputStreamIfPresent(xsltFile);
-    String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.OAI_HARVEST, datasetName, userId, country,
-        language, xsltToEdmExternal);
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                     .datasetId(createdDatasetId)
-                                                     .datasetName(datasetName)
-                                                     .country(country)
-                                                     .language(language)
-                                                     .stepSize(stepsize)
-                                                     .workflowType(WorkflowType.OAI_HARVEST)
-                                                     .xsltToEdmExternal(xsltToEdmExternal)
-                                                     .build();
-    setspec = getDefaultSetSpecWhenNotAvailable(setspec);
-    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-        new OAIPmhHarvestingDTO(url, setspec, metadataformat));
-
-    InputMetadata inputMetadata = new InputMetadata(url, setspec, metadataformat, stepsize);
-    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
-                                                           .datasetMetadata(datasetMetadata)
-                                                           .inputMetadata(inputMetadata)
-                                                           .build();
-    batchJobExecutor.execute(executionMetadata);
+    String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize, url,
+        setspec, metadataformat, xsltFile, userId);
 
     return new DatasetIdDTO(createdDatasetId);
   }
 
-  private static String getDefaultSetSpecWhenNotAvailable(String setspec) {
-    if (setspec != null && setspec.isEmpty()) {
-      setspec = null;
+  /**
+   * POST API calls for harvesting and processing the records given a zip, tar or tar.gz file
+   *
+   * @param jwtPrincipal the authenticated user provided as a Jwt token
+   * @param datasetName the given name of the dataset to be processed
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param stepsize the stepsize
+   * @param datasetRecordsCompressedFile the given dataset itself to be processed as a compressed file
+   * @param xsltFile the xslt file used for transformation to edm external
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
+  @Operation(summary = "Harvest dataset from file", description = "Process the given dataset by HTTP providing a file")
+  @ApiResponse(responseCode = "202", description = MESSAGE_FOR_PROCESS_DATASET)
+  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+  @PostMapping(value = "{name}/harvestByFile", produces = APPLICATION_JSON_VALUE, consumes = MULTIPART_FORM_DATA_VALUE)
+  @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public DatasetIdDTO harvestDatasetFromFile(
+      @AuthenticationPrincipal Jwt jwtPrincipal,
+      @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+      @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
+      @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
+      @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+      @RequestParam(name = "stepsize", required = false) Integer stepsize,
+      @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset")
+      MultipartFile datasetRecordsCompressedFile,
+      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false)
+      MultipartFile xsltFile) {
+    //Check user id if any. This is temporarily allowed due to api and ui user security.
+    final String userId;
+    if (jwtPrincipal == null) {
+      userId = null;
+    } else {
+      userId = getUserId(jwtPrincipal);
     }
-    return setspec;
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+    CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
+        datasetRecordsCompressedFile);
+    if (stepsize != null) {
+      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    }
+
+    final String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize,
+        datasetRecordsCompressedFile, xsltFile,
+        userId, compressedFileExtension);
+
+    return new DatasetIdDTO(createdDatasetId);
+  }
+
+  /**
+   * POST API calls for harvesting and processing the records given a URL of a compressed file
+   *
+   * @param jwtPrincipal the authenticated JWT principal containing user information
+   * @param datasetName the given name of the dataset to be processed
+   * @param country the given country from which the records refer to
+   * @param language the given language that the records contain
+   * @param stepsize the stepsize
+   * @param url the given dataset itself to be processed as a URL of a zip file
+   * @param xsltFile the xslt file used for transformation to edm external
+   * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   */
+  @Operation(summary = "Harvest dataset from url", description = "Process the given dataset by HTTP providing an URL")
+  @ApiResponse(responseCode = "202", description = MESSAGE_FOR_PROCESS_DATASET)
+  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+  @PostMapping(value = "{name}/harvestByUrl", produces = APPLICATION_JSON_VALUE, consumes = {
+      MULTIPART_FORM_DATA_VALUE, "*/*"})
+  @RequestBody(content = {@Content(mediaType = MULTIPART_FORM_DATA_VALUE)})
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public DatasetIdDTO harvestDatasetFromURL(
+      @AuthenticationPrincipal Jwt jwtPrincipal,
+      @Parameter(description = "name of the dataset", required = true) @PathVariable(value = "name") String datasetName,
+      @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
+      @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
+      @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
+      @RequestParam(name = "stepsize", required = false) Integer stepsize,
+      @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
+      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+    //Check user id if any. This is temporarily allowed due to api and ui user security.
+    final String userId;
+    if (jwtPrincipal == null) {
+      userId = null;
+    } else {
+      userId = getUserId(jwtPrincipal);
+    }
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
+    URI uri = URI.create(url);
+    CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
+    if (stepsize != null) {
+      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    }
+
+    final String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize, url,
+        xsltFile, userId, compressedFileExtension);
+
+    return new DatasetIdDTO(createdDatasetId);
   }
 
   /**
@@ -548,25 +427,6 @@ class DatasetController {
   @ResponseStatus(HttpStatus.OK)
   public List<LanguageView> getAllLanguages() {
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
-  }
-
-
-  private String createXsltAsInputStreamIfPresent(MultipartFile xslt) {
-    if (xslt != null && !xslt.isEmpty()) {
-      final String contentType = xslt.getContentType();
-      if (contentType == null) {
-        throw new IllegalArgumentException("Something went wrong checking file's content type.");
-      } else if (!contentType.contains("xml")) {
-        throw new IllegalArgumentException("The given xslt file should be a single xml file.");
-      }
-      try {
-        return new String(xslt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-      } catch (IOException e) {
-        throw new XsltProcessingException("Something wrong happened while processing xslt file.",
-            e);
-      }
-    }
-    return StringUtils.EMPTY;
   }
 
   private CompressedFileExtension getCompressedFileExtensionTypeFromUrl(URI uri) {

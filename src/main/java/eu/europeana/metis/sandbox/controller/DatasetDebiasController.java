@@ -4,35 +4,21 @@ import static eu.europeana.metis.sandbox.controller.DatasetController.MESSAGE_FO
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import eu.europeana.metis.sandbox.common.DatasetMetadata;
-import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
-import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
-import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
-import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
-import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.lang.invoke.MethodHandles;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,10 +41,6 @@ public class DatasetDebiasController {
 
   private final DatasetService datasetService;
   private final DeBiasStateService debiasStateService;
-  private final DatasetReportService datasetReportService;
-  private final Map<Integer, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
-  private final LockRegistry lockRegistry;
-  private final BatchJobExecutor batchJobExecutor;
 
   /**
    * Constructs a new instance of {@link DatasetDebiasController}.
@@ -69,13 +51,9 @@ public class DatasetDebiasController {
    * @param lockRegistry the registry for managing dataset locks
    */
   @Autowired
-  public DatasetDebiasController(DatasetService datasetService, DeBiasStateService debiasStateService,
-      DatasetReportService datasetReportService, LockRegistry lockRegistry, BatchJobExecutor batchJobExecutor) {
+  public DatasetDebiasController(DatasetService datasetService, DeBiasStateService debiasStateService) {
     this.datasetService = datasetService;
     this.debiasStateService = debiasStateService;
-    this.datasetReportService = datasetReportService;
-    this.lockRegistry = lockRegistry;
-    this.batchJobExecutor = batchJobExecutor;
   }
 
   /**
@@ -106,41 +84,7 @@ public class DatasetDebiasController {
         return false;
       }
     }
-
-    final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
-    try {
-      lock.lock();
-      LOGGER.info("DeBias process: {} lock, Locked", datasetId);
-      ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(datasetId.toString());
-
-      if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
-          "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
-                                 .map(DeBiasStatusDTO::getState)
-                                 .orElse(""))) {
-        debiasStateService.remove(datasetId);
-
-        DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
-        DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
-        DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                         .datasetId(datasetId.toString())
-                                                         .datasetName(datasetEntity.getDatasetName())
-                                                         .country(datasetEntity.getCountry())
-                                                         .language(datasetEntity.getLanguage())
-                                                         .stepSize(1)
-                                                         .workflowType(WorkflowType.DEBIAS)
-                                                         .build();
-        ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
-                                                               .datasetMetadata(datasetMetadata)
-                                                               .build();
-        batchJobExecutor.executeDebiasWorkflow(executionMetadata);
-        return true;
-      } else {
-        return false;
-      }
-    } finally {
-      lock.unlock();
-      LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
-    }
+    return datasetService.createAndExecuteDatasetForDebias(String.valueOf(datasetId));
   }
 
   /**

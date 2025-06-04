@@ -5,22 +5,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.common.DatasetMetadata;
-import eu.europeana.metis.sandbox.common.ExecutionMetadata;
-import eu.europeana.metis.sandbox.common.InputMetadata;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
-import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage.Type;
@@ -37,9 +29,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,13 +49,10 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Record validation controller")
 public class ValidationController {
 
-  private static final String DATASET_ID_PREFIX = "direct_validation_";
   private final DatasetService datasetService;
   private final DatasetReportService datasetReportService;
-  private final BatchJobExecutor batchJobExecutor;
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
-  private final HarvestingParameterService harvestingParameterService;
 
   /**
    * Instantiates a new Validation controller.
@@ -74,15 +60,12 @@ public class ValidationController {
    * @param validationWorkflowService the validation workflow service
    */
   public ValidationController(DatasetService datasetService,
-      DatasetReportService datasetReportService,
-      BatchJobExecutor batchJobExecutor, PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
-      ExecutionPointService executionPointService, HarvestingParameterService harvestingParameterService) {
+      DatasetReportService datasetReportService, PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
+      ExecutionPointService executionPointService) {
     this.datasetService = datasetService;
     this.datasetReportService = datasetReportService;
-    this.batchJobExecutor = batchJobExecutor;
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
-    this.harvestingParameterService = harvestingParameterService;
   }
 
   /**
@@ -109,38 +92,10 @@ public class ValidationController {
       @Parameter(description = "record file to be validated", required = true)
       @RequestParam("recordToValidate") MultipartFile recordToValidate) throws SerializationException, IOException {
     checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
-
-    final String datasetName = DATASET_ID_PREFIX + UUID.randomUUID();
-    final String createdDatasetId = datasetService.createEmptyDataset(WorkflowType.FILE_HARVEST_ONLY_VALIDATION, datasetName,
-        null,
-        country, language, null);
-    final Path filePath;
-    try {
-      filePath = Files.createTempFile("dataset-" + createdDatasetId,
-          "-" + recordToValidate.getOriginalFilename());
-      Files.copy(recordToValidate.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records from file " + recordToValidate.getOriginalFilename(), e);
-    }
-
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                     .datasetId(createdDatasetId)
-                                                     .datasetName(datasetName)
-                                                     .country(country)
-                                                     .language(language)
-                                                     .stepSize(1)
-                                                     .workflowType(WorkflowType.FILE_HARVEST_ONLY_VALIDATION)
-                                                     .build();
-    harvestingParameterService.createDatasetHarvestingParameters(datasetMetadata.getDatasetId(),
-        new FileHarvestingDTO(recordToValidate.getOriginalFilename(), "xml"));
-
-    InputMetadata inputMetadata = new InputMetadata(filePath);
-    ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
-                                                           .datasetMetadata(datasetMetadata)
-                                                           .inputMetadata(inputMetadata)
-                                                           .build();
-    batchJobExecutor.executeBlocking(executionMetadata);
-    ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(datasetMetadata.getDatasetId());
+    String datasetName = "direct_validation_" + UUID.randomUUID();
+    String createdDatasetId = datasetService.createAndExecuteDatasetForFileValidationBlocking(
+        datasetName, recordToValidate, country, language);
+    ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(createdDatasetId);
 
     List<ValidationResult> validationResults = new ArrayList<>();
     for (ProgressByStepDTO progressByStepDto : progressInfoDto.getProgressByStep()) {
@@ -154,10 +109,10 @@ public class ValidationController {
     }
 
     final Optional<ExecutionPoint> executionPointOptional = executionPointService
-        .getExecutionPoint(datasetMetadata.getDatasetId(), FullBatchJobType.VALIDATE_INTERNAL.toString());
+        .getExecutionPoint(createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString());
     Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> datasetPatternAnalysis =
         executionPointOptional.flatMap(executionPoint -> patternAnalysisService.getDatasetPatternAnalysis(
-            datasetMetadata.getDatasetId(), FullBatchJobType.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp()));
+            createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp()));
 
     return new ValidationWorkflowReport(validationResults,
         datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::getProblemPatternList).orElse(List.of()));

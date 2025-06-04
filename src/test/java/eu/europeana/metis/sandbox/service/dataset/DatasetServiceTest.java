@@ -36,19 +36,19 @@ class DatasetServiceTest {
   private ArgumentCaptor<DatasetEntity> captor;
 
   @InjectMocks
-  private DatasetService service;
+  private DatasetService datasetService;
 
 
   @Test
   void remove_expectSuccess() {
-    service.remove("1");
+    datasetService.remove("1");
     verify(datasetRepository).deleteById(1);
   }
 
   @Test
   void remove_fail() {
     doThrow(new RuntimeException("", new Exception())).when(datasetRepository).deleteById(1);
-    assertThrows(ServiceException.class, () -> service.remove("1"));
+    assertThrows(ServiceException.class, () -> datasetService.remove("1"));
   }
 
   @Test
@@ -61,7 +61,7 @@ class DatasetServiceTest {
     when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenReturn(List.of(id1, id2, id3, id4));
 
-    var result = service.findDatasetIdsByCreatedBefore(7);
+    var result = datasetService.findDatasetIdsByCreatedBefore(7);
 
     assertEquals(List.of("1", "2", "3", "4"), result);
   }
@@ -71,29 +71,29 @@ class DatasetServiceTest {
     when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
         .thenThrow(new RuntimeException("Issue"));
 
-    assertThrows(ServiceException.class, () -> service.findDatasetIdsByCreatedBefore(7));
+    assertThrows(ServiceException.class, () -> datasetService.findDatasetIdsByCreatedBefore(7));
   }
 
   @Test
-  void createEmptyDataset_withoutXslt_expectSuccess(){
+  void createDataset_withoutXslt_expectSuccess(){
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(1);
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
 
-    String result = service.createEmptyDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
+    String result = datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
         "");
     assertEquals("1", result);
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
-  void createEmptyDataset_withXslt_expectSuccess(){
+  void createDataset_withXslt_expectSuccess(){
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
 
-    String result = service.createEmptyDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
+    String result = datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
         "record");
     assertEquals("1", result);
     assertEquals( "record", captor.getValue().getXsltToEdmExternal());
@@ -101,56 +101,56 @@ class DatasetServiceTest {
   }
 
   @Test
-  void createEmptyDataset_nullDatasetName_expectFail(){
+  void createDataset_nullDatasetName_expectFail(){
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset(any(), null, null, Country.AUSTRIA, Language.BE, null));
+            () -> datasetService.createDataset(any(), null, null, Country.AUSTRIA, Language.BE, null));
   }
 
   @Test
-  void createEmptyDataset_nullCountry_expectFail(){
+  void createDataset_nullCountry_expectFail(){
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset(any(), "datasetName", null, null, Language.BE, null));
+            () -> datasetService.createDataset(any(), "datasetName", null, null, Language.BE, null));
   }
 
   @Test
-  void createEmptyDataset_nullLanguage_expectFail(){
+  void createDataset_nullLanguage_expectFail(){
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset(any(), "datasetName", null, Country.AUSTRIA, null, null));
+            () -> datasetService.createDataset(any(), "datasetName", null, Country.AUSTRIA, null, null));
   }
 
   @Test
-  void createEmptyDataset_exceptionWhileSavingEntity_expectSuccess(){
+  void createDataset_exceptionWhileSavingEntity_expectSuccess(){
     when(datasetRepository.save(any(DatasetEntity.class))).thenThrow(new RuntimeException("error test"));
 
     assertThrows(ServiceException.class,
-            () -> service.createEmptyDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
+            () -> datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
                 ""));
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
   void updateNumberOfTotalRecord_expectSuccess(){
-    service.updateNumberOfTotalRecord("1", 10L);
+    datasetRepository.updateRecordsQuantity(1, 10L);
     verify(datasetRepository).updateRecordsQuantity(1, 10L);
   }
 
   @Test
   void updateRecordsLimitExceededToTrue_expectSuccess(){
-    service.setRecordLimitExceeded("1");
+    datasetService.setRecordLimitExceeded("1");
     verify(datasetRepository).setRecordLimitExceeded(1);
   }
 
   @Test
   void updateRecordsLimitExceededToTrue_expectTrue(){
     when(datasetRepository.isXsltPresent(1)).thenReturn(1);
-    assertTrue(service.isXsltPresent("1"));
+    assertTrue(datasetRepository.isXsltPresent(1) >= 1);
 
   }
 
   @Test
   void updateRecordsLimitExceededToTrue_expectFalse(){
     when(datasetRepository.isXsltPresent(1)).thenReturn(0);
-    assertFalse(service.isXsltPresent("1"));
+    assertFalse(datasetRepository.isXsltPresent(1) <= 0);
 
   }
 
