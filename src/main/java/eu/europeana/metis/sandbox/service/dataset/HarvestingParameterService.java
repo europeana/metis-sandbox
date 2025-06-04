@@ -2,19 +2,20 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static eu.europeana.metis.sandbox.common.HarvestProtocol.FILE;
 import static eu.europeana.metis.sandbox.common.HarvestProtocol.HTTP;
-import static eu.europeana.metis.sandbox.common.HarvestProtocol.OAI_PMH;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.FileHarvestingDTO;
-import eu.europeana.metis.sandbox.dto.HarvestingParametersDTO;
-import eu.europeana.metis.sandbox.dto.HttpHarvestingDTO;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDTO;
+import eu.europeana.metis.sandbox.dto.FileHarvestDTO;
+import eu.europeana.metis.sandbox.dto.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.HttpHarvestDTO;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
+import eu.europeana.metis.sandbox.entity.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,20 +40,24 @@ public class HarvestingParameterService {
     }
 
     @Transactional
-    public void createDatasetHarvestingParameters(String datasetId, HarvestingParametersDTO harvestingParametersDto) {
+    public HarvestParametersEntity createDatasetHarvestParameters(String datasetId, HarvestParametersDTO harvestParametersDto) {
         requireNonNull(datasetId, "Dataset name must not be null");
-        requireNonNull(harvestingParametersDto, "Type of harvesting must not be null");
+        requireNonNull(harvestParametersDto, "Type of harvesting must not be null");
         try {
-            harvestingParameterRepository.save(createEntityToSave(datasetId, harvestingParametersDto));
+            return harvestingParameterRepository.save(createEntityToSave(datasetId, harvestParametersDto));
         } catch (RuntimeException e) {
             throw new ServiceException(format("Error saving harvesting parameters for dataset id: [%s]. ", datasetId), e);
         }
 
     }
 
-    public HarvestingParameterEntity getDatasetHarvestingParameters(String datasetId) {
+    public HarvestParametersEntity getDatasetHarvestingParameters(String datasetId) {
         return harvestingParameterRepository.getHarvestingParametersEntitiesByDatasetId_DatasetId(Integer.parseInt(datasetId));
     }
+
+  public Optional<HarvestParametersEntity> getHarvestingParametersById(UUID uuid) {
+    return harvestingParameterRepository.findById(uuid);
+  }
 
     @Transactional
     public void remove(String datasetId) {
@@ -65,25 +70,40 @@ public class HarvestingParameterService {
         }
     }
 
-    private HarvestingParameterEntity createEntityToSave(String datasetId, HarvestingParametersDTO harvestingParametersDto){
+    private HarvestParametersEntity createEntityToSave(String datasetId, HarvestParametersDTO harvestParametersDto){
 
         DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
 
-      return switch (harvestingParametersDto.getHarvestProtocol()) {
+      return switch (harvestParametersDto.getHarvestProtocol()) {
         case FILE -> {
-          FileHarvestingDTO fileHarvestingDto = (FileHarvestingDTO) harvestingParametersDto;
-          yield new HarvestingParameterEntity(datasetEntity, FILE, fileHarvestingDto.getFileName(),
-              fileHarvestingDto.getFileType(), null, null, null);
+          FileHarvestDTO fileHarvestingDto = (FileHarvestDTO) harvestParametersDto;
+          HarvestParametersEntity harvestParametersEntity = new HarvestParametersEntity();
+          harvestParametersEntity.setDatasetId(datasetEntity);
+          harvestParametersEntity.setHarvestProtocol(FILE);
+          harvestParametersEntity.setFileName(fileHarvestingDto.getFileName());
+          harvestParametersEntity.setFileType(fileHarvestingDto.getFileType());
+          harvestParametersEntity.setFileContent(fileHarvestingDto.getFileData());
+          yield harvestParametersEntity;
         }
         case HTTP -> {
-          HttpHarvestingDTO httpHarvestingDto = (HttpHarvestingDTO) harvestingParametersDto;
-          yield new HarvestingParameterEntity(datasetEntity, HTTP, null, null,
-              httpHarvestingDto.getUrl(), null, null);
+          HttpHarvestDTO httpHarvestingDto = (HttpHarvestDTO) harvestParametersDto;
+          HarvestParametersEntity harvestParametersEntity = new HarvestParametersEntity();
+          harvestParametersEntity.setDatasetId(datasetEntity);
+          harvestParametersEntity.setHarvestProtocol(HTTP);
+          harvestParametersEntity.setUrl(httpHarvestingDto.getUrl());
+          harvestParametersEntity.setFileType(httpHarvestingDto.getFileType());
+          harvestParametersEntity.setFileContent(httpHarvestingDto.getFileData());
+          yield harvestParametersEntity;
         }
         case OAI_PMH -> {
-          OAIPmhHarvestingDTO oaiPmhHarvestingDto = (OAIPmhHarvestingDTO) harvestingParametersDto;
-          yield new HarvestingParameterEntity(datasetEntity, OAI_PMH, null, null,
-              oaiPmhHarvestingDto.getUrl(), oaiPmhHarvestingDto.getSetSpec(), oaiPmhHarvestingDto.getMetadataFormat());
+          OAIPmhHarvestDTO oaiPmhHarvestingDto = (OAIPmhHarvestDTO) harvestParametersDto;
+          HarvestParametersEntity harvestParametersEntity = new HarvestParametersEntity();
+          harvestParametersEntity.setDatasetId(datasetEntity);
+          harvestParametersEntity.setHarvestProtocol(HTTP);
+          harvestParametersEntity.setUrl(oaiPmhHarvestingDto.getUrl());
+          harvestParametersEntity.setSetSpec(oaiPmhHarvestingDto.getSetSpec());
+          harvestParametersEntity.setMetadataFormat(oaiPmhHarvestingDto.getMetadataFormat());
+          yield harvestParametersEntity;
         }
       };
     }

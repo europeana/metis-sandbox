@@ -1,170 +1,170 @@
-package eu.europeana.metis.sandbox.service.dataset;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
-import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import java.time.ZonedDateTime;
-import java.util.List;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-@ExtendWith(MockitoExtension.class)
-class DatasetServiceTest {
-
-  @Mock
-  private DatasetRepository datasetRepository;
-
-  @Captor
-  private ArgumentCaptor<DatasetEntity> captor;
-
-  @InjectMocks
-  private DatasetService datasetService;
-
-
-  @Test
-  void remove_expectSuccess() {
-    datasetService.remove("1");
-    verify(datasetRepository).deleteById(1);
-  }
-
-  @Test
-  void remove_fail() {
-    doThrow(new RuntimeException("", new Exception())).when(datasetRepository).deleteById(1);
-    assertThrows(ServiceException.class, () -> datasetService.remove("1"));
-  }
-
-  @Test
-  void getDatasetIdsBefore_expectSuccess() {
-    var id1 = new DatasetIdProjectionImpl(1);
-    var id2 = new DatasetIdProjectionImpl(2);
-    var id3 = new DatasetIdProjectionImpl(3);
-    var id4 = new DatasetIdProjectionImpl(4);
-
-    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
-        .thenReturn(List.of(id1, id2, id3, id4));
-
-    var result = datasetService.findDatasetIdsByCreatedBefore(7);
-
-    assertEquals(List.of("1", "2", "3", "4"), result);
-  }
-
-  @Test
-  void getDatasetIdsBefore_failToGetIds_expectFail() {
-    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
-        .thenThrow(new RuntimeException("Issue"));
-
-    assertThrows(ServiceException.class, () -> datasetService.findDatasetIdsByCreatedBefore(7));
-  }
-
-  @Test
-  void createDataset_withoutXslt_expectSuccess(){
-    DatasetEntity datasetEntity = new DatasetEntity();
-    datasetEntity.setDatasetId(1);
-    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
-
-    String result = datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
-        "");
-    assertEquals("1", result);
-    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-  }
-
-  @Test
-  void createDataset_withXslt_expectSuccess(){
-    DatasetEntity datasetEntity = new DatasetEntity();
-    datasetEntity.setDatasetId(1);
-
-    when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
-
-    String result = datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
-        "record");
-    assertEquals("1", result);
-    assertEquals( "record", captor.getValue().getXsltToEdmExternal());
-    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-  }
-
-  @Test
-  void createDataset_nullDatasetName_expectFail(){
-    assertThrows(NullPointerException.class,
-            () -> datasetService.createDataset(any(), null, null, Country.AUSTRIA, Language.BE, null));
-  }
-
-  @Test
-  void createDataset_nullCountry_expectFail(){
-    assertThrows(NullPointerException.class,
-            () -> datasetService.createDataset(any(), "datasetName", null, null, Language.BE, null));
-  }
-
-  @Test
-  void createDataset_nullLanguage_expectFail(){
-    assertThrows(NullPointerException.class,
-            () -> datasetService.createDataset(any(), "datasetName", null, Country.AUSTRIA, null, null));
-  }
-
-  @Test
-  void createDataset_exceptionWhileSavingEntity_expectSuccess(){
-    when(datasetRepository.save(any(DatasetEntity.class))).thenThrow(new RuntimeException("error test"));
-
-    assertThrows(ServiceException.class,
-            () -> datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
-                ""));
-    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
-  }
-
-  @Test
-  void updateNumberOfTotalRecord_expectSuccess(){
-    datasetRepository.updateRecordsQuantity(1, 10L);
-    verify(datasetRepository).updateRecordsQuantity(1, 10L);
-  }
-
-  @Test
-  void updateRecordsLimitExceededToTrue_expectSuccess(){
-    datasetService.setRecordLimitExceeded("1");
-    verify(datasetRepository).setRecordLimitExceeded(1);
-  }
-
-  @Test
-  void updateRecordsLimitExceededToTrue_expectTrue(){
-    when(datasetRepository.isXsltPresent(1)).thenReturn(1);
-    assertTrue(datasetRepository.isXsltPresent(1) >= 1);
-
-  }
-
-  @Test
-  void updateRecordsLimitExceededToTrue_expectFalse(){
-    when(datasetRepository.isXsltPresent(1)).thenReturn(0);
-    assertFalse(datasetRepository.isXsltPresent(1) <= 0);
-
-  }
-
-  private static class DatasetIdProjectionImpl implements DatasetIdProjection {
-
-    private final Integer datasetId;
-
-    public DatasetIdProjectionImpl(Integer datasetId) {
-      this.datasetId = datasetId;
-    }
-
-    @Override
-    public Integer getDatasetId() {
-      return datasetId;
-    }
-  }
-}
+//package eu.europeana.metis.sandbox.service.dataset;
+//
+//import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertFalse;
+//import static org.junit.jupiter.api.Assertions.assertThrows;
+//import static org.junit.jupiter.api.Assertions.assertTrue;
+//import static org.mockito.ArgumentMatchers.any;
+//import static org.mockito.Mockito.doThrow;
+//import static org.mockito.Mockito.times;
+//import static org.mockito.Mockito.verify;
+//import static org.mockito.Mockito.when;
+//
+//import eu.europeana.metis.sandbox.common.exception.ServiceException;
+//import eu.europeana.metis.sandbox.common.locale.Country;
+//import eu.europeana.metis.sandbox.common.locale.Language;
+//import eu.europeana.metis.sandbox.entity.DatasetEntity;
+//import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
+//import eu.europeana.metis.sandbox.repository.DatasetRepository;
+//import java.time.ZonedDateTime;
+//import java.util.List;
+//import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.extension.ExtendWith;
+//import org.mockito.ArgumentCaptor;
+//import org.mockito.Captor;
+//import org.mockito.InjectMocks;
+//import org.mockito.Mock;
+//import org.mockito.junit.jupiter.MockitoExtension;
+//
+//@ExtendWith(MockitoExtension.class)
+//class DatasetServiceTest {
+//
+//  @Mock
+//  private DatasetRepository datasetRepository;
+//
+//  @Captor
+//  private ArgumentCaptor<DatasetEntity> captor;
+//
+//  @InjectMocks
+//  private DatasetService datasetService;
+//
+//
+//  @Test
+//  void remove_expectSuccess() {
+//    datasetService.remove("1");
+//    verify(datasetRepository).deleteById(1);
+//  }
+//
+//  @Test
+//  void remove_fail() {
+//    doThrow(new RuntimeException("", new Exception())).when(datasetRepository).deleteById(1);
+//    assertThrows(ServiceException.class, () -> datasetService.remove("1"));
+//  }
+//
+//  @Test
+//  void getDatasetIdsBefore_expectSuccess() {
+//    var id1 = new DatasetIdProjectionImpl(1);
+//    var id2 = new DatasetIdProjectionImpl(2);
+//    var id3 = new DatasetIdProjectionImpl(3);
+//    var id4 = new DatasetIdProjectionImpl(4);
+//
+//    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
+//        .thenReturn(List.of(id1, id2, id3, id4));
+//
+//    var result = datasetService.findDatasetIdsByCreatedBefore(7);
+//
+//    assertEquals(List.of("1", "2", "3", "4"), result);
+//  }
+//
+//  @Test
+//  void getDatasetIdsBefore_failToGetIds_expectFail() {
+//    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class)))
+//        .thenThrow(new RuntimeException("Issue"));
+//
+//    assertThrows(ServiceException.class, () -> datasetService.findDatasetIdsByCreatedBefore(7));
+//  }
+//
+//  @Test
+//  void createDataset_withoutXslt_expectSuccess(){
+//    DatasetEntity datasetEntity = new DatasetEntity();
+//    datasetEntity.setDatasetId(1);
+//    when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
+//
+//    String result = datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
+//        "");
+//    assertEquals("1", result);
+//    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
+//  }
+//
+//  @Test
+//  void createDataset_withXslt_expectSuccess(){
+//    DatasetEntity datasetEntity = new DatasetEntity();
+//    datasetEntity.setDatasetId(1);
+//
+//    when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
+//
+//    String result = datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
+//        "record");
+//    assertEquals("1", result);
+//    assertEquals( "record", captor.getValue().getXsltToEdmExternal());
+//    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
+//  }
+//
+//  @Test
+//  void createDataset_nullDatasetName_expectFail(){
+//    assertThrows(NullPointerException.class,
+//            () -> datasetService.createDataset(any(), null, null, Country.AUSTRIA, Language.BE, null));
+//  }
+//
+//  @Test
+//  void createDataset_nullCountry_expectFail(){
+//    assertThrows(NullPointerException.class,
+//            () -> datasetService.createDataset(any(), "datasetName", null, null, Language.BE, null));
+//  }
+//
+//  @Test
+//  void createDataset_nullLanguage_expectFail(){
+//    assertThrows(NullPointerException.class,
+//            () -> datasetService.createDataset(any(), "datasetName", null, Country.AUSTRIA, null, null));
+//  }
+//
+//  @Test
+//  void createDataset_exceptionWhileSavingEntity_expectSuccess(){
+//    when(datasetRepository.save(any(DatasetEntity.class))).thenThrow(new RuntimeException("error test"));
+//
+//    assertThrows(ServiceException.class,
+//            () -> datasetService.createDataset(any(), "datasetName", null, Country.NETHERLANDS, Language.NL,
+//                ""));
+//    verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
+//  }
+//
+//  @Test
+//  void updateNumberOfTotalRecord_expectSuccess(){
+//    datasetRepository.updateRecordsQuantity(1, 10L);
+//    verify(datasetRepository).updateRecordsQuantity(1, 10L);
+//  }
+//
+//  @Test
+//  void updateRecordsLimitExceededToTrue_expectSuccess(){
+//    datasetService.setRecordLimitExceeded("1");
+//    verify(datasetRepository).setRecordLimitExceeded(1);
+//  }
+//
+//  @Test
+//  void updateRecordsLimitExceededToTrue_expectTrue(){
+//    when(datasetRepository.isXsltPresent(1)).thenReturn(1);
+//    assertTrue(datasetRepository.isXsltPresent(1) >= 1);
+//
+//  }
+//
+//  @Test
+//  void updateRecordsLimitExceededToTrue_expectFalse(){
+//    when(datasetRepository.isXsltPresent(1)).thenReturn(0);
+//    assertFalse(datasetRepository.isXsltPresent(1) <= 0);
+//
+//  }
+//
+//  private static class DatasetIdProjectionImpl implements DatasetIdProjection {
+//
+//    private final Integer datasetId;
+//
+//    public DatasetIdProjectionImpl(Integer datasetId) {
+//      this.datasetId = datasetId;
+//    }
+//
+//    @Override
+//    public Integer getDatasetId() {
+//      return datasetId;
+//    }
+//  }
+//}

@@ -37,7 +37,7 @@ public final class DatasetInfoDTO {
   private final boolean transformedToEdmExternal;
 
   @JsonProperty("harvesting-parameters")
-  private final HarvestingParametersDTO harvestingParametersDto;
+  private final HarvestParametersDTO harvestParametersDto;
 
   private DatasetInfoDTO(Builder builder) {
     this.datasetId = builder.datasetId;
@@ -47,7 +47,7 @@ public final class DatasetInfoDTO {
     this.language = builder.language;
     this.country = builder.country;
     this.transformedToEdmExternal = builder.transformedToEdmExternal;
-    this.harvestingParametersDto = builder.harvestingParametersDto;
+    this.harvestParametersDto = builder.harvestParametersDto;
   }
 
   /**
@@ -62,7 +62,7 @@ public final class DatasetInfoDTO {
     private Language language;
     private Country country;
     private boolean transformedToEdmExternal;
-    private HarvestingParametersDTO harvestingParametersDto;
+    private HarvestParametersDTO harvestParametersDto;
 
     /**
      * Sets the dataset ID.
@@ -144,11 +144,11 @@ public final class DatasetInfoDTO {
     /**
      * Sets the harvesting parameters for the dataset.
      *
-     * @param harvestingParametersDto the harvesting parameters
+     * @param harvestParametersDto the harvesting parameters
      * @return the builder instance
      */
-    public Builder harvestingParametricDto(HarvestingParametersDTO harvestingParametersDto) {
-      this.harvestingParametersDto = harvestingParametersDto;
+    public Builder harvestingParametricDto(HarvestParametersDTO harvestParametersDto) {
+      this.harvestParametersDto = harvestParametersDto;
       return this;
     }
 
@@ -230,7 +230,7 @@ public final class DatasetInfoDTO {
    *
    * @return the harvesting parameters
    */
-  public HarvestingParametersDTO getHarvestingParametricDto() {
-    return harvestingParametersDto;
+  public HarvestParametersDTO getHarvestingParametricDto() {
+    return harvestParametersDto;
   }
 }

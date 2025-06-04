@@ -12,15 +12,15 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 
 public class WorkflowHelper {
 
@@ -54,12 +54,12 @@ public class WorkflowHelper {
       WorkflowType.DEBIAS, ONLY_DEBIAS
   );
 
-  public static List<FullBatchJobType> getWorkflow(DatasetMetadata datasetMetadata) {
-    WorkflowType workflowType = Optional.ofNullable(datasetMetadata.getWorkflowType()).orElse(WorkflowType.OAI_HARVEST);
+  public static List<FullBatchJobType> getWorkflow(ExecutionMetadata executionMetadata) {
+    WorkflowType workflowType = Optional.ofNullable(executionMetadata.getDatasetMetadata().getWorkflowType()).orElse(WorkflowType.OAI_HARVEST);
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
     boolean shouldInsertTransformExternal =
-        StringUtils.isNotBlank(datasetMetadata.getXsltToEdmExternal()) &&
+        executionMetadata.getInputMetadata().getTransformXsltEntity() != null &&
             workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
     List<FullBatchJobType> finalSteps;
@@ -78,12 +78,11 @@ public class WorkflowHelper {
     return finalSteps;
   }
 
-  public static List<FullBatchJobType> getWorkflow(DatasetEntity datasetEntity) {
+  public static List<FullBatchJobType> getWorkflow(DatasetEntity datasetEntity, TransformXsltEntity transformXsltEntity) {
     WorkflowType workflowType = Optional.ofNullable(datasetEntity.getWorkflowType()).orElse(WorkflowType.OAI_HARVEST);
     List<FullBatchJobType> baseSteps = WorkflowHelper.WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
-    boolean shouldInsertTransformExternal =
-        StringUtils.isNotBlank(datasetEntity.getXsltToEdmExternal()) &&
+    boolean shouldInsertTransformExternal = transformXsltEntity != null &&
             workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
     List<FullBatchJobType> finalSteps;

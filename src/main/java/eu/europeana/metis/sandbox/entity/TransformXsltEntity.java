@@ -13,19 +13,25 @@ import jakarta.persistence.Table;
  */
 
 @Entity
-@Table(name = "default_transform_xslt")
+@Table(name = "transform_xslt")
 public class TransformXsltEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
+  private String datasetId;
+
   @Column(columnDefinition="TEXT")
   private String transformXslt;
 
+  private String type;
 
-  public TransformXsltEntity(String transformXslt) {
+
+  public TransformXsltEntity(String datasetId, String transformXslt, String type) {
+    this.datasetId = datasetId;
     this.transformXslt = transformXslt;
+    this.type = type;
   }
 
   public TransformXsltEntity() {
@@ -45,5 +51,21 @@ public class TransformXsltEntity {
 
   public void setTransformXslt(String transformXslt) {
     this.transformXslt = transformXslt;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getDatasetId() {
+    return datasetId;
+  }
+
+  public void setDatasetId(String datasetId) {
+    this.datasetId = datasetId;
   }
 }

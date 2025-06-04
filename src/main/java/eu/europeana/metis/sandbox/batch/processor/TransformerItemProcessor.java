@@ -9,6 +9,8 @@ import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -37,9 +39,10 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
   private String datasetCountry;
   @Value("#{jobParameters['datasetLanguage']}")
   private String datasetLanguage;
-  @Value("#{jobParameters['xsltContent']}")
-  private String xsltContent;
+  @Value("#{jobParameters['xsltId']}")
+  private String xsltId;
 
+  private final TransformXsltRepository transformXsltRepository;
   private final ItemProcessorUtil itemProcessorUtil;
   private ThrowingFunction<TransformationInput, String> transformationFunction;
 
@@ -47,7 +50,8 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
 
   }
 
-  public TransformerItemProcessor() {
+  public TransformerItemProcessor(TransformXsltRepository transformXsltRepository) {
+    this.transformXsltRepository = transformXsltRepository;
     itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
@@ -90,6 +94,8 @@ public class TransformerItemProcessor extends AbstractMetisItemProcessor<Executi
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       final byte[] contentBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+      String xsltContent = transformXsltRepository.findById(Integer.valueOf(xsltId))
+                                                  .map(TransformXsltEntity::getTransformXslt).orElseThrow();
       InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
 
       final String resultString = transformationFunction.apply(

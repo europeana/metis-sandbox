@@ -28,6 +28,4 @@ public final class DatasetMetadata {
 
   @NonNull
   private final WorkflowType workflowType;
-
-  private final String xsltToEdmExternal;
 }

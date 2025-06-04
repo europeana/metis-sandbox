@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "batch-framework")
+@Table(schema = "engine_record")
 public class ExecutionRecordExternalIdentifier implements HasExecutionRecordIdAccess<ExecutionRecordExternalIdentifierKey> {
 
     @EmbeddedId

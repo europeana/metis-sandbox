@@ -40,14 +40,6 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
   @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
   void setRecordLimitExceeded(int datasetId);
 
-  /**
-   * A boolean type of query to check if dataset has xslt content
-   * @param datasetId The id of the dataset to update into
-   * @return Returns 0 if there is no xslt, 1 otherwise
-   */
-  @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltToEdmExternal IS NOT NULL")
-  int isXsltPresent(int datasetId);
-
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 
   interface DatasetIdProjection {

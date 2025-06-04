@@ -15,7 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "batch-framework", indexes = {@Index(name = "exec_rec_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+@Table(schema = "engine_record", indexes = {@Index(name = "exec_rec_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
 public class ExecutionRecord implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
 
   @EmbeddedId

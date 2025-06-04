@@ -19,7 +19,9 @@ import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -40,6 +42,7 @@ public class DatasetReportService {
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
   private final DatasetRepository datasetRepository;
+  private final TransformXsltRepository transformXsltRepository;
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
 
@@ -52,19 +55,22 @@ public class DatasetReportService {
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
-      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
+      ExecutionRecordTierContextRepository executionRecordTierContextRepository,
+      TransformXsltRepository transformXsltRepository) {
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
+    this.transformXsltRepository = transformXsltRepository;
   }
 
   public ProgressInfoDTO getProgress(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    TransformXsltEntity transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId).orElse(null);
 
-    List<FullBatchJobType> workflowSteps = WorkflowHelper.getWorkflow(datasetEntity);
+    List<FullBatchJobType> workflowSteps = WorkflowHelper.getWorkflow(datasetEntity, transformXsltEntity);
 
     List<ProgressByStepDTO> progressByStepDTOS = new LinkedList<>();
     for (FullBatchJobType step : workflowSteps) {

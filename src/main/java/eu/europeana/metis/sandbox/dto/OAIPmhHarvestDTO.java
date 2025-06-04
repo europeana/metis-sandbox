@@ -7,8 +7,8 @@ import io.swagger.annotations.ApiModel;
 /**
  * Represents the data related to OAI-PMH harvesting
  */
-@ApiModel(OAIPmhHarvestingDTO.SWAGGER_MODEL_NAME)
-public class OAIPmhHarvestingDTO implements HarvestingParametersDTO {
+@ApiModel(OAIPmhHarvestDTO.SWAGGER_MODEL_NAME)
+public class OAIPmhHarvestDTO implements HarvestParametersDTO {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 
@@ -24,13 +24,13 @@ public class OAIPmhHarvestingDTO implements HarvestingParametersDTO {
     @JsonProperty("metadata-format")
     private final String metadataFormat;
 
-    /**
+  /**
      * Constructor of this Dto
      * @param url The url used for harvesting
      * @param setSpec The setspec used for this harvesting
      * @param metadataFormat The metadata format used for this harvesting
      */
-    public OAIPmhHarvestingDTO(String url, String setSpec, String metadataFormat) {
+    public OAIPmhHarvestDTO(String url, String setSpec, String metadataFormat) {
         this.url = url;
         this.setSpec = setSpec;
         this.metadataFormat = metadataFormat;

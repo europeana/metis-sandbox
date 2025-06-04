@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(schema = "batch-framework", indexes = {
+@Table(schema = "engine_record", indexes = {
     @Index(name = "exec_rec_warning_exception_dataset_id_execution_id_idx", columnList = "datasetId, executionId")
 })
 @Getter

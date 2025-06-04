@@ -155,7 +155,8 @@ class DatasetController {
       @Parameter(description = "dataset URL records", required = true) @RequestParam("url") String url,
       @Parameter(description = "dataset specification") @RequestParam(name = "setspec", required = false) String setspec,
       @Parameter(description = "metadata format") @RequestParam("metadataformat") String metadataformat,
-      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile)
+      throws IOException {
     //Check user id if any. This is temporarily allowed due to api and ui user security.
     final String userId;
     if (jwtPrincipal == null) {
@@ -203,7 +204,7 @@ class DatasetController {
       @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset")
       MultipartFile datasetRecordsCompressedFile,
       @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false)
-      MultipartFile xsltFile) {
+      MultipartFile xsltFile) throws IOException {
     //Check user id if any. This is temporarily allowed due to api and ui user security.
     final String userId;
     if (jwtPrincipal == null) {
@@ -219,8 +220,7 @@ class DatasetController {
     }
 
     final String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize,
-        datasetRecordsCompressedFile, xsltFile,
-        userId, compressedFileExtension);
+        datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
   }
@@ -252,7 +252,8 @@ class DatasetController {
       @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
       @RequestParam(name = "stepsize", required = false) Integer stepsize,
       @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
-      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile)
+      throws IOException {
     //Check user id if any. This is temporarily allowed due to api and ui user security.
     final String userId;
     if (jwtPrincipal == null) {

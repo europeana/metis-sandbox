@@ -63,7 +63,7 @@ public class XsltUrlUpdateService {
     try {
       lock.lock();
       LOGGER.info("Save default xslt lock, Locked");
-      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc();
+      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByTypeOrderById("DEFAULT");
 
       if (entity.isPresent()) {
         if (!(newTransformXslt.equals(entity.get().getTransformXslt()))) {
@@ -71,7 +71,7 @@ public class XsltUrlUpdateService {
           transformXsltRepository.save(entity.get());
         }
       } else {
-        transformXsltRepository.save(new TransformXsltEntity(newTransformXslt));
+        transformXsltRepository.save(new TransformXsltEntity(null, newTransformXslt, "DEFAULT"));
       }
     } catch (RuntimeException e) {
       LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);

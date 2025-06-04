@@ -1,19 +1,18 @@
 package eu.europeana.metis.sandbox.service.engine;
 
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_BATCH_JOB_SUBTYPE;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_COMPRESSED_FILE_EXTENSION;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_COUNTRY;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_NAME;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_INPUT_FILE_PATH;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_HARVEST_PARAMETER_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_METADATA_PREFIX;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_ENDPOINT;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_SET;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_STEP_SIZE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_CONTENT;
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_XSLT_ID;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.DEBIAS;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.ENRICH;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_FILE;
@@ -32,6 +31,9 @@ import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.config.batch.DebiasJobConfig;
 import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
 import eu.europeana.metis.sandbox.config.batch.FileHarvestJobConfig;
@@ -41,9 +43,6 @@ import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
-import eu.europeana.metis.sandbox.common.DatasetMetadata;
-import eu.europeana.metis.sandbox.common.ExecutionMetadata;
-import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
@@ -140,7 +139,7 @@ public class BatchJobExecutor {
   private void executeSteps(ExecutionMetadata executionMetadata) {
     ExecutionMetadata currentExecutionMetadata = executionMetadata;
 
-    for (FullBatchJobType step : WorkflowHelper.getWorkflow(executionMetadata.getDatasetMetadata())) {
+    for (FullBatchJobType step : WorkflowHelper.getWorkflow(executionMetadata)) {
 
       Function<ExecutionMetadata, JobExecution> executor = jobExecutorsByType.get(step);
       if (executor == null) {
@@ -155,7 +154,8 @@ public class BatchJobExecutor {
       updateDatasetRecordTotal(currentExecutionMetadata, step);
       currentExecutionMetadata = ExecutionMetadata.builder().datasetMetadata(executionMetadata.getDatasetMetadata())
                                                   .inputMetadata(new InputMetadata(
-                                                      execution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID)))
+                                                      execution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID),
+                                                      currentExecutionMetadata.getInputMetadata()))
                                                   .build();
     }
   }
@@ -233,12 +233,8 @@ public class BatchJobExecutor {
   private @NotNull JobExecution runFileHarvest(ExecutionMetadata executionMetadata) {
     InputMetadata inputMetadata = executionMetadata.getInputMetadata();
     JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
-        .addString(ARGUMENT_INPUT_FILE_PATH, inputMetadata.getDatasetRecordsCompressedFilePath().toString())
+        .addString(ARGUMENT_HARVEST_PARAMETER_ID, inputMetadata.getHarvestParametersEntity().getId().toString())
         .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getStepSize()));
-
-    if (inputMetadata.getCompressedFileExtension() != null) {
-      jobParametersBuilder.addString(ARGUMENT_COMPRESSED_FILE_EXTENSION, inputMetadata.getCompressedFileExtension().name());
-    }
     JobParameters stepParameters = jobParametersBuilder.toJobParameters();
 
     return prepareAndRunJob(FileHarvestJobConfig.BATCH_JOB, executionMetadata, stepParameters);
@@ -253,8 +249,8 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeTransformation(ExecutionMetadata executionMetadata) {
-    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findById(1);
-    String transformXsltContent = transformXsltEntity.map(TransformXsltEntity::getTransformXslt).orElseThrow();
+    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findFirstByTypeOrderById("DEFAULT");
+    String transformXsltId = transformXsltEntity.map(TransformXsltEntity::getId).map(String::valueOf).orElseThrow();
 
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
     JobParameters stepParameters = new JobParametersBuilder()
@@ -262,25 +258,25 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
         .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
-        .addString(ARGUMENT_XSLT_CONTENT, transformXsltContent)
+        .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
     return prepareAndRunJob(TransformationJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
   private @NotNull JobExecution executeTransformationToEdmExternal(ExecutionMetadata executionMetadata) {
+    //    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(
+    //        executionMetadata.getDatasetMetadata().getDatasetId());
+    //    String transformXsltId = transformXsltEntity.map(TransformXsltEntity::getId).map(String::valueOf).orElseThrow();
+    String transformXsltId = String.valueOf(executionMetadata.getInputMetadata().getTransformXsltEntity().getId());
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
-    final String transformXsltContent = datasetMetadata.getXsltToEdmExternal();
-    if (isBlank(transformXsltContent)) {
-      throw new IllegalArgumentException("xsltToEdmExternal is required");
-    }
 
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.EXTERNAL.name())
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
         .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
-        .addString(ARGUMENT_XSLT_CONTENT, transformXsltContent)
+        .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
     return prepareAndRunJob(TransformationJobConfig.BATCH_JOB, executionMetadata, stepParameters);
