@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.repository;
 
-import eu.europeana.metis.sandbox.entity.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,7 +26,12 @@ public interface HarvestingParameterRepository extends JpaRepository<HarvestPara
      * @param datasetId The dataset id associated to the entity
      */
     @Modifying
-    @Query("DELETE FROM HarvestParametersEntity hpe WHERE EXISTS (SELECT 1 FROM DatasetEntity dte "
-        + "WHERE dte.datasetId = hpe.datasetId.datasetId AND hpe.datasetId.datasetId = ?1)")
+    @Query("""
+            DELETE FROM HarvestParametersEntity hpe
+            WHERE EXISTS (
+                SELECT 1 FROM DatasetEntity dte
+                WHERE dte.datasetId = hpe.datasetId.datasetId AND hpe.datasetId.datasetId = ?1
+            )
+        """)
     void deleteByDatasetIdDatasetId(Integer datasetId);
 }

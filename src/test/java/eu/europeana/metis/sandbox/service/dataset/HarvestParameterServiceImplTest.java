@@ -10,12 +10,12 @@
 //
 //import eu.europeana.metis.sandbox.common.HarvestProtocol;
 //import eu.europeana.metis.sandbox.common.exception.ServiceException;
-//import eu.europeana.metis.sandbox.dto.FileHarvestDTO;
-//import eu.europeana.metis.sandbox.dto.HarvestParametersDTO;
-//import eu.europeana.metis.sandbox.dto.HttpHarvestDTO;
+//import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
+//import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+//import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
 //import eu.europeana.metis.sandbox.dto.OAIPmhHarvestDTO;
 //import eu.europeana.metis.sandbox.entity.DatasetEntity;
-//import eu.europeana.metis.sandbox.entity.HarvestParametersEntity;
+//import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 //import eu.europeana.metis.sandbox.repository.DatasetRepository;
 //import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
 //import java.util.Optional;

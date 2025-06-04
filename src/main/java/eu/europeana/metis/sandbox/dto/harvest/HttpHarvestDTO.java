@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.dto;
+package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,15 +19,17 @@ public class HttpHarvestDTO implements HarvestParametersDTO {
   @JsonProperty("url")
   private final String url;
 
+  private final String fileName;
   private final String fileType;
 
   @JsonIgnore
-  private final byte[] fileData;
+  private final byte[] fileContent;
 
-  public HttpHarvestDTO(String url, String fileType, byte[] fileData) {
+  public HttpHarvestDTO(String url, String fileName, String fileType, byte[] fileContent) {
     this.url = url;
+    this.fileName = fileName;
     this.fileType = fileType;
-    this.fileData = fileData;
+    this.fileContent = fileContent;
   }
 
   public HarvestProtocol getHarvestProtocol() {
@@ -38,11 +40,15 @@ public class HttpHarvestDTO implements HarvestParametersDTO {
     return url;
   }
 
-  public byte[] getFileData() {
-    return fileData;
+  public byte[] getFileContent() {
+    return fileContent;
   }
 
   public String getFileType() {
     return fileType;
+  }
+
+  public String getFileName() {
+    return fileName;
   }
 }

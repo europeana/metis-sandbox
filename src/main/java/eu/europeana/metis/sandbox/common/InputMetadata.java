@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.common;
 
-import eu.europeana.metis.sandbox.entity.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import lombok.AllArgsConstructor;

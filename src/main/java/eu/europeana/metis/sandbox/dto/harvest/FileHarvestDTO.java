@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.dto;
+package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,7 +23,7 @@ public class FileHarvestDTO implements HarvestParametersDTO {
   private final String fileType;
 
   @JsonIgnore
-  private final byte[] fileData;
+  private final byte[] fileContent;
 
   /**
    * Constructor of this Dto
@@ -32,10 +32,10 @@ public class FileHarvestDTO implements HarvestParametersDTO {
    * @param fileType The name of file uploaded (e.g., zip, tar,...)
    * @param xsltToExternal
    */
-  public FileHarvestDTO(String fileName, String fileType, byte[] fileData) {
+  public FileHarvestDTO(String fileName, String fileType, byte[] fileContent) {
     this.fileName = fileName;
     this.fileType = fileType;
-    this.fileData = fileData;
+    this.fileContent = fileContent;
   }
 
   public HarvestProtocol getHarvestProtocol() {
@@ -50,7 +50,7 @@ public class FileHarvestDTO implements HarvestParametersDTO {
     return fileType;
   }
 
-  public byte[] getFileData() {
-    return fileData;
+  public byte[] getFileContent() {
+    return fileContent;
   }
 }

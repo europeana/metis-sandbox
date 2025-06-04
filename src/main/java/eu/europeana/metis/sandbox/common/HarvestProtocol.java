@@ -6,7 +6,7 @@ package eu.europeana.metis.sandbox.common;
 public enum HarvestProtocol {
     FILE("HARVEST_FILE"),
     HTTP("HARVEST_HTTP"),
-    OAI_PMH("HARVEST_OAI_PMH");
+    OAI("HARVEST_OAI_PMH");
     private final String value;
 
     HarvestProtocol(String value) {

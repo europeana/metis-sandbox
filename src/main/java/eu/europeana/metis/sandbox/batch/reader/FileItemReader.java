@@ -1,12 +1,14 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
-import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
-import eu.europeana.metis.sandbox.entity.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestServiceImpl;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
@@ -58,13 +60,28 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
     HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getHarvestingParametersById(
         UUID.fromString(harvestParameterId)).orElseThrow();
 
-    InputStream inputStream = new ByteArrayInputStream(harvestParametersEntity.getFileContent());
+    String fileName = "";
+    String fileType = "";
+    byte[] fileContent = new byte[0];
+    if (harvestParametersEntity instanceof OaiHarvestParameters oaiParams) {
+      //nothing
+    } else if (harvestParametersEntity instanceof HttpHarvestParameters httpParams) {
+      fileName = httpParams.getFileName();
+      fileType = httpParams.getFileType();
+      fileContent = httpParams.getFileContent();
+    } else if (harvestParametersEntity instanceof FileHarvestParameters fileParams) {
+      fileName = fileParams.getFileName();
+      fileType = fileParams.getFileType();
+      fileContent = fileParams.getFileContent();
+    }
+
+    InputStream inputStream = new ByteArrayInputStream(fileContent);
     final Map<String, String> recordIdAndContent = new HashMap<>();
-    if (isBlank(harvestParametersEntity.getFileType())) {
-      recordIdAndContent.put(harvestParametersEntity.getFileName(), IOUtils.toString(inputStream, StandardCharsets.UTF_8));
+    if ("XML".equals(fileType)) {
+      recordIdAndContent.put(fileName, IOUtils.toString(inputStream, StandardCharsets.UTF_8));
     } else {
       recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(inputStream, datasetId,
-          Integer.valueOf(stepSize), CompressedFileExtension.valueOf(harvestParametersEntity.getFileType())));
+          Integer.valueOf(stepSize), CompressedFileExtension.valueOf(fileType)));
     }
     recordIdAndContentIterator = recordIdAndContent.entrySet().iterator();
   }
@@ -88,9 +105,9 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
     }
   }
 
-  private synchronized Map.Entry<String, String> takeRecordIdAndContent() {
+  private synchronized Entry<String, String> takeRecordIdAndContent() {
     if (recordIdAndContentIterator.hasNext()) {
-      Map.Entry<String, String> entry = recordIdAndContentIterator.next();
+      Entry<String, String> entry = recordIdAndContentIterator.next();
       recordIdAndContentIterator.remove(); // Removes from the map
       return entry;
     } else {

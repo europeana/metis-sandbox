@@ -14,16 +14,19 @@ import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.FileHarvestDTO;
-import eu.europeana.metis.sandbox.dto.HarvestParametersDTO;
-import eu.europeana.metis.sandbox.dto.HttpHarvestDTO;
-import eu.europeana.metis.sandbox.dto.OAIPmhHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -92,7 +95,7 @@ public class DatasetService {
 
     DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, stepsize,
         WorkflowType.OAI_HARVEST);
-    OAIPmhHarvestDTO harvestParametersDTO = new OAIPmhHarvestDTO(url, normalizeSetSpec(setSpec), metadataFormat);
+    OaiHarvestDTO harvestParametersDTO = new OaiHarvestDTO(url, normalizeSetSpec(setSpec), metadataFormat);
     harvestingParameterService.createDatasetHarvestParameters(datasetId, harvestParametersDTO);
 
     InputMetadata inputMetadata = new InputMetadata(url, normalizeSetSpec(setSpec), metadataFormat, stepsize,
@@ -134,7 +137,7 @@ public class DatasetService {
         WorkflowType.FILE_HARVEST);
 
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
-      HttpHarvestDTO harvestParametersDTO = new HttpHarvestDTO(url, extension.name(), inputStream.readAllBytes());
+      HttpHarvestDTO harvestParametersDTO = new HttpHarvestDTO(url, "", extension.name(), inputStream.readAllBytes());
       HarvestParametersEntity datasetHarvestParameters =
           harvestingParameterService.createDatasetHarvestParameters(datasetId, harvestParametersDTO);
       InputMetadata inputMetadata = new InputMetadata(datasetHarvestParameters, extension, stepsize, transformXsltEntity);
@@ -151,7 +154,7 @@ public class DatasetService {
       MultipartFile recordFile, Country country, Language language) throws IOException {
     String datasetId = createDataset(FILE_HARVEST_ONLY_VALIDATION, datasetName, null, country, language);
 
-    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), "xml", recordFile.getBytes());
+    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), "XML", recordFile.getBytes());
     HarvestParametersEntity datasetHarvestParameters =
         harvestingParameterService.createDatasetHarvestParameters(datasetId, fileHarvestDTO);
     DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, 1,
@@ -293,13 +296,17 @@ public class DatasetService {
   private HarvestParametersDTO getHarvestingParameterDto(String datasetId) {
     HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
 
-    return switch (harvestParametersEntity.getHarvestProtocol()) {
-      case FILE -> new FileHarvestDTO(harvestParametersEntity.getFileName(), harvestParametersEntity.getFileType(),
-          harvestParametersEntity.getFileContent());
-      case HTTP -> new HttpHarvestDTO(harvestParametersEntity.getUrl(), harvestParametersEntity.getFileType(),
-          harvestParametersEntity.getFileContent());
-      case OAI_PMH -> new OAIPmhHarvestDTO(harvestParametersEntity.getUrl(), harvestParametersEntity.getSetSpec(),
-          harvestParametersEntity.getMetadataFormat());
+    return switch (harvestParametersEntity) {
+      case OaiHarvestParameters oaiHarvestParameters ->
+          new OaiHarvestDTO(oaiHarvestParameters.getUrl(), oaiHarvestParameters.getSetSpec(),
+              oaiHarvestParameters.getMetadataFormat());
+      case HttpHarvestParameters httpHarvestParameters ->
+          new HttpHarvestDTO(httpHarvestParameters.getUrl(), "", httpHarvestParameters.getFileType(),
+              httpHarvestParameters.getFileContent());
+      case FileHarvestParameters fileHarvestParameters ->
+          new FileHarvestDTO(fileHarvestParameters.getFileName(), fileHarvestParameters.getFileType(),
+              fileHarvestParameters.getFileContent());
+      default -> throw new IllegalArgumentException("Unsupported harvest parameters type: " + harvestParametersEntity.getClass());
     };
   }
 

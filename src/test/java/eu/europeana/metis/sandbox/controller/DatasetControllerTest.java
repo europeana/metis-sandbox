@@ -39,8 +39,8 @@
 //import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 //import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 //import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-//import eu.europeana.metis.sandbox.dto.FileHarvestDTO;
-//import eu.europeana.metis.sandbox.dto.HttpHarvestDTO;
+//import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
+//import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
 //import eu.europeana.metis.sandbox.dto.OAIPmhHarvestDTO;
 //import eu.europeana.metis.sandbox.dto.RecordTiersInfoDTO;
 //import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;

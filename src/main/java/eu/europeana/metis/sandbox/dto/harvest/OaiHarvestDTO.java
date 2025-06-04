@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.dto;
+package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
@@ -7,13 +7,13 @@ import io.swagger.annotations.ApiModel;
 /**
  * Represents the data related to OAI-PMH harvesting
  */
-@ApiModel(OAIPmhHarvestDTO.SWAGGER_MODEL_NAME)
-public class OAIPmhHarvestDTO implements HarvestParametersDTO {
+@ApiModel(OaiHarvestDTO.SWAGGER_MODEL_NAME)
+public class OaiHarvestDTO implements HarvestParametersDTO {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 
     @JsonProperty("harvest-protocol")
-    private final String harvestProtocol = HarvestProtocol.OAI_PMH.value();
+    private final String harvestProtocol = HarvestProtocol.OAI.value();
 
     @JsonProperty("url")
     private final String url;
@@ -30,14 +30,14 @@ public class OAIPmhHarvestDTO implements HarvestParametersDTO {
      * @param setSpec The setspec used for this harvesting
      * @param metadataFormat The metadata format used for this harvesting
      */
-    public OAIPmhHarvestDTO(String url, String setSpec, String metadataFormat) {
+    public OaiHarvestDTO(String url, String setSpec, String metadataFormat) {
         this.url = url;
         this.setSpec = setSpec;
         this.metadataFormat = metadataFormat;
     }
 
     public HarvestProtocol getHarvestProtocol() {
-        return HarvestProtocol.OAI_PMH;
+        return HarvestProtocol.OAI;
     }
 
     public String getUrl() {
