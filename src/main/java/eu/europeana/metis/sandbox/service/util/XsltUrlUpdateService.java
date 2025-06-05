@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -63,7 +64,7 @@ public class XsltUrlUpdateService {
     try {
       lock.lock();
       LOGGER.info("Save default xslt lock, Locked");
-      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByTypeOrderById("DEFAULT");
+      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT);
 
       if (entity.isPresent()) {
         if (!(newTransformXslt.equals(entity.get().getTransformXslt()))) {
@@ -71,7 +72,7 @@ public class XsltUrlUpdateService {
           transformXsltRepository.save(entity.get());
         }
       } else {
-        transformXsltRepository.save(new TransformXsltEntity(null, newTransformXslt, "DEFAULT"));
+        transformXsltRepository.save(new TransformXsltEntity(null, newTransformXslt, XsltType.DEFAULT));
       }
     } catch (RuntimeException e) {
       LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);

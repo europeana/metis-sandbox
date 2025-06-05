@@ -8,7 +8,6 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,12 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Dataset Info Controller")
 public class DatasetInfoController {
 
-  private final DatasetService datasetService;
-  private final DatasetReportService reportService;
+  private final DatasetReportService datasetReportService;
 
-  public DatasetInfoController(DatasetService datasetService, DatasetReportService reportService) {
-    this.datasetService = datasetService;
-    this.reportService = reportService;
+  public DatasetInfoController(DatasetReportService datasetReportService) {
+    this.datasetReportService = datasetReportService;
   }
 
   /**
@@ -50,7 +47,7 @@ public class DatasetInfoController {
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
     //        return reportService.getReport(datasetId);
-    return reportService.getProgress(datasetId);
+    return datasetReportService.getProgress(datasetId);
   }
 
   /**
@@ -65,7 +62,7 @@ public class DatasetInfoController {
   @GetMapping(value = "{id}/info", produces = APPLICATION_JSON_VALUE)
   public DatasetInfoDTO getDatasetInfo(
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-    return datasetService.getDatasetInfo(datasetId);
+    return datasetReportService.getDatasetInfo(datasetId);
   }
 
 

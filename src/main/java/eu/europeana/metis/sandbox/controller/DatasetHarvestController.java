@@ -9,7 +9,7 @@ import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileExceptio
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDTO;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -51,10 +51,10 @@ public class DatasetHarvestController {
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
   private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
   private final UrlValidator urlValidator;
-  private final DatasetService datasetService;
+  private final DatasetExecutionService datasetExecutionService;
 
-  public DatasetHarvestController(DatasetService datasetService) {
-    this.datasetService = datasetService;
+  public DatasetHarvestController(DatasetExecutionService datasetExecutionService) {
+    this.datasetExecutionService = datasetExecutionService;
     urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   }
 
@@ -106,8 +106,8 @@ public class DatasetHarvestController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize, url,
-        setspec, metadataformat, xsltFile, userId);
+    String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize,
+        url, setspec, metadataformat, xsltFile, userId);
 
     return new DatasetIdDTO(createdDatasetId);
   }
@@ -155,8 +155,8 @@ public class DatasetHarvestController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    final String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize,
-        datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
+    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language,
+        stepsize, datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
   }
@@ -205,8 +205,8 @@ public class DatasetHarvestController {
       checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     }
 
-    final String createdDatasetId = datasetService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize, url,
-        xsltFile, userId, compressedFileExtension);
+    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language,
+        stepsize, url, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
   }

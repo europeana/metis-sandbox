@@ -44,6 +44,8 @@ import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
 import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
 import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.entity.XsltType;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
@@ -220,10 +222,11 @@ public class BatchJobExecutor {
 
   private @NotNull JobExecution runOaiHarvest(ExecutionMetadata executionMetadata) {
     InputMetadata inputMetadata = executionMetadata.getInputMetadata();
+    OaiHarvestParameters harvestParametersEntity = (OaiHarvestParameters) inputMetadata.getHarvestParametersEntity();
     JobParameters stepParameters = new JobParametersBuilder()
-        .addString(ARGUMENT_OAI_ENDPOINT, inputMetadata.getUrl())
-        .addString(ARGUMENT_OAI_SET, inputMetadata.getSetSpec())
-        .addString(ARGUMENT_METADATA_PREFIX, inputMetadata.getMetadataFormat())
+        .addString(ARGUMENT_OAI_ENDPOINT, harvestParametersEntity.getUrl())
+        .addString(ARGUMENT_OAI_SET, harvestParametersEntity.getSetSpec())
+        .addString(ARGUMENT_METADATA_PREFIX, harvestParametersEntity.getMetadataFormat())
         .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getStepSize()))
         .toJobParameters();
 
@@ -249,7 +252,7 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeTransformation(ExecutionMetadata executionMetadata) {
-    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findFirstByTypeOrderById("DEFAULT");
+    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT);
     String transformXsltId = transformXsltEntity.map(TransformXsltEntity::getId).map(String::valueOf).orElseThrow();
 
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();

@@ -12,8 +12,8 @@ import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
 import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage.Type;
@@ -51,7 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Record validation controller")
 public class ValidationController {
 
-  private final DatasetService datasetService;
+  private final DatasetExecutionService datasetExecutionService;
   private final DatasetReportService datasetReportService;
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
@@ -61,10 +61,10 @@ public class ValidationController {
    *
    * @param validationWorkflowService the validation workflow service
    */
-  public ValidationController(DatasetService datasetService,
+  public ValidationController(DatasetExecutionService datasetExecutionService,
       DatasetReportService datasetReportService, PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService) {
-    this.datasetService = datasetService;
+    this.datasetExecutionService = datasetExecutionService;
     this.datasetReportService = datasetReportService;
     this.patternAnalysisService = patternAnalysisService;
     this.executionPointService = executionPointService;
@@ -95,7 +95,7 @@ public class ValidationController {
       @RequestParam("recordToValidate") MultipartFile recordToValidate) throws SerializationException, IOException {
     checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
     String datasetName = "direct_validation_" + UUID.randomUUID();
-    String createdDatasetId = datasetService.createAndExecuteDatasetForFileValidationBlocking(
+    String createdDatasetId = datasetExecutionService.createAndExecuteDatasetForFileValidationBlocking(
         datasetName, recordToValidate, country, language);
     ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(createdDatasetId);
 

@@ -4,10 +4,10 @@ import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,8 +39,9 @@ public class DatasetDebiasController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final DatasetService datasetService;
+  private final DatasetExecutionService datasetExecutionService;
   private final DeBiasStateService debiasStateService;
+  private final DatasetReportService datasetReportService;
 
   /**
    * Constructs a new instance of {@link DatasetDebiasController}.
@@ -51,9 +52,11 @@ public class DatasetDebiasController {
    * @param lockRegistry the registry for managing dataset locks
    */
   @Autowired
-  public DatasetDebiasController(DatasetService datasetService, DeBiasStateService debiasStateService) {
-    this.datasetService = datasetService;
+  public DatasetDebiasController(DeBiasStateService debiasStateService, DatasetExecutionService datasetExecutionService,
+      DatasetReportService datasetReportService) {
     this.debiasStateService = debiasStateService;
+    this.datasetExecutionService = datasetExecutionService;
+    this.datasetReportService = datasetReportService;
   }
 
   /**
@@ -70,7 +73,7 @@ public class DatasetDebiasController {
   @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public boolean processDeBias(@AuthenticationPrincipal Jwt jwtPrincipal, @PathVariable("id") Integer datasetId) {
-    final DatasetInfoDTO datasetInfo = datasetService.getDatasetInfo(datasetId.toString());
+    final DatasetInfoDTO datasetInfo = datasetReportService.getDatasetInfo(datasetId.toString());
 
     //Check ownership
     if (StringUtils.isNotBlank(datasetInfo.getCreatedById())) {
@@ -84,7 +87,7 @@ public class DatasetDebiasController {
         return false;
       }
     }
-    return datasetService.createAndExecuteDatasetForDebias(String.valueOf(datasetId));
+    return datasetExecutionService.createAndExecuteDatasetForDebias(String.valueOf(datasetId));
   }
 
   /**

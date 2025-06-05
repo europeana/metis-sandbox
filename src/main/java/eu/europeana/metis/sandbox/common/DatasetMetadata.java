@@ -3,12 +3,12 @@ package eu.europeana.metis.sandbox.common;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
-@Builder
+@AllArgsConstructor
 public final class DatasetMetadata {
 
   @NonNull

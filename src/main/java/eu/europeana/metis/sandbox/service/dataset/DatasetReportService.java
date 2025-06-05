@@ -11,8 +11,11 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRe
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
+import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
@@ -20,6 +23,7 @@ import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
@@ -30,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -50,19 +55,40 @@ public class DatasetReportService {
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
+  private final HarvestingParameterService harvestingParameterService;
 
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
-      TransformXsltRepository transformXsltRepository) {
+      TransformXsltRepository transformXsltRepository, HarvestingParameterService harvestingParameterService) {
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
+    this.harvestingParameterService = harvestingParameterService;
+  }
+
+  public DatasetInfoDTO getDatasetInfo(String datasetId) {
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
+                                                   .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    Optional<TransformXsltEntity> xslt = transformXsltRepository.findByDatasetId(datasetId);
+    HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId)
+                                                                                .orElseThrow();
+    HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
+    return DatasetInfoDTO.builder()
+                         .datasetId(datasetId)
+                         .datasetName(datasetEntity.getDatasetName())
+                         .createdById(datasetEntity.getCreatedById())
+                         .creationDate(datasetEntity.getCreatedDate())
+                         .language(datasetEntity.getLanguage())
+                         .country(datasetEntity.getCountry())
+                         .harvestParametersDto(harvestParametersDTO)
+                         .transformedToEdmExternal(xslt.isPresent())
+                         .build();
   }
 
   public ProgressInfoDTO getProgress(String datasetId) {
