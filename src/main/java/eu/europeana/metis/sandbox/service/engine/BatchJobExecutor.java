@@ -24,7 +24,10 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_INTERNAL;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_EXTERNAL;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
+import static java.util.concurrent.TimeUnit.DAYS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.awaitility.Awaitility.await;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
@@ -56,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import org.awaitility.core.ConditionEvaluationListener;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,14 +194,16 @@ public class BatchJobExecutor {
 
   private void waitForCompletion(JobExecution jobExecution) {
     try {
-      while (jobExecution.isRunning()) {
-        LOGGER.info("Job still running...");
-        Thread.sleep(5000);
-      }
+      await().atMost(1, DAYS)
+             .pollInterval(5, SECONDS)
+             .conditionEvaluationListener((ConditionEvaluationListener<Object>) condition ->
+                 LOGGER.info("Job Id: {}, status: {}, isRunning: {}", jobExecution.getJobId(), jobExecution.getStatus(),
+                     jobExecution.isRunning()))
+             .until(() -> !jobExecution.isRunning());
       LOGGER.info("Job finished with status: {}", jobExecution.getStatus());
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      LOGGER.error("Monitoring interrupted", e);
+    } catch (Exception e) {
+      LOGGER.error("Error while waiting for job completion", e);
+      throw new RuntimeException(e);
     }
   }
 
