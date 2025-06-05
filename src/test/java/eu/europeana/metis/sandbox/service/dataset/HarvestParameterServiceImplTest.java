@@ -8,7 +8,7 @@
 //import static org.mockito.Mockito.verify;
 //import static org.mockito.Mockito.when;
 //
-//import eu.europeana.metis.sandbox.common.HarvestProtocol;
+//import eu.europeana.metis.sandbox.dto.harvest.HarvestProtocol;
 //import eu.europeana.metis.sandbox.common.exception.ServiceException;
 //import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
 //import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;

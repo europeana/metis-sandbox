@@ -2,12 +2,16 @@ package eu.europeana.metis.sandbox.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
  * Represent exception model to display when there are errors in an http request
  */
 @ApiModel(ExceptionModelDTO.SWAGGER_MODEL_NAME)
+@Getter
+@AllArgsConstructor
 public class ExceptionModelDTO {
 
   public static final String SWAGGER_MODEL_NAME = "ExceptionModel";
@@ -20,22 +24,4 @@ public class ExceptionModelDTO {
 
   @ApiModelProperty
   private final String message;
-
-  public ExceptionModelDTO(int statusCode, HttpStatus status, String message) {
-    this.statusCode = statusCode;
-    this.status = status;
-    this.message = message;
-  }
-
-  public int getStatusCode() {
-    return this.statusCode;
-  }
-
-  public HttpStatus getStatus() {
-    return this.status;
-  }
-
-  public String getMessage() {
-    return this.message;
-  }
 }

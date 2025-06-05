@@ -5,6 +5,7 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParameters;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
@@ -61,27 +62,27 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
         UUID.fromString(harvestParameterId)).orElseThrow();
 
     String fileName = "";
-    String fileType = "";
+    FileType fileType = null;
     byte[] fileContent = new byte[0];
     if (harvestParametersEntity instanceof OaiHarvestParameters oaiParams) {
       //nothing
-    } else if (harvestParametersEntity instanceof HttpHarvestParameters httpParams) {
-      fileName = httpParams.getFileName();
-      fileType = httpParams.getFileType();
-      fileContent = httpParams.getFileContent();
-    } else if (harvestParametersEntity instanceof FileHarvestParameters fileParams) {
-      fileName = fileParams.getFileName();
-      fileType = fileParams.getFileType();
-      fileContent = fileParams.getFileContent();
+    } else if (harvestParametersEntity instanceof HttpHarvestParameters httpHarvestParameters) {
+      fileName = httpHarvestParameters.getFileName();
+      fileType = httpHarvestParameters.getFileType();
+      fileContent = httpHarvestParameters.getFileContent();
+    } else if (harvestParametersEntity instanceof FileHarvestParameters fileHarvestParameters) {
+      fileName = fileHarvestParameters.getFileName();
+      fileType = fileHarvestParameters.getFileType();
+      fileContent = fileHarvestParameters.getFileContent();
     }
 
     InputStream inputStream = new ByteArrayInputStream(fileContent);
     final Map<String, String> recordIdAndContent = new HashMap<>();
-    if ("XML".equals(fileType)) {
+    if (fileType.equals(FileType.XML)) {
       recordIdAndContent.put(fileName, IOUtils.toString(inputStream, StandardCharsets.UTF_8));
     } else {
       recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(inputStream, datasetId,
-          Integer.valueOf(stepSize), CompressedFileExtension.valueOf(fileType)));
+          Integer.valueOf(stepSize), CompressedFileExtension.valueOf(fileType.name())));
     }
     recordIdAndContentIterator = recordIdAndContent.entrySet().iterator();
   }

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config;
 
-import eu.europeana.metis.sandbox.service.dataset.DataCleanupService;
+import eu.europeana.metis.sandbox.service.util.DataCleanupService;
 import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import java.lang.invoke.MethodHandles;

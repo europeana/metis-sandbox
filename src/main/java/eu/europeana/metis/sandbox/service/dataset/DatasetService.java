@@ -7,28 +7,26 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.common.FileType;
+import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParameters;
-import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
-import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
@@ -42,6 +40,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -114,7 +113,7 @@ public class DatasetService {
 
     DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, stepsize,
         WorkflowType.FILE_HARVEST);
-    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(compressedFile.getOriginalFilename(), extension.name(),
+    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(compressedFile.getOriginalFilename(), FileType.valueOf(extension.name()),
         compressedFile.getBytes());
     HarvestParametersEntity datasetHarvestParameters =
         harvestingParameterService.createDatasetHarvestParameters(datasetId, fileHarvestDTO);
@@ -137,7 +136,8 @@ public class DatasetService {
         WorkflowType.FILE_HARVEST);
 
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
-      HttpHarvestDTO harvestParametersDTO = new HttpHarvestDTO(url, "", extension.name(), inputStream.readAllBytes());
+      String filename = Path.of(url).getFileName().toString();
+      HttpHarvestDTO harvestParametersDTO = new HttpHarvestDTO(url, filename, FileType.valueOf(extension.name()), inputStream.readAllBytes());
       HarvestParametersEntity datasetHarvestParameters =
           harvestingParameterService.createDatasetHarvestParameters(datasetId, harvestParametersDTO);
       InputMetadata inputMetadata = new InputMetadata(datasetHarvestParameters, extension, stepsize, transformXsltEntity);
@@ -154,7 +154,7 @@ public class DatasetService {
       MultipartFile recordFile, Country country, Language language) throws IOException {
     String datasetId = createDataset(FILE_HARVEST_ONLY_VALIDATION, datasetName, null, country, language);
 
-    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), "XML", recordFile.getBytes());
+    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes());
     HarvestParametersEntity datasetHarvestParameters =
         harvestingParameterService.createDatasetHarvestParameters(datasetId, fileHarvestDTO);
     DatasetMetadata datasetMetadata = buildDatasetMetadata(datasetId, datasetName, country, language, 1,
@@ -198,20 +198,6 @@ public class DatasetService {
       LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
     }
 
-  }
-
-  private String readXslt(MultipartFile xsltFile) {
-    if (xsltFile != null && !xsltFile.isEmpty()) {
-      try {
-        if (!StringUtils.containsIgnoreCase(requireNonNull(xsltFile.getContentType()), "xml")) {
-          throw new IllegalArgumentException("XSLT file must be XML.");
-        }
-        return new String(xsltFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-      } catch (IOException e) {
-        throw new XsltProcessingException("Failed to process XSLT file.", e);
-      }
-    }
-    return StringUtils.EMPTY;
   }
 
   private DatasetMetadata buildDatasetMetadata(String id, String name, Country country, Language lang, Integer stepsize,
@@ -281,33 +267,19 @@ public class DatasetService {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
     Optional<TransformXsltEntity> xslt = transformXsltRepository.findByDatasetId(datasetId);
-    return new DatasetInfoDTO.Builder()
-        .datasetId(datasetId)
-        .datasetName(datasetEntity.getDatasetName())
-        .createdById(datasetEntity.getCreatedById())
-        .creationDate(datasetEntity.getCreatedDate())
-        .language(datasetEntity.getLanguage())
-        .country(datasetEntity.getCountry())
-        .harvestingParametricDto(getHarvestingParameterDto(datasetId))
-        .transformedToEdmExternal(xslt.isPresent())
-        .build();
-  }
-
-  private HarvestParametersDTO getHarvestingParameterDto(String datasetId) {
-    HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId);
-
-    return switch (harvestParametersEntity) {
-      case OaiHarvestParameters oaiHarvestParameters ->
-          new OaiHarvestDTO(oaiHarvestParameters.getUrl(), oaiHarvestParameters.getSetSpec(),
-              oaiHarvestParameters.getMetadataFormat());
-      case HttpHarvestParameters httpHarvestParameters ->
-          new HttpHarvestDTO(httpHarvestParameters.getUrl(), "", httpHarvestParameters.getFileType(),
-              httpHarvestParameters.getFileContent());
-      case FileHarvestParameters fileHarvestParameters ->
-          new FileHarvestDTO(fileHarvestParameters.getFileName(), fileHarvestParameters.getFileType(),
-              fileHarvestParameters.getFileContent());
-      default -> throw new IllegalArgumentException("Unsupported harvest parameters type: " + harvestParametersEntity.getClass());
-    };
+    HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId)
+                                                                                .orElseThrow();
+    HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
+    return DatasetInfoDTO.builder()
+                         .datasetId(datasetId)
+                         .datasetName(datasetEntity.getDatasetName())
+                         .createdById(datasetEntity.getCreatedById())
+                         .creationDate(datasetEntity.getCreatedDate())
+                         .language(datasetEntity.getLanguage())
+                         .country(datasetEntity.getCountry())
+                         .harvestParametersDto(harvestParametersDTO)
+                         .transformedToEdmExternal(xslt.isPresent())
+                         .build();
   }
 
   public void remove(String datasetId) {

@@ -265,9 +265,6 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeTransformationToEdmExternal(ExecutionMetadata executionMetadata) {
-    //    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(
-    //        executionMetadata.getDatasetMetadata().getDatasetId());
-    //    String transformXsltId = transformXsltEntity.map(TransformXsltEntity::getId).map(String::valueOf).orElseThrow();
     String transformXsltId = String.valueOf(executionMetadata.getInputMetadata().getTransformXsltEntity().getId());
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
 

@@ -6,7 +6,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
@@ -376,9 +379,23 @@ class DatasetController {
 
     return executionRecordTierContext.stream()
                                      .filter(this::areAllTierValuesNotNullOrEmpty)
-                                     .map(RecordTiersInfoDTO::new)
+                                     .map(DatasetController::from)
                                      .toList();
   }
+
+  public static RecordTiersInfoDTO from(ExecutionRecordTierContext context) {
+    return RecordTiersInfoDTO.builder()
+                             .recordId(context.getIdentifier().getRecordId())
+                             .contentTier(MediaTier.getEnum(context.getContentTier()))
+                             .contentTierBeforeLicenseCorrection(MediaTier.getEnum(context.getContentTierBeforeLicenseCorrection()))
+                             .license(LicenseType.valueOf(context.getLicense()))
+                             .metadataTier(MetadataTier.getEnum(context.getMetadataTier()))
+                             .metadataTierLanguage(MetadataTier.getEnum(context.getMetadataTierLanguage()))
+                             .metadataTierEnablingElements(MetadataTier.getEnum(context.getMetadataTierEnablingElements()))
+                             .metadataTierContextualClasses(MetadataTier.getEnum(context.getMetadataTierContextualClasses()))
+                             .build();
+  }
+
 
   private boolean areAllTierValuesNotNullOrEmpty(ExecutionRecordTierContext executionRecordTierContext) {
     return isContentTierValid(executionRecordTierContext) &&
@@ -473,7 +490,7 @@ class DatasetController {
 
   private CompressedFileExtension getCompressedFileExtensionType(String fileContentType) {
     if (fileContentType.contains("gzip")) {
-      return CompressedFileExtension.TAR_GZ;
+      return CompressedFileExtension.GZIP;
     } else if (fileContentType.contains("zip")) {
       return CompressedFileExtension.ZIP;
     } else if (fileContentType.contains("x-tar")) {
