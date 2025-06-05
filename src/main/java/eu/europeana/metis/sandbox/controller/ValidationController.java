@@ -5,6 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.apache.tika.utils.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -120,10 +122,10 @@ public class ValidationController {
 
   private boolean isFileTypeValid(MultipartFile fileToCheck) {
     String fileType = fileToCheck.getContentType();
-    if (fileType == null) {
+    if (StringUtils.isBlank(fileType)) {
       throw new IllegalArgumentException("Something went wrong checking file's content type.");
     } else {
-      return fileType.contains("xml");
+      return fileType.equalsIgnoreCase(FileType.XML.name());
     }
 
   }

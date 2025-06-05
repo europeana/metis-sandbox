@@ -1,10 +1,10 @@
 package eu.europeana.metis.sandbox.controller;
 
-import static eu.europeana.metis.sandbox.controller.DatasetController.MESSAGE_FOR_400_CODE;
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -66,7 +66,7 @@ public class DatasetDebiasController {
   @Operation(description = "Process debias detection dataset")
   @ApiResponse(responseCode = "200", description = "Process debias detection feature", content = {
       @Content(mediaType = APPLICATION_JSON_VALUE)})
-  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+  @ApiResponse(responseCode = "400")
   @PostMapping(value = "{id}/debias", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public boolean processDeBias(@AuthenticationPrincipal Jwt jwtPrincipal, @PathVariable("id") Integer datasetId) {
@@ -96,7 +96,7 @@ public class DatasetDebiasController {
   @Operation(description = "Get Bias detection report for a dataset")
   @ApiResponse(responseCode = "200", description = "Get detection information about DeBias detection", content = {
       @Content(mediaType = APPLICATION_JSON_VALUE)})
-  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+  @ApiResponse(responseCode = "400")
   @GetMapping(value = "{id}/debias/report", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public DeBiasReportDTO getDeBiasReport(@PathVariable("id") Integer datasetId) {
@@ -112,7 +112,7 @@ public class DatasetDebiasController {
   @Operation(description = "Get DeBias detection status for a dataset")
   @ApiResponse(responseCode = "200", description = "Get status about DeBias detection", content = {
       @Content(mediaType = APPLICATION_JSON_VALUE)})
-  @ApiResponse(responseCode = "400", description = MESSAGE_FOR_400_CODE)
+  @ApiResponse(responseCode = "400")
   @GetMapping(value = "{id}/debias/info", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public DeBiasStatusDTO getDeBiasStatus(@PathVariable("id") Integer datasetId) {
