@@ -64,9 +64,9 @@ public class DatasetExecutionService {
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
-    OaiHarvestDTO harvestParametersDTO = new OaiHarvestDTO(url, normalizeSetSpec(setSpec), metadataFormat);
+    OaiHarvestDTO harvestParametersDTO = new OaiHarvestDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-        WorkflowType.OAI_HARVEST, datasetName, country, language, stepsize, userId, xsltFile, harvestParametersDTO
+        WorkflowType.OAI_HARVEST, datasetName, country, language, userId, xsltFile, harvestParametersDTO
     );
     batchJobExecutor.execute(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -76,9 +76,9 @@ public class DatasetExecutionService {
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
     FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(compressedFile.getOriginalFilename(), FileType.valueOf(extension.name()),
-        compressedFile.getBytes());
+        compressedFile.getBytes(), stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-        WorkflowType.FILE_HARVEST, datasetName, country, language, stepsize, userId, xsltFile, fileHarvestDTO
+        WorkflowType.FILE_HARVEST, datasetName, country, language, userId, xsltFile, fileHarvestDTO
     );
     batchJobExecutor.execute(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -86,13 +86,13 @@ public class DatasetExecutionService {
 
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
-      String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
+      String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
     String filename = Path.of(url).getFileName().toString();
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
       HttpHarvestDTO harvestParametersDTO = new HttpHarvestDTO(url, filename, FileType.valueOf(extension.name()),
-          inputStream.readAllBytes());
+          inputStream.readAllBytes(), stepsize);
       ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-          WorkflowType.FILE_HARVEST, datasetName, country, language, stepsize, userId, xsltFile, harvestParametersDTO
+          WorkflowType.FILE_HARVEST, datasetName, country, language, userId, xsltFile, harvestParametersDTO
       );
       batchJobExecutor.execute(executionMetadata);
       return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -105,9 +105,9 @@ public class DatasetExecutionService {
 
   public String createAndExecuteDatasetForFileValidationBlocking(String datasetName,
       MultipartFile recordFile, Country country, Language language) throws IOException {
-    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes());
+    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes(), 1);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-        FILE_HARVEST_ONLY_VALIDATION, datasetName, country, language, 1, null, null, fileHarvestDTO
+        FILE_HARVEST_ONLY_VALIDATION, datasetName, country, language, null, null, fileHarvestDTO
     );
     batchJobExecutor.executeBlocking(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -131,7 +131,7 @@ public class DatasetExecutionService {
         DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
         DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
         DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetEntity.getDatasetName(),
-            datasetEntity.getCountry(), datasetEntity.getLanguage(), 1, DEBIAS);
+            datasetEntity.getCountry(), datasetEntity.getLanguage(), DEBIAS);
 
         ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
                                                                .datasetMetadata(datasetMetadata)

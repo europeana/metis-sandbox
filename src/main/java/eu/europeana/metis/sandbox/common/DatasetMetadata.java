@@ -24,8 +24,5 @@ public final class DatasetMetadata {
   private final Language language;
 
   @NonNull
-  private final Integer stepSize;
-
-  @NonNull
   private final WorkflowType workflowType;
 }

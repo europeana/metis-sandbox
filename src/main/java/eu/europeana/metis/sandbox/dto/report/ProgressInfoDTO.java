@@ -65,12 +65,12 @@ public class ProgressInfoDTO {
             this.totalRecords = totalRecords;
         }
         this.datasetLogs = datasetLogs;
-        this.progressByStep = progressByStep.stream().filter(s -> s.getStep()!= FullBatchJobType.DEBIAS).toList();
+        this.progressByStep = progressByStep.stream().filter(s -> s.step()!= FullBatchJobType.DEBIAS).toList();
         this.recordLimitExceeded = recordLimitExceeded;
         this.errorType = errorType;
         this.recordsPublishedSuccessfully =
-                progressByStep.stream().filter(step -> step.getStep() == FullBatchJobType.INDEX).findAny()
-                        .map(step -> step.getSuccess() + step.getWarn() > 0).orElse(false);
+                progressByStep.stream().filter(step -> step.step() == FullBatchJobType.INDEX).findAny()
+                        .map(step -> step.success() + step.warn() > 0).orElse(false);
         this.portalPublishUrl = this.recordsPublishedSuccessfully ? portalPublishUrl : "";
     }
 

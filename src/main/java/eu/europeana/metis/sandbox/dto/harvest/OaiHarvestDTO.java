@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -10,8 +9,7 @@ import lombok.Getter;
  */
 @ApiModel(OaiHarvestDTO.SWAGGER_MODEL_NAME)
 @Getter
-@AllArgsConstructor
-public class OaiHarvestDTO implements HarvestParametersDTO {
+public class OaiHarvestDTO extends HarvestParametersDTO {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 
@@ -23,4 +21,11 @@ public class OaiHarvestDTO implements HarvestParametersDTO {
 
     @JsonProperty("metadata-format")
     private final String metadataFormat;
+
+    public OaiHarvestDTO(String url, String setSpec, String metadataFormat, Integer stepSize) {
+        super(stepSize);
+        this.url = url;
+        this.setSpec = setSpec;
+        this.metadataFormat = metadataFormat;
+    }
 }

@@ -9,11 +9,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Entity that maps default xslt transform table
  */
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "transform_xslt")
 public class TransformXsltEntity {
@@ -24,51 +30,20 @@ public class TransformXsltEntity {
 
   private String datasetId;
 
-  @Column(columnDefinition="TEXT")
-  private String transformXslt;
-
   @Enumerated(EnumType.STRING)
   private XsltType type;
 
+  @Column(columnDefinition="TEXT", nullable = false)
+  private String transformXslt;
 
-  public TransformXsltEntity(String datasetId, String transformXslt, XsltType type) {
+  public TransformXsltEntity(String datasetId, XsltType type, String transformXslt) {
     this.datasetId = datasetId;
-    this.transformXslt = transformXslt;
     this.type = type;
-  }
-
-  public TransformXsltEntity() {
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public Integer getId() {
-    return id;
-  }
-
-  public String getTransformXslt() {
-    return transformXslt;
-  }
-
-  public void setTransformXslt(String transformXslt) {
     this.transformXslt = transformXslt;
   }
 
-  public XsltType getType() {
-    return type;
-  }
-
-  public void setType(XsltType type) {
-    this.type = type;
-  }
-
-  public String getDatasetId() {
-    return datasetId;
-  }
-
-  public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
+  public TransformXsltEntity(XsltType xsltType, String newTransformXslt) {
+    this.type = xsltType;
+    this.transformXslt = newTransformXslt;
   }
 }

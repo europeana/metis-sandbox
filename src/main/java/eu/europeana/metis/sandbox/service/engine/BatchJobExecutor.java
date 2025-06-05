@@ -227,7 +227,7 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_OAI_ENDPOINT, harvestParametersEntity.getUrl())
         .addString(ARGUMENT_OAI_SET, harvestParametersEntity.getSetSpec())
         .addString(ARGUMENT_METADATA_PREFIX, harvestParametersEntity.getMetadataFormat())
-        .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getStepSize()))
+        .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getHarvestParametersEntity().getStepSize()))
         .toJobParameters();
 
     return prepareAndRunJob(OaiHarvestJobConfig.BATCH_JOB, executionMetadata, stepParameters);
@@ -237,7 +237,7 @@ public class BatchJobExecutor {
     InputMetadata inputMetadata = executionMetadata.getInputMetadata();
     JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
         .addString(ARGUMENT_HARVEST_PARAMETER_ID, inputMetadata.getHarvestParametersEntity().getId().toString())
-        .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getStepSize()));
+        .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getHarvestParametersEntity().getStepSize()));
     JobParameters stepParameters = jobParametersBuilder.toJobParameters();
 
     return prepareAndRunJob(FileHarvestJobConfig.BATCH_JOB, executionMetadata, stepParameters);

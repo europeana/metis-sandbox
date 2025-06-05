@@ -102,12 +102,13 @@ public class DatasetReportService {
     for (FullBatchJobType step : workflowSteps) {
       StepStatistics stepStatistics = getStepStatistics(datasetId, step);
       List<ErrorInfoDTO> errorInfoDTOList = getErrorInfo(datasetId, step);
-      ProgressByStepDTO progressByStepDto = new ProgressByStepDTO(step, stepStatistics.totalSuccess,
+      long total = stepStatistics.totalSuccess + stepStatistics.totalFail;
+      ProgressByStepDTO progressByStepDto = new ProgressByStepDTO(step, total, stepStatistics.totalSuccess,
           stepStatistics.totalFail, stepStatistics.totalWarning, errorInfoDTOList);
       progressByStepDTOS.add(progressByStepDto);
     }
-    final long completedRecords = progressByStepDTOS.getLast().getSuccess();
-    final long totalFailInWorkflow = progressByStepDTOS.stream().mapToLong(ProgressByStepDTO::getFail).sum();
+    final long completedRecords = progressByStepDTOS.getLast().success();
+    final long totalFailInWorkflow = progressByStepDTOS.stream().mapToLong(ProgressByStepDTO::fail).sum();
     final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
     return new ProgressInfoDTO(

@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.apache.tika.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -102,10 +102,10 @@ public class ValidationController {
     List<ValidationResult> validationResults = new ArrayList<>();
     for (ProgressByStepDTO progressByStepDto : progressInfoDto.getProgressByStep()) {
       final ValidationResult validationResult;
-      Optional<ErrorInfoDTO> errorInfoDto = progressByStepDto.getErrors().stream().findFirst();
-      validationResult = errorInfoDto.map(infoDto -> new ValidationResult(progressByStepDto.getStep(),
-                                         new RecordValidationMessage(Type.ERROR, infoDto.getErrorMessage()), Status.FAILED))
-                                     .orElseGet(() -> new ValidationResult(progressByStepDto.getStep(),
+      Optional<ErrorInfoDTO> errorInfoDto = progressByStepDto.errors().stream().findFirst();
+      validationResult = errorInfoDto.map(infoDto -> new ValidationResult(progressByStepDto.step(),
+                                         new RecordValidationMessage(Type.ERROR, infoDto.errorMessage()), Status.FAILED))
+                                     .orElseGet(() -> new ValidationResult(progressByStepDto.step(),
                                          new RecordValidationMessage(Type.INFO, "success"), Status.PASSED));
       validationResults.add(validationResult);
     }
@@ -125,7 +125,8 @@ public class ValidationController {
     if (StringUtils.isBlank(fileType)) {
       throw new IllegalArgumentException("Something went wrong checking file's content type.");
     } else {
-      return fileType.equalsIgnoreCase(FileType.XML.name());
+      return StringUtils.containsIgnoreCase(fileType, FileType.XML.name());
+
     }
 
   }

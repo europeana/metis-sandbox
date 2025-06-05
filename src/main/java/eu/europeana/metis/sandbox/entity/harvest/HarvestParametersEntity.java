@@ -35,4 +35,6 @@ public class HarvestParametersEntity {
     @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
     private DatasetEntity datasetEntity;
+
+    private Integer stepSize;
 }

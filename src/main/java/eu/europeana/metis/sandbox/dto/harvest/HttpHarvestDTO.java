@@ -15,8 +15,8 @@ public class HttpHarvestDTO extends BinaryHarvestDTO {
 
   private final String url;
 
-  public HttpHarvestDTO(String url, String fileName, FileType fileType, byte[] fileContent) {
-    super(fileName, fileType, fileContent);
+  public HttpHarvestDTO(String url, String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
+    super(fileName, fileType, fileContent, stepSize);
     this.url = url;
   }
 }

@@ -44,7 +44,6 @@ public class DatasetExecutionSetupService {
       String datasetName,
       Country country,
       Language language,
-      Integer stepsize,
       String userId,
       MultipartFile xsltFile,
       HarvestParametersDTO harvestParametersDTO
@@ -57,9 +56,9 @@ public class DatasetExecutionSetupService {
 
     HarvestParametersEntity harvestParametersEntity =
         harvestingParameterService.createDatasetHarvestParameters(datasetId, harvestParametersDTO);
-    InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, transformXsltEntity, stepsize);
+    InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, transformXsltEntity);
 
-    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetName, country, language, stepsize, workflowType);
+    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetName, country, language, workflowType);
     return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
   }
 
@@ -69,7 +68,7 @@ public class DatasetExecutionSetupService {
     requireNonNull(country, "Country is required");
     requireNonNull(language, "Language is required");
 
-    DatasetEntity datasetEntity = new DatasetEntity(workflowType, name, userId, null, language, country, false);
+    DatasetEntity datasetEntity = new DatasetEntity(name, workflowType, language, country, userId, null, false);
 
     try {
       return String.valueOf(datasetRepository.save(datasetEntity).getDatasetId());
@@ -79,9 +78,8 @@ public class DatasetExecutionSetupService {
   }
 
   private @NotNull TransformXsltEntity saveXslt(MultipartFile xsltFile, String datasetId) throws IOException {
-    TransformXsltEntity transformXsltEntity = new TransformXsltEntity(datasetId,
-        new String(xsltFile.getBytes(), StandardCharsets.UTF_8), XsltType.EXTERNAL);
-    transformXsltRepository.save(transformXsltEntity);
+    TransformXsltEntity transformXsltEntity = new TransformXsltEntity(datasetId, XsltType.EXTERNAL, new String(xsltFile.getBytes(), StandardCharsets.UTF_8));
+        transformXsltRepository.save(transformXsltEntity);
     return transformXsltEntity;
   }
 }

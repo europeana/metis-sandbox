@@ -13,8 +13,7 @@ public class FileHarvestDTO extends BinaryHarvestDTO {
 
   public static final String SWAGGER_MODEL_NAME = "FileUpload";
 
-  public FileHarvestDTO(String fileName, FileType fileType, byte[] fileContent) {
-    super(fileName, fileType, fileContent);
+  public FileHarvestDTO(String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
+    super(fileName, fileType, fileContent, stepSize);
   }
-
 }

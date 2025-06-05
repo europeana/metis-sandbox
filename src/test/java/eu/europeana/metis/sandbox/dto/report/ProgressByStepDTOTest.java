@@ -19,35 +19,35 @@ class ProgressByStepDTOTest {
   void getStep() {
     ProgressByStepDTO progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(FullBatchJobType.TRANSFORM_INTERNAL, progressByStepDto.getStep());
+    assertEquals(FullBatchJobType.TRANSFORM_INTERNAL, progressByStepDto.step());
   }
 
   @Test
   void getTotal() {
     ProgressByStepDTO progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(19L, progressByStepDto.getTotal());
+    assertEquals(19L, progressByStepDto.total());
   }
 
   @Test
   void getSuccess() {
     ProgressByStepDTO progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(12L, progressByStepDto.getSuccess());
+    assertEquals(12L, progressByStepDto.success());
   }
 
   @Test
   void getFail() {
     ProgressByStepDTO progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(5L, progressByStepDto.getFail());
+    assertEquals(5L, progressByStepDto.fail());
   }
 
   @Test
   void getWarn() {
     ProgressByStepDTO progressByStepDto = getTestProgressByStepDto();
 
-    assertEquals(2L, progressByStepDto.getWarn());
+    assertEquals(2L, progressByStepDto.warn());
   }
 
   @Test
@@ -55,7 +55,7 @@ class ProgressByStepDTOTest {
     ProgressByStepDTO progressByStepDto = getTestProgressByStepDto();
 
     assertEquals(List.of(new ErrorInfoDTO("fail message", Status.FAIL, List.of("1", "2", "3", "4", "5")),
-        new ErrorInfoDTO("warn message", Status.WARN, List.of("6", "7"))), progressByStepDto.getErrors());
+        new ErrorInfoDTO("warn message", Status.WARN, List.of("6", "7"))), progressByStepDto.errors());
   }
 
   @Test
@@ -78,6 +78,7 @@ class ProgressByStepDTOTest {
   @NotNull
   private static ProgressByStepDTO getTestProgressByStepDto() {
     return new ProgressByStepDTO(FullBatchJobType.TRANSFORM_INTERNAL,
+        17,
         12,
         5,
         2,

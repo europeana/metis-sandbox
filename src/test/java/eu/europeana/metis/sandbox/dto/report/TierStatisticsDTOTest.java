@@ -14,13 +14,13 @@ class TierStatisticsDTOTest {
   @Test
   void getTotalNumberOfRecordsTest_expectSuccess() {
     TierStatisticsDTO tierStatisticsDTO = new TierStatisticsDTO(2, List.of("1", "2"));
-    assertEquals(2, tierStatisticsDTO.getTotalNumberOfRecords());
+    assertEquals(2, tierStatisticsDTO.totalNumberOfRecords());
   }
 
   @Test
   void getListRecordIdsTest_expectSuccess() {
     TierStatisticsDTO tierStatisticsDTO = new TierStatisticsDTO(2, List.of("1", "2"));
-    assertEquals(tierStatisticsDTO.getListRecordIds(), List.of("1", "2"));
+    assertEquals(tierStatisticsDTO.recordIds(), List.of("1", "2"));
   }
 
   @Test
@@ -28,11 +28,9 @@ class TierStatisticsDTOTest {
     TierStatisticsDTO tierStatisticsDTO1 = new TierStatisticsDTO(2, List.of("1", "2"));
     TierStatisticsDTO tierStatisticsDTO2 = new TierStatisticsDTO(2, List.of("1", "2"));
     TierStatisticsDTO tierStatisticsDTO3 = new TierStatisticsDTO(4, List.of("1", "2", "3", "4"));
-    assertEquals(tierStatisticsDTO1, tierStatisticsDTO1);
     assertEquals(tierStatisticsDTO1, tierStatisticsDTO2);
     assertNotEquals(tierStatisticsDTO1, tierStatisticsDTO3);
     assertNotEquals(tierStatisticsDTO2, tierStatisticsDTO3);
-    assertNotEquals(tierStatisticsDTO1, new TiersZeroInfoDTO(tierStatisticsDTO1, tierStatisticsDTO2));
   }
 
   @Test

@@ -72,7 +72,8 @@ public class XsltUrlUpdateService {
           transformXsltRepository.save(entity.get());
         }
       } else {
-        transformXsltRepository.save(new TransformXsltEntity(null, newTransformXslt, XsltType.DEFAULT));
+        TransformXsltEntity transformXsltEntity = new TransformXsltEntity(XsltType.DEFAULT, newTransformXslt);
+        transformXsltRepository.save(transformXsltEntity);
       }
     } catch (RuntimeException e) {
       LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);

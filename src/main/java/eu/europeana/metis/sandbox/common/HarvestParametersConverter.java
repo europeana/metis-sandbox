@@ -19,18 +19,21 @@ public class HarvestParametersConverter {
       case OaiHarvestParameters oaiHarvestParameters -> new OaiHarvestDTO(
           oaiHarvestParameters.getUrl(),
           oaiHarvestParameters.getSetSpec(),
-          oaiHarvestParameters.getMetadataFormat()
+          oaiHarvestParameters.getMetadataFormat(),
+          oaiHarvestParameters.getStepSize()
       );
       case HttpHarvestParameters httpHarvestParameters -> new HttpHarvestDTO(
           httpHarvestParameters.getUrl(),
           httpHarvestParameters.getFileName(),
           httpHarvestParameters.getFileType(),
-          httpHarvestParameters.getFileContent()
+          httpHarvestParameters.getFileContent(),
+          httpHarvestParameters.getStepSize()
       );
       case FileHarvestParameters fileHarvestParameters -> new FileHarvestDTO(
           fileHarvestParameters.getFileName(),
           fileHarvestParameters.getFileType(),
-          fileHarvestParameters.getFileContent()
+          fileHarvestParameters.getFileContent(),
+          fileHarvestParameters.getStepSize()
       );
       default -> throw new IllegalArgumentException("Unsupported entity type: " + harvestParametersEntity.getClass());
     };
@@ -45,18 +48,21 @@ public class HarvestParametersConverter {
         oaiHarvestParameters.setUrl(oaiHarvestDTO.getUrl());
         oaiHarvestParameters.setSetSpec(oaiHarvestDTO.getSetSpec());
         oaiHarvestParameters.setMetadataFormat(oaiHarvestDTO.getMetadataFormat());
+        oaiHarvestParameters.setStepSize(oaiHarvestDTO.getStepSize());
         yield oaiHarvestParameters;
       }
       case HttpHarvestDTO httpHarvestDTO -> {
         HttpHarvestParameters httpHarvestParameters = new HttpHarvestParameters();
         httpHarvestParameters.setDatasetEntity(datasetEntity);
         httpHarvestParameters.setUrl(httpHarvestDTO.getUrl());
+        httpHarvestParameters.setStepSize(httpHarvestDTO.getStepSize());
         applyBinaryFields(httpHarvestParameters, httpHarvestDTO);
         yield httpHarvestParameters;
       }
       case FileHarvestDTO fileHarvestDTO -> {
         FileHarvestParameters fileHarvestParameters = new FileHarvestParameters();
         fileHarvestParameters.setDatasetEntity(datasetEntity);
+        fileHarvestParameters.setStepSize(fileHarvestDTO.getStepSize());
         applyBinaryFields(fileHarvestParameters, fileHarvestDTO);
         yield fileHarvestParameters;
       }

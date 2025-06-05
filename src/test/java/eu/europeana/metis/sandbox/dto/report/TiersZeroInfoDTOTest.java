@@ -16,7 +16,7 @@ class TiersZeroInfoDTOTest {
     TierStatisticsDTO contentTier = new TierStatisticsDTO(1, List.of("1"));
     TierStatisticsDTO metadataTier = new TierStatisticsDTO(2, List.of("2", "3"));
     TiersZeroInfoDTO tiersZeroInfoDTO = new TiersZeroInfoDTO(contentTier, metadataTier);
-    assertEquals(tiersZeroInfoDTO.getContentTier(), contentTier);
+    assertEquals(tiersZeroInfoDTO.contentTier(), contentTier);
   }
 
   @Test
@@ -24,7 +24,7 @@ class TiersZeroInfoDTOTest {
     TierStatisticsDTO contentTier = new TierStatisticsDTO(1, List.of("1"));
     TierStatisticsDTO metadataTier = new TierStatisticsDTO(2, List.of("2", "3"));
     TiersZeroInfoDTO tiersZeroInfoDTO = new TiersZeroInfoDTO(contentTier, metadataTier);
-    assertEquals(tiersZeroInfoDTO.getMetadataTier(), metadataTier);
+    assertEquals(tiersZeroInfoDTO.metadataTier(), metadataTier);
   }
 
   @Test
@@ -36,7 +36,6 @@ class TiersZeroInfoDTOTest {
     TiersZeroInfoDTO tiersZeroInfoDTO1 = new TiersZeroInfoDTO(contentTier1, metadataTier1);
     TiersZeroInfoDTO tiersZeroInfoDTO2 = new TiersZeroInfoDTO(contentTier1, metadataTier1);
     TiersZeroInfoDTO tiersZeroInfoDTO3 = new TiersZeroInfoDTO(contentTier2, metadataTier2);
-    assertEquals(tiersZeroInfoDTO1, tiersZeroInfoDTO1);
     assertEquals(tiersZeroInfoDTO1, tiersZeroInfoDTO2);
     assertNotEquals(tiersZeroInfoDTO1, tiersZeroInfoDTO3);
     assertNotEquals(tiersZeroInfoDTO2, tiersZeroInfoDTO3);

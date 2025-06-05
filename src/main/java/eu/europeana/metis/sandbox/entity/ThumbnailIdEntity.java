@@ -5,10 +5,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Entity to map to thumbnail table
  */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "thumbnail_id")
 public class ThumbnailIdEntity {
@@ -23,34 +29,6 @@ public class ThumbnailIdEntity {
 
   public ThumbnailIdEntity(String datasetId, String thumbnailId) {
     this.datasetId = datasetId;
-    this.thumbnailId = thumbnailId;
-  }
-
-  public ThumbnailIdEntity() {
-    // provide explicit no-args constructor as it is required for Hibernate
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getDatasetId() {
-    return datasetId;
-  }
-
-  public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  public String getThumbnailId() {
-    return thumbnailId;
-  }
-
-  public void setThumbnailId(String thumbnailId) {
     this.thumbnailId = thumbnailId;
   }
 }

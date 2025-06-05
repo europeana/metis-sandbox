@@ -18,21 +18,21 @@ class ErrorInfoDTOTest {
   void getRecordIds() {
     ErrorInfoDTO errorInfoDto = getTestErrorInfoDto();
 
-    assertEquals(List.of("1", "2", "3", "4", "5"), errorInfoDto.getRecordIds());
+    assertEquals(List.of("1", "2", "3", "4", "5"), errorInfoDto.recordIds());
   }
 
   @Test
   void getType() {
     ErrorInfoDTO errorInfoDto = getTestErrorInfoDto();
 
-    assertEquals(Status.WARN, errorInfoDto.getType());
+    assertEquals(Status.WARN, errorInfoDto.type());
   }
 
   @Test
   void getErrorMessage() {
     ErrorInfoDTO errorInfoDto = getTestErrorInfoDto();
 
-    assertEquals("warn message", errorInfoDto.getErrorMessage());
+    assertEquals("warn message", errorInfoDto.errorMessage());
   }
 
   @Test
