@@ -17,8 +17,9 @@ import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -91,42 +92,63 @@ public class DatasetReportService {
                          .build();
   }
 
-  public ProgressInfoDTO getProgress(String datasetId) {
+  public ExecutionProgressInfoDTO getProgress(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
     TransformXsltEntity transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId).orElse(null);
 
     List<FullBatchJobType> workflowSteps = WorkflowHelper.getWorkflow(datasetEntity, transformXsltEntity);
 
-    List<ProgressByStepDTO> progressByStepDTOS = new LinkedList<>();
+    List<ExecutionProgressByStepDTO> executionProgressByStepDTOS = new LinkedList<>();
     for (FullBatchJobType step : workflowSteps) {
       StepStatistics stepStatistics = getStepStatistics(datasetId, step);
       List<ErrorInfoDTO> errorInfoDTOList = getErrorInfo(datasetId, step);
       long total = stepStatistics.totalSuccess + stepStatistics.totalFail;
-      ProgressByStepDTO progressByStepDto = new ProgressByStepDTO(step, total, stepStatistics.totalSuccess,
+      ExecutionProgressByStepDTO executionProgressByStepDto = new ExecutionProgressByStepDTO(step, total, stepStatistics.totalSuccess,
           stepStatistics.totalFail, stepStatistics.totalWarning, errorInfoDTOList);
-      progressByStepDTOS.add(progressByStepDto);
+      executionProgressByStepDTOS.add(executionProgressByStepDto);
     }
-    final long completedRecords = progressByStepDTOS.getLast().success();
-    final long totalFailInWorkflow = progressByStepDTOS.stream().mapToLong(ProgressByStepDTO::fail).sum();
+
+    final long completedRecords = executionProgressByStepDTOS.getLast().success();
+    final long totalFailInWorkflow = executionProgressByStepDTOS.stream().mapToLong(ExecutionProgressByStepDTO::fail).sum();
+    final long totalProcessed = completedRecords + totalFailInWorkflow;
     final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
-    return new ProgressInfoDTO(
+    ExecutionStatus executionStatus = computeStatus(datasetEntity.getRecordsQuantity(), totalProcessed, totalFailInWorkflow);
+
+    return new ExecutionProgressInfoDTO(
         getPublishPortalUrl(datasetEntity, completedRecords),
-        datasetEntity.getRecordsQuantity(), completedRecords + totalFailInWorkflow,
-        progressByStepDTOS, datasetEntity.getRecordLimitExceeded(), "",
-        null, tiersZeroInfoDTO);
+        executionStatus,
+        datasetEntity.getRecordsQuantity(),
+        totalProcessed,
+        executionProgressByStepDTOS,
+        datasetEntity.isRecordLimitExceeded(),
+        tiersZeroInfoDTO
+    );
+  }
+
+  private ExecutionStatus computeStatus(long totalRecords, long totalProcessed, long totalFailInWorkflow) {
+    if (totalRecords > 0 && totalRecords == totalFailInWorkflow) {
+      return ExecutionStatus.FAILED;
+    } else if (totalRecords == 0L) {
+      return ExecutionStatus.HARVESTING_IDENTIFIERS;
+    } else if (totalRecords == totalProcessed) {
+      return ExecutionStatus.COMPLETED;
+    } else {
+      return ExecutionStatus.IN_PROGRESS;
+    }
   }
 
   private @NotNull StepStatistics getStepStatistics(
       String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
-    long totalSuccess = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
-        executionName);
-    long totalFailure = executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
-        executionName);
-    long totalWarning = executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
-        datasetId, executionName);
+    long totalSuccess =
+        executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+    long totalFailure =
+        executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+    long totalWarning =
+        executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+            datasetId, executionName);
     return new StepStatistics(totalSuccess, totalFailure, totalWarning);
   }
 
@@ -168,22 +190,18 @@ public class DatasetReportService {
     return groupedExceptions;
   }
 
-  private String getPublishPortalUrl(DatasetEntity dataset, Long completedRecords) {
-    return getPortalUrl(portalPublishDatasetUrl, dataset, completedRecords);
-  }
-
-  private String getPortalUrl(String portal, DatasetEntity datasetEntity, Long completedRecords) {
-    Long recordsQty = datasetEntity.getRecordsQuantity();
-    if (recordsQty == null) {
+  private String getPublishPortalUrl(DatasetEntity datasetEntity, long completedRecords) {
+    long recordsQuantity = datasetEntity.getRecordsQuantity();
+    if (recordsQuantity == 0L) {
       return HARVESTING_IDENTIFIERS_MESSAGE;
     }
 
-    if (!recordsQty.equals(completedRecords)) {
+    if (recordsQuantity != completedRecords){
       return PROCESSING_DATASET_MESSAGE;
     }
 
-    var datasetId = datasetEntity.getDatasetId() + SEPARATOR + datasetEntity.getDatasetName() + SUFFIX;
-    return portal + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
+    String datasetId = datasetEntity.getDatasetId() + SEPARATOR + datasetEntity.getDatasetName() + SUFFIX;
+    return portalPublishDatasetUrl + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
   }
 
   private TiersZeroInfoDTO prepareTiersInfo(String datasetId) {

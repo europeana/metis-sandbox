@@ -55,36 +55,34 @@ public class WorkflowHelper {
   );
 
   public static List<FullBatchJobType> getWorkflow(ExecutionMetadata executionMetadata) {
-    WorkflowType workflowType = Optional.ofNullable(executionMetadata.getDatasetMetadata().getWorkflowType()).orElse(WorkflowType.OAI_HARVEST);
+    WorkflowType workflowType = Optional.of(executionMetadata.getDatasetMetadata().getWorkflowType())
+                                        .orElse(WorkflowType.OAI_HARVEST);
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
     boolean shouldInsertTransformExternal =
         executionMetadata.getInputMetadata().getTransformXsltEntity() != null &&
             workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
-    List<FullBatchJobType> finalSteps;
-    if (shouldInsertTransformExternal) {
-      finalSteps = new ArrayList<>();
-      for (FullBatchJobType step : baseSteps) {
-        if (step == VALIDATE_EXTERNAL) {
-          finalSteps.add(TRANSFORM_EXTERNAL);
-        }
-        finalSteps.add(step);
-      }
-    } else {
-      finalSteps = baseSteps;
-    }
-
-    return finalSteps;
+    return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
   }
 
   public static List<FullBatchJobType> getWorkflow(DatasetEntity datasetEntity, TransformXsltEntity transformXsltEntity) {
     WorkflowType workflowType = Optional.ofNullable(datasetEntity.getWorkflowType()).orElse(WorkflowType.OAI_HARVEST);
-    List<FullBatchJobType> baseSteps = WorkflowHelper.WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
+    //In this case DEBIAS workflow is not valid since we don't provide progress info for it for the dataset, it has its own report
+    if (workflowType == WorkflowType.DEBIAS) {
+      throw new IllegalArgumentException("Debias workflow not supported");
+    }
+
+    List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
     boolean shouldInsertTransformExternal = transformXsltEntity != null &&
-            workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
+        workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
+    return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
+  }
+
+  public static List<FullBatchJobType> conditionallyAddTransformExternalStep(List<FullBatchJobType> baseSteps,
+      boolean shouldInsertTransformExternal) {
     List<FullBatchJobType> finalSteps;
     if (shouldInsertTransformExternal) {
       finalSteps = new ArrayList<>();
@@ -100,5 +98,4 @@ public class WorkflowHelper {
 
     return finalSteps;
   }
-
 }

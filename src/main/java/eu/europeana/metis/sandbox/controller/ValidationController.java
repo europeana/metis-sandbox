@@ -9,8 +9,8 @@ import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressByStepDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -97,15 +97,15 @@ public class ValidationController {
     String datasetName = "direct_validation_" + UUID.randomUUID();
     String createdDatasetId = datasetExecutionService.createAndExecuteDatasetForFileValidationBlocking(
         datasetName, recordToValidate, country, language);
-    ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(createdDatasetId);
+    ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(createdDatasetId);
 
     List<ValidationResult> validationResults = new ArrayList<>();
-    for (ProgressByStepDTO progressByStepDto : progressInfoDto.getProgressByStep()) {
+    for (ExecutionProgressByStepDTO executionProgressByStepDto : executionProgressInfoDto.executionProgressByStepDTOS()) {
       final ValidationResult validationResult;
-      Optional<ErrorInfoDTO> errorInfoDto = progressByStepDto.errors().stream().findFirst();
-      validationResult = errorInfoDto.map(infoDto -> new ValidationResult(progressByStepDto.step(),
+      Optional<ErrorInfoDTO> errorInfoDto = executionProgressByStepDto.errors().stream().findFirst();
+      validationResult = errorInfoDto.map(infoDto -> new ValidationResult(executionProgressByStepDto.step(),
                                          new RecordValidationMessage(Type.ERROR, infoDto.errorMessage()), Status.FAILED))
-                                     .orElseGet(() -> new ValidationResult(progressByStepDto.step(),
+                                     .orElseGet(() -> new ValidationResult(executionProgressByStepDto.step(),
                                          new RecordValidationMessage(Type.INFO, "success"), Status.PASSED));
       validationResults.add(validationResult);
     }

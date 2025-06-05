@@ -13,8 +13,8 @@ import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
@@ -120,9 +120,9 @@ public class DatasetExecutionService {
     try {
       lock.lock();
       LOGGER.info("DeBias process: {} lock, Locked", datasetId);
-      ProgressInfoDTO progressInfoDto = datasetReportService.getProgress(datasetId);
+      ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(datasetId);
 
-      if (progressInfoDto.getStatus().equals(Status.COMPLETED) &&
+      if (executionProgressInfoDto.executionStatus().equals(ExecutionStatus.COMPLETED) &&
           "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
                                  .map(DeBiasStatusDTO::getState)
                                  .orElse(""))) {

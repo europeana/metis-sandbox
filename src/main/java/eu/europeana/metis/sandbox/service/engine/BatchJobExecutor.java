@@ -163,7 +163,6 @@ public class BatchJobExecutor {
   }
 
   private void updateDatasetRecordTotal(ExecutionMetadata executionMetadata, FullBatchJobType step) {
-    //Update records quantity in dataset table
     if (step == HARVEST_OAI || step == HARVEST_FILE) {
       long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(
           executionMetadata.getDatasetMetadata().getDatasetId(), step.name());

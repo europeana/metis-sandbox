@@ -10,7 +10,7 @@ import java.util.List;
  * Represent each step progress in the dataset report
  */
 @ApiModel("ProgressByStep")
-public record ProgressByStepDTO(
+public record ExecutionProgressByStepDTO(
     FullBatchJobType step,
     long total,
     long success,

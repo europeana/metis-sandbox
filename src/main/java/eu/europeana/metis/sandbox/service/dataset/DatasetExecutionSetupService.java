@@ -48,7 +48,7 @@ public class DatasetExecutionSetupService {
       MultipartFile xsltFile,
       HarvestParametersDTO harvestParametersDTO
   ) throws IOException {
-    String datasetId = createDataset(workflowType, datasetName, userId, country, language);
+    String datasetId = createDataset(datasetName, workflowType, language, country, userId);
 
     TransformXsltEntity transformXsltEntity = (xsltFile != null)
         ? saveXslt(xsltFile, datasetId)
@@ -62,18 +62,17 @@ public class DatasetExecutionSetupService {
     return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
   }
 
-  public String createDataset(WorkflowType workflowType, String name, String userId, Country country,
-      Language language) {
-    requireNonNull(name, "Dataset name is required");
+  public String createDataset(String datasetName, WorkflowType workflowType, Language language, Country country, String userId) {
+    requireNonNull(datasetName, "Dataset name is required");
     requireNonNull(country, "Country is required");
     requireNonNull(language, "Language is required");
 
-    DatasetEntity datasetEntity = new DatasetEntity(name, workflowType, language, country, userId, null, false);
+    DatasetEntity datasetEntity = new DatasetEntity(datasetName, workflowType, language, country, userId);
 
     try {
       return String.valueOf(datasetRepository.save(datasetEntity).getDatasetId());
     } catch (RuntimeException e) {
-      throw new ServiceException(format("Failed to create dataset [%s]", name), e);
+      throw new ServiceException(format("Failed to create dataset [%s]", datasetName), e);
     }
   }
 

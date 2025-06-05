@@ -24,8 +24,8 @@ import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO.Status;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
@@ -125,10 +125,9 @@ class PatternAnalysisControllerTest {
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
     // First check with dataset that is still processing
-    final ProgressInfoDTO inProgressInfo = new ProgressInfoDTO("", 1L, 0L,
-        Collections.emptyList(), false, "", emptyList(), null);
-    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(inProgressInfo);
-    assertNotEquals(Status.COMPLETED, inProgressInfo.getStatus());
+    final ExecutionProgressInfoDTO inProgressInfo =
+        new ExecutionProgressInfoDTO("", ExecutionStatus.IN_PROGRESS, 1L, 0L, emptyList(), false, null);
+    assertNotEquals(ExecutionStatus.COMPLETED, inProgressInfo.executionStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -140,10 +139,9 @@ class PatternAnalysisControllerTest {
     verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
 
     // Now check with finalized dataset.
-    final ProgressInfoDTO completedInfo = new ProgressInfoDTO("", 1L, 1L,
-        Collections.emptyList(), false, "", emptyList(), null);
-    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(completedInfo);
-    assertEquals(Status.COMPLETED, completedInfo.getStatus());
+    final ExecutionProgressInfoDTO completedInfo =
+        new ExecutionProgressInfoDTO("", ExecutionStatus.COMPLETED, 1L, 1L, emptyList(), false, null);
+    assertEquals(ExecutionStatus.COMPLETED, completedInfo.executionStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -181,9 +179,6 @@ class PatternAnalysisControllerTest {
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
-
-    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())
@@ -265,9 +260,6 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.empty());
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
 
-    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
-
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isInternalServerError())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
@@ -345,9 +337,6 @@ class PatternAnalysisControllerTest {
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
     when(lockRegistry.obtain(anyString())).thenReturn(new ReentrantLock());
-
-    //    when(mockDatasetReportService.getReport("datasetId")).thenReturn(
-    //        new ProgressInfoDto("", 1L, 1L, Collections.emptyList(), false, "", emptyList(), null));
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isOk())

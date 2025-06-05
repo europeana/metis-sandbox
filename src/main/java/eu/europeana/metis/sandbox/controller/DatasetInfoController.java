@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,7 +43,7 @@ public class DatasetInfoController {
   @ApiResponse(responseCode = "200")
   @ApiResponse(responseCode = "400")
   @GetMapping(value = "{id}/progress", produces = APPLICATION_JSON_VALUE)
-  public ProgressInfoDTO getDatasetProgress(
+  public ExecutionProgressInfoDTO getDatasetProgress(
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
     //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
     //        return reportService.getReport(datasetId);

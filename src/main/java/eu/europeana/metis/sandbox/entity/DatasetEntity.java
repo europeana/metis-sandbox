@@ -44,8 +44,8 @@ public class DatasetEntity {
   private Country country;
 
   private String createdById;
-  private Long recordsQuantity;
-  private Boolean recordLimitExceeded;
+  private long recordsQuantity;
+  private boolean recordLimitExceeded;
 
   /**
    * Constructs a DatasetEntity.
@@ -57,14 +57,11 @@ public class DatasetEntity {
    * @param recordsQuantity The number of records in the dataset.
    * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
    */
-  public DatasetEntity(String datasetName, WorkflowType workflowType, Language language, Country country, String createdById,
-      Long recordsQuantity, Boolean recordLimitExceeded) {
+  public DatasetEntity(String datasetName, WorkflowType workflowType, Language language, Country country, String createdById) {
     this.workflowType = workflowType;
     this.datasetName = datasetName;
     this.createdById = createdById;
-    this.recordsQuantity = recordsQuantity;
     this.language = language;
     this.country = country;
-    this.recordLimitExceeded = recordLimitExceeded;
   }
 }
