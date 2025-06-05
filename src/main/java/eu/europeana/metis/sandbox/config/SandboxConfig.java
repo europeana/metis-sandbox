@@ -56,10 +56,11 @@ class SandboxConfig {
 
     @Bean(name = "pipelineTaskExecutor")
     public TaskExecutor taskExecutor() {
+        //Can be configurable
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
+        executor.setCorePoolSize(4);
         executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(10);
+        executor.setQueueCapacity(20);
         executor.setThreadNamePrefix("PipelineJob-");
         executor.initialize();
         return executor;

@@ -2,25 +2,25 @@ package eu.europeana.metis.sandbox.controller.advice;
 
 import static java.lang.String.format;
 
-import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.schema.convert.SerializationException;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.io.IOException;
 
 /**
  * Handles controller exceptions to report correct http status code to client
@@ -31,6 +31,16 @@ public class RestResponseExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final String RETRY_MSG = "%s Please retry, if problem persists contact provider.";
+
+    //This happens if too many executions are requested from the task executor.
+    @ExceptionHandler(TaskRejectedException.class)
+    public ResponseEntity<Object> handleTaskRejected(TaskRejectedException ex) {
+        var message = format(RETRY_MSG, ex.getMessage());
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.TOO_MANY_REQUESTS.value(),
+            HttpStatus.TOO_MANY_REQUESTS, message);
+        LOGGER.error(ex.getMessage(), ex);
+        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
+    }
 
     @ExceptionHandler(XsltProcessingException.class)
     public ResponseEntity<Object> handleXsltProcessingException(XsltProcessingException ex) {
