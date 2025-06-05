@@ -26,6 +26,7 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
@@ -119,8 +120,7 @@ public class BatchJobExecutor {
   }
 
   public void executeDebiasWorkflow(ExecutionMetadata executionMetadata) {
-    JobExecution validationExecution = findJobInstance(executionMetadata, ValidationJobConfig.BATCH_JOB,
-        ValidationBatchJobSubType.INTERNAL).orElseThrow();
+    JobExecution validationExecution = findJobInstance(executionMetadata, FullBatchJobType.VALIDATE_INTERNAL).orElseThrow();
     InputMetadata inputMetadata = new InputMetadata(
         validationExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID));
     ExecutionMetadata currentExecutionMetadata = ExecutionMetadata.builder()
@@ -153,15 +153,14 @@ public class BatchJobExecutor {
     }
   }
 
-  private Optional<JobExecution> findJobInstance(ExecutionMetadata executionMetadata, BatchJobType batchJobType,
-      Enum<?> batchJobSubType) {
+  private Optional<JobExecution> findJobInstance(ExecutionMetadata executionMetadata, FullBatchJobType fullBatchJobType) {
     List<JobInstance> jobInstances = new ArrayList<>();
     int start = 0;
     int pageSize = 100;
     List<JobInstance> page;
 
     do {
-      page = jobExplorer.getJobInstances(batchJobType.name(), start, 100);
+      page = jobExplorer.getJobInstances(fullBatchJobType.getBatchJobType().name(), start, 100);
       jobInstances.addAll(page);
       start += pageSize;
     } while (!page.isEmpty());
@@ -176,6 +175,7 @@ public class BatchJobExecutor {
         boolean datasetMatches = Objects.equals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
 
         if (datasetMatches) {
+          BatchJobSubType batchJobSubType = fullBatchJobType.getBatchJobSubType();
           final boolean isMatchingWithoutSubtype = batchJobSubType == null && isBlank(jobSubTypeString);
           final boolean isMatchingWithSubType = batchJobSubType != null && batchJobSubType.name().equals(jobSubTypeString);
           if (isMatchingWithoutSubtype || isMatchingWithSubType) {
