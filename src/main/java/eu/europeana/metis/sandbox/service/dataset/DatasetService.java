@@ -19,10 +19,6 @@ public class DatasetService {
     this.datasetRepository = datasetRepository;
   }
 
-  public void setRecordLimitExceeded(String datasetId) {
-    datasetRepository.setRecordLimitExceeded(Integer.parseInt(datasetId));
-  }
-
   public void remove(String datasetId) {
     try {
       datasetRepository.deleteById(Integer.valueOf(datasetId));

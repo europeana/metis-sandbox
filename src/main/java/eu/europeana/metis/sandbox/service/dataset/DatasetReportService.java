@@ -51,6 +51,8 @@ public class DatasetReportService {
   private final TransformXsltRepository transformXsltRepository;
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
+  @Value("${sandbox.dataset.max-size}")
+  private int maxRecords;
 
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
@@ -76,7 +78,7 @@ public class DatasetReportService {
   public DatasetInfoDTO getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
-    Optional<TransformXsltEntity> xslt = transformXsltRepository.findByDatasetId(datasetId);
+    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId);
     HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId)
                                                                                 .orElseThrow();
     HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
@@ -88,7 +90,7 @@ public class DatasetReportService {
                          .language(datasetEntity.getLanguage())
                          .country(datasetEntity.getCountry())
                          .harvestParametersDto(harvestParametersDTO)
-                         .transformedToEdmExternal(xslt.isPresent())
+                         .transformedToEdmExternal(transformXsltEntity.isPresent())
                          .build();
   }
 
@@ -98,31 +100,56 @@ public class DatasetReportService {
     TransformXsltEntity transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId).orElse(null);
 
     List<FullBatchJobType> workflowSteps = WorkflowHelper.getWorkflow(datasetEntity, transformXsltEntity);
-
     List<ExecutionProgressByStepDTO> executionProgressByStepDTOS = new LinkedList<>();
+    Long previousTotalRecords = null;
+    boolean previousCompleted = true;
     for (FullBatchJobType step : workflowSteps) {
       StepStatistics stepStatistics = getStepStatistics(datasetId, step);
       List<ErrorInfoDTO> errorInfoDTOList = getErrorInfo(datasetId, step);
-      long total = stepStatistics.totalSuccess + stepStatistics.totalFail;
-      ExecutionProgressByStepDTO executionProgressByStepDto = new ExecutionProgressByStepDTO(step, total, stepStatistics.totalSuccess,
-          stepStatistics.totalFail, stepStatistics.totalWarning, errorInfoDTOList);
+
+      long currentTotalRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
+
+      long totalRecords = 0;
+      if (previousTotalRecords == null) {
+        // First step
+        totalRecords = currentTotalRecords;
+      } else if (previousCompleted) {
+        // Use previous step's total if it was completed
+        totalRecords = previousTotalRecords;
+      }
+
+      ExecutionProgressByStepDTO executionProgressByStepDto = new ExecutionProgressByStepDTO(
+          step,
+          totalRecords,
+          stepStatistics.totalSuccess,
+          stepStatistics.totalFail,
+          stepStatistics.totalWarning,
+          errorInfoDTOList
+      );
+
       executionProgressByStepDTOS.add(executionProgressByStepDto);
+
+      previousTotalRecords = currentTotalRecords;
+      previousCompleted = (currentTotalRecords == totalRecords);
     }
 
+    final long totalRecords = executionProgressByStepDTOS.getFirst().total();
     final long completedRecords = executionProgressByStepDTOS.getLast().success();
     final long totalFailInWorkflow = executionProgressByStepDTOS.stream().mapToLong(ExecutionProgressByStepDTO::fail).sum();
     final long totalProcessed = completedRecords + totalFailInWorkflow;
+    final boolean recordLimitExceeded = totalRecords >= maxRecords;
     final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
-    ExecutionStatus executionStatus = computeStatus(datasetEntity.getRecordsQuantity(), totalProcessed, totalFailInWorkflow);
+    ExecutionStatus executionStatus = computeStatus(totalRecords, totalProcessed, totalFailInWorkflow);
+    String publishPortalUrl = getPublishPortalUrl(datasetEntity, totalRecords, completedRecords);
 
     return new ExecutionProgressInfoDTO(
-        getPublishPortalUrl(datasetEntity, completedRecords),
+        publishPortalUrl,
         executionStatus,
-        datasetEntity.getRecordsQuantity(),
+        totalRecords,
         totalProcessed,
         executionProgressByStepDTOS,
-        datasetEntity.isRecordLimitExceeded(),
+        recordLimitExceeded,
         tiersZeroInfoDTO
     );
   }
@@ -190,13 +217,12 @@ public class DatasetReportService {
     return groupedExceptions;
   }
 
-  private String getPublishPortalUrl(DatasetEntity datasetEntity, long completedRecords) {
-    long recordsQuantity = datasetEntity.getRecordsQuantity();
-    if (recordsQuantity == 0L) {
+  private String getPublishPortalUrl(DatasetEntity datasetEntity, long totalRecords, long completedRecords) {
+    if (totalRecords == 0L) {
       return HARVESTING_IDENTIFIERS_MESSAGE;
     }
 
-    if (recordsQuantity != completedRecords){
+    if (totalRecords != completedRecords){
       return PROCESSING_DATASET_MESSAGE;
     }
 
@@ -241,7 +267,7 @@ public class DatasetReportService {
 
   }
 
-  public record GroupedExceptionKey(Status status, String message) {
+  private record GroupedExceptionKey(Status status, String message) {
 
   }
 }

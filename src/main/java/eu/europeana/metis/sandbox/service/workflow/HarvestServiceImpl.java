@@ -130,7 +130,6 @@ public class HarvestServiceImpl {
       if (numberOfSelectedHeaders.get() >= maxRecords) {
         //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
         //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-        datasetService.setRecordLimitExceeded(datasetId);
         numberOfSelectedHeaders.set(maxRecords);
         return ReportingIteration.IterationResult.TERMINATE;
       }

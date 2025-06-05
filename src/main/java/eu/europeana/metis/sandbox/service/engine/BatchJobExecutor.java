@@ -30,7 +30,6 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.common.InputMetadata;
@@ -46,7 +45,6 @@ import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
-import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -83,24 +81,18 @@ public class BatchJobExecutor {
   private final List<? extends Job> jobs;
   private final JobLauncher jobLauncher;
   private final JobExplorer jobExplorer;
-  private final ExecutionRecordRepository executionRecordRepository;
   private final TaskExecutor taskExecutor;
-  private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
 
   private final EnumMap<FullBatchJobType, Function<ExecutionMetadata, JobExecution>> jobExecutorsByType;
 
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, JobExplorer jobExplorer,
-      ExecutionRecordRepository executionRecordRepository,
-      @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor,
-      DatasetRepository datasetRepository, TransformXsltRepository transformXsltRepository) {
+      @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository) {
     this.jobs = jobs;
     this.jobLauncher = jobLauncher;
     this.jobExplorer = jobExplorer;
-    this.executionRecordRepository = executionRecordRepository;
     this.taskExecutor = taskExecutor;
-    this.datasetRepository = datasetRepository;
     this.transformXsltRepository = transformXsltRepository;
     LOGGER.info("Registered batch jobs: {}", jobs.stream().map(Job::getName).toList());
 
@@ -153,21 +145,11 @@ public class BatchJobExecutor {
       if (execution.getStatus() != BatchStatus.COMPLETED) {
         throw new RuntimeException("Step failed: " + step);
       }
-      updateDatasetRecordTotal(currentExecutionMetadata, step);
       currentExecutionMetadata = ExecutionMetadata.builder().datasetMetadata(executionMetadata.getDatasetMetadata())
                                                   .inputMetadata(new InputMetadata(
                                                       execution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID),
                                                       currentExecutionMetadata.getInputMetadata()))
                                                   .build();
-    }
-  }
-
-  private void updateDatasetRecordTotal(ExecutionMetadata executionMetadata, FullBatchJobType step) {
-    if (step == HARVEST_OAI || step == HARVEST_FILE) {
-      long totalRecords = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(
-          executionMetadata.getDatasetMetadata().getDatasetId(), step.name());
-      datasetRepository.updateRecordsQuantity(Integer.parseInt(executionMetadata.getDatasetMetadata().getDatasetId()),
-          totalRecords);
     }
   }
 

@@ -5,9 +5,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
@@ -17,28 +14,11 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param date must not be null
    * @return list of dataset ids
    * @see DatasetIdProjection
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query
+   * Creation</a>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<DatasetIdProjection> findByCreatedDateBefore(ZonedDateTime date);
-
-  /**
-   * Updates the value of recordQuantity to the given dataset
-   * @param datasetId The id of the dataset to update to
-   * @param quantity The new value to update into the dataset
-   */
-  @Transactional
-  @Modifying
-  @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
-  void updateRecordsQuantity(int datasetId, Long quantity);
-
-  /**
-   * Sets to true the boolean recordLimitExceeded
-   * @param datasetId The id of the dataset to update this into
-   */
-  @Modifying
-  @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
-  void setRecordLimitExceeded(int datasetId);
 
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 

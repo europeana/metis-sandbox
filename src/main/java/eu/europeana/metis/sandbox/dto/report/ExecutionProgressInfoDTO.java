@@ -22,8 +22,8 @@ public record ExecutionProgressInfoDTO(
     @JsonProperty("progress-by-step")
     List<ExecutionProgressByStepDTO> executionProgressByStepDTOS,
 
-    @JsonProperty("record-limit-exceeded")
-    boolean recordLimitExceeded,
+    @JsonProperty("record-limit-reached")
+    boolean recordLimitReached,
 
     @JsonProperty("tier-zero-info")
     @JsonInclude(JsonInclude.Include.NON_NULL)

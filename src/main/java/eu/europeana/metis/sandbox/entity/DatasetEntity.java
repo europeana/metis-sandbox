@@ -44,8 +44,6 @@ public class DatasetEntity {
   private Country country;
 
   private String createdById;
-  private long recordsQuantity;
-  private boolean recordLimitExceeded;
 
   /**
    * Constructs a DatasetEntity.
