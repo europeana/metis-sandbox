@@ -9,8 +9,10 @@ import eu.europeana.metis.debias.detect.model.request.BiasInputLiterals;
 import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
+import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
@@ -42,6 +44,7 @@ public class DeBiasProcessService {
   private final RecordDeBiasMainRepository recordDeBiasMainRepository;
 
   private final RecordDeBiasDetailRepository recordDeBiasDetailRepository;
+  private final DatasetRepository datasetRepository;
 
   /**
    * Instantiates a new DeBias process service.
@@ -52,10 +55,12 @@ public class DeBiasProcessService {
    */
   public DeBiasProcessService(DeBiasClient deBiasClient,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
-      RecordDeBiasDetailRepository recordDeBiasDetailRepository) {
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository,
+      DatasetRepository datasetRepository) {
     this.deBiasClient = deBiasClient;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
+    this.datasetRepository = datasetRepository;
   }
 
   @Transactional
@@ -113,9 +118,10 @@ public class DeBiasProcessService {
   }
 
   private void saveReport(List<DeBiasReportRow> report, String datasetId, String recordId) {
+    DatasetEntity dataset = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
     report.forEach(row -> {
       if (!row.valueDetection().getTags().isEmpty()) {
-        RecordDeBiasMainEntity recordDeBiasMain = new RecordDeBiasMainEntity(datasetId, recordId, row.valueDetection().getLiteral(),
+        RecordDeBiasMainEntity recordDeBiasMain = new RecordDeBiasMainEntity(dataset, recordId, row.valueDetection().getLiteral(),
             Language.valueOf(row.valueDetection().getLanguage().toUpperCase(Locale.US)), row.sourceField());
         recordDeBiasMainRepository.save(recordDeBiasMain);
         row.valueDetection().getTags().forEach(tag -> {

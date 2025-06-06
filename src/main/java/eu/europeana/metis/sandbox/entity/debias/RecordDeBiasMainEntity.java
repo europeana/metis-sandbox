@@ -1,13 +1,17 @@
 package eu.europeana.metis.sandbox.entity.debias;
 
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasSourceField;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
@@ -26,7 +30,9 @@ public class RecordDeBiasMainEntity {
   /**
    * Reference to record od
    */
-  private String datasetId;
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
+  private DatasetEntity datasetId;
   private String recordId;
   /**
    * The Language.
@@ -51,7 +57,8 @@ public class RecordDeBiasMainEntity {
    * @param language the language
    * @param sourceField the DeBias source field
    */
-  public RecordDeBiasMainEntity(String datasetId, String recordId, String literal, Language language, DeBiasSourceField sourceField) {
+  public RecordDeBiasMainEntity(DatasetEntity datasetId, String recordId, String literal, Language language,
+      DeBiasSourceField sourceField) {
     this.datasetId = datasetId;
     this.recordId = recordId;
     this.literal = literal;
@@ -156,11 +163,11 @@ public class RecordDeBiasMainEntity {
     this.sourceField = deBiasSourceField;
   }
 
-  public String getDatasetId() {
+  public DatasetEntity getDatasetId() {
     return datasetId;
   }
 
-  public void setDatasetId(String datasetId) {
+  public void setDatasetId(DatasetEntity datasetId) {
     this.datasetId = datasetId;
   }
 }

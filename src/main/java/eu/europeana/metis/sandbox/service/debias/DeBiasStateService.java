@@ -115,8 +115,8 @@ public class DeBiasStateService {
 
   private List<DeBiasReportRow> getReportFromDbEntities(String datasetId) {
     List<DeBiasReportRow> reportRows = new ArrayList<>();
-    List<RecordDeBiasMainEntity> recordDeBiasMainEntities = this.recordDeBiasMainRepository.findByDatasetId(
-        datasetId);
+    List<RecordDeBiasMainEntity> recordDeBiasMainEntities = this.recordDeBiasMainRepository.findByDatasetId_DatasetId(
+        Integer.valueOf(datasetId));
 
     recordDeBiasMainEntities.forEach(recordDeBiasMainEntity -> {
       List<RecordDeBiasDetailEntity> detailEntities = this.recordDeBiasDetailRepository.findByDebiasIdId(

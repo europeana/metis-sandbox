@@ -18,9 +18,9 @@ import java.util.Set;
  */
 @Entity
 @Table(schema = "problem_patterns", name = "execution_point", indexes = {
-    @Index(name = "execution_point_dataset_id_execution_step_execution_timesta_key",
-        columnList = "dataset_id, execution_step, execution_timestamp", unique = true),
-    @Index(name = "execution_point_dataset_id_execution_step_idx", columnList = "dataset_id, execution_name")
+    @Index(name = "execution_point_dataset_id_execution_name_execution_timesta_key",
+        columnList = "dataset_id, execution_name, execution_timestamp", unique = true),
+    @Index(name = "execution_point_dataset_id_execution_name_idx", columnList = "dataset_id, execution_name")
 })
 public class ExecutionPoint {
 

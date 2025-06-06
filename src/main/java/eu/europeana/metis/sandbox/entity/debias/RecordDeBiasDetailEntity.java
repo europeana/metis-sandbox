@@ -16,6 +16,14 @@ import jakarta.persistence.Table;
 @Table(name = "record_debias_detail")
 public class RecordDeBiasDetailEntity {
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @ManyToOne(cascade = CascadeType.PERSIST)
+  @JoinColumn(name = "debias_id", referencedColumnName = "id")
+  private RecordDeBiasMainEntity debiasId;
+
   /**
    * The Tag start.
    */
@@ -32,12 +40,6 @@ public class RecordDeBiasDetailEntity {
    * The Tag uri.
    */
   protected String tagUri;
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-  @ManyToOne(cascade = CascadeType.PERSIST)
-  @JoinColumn(name = "debias_id", referencedColumnName = "id")
-  private RecordDeBiasMainEntity debiasId;
 
   /**
    * Instantiates a new Record de bias detail entity.

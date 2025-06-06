@@ -13,20 +13,9 @@ import org.springframework.data.jpa.repository.Query;
 public interface RecordDeBiasMainRepository extends JpaRepository<RecordDeBiasMainEntity, Long> {
 
 
-  /**
-   * Find by record id dataset id list.
-   *
-   * @param datasetId the dataset id
-   * @return the list
-   */
-  List<RecordDeBiasMainEntity> findByDatasetId(String datasetId);
+  List<RecordDeBiasMainEntity> findByDatasetId_DatasetId(Integer datasetId);
 
-  /**
-   * Delete by record id dataset id.
-   *
-   * @param datasetId the dataset id
-   */
   @Modifying
-  @Query("DELETE FROM RecordDeBiasMainEntity rdm  WHERE rdm.datasetId = ?1")
+  @Query("DELETE FROM RecordDeBiasMainEntity rdm WHERE rdm.datasetId.datasetId = ?1")
   void deleteByDatasetId(String datasetId);
 }

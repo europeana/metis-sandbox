@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS thumbnail
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS default_transform_xslt
+CREATE TABLE IF NOT EXISTS transform_xslt
 (
     id             SERIAL,
     transform_xslt TEXT NOT NULL,
@@ -79,7 +79,6 @@ CREATE INDEX ON record_debias_detail (debias_id);
 CREATE INDEX ON record_debias_main (record_id, source_field, language);
 CREATE INDEX ON dataset_debias_detect (dataset_id);
 CREATE INDEX ON harvesting_parameter (dataset_id);
-CREATE INDEX ON dataset_log (dataset_id);
 CREATE INDEX ON thumbnail (dataset_id);
 
 CREATE SCHEMA "batch-framework";
