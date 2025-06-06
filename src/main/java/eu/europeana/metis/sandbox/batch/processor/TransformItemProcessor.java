@@ -2,23 +2,19 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
-import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.service.workflow.TransformService;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
 @StepScope
 @Component("transformItemProcessor")
-public class TransformItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
+public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
 
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
@@ -35,20 +31,6 @@ public class TransformItemProcessor extends AbstractMetisItemProcessor<Execution
 
   public TransformItemProcessor(TransformService transformService) {
     this.transformService = transformService;
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
-    final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
-        executionRecord);
-    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
-        getTargetExecutionId());
-
-    return ItemProcessorUtil.processCapturingException(
-        jobMetadataDTO,
-        getProcessRecordFunction(),
-        ItemProcessorUtil.defaultHandler()
-    );
   }
 
   @Override

@@ -14,7 +14,7 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.DEBIAS;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.ENRICH;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_FILE;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_OAI;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.INDEX;
+import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.INDEX_PUBLISH;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.MEDIA;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.NORMALIZE;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_EXTERNAL;
@@ -29,6 +29,7 @@ import static org.awaitility.Awaitility.await;
 import eu.europeana.metis.sandbox.batch.common.BatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.common.IndexBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
@@ -100,14 +101,14 @@ public class BatchJobExecutor {
     this.jobExecutorsByType = new EnumMap<>(FullBatchJobType.class);
     this.jobExecutorsByType.put(HARVEST_OAI, this::runOaiHarvest);
     this.jobExecutorsByType.put(HARVEST_FILE, this::runFileHarvest);
-    this.jobExecutorsByType.put(TRANSFORM_EXTERNAL, this::executeTransformationToEdmExternal);
-    this.jobExecutorsByType.put(VALIDATE_EXTERNAL, this::executeValidationExternal);
-    this.jobExecutorsByType.put(TRANSFORM_INTERNAL, this::executeTransformation);
-    this.jobExecutorsByType.put(VALIDATE_INTERNAL, this::executeValidationInternal);
-    this.jobExecutorsByType.put(NORMALIZE, this::executeNormalization);
-    this.jobExecutorsByType.put(ENRICH, this::executeEnrichment);
+    this.jobExecutorsByType.put(TRANSFORM_EXTERNAL, this::executeTransformToEdmExternal);
+    this.jobExecutorsByType.put(VALIDATE_EXTERNAL, this::executeValidateExternal);
+    this.jobExecutorsByType.put(TRANSFORM_INTERNAL, this::executeTransformInternal);
+    this.jobExecutorsByType.put(VALIDATE_INTERNAL, this::executeValidateInternal);
+    this.jobExecutorsByType.put(NORMALIZE, this::executeNormalize);
+    this.jobExecutorsByType.put(ENRICH, this::executeEnrich);
     this.jobExecutorsByType.put(MEDIA, this::executeMedia);
-    this.jobExecutorsByType.put(INDEX, this::executeIndex);
+    this.jobExecutorsByType.put(INDEX_PUBLISH, this::executeIndexPublish);
     this.jobExecutorsByType.put(DEBIAS, this::executeDebias);
   }
 
@@ -223,7 +224,7 @@ public class BatchJobExecutor {
     return prepareAndRunJob(FileHarvestJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
-  private @NotNull JobExecution executeValidationExternal(ExecutionMetadata executionMetadata) {
+  private @NotNull JobExecution executeValidateExternal(ExecutionMetadata executionMetadata) {
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchJobSubType.EXTERNAL.name())
         .toJobParameters();
@@ -231,7 +232,7 @@ public class BatchJobExecutor {
     return prepareAndRunJob(ValidationJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
-  private @NotNull JobExecution executeTransformation(ExecutionMetadata executionMetadata) {
+  private @NotNull JobExecution executeTransformInternal(ExecutionMetadata executionMetadata) {
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT);
     String transformXsltId = transformXsltEntity.map(TransformXsltEntity::getId).map(String::valueOf).orElseThrow();
 
@@ -247,7 +248,7 @@ public class BatchJobExecutor {
     return prepareAndRunJob(TransforJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
-  private @NotNull JobExecution executeTransformationToEdmExternal(ExecutionMetadata executionMetadata) {
+  private @NotNull JobExecution executeTransformToEdmExternal(ExecutionMetadata executionMetadata) {
     String transformXsltId = String.valueOf(executionMetadata.getInputMetadata().getTransformXsltEntity().getId());
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
 
@@ -262,7 +263,7 @@ public class BatchJobExecutor {
     return prepareAndRunJob(TransforJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
-  private @NotNull JobExecution executeValidationInternal(ExecutionMetadata executionMetadata) {
+  private @NotNull JobExecution executeValidateInternal(ExecutionMetadata executionMetadata) {
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, ValidationBatchJobSubType.INTERNAL.name())
         .toJobParameters();
@@ -270,11 +271,11 @@ public class BatchJobExecutor {
     return prepareAndRunJob(ValidationJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
-  private @NotNull JobExecution executeNormalization(ExecutionMetadata executionMetadata) {
+  private @NotNull JobExecution executeNormalize(ExecutionMetadata executionMetadata) {
     return prepareAndRunJob(NormalizeJobConfig.BATCH_JOB, executionMetadata);
   }
 
-  private @NotNull JobExecution executeEnrichment(ExecutionMetadata executionMetadata) {
+  private @NotNull JobExecution executeEnrich(ExecutionMetadata executionMetadata) {
     return prepareAndRunJob(EnrichJobConfig.BATCH_JOB, executionMetadata);
   }
 
@@ -282,8 +283,11 @@ public class BatchJobExecutor {
     return prepareAndRunJob(MediaJobConfig.BATCH_JOB, executionMetadata);
   }
 
-  private @NotNull JobExecution executeIndex(ExecutionMetadata executionMetadata) {
-    return prepareAndRunJob(IndexJobConfig.BATCH_JOB, executionMetadata);
+  private @NotNull JobExecution executeIndexPublish(ExecutionMetadata executionMetadata) {
+    JobParameters stepParameters = new JobParametersBuilder()
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, IndexBatchJobSubType.PUBLISH.name())
+        .toJobParameters();
+    return prepareAndRunJob(IndexJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
   private @NotNull JobExecution executeDebias(ExecutionMetadata executionMetadata) {

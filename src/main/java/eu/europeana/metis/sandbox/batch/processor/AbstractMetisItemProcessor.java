@@ -1,10 +1,13 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
+import static java.lang.String.format;
+
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.function.BiFunction;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,5 +39,17 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
 
   String getExecutionName() {
     return fullBatchJobType.name();
+  }
+
+  public static <T, R> R processCapturingException(
+      T input,
+      ThrowingFunction<T, R> function,
+      BiFunction<T, Exception, R> exceptionHandler) {
+    try {
+      return function.apply(input);
+    } catch (Exception e) {
+      LOGGER.warn(format("Exception occurred while processing input %s: %s", input, e.getMessage()), e);
+      return exceptionHandler.apply(input, e);
+    }
   }
 }

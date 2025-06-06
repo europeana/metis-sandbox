@@ -5,9 +5,14 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
+import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
 import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
+import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -22,19 +27,34 @@ public class OaiRecordHarvesterItemProcessor extends
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Value("#{jobParameters['oaiEndpoint']}")
-  private String oaiEndpoint;
-  @Value("#{jobParameters['oaiSet']}")
-  private String oaiSet;
-  @Value("#{jobParameters['oaiMetadataPrefix']}")
-  private String oaiMetadataPrefix;
+  @Value("#{jobParameters['harvestParameterId']}")
+  private String harvestParameterId;
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
+  private String oaiEndpoint;
+  private String oaiSet;
+  private String oaiMetadataPrefix;
 
+  private final HarvestParameterService harvestParameterService;
   private final OaiHarvestService oaiHarvestService;
 
-  public OaiRecordHarvesterItemProcessor(OaiHarvestService oaiHarvestService) {
+  public OaiRecordHarvesterItemProcessor(HarvestParameterService harvestParameterService,
+      OaiHarvestService oaiHarvestService) {
+    this.harvestParameterService = harvestParameterService;
     this.oaiHarvestService = oaiHarvestService;
+  }
+
+  @PostConstruct
+  private void prepare() {
+    HarvestParametersEntity harvestParametersEntity =
+        harvestParameterService.getHarvestingParametersById(UUID.fromString(harvestParameterId)).orElseThrow();
+    if (harvestParametersEntity instanceof OaiHarvestParameters oaiHarvestParameters) {
+      oaiEndpoint = oaiHarvestParameters.getUrl();
+      oaiSet = oaiHarvestParameters.getSetSpec();
+      oaiMetadataPrefix = oaiHarvestParameters.getMetadataFormat();
+    } else {
+      throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for OaiHarvest");
+    }
   }
 
   @Override

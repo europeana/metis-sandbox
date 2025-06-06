@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.engine;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.ENRICH;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_FILE;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_OAI;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.INDEX;
+import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.INDEX_PUBLISH;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.MEDIA;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.NORMALIZE;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_EXTERNAL;
@@ -26,7 +26,7 @@ public class WorkflowHelper {
 
   //Those are all temporary until we have a proper orchestrator(e.g. metis-core)
   private static final List<FullBatchJobType> COMMON_POST_HARVEST =
-      List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX);
+      List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX_PUBLISH);
 
   private static final List<FullBatchJobType> ONLY_VALIDATION =
       List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL);

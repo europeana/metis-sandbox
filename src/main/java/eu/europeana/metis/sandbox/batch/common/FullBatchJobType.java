@@ -14,7 +14,7 @@ public enum FullBatchJobType {
   NORMALIZE(BatchJobType.NORMALIZE),
   ENRICH(BatchJobType.ENRICH),
   MEDIA(BatchJobType.MEDIA),
-  INDEX(BatchJobType.INDEX),
+  INDEX_PUBLISH(BatchJobType.INDEX, IndexBatchJobSubType.PUBLISH),
   DEBIAS(BatchJobType.DEBIAS);
 
   private final BatchJobType batchJobType;
