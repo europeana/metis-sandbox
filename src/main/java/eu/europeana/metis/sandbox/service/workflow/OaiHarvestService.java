@@ -35,7 +35,6 @@ public class OaiHarvestService {
       EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
 
       return new HarvestedRecord(
-          datasetId,
           europeanaGeneratedIdsMap.getSourceProvidedChoAbout(),
           europeanaGeneratedIdsMap.getEuropeanaGeneratedId(),
           resultString
@@ -45,7 +44,5 @@ public class OaiHarvestService {
       throw new RuntimeException("Failed to harvest record " + sourceRecordId, e);
     }
   }
-
-  public record HarvestedRecord(String datasetId, String sourceRecordId, String recordId, String recordData) {}
 }
 

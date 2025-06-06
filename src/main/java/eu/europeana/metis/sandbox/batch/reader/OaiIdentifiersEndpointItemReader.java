@@ -7,7 +7,7 @@
   import eu.europeana.metis.sandbox.batch.common.BatchJobType;
   import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
   import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifierKey;
-  import eu.europeana.metis.sandbox.service.workflow.HarvestServiceImpl;
+  import eu.europeana.metis.sandbox.service.util.HarvestServiceImpl;
   import jakarta.annotation.PostConstruct;
   import java.lang.invoke.MethodHandles;
   import java.util.LinkedList;

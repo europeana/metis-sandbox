@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.harvesting.FullRecord;
 import eu.europeana.metis.harvesting.HarvesterException;
@@ -10,7 +10,6 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
@@ -45,16 +44,12 @@ public class HarvestServiceImpl {
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
-  private final DatasetService datasetService;
   private final int maxRecords;
 
   @Autowired
-  public HarvestServiceImpl(HttpHarvester httpHarvester,
-      OaiHarvester oaiHarvester,
-      DatasetService datasetService,
+  public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
       @Value("${sandbox.dataset.max-size}") int maxRecords) {
     this.httpHarvester = httpHarvester;
-    this.datasetService = datasetService;
     this.oaiHarvester = oaiHarvester;
     this.maxRecords = maxRecords;
   }

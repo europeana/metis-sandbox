@@ -6,8 +6,8 @@ import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
+import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
 import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
-import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService.HarvestedRecord;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,7 @@ public class OaiRecordHarvesterItemProcessor extends
     );
 
     return createValidated(b -> b
-        .datasetId(harvestedRecord.datasetId())
+        .datasetId(datasetId)
         .executionId(getTargetExecutionId())
         .sourceRecordId(harvestedRecord.sourceRecordId())
         .recordId(harvestedRecord.recordId())
