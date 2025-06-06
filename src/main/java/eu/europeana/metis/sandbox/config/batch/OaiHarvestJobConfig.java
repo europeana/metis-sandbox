@@ -46,19 +46,19 @@ public class OaiHarvestJobConfig {
     @Bean
     public Job oaiHarvestJob(
             JobRepository jobRepository,
-            @Qualifier("oaiIdentifiersHarvestStep") Step oaiIdentifiersHarvestStep,
-            @Qualifier("oaiRecordsHarvestStep") Step oaiRecordsHarvestStep) {
+            @Qualifier(IDENTIFIERS_HARVEST_STEP_NAME) Step identifiersHarvestStep,
+            @Qualifier(RECORDS_HARVEST_STEP_NAME) Step recordsHarvestStep) {
 
         LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
         return new JobBuilder(BATCH_JOB.name(), jobRepository)
                 .incrementer(new TimestampJobParametersIncrementer())
-                .start(oaiIdentifiersHarvestStep)
-                .next(oaiRecordsHarvestStep)
+                .start(identifiersHarvestStep)
+                .next(recordsHarvestStep)
                 .build();
     }
 
-    @Bean("oaiIdentifiersHarvestStep")
-    public Step oaiRepositoryIdentifiersHarvestStep(
+    @Bean(IDENTIFIERS_HARVEST_STEP_NAME)
+    public Step oaidentifiersEndpointHarvestStep(
             OaiIdentifiersEndpointItemReader oaiIdentifiersEndpointItemReader,
             OaiIdentifiersWriter oaiIdentifiersWriter,
             JobRepository jobRepository,
@@ -73,7 +73,7 @@ public class OaiHarvestJobConfig {
                 .build();
     }
 
-    @Bean("oaiRecordsHarvestStep")
+    @Bean(RECORDS_HARVEST_STEP_NAME)
     public Step oaiRecordsHarvestStep(
             JobRepository jobRepository,
             OaiIdentifiersRepositoryItemReader oaiIdentifiersRepositoryItemReader,

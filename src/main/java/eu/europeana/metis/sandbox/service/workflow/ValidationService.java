@@ -14,6 +14,7 @@ import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import lombok.experimental.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
@@ -39,21 +40,29 @@ public class ValidationService {
     this.executionPointRepository = executionPointRepository;
   }
 
-  public ValidationResult validateRecord(String recordData, String datasetId, String executionName, ValidationBatchJobSubType subtype)
-      throws TransformationException {
-      String schema = switch (subtype) {
-        case EXTERNAL -> "EDM-EXTERNAL";
-        case INTERNAL -> "EDM-INTERNAL";
-      };
+  public ValidationResult validateRecord(String recordData, String recordId, String datasetId, String executionName,
+      ValidationBatchJobSubType subtype)
+      throws TransformationException, ValidationFailureException {
+    String schema = switch (subtype) {
+      case EXTERNAL -> "EDM-EXTERNAL";
+      case INTERNAL -> "EDM-INTERNAL";
+    };
 
-      String reorderedFileContent = reorderFileContent(recordData);
-      ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
+    String reorderedFileContent = reorderFileContent(recordData);
+    ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
 
-      if (subtype == ValidationBatchJobSubType.INTERNAL) {
-        generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
-      }
+    if (subtype == ValidationBatchJobSubType.INTERNAL) {
+      generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
+    }
 
-      return result;
+    if (result.isSuccess()) {
+      LOGGER.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
+    } else {
+      LOGGER.info("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
+      throw new ValidationFailureException(result.getMessage());
+    }
+
+    return result;
   }
 
   private String reorderFileContent(String recordData) throws TransformationException {
@@ -74,6 +83,11 @@ public class ValidationService {
     } catch (PatternAnalysisException e) {
       LOGGER.error("An error occurred while processing pattern analysis", e);
     }
+  }
+
+  @StandardException
+  public static class ValidationFailureException extends Exception {
+
   }
 }
 

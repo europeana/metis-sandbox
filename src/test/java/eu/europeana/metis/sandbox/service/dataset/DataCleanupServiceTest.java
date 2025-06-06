@@ -40,7 +40,7 @@ class DataCleanupServiceTest {
   private ProblemPatternDataCleaner problemPatternDataCleaner;
 
   @Mock
-  private HarvestingParameterService harvestingParameterService;
+  private HarvestParameterService harvestParameterService;
 
   @Mock
   private DeBiasStateService deBiasStateService;
@@ -57,7 +57,7 @@ class DataCleanupServiceTest {
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexDataCleaner, times(4)).remove(anyString());
-    verify(harvestingParameterService, times(4)).remove(anyString());
+    verify(harvestParameterService, times(4)).remove(anyString());
     verify(executionRecordCleaner, times(4)).remove(anyString());
     verify(datasetService, times(4)).remove(anyString());
     verify(problemPatternDataCleaner, times(4)).remove(anyString());
@@ -77,7 +77,7 @@ class DataCleanupServiceTest {
 
     verify(thumbnailStoreService, times(4)).remove(anyString());
     verify(indexDataCleaner, times(3)).remove(anyString());
-    verify(harvestingParameterService, times(3)).remove(anyString());
+    verify(harvestParameterService, times(3)).remove(anyString());
     verify(executionRecordCleaner, times(3)).remove(anyString());
     verify(datasetService, times(3)).remove(anyString());
     verify(problemPatternDataCleaner, times(3)).remove(anyString());

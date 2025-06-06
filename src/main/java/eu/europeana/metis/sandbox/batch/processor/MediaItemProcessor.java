@@ -26,11 +26,9 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final MediaService mediaService;
-  private final ItemProcessorUtil itemProcessorUtil;
 
   public MediaItemProcessor(MediaService mediaService) {
     this.mediaService = mediaService;
-    this.itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
@@ -39,11 +37,15 @@ public class MediaItemProcessor extends AbstractMetisItemProcessor<ExecutionReco
         executionRecord);
     JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
         getTargetExecutionId());
-    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+    return ItemProcessorUtil.processCapturingException(
+        jobMetadataDTO,
+        getProcessRecordFunction(),
+        ItemProcessorUtil.defaultHandler()
+    );
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
       LOGGER.debug("MediaItemProcessor thread: {}", Thread.currentThread());
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();

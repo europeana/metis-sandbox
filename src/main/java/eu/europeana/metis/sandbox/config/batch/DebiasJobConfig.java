@@ -45,7 +45,7 @@ public class DebiasJobConfig {
 
   @Bean
   public Job debiasBatchJob(JobRepository jobRepository,
-      @Qualifier("debiasStep") Step debiasStep) {
+      @Qualifier(STEP_NAME) Step debiasStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
@@ -53,7 +53,7 @@ public class DebiasJobConfig {
         .build();
   }
 
-  @Bean("debiasStep")
+  @Bean(STEP_NAME)
   public Step debiasStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("debiasRepositoryItemReader") RepositoryItemReader<ExecutionRecord> debiasRepositoryItemReader,

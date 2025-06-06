@@ -58,29 +58,29 @@ public class DatasetReportService {
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
-  private final HarvestingParameterService harvestingParameterService;
+  private final HarvestParameterService harvestParameterService;
 
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
-      TransformXsltRepository transformXsltRepository, HarvestingParameterService harvestingParameterService) {
+      TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService) {
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
-    this.harvestingParameterService = harvestingParameterService;
+    this.harvestParameterService = harvestParameterService;
   }
 
   public DatasetInfoDTO getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId);
-    HarvestParametersEntity harvestParametersEntity = harvestingParameterService.getDatasetHarvestingParameters(datasetId)
-                                                                                .orElseThrow();
+    HarvestParametersEntity harvestParametersEntity = harvestParameterService.getDatasetHarvestingParameters(datasetId)
+                                                                             .orElseThrow();
     HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
     return DatasetInfoDTO.builder()
                          .datasetId(datasetId)
@@ -200,7 +200,7 @@ public class DatasetReportService {
 
     Map<GroupedExceptionKey, List<String>> groupedExceptions = new LinkedHashMap<>();
     for (ExecutionRecordException recordExceptionLog : recordExceptionLogs) {
-      String recordId = recordExceptionLog.getIdentifier().getRecordId();
+      String recordId = formatRecordId(recordExceptionLog.getIdentifier());
       GroupedExceptionKey key = new GroupedExceptionKey(Status.FAIL, recordExceptionLog.getException());
       groupedExceptions.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
@@ -210,11 +210,15 @@ public class DatasetReportService {
             datasetId, executionName);
 
     for (ExecutionRecordWarningException warningException : warningExceptions) {
-      String recordId = warningException.getExecutionRecord().getIdentifier().getRecordId();
+      String recordId = formatRecordId(warningException.getExecutionRecord().getIdentifier());
       GroupedExceptionKey key = new GroupedExceptionKey(Status.WARN, warningException.getMessage());
       groupedExceptions.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
     return groupedExceptions;
+  }
+
+  private static @NotNull String formatRecordId(ExecutionRecordIdentifierKey warningException) {
+    return String.format("%s | %s", warningException.getRecordId(), warningException.getSourceRecordId());
   }
 
   private String getPublishPortalUrl(DatasetEntity datasetEntity, long totalRecords, long completedRecords) {
@@ -222,7 +226,7 @@ public class DatasetReportService {
       return HARVESTING_IDENTIFIERS_MESSAGE;
     }
 
-    if (totalRecords != completedRecords){
+    if (totalRecords != completedRecords) {
       return PROCESSING_DATASET_MESSAGE;
     }
 

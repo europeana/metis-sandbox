@@ -10,9 +10,7 @@ import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.service.workflow.ValidationService;
-import eu.europeana.validation.model.ValidationResult;
 import java.lang.invoke.MethodHandles;
-import lombok.experimental.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -27,11 +25,9 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ValidationService validationService;
-  private final ItemProcessorUtil itemProcessorUtil;
 
   public ValidationItemProcessor(ValidationService validationService) {
     this.validationService = validationService;
-    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
@@ -40,28 +36,24 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
         executionRecord);
     JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
         getTargetExecutionId());
-    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+    return ItemProcessorUtil.processCapturingException(
+        jobMetadataDTO,
+        getProcessRecordFunction(),
+        ItemProcessorUtil.defaultHandler()
+    );
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
-      ValidationResult result = validationService.validateRecord(
+      validationService.validateRecord(
           originSuccessExecutionRecordDTO.getRecordData(),
+          originSuccessExecutionRecordDTO.getRecordId(),
           originSuccessExecutionRecordDTO.getDatasetId(),
           getExecutionName(),
           (ValidationBatchJobSubType) getFullBatchJobType().getBatchJobSubType()
       );
-
-      if (result.isSuccess()) {
-        LOGGER.debug("Validation Success for datasetId {}, recordId {}", originSuccessExecutionRecordDTO.getDatasetId(),
-            originSuccessExecutionRecordDTO.getRecordId());
-      } else {
-        LOGGER.info("Validation Failure for datasetId {}, recordId {}", originSuccessExecutionRecordDTO.getDatasetId(),
-            originSuccessExecutionRecordDTO.getRecordId());
-        throw new ValidationFailureException(result.getMessage());
-      }
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
@@ -69,10 +61,5 @@ public class ValidationItemProcessor extends AbstractMetisItemProcessor<Executio
           jobMetadataDTO.getTargetExecutionName(),
           b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
-  }
-
-  @StandardException
-  private static class ValidationFailureException extends Exception {
-
   }
 }

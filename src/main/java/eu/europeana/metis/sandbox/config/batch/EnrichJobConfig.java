@@ -32,52 +32,52 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class EnrichmentJobConfig {
+public class EnrichJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final BatchJobType BATCH_JOB = ENRICH;
-  public static final String STEP_NAME = "enrichmentStep";
+  public static final String STEP_NAME = "enrichStep";
 
-  @Value("${enrichment.chunkSize:5}")
+  @Value("${enrich.chunkSize:5}")
   public int chunkSize;
-  @Value("${enrichment.parallelizationSize:1}")
+  @Value("${enrich.parallelizationSize:1}")
   public int parallelization;
 
   @Bean
-  public Job enrichmentBatchJob(JobRepository jobRepository,
-      @Qualifier("enrichmentStep") Step enrichmentStep) {
+  public Job enrichBatchJob(JobRepository jobRepository,
+      @Qualifier(STEP_NAME) Step enrichStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
-        .start(enrichmentStep)
+        .start(enrichStep)
         .build();
   }
 
-  @Bean("enrichmentStep")
-  public Step enrichmentStep(JobRepository jobRepository,
+  @Bean(STEP_NAME)
+  public Step enrichStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      @Qualifier("enrichmentRepositoryItemReader") RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader,
-      @Qualifier("enrichmentAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor,
+      @Qualifier("enrichRepositoryItemReader") RepositoryItemReader<ExecutionRecord> enrichRepositoryItemReader,
+      @Qualifier("enrichAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
-        .reader(enrichmentRepositoryItemReader)
-        .processor(enrichmentAsyncItemProcessor)
+        .reader(enrichRepositoryItemReader)
+        .processor(enrichAsyncItemProcessor)
         .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
-  @Bean("enrichmentRepositoryItemReader")
+  @Bean("enrichRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader(
+  public RepositoryItemReader<ExecutionRecord> enrichRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean
-  public TaskExecutor enrichmentStepAsyncTaskExecutor() {
+  public TaskExecutor enrichStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
@@ -86,13 +86,13 @@ public class EnrichmentJobConfig {
     return executor;
   }
 
-  @Bean("enrichmentAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor(
-      @Qualifier("enrichmentItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichmentItemProcessor,
-      @Qualifier("enrichmentStepAsyncTaskExecutor") TaskExecutor enrichmentStepAsyncTaskExecutor) {
+  @Bean("enrichAsyncItemProcessor")
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor(
+      @Qualifier("enrichItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichItemProcessor,
+      @Qualifier("enrichStepAsyncTaskExecutor") TaskExecutor enrichStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(enrichmentItemProcessor);
-    asyncItemProcessor.setTaskExecutor(enrichmentStepAsyncTaskExecutor);
+    asyncItemProcessor.setDelegate(enrichItemProcessor);
+    asyncItemProcessor.setTaskExecutor(enrichStepAsyncTaskExecutor);
     return asyncItemProcessor;
   }
 

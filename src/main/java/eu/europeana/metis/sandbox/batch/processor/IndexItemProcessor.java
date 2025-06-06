@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 
-import eu.europeana.indexing.Indexer;
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.common.ItemProcessorUtil;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
@@ -17,15 +16,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
 @StepScope
-@Component("indexingItemProcessor")
-public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
+@Component("indexItemProcessor")
+public class IndexItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
   private final IndexService indexService;
-  private final ItemProcessorUtil itemProcessorUtil;
 
-  public IndexingItemProcessor(IndexService indexService, Indexer indexer) {
+  public IndexItemProcessor(IndexService indexService) {
     this.indexService = indexService;
-    this.itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
@@ -34,11 +31,15 @@ public class IndexingItemProcessor extends AbstractMetisItemProcessor<ExecutionR
         executionRecord);
     JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
         getTargetExecutionId());
-    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+    return ItemProcessorUtil.processCapturingException(
+        jobMetadataDTO,
+        getProcessRecordFunction(),
+        ItemProcessorUtil.defaultHandler()
+    );
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       IndexingResult result = indexService.indexRecord(

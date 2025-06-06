@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.NORMALIZE;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.TRANSFORM;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -32,52 +32,52 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class NormalizationJobConfig {
+public class TransforJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = NORMALIZE;
-  public static final String STEP_NAME = "normalizationStep";
+  public static final BatchJobType BATCH_JOB = TRANSFORM;
+  public static final String STEP_NAME = "transformStep";
 
-  @Value("${normalization.chunkSize:5}")
+  @Value("${transform.chunkSize:5}")
   public int chunkSize;
-  @Value("${normalization.parallelizationSize:1}")
+  @Value("${transform.parallelizationSize:1}")
   public int parallelization;
 
   @Bean
-  public Job normalizationBatchJob(JobRepository jobRepository,
-      @Qualifier("normalizationStep") Step normalizationStep) {
+  public Job transformBatchJob(JobRepository jobRepository,
+      @Qualifier(STEP_NAME) Step tranformStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
-        .start(normalizationStep)
+        .start(tranformStep)
         .build();
   }
 
-  @Bean("normalizationStep")
-  public Step normalizationStep(JobRepository jobRepository,
+  @Bean(STEP_NAME)
+  public Step transformStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      @Qualifier("normalizationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader,
-      @Qualifier("normalizationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor,
+      @Qualifier("transformRepositoryItemReader") RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader,
+      @Qualifier("transformAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
-        .reader(normalizationRepositoryItemReader)
-        .processor(normalizationAsyncItemProcessor)
+        .reader(transformRepositoryItemReader)
+        .processor(transformAsyncItemProcessor)
         .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
-  @Bean("normalizationRepositoryItemReader")
+  @Bean("transformRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader(
+  public RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean
-  public TaskExecutor normalizationStepAsyncTaskExecutor() {
+  public TaskExecutor transformStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
@@ -86,13 +86,13 @@ public class NormalizationJobConfig {
     return executor;
   }
 
-  @Bean("normalizationAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor(
-      @Qualifier("normalizationItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizationItemProcessor,
-      @Qualifier("normalizationStepAsyncTaskExecutor") TaskExecutor normalizationStepAsyncTaskExecutor) {
+  @Bean("transformAsyncItemProcessor")
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor(
+      @Qualifier("transformItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> transformItemProcessor,
+      @Qualifier("transformStepAsyncTaskExecutor") TaskExecutor transformStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(normalizationItemProcessor);
-    asyncItemProcessor.setTaskExecutor(normalizationStepAsyncTaskExecutor);
+    asyncItemProcessor.setDelegate(transformItemProcessor);
+    asyncItemProcessor.setTaskExecutor(transformStepAsyncTaskExecutor);
     return asyncItemProcessor;
   }
 }

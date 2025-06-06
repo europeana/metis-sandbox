@@ -6,9 +6,6 @@ import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DA
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_LANGUAGE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_DATASET_NAME;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_HARVEST_PARAMETER_ID;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_METADATA_PREFIX;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_ENDPOINT;
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_OAI_SET;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_STEP_SIZE;
 import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
@@ -38,17 +35,16 @@ import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.config.batch.DebiasJobConfig;
-import eu.europeana.metis.sandbox.config.batch.EnrichmentJobConfig;
+import eu.europeana.metis.sandbox.config.batch.EnrichJobConfig;
 import eu.europeana.metis.sandbox.config.batch.FileHarvestJobConfig;
-import eu.europeana.metis.sandbox.config.batch.IndexingJobConfig;
+import eu.europeana.metis.sandbox.config.batch.IndexJobConfig;
 import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
-import eu.europeana.metis.sandbox.config.batch.NormalizationJobConfig;
+import eu.europeana.metis.sandbox.config.batch.NormalizeJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
-import eu.europeana.metis.sandbox.config.batch.TransformationJobConfig;
+import eu.europeana.metis.sandbox.config.batch.TransforJobConfig;
 import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -164,7 +160,7 @@ public class BatchJobExecutor {
     List<JobInstance> page;
 
     do {
-      page = jobExplorer.getJobInstances(fullBatchJobType.getBatchJobType().name(), start, 100);
+      page = jobExplorer.getJobInstances(fullBatchJobType.getBatchJobType().name(), start, pageSize);
       jobInstances.addAll(page);
       start += pageSize;
     } while (!page.isEmpty());
@@ -209,11 +205,8 @@ public class BatchJobExecutor {
 
   private @NotNull JobExecution runOaiHarvest(ExecutionMetadata executionMetadata) {
     InputMetadata inputMetadata = executionMetadata.getInputMetadata();
-    OaiHarvestParameters harvestParametersEntity = (OaiHarvestParameters) inputMetadata.getHarvestParametersEntity();
     JobParameters stepParameters = new JobParametersBuilder()
-        .addString(ARGUMENT_OAI_ENDPOINT, harvestParametersEntity.getUrl())
-        .addString(ARGUMENT_OAI_SET, harvestParametersEntity.getSetSpec())
-        .addString(ARGUMENT_METADATA_PREFIX, harvestParametersEntity.getMetadataFormat())
+        .addString(ARGUMENT_HARVEST_PARAMETER_ID, inputMetadata.getHarvestParametersEntity().getId().toString())
         .addString(ARGUMENT_STEP_SIZE, String.valueOf(inputMetadata.getHarvestParametersEntity().getStepSize()))
         .toJobParameters();
 
@@ -251,7 +244,7 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
-    return prepareAndRunJob(TransformationJobConfig.BATCH_JOB, executionMetadata, stepParameters);
+    return prepareAndRunJob(TransforJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
   private @NotNull JobExecution executeTransformationToEdmExternal(ExecutionMetadata executionMetadata) {
@@ -266,7 +259,7 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
-    return prepareAndRunJob(TransformationJobConfig.BATCH_JOB, executionMetadata, stepParameters);
+    return prepareAndRunJob(TransforJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
   private @NotNull JobExecution executeValidationInternal(ExecutionMetadata executionMetadata) {
@@ -278,11 +271,11 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeNormalization(ExecutionMetadata executionMetadata) {
-    return prepareAndRunJob(NormalizationJobConfig.BATCH_JOB, executionMetadata);
+    return prepareAndRunJob(NormalizeJobConfig.BATCH_JOB, executionMetadata);
   }
 
   private @NotNull JobExecution executeEnrichment(ExecutionMetadata executionMetadata) {
-    return prepareAndRunJob(EnrichmentJobConfig.BATCH_JOB, executionMetadata);
+    return prepareAndRunJob(EnrichJobConfig.BATCH_JOB, executionMetadata);
   }
 
   private @NotNull JobExecution executeMedia(ExecutionMetadata executionMetadata) {
@@ -290,7 +283,7 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeIndex(ExecutionMetadata executionMetadata) {
-    return prepareAndRunJob(IndexingJobConfig.BATCH_JOB, executionMetadata);
+    return prepareAndRunJob(IndexJobConfig.BATCH_JOB, executionMetadata);
   }
 
   private @NotNull JobExecution executeDebias(ExecutionMetadata executionMetadata) {

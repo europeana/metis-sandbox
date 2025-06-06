@@ -1,8 +1,8 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
-import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import lombok.Getter;
@@ -32,7 +32,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
     LOGGER.info("Initializing batch job type: {}", fullBatchJobType.name());
   }
 
-  abstract ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction();
+  abstract ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction();
 
   String getExecutionName() {
     return fullBatchJobType.name();

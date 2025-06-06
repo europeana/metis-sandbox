@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
+import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataCleaner;
 import eu.europeana.metis.sandbox.service.record.ExecutionRecordCleaner;
@@ -25,7 +25,7 @@ public class DataCleanupService {
   private final IndexDataCleaner indexDataCleaner;
   private final ThumbnailStoreService thumbnailStoreService;
   private final ProblemPatternDataCleaner problemPatternDataCleaner;
-  private final HarvestingParameterService harvestingParameterService;
+  private final HarvestParameterService harvestParameterService;
   private final DeBiasStateService debiasStateService;
 
   /**
@@ -38,7 +38,7 @@ public class DataCleanupService {
    * @param thumbnailStoreService the thumbnail store service
    * @param recordService the record service
    * @param problemPatternDataCleaner the problem pattern data remover
-   * @param harvestingParameterService the harvesting parameter service
+   * @param harvestParameterService the harvesting parameter service
    * @param debiasStateService the debias state service
    * @param vacuumService the vacuum service
    */
@@ -47,14 +47,14 @@ public class DataCleanupService {
       IndexDataCleaner indexDataCleaner,
       ThumbnailStoreService thumbnailStoreService,
       ProblemPatternDataCleaner problemPatternDataCleaner,
-      HarvestingParameterService harvestingParameterService,
+      HarvestParameterService harvestParameterService,
       DeBiasStateService debiasStateService) {
     this.datasetService = datasetService;
     this.executionRecordCleaner = executionRecordCleaner;
     this.indexDataCleaner = indexDataCleaner;
     this.thumbnailStoreService = thumbnailStoreService;
     this.problemPatternDataCleaner = problemPatternDataCleaner;
-    this.harvestingParameterService = harvestingParameterService;
+    this.harvestParameterService = harvestParameterService;
     this.debiasStateService = debiasStateService;
   }
 
@@ -76,7 +76,7 @@ public class DataCleanupService {
           LOGGER.info("Remove debias report with id: [{}]", dataset);
           debiasStateService.remove(dataset);
           LOGGER.info("Remove harvesting parameters for dataset id: [{}]", dataset);
-          harvestingParameterService.remove(dataset);
+          harvestParameterService.remove(dataset);
           LOGGER.info("Remove problem pattern data associated with dataset id: [{}]", dataset);
           problemPatternDataCleaner.remove(dataset);
           LOGGER.info("Remove execution records for dataset id: [{}]", dataset);

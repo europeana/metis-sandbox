@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.TRANSFORM;
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.INDEX;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
@@ -32,67 +32,68 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class TransformationJobConfig {
+public class IndexJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final BatchJobType BATCH_JOB = TRANSFORM;
-  public static final String STEP_NAME = "transformationStep";
+  public static final BatchJobType BATCH_JOB = INDEX;
+  public static final String STEP_NAME = "indexStep";
 
-  @Value("${transformation.chunkSize:5}")
+  @Value("${index.chunkSize:5}")
   public int chunkSize;
-  @Value("${transformation.parallelizationSize:1}")
+  @Value("${index.parallelizationSize:1}")
   public int parallelization;
 
   @Bean
-  public Job transformationBatchJob(JobRepository jobRepository,
-      @Qualifier("tranformationStep") Step tranformationStep) {
+  public Job indexJob(JobRepository jobRepository,
+      @Qualifier(STEP_NAME) Step indexStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
-        .start(tranformationStep)
+        .start(indexStep)
         .build();
   }
 
-  @Bean("tranformationStep")
-  public Step tranformationStep(JobRepository jobRepository,
+  @Bean(STEP_NAME)
+  public Step indexStep(
+      JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      @Qualifier("trasnformationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader,
-      @Qualifier("transformationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor,
+      @Qualifier("indexRepositoryItemReader") RepositoryItemReader<ExecutionRecord> indexRepositoryItemReader,
+      @Qualifier("indexAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> indexAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
-        .reader(trasnformationRepositoryItemReader)
-        .processor(transformationAsyncItemProcessor)
+        .reader(indexRepositoryItemReader)
+        .processor(indexAsyncItemProcessor)
         .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
-  @Bean("trasnformationRepositoryItemReader")
+  @Bean("indexRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader(
+  public RepositoryItemReader<ExecutionRecord> indexRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
+  @Bean("indexAsyncItemProcessor")
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> indexAsyncItemProcessor(
+      @Qualifier("indexItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> indexItemProcessor,
+      @Qualifier("indexStepAsyncTaskExecutor") TaskExecutor indexAsyncTaskExecutor) {
+    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    asyncItemProcessor.setDelegate(indexItemProcessor);
+    asyncItemProcessor.setTaskExecutor(indexAsyncTaskExecutor);
+    return asyncItemProcessor;
+  }
+
   @Bean
-  public TaskExecutor transformationStepAsyncTaskExecutor() {
+  public TaskExecutor indexStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
-  }
-
-  @Bean("transformationAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor(
-      @Qualifier("transformationItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> transformationItemProcessor,
-      @Qualifier("transformationStepAsyncTaskExecutor") TaskExecutor transformationStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(transformationItemProcessor);
-    asyncItemProcessor.setTaskExecutor(transformationStepAsyncTaskExecutor);
-    return asyncItemProcessor;
   }
 }

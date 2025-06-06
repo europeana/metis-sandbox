@@ -45,7 +45,7 @@ public class MediaJobConfig {
 
   @Bean
   public Job mediaBatchJob(JobRepository jobRepository,
-      @Qualifier("mediaStep") Step mediaStep) {
+      @Qualifier(STEP_NAME) Step mediaStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
@@ -53,7 +53,7 @@ public class MediaJobConfig {
         .build();
   }
 
-  @Bean("mediaStep")
+  @Bean(STEP_NAME)
   public Step mediaStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("mediaRepositoryItemReader") RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,

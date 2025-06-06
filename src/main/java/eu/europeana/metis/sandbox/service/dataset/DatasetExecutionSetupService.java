@@ -28,13 +28,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class DatasetExecutionSetupService {
 
   private final DatasetRepository datasetRepository;
-  private final HarvestingParameterService harvestingParameterService;
+  private final HarvestParameterService harvestParameterService;
   private final TransformXsltRepository transformXsltRepository;
 
-  public DatasetExecutionSetupService(DatasetRepository datasetRepository, HarvestingParameterService harvestingParameterService,
+  public DatasetExecutionSetupService(DatasetRepository datasetRepository, HarvestParameterService harvestParameterService,
       TransformXsltRepository transformXsltRepository) {
     this.datasetRepository = datasetRepository;
-    this.harvestingParameterService = harvestingParameterService;
+    this.harvestParameterService = harvestParameterService;
     this.transformXsltRepository = transformXsltRepository;
   }
 
@@ -55,7 +55,7 @@ public class DatasetExecutionSetupService {
         : null;
 
     HarvestParametersEntity harvestParametersEntity =
-        harvestingParameterService.createDatasetHarvestParameters(datasetId, harvestParametersDTO);
+        harvestParameterService.createDatasetHarvestParameters(datasetId, harvestParametersDTO);
     InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, transformXsltEntity);
 
     DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetName, country, language, workflowType);

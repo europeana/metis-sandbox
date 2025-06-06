@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Service class to access harvesting parameters table in the database
  */
 @Service
-public class HarvestingParameterService {
+public class HarvestParameterService {
 
   private final HarvestingParameterRepository harvestingParameterRepository;
   private final DatasetRepository datasetRepository;
@@ -30,7 +30,7 @@ public class HarvestingParameterService {
    * @param harvestingParameterRepository The repository that connected to the table harvesting parameters
    * @param datasetRepository The repository that connects to the dataset repository
    */
-  public HarvestingParameterService(HarvestingParameterRepository harvestingParameterRepository,
+  public HarvestParameterService(HarvestingParameterRepository harvestingParameterRepository,
       DatasetRepository datasetRepository) {
     this.harvestingParameterRepository = harvestingParameterRepository;
     this.datasetRepository = datasetRepository;

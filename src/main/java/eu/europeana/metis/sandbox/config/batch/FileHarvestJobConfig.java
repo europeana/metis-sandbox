@@ -25,7 +25,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class FileHarvestJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String FILE_HARVEST_STEP_NAME = "fileHarvestStep";
+  public static final String STEP_NAME = "fileHarvestStep";
   public static final BatchJobType BATCH_JOB = HARVEST_FILE;
 
   @Value("${fileHarvest.chunkSize:5}")
@@ -36,7 +36,7 @@ public class FileHarvestJobConfig {
   //This can alternatively be divided similarly to oai. First read all file names and store them in db and then as a second step process those files(ids)
   @Bean
   public Job fileHarvestJob(JobRepository jobRepository,
-      @Qualifier("fileHarvestStep") Step fileHarvestStep) {
+      @Qualifier(STEP_NAME) Step fileHarvestStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
@@ -44,12 +44,12 @@ public class FileHarvestJobConfig {
         .build();
   }
 
-  @Bean("fileHarvestStep")
+  @Bean(STEP_NAME)
   public Step fileHarvestStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       FileItemReader fileItemReader,
       ItemWriter<ExecutionRecordDTO> executionRecordWriter) {
-    return new StepBuilder(FILE_HARVEST_STEP_NAME, jobRepository)
+    return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
         .reader(fileItemReader)
         .writer(executionRecordWriter)

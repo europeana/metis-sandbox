@@ -48,7 +48,7 @@ public class ValidationJobConfig {
 
   @Bean
   public Job validationBatchJob(JobRepository jobRepository,
-      @Qualifier("validationStep") Step validationStep,
+      @Qualifier(STEP_NAME) Step validationStep,
       LoggingJobExecutionListener loggingJobExecutionListener) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)

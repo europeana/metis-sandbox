@@ -18,12 +18,10 @@ import org.springframework.util.function.ThrowingFunction;
 @Component("debiasItemProcessor")
 public class DebiasItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
-  private final ItemProcessorUtil itemProcessorUtil;
   private final DeBiasProcessService deBiasProcessService;
 
   public DebiasItemProcessor(DeBiasProcessService deBiasProcessService) {
     this.deBiasProcessService = deBiasProcessService;
-    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
   }
 
   @Override
@@ -32,11 +30,15 @@ public class DebiasItemProcessor extends AbstractMetisItemProcessor<ExecutionRec
         executionRecord);
     JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
         getTargetExecutionId());
-    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+    return ItemProcessorUtil.processCapturingException(
+        jobMetadataDTO,
+        getProcessRecordFunction(),
+        ItemProcessorUtil.defaultHandler()
+    );
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
 

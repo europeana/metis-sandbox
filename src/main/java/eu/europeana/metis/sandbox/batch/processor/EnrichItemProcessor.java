@@ -8,43 +8,51 @@ import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.service.workflow.NormalizeService;
+import eu.europeana.metis.sandbox.service.workflow.EnrichService;
+import eu.europeana.metis.sandbox.service.workflow.EnrichService.EnrichmentProcessingResult;
+import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
 @StepScope
-@Component("normalizationItemProcessor")
-public class NormalizationItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
+@Component("enrichItemProcessor")
+public class EnrichItemProcessor extends AbstractMetisItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
 
-  private final NormalizeService normalizeService;
-  private final ItemProcessorUtil itemProcessorUtil;
+  private final EnrichService enrichService;
 
-  public NormalizationItemProcessor(NormalizeService normalizeService) {
-    this.normalizeService = normalizeService;
-    itemProcessorUtil = new ItemProcessorUtil(getProcessRecordFunction());
+  public EnrichItemProcessor(EnrichService enrichService) {
+    this.enrichService = enrichService;
   }
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
     final SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordDTO(
         executionRecord);
-    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
-    return itemProcessorUtil.processCapturingException(jobMetadataDTO);
+    JobMetadataDTO jobMetadataDTO = new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(),
+        getTargetExecutionId());
+    return ItemProcessorUtil.processCapturingException(
+        jobMetadataDTO,
+        getProcessRecordFunction(),
+        ItemProcessorUtil.defaultHandler()
+    );
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
-      String result = normalizeService.normalizeRecord(originSuccessExecutionRecordDTO.getRecordData());
+      EnrichmentProcessingResult enrichmentProcessingResult = enrichService.enrichRecord(
+          originSuccessExecutionRecordDTO.getRecordData());
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
-          b -> b.recordData(result));
+          b -> b.recordData(enrichmentProcessingResult.processedRecord())
+                .exceptionWarnings(new HashSet<>(enrichmentProcessingResult.warningExceptions())));
     };
   }
+
 }

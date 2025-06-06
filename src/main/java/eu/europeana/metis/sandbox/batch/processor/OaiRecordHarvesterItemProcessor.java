@@ -4,7 +4,6 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
-import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
 import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
@@ -60,7 +59,7 @@ public class OaiRecordHarvesterItemProcessor extends
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, SuccessExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
     return null;
   }
 }
