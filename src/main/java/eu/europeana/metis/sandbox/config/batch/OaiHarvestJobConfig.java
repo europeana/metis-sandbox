@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
@@ -51,7 +50,6 @@ public class OaiHarvestJobConfig {
 
         LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
         return new JobBuilder(BATCH_JOB.name(), jobRepository)
-                .incrementer(new TimestampJobParametersIncrementer())
                 .start(identifiersHarvestStep)
                 .next(recordsHarvestStep)
                 .build();

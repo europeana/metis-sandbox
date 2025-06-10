@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.NORMALIZE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.common.TimestampJobParametersIncrementer;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
@@ -48,7 +47,6 @@ public class NormalizeJobConfig {
       @Qualifier(STEP_NAME) Step normalizeStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
-        .incrementer(new TimestampJobParametersIncrementer())
         .start(normalizeStep)
         .build();
   }
