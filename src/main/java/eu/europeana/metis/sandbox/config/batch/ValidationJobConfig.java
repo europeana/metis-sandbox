@@ -3,8 +3,8 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingChunkListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingJobExecutionListener;
@@ -26,7 +26,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -39,17 +38,17 @@ public class ValidationJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final BatchJobType BATCH_JOB = VALIDATE;
   public static final String STEP_NAME = "validationStep";
+  private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  @Value("${validation.chunkSize:5}")
-  public int chunkSize;
-  @Value("${validation.parallelizationSize:1}")
-  public int parallelization;
+  public ValidationJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+    parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+        parallelizeConfig.parallelizeSize());
+  }
 
   @Bean
-  public Job validationBatchJob(JobRepository jobRepository,
-      @Qualifier(STEP_NAME) Step validationStep,
+  public Job validationBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step validationStep,
       LoggingJobExecutionListener loggingJobExecutionListener) {
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .listener(loggingJobExecutionListener)
         .start(validationStep)
@@ -66,7 +65,7 @@ public class ValidationJobConfig {
       LoggingChunkListener loggingChunkListener,
       ProblemPatternsStepExecutionListener problemPatternsStepExecutionListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(validationRepositoryItemReader)
         .processor(validationAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -80,17 +79,7 @@ public class ValidationJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
-    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
-  }
-
-  @Bean
-  public TaskExecutor validationStepAsyncTaskExecutor() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
-    executor.setCorePoolSize(parallelization);
-    executor.setMaxPoolSize(parallelization);
-    executor.initialize();
-    return executor;
+    return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("validationAsyncItemProcessor")
@@ -101,5 +90,15 @@ public class ValidationJobConfig {
     asyncItemProcessor.setDelegate(validationItemProcessor);
     asyncItemProcessor.setTaskExecutor(validationStepAsyncTaskExecutor);
     return asyncItemProcessor;
+  }
+
+  @Bean
+  public TaskExecutor validationStepAsyncTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
+    executor.setCorePoolSize(parallelizeConfig.parallelizeSize());
+    executor.setMaxPoolSize(parallelizeConfig.parallelizeSize());
+    executor.initialize();
+    return executor;
   }
 }

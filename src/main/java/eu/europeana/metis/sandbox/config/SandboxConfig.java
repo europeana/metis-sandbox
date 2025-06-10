@@ -9,6 +9,7 @@ import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.sandbox.config.batch.WorkflowConfigurationProperties;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
@@ -28,7 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @ComponentScan("eu.europeana.validation.service")
-@EnableConfigurationProperties({ElasticAPMConfiguration.class})
+@EnableConfigurationProperties({ElasticAPMConfiguration.class, WorkflowConfigurationProperties.class})
 class SandboxConfig {
 
     @Value("${sandbox.enrichment.dereference-url}")

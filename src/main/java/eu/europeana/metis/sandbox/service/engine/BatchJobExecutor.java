@@ -42,7 +42,7 @@ import eu.europeana.metis.sandbox.config.batch.IndexJobConfig;
 import eu.europeana.metis.sandbox.config.batch.MediaJobConfig;
 import eu.europeana.metis.sandbox.config.batch.NormalizeJobConfig;
 import eu.europeana.metis.sandbox.config.batch.OaiHarvestJobConfig;
-import eu.europeana.metis.sandbox.config.batch.TransforJobConfig;
+import eu.europeana.metis.sandbox.config.batch.TransformJobConfig;
 import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
@@ -96,7 +96,7 @@ public class BatchJobExecutor {
     this.jobExplorer = jobExplorer;
     this.taskExecutor = taskExecutor;
     this.transformXsltRepository = transformXsltRepository;
-    LOGGER.info("Registered batch jobs: {}", jobs.stream().map(Job::getName).toList());
+    LOGGER.info("Registered batch workflow: {}", jobs.stream().map(Job::getName).toList());
 
     this.jobExecutorsByType = new EnumMap<>(FullBatchJobType.class);
     this.jobExecutorsByType.put(HARVEST_OAI, this::runOaiHarvest);
@@ -245,7 +245,7 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
-    return prepareAndRunJob(TransforJobConfig.BATCH_JOB, executionMetadata, stepParameters);
+    return prepareAndRunJob(TransformJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
   private @NotNull JobExecution executeTransformToEdmExternal(ExecutionMetadata executionMetadata) {
@@ -260,7 +260,7 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
-    return prepareAndRunJob(TransforJobConfig.BATCH_JOB, executionMetadata, stepParameters);
+    return prepareAndRunJob(TransformJobConfig.BATCH_JOB, executionMetadata, stepParameters);
   }
 
   private @NotNull JobExecution executeValidateInternal(ExecutionMetadata executionMetadata) {

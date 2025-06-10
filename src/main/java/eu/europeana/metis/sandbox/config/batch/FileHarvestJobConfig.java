@@ -15,7 +15,6 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -26,17 +25,17 @@ public class FileHarvestJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String STEP_NAME = "fileHarvestStep";
   public static final BatchJobType BATCH_JOB = HARVEST_FILE;
+  private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  @Value("${fileHarvest.chunkSize:5}")
-  public int chunkSize;
-  @Value("${fileHarvest.parallelizationSize:1}")
-  public int parallelization;
+  public FileHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+    parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+        parallelizeConfig.parallelizeSize());
+  }
 
   //This can alternatively be divided similarly to oai. First read all file names and store them in db and then as a second step process those files(ids)
   @Bean
-  public Job fileHarvestJob(JobRepository jobRepository,
-      @Qualifier(STEP_NAME) Step fileHarvestStep) {
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
+  public Job fileHarvestJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step fileHarvestStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(fileHarvestStep)
         .build();
@@ -48,7 +47,7 @@ public class FileHarvestJobConfig {
       FileItemReader fileItemReader,
       ItemWriter<ExecutionRecordDTO> executionRecordWriter) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+        .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(fileItemReader)
         .writer(executionRecordWriter)
         .build();

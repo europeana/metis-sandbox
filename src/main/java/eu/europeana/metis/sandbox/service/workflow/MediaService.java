@@ -82,8 +82,7 @@ public class MediaService {
   }
 
   private void safeProcessResource(ThrowingFunction<RdfResourceEntry, Boolean> resourceProcessor,
-      List<RdfResourceEntry> entries,
-      List<Exception> recordProcessingExceptions) {
+      List<RdfResourceEntry> entries, List<Exception> recordProcessingExceptions) {
     for (RdfResourceEntry entry : entries) {
       try {
         resourceProcessor.apply(entry);

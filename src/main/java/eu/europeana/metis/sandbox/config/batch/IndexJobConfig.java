@@ -23,7 +23,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -36,16 +35,16 @@ public class IndexJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final BatchJobType BATCH_JOB = INDEX;
   public static final String STEP_NAME = "indexStep";
+  private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  @Value("${index.chunkSize:5}")
-  public int chunkSize;
-  @Value("${index.parallelizationSize:1}")
-  public int parallelization;
+  public IndexJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+    parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+        parallelizeConfig.parallelizeSize());
+  }
 
   @Bean
-  public Job indexJob(JobRepository jobRepository,
-      @Qualifier(STEP_NAME) Step indexStep) {
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
+  public Job indexJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step indexStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(indexStep)
         .build();
@@ -60,7 +59,7 @@ public class IndexJobConfig {
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(indexRepositoryItemReader)
         .processor(indexAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -72,7 +71,7 @@ public class IndexJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> indexRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
-    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
+    return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("indexAsyncItemProcessor")
@@ -89,8 +88,8 @@ public class IndexJobConfig {
   public TaskExecutor indexStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
-    executor.setCorePoolSize(parallelization);
-    executor.setMaxPoolSize(parallelization);
+    executor.setCorePoolSize(parallelizeConfig.parallelizeSize());
+    executor.setMaxPoolSize(parallelizeConfig.parallelizeSize());
     executor.initialize();
     return executor;
   }

@@ -23,7 +23,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -31,21 +30,21 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class TransforJobConfig {
+public class TransformJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final BatchJobType BATCH_JOB = TRANSFORM;
   public static final String STEP_NAME = "transformStep";
+  private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  @Value("${transform.chunkSize:5}")
-  public int chunkSize;
-  @Value("${transform.parallelizationSize:1}")
-  public int parallelization;
+  public TransformJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+    parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+        parallelizeConfig.parallelizeSize());
+  }
 
   @Bean
-  public Job transformBatchJob(JobRepository jobRepository,
-      @Qualifier(STEP_NAME) Step tranformStep) {
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
+  public Job transformBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step tranformStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(tranformStep)
         .build();
@@ -59,7 +58,7 @@ public class TransforJobConfig {
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(transformRepositoryItemReader)
         .processor(transformAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -71,17 +70,7 @@ public class TransforJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
-    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
-  }
-
-  @Bean
-  public TaskExecutor transformStepAsyncTaskExecutor() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
-    executor.setCorePoolSize(parallelization);
-    executor.setMaxPoolSize(parallelization);
-    executor.initialize();
-    return executor;
+    return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("transformAsyncItemProcessor")
@@ -92,5 +81,15 @@ public class TransforJobConfig {
     asyncItemProcessor.setDelegate(transformItemProcessor);
     asyncItemProcessor.setTaskExecutor(transformStepAsyncTaskExecutor);
     return asyncItemProcessor;
+  }
+
+  @Bean
+  public TaskExecutor transformStepAsyncTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
+    executor.setCorePoolSize(parallelizeConfig.parallelizeSize());
+    executor.setMaxPoolSize(parallelizeConfig.parallelizeSize());
+    executor.initialize();
+    return executor;
   }
 }
