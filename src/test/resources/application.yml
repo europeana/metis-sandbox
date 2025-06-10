@@ -81,11 +81,49 @@ spring:
     password:
     maximumPoolSize: 10           # this is the default we make it explicit in the config.
     leakDetectionThreshold: 5000  # five second should be enough
+  batch:
+    job:
+      #Disable autostart of jobs
+      enabled: false
+    jdbc:
+      initialize-schema: always
+  sql:
+    init:
+      mode: always
   jpa:
     open-in-view: false
+    generate-ddl: true
 
 # Metis Sandbox
 sandbox:
+  workflow:
+    HARVEST_OAI:
+      chunkSize: 5
+      parallelizeSize: 1
+    HARVEST_FILE:
+      chunkSize: 5
+      parallelizeSize: 1
+    VALIDATE:
+      chunkSize: 5
+      parallelizeSize: 1
+    TRANSFORM:
+      chunkSize: 5
+      parallelizeSize: 1
+    NORMALIZE:
+      chunkSize: 5
+      parallelizeSize: 1
+    ENRICH:
+      chunkSize: 5
+      parallelizeSize: 1
+    MEDIA:
+      chunkSize: 5
+      parallelizeSize: 1
+    INDEX:
+      chunkSize: 5
+      parallelizeSize: 1
+    DEBIAS:
+      chunkSize: 5
+      parallelizeSize: 1
   cors:
     mapping: '*'
   rate-limit:
