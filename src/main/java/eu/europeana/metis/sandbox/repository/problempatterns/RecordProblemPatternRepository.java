@@ -5,10 +5,12 @@ import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPattern;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 /**
  * The interface Record problem pattern repository.
  */
+@Repository
 public interface RecordProblemPatternRepository extends JpaRepository<RecordProblemPattern, Integer> {
 
   /**

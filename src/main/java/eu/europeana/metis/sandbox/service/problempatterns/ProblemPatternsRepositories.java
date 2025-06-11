@@ -7,12 +7,12 @@ import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatter
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 /**
  * Class which acts as a wrapper and contains all the repositories required for the problem patterns.
  */
-@Repository
+@Component
 public class ProblemPatternsRepositories {
 
   private final ExecutionPointRepository executionPointRepository;

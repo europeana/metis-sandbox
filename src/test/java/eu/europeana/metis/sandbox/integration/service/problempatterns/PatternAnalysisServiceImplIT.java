@@ -11,14 +11,15 @@ import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
+import eu.europeana.metis.sandbox.integration.service.problempatterns.PatternAnalysisServiceImplIT.PatternAnalysisServiceImplMaxPatternsConfig;
 import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.sandbox.service.problempatterns.PatternAnalysisServiceImpl;
+import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataCleaner;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternsRepositories;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
@@ -29,7 +30,6 @@ import eu.europeana.patternanalysis.view.ProblemOccurrence;
 import eu.europeana.patternanalysis.view.ProblemPattern;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
-import jakarta.annotation.Resource;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,88 +41,97 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@ExtendWith(SpringExtension.class)
-@EnableAutoConfiguration(exclude = {
-    MongoAutoConfiguration.class,
-    MongoDataAutoConfiguration.class
-})
-@EnableTransactionManagement
+@SpringBootTest(classes = PatternAnalysisServiceImpl.class)
+@EnableAutoConfiguration
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
-@ComponentScan({"eu.europeana.metis.sandbox.service.problempatterns",
-    "eu.europeana.metis.sandbox.repository.problempatterns"})
-@Import(PostgresTestContainersConfiguration.class)
+@ComponentScan(basePackages = {
+    "eu.europeana.metis.sandbox.service.problempatterns",
+    "eu.europeana.metis.sandbox.repository.problempatterns"
+})
+@Import({PatternAnalysisServiceImplMaxPatternsConfig.class, PostgresTestContainersConfiguration.class})
 class PatternAnalysisServiceImplIT {
 
-  final String rdfStringNoProblems = IOUtils.toString(
-      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_no_problem_patterns.xml"),
-      StandardCharsets.UTF_8);
-  final String rdfStringP2 = IOUtils.toString(
-      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2.xml"),
-      StandardCharsets.UTF_8);
-  final String rdfStringP2MultipleOccurrences = IOUtils.toString(
-      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P2_multiple.xml"),
-      StandardCharsets.UTF_8);
-  final String rdfStringP6 = IOUtils.toString(
-      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P6.xml"),
-      StandardCharsets.UTF_8);
-  final String rdfStringP12 = IOUtils.toString(
-      new FileInputStream("src/test/resources/record.problempatterns/europeana_record_with_P12.xml"),
-      StandardCharsets.UTF_8);
-  final RDF rdfRecordNoProblems = new RdfConversionUtils().convertStringToRdf(rdfStringNoProblems);
-  final RDF rdfRecordP2 = new RdfConversionUtils().convertStringToRdf(rdfStringP2);
-  final RDF rdfRecordP2MultipleOccurrences = new RdfConversionUtils().convertStringToRdf(rdfStringP2MultipleOccurrences);
-  final RDF rdfRecordP6 = new RdfConversionUtils().convertStringToRdf(rdfStringP6);
-  final RDF rdfRecordP12 = new RdfConversionUtils().convertStringToRdf(rdfStringP12);
-  @Resource
-  private PatternAnalysisServiceImpl patternAnalysisServiceImpl;
-  @Resource
-  private PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2;
-  @Resource
-  private ProblemPatternsRepositories problemPatternsRepositories;
-  @Resource
-  private ExecutionPointRepository executionPointRepository;
-  @Resource
-  private DatasetProblemPatternRepository datasetProblemPatternRepository;
-  @Resource
-  private RecordProblemPatternRepository recordProblemPatternRepository;
-  @Resource
-  private RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
-  @Resource
-  private RecordTitleRepository recordTitleRepository;
+  private final String rdfStringP2;
 
-  PatternAnalysisServiceImplIT() throws IOException, SerializationException {
-    //Required for the RDFs initializations
+  private final RDF rdfRecordNoProblems;
+  private final RDF rdfRecordP2;
+  private final RDF rdfRecordP2MultipleOccurrences;
+  private final RDF rdfRecordP6;
+  private final RDF rdfRecordP12;
+
+  private final PatternAnalysisServiceImpl patternAnalysisServiceImpl;
+  private final PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2;
+  private final ProblemPatternsRepositories problemPatternsRepositories;
+  private final ExecutionPointRepository executionPointRepository;
+  private final DatasetProblemPatternRepository datasetProblemPatternRepository;
+  private final RecordProblemPatternRepository recordProblemPatternRepository;
+  private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
+  private final RecordTitleRepository recordTitleRepository;
+  private final ProblemPatternDataCleaner problemPatternDataCleaner;
+
+  @Autowired
+  public PatternAnalysisServiceImplIT(
+      @Qualifier("patternAnalysisServiceImpl") PatternAnalysisServiceImpl patternAnalysisServiceImpl,
+      @Qualifier("patternAnalysisServiceMaxPatterns2") PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2,
+      ProblemPatternsRepositories problemPatternsRepositories,
+      ExecutionPointRepository executionPointRepository,
+      DatasetProblemPatternRepository datasetProblemPatternRepository,
+      RecordProblemPatternRepository recordProblemPatternRepository,
+      RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
+      RecordTitleRepository recordTitleRepository,
+      ProblemPatternDataCleaner problemPatternDataCleaner
+  ) throws IOException, SerializationException {
+
+    this.patternAnalysisServiceImpl = patternAnalysisServiceImpl;
+    this.patternAnalysisServiceMaxPatterns2 = patternAnalysisServiceMaxPatterns2;
+    this.problemPatternsRepositories = problemPatternsRepositories;
+    this.executionPointRepository = executionPointRepository;
+    this.datasetProblemPatternRepository = datasetProblemPatternRepository;
+    this.recordProblemPatternRepository = recordProblemPatternRepository;
+    this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
+    this.recordTitleRepository = recordTitleRepository;
+    this.problemPatternDataCleaner = problemPatternDataCleaner;
+
+    String rdfStringNoProblems = readTestResourceAsString("record.problempatterns/europeana_record_no_problem_patterns.xml");
+    this.rdfStringP2 = readTestResourceAsString("record.problempatterns/europeana_record_with_P2.xml");
+    String rdfStringP2MultipleOccurrences = readTestResourceAsString(
+        "record.problempatterns/europeana_record_with_P2_multiple.xml");
+    String rdfStringP6 = readTestResourceAsString("record.problempatterns/europeana_record_with_P6.xml");
+    String rdfStringP12 = readTestResourceAsString("record.problempatterns/europeana_record_with_P12.xml");
+
+    RdfConversionUtils rdfConversionUtils = new RdfConversionUtils();
+    this.rdfRecordNoProblems = rdfConversionUtils.convertStringToRdf(rdfStringNoProblems);
+    this.rdfRecordP2 = rdfConversionUtils.convertStringToRdf(rdfStringP2);
+    this.rdfRecordP2MultipleOccurrences = rdfConversionUtils.convertStringToRdf(rdfStringP2MultipleOccurrences);
+    this.rdfRecordP6 = rdfConversionUtils.convertStringToRdf(rdfStringP6);
+    this.rdfRecordP12 = rdfConversionUtils.convertStringToRdf(rdfStringP12);
   }
 
-  @BeforeAll
-  static void beforeAll() {
-    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
+  private static String readTestResourceAsString(String resourcePath) throws IOException {
+    return new String(
+        new ClassPathResource(resourcePath).getInputStream().readAllBytes(),
+        StandardCharsets.UTF_8
+    );
   }
 
   @AfterEach
   void cleanup() {
-    recordTitleRepository.deleteAll();
-    recordProblemPatternOccurrenceRepository.deleteAll();
-    recordProblemPatternRepository.deleteAll();
-    datasetProblemPatternRepository.deleteAll();
-    executionPointRepository.deleteAll();
+    problemPatternDataCleaner.deleteAll();
   }
 
   @Test
@@ -192,7 +201,7 @@ class PatternAnalysisServiceImplIT {
   }
 
   @Test
-  void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurencesTest() {
+  void generateRecordPatternAnalysis_withTooManySamePatternTypeOccurrencesTest() {
     //We just want 1 occurrence
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(
         problemPatternsRepositories, 1, 1);
@@ -220,8 +229,8 @@ class PatternAnalysisServiceImplIT {
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP6);
 
     //Update about to pretend a different record
-    final String about = rdfRecordP6.getProvidedCHOList().get(0).getAbout();
-    rdfRecordP6.getProvidedCHOList().get(0).setAbout(about + "2");
+    final String about = rdfRecordP6.getProvidedCHOList().getFirst().getAbout();
+    rdfRecordP6.getProvidedCHOList().getFirst().setAbout(about + "2");
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP6);
 
     //Get dataset pattern analysis and check results
@@ -315,9 +324,9 @@ class PatternAnalysisServiceImplIT {
 
     assertEquals(2, problemPatternP2.getRecordAnalysisList().size());
     assertEquals(1,
-        problemPatternP2.getRecordAnalysisList().get(0).getProblemOccurrenceList().size());
+        problemPatternP2.getRecordAnalysisList().getFirst().getProblemOccurrenceList().size());
     assertTrue(isNotBlank(
-        problemPatternP2.getRecordAnalysisList().get(0).getProblemOccurrenceList().get(0)
+        problemPatternP2.getRecordAnalysisList().getFirst().getProblemOccurrenceList().getFirst()
                         .getMessageReport()));
 
     //Check a global pattern
@@ -420,7 +429,7 @@ class PatternAnalysisServiceImplIT {
   }
 
   @TestConfiguration
-  static class Config {
+  static class PatternAnalysisServiceImplMaxPatternsConfig {
 
     @Bean
     PatternAnalysisServiceImpl patternAnalysisServiceMaxPatterns2(

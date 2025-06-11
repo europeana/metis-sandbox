@@ -11,29 +11,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class ProblemPatternDataCleaner {
 
-    private final DatasetProblemPatternRepository datasetProblemPatternRepository;
-    private final ExecutionPointRepository executionPointRepository;
-    private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
-    private final RecordProblemPatternRepository recordProblemPatternRepository;
-    private final RecordTitleRepository recordTitleRepository;
-    public ProblemPatternDataCleaner(DatasetProblemPatternRepository datasetProblemPatternRepository,
-                                     ExecutionPointRepository executionPointRepository,
-                                     RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
-                                     RecordProblemPatternRepository recordProblemPatternRepository,
-                                     RecordTitleRepository recordTitleRepository) {
-        this.datasetProblemPatternRepository = datasetProblemPatternRepository;
-        this.executionPointRepository = executionPointRepository;
-        this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
-        this.recordProblemPatternRepository = recordProblemPatternRepository;
-        this.recordTitleRepository = recordTitleRepository;
-    }
+  private final DatasetProblemPatternRepository datasetProblemPatternRepository;
+  private final ExecutionPointRepository executionPointRepository;
+  private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
+  private final RecordProblemPatternRepository recordProblemPatternRepository;
+  private final RecordTitleRepository recordTitleRepository;
 
-    @Transactional
-    public void remove(String datasetId){
-        recordProblemPatternOccurrenceRepository.deleteByRecordProblemPatternExecutionPointDatasetId(datasetId);
-        recordTitleRepository.deleteByExecutionPointDatasetId(datasetId);
-        recordProblemPatternRepository.deleteByExecutionPointDatasetId(datasetId);
-        datasetProblemPatternRepository.deleteByExecutionPointDatasetId(datasetId);
-        executionPointRepository.deleteByDatasetId(datasetId);
-    }
+  public ProblemPatternDataCleaner(DatasetProblemPatternRepository datasetProblemPatternRepository,
+      ExecutionPointRepository executionPointRepository,
+      RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
+      RecordProblemPatternRepository recordProblemPatternRepository,
+      RecordTitleRepository recordTitleRepository) {
+    this.datasetProblemPatternRepository = datasetProblemPatternRepository;
+    this.executionPointRepository = executionPointRepository;
+    this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
+    this.recordProblemPatternRepository = recordProblemPatternRepository;
+    this.recordTitleRepository = recordTitleRepository;
+  }
+
+  @Transactional
+  public void remove(String datasetId) {
+    recordProblemPatternOccurrenceRepository.deleteByRecordProblemPatternExecutionPointDatasetId(datasetId);
+    recordTitleRepository.deleteByExecutionPointDatasetId(datasetId);
+    recordProblemPatternRepository.deleteByExecutionPointDatasetId(datasetId);
+    datasetProblemPatternRepository.deleteByExecutionPointDatasetId(datasetId);
+    executionPointRepository.deleteByDatasetId(datasetId);
+  }
+
+  @Transactional
+  public void deleteAll() {
+    recordTitleRepository.deleteAll();
+    recordProblemPatternOccurrenceRepository.deleteAll();
+    recordProblemPatternRepository.deleteAll();
+    datasetProblemPatternRepository.deleteAll();
+    executionPointRepository.deleteAll();
+  }
 }

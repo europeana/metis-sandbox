@@ -33,11 +33,14 @@ public final class SandboxIntegrationConfiguration {
   }
 
   public static void testContainersPostgresConfiguration() {
+//    PostgresTestContainersConfiguration.runScripts(List.of(
+//        "database/schema_drop.sql", "database/schema.sql",
+//        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
+//        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql",
+//        "database/schema_validation_drop.sql", "database/schema_validation.sql"
+//    ));
     PostgresTestContainersConfiguration.runScripts(List.of(
-        "database/schema_drop.sql", "database/schema.sql",
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
-        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql",
-        "database/schema_validation_drop.sql", "database/schema_validation.sql"
+        "schema_drop.sql", "schema.sql"
     ));
   }
 

@@ -4,10 +4,12 @@ import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOcc
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 /**
  * The interface Record problem pattern occurrence repository.
  */
+@Repository
 public interface RecordProblemPatternOccurrenceRepository extends JpaRepository<RecordProblemPatternOccurrence, Integer> {
 
     /**
