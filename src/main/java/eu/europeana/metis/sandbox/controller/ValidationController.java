@@ -15,11 +15,11 @@ import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
-import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage;
-import eu.europeana.metis.sandbox.service.validationworkflow.RecordValidationMessage.Type;
-import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult;
-import eu.europeana.metis.sandbox.service.validationworkflow.ValidationResult.Status;
-import eu.europeana.metis.sandbox.service.validationworkflow.ValidationWorkflowReport;
+import eu.europeana.metis.sandbox.dto.validation.RecordValidationMessage;
+import eu.europeana.metis.sandbox.dto.validation.RecordValidationMessage.Type;
+import eu.europeana.metis.sandbox.dto.validation.ValidationResult;
+import eu.europeana.metis.sandbox.dto.validation.ValidationResult.Status;
+import eu.europeana.metis.sandbox.dto.validation.ValidationWorkflowReport;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
@@ -104,9 +104,9 @@ public class ValidationController {
       final ValidationResult validationResult;
       Optional<ErrorInfoDTO> errorInfoDto = executionProgressByStepDto.errors().stream().findFirst();
       validationResult = errorInfoDto.map(infoDto -> new ValidationResult(executionProgressByStepDto.step(),
-                                         new RecordValidationMessage(Type.ERROR, infoDto.errorMessage()), Status.FAILED))
+                                         List.of(new RecordValidationMessage(Type.ERROR, infoDto.errorMessage())), Status.FAILED))
                                      .orElseGet(() -> new ValidationResult(executionProgressByStepDto.step(),
-                                         new RecordValidationMessage(Type.INFO, "success"), Status.PASSED));
+                                         List.of(new RecordValidationMessage(Type.INFO, "success")), Status.PASSED));
       validationResults.add(validationResult);
     }
 
