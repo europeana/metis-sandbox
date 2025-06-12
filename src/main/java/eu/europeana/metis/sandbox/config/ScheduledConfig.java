@@ -1,17 +1,19 @@
 package eu.europeana.metis.sandbox.config;
 
-import eu.europeana.metis.sandbox.service.util.DataCleanupService;
 import eu.europeana.metis.sandbox.service.metrics.MetricsService;
+import eu.europeana.metis.sandbox.service.util.DataCleanupService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * Configuration class for scheduling tasks and defining beans related to scheduling intervals.
@@ -32,12 +34,21 @@ public class ScheduledConfig {
     @Value("${sandbox.dataset.clean.days-to-preserve:7}")
     private int daysToPreserve;
 
-
     ScheduledTasks(MetricsService metricsService, XsltUrlUpdateService xsltUrlUpdateService,
         DataCleanupService dataCleanupService) {
       this.metricsService = metricsService;
       this.xsltUrlUpdateService = xsltUrlUpdateService;
       this.dataCleanupService = dataCleanupService;
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler taskScheduler() {
+      ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+      scheduler.setPoolSize(5);
+      scheduler.setThreadNamePrefix("Scheduled-");
+      scheduler.setWaitForTasksToCompleteOnShutdown(true);
+      scheduler.setAwaitTerminationSeconds(10);
+      return scheduler;
     }
 
     @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *}")

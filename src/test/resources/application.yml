@@ -79,8 +79,6 @@ spring:
     driverClassName:
     username:
     password:
-    maximumPoolSize: 10           # this is the default we make it explicit in the config.
-    leakDetectionThreshold: 5000  # five second should be enough
   batch:
     job:
       #Disable autostart of jobs
@@ -139,11 +137,6 @@ sandbox:
       frequency: 0 0 0 * * ? # At 00:00:00am every day
       days-to-preserve: 7
     max-size: 1000
-    creation:
-      threads:
-        core-pool-size: 10
-        max-pool-size: 40
-        thread-prefix: sandbox-
   metrics:
     frequency: '*/5 * * * * *' # every five seconds.
   validation:
@@ -152,11 +145,11 @@ sandbox:
       pool-size: 10
     predefinedSchemas:
       EDM-INTERNAL:
-        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20241127.zip
         rootLocation: EDM-INTERNAL.xsd
         schematronLocation: schematron/schematron-internal.xsl
       EDM-EXTERNAL:
-        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20241127.zip
         rootLocation: EDM.xsd
         schematronLocation: schematron/schematron.xsl
   transformation:
@@ -168,7 +161,7 @@ sandbox:
       entity-management-url: https://entity-management-production.eanadev.org/entity
       entity-api-url: https://entity-api-v2-production.eanadev.org/entity
       entity-api-token-endpoint: https://auth.europeana.eu/auth/realms/europeana/protocol/openid-connect/token
-      entity-api-grant-params: metis-enrichment&client_secret=&grant_type=client_credentials
+      entity-api-grant-params: client_id=metis-enrichment&client_secret=&grant_type=client_credentials
   publish:
     mongo:
       application-name: metis-sandbox-local

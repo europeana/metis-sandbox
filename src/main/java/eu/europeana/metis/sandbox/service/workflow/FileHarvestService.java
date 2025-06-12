@@ -12,16 +12,20 @@ import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FileHarvestService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final HarvestServiceImpl harvestServiceImpl;
   private final HarvestParameterService harvestParameterService;
 
@@ -57,21 +61,23 @@ public class FileHarvestService {
           inputStream, datasetId, stepSize, CompressedFileExtension.valueOf(fileType.name())));
     }
 
-    // Map to HarvestedRecord
     Map<String, HarvestedRecord> harvestedRecords = new HashMap<>();
-
     for (Map.Entry<String, String> entry : recordIdAndContent.entrySet()) {
       String sourceRecordId = entry.getKey();
       String recordData = entry.getValue();
 
       EuropeanaIdCreator europeanaIdCreator = new EuropeanaIdCreator();
-      EuropeanaGeneratedIdsMap idsMap = europeanaIdCreator.constructEuropeanaId(recordData, datasetId);
+      String sourceProvidedChoAbout = sourceRecordId;
+      String recordId = sourceRecordId;
+      try {
+        EuropeanaGeneratedIdsMap idsMap = europeanaIdCreator.constructEuropeanaId(recordData, datasetId);
+        sourceProvidedChoAbout = idsMap.getSourceProvidedChoAbout();
+        recordId = idsMap.getEuropeanaGeneratedId();
+      } catch (EuropeanaIdException e) {
+        LOGGER.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+      }
 
-      harvestedRecords.put(sourceRecordId, new HarvestedRecord(
-          idsMap.getSourceProvidedChoAbout(),
-          idsMap.getEuropeanaGeneratedId(),
-          recordData
-      ));
+      harvestedRecords.put(sourceRecordId, new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData));
     }
 
     return harvestedRecords;

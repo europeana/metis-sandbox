@@ -6,6 +6,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
@@ -29,16 +30,19 @@ public class OaiHarvestService {
       OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
       OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest, sourceRecordId);
 
-      String resultString = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
+      String recordData = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
 
       EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
-      EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
-
-      return new HarvestedRecord(
-          europeanaGeneratedIdsMap.getSourceProvidedChoAbout(),
-          europeanaGeneratedIdsMap.getEuropeanaGeneratedId(),
-          resultString
-      );
+      String sourceProvidedChoAbout = sourceRecordId;
+      String recordId = sourceRecordId;
+      try {
+        EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
+        sourceProvidedChoAbout = europeanaGeneratedIdsMap.getSourceProvidedChoAbout();
+        recordId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
+      } catch (EuropeanaIdException e) {
+        LOGGER.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+      }
+      return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to harvest record " + sourceRecordId, e);

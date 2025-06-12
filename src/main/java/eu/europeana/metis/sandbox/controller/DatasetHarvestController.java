@@ -87,7 +87,7 @@ public class DatasetHarvestController {
       @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
       @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
       @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
-      @RequestParam(name = "stepsize", required = false) Integer stepsize,
+      @RequestParam(name = "stepsize", required = false, defaultValue = "1") int stepsize,
       @Parameter(description = "dataset URL records", required = true) @RequestParam("url") String url,
       @Parameter(description = "dataset specification") @RequestParam(name = "setspec", required = false) String setspec,
       @Parameter(description = "metadata format") @RequestParam("metadataformat") String metadataformat,
@@ -102,9 +102,7 @@ public class DatasetHarvestController {
     }
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
     checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
-    if (stepsize != null) {
-      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
-    }
+    checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
 
     String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize,
         url, setspec, metadataformat, xsltFile, userId);
@@ -136,7 +134,7 @@ public class DatasetHarvestController {
       @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
       @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
       @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
-      @RequestParam(name = "stepsize", required = false) Integer stepsize,
+      @RequestParam(name = "stepsize", required = false, defaultValue = "1") int stepsize,
       @Parameter(description = "dataset records uploaded in a zip, tar or tar.gz file", required = true) @RequestParam("dataset")
       MultipartFile datasetRecordsCompressedFile,
       @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false)
@@ -149,11 +147,9 @@ public class DatasetHarvestController {
       userId = getUserId(jwtPrincipal);
     }
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
+    checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
         datasetRecordsCompressedFile);
-    if (stepsize != null) {
-      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
-    }
 
     final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language,
         stepsize, datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
@@ -186,7 +182,7 @@ public class DatasetHarvestController {
       @Parameter(description = "country of the dataset", required = true) @RequestParam("country") Country country,
       @Parameter(description = "language of the dataset", required = true) @RequestParam("language") Language language,
       @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
-      @RequestParam(name = "stepsize", required = false) Integer stepsize,
+      @RequestParam(name = "stepsize", required = false, defaultValue = "1") int stepsize,
       @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
       @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile)
       throws IOException {
@@ -199,11 +195,9 @@ public class DatasetHarvestController {
     }
     checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
     checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
+    checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
     URI uri = URI.create(url);
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
-    if (stepsize != null) {
-      checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
-    }
 
     final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language,
         stepsize, url, xsltFile, userId, compressedFileExtension);
