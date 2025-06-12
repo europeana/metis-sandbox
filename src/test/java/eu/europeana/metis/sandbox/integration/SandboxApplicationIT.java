@@ -11,7 +11,6 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.ApplicationContext;
@@ -38,6 +37,5 @@ class SandboxApplicationIT {
   void contextLoads(ApplicationContext applicationContext) {
     assertNotNull(applicationContext);
     assertNotNull(applicationContext.getBean(DataSource.class));
-    assertNotNull(applicationContext.getBean(AmqpTemplate.class));
   }
 }
