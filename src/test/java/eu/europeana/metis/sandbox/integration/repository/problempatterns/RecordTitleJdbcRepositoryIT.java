@@ -8,28 +8,24 @@ import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
 import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
-@JdbcTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) //Do not allow JdbcTest to replace the Datasource
-@ContextConfiguration(classes = RecordTitleJdbcRepository.class)
-@Import({PostgresTestContainersConfiguration.class})
+@SpringBootTest(classes = RecordTitleJdbcRepository.class)
+@EnableAutoConfiguration
+@EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
+@Import(PostgresTestContainersConfiguration.class)
 class RecordTitleJdbcRepositoryIT {
 
   public static final String SELECT_RECORD_TITLES_QUERY = "SELECT * FROM problem_patterns.record_title";
@@ -39,9 +35,9 @@ class RecordTitleJdbcRepositoryIT {
   @Autowired
   private RecordTitleJdbcRepository recordTitleJdbcRepository;
 
-  @BeforeAll
-  static void beforeAll() {
-    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
+  @AfterEach
+  void cleanup() {
+    deleteFromTables(jdbcTemplate, "problem_patterns.record_title", "problem_patterns.execution_point");
   }
 
   @Test
@@ -60,16 +56,11 @@ class RecordTitleJdbcRepositoryIT {
     assertEquals(1, executionPointCount);
     assertTrue(
         recordTitles.stream().allMatch(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle().equals("titleA")));
-
-    //Cleanup
-    deleteFromTables(jdbcTemplate, "problem_patterns.record_title", "problem_patterns.execution_point");
-    assertEquals(0, countRowsInTable(jdbcTemplate, "problem_patterns.execution_point"));
-    assertEquals(0, jdbcTemplate.query(SELECT_RECORD_TITLES_QUERY, new RecordTitleRowMapper()).size());
   }
 
   private void insertValues() {
     jdbcTemplate.update(
-        "INSERT INTO problem_patterns.execution_point (dataset_id, execution_step, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-03-22 10:10:10.100 +02:00');"
+        "INSERT INTO problem_patterns.execution_point (dataset_id, execution_name, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-03-22 10:10:10.100 +02:00');"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'titleA');"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'titleS');"
             + "INSERT INTO problem_patterns.record_title (execution_point_id, record_id, title) VALUES (1, 'recordId1', 'Some ValueC');"
