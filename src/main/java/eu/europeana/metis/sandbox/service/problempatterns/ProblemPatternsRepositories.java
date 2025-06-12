@@ -5,7 +5,6 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
-import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +20,6 @@ public class ProblemPatternsRepositories {
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final RecordTitleRepository recordTitleRepository;
-  private final RecordTitleJdbcRepository recordTitleJdbcRepository;
 
   /**
    * Constructor with required parameters.
@@ -39,15 +37,13 @@ public class ProblemPatternsRepositories {
       DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository,
       RecordProblemPatternRepository recordProblemPatternRepository,
       RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
-      RecordTitleRepository recordTitleRepository,
-      RecordTitleJdbcRepository recordTitleJdbcRepository) {
+      RecordTitleRepository recordTitleRepository) {
     this.executionPointRepository = executionPointRepository;
     this.datasetProblemPatternRepository = datasetProblemPatternRepository;
     this.datasetProblemPatternJdbcRepository = datasetProblemPatternJdbcRepository;
     this.recordProblemPatternRepository = recordProblemPatternRepository;
     this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
     this.recordTitleRepository = recordTitleRepository;
-    this.recordTitleJdbcRepository = recordTitleJdbcRepository;
   }
 
   public ExecutionPointRepository getExecutionPointRepository() {
@@ -72,9 +68,5 @@ public class ProblemPatternsRepositories {
 
   public RecordTitleRepository getRecordTitleRepository() {
     return recordTitleRepository;
-  }
-
-  public RecordTitleJdbcRepository getRecordTitleJdbcRepository() {
-    return recordTitleJdbcRepository;
   }
 }

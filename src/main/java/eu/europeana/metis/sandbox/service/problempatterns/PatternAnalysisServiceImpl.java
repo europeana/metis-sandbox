@@ -16,7 +16,6 @@ import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatte
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternRepository;
-import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
@@ -64,7 +63,6 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final RecordTitleRepository recordTitleRepository;
-  private final RecordTitleJdbcRepository recordTitleJdbcRepository;
   private final ProblemPatternAnalyzer problemPatternAnalyzer = new ProblemPatternAnalyzer();
   private final int maxProblemPatternOccurrences;
   private final int maxRecordsPerPattern;
@@ -85,7 +83,6 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
     this.recordProblemPatternRepository = problemPatternsRepositories.getRecordProblemPatternRepository();
     this.recordProblemPatternOccurrenceRepository = problemPatternsRepositories.getRecordProblemPatternOccurrenceRepository();
     this.recordTitleRepository = problemPatternsRepositories.getRecordTitleRepository();
-    this.recordTitleJdbcRepository = problemPatternsRepositories.getRecordTitleJdbcRepository();
     this.maxRecordsPerPattern = maxRecordsPerPattern;
     this.maxProblemPatternOccurrences = maxProblemPatternOccurrences;
   }
@@ -173,7 +170,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   @Override
   @Transactional
   public void finalizeDatasetPatternAnalysis(ExecutionPoint executionPoint) {
-    recordTitleJdbcRepository.deleteRedundantRecordTitles(executionPoint.getExecutionPointId());
+    recordTitleRepository.deleteRedundantRecordTitles(executionPoint.getExecutionPointId());
 
     //Insert global problem patterns to db
     final List<RecordTitle> duplicateRecordTitles = recordTitleRepository.findAllByExecutionPoint(executionPoint);
