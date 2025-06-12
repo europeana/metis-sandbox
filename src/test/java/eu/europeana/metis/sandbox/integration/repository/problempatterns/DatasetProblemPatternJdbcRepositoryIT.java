@@ -14,21 +14,18 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
-@ExtendWith(SpringExtension.class)
-@JdbcTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) //Do not allow JdbcTest to replace the Datasource
-@ContextConfiguration(classes = DatasetProblemPatternJdbcRepository.class)
+@SpringBootTest(classes = DatasetProblemPatternJdbcRepository.class)
+@EnableAutoConfiguration
+@EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @Import({PostgresTestContainersConfiguration.class})
 class DatasetProblemPatternJdbcRepositoryIT {
 
@@ -98,7 +95,7 @@ class DatasetProblemPatternJdbcRepositoryIT {
 
   private void insertValues() {
     jdbcTemplate.update(
-        "INSERT INTO problem_patterns.execution_point (dataset_id, execution_step, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-01-01 10:10:10.100 +02:00');");
+        "INSERT INTO problem_patterns.execution_point (dataset_id, execution_name, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-01-01 10:10:10.100 +02:00');");
   }
 
   static class DatasetProblemPatternRowMapper implements RowMapper<DatasetProblemPattern> {
