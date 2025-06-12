@@ -34,7 +34,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
@@ -60,10 +59,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableAutoConfiguration
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
-@ComponentScan(basePackages = {
-    "eu.europeana.metis.sandbox.service.problempatterns",
-    "eu.europeana.metis.sandbox.repository.problempatterns"
-})
+@ComponentScan(basePackages = "eu.europeana.metis.sandbox.service.problempatterns")
 @Import({PatternAnalysisServiceImplMaxPatternsConfig.class, PostgresTestContainersConfiguration.class})
 class PatternAnalysisServiceImplIT {
 

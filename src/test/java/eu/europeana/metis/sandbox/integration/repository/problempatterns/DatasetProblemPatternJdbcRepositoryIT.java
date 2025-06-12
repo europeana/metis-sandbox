@@ -1,45 +1,49 @@
 package eu.europeana.metis.sandbox.integration.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.jdbc.JdbcTestUtils.deleteFromTables;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
-import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
+import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
-import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
+import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
+import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.test.jdbc.JdbcTestUtils;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootTest(classes = DatasetProblemPatternJdbcRepository.class)
-@EnableAutoConfiguration
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
-@Import({PostgresTestContainersConfiguration.class})
+@Import(PostgresTestContainersConfiguration.class)
 class DatasetProblemPatternJdbcRepositoryIT {
 
-  public static final String SELECT_DATASET_PROBLEM_PATTERN_QUERY = "SELECT * FROM problem_patterns.dataset_problem_pattern";
+  private ExecutionPointRepository executionPointRepository;
+  private DatasetProblemPatternRepository datasetProblemPatternRepository;
+  private EntityManager entityManager;
 
   @Autowired
-  private JdbcTemplate jdbcTemplate;
+  DatasetProblemPatternJdbcRepositoryIT(ExecutionPointRepository executionPointRepository,
+      DatasetProblemPatternRepository datasetProblemPatternRepository, EntityManager entityManager) {
+    this.executionPointRepository = executionPointRepository;
+    this.datasetProblemPatternRepository = datasetProblemPatternRepository;
+    this.entityManager = entityManager;
+  }
 
-  @Autowired
-  private DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
-
-  @BeforeAll
-  static void beforeAll() {
-    SandboxIntegrationConfiguration.testContainersPostgresConfiguration();
+  @AfterEach
+  void cleanup() {
+    datasetProblemPatternRepository.deleteAll();
+    executionPointRepository.deleteAll();
   }
 
   @Test
@@ -47,42 +51,36 @@ class DatasetProblemPatternJdbcRepositoryIT {
     insertValues();
 
     //Verify empty
-    List<DatasetProblemPattern> problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
-        new DatasetProblemPatternRowMapper());
+    List<DatasetProblemPattern> problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(0, problemPatterns.size());
 
     //Upsert with 0
-    datasetProblemPatternJdbcRepository.upsertCounter(1, "P1", 0);
-    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
-        new DatasetProblemPatternRowMapper());
+    datasetProblemPatternRepository.upsertCounter(1, "P1", 0);
+    syncAndReload();
+    problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(1, problemPatterns.size());
     assertEquals(0, getOccurrences(problemPatterns, "P1"));
 
     //Upsert with 1, different pattern
-    datasetProblemPatternJdbcRepository.upsertCounter(1, "P2", 1);
-    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
-        new DatasetProblemPatternRowMapper());
+    datasetProblemPatternRepository.upsertCounter(1, "P2", 1);
+    syncAndReload();
+    problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(2, problemPatterns.size());
     assertEquals(1, getOccurrences(problemPatterns, "P2"));
 
     //Upsert with 1, same pattern
-    datasetProblemPatternJdbcRepository.upsertCounter(1, "P2", 1);
-    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
-        new DatasetProblemPatternRowMapper());
+    datasetProblemPatternRepository.upsertCounter(1, "P2", 1);
+    syncAndReload();
+    problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(2, problemPatterns.size());
     assertEquals(2, getOccurrences(problemPatterns, "P2"));
 
     //Upsert with 5, same pattern
-    datasetProblemPatternJdbcRepository.upsertCounter(1, "P2", 5);
-    problemPatterns = jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY,
-        new DatasetProblemPatternRowMapper());
+    datasetProblemPatternRepository.upsertCounter(1, "P2", 5);
+    syncAndReload();
+    problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(2, problemPatterns.size());
     assertEquals(7, getOccurrences(problemPatterns, "P2"));
-
-    //Cleanup
-    deleteFromTables(jdbcTemplate, "problem_patterns.dataset_problem_pattern", "problem_patterns.execution_point");
-    assertEquals(0, JdbcTestUtils.countRowsInTable(jdbcTemplate, "problem_patterns.execution_point"));
-    assertEquals(0, jdbcTemplate.query(SELECT_DATASET_PROBLEM_PATTERN_QUERY, new DatasetProblemPatternRowMapper()).size());
   }
 
   @NotNull
@@ -93,18 +91,16 @@ class DatasetProblemPatternJdbcRepositoryIT {
                           .map(DatasetProblemPattern::getRecordOccurrences).findFirst().orElse(-1);
   }
 
-  private void insertValues() {
-    jdbcTemplate.update(
-        "INSERT INTO problem_patterns.execution_point (dataset_id, execution_name, execution_timestamp) VALUES (1, 'VALIDATION_EXTERNAL', '2022-01-01 10:10:10.100 +02:00');");
+  private void syncAndReload() {
+    entityManager.flush();
+    entityManager.clear();
   }
 
-  static class DatasetProblemPatternRowMapper implements RowMapper<DatasetProblemPattern> {
-
-    @Override
-    public DatasetProblemPattern mapRow(ResultSet rs, int rowNumber) throws SQLException {
-      return new DatasetProblemPattern(
-          new DatasetProblemPatternCompositeKey(rs.getInt("execution_point_id"), rs.getString("pattern_id")), null,
-          rs.getInt("record_occurrences"));
-    }
+  private void insertValues() {
+    ExecutionPoint executionPoint = new ExecutionPoint();
+    executionPoint.setDatasetId("1");
+    executionPoint.setExecutionName("VALIDATION_EXTERNAL");
+    executionPoint.setExecutionTimestamp(LocalDateTime.parse("2022-03-22T10:10:10.100"));
+    executionPointRepository.save(executionPoint);
   }
 }

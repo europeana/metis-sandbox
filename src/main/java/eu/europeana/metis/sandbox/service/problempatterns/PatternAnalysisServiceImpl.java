@@ -11,7 +11,6 @@ import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOccurrence;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
-import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -59,7 +58,6 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
 
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
-  private final DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final RecordTitleRepository recordTitleRepository;
@@ -79,7 +77,6 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
       @Value("${sandbox.problempatterns.max-problem-pattern-occurrences:10}") int maxProblemPatternOccurrences) {
     this.executionPointRepository = problemPatternsRepositories.getExecutionPointRepository();
     this.datasetProblemPatternRepository = problemPatternsRepositories.getDatasetProblemPatternRepository();
-    this.datasetProblemPatternJdbcRepository = problemPatternsRepositories.getDatasetProblemPatternJdbcRepository();
     this.recordProblemPatternRepository = problemPatternsRepositories.getRecordProblemPatternRepository();
     this.recordProblemPatternOccurrenceRepository = problemPatternsRepositories.getRecordProblemPatternOccurrenceRepository();
     this.recordTitleRepository = problemPatternsRepositories.getRecordTitleRepository();
@@ -119,7 +116,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   private void insertPatternAnalysis(ExecutionPoint executionPoint, final ProblemPatternAnalysis problemPatternAnalysis) {
     for (ProblemPattern problemPattern : problemPatternAnalysis.getProblemPatterns()) {
       for (RecordAnalysis recordAnalysis : problemPattern.getRecordAnalysisList()) {
-        final Integer recordOccurrences = datasetProblemPatternJdbcRepository.upsertCounter(
+        final Integer recordOccurrences = datasetProblemPatternRepository.upsertCounter(
             executionPoint.getExecutionPointId(), problemPattern.getProblemPatternDescription().getProblemPatternId().name(), 1);
 
         if (recordOccurrences <= maxRecordsPerPattern) {
@@ -181,7 +178,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
                                                                             .map(RecordTitleCompositeKey::getRecordId).distinct()
                                                                             .count());
     //Update counter. Idempotent for 0 occurrences
-    datasetProblemPatternJdbcRepository.upsertCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
+    datasetProblemPatternRepository.upsertCounter(executionPoint.getExecutionPointId(), ProblemPatternId.P1.name(),
         totalRecordOccurrences);
 
     Map<String, RecordProblemPattern> recordIdsInserted = new HashMap<>();

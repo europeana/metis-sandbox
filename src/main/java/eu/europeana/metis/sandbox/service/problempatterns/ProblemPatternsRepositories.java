@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.problempatterns;
 
-import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternJdbcRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -16,7 +15,6 @@ public class ProblemPatternsRepositories {
 
   private final ExecutionPointRepository executionPointRepository;
   private final DatasetProblemPatternRepository datasetProblemPatternRepository;
-  private final DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository;
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository;
   private final RecordTitleRepository recordTitleRepository;
@@ -34,13 +32,11 @@ public class ProblemPatternsRepositories {
    */
   public ProblemPatternsRepositories(ExecutionPointRepository executionPointRepository,
       DatasetProblemPatternRepository datasetProblemPatternRepository,
-      DatasetProblemPatternJdbcRepository datasetProblemPatternJdbcRepository,
       RecordProblemPatternRepository recordProblemPatternRepository,
       RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
       RecordTitleRepository recordTitleRepository) {
     this.executionPointRepository = executionPointRepository;
     this.datasetProblemPatternRepository = datasetProblemPatternRepository;
-    this.datasetProblemPatternJdbcRepository = datasetProblemPatternJdbcRepository;
     this.recordProblemPatternRepository = recordProblemPatternRepository;
     this.recordProblemPatternOccurrenceRepository = recordProblemPatternOccurrenceRepository;
     this.recordTitleRepository = recordTitleRepository;
@@ -52,10 +48,6 @@ public class ProblemPatternsRepositories {
 
   public DatasetProblemPatternRepository getDatasetProblemPatternRepository() {
     return datasetProblemPatternRepository;
-  }
-
-  public DatasetProblemPatternJdbcRepository getDatasetProblemPatternJdbcRepository() {
-    return datasetProblemPatternJdbcRepository;
   }
 
   public RecordProblemPatternRepository getRecordProblemPatternRepository() {

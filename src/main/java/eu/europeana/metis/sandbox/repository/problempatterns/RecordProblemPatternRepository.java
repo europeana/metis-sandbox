@@ -27,8 +27,9 @@ public interface RecordProblemPatternRepository extends JpaRepository<RecordProb
    * @param datasetId the dataset id
    */
   @Modifying
-  @Query("DELETE FROM RecordProblemPattern rpp WHERE EXISTS (SELECT 1 FROM ExecutionPoint ep "
-      + "WHERE rpp.executionPoint.executionPointId = ep.executionPointId AND ep.datasetId = ?1)")
+  @Query("""
+      DELETE FROM RecordProblemPattern rpp WHERE EXISTS (SELECT 1 FROM ExecutionPoint ep
+            WHERE rpp.executionPoint.executionPointId = ep.executionPointId AND ep.datasetId = ?1)
+      """)
   void deleteByExecutionPointDatasetId(String datasetId);
-
 }
