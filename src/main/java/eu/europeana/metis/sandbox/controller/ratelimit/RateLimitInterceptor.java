@@ -24,6 +24,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final int CONVERSION_FACTOR_FROM_NANOS_TO_SECONDS = 1_000_000_000;
+    public static final String X_RATE_LIMIT_LIMIT = "X-Rate-Limit-Limit";
+    public static final String X_RATE_LIMIT_REMAINING = "X-Rate-Limit-Remaining";
+    public static final String X_RATE_LIMIT_RESET = "X-Rate-Limit-Reset";
 
     private final Integer capacity;
     private final PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager;
@@ -47,19 +50,17 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
         final Long key = generateUniqueIdFromIpAddress(request.getRemoteAddr());
         final ConsumptionProbe probe = resolveBucket(key);
-        response.addHeader("X-Rate-Limit-Limit", String.valueOf(capacity));
+        response.addHeader(X_RATE_LIMIT_LIMIT, String.valueOf(capacity));
         if (probe.isConsumed()) {
-            response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
             final long waitForRefill = probe.getNanosToWaitForReset() / CONVERSION_FACTOR_FROM_NANOS_TO_SECONDS;
-            response.addHeader("X-Rate-Limit-Reset", String.valueOf(waitForRefill));
+            response.addHeader(X_RATE_LIMIT_RESET, String.valueOf(waitForRefill));
+            response.addHeader(X_RATE_LIMIT_REMAINING, String.valueOf(probe.getRemainingTokens()));
             return true;
         } else {
             final long waitForRefill = probe.getNanosToWaitForRefill() / CONVERSION_FACTOR_FROM_NANOS_TO_SECONDS;
-            response.addHeader("X-Rate-Limit-Reset", String.valueOf(waitForRefill));
-            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(),
-                    "You have exhausted your API Request Quota");
+            response.addHeader(X_RATE_LIMIT_RESET, String.valueOf(waitForRefill));
+            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "You have exhausted your API Request Quota");
             return false;
-
         }
     }
 

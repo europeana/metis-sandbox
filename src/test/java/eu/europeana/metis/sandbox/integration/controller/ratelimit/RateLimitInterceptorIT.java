@@ -1,64 +1,65 @@
 package eu.europeana.metis.sandbox.integration.controller.ratelimit;
 
 
+import static eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor.X_RATE_LIMIT_LIMIT;
+import static eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor.X_RATE_LIMIT_REMAINING;
+import static eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor.X_RATE_LIMIT_RESET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.europeana.metis.sandbox.SandboxApplication;
+import eu.europeana.metis.sandbox.config.RateLimitConfig;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
-import eu.europeana.metis.sandbox.integration.testcontainers.MongoTestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.S3TestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SolrTestContainersConfiguration;
 import java.util.Objects;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.endpoint.web.servlet.ControllerEndpointHandlerMapping;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SandboxApplication.class)
-@Import({
-    PostgresTestContainersConfiguration.class,
-    MongoTestContainersConfiguration.class,
-    SolrTestContainersConfiguration.class,
-    S3TestContainersConfiguration.class
-})
+@SpringBootTest(classes = RateLimitConfig.class)
+@EnableAutoConfiguration
+@Import({PostgresTestContainersConfiguration.class})
 class RateLimitInterceptorIT {
 
-    @Autowired
-    private ControllerEndpointHandlerMapping mapping;
+  private RateLimitInterceptor rateLimitInterceptor;
 
-    @Autowired
-    private RateLimitInterceptor rateLimitInterceptor;
+  @Autowired
+  public RateLimitInterceptorIT(RateLimitInterceptor rateLimitInterceptor) {
+    this.rateLimitInterceptor = rateLimitInterceptor;
+  }
 
-    @BeforeAll
-    static void beforeAll() {
-        SandboxIntegrationConfiguration.testContainersConfiguration();
-    }
+  @Test
+  void preHandle() throws Exception {
+    String ipAddress = "192.168.1.2";
+    String uri = "/record/validation";
 
-    @Test
-    void preHandle_idHashFunction_expectSuccess() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setRemoteAddr("192.168.1.2");
-        request.setRequestURI("/record/validation");
-        MockHttpServletResponse response = new MockHttpServletResponse();
+    MockHttpServletResponse response1 = doPreHandle(ipAddress, uri);
+    assertEquals("20", response1.getHeader(X_RATE_LIMIT_LIMIT));
+    assertEquals("19", response1.getHeader(X_RATE_LIMIT_REMAINING));
+    assertTrue(Integer.parseInt(Objects.requireNonNull(response1.getHeader(X_RATE_LIMIT_RESET))) <= 3600);
 
-        rateLimitInterceptor.preHandle(request, response, mapping);
+    MockHttpServletResponse response2 = doPreHandle(ipAddress, uri);
+    assertEquals("20", response2.getHeader(X_RATE_LIMIT_LIMIT));
+    assertEquals("18", response2.getHeader(X_RATE_LIMIT_REMAINING));
+    assertTrue(Integer.parseInt(Objects.requireNonNull(response2.getHeader(X_RATE_LIMIT_RESET))) <= 3600);
 
-        assertEquals("20", response.getHeader("X-Rate-Limit-Limit"));
-        assertEquals("19", response.getHeader("X-Rate-Limit-Remaining"));
-        assertEquals("3600", response.getHeader("X-Rate-Limit-Reset"));
+    MockHttpServletResponse response3 = doPreHandle(ipAddress, uri);
+    assertEquals("20", response3.getHeader(X_RATE_LIMIT_LIMIT));
+    assertEquals("17", response3.getHeader(X_RATE_LIMIT_REMAINING));
+    assertTrue(Integer.parseInt(Objects.requireNonNull(response3.getHeader(X_RATE_LIMIT_RESET))) <= 3600);
+  }
 
-        MockHttpServletResponse anotherResponse = new MockHttpServletResponse();
-        rateLimitInterceptor.preHandle(request, anotherResponse, mapping);
+  private MockHttpServletResponse doPreHandle(String ipAddress, String uri) throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRemoteAddr(ipAddress);
+    request.setRequestURI(uri);
 
-        assertEquals("20", anotherResponse.getHeader("X-Rate-Limit-Limit"));
-        assertEquals("18", anotherResponse.getHeader("X-Rate-Limit-Remaining"));
-        assertTrue(Integer.parseInt(Objects.requireNonNull(anotherResponse.getHeader("X-Rate-Limit-Reset"))) < 3600);
-    }
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    rateLimitInterceptor.preHandle(request, response, new Object());
+
+    return response;
+  }
 }
