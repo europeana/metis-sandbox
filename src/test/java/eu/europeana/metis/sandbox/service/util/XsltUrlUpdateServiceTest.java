@@ -6,9 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,18 +18,14 @@ import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.integration.support.locks.LockRegistry;
 
 @ExtendWith({MockitoExtension.class})
-@TestMethodOrder(OrderAnnotation.class)
 class XsltUrlUpdateServiceTest {
 
   @Mock
@@ -55,7 +53,7 @@ class XsltUrlUpdateServiceTest {
     // when
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     // then
-    Mockito.verify(transformXsltRepository, times(1)).save(any());
+    verify(transformXsltRepository, times(1)).save(any());
   }
 
   @Test
@@ -69,10 +67,10 @@ class XsltUrlUpdateServiceTest {
     when(httpClient.sendAsync(any(HttpRequest.class), any())).thenReturn(response);
 
     // when
-    when(transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc()).thenReturn(Optional.of(new TransformXsltEntity()));
+    when(transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT)).thenReturn(Optional.of(new TransformXsltEntity()));
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     //then
-    Mockito.verify(transformXsltRepository, times(1)).save(any());
+    verify(transformXsltRepository, times(1)).save(any());
   }
 
   @Test
@@ -103,11 +101,10 @@ class XsltUrlUpdateServiceTest {
     when(httpClient.sendAsync(any(HttpRequest.class), any())).thenReturn(response);
 
     // when
-    when(transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc()).thenThrow(RuntimeException.class);
-    xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
+    when(transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT)).thenThrow(RuntimeException.class);
     // then
-    assertThrows(RuntimeException.class, () -> transformXsltRepository.findFirstByIdIsNotNullOrderByIdAsc());
-    Mockito.verify(transformXsltRepository, never()).save(any());
+    assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt"));
+    verify(transformXsltRepository, never()).save(any());
   }
 
   @Test
@@ -122,7 +119,7 @@ class XsltUrlUpdateServiceTest {
 
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     // then
-    Mockito.verify(transformXsltRepository, never()).save(any());
+    verify(transformXsltRepository, never()).save(any());
   }
 
   @Test
@@ -137,6 +134,6 @@ class XsltUrlUpdateServiceTest {
     // when
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     // then
-    Mockito.verify(transformXsltRepository, never()).save(any());
+    verify(transformXsltRepository, never()).save(any());
   }
 }
