@@ -26,14 +26,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = "eu.europeana.metis.sandbox.repository.problempatterns")
 @EntityScan(basePackages = "eu.europeana.metis.sandbox.entity.problempatterns")
 @Import(PostgresTestContainersConfiguration.class)
-class DatasetProblemPatternJdbcRepositoryIT {
+class DatasetProblemPatternRepositoryIT {
 
   private ExecutionPointRepository executionPointRepository;
   private DatasetProblemPatternRepository datasetProblemPatternRepository;
   private EntityManager entityManager;
 
   @Autowired
-  DatasetProblemPatternJdbcRepositoryIT(ExecutionPointRepository executionPointRepository,
+  DatasetProblemPatternRepositoryIT(ExecutionPointRepository executionPointRepository,
       DatasetProblemPatternRepository datasetProblemPatternRepository, EntityManager entityManager) {
     this.executionPointRepository = executionPointRepository;
     this.datasetProblemPatternRepository = datasetProblemPatternRepository;
@@ -48,35 +48,35 @@ class DatasetProblemPatternJdbcRepositoryIT {
 
   @Test
   void upsertUpdateCounterTest() {
-    insertValues();
+    ExecutionPoint executionPoint = insertValues();
 
     //Verify empty
     List<DatasetProblemPattern> problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(0, problemPatterns.size());
 
     //Upsert with 0
-    datasetProblemPatternRepository.upsertCounter(1, "P1", 0);
+    datasetProblemPatternRepository.upsertCounter(executionPoint.getExecutionPointId(), "P1", 0);
     syncAndReload();
     problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(1, problemPatterns.size());
     assertEquals(0, getOccurrences(problemPatterns, "P1"));
 
     //Upsert with 1, different pattern
-    datasetProblemPatternRepository.upsertCounter(1, "P2", 1);
+    datasetProblemPatternRepository.upsertCounter(executionPoint.getExecutionPointId(), "P2", 1);
     syncAndReload();
     problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(2, problemPatterns.size());
     assertEquals(1, getOccurrences(problemPatterns, "P2"));
 
     //Upsert with 1, same pattern
-    datasetProblemPatternRepository.upsertCounter(1, "P2", 1);
+    datasetProblemPatternRepository.upsertCounter(executionPoint.getExecutionPointId(), "P2", 1);
     syncAndReload();
     problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(2, problemPatterns.size());
     assertEquals(2, getOccurrences(problemPatterns, "P2"));
 
     //Upsert with 5, same pattern
-    datasetProblemPatternRepository.upsertCounter(1, "P2", 5);
+    datasetProblemPatternRepository.upsertCounter(executionPoint.getExecutionPointId(), "P2", 5);
     syncAndReload();
     problemPatterns = datasetProblemPatternRepository.findAll();
     assertEquals(2, problemPatterns.size());
@@ -96,11 +96,11 @@ class DatasetProblemPatternJdbcRepositoryIT {
     entityManager.clear();
   }
 
-  private void insertValues() {
+  private ExecutionPoint insertValues() {
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setDatasetId("1");
     executionPoint.setExecutionName("VALIDATION_EXTERNAL");
     executionPoint.setExecutionTimestamp(LocalDateTime.parse("2022-03-22T10:10:10.100"));
-    executionPointRepository.save(executionPoint);
+    return executionPointRepository.save(executionPoint);
   }
 }

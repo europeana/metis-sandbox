@@ -45,13 +45,13 @@ class RecordTitleRepositoryIT {
 
   @Test
   void deleteRedundantRecordTitlesTest() {
-    insertValues();
+    ExecutionPoint executionPoint = insertValues();
     long executionPointCount = executionPointRepository.count();
     List<RecordTitle> recordTitles = recordTitleRepository.findAll();
 
     assertEquals(1, executionPointCount);
     assertEquals(5, recordTitles.size());
-    recordTitleRepository.deleteRedundantRecordTitles(1);
+    recordTitleRepository.deleteRedundantRecordTitles(executionPoint.getExecutionPointId());
     executionPointCount = executionPointRepository.count();
     recordTitles = recordTitleRepository.findAll();
 
@@ -61,7 +61,7 @@ class RecordTitleRepositoryIT {
         recordTitles.stream().allMatch(recordTitle -> recordTitle.getRecordTitleCompositeKey().getTitle().equals("titleA")));
   }
 
-  private void insertValues() {
+  private ExecutionPoint insertValues() {
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setDatasetId("1");
     executionPoint.setExecutionName("VALIDATION_EXTERNAL");
@@ -74,5 +74,6 @@ class RecordTitleRepositoryIT {
         new RecordTitle(new RecordTitleCompositeKey(1, "recordId2", "titleA"), savedExecutionPoint),
         new RecordTitle(new RecordTitleCompositeKey(1, "recordId2", "titleB"), savedExecutionPoint)
     ));
+    return savedExecutionPoint;
   }
 }
