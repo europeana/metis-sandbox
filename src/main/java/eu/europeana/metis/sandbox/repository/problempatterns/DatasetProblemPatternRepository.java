@@ -33,7 +33,7 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
             FROM DatasetProblemPattern dpp
             GROUP BY dpp.datasetProblemPatternCompositeKey.patternId
       """)
-  List<DatasetProblemPatternStatisticProjection> getMetricProblemPatternStatistics();
+  List<DatasetProblemPatternStatisticProjection> getProblemPatternStatistics();
 
   @Query(value = """
           INSERT INTO problem_patterns.dataset_problem_pattern (execution_point_id, pattern_id, record_occurrences)

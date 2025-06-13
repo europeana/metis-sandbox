@@ -53,7 +53,7 @@ public class ScheduledConfig {
 
     @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *}")
     void metricsReport() {
-      metricsService.getDatabaseMetrics();
+      metricsService.generateMetrics();
     }
 
     @Scheduled(cron = "${sandbox.transformation.xslt-update-frequency:0 0 * * * *}")
@@ -64,6 +64,7 @@ public class ScheduledConfig {
     @EventListener(ApplicationReadyEvent.class)
     public void initializeAfterStartup() {
       updateDefaultXsltUrl();
+      metricsReport();
     }
 
     @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 * * ?}")

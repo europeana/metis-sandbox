@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.metrics;
 
+import static java.lang.String.format;
+
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -45,7 +47,6 @@ public class MetricsService {
   private Map<FullBatchJobType, Long> warningStepCounts;
   private Map<FullBatchJobType, Long> errorStepCounts;
 
-
   public MetricsService(
       ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
@@ -57,38 +58,13 @@ public class MetricsService {
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
-    initMetrics();
   }
 
-  public void getDatabaseMetrics() {
-    datasetStatistics = executionRecordRepository.getDatasetStatistics();
-    problemPatternStatistics = problemPatternRepository.getMetricProblemPatternStatistics();
-
-    successStepCounts = mapStepStatistics(executionRecordRepository.getStepStatistics());
-    warningStepCounts = mapStepStatistics(executionRecordWarningExceptionRepository.getStepStatistics());
-    errorStepCounts = mapStepStatistics(executionRecordExceptionLogRepository.getStepStatistics());
-
-    LOGGER.debug("metrics report retrieval");
-  }
-
-  private Map<FullBatchJobType, Long> mapStepStatistics(List<StepStatisticProjection> stepStatisticProjections) {
-    return stepStatisticProjections.stream()
-                .collect(Collectors.toMap(
-                    stepStatisticProjection -> FullBatchJobType.valueOf(stepStatisticProjection.getStep()),
-                    StepStatisticProjection::getCount,
-                    (a, b) -> {
-                      throw new IllegalStateException("Duplicate step name detected: " + a);
-                    }
-                ));
-  }
-
-
-  private void initMetrics() {
+  public void generateMetrics() {
     try {
-      getDatabaseMetrics();
+      getDatabaseStatistics();
       registerGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
       registerGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
-
 
       for (FullBatchJobType jobType : FullBatchJobType.values()) {
         registerStepMetricGauge(jobType, Status.SUCCESS, successStepCounts);
@@ -99,7 +75,7 @@ public class MetricsService {
       for (ProblemPatternId patternId : ProblemPatternId.values()) {
         registerGauge(
             getPatternMetricName(patternId),
-            String.format("Processed records with problem pattern %s: %s",
+            format("Processed records with problem pattern %s: %s",
                 patternId.name(),
                 ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle()),
             BASE_UNIT_RECORD,
@@ -111,10 +87,32 @@ public class MetricsService {
     }
   }
 
+  private void getDatabaseStatistics() {
+    datasetStatistics = executionRecordRepository.getDatasetStatistics();
+    problemPatternStatistics = problemPatternRepository.getProblemPatternStatistics();
+
+    successStepCounts = mapStepStatistics(executionRecordRepository.getStepStatistics());
+    warningStepCounts = mapStepStatistics(executionRecordWarningExceptionRepository.getStepStatistics());
+    errorStepCounts = mapStepStatistics(executionRecordExceptionLogRepository.getStepStatistics());
+
+    LOGGER.debug("metrics report retrieval");
+  }
+
+  private Map<FullBatchJobType, Long> mapStepStatistics(List<StepStatisticProjection> stepStatisticProjections) {
+    return stepStatisticProjections.stream()
+                                   .collect(Collectors.toMap(
+                                       stepStatisticProjection -> FullBatchJobType.valueOf(stepStatisticProjection.getStep()),
+                                       StepStatisticProjection::getCount,
+                                       (a, b) -> {
+                                         throw new IllegalStateException("Duplicate step name detected: " + a);
+                                       }
+                                   ));
+  }
+
   private void registerStepMetricGauge(FullBatchJobType jobType, Status status, Map<FullBatchJobType, Long> jobTypeLongMap) {
     Supplier<Number> supplier = () -> jobTypeLongMap.getOrDefault(jobType, 0L);
     registerGauge(getStepMetricName(jobType, status),
-        String.format("%s processed records with status %s", jobType.name(), status.name()),
+        format("%s processed records with status %s", jobType.name(), status.name()),
         BASE_UNIT_RECORD,
         supplier);
   }
