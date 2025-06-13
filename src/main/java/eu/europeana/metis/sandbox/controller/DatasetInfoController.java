@@ -99,7 +99,7 @@ public class DatasetInfoController {
   }
 
   //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
-  private static class CountryView {
+  public static class CountryView {
 
     @JsonProperty("name")
     private final String name;
@@ -118,7 +118,7 @@ public class DatasetInfoController {
   }
 
   //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
-  private static class LanguageView {
+  public static class LanguageView {
 
     @JsonProperty("name")
     private final String name;
