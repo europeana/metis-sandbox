@@ -45,9 +45,8 @@ class RecordTierCalculationServiceTest {
         Paths.get("record", "media", "europeana_record_with_technical_metadata.xml").toFile().toString());
 
     final String executionId = "executionId";
-    final String recordId = "recordId";
     final String datasetId = "datasetId";
-    final String providerId = "providerId";
+    final String recordId = "recordId";
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
     executionRecordIdentifierKey.setDatasetId(datasetId);
     executionRecordIdentifierKey.setRecordId(recordId);
@@ -59,8 +58,7 @@ class RecordTierCalculationServiceTest {
     when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name())).thenReturn(executionRecord);
 
-    final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(
-        providerId, datasetId);
+    final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(recordId, datasetId);
     assertNotNull(recordTierCalculationView);
   }
 

@@ -47,7 +47,6 @@ public class RecordTierCalculationService {
   public RecordTierCalculationView calculateTiers(String recordId, String datasetId) throws NoRecordFoundException {
     ExecutionRecord executionRecord = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name());
-    //    final RecordLogEntity recordLog = recordLogService.getRecordLogEntity(recordId, datasetId, Step.MEDIA_PROCESS);
     RecordTierCalculationView recordTierCalculationView;
     final ArrayList<ProcessingError> processingErrors = new ArrayList<>();
     if (Objects.isNull(executionRecord)) {
@@ -61,8 +60,9 @@ public class RecordTierCalculationService {
           executionRecord.getRecordData(),
           portalPublishRecordUrl, processingErrors);
 
-      ExecutionRecordException executionRecordException = executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
-          datasetId, recordId, FullBatchJobType.MEDIA.name());
+      ExecutionRecordException executionRecordException =
+          executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+              datasetId, recordId, FullBatchJobType.MEDIA.name());
       if (Objects.nonNull(executionRecordException)) {
         processingErrors.add(
             new ProcessingError(executionRecordException.getException(), executionRecordException.getException()));
