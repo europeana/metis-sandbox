@@ -106,8 +106,8 @@ public class RestResponseExceptionHandler {
     @ExceptionHandler(IOException.class)
     public ResponseEntity<Object> handleIOException(
             IOException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST, ex.getMessage());
         LOGGER.error(ex.getMessage(), ex);
         return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
     }
