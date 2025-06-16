@@ -58,7 +58,6 @@ class DatasetHarvestControllerTest {
   private static final String XSLT_FILE_PARAM = "xsltFile";
   private static final String DATASET_FILE_PARAM = "dataset";
 
-
   @MockitoBean
   private RateLimitInterceptor rateLimitInterceptor;
 

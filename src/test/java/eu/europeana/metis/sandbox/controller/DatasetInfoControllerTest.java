@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -27,7 +26,6 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -60,11 +58,6 @@ class DatasetInfoControllerTest {
                              .apply(SecurityMockMvcConfigurers.springSecurity())
                              .defaultRequest(get("/"))
                              .build();
-  }
-
-  @BeforeEach
-  void resetMocks() {
-    reset(datasetReportService);
   }
 
   @Test

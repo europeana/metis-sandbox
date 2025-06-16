@@ -65,35 +65,6 @@ public class DatasetTierController {
   }
 
   /**
-   * GET API returns the string representation of the stored record.
-   *
-   * @param datasetId the dataset id
-   * @param recordId the record id
-   * @param step the step name
-   * @return the string representation of the stored record
-   * @throws NoRecordFoundException if record was not found
-   */
-  @Operation(summary = "Gets a record", description = "Get record string representation")
-  @ApiResponse(responseCode = "200")
-  @ApiResponse(responseCode = "404")
-  @ApiResponse(responseCode = "400")
-  @GetMapping(value = "{id}/record", produces = APPLICATION_XML_VALUE)
-  public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
-      @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
-    final Set<String> harvestJobTypes;
-    if (StringUtils.isBlank(step)) {
-      harvestJobTypes = Set.of(FullBatchJobType.HARVEST_FILE.name(), FullBatchJobType.HARVEST_OAI.name());
-    } else {
-      FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
-      harvestJobTypes = Set.of(fullBatchJobType.name());
-    }
-    Set<ExecutionRecord> executionRecords = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
-        datasetId, recordId, harvestJobTypes);
-    return executionRecords.stream().findFirst().map(ExecutionRecord::getRecordData)
-                           .orElseThrow(() -> new NoRecordFoundException(recordId));
-  }
-
-  /**
    * GET API returns the records tiers of a given dataset.
    *
    * @param datasetId the dataset id
@@ -116,6 +87,35 @@ public class DatasetTierController {
                                      .filter(this::areAllTierValuesNotNullOrEmpty)
                                      .map(DatasetTierController::from)
                                      .toList();
+  }
+
+  /**
+   * GET API returns the string representation of the stored record.
+   *
+   * @param datasetId the dataset id
+   * @param recordId the record id
+   * @param step the step name
+   * @return the string representation of the stored record
+   * @throws NoRecordFoundException if record was not found
+   */
+  @Operation(summary = "Gets a record", description = "Get record string representation")
+  @ApiResponse(responseCode = "200")
+  @ApiResponse(responseCode = "404")
+  @ApiResponse(responseCode = "400")
+  @GetMapping(value = "{id}/record", produces = APPLICATION_XML_VALUE)
+  public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
+      @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
+    final Set<String> executionNames;
+    if (StringUtils.isBlank(step)) {
+      executionNames = Set.of(FullBatchJobType.HARVEST_FILE.name(), FullBatchJobType.HARVEST_OAI.name());
+    } else {
+      FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
+      executionNames = Set.of(fullBatchJobType.name());
+    }
+    Set<ExecutionRecord> executionRecords = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
+        datasetId, recordId, executionNames);
+    return executionRecords.stream().findFirst().map(ExecutionRecord::getRecordData)
+                           .orElseThrow(() -> new NoRecordFoundException(recordId));
   }
 
   public static RecordTiersInfoDTO from(ExecutionRecordTierContext context) {
