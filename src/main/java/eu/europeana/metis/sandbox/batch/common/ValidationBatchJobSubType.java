@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.batch.common;
 
-public enum ValidationBatchJobSubType implements BatchJobSubType{
+/**
+ * Enum representing specific subtypes of the VALIDATE batch job type.
+ */
+public enum ValidationBatchJobSubType implements BatchJobSubType {
   EXTERNAL, INTERNAL
 }

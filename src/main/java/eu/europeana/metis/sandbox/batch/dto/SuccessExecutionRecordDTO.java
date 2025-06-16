@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Data Transfer Object representing a successful execution record with additional details.
+ */
 @Getter
 @SuperBuilder(builderMethodName = "internalBuilder")
 public final class SuccessExecutionRecordDTO extends ExecutionRecordDTO {
@@ -22,6 +25,12 @@ public final class SuccessExecutionRecordDTO extends ExecutionRecordDTO {
     return new SuccessExecutionRecordDTOBuilderImpl();
   }
 
+  /**
+   * Creates and validates a new instance of SuccessExecutionRecordDTO using the provided builder configuration.
+   *
+   * @param builderSetup Consumer for configuring the SuccessExecutionRecordDTOBuilder.
+   * @return A validated instance of SuccessExecutionRecordDTO.
+   */
   public static SuccessExecutionRecordDTO createValidated(Consumer<SuccessExecutionRecordDTOBuilder<?, ?>> builderSetup) {
     return ValidatedBuilderUtil.buildValidated(
         SuccessExecutionRecordDTO::internalBuilder,
@@ -29,6 +38,15 @@ public final class SuccessExecutionRecordDTO extends ExecutionRecordDTO {
     );
   }
 
+  /**
+   * Creates a validated copy of the given SuccessExecutionRecordDTO with updated execution identifiers.
+   *
+   * @param sourceSuccessExecutionRecordDTO The source SuccessExecutionRecordDTO to copy data from.
+   * @param executionId The new execution ID to be applied.
+   * @param executionName The new execution name to be applied.
+   * @param builderSetup A consumer that allows additional configuration of the SuccessExecutionRecordDTOBuilder.
+   * @return A validated new instance of SuccessExecutionRecordDTO with updated identifiers.
+   */
   public static SuccessExecutionRecordDTO createCopyIdentifiersValidated(SuccessExecutionRecordDTO sourceSuccessExecutionRecordDTO,
       String executionId, String executionName, Consumer<SuccessExecutionRecordDTOBuilder<?, ?>> builderSetup) {
     return ValidatedBuilderUtil.buildValidated(

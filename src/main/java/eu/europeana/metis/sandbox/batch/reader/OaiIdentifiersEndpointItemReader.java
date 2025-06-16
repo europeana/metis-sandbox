@@ -23,6 +23,18 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * ItemReader implementation for reading OAI identifiers from a specified endpoint.
+ *
+ * <p>This class reads OAI identifiers for dataset records and prepares them for further processing in a batch job.
+ * It leverages the HarvestParameterService for the requested harvest and HarvestServiceImpl to fetch oai identifiers.
+ * <p>Identifier per harvest information is stored in the database for further reading and processing.
+ *
+ * <p>Configurations like target execution ID, harvest parameter ID, dataset ID, and step size are provided via job parameters.
+ * The harvested identifiers are managed in a thread-safe manner to ensure proper access during batch execution.
+ *
+ * <p>Note: This reader is not restartable and is not optimized at its current state.
+ */
 @StepScope
 @Component
 public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRecordExternalIdentifier> {
@@ -39,10 +51,17 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
   @Value("#{jobParameters['stepSize']}")
   private String stepSize;
 
+  //todo: Align with the FileItemReader. Here we harvestParameterService but in FileItemReader is in FileHarvestService
   private final HarvestParameterService harvestParameterService;
   private final HarvestServiceImpl harvestServiceImpl;
   private final List<OaiRecordHeader> oaiRecordHeaders = new LinkedList<>();
 
+  /**
+   * Constructor with service parameters.
+   *
+   * @param harvestParameterService The service used to access and manage harvest parameters.
+   * @param harvestServiceImpl The service used to perform harvesting operations.
+   */
   public OaiIdentifiersEndpointItemReader(HarvestParameterService harvestParameterService,
       HarvestServiceImpl harvestServiceImpl) {
     this.harvestParameterService = harvestParameterService;

@@ -12,12 +12,20 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for enrichment.
+ */
 @StepScope
 @Component("enrichItemProcessor")
 public class EnrichItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
 
   private final EnrichService enrichService;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param enrichService The service responsible for enriching record data.
+   */
   public EnrichItemProcessor(EnrichService enrichService) {
     this.enrichService = enrichService;
   }

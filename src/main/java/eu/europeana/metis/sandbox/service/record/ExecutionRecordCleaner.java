@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.service.record;
 
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
@@ -13,18 +13,18 @@ public class ExecutionRecordCleaner {
 
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
-  private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   public ExecutionRecordCleaner(ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
-      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
-    this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
@@ -33,7 +33,7 @@ public class ExecutionRecordCleaner {
   public void remove(String datasetId){
     executionRecordWarningExceptionRepository.removeByExecutionRecord_Identifier_DatasetId(datasetId);
     executionRecordRepository.removeByIdentifier_DatasetId(datasetId);
-    executionRecordExceptionLogRepository.removeByIdentifier_DatasetId(datasetId);
+    executionRecordExceptionRepository.removeByIdentifier_DatasetId(datasetId);
     executionRecordExternalIdentifierRepository.removeByIdentifier_DatasetId(datasetId);
     executionRecordTierContextRepository.removeByIdentifier_DatasetId(datasetId);
   }

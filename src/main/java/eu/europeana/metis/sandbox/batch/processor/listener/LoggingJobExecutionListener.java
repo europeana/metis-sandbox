@@ -10,6 +10,12 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * Listener for logging events during the execution of a Spring Batch job.
+ *
+ * <p>Logs details before and after a job's execution for monitoring and debugging purposes.
+ * <p>Provides the total execution time of the job upon completion.
+ */
 @Component
 public class LoggingJobExecutionListener implements JobExecutionListener {
 

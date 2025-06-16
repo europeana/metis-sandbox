@@ -10,12 +10,20 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for normalization.
+ */
 @StepScope
 @Component("normalizeItemProcessor")
 public class NormalizeItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
 
   private final NormalizeService normalizeService;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param normalizeService The service responsible for normalizing record data.
+   */
   public NormalizeItemProcessor(NormalizeService normalizeService) {
     this.normalizeService = normalizeService;
   }

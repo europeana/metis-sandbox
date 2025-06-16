@@ -15,6 +15,9 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for media extraction.
+ */
 @StepScope
 @Component("mediaItemProcessor")
 public class MediaItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
@@ -23,6 +26,11 @@ public class MediaItemProcessor extends AbstractExecutionRecordMetisItemProcesso
 
   private final MediaService mediaService;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param mediaService The service responsible for media extraction record data.
+   */
   public MediaItemProcessor(MediaService mediaService) {
     this.mediaService = mediaService;
   }

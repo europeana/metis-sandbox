@@ -18,6 +18,13 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Listener that executes actions before and after a batch step to manage problem pattern analyses.
+ *
+ * <p>Handles initialization and finalization of pattern analysis based on the provided job parameters
+ * and the step execution context.
+ * <p>Applicable only when the batchJobSubType is {@link ValidationBatchJobSubType#INTERNAL}".
+ */
 @StepScope
 @Component
 public class ProblemPatternsStepExecutionListener implements StepExecutionListener {

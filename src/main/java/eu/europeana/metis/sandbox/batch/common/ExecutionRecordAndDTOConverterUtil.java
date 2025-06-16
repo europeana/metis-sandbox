@@ -16,21 +16,36 @@ import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public class ExecutionRecordAndDTOConverterUtil {
+/**
+ * Utility class for converting ExecutionRecord and DTO objects.
+ */
+public final class ExecutionRecordAndDTOConverterUtil {
 
   private ExecutionRecordAndDTOConverterUtil() {
   }
 
+  /**
+   * Converts an ExecutionRecord entity to a SuccessExecutionRecordDTO object.
+   *
+   * @param executionRecord The ExecutionRecord to be converted.
+   * @return The corresponding SuccessExecutionRecordDTO object.
+   */
   public static SuccessExecutionRecordDTO converterToExecutionRecordDTO(ExecutionRecord executionRecord) {
     return SuccessExecutionRecordDTO.createValidated(b -> b
-                                    .datasetId(executionRecord.getIdentifier().getDatasetId())
-                                    .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
-                                    .recordId(executionRecord.getIdentifier().getRecordId())
-                                    .executionId(executionRecord.getIdentifier().getExecutionId())
-                                    .executionName(executionRecord.getIdentifier().getExecutionName())
-                                    .recordData(executionRecord.getRecordData()));
+        .datasetId(executionRecord.getIdentifier().getDatasetId())
+        .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
+        .recordId(executionRecord.getIdentifier().getRecordId())
+        .executionId(executionRecord.getIdentifier().getExecutionId())
+        .executionName(executionRecord.getIdentifier().getExecutionName())
+        .recordData(executionRecord.getRecordData()));
   }
 
+  /**
+   * Converts a SuccessExecutionRecordDTO object to an ExecutionRecord object.
+   *
+   * @param executionRecordDTO The SuccessExecutionRecordDTO object containing execution record data to be converted.
+   * @return The converted ExecutionRecord object.
+   */
   public static ExecutionRecord converterToExecutionRecord(SuccessExecutionRecordDTO executionRecordDTO) {
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(executionRecordDTO);
 
@@ -50,6 +65,12 @@ public class ExecutionRecordAndDTOConverterUtil {
     return executionRecord;
   }
 
+  /**
+   * Converts a SuccessExecutionRecordDTO object into an Optional containing an ExecutionRecordTierContext.
+   *
+   * @param successExecutionRecordDTO The input object containing tier results and relevant execution record details.
+   * @return An Optional containing the ExecutionRecordTierContext if tier fields are present, otherwise an empty Optional.
+   */
   public static Optional<ExecutionRecordTierContext> converterToExecutionRecordTierContext(
       SuccessExecutionRecordDTO successExecutionRecordDTO) {
     TierResults tierResults = successExecutionRecordDTO.getTierResults();
@@ -80,6 +101,12 @@ public class ExecutionRecordAndDTOConverterUtil {
     return result;
   }
 
+  /**
+   * Constructs an ExecutionRecordIdentifierKey object based on the provided ExecutionRecordDTO.
+   *
+   * @param executionRecordDTO The ExecutionRecordDTO containing the data to populate the ExecutionRecordIdentifierKey.
+   * @return A populated ExecutionRecordIdentifierKey instance derived from the input ExecutionRecordDTO.
+   */
   private static @NotNull ExecutionRecordIdentifierKey getExecutionRecordIdentifier(ExecutionRecordDTO executionRecordDTO) {
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
     executionRecordIdentifierKey.setDatasetId(executionRecordDTO.getDatasetId());
@@ -90,6 +117,12 @@ public class ExecutionRecordAndDTOConverterUtil {
     return executionRecordIdentifierKey;
   }
 
+  /**
+   * Converts a FailExecutionRecordDTO object into an ExecutionRecordException entity.
+   *
+   * @param failExecutionRecordDTO The FailExecutionRecordDTO containing failure details to be converted.
+   * @return An ExecutionRecordException entity reflecting the input data.
+   */
   public static ExecutionRecordException converterToExecutionRecordExceptionLog(
       FailExecutionRecordDTO failExecutionRecordDTO) {
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(
@@ -106,7 +139,13 @@ public class ExecutionRecordAndDTOConverterUtil {
     return executionRecordException;
   }
 
-  public static String formatException(Throwable throwable) {
+  /**
+   * Formats the stack trace of a Throwable into a String.
+   *
+   * @param throwable The Throwable whose stack trace will be formatted.
+   * @return The formatted stack trace as a String.
+   */
+  private static String formatException(Throwable throwable) {
     StringWriter stringWriter = new StringWriter();
     PrintWriter printWriter = new PrintWriter(stringWriter);
     throwable.printStackTrace(printWriter);

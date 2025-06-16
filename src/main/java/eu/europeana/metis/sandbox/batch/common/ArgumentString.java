@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.batch.common;
 /**
  * Common parameter string names.
  */
-public class ArgumentString {
+public final class ArgumentString {
 
   public static final String ARGUMENT_DATASET_ID = "datasetId";
   public static final String ARGUMENT_SOURCE_EXECUTION_ID = "sourceExecutionId";

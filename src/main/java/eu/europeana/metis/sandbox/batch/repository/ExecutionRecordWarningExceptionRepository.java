@@ -7,19 +7,49 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Repository interface for managing ExecutionRecordWarningExceptionRepository entities.
+ */
 @Repository
 public interface ExecutionRecordWarningExceptionRepository extends
     JpaRepository<ExecutionRecordWarningException, Long> {
 
-  List<ExecutionRecordWarningException> findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(String datasetId,
+  /**
+   * Finds a list of ExecutionRecordWarningException entities based on the dataset ID and execution name.
+   *
+   * @param datasetId The ID of the dataset.
+   * @param executionName The name of the execution associated with the execution record.
+   * @return A list of ExecutionRecordWarningException entities matching the given criteria.
+   */
+  List<ExecutionRecordWarningException> findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+      String datasetId, String executionName);
+
+  /**
+   * Counts the number of entities based on the dataset ID and execution name.
+   *
+   * @param datasetId The ID of the dataset.
+   * @param executionName The name of the execution associated with the entities.
+   * @return The count of entities matching the specified dataset ID and execution name.
+   */
+  long countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(String datasetId,
       String executionName);
 
-  long countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(String datasetId, String executionName);
-
-  @Query("SELECT r.identifier.executionName AS step, COUNT(r) AS count " +
-      "FROM ExecutionRecord r " +
-      "GROUP BY r.identifier.executionName")
+  /**
+   * Retrieves statistics of execution steps, including the step name and the count of records grouped per step.
+   *
+   * @return A list of StepStatisticProjection containing the step name and the corresponding count.
+   */
+  @Query("""
+      SELECT r.identifier.executionName AS step, COUNT(r) AS count 
+            FROM ExecutionRecord r 
+            GROUP BY r.identifier.executionName
+      """)
   List<StepStatisticProjection> getStepStatistics();
 
+  /**
+   * Removes entities associated with the specified dataset ID.
+   *
+   * @param datasetId The ID of the dataset.
+   */
   void removeByExecutionRecord_Identifier_DatasetId(String datasetId);
 }

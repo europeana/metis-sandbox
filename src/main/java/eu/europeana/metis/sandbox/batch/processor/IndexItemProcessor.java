@@ -11,12 +11,20 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for indexing.
+ */
 @StepScope
 @Component("indexItemProcessor")
 public class IndexItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
 
   private final IndexService indexService;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param indexService The service responsible for indexing record data.
+   */
   public IndexItemProcessor(IndexService indexService) {
     this.indexService = indexService;
   }

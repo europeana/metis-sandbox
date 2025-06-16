@@ -20,6 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for oai record harvest.
+ */
 @Component
 @StepScope
 public class OaiRecordHarvesterItemProcessor extends
@@ -38,12 +41,26 @@ public class OaiRecordHarvesterItemProcessor extends
   private final HarvestParameterService harvestParameterService;
   private final OaiHarvestService oaiHarvestService;
 
+  /**
+   * Constructor with service parameters.
+   *
+   * @param harvestParameterService The service responsible for providing the harvesting parameters.
+   * @param oaiHarvestService The service responsible for oai harvesting record data.
+   */
   public OaiRecordHarvesterItemProcessor(HarvestParameterService harvestParameterService,
       OaiHarvestService oaiHarvestService) {
     this.harvestParameterService = harvestParameterService;
     this.oaiHarvestService = oaiHarvestService;
   }
 
+  /**
+   * Prepares the OAI harvesting configuration by retrieving and validating the necessary parameters.
+   *
+   * <p>Fetches the harvesting parameters from the {@link HarvestParameterService}.
+   * <p>Extracts OAI-specific configuration details such as endpoint, set specification,
+   * and metadata prefix if the parameters are of type {@link OaiHarvestParameters}.
+   * <p>Throws an {@link IllegalArgumentException} if the retrieved parameters are not of the expected type.
+   */
   @PostConstruct
   private void prepare() {
     HarvestParametersEntity harvestParametersEntity =

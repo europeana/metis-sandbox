@@ -9,6 +9,12 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.stereotype.Component;
 
+/**
+ * This class is a listener for chunk lifecycle events in a Spring Batch process,
+ * logging specific events such as before and after chunk execution.
+ *
+ * <p>Used to provide information about the processing of chunks in the batch workflow.
+ */
 @StepScope
 @Component
 public class LoggingChunkListener implements ChunkListener {

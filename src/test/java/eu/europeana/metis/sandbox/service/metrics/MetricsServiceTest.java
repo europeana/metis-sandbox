@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.DatasetStatisticProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
@@ -32,7 +32,7 @@ class MetricsServiceTest {
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
   @Mock
-  private ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   @Mock
   private ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
   @Mock
@@ -47,7 +47,7 @@ class MetricsServiceTest {
     meterRegistry = new SimpleMeterRegistry();
     metricsService = new MetricsService(
         executionRecordRepository,
-        executionRecordExceptionLogRepository,
+        executionRecordExceptionRepository,
         executionRecordWarningExceptionRepository,
         problemPatternRepository,
         meterRegistry
@@ -73,7 +73,7 @@ class MetricsServiceTest {
     when(step1.getCount()).thenReturn(5L);
     when(executionRecordRepository.getStepStatistics()).thenReturn(List.of(step1));
     when(executionRecordWarningExceptionRepository.getStepStatistics()).thenReturn(List.of());
-    when(executionRecordExceptionLogRepository.getStepStatistics()).thenReturn(List.of());
+    when(executionRecordExceptionRepository.getStepStatistics()).thenReturn(List.of());
 
     metricsService.generateMetrics();
 
@@ -91,7 +91,7 @@ class MetricsServiceTest {
     verify(problemPatternRepository, times(1)).getProblemPatternStatistics();
     verify(executionRecordRepository, times(1)).getStepStatistics();
     verify(executionRecordWarningExceptionRepository, times(1)).getStepStatistics();
-    verify(executionRecordExceptionLogRepository, times(1)).getStepStatistics();
+    verify(executionRecordExceptionRepository, times(1)).getStepStatistics();
   }
 
   @Test

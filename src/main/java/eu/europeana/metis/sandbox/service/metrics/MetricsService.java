@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.metrics;
 import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.DatasetStatisticProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
@@ -36,7 +36,7 @@ public class MetricsService {
   public static final String BASE_UNIT_DATASET = "Dataset";
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
   private final DatasetProblemPatternRepository problemPatternRepository;
   private final MeterRegistry meterRegistry;
@@ -49,12 +49,12 @@ public class MetricsService {
 
   public MetricsService(
       ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       DatasetProblemPatternRepository problemPatternRepository,
       MeterRegistry meterRegistry) {
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
@@ -93,7 +93,7 @@ public class MetricsService {
 
     successStepCounts = mapStepStatistics(executionRecordRepository.getStepStatistics());
     warningStepCounts = mapStepStatistics(executionRecordWarningExceptionRepository.getStepStatistics());
-    errorStepCounts = mapStepStatistics(executionRecordExceptionLogRepository.getStepStatistics());
+    errorStepCounts = mapStepStatistics(executionRecordExceptionRepository.getStepStatistics());
 
     LOGGER.debug("metrics report retrieval");
   }

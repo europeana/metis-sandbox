@@ -8,11 +8,17 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Entity representing the context of tier-based information for an execution record.
+ *
+ * <p>Provides details such as content and metadata tiers that are associated with an execution record.
+ */
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record", indexes = {@Index(name = "exec_rec_tier_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
-public class ExecutionRecordTierContext implements HasExecutionRecordIdAccess {
+@Table(schema = "engine_record", indexes = {
+    @Index(name = "exec_rec_tier_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+public class ExecutionRecordTierContext implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
 
   @EmbeddedId
   private ExecutionRecordIdentifierKey identifier;

@@ -2,8 +2,13 @@ package eu.europeana.metis.sandbox.batch.common;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.apache.tika.utils.StringUtils;
 
+/**
+ * Represents the different types of full batch jobs by combining a {@link BatchJobType} with an optional {@link BatchJobSubType}.
+ * This enumeration supports job-specific distinctions such as transform and validate.
+ */
 public enum FullBatchJobType {
   HARVEST_OAI(BatchJobType.HARVEST_OAI),
   HARVEST_FILE(BatchJobType.HARVEST_FILE),
@@ -38,6 +43,14 @@ public enum FullBatchJobType {
     return batchJobSubType;
   }
 
+  /**
+   * Validates and returns the corresponding FullBatchJobType based on the given prefix and suffix.
+   *
+   * @param prefix The name of the BatchJobType to validate and match.
+   * @param suffix The specific BatchJobSubType name, used to refine the match. Can be blank or null.
+   * @return The matched FullBatchJobType corresponding to the prefix and suffix.
+   * @throws NoSuchElementException If no match is found for the given prefix or suffix.
+   */
   public static FullBatchJobType validateAndGetFullBatchJobType(String prefix, String suffix) {
     BatchJobType matchedBatchJobType = Arrays.stream(BatchJobType.values()).filter(f -> f.name().equals(prefix)).findFirst()
                                              .orElseThrow();

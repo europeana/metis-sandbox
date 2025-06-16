@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
@@ -55,20 +55,20 @@ public class DatasetReportService {
   private int maxRecords;
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   private final HarvestParameterService harvestParameterService;
 
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
       ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
       TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService) {
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
     this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
@@ -172,7 +172,7 @@ public class DatasetReportService {
     long totalSuccess =
         executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
     long totalFailure =
-        executionRecordExceptionLogRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+        executionRecordExceptionRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
     long totalWarning =
         executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
             datasetId, executionName);
@@ -196,7 +196,7 @@ public class DatasetReportService {
       FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
     List<ExecutionRecordException> recordExceptionLogs =
-        executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+        executionRecordExceptionRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
 
     Map<GroupedExceptionKey, List<String>> groupedExceptions = new LinkedHashMap<>();
     for (ExecutionRecordException recordExceptionLog : recordExceptionLogs) {

@@ -5,6 +5,11 @@ import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents a composite key to uniquely identify an execution record.
+ *
+ * <p>Implements ExecutionRecordIdAccess to standardize access to these identifier fields.
+ */
 @Getter
 @Setter
 @Embeddable

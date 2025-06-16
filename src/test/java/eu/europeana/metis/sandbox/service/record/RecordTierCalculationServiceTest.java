@@ -8,7 +8,7 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -29,13 +29,13 @@ class RecordTierCalculationServiceTest {
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
   @Mock
-  private ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private RecordTierCalculationService recordTierCalculationService;
 
   @BeforeEach
   public void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
-        new RecordTierCalculationService(executionRecordRepository, executionRecordExceptionLogRepository,
+        new RecordTierCalculationService(executionRecordRepository, executionRecordExceptionRepository,
             PORTAL_PUBLISH_RECORD_BASE_URL));
   }
 

@@ -6,7 +6,7 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import org.springframework.web.util.UriTemplate;
 public class RecordTierCalculationService {
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   @Value("${sandbox.portal.publish.record-base-url}")
   private final String portalPublishRecordBaseUrl;
 
@@ -37,10 +37,10 @@ public class RecordTierCalculationService {
    * @param portalPublishRecordBaseUrl the portal publish record base url
    */
   public RecordTierCalculationService(ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
       @Qualifier("portalPublishRecordBaseUrl") String portalPublishRecordBaseUrl) {
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
     this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }
 
@@ -61,7 +61,7 @@ public class RecordTierCalculationService {
           portalPublishRecordUrl, processingErrors);
 
       ExecutionRecordException executionRecordException =
-          executionRecordExceptionLogRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+          executionRecordExceptionRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
               datasetId, recordId, FullBatchJobType.MEDIA.name());
       if (Objects.nonNull(executionRecordException)) {
         processingErrors.add(

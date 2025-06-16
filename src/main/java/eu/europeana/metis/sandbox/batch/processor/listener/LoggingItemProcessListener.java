@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
+import static java.lang.String.format;
+
 import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdAccess;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
@@ -13,6 +15,14 @@ import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
+/**
+ * Listener for the item processing lifecycle in a Spring Batch job, logging key events.
+ *
+ * <p>Logs information before processing, after processing with detailed dataset metadata,
+ * and on any processing errors.
+ *
+ * @param <T> The type of the item, must extend HasExecutionRecordIdAccess with ExecutionRecordIdAccess.
+ */
 @StepScope
 @Component
 public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? extends ExecutionRecordIdAccess>>
@@ -29,8 +39,8 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? e
   public void afterProcess(@NotNull T item, Future<ExecutionRecordDTO> future) {
     ExecutionRecordIdAccess executionRecordIdAccess = item.getIdentifier();
 
-    final StringBuilder logBuilder = new StringBuilder(String.format(
-        "Processing datasetId: %s, executionId: %s, executionName: %s, sourceRecordId: %s",
+    final StringBuilder logBuilder = new StringBuilder(format(
+        "Processed datasetId: %s, executionId: %s, executionName: %s, sourceRecordId: %s",
         executionRecordIdAccess.getDatasetId(),
         executionRecordIdAccess.getExecutionId(),
         executionRecordIdAccess.getExecutionName(),
@@ -38,12 +48,10 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? e
     ));
 
     if (executionRecordIdAccess instanceof ExecutionRecordIdentifierKey executionRecordIdentifierKey) {
-      logBuilder.append(String.format(", recordId: %s", executionRecordIdentifierKey.getRecordId()));
+      logBuilder.append(format(", recordId: %s", executionRecordIdentifierKey.getRecordId()));
     }
 
-    LOGGER.info(logBuilder.toString());
-
-
+    LOGGER.debug(logBuilder.toString());
   }
 
   @Override

@@ -10,12 +10,20 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for debias.
+ */
 @StepScope
 @Component("debiasItemProcessor")
 public class DebiasItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
 
   private final DeBiasProcessService deBiasProcessService;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param deBiasProcessService The service responsible for debiasing record data.
+   */
   public DebiasItemProcessor(DeBiasProcessService deBiasProcessService) {
     this.deBiasProcessService = deBiasProcessService;
   }

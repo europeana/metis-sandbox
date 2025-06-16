@@ -12,31 +12,40 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
 
+/**
+ * A Spring Batch {@link RepositoryItemReader} implementation for reading {@link ExecutionRecordExternalIdentifier} items based on
+ * a target execution ID.
+ *
+ * <p>We are using target execution id and not a source execution id. This is because this is meant to be run as a follow-up step
+ * in the same job after the oai identifiers are harvested, and therefore there is no source execution id available for this
+ * reader.
+ */
 @StepScope
 @Component
 public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
-    //This is target and not source because we just created them in the same job.
-    @Value("#{jobParameters['targetExecutionId']}")
-    private String targetExecutionId;
+  private static final String REPOSITORY_QUERY_METHOD_NAME = "findByIdentifier_ExecutionId";
+  public static final String SORT_FIELD = "identifier.sourceRecordId";
+  @Value("#{jobParameters['targetExecutionId']}")
+  private String targetExecutionId;
 
-    private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
+  private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
-    public OaiIdentifiersRepositoryItemReader(
-        ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
-        this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
-    }
+  public OaiIdentifiersRepositoryItemReader(
+      ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
+    this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
+  }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        setRepository(executionRecordExternalIdentifierRepository);
-        setSort(Collections.emptyMap());
-        setMethodName("findByIdentifier_ExecutionId");
-        setArguments(List.of(targetExecutionId+""));
-        Map<String, Direction> sorts = new HashMap<>();
-        sorts.put("identifier.sourceRecordId", Direction.ASC);
-        setSort(sorts);
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    setRepository(executionRecordExternalIdentifierRepository);
+    setSort(Collections.emptyMap());
+    setMethodName(REPOSITORY_QUERY_METHOD_NAME);
+    setArguments(List.of(targetExecutionId));
+    Map<String, Direction> sorts = new HashMap<>();
+    sorts.put(SORT_FIELD, Direction.ASC);
+    setSort(sorts);
 
-        super.afterPropertiesSet();
-    }
+    super.afterPropertiesSet();
+  }
 }

@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionLogRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import java.lang.invoke.MethodHandles;
@@ -28,15 +28,15 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
+  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   @Autowired
   public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository,
+      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
+    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
@@ -61,7 +61,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
     LOGGER.info("In writer before saveAll");
     executionRecordRepository.saveAll(executionRecords);
     executionRecordTierContextRepository.saveAll(executionRecordTierContexts);
-    executionRecordExceptionLogRepository.saveAll(executionRecordExceptions);
+    executionRecordExceptionRepository.saveAll(executionRecordExceptions);
     LOGGER.info("In writer finished writing chunk");
   }
 }

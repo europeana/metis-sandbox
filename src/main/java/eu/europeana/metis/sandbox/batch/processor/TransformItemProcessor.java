@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Processor responsible for transformation.
+ */
 @StepScope
 @Component("transformItemProcessor")
 public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProcessor {
@@ -29,6 +32,11 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
 
   private final TransformService transformService;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param transformService The service responsible for transforming record data.
+   */
   public TransformItemProcessor(TransformService transformService) {
     this.transformService = transformService;
   }

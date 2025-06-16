@@ -19,6 +19,20 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * A Spring Batch {@link ItemReader} implementation that reads records from a file using the {@link FileHarvestService}.
+ *
+ * <p>It retrieves job parameters such as target execution ID, harvest parameter ID, dataset ID,
+ * and step size to determine the reading context.
+ *
+ * <p>The reader initializes an iterator OF harvested records using {@link FileHarvestService}
+ * during the {@code @PostConstruct} phase to prepare the data for batch processing.
+ *
+ * <p>Each call to {@link #read()} returns an {@link ExecutionRecordDTO}, representing a single
+ * successfully validated record, or {@code null} when no further records are available.
+ *
+ * <p>Note: This reader is not restartable and is not optimized at its current state.
+ */
 @StepScope
 @Component
 public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
@@ -37,13 +51,19 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
   private final FileHarvestService fileHarvestService;
   private Iterator<Entry<String, HarvestedRecord>> recordIdAndContentIterator;
 
+  /**
+   * Constructor with service parameter.
+   *
+   * @param fileHarvestService FileHarvestService instance used for reading and processing files.
+   */
   public FileItemReader(FileHarvestService fileHarvestService) {
     this.fileHarvestService = fileHarvestService;
   }
 
   @PostConstruct
   private void prepare() throws IOException, EuropeanaIdException {
-    Map<String, HarvestedRecord> recordIdAndContent = fileHarvestService.harvestRecordsFromFile(UUID.fromString(harvestParameterId),
+    Map<String, HarvestedRecord> recordIdAndContent = fileHarvestService.harvestRecordsFromFile(
+        UUID.fromString(harvestParameterId),
         datasetId, Integer.parseInt(stepSize));
     recordIdAndContentIterator = recordIdAndContent.entrySet().iterator();
   }
@@ -73,5 +93,4 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
       return null;
     }
   }
-
 }
