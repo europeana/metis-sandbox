@@ -47,13 +47,13 @@ public class DatasetReportService {
   private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
-  private final DatasetRepository datasetRepository;
-  private final TransformXsltRepository transformXsltRepository;
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
   @Value("${sandbox.dataset.max-size}")
   private int maxRecords;
 
+  private final DatasetRepository datasetRepository;
+  private final TransformXsltRepository transformXsltRepository;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
