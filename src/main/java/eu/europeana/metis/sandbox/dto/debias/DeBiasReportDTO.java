@@ -25,14 +25,14 @@ public class DeBiasReportDTO extends DeBiasStatusDTO {
    * Instantiates a new Detection info dto.
    *
    * @param datasetId the dataset id
-   * @param state the state
+   * @param debiasState the state
    * @param creationDate the creation date
    * @param total the total records
    * @param processed the processed records
    * @param deBiasReportRowList the de bias report row list
    */
-  public DeBiasReportDTO(Integer datasetId, String state, ZonedDateTime creationDate, long total, long processed, List<DeBiasReportRow> deBiasReportRowList) {
-    super(datasetId, state, creationDate, total, processed);
+  public DeBiasReportDTO(Integer datasetId, DebiasState debiasState, ZonedDateTime creationDate, long total, long processed, List<DeBiasReportRow> deBiasReportRowList) {
+    super(datasetId, debiasState, creationDate, total, processed);
     this.deBiasReportRowList = Collections.unmodifiableList(deBiasReportRowList);
   }
 

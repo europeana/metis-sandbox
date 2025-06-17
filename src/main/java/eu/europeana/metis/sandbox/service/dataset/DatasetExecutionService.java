@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
+import eu.europeana.metis.sandbox.dto.debias.DebiasState;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
@@ -29,7 +30,6 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import org.apache.commons.lang3.StringUtils;
@@ -115,32 +115,35 @@ public class DatasetExecutionService {
 
   public boolean createAndExecuteDatasetForDebias(String datasetId) {
 
-    //todo: if the debias db creates DatasetDeBiasEntity that is unique a lock is not needed perse.
+    //todo: if the debias db creates DatasetDeBiasEntity that is unique a lock is not needed perse?
     final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
     try {
       lock.lock();
       LOGGER.info("DeBias process: {} lock, Locked", datasetId);
       ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(datasetId);
 
-      if (executionProgressInfoDto.executionStatus().equals(ExecutionStatus.COMPLETED) &&
-          "READY".equals(Optional.ofNullable(debiasStateService.getDeBiasStatus(String.valueOf(datasetId)))
-                                 .map(DeBiasStatusDTO::getState)
-                                 .orElse(""))) {
-        debiasStateService.remove(datasetId);
-
-        DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
-        DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
-        DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetEntity.getDatasetName(),
-            datasetEntity.getCountry(), datasetEntity.getLanguage(), DEBIAS);
-
-        ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
-                                                               .datasetMetadata(datasetMetadata)
-                                                               .build();
-        batchJobExecutor.executeDebiasWorkflow(executionMetadata);
-        return true;
-      } else {
+      ExecutionProgressInfoDTO progress = datasetReportService.getProgress(datasetId);
+      if (progress.executionStatus() != ExecutionStatus.COMPLETED) {
         return false;
       }
+
+      DeBiasStatusDTO debiasStatus = debiasStateService.getDeBiasStatus(datasetId);
+      if (debiasStatus == null || debiasStatus.getDebiasState() != DebiasState.READY) {
+        return false;
+      }
+
+      debiasStateService.remove(datasetId);
+
+      DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
+      DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
+      DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetEntity.getDatasetName(),
+          datasetEntity.getCountry(), datasetEntity.getLanguage(), DEBIAS);
+
+      ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
+                                                             .datasetMetadata(datasetMetadata)
+                                                             .build();
+      batchJobExecutor.executeDebiasWorkflow(executionMetadata);
+      return true;
     } finally {
       lock.unlock();
       LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
@@ -151,5 +154,4 @@ public class DatasetExecutionService {
   private String normalizeSetSpec(String setSpec) {
     return StringUtils.isBlank(setSpec) ? null : setSpec;
   }
-
 }

@@ -7,6 +7,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.config.batch.DebiasJobConfig;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
+import eu.europeana.metis.sandbox.dto.debias.DebiasState;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
@@ -29,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class DeBiasStateService {
 
-  private static final String READY_STATE = "READY";
   private final DatasetDeBiasRepository datasetDeBiasRepository;
   private final RecordDeBiasMainRepository recordDeBiasMainRepository;
   private final RecordDeBiasDetailRepository recordDeBiasDetailRepository;
@@ -57,7 +57,7 @@ public class DeBiasStateService {
 
   public DeBiasReportDTO getDeBiasReport(String datasetId) {
     DeBiasStatusDTO deBiasStatusDto = getDeBiasStatus(datasetId);
-    return new DeBiasReportDTO(Integer.valueOf(datasetId), deBiasStatusDto.getState(),
+    return new DeBiasReportDTO(Integer.valueOf(datasetId), deBiasStatusDto.getDebiasState(),
         deBiasStatusDto.getCreationDate(), deBiasStatusDto.getTotal(),
         deBiasStatusDto.getProcessed(), getReportFromDbEntities(datasetId));
 
@@ -84,21 +84,21 @@ public class DeBiasStateService {
     long progressDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name());
 
-    final String state;
+    final DebiasState debiasState;
     if (totalToDebias > 0 && (totalToDebias == progressDebias)) {
-      state = "COMPLETED";
+      debiasState = DebiasState.COMPLETED;
     } else if (totalToDebias >= 0 && progressDebias == 0) {
-      state = READY_STATE;
+      debiasState = DebiasState.READY;
     } else if (totalToDebias > 0 && progressDebias > 0) {
-      state = "PROCESSING";
+      debiasState = DebiasState.PROCESSING;
     } else {
-      state = "INVALID";
+      debiasState = DebiasState.INVALID;
     }
 
     if (datasetDeBiasEntity == null) {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), state, ZonedDateTime.now(), totalToDebias, progressDebias);
+      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState, ZonedDateTime.now(), totalToDebias, progressDebias);
     } else {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), state,
+      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState,
           datasetDeBiasEntity.getCreatedDate(), totalToDebias, progressDebias);
     }
   }
@@ -107,7 +107,7 @@ public class DeBiasStateService {
     DatasetEntity dataset = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId));
     if (datasetDeBiasEntity == null) {
-      datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, READY_STATE, ZonedDateTime.now());
+      datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, DebiasState.READY, ZonedDateTime.now());
       datasetDeBiasEntity = datasetDeBiasRepository.save(datasetDeBiasEntity);
     }
     return datasetDeBiasEntity;

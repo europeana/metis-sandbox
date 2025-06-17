@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.entity.debias;
 
+import eu.europeana.metis.sandbox.dto.debias.DebiasState;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -26,7 +27,7 @@ public class DatasetDeBiasEntity {
   @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
   private DatasetEntity datasetId;
 
-  private String state;
+  private DebiasState debiasState;
 
   private ZonedDateTime createdDate;
 
@@ -42,11 +43,11 @@ public class DatasetDeBiasEntity {
    * Instantiates a new Detection entity.
    *
    * @param datasetId the dataset id
-   * @param state the state
+   * @param debiasState the state
    */
-  public DatasetDeBiasEntity(DatasetEntity datasetId, String state, ZonedDateTime createdDate) {
+  public DatasetDeBiasEntity(DatasetEntity datasetId, DebiasState debiasState, ZonedDateTime createdDate) {
     this.datasetId = datasetId;
-    this.state = state;
+    this.debiasState = debiasState;
     this.createdDate = createdDate;
   }
 
@@ -91,17 +92,17 @@ public class DatasetDeBiasEntity {
    *
    * @return the state
    */
-  public String getState() {
-    return state;
+  public DebiasState getDebiasState() {
+    return debiasState;
   }
 
   /**
-   * Sets state.
+   * Sets debiasState.
    *
-   * @param state the state
+   * @param debiasState the debiasState
    */
-  public void setState(String state) {
-    this.state = state;
+  public void setDebiasState(DebiasState debiasState) {
+    this.debiasState = debiasState;
   }
 
   /**

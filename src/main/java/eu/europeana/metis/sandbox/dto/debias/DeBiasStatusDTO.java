@@ -20,7 +20,7 @@ public class DeBiasStatusDTO {
   private final Integer datasetId;
 
   @JsonProperty("state")
-  private final String state;
+  private final DebiasState debiasState;
 
   @JsonProperty("creation-date")
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -36,15 +36,15 @@ public class DeBiasStatusDTO {
    * Instantiates a new Detection info dto.
    *
    * @param datasetId the dataset id
-   * @param state the state
+   * @param debiasState the state
    * @param creationDate the creation date
    * @param total the total
    * @param processed the proccessed
    */
-  public DeBiasStatusDTO(Integer datasetId, String state, ZonedDateTime creationDate,
+  public DeBiasStatusDTO(Integer datasetId, DebiasState debiasState, ZonedDateTime creationDate,
       Long total, Long processed) {
     this.datasetId = datasetId;
-    this.state = state;
+    this.debiasState = debiasState;
     this.creationDate = creationDate;
     this.total = total;
     this.processed = processed;
@@ -64,8 +64,8 @@ public class DeBiasStatusDTO {
    *
    * @return the state
    */
-  public String getState() {
-    return state;
+  public DebiasState getDebiasState() {
+    return debiasState;
   }
 
   /**

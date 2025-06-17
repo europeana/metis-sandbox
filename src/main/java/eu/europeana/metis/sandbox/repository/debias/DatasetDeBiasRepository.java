@@ -27,7 +27,7 @@ public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEnti
    * @param state the state
    */
   @Modifying
-  @Query("UPDATE DatasetDeBiasEntity dec SET dec.state = :state WHERE dec.datasetId.datasetId = :datasetId")
+  @Query("UPDATE DatasetDeBiasEntity dec SET dec.debiasState = :state WHERE dec.datasetId.datasetId = :datasetId")
   void updateState(@Param("datasetId") Integer datasetId, @Param("state") String state);
 
   /**
