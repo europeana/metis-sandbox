@@ -29,6 +29,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Enrich Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class EnrichJobConfig {
 
@@ -37,21 +40,21 @@ public class EnrichJobConfig {
   public static final String STEP_NAME = "enrichStep";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public EnrichJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  EnrichJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job enrichBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step enrichStep) {
+  Job enrichBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step enrichStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(enrichStep)
         .build();
   }
 
   @Bean(STEP_NAME)
-  public Step enrichStep(JobRepository jobRepository,
+  Step enrichStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("enrichRepositoryItemReader") RepositoryItemReader<ExecutionRecord> enrichRepositoryItemReader,
       @Qualifier("enrichAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor,
@@ -68,13 +71,13 @@ public class EnrichJobConfig {
 
   @Bean("enrichRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> enrichRepositoryItemReader(
+  RepositoryItemReader<ExecutionRecord> enrichRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("enrichAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor(
+  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor(
       @Qualifier("enrichItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichItemProcessor,
       @Qualifier("enrichStepAsyncTaskExecutor") TaskExecutor enrichStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -84,7 +87,7 @@ public class EnrichJobConfig {
   }
 
   @Bean
-  public TaskExecutor enrichStepAsyncTaskExecutor() {
+  TaskExecutor enrichStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

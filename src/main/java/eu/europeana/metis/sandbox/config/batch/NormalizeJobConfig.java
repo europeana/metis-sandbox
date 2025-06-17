@@ -29,6 +29,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Normalize Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class NormalizeJobConfig {
 
@@ -37,21 +40,21 @@ public class NormalizeJobConfig {
   public static final String STEP_NAME = "normalizeStep";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public NormalizeJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  NormalizeJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job normalizeBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step normalizeStep) {
+  Job normalizeBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step normalizeStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(normalizeStep)
         .build();
   }
 
   @Bean(STEP_NAME)
-  public Step normalizeStep(JobRepository jobRepository,
+  Step normalizeStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("normalizeRepositoryItemReader") RepositoryItemReader<ExecutionRecord> normalizeRepositoryItemReader,
       @Qualifier("normalizeAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizeAsyncItemProcessor,
@@ -68,13 +71,13 @@ public class NormalizeJobConfig {
 
   @Bean("normalizeRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> normalizeRepositoryItemReader(
+  RepositoryItemReader<ExecutionRecord> normalizeRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("normalizeAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizeAsyncItemProcessor(
+  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizeAsyncItemProcessor(
       @Qualifier("normalizeItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizeItemProcessor,
       @Qualifier("normalizeStepAsyncTaskExecutor") TaskExecutor normalizeStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -84,7 +87,7 @@ public class NormalizeJobConfig {
   }
 
   @Bean
-  public TaskExecutor normalizeStepAsyncTaskExecutor() {
+  TaskExecutor normalizeStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

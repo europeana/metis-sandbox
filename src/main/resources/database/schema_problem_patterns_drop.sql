@@ -1,3 +1,0 @@
-BEGIN;
-DROP SCHEMA if EXISTS problem_patterns CASCADE;
-COMMIT;

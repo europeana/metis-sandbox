@@ -19,6 +19,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the File Harvest Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class FileHarvestJobConfig {
 
@@ -27,7 +30,7 @@ public class FileHarvestJobConfig {
   public static final BatchJobType BATCH_JOB = HARVEST_FILE;
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public FileHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  FileHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
@@ -35,14 +38,14 @@ public class FileHarvestJobConfig {
 
   //This can alternatively be divided similarly to oai. First read all file names and store them in db and then as a second step process those files(ids)
   @Bean
-  public Job fileHarvestJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step fileHarvestStep) {
+  Job fileHarvestJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step fileHarvestStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(fileHarvestStep)
         .build();
   }
 
   @Bean(STEP_NAME)
-  public Step fileHarvestStep(JobRepository jobRepository,
+  Step fileHarvestStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       FileItemReader fileItemReader,
       ItemWriter<ExecutionRecordDTO> executionRecordWriter) {

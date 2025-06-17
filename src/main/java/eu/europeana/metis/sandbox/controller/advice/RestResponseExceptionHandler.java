@@ -28,105 +28,80 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class RestResponseExceptionHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String RETRY_MSG = "%s Please retry, if problem persists contact provider.";
 
-    private static final String RETRY_MSG = "%s Please retry, if problem persists contact provider.";
+  /**
+   * Handles exceptions of type {@link TaskRejectedException} and returns an appropriate HTTP response.
+   *
+   * <p>Occurs when too many executions are requested from the task executor for spring batch.
+   *
+   * @param ex The TaskRejectedException thrown when a task is rejected.
+   * @return A ResponseEntity containing the HTTP status code and error message.
+   */
+  @ExceptionHandler(TaskRejectedException.class)
+  public ResponseEntity<Object> handleTaskRejected(TaskRejectedException ex) {
+    HttpStatus status = resolveStatus(ex, HttpStatus.TOO_MANY_REQUESTS);
+    String message = format(RETRY_MSG, ex.getMessage());
+    return buildResponse(status, message, ex);
+  }
 
-    //This happens if too many executions are requested from the task executor.
-    @ExceptionHandler(TaskRejectedException.class)
-    public ResponseEntity<Object> handleTaskRejected(TaskRejectedException ex) {
-        var message = format(RETRY_MSG, ex.getMessage());
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.TOO_MANY_REQUESTS.value(),
-            HttpStatus.TOO_MANY_REQUESTS, message);
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
+  /**
+   * Handles internal server errors caused by specific exceptions and returns an appropriate HTTP response.
+   *
+   * @param ex The exception that triggered the internal server error.
+   * @return A ResponseEntity containing the HTTP status code and error message.
+   */
+  @ExceptionHandler({
+      XsltProcessingException.class,
+      ServiceException.class,
+  })
+  public ResponseEntity<Object> handleInternalServerError(Exception ex) {
+    HttpStatus status = resolveStatus(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    String message = format(RETRY_MSG, ex.getMessage());
+    return buildResponse(status, message, ex);
+  }
 
-    @ExceptionHandler(XsltProcessingException.class)
-    public ResponseEntity<Object> handleXsltProcessingException(XsltProcessingException ex) {
-        var message = format(RETRY_MSG, ex.getMessage());
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR, message);
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
+  /**
+   * Handles exceptions of type {@link NoRecordFoundException} and returns an appropriate HTTP response.
+   *
+   * @param ex The NoRecordFoundException thrown when no record is found.
+   * @return A ResponseEntity containing the HTTP status code and error message.
+   */
+  @ExceptionHandler(NoRecordFoundException.class)
+  public ResponseEntity<Object> handleNoRecordFoundException(
+      NoRecordFoundException ex) {
+    HttpStatus status = resolveStatus(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    return buildResponse(status, ex.getMessage(), ex);
+  }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST, ex.getMessage());
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
+  /**
+   * Handles exceptions related to bad requests and returns an appropriate HTTP response.
+   *
+   * @param ex The exception that was triggered and caused the bad request.
+   * @return A ResponseEntity containing the HTTP status code and error message.
+   */
+  @ExceptionHandler({
+      IllegalArgumentException.class,
+      InvalidCompressedFileException.class,
+      RecordParsingException.class,
+      InvalidDatasetException.class,
+      SerializationException.class,
+      IOException.class
+  })
+  public ResponseEntity<Object> handleBadRequestExceptions(Exception ex) {
+    HttpStatus status = resolveStatus(ex, HttpStatus.BAD_REQUEST);
+    return buildResponse(status, ex.getMessage(), ex);
+  }
 
-    @ExceptionHandler(InvalidCompressedFileException.class)
-    public ResponseEntity<Object> handleInvalidCompressedFileException(InvalidCompressedFileException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST, ex.getMessage());
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
+  private ResponseEntity<Object> buildResponse(HttpStatus status, String message, Exception ex) {
+    LOGGER.error(message, ex);
+    var dto = new ExceptionModelDTO(status.value(), status, message);
+    return new ResponseEntity<>(dto, status);
+  }
 
-    @ExceptionHandler(ServiceException.class)
-    public ResponseEntity<Object> handleServiceException(ServiceException ex) {
-        var message = format(RETRY_MSG, ex.getMessage());
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR, message);
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
-
-    @ExceptionHandler(RecordParsingException.class)
-    public ResponseEntity<Object> handleNonRecoverableServiceException(
-            RecordParsingException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST, ex.getMessage());
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
-
-    @ExceptionHandler(InvalidDatasetException.class)
-    public ResponseEntity<Object> handleInvalidDatasetException(
-            InvalidDatasetException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST, ex.getMessage());
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
-
-    @ExceptionHandler(SerializationException.class)
-    public ResponseEntity<Object> handleSerializationException(
-            SerializationException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST, ex.getMessage());
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
-
-    @ExceptionHandler(IOException.class)
-    public ResponseEntity<Object> handleIOException(
-            IOException ex) {
-        var exceptionModel = new ExceptionModelDTO(HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST, ex.getMessage());
-        LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
-
-    /**
-     * Handles {@link NoRecordFoundException} exceptions.
-     *
-     * @param e no record found exception
-     * @return the response entity
-     */
-    @ExceptionHandler(NoRecordFoundException.class)
-    public ResponseEntity<Object> handleInvalidDatasetException(
-            NoRecordFoundException e) {
-        final ResponseStatus annotationResponseStatus = AnnotationUtils
-                .findAnnotation(e.getClass(), ResponseStatus.class);
-        HttpStatus status = annotationResponseStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR
-                : annotationResponseStatus.value();
-        var exceptionModel = new ExceptionModelDTO(status.value(), status, e.getMessage());
-        LOGGER.error(e.getMessage(), e);
-        return new ResponseEntity<>(exceptionModel, exceptionModel.getStatus());
-    }
+  private HttpStatus resolveStatus(Exception ex, HttpStatus defaultStatus) {
+    ResponseStatus annotation = AnnotationUtils.findAnnotation(ex.getClass(), ResponseStatus.class);
+    return annotation != null ? annotation.value() : defaultStatus;
+  }
 }

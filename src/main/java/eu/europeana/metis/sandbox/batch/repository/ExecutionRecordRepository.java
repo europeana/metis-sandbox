@@ -44,7 +44,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   /**
    * Finds a set of ExecutionRecord objects based on dataset ID, record ID, and a set of execution names.
    *
-   * @param datasetId The ID of the dataset. * @param recordId The ID of the record within the dataset.
+   * @param datasetId The ID of the dataset.
+   * @param recordId The ID of the record within the dataset.
    * @param executionName The set of execution names to filter the records by.
    * @return A set of ExecutionRecord objects matching the given identifiers and execution names.
    */
@@ -54,7 +55,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   /**
    * Counts the number of ExecutionRecord entities matching the given dataset ID and execution name.
    *
-   * @param datasetId The ID of the dataset. * @param recordId The ID of the record within the dataset.
+   * @param datasetId The ID of the dataset.
+   * @param executionName The set of execution names to filter the records by.
    * @return The count of ExecutionRecord entities matching the specified criteria.
    */
   long countByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);

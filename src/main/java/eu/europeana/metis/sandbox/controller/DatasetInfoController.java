@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * This class provides API endpoints for accessing dataset-related information.
+ */
 @RestController
 @RequestMapping("/dataset/")
 @Tag(name = "Dataset Info Controller")
@@ -29,6 +32,11 @@ public class DatasetInfoController {
 
   private final DatasetReportService datasetReportService;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetReportService the dataset report service.
+   */
   public DatasetInfoController(DatasetReportService datasetReportService) {
     this.datasetReportService = datasetReportService;
   }
@@ -99,7 +107,7 @@ public class DatasetInfoController {
   }
 
   //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
-  public static class CountryView {
+  static class CountryView {
 
     @JsonProperty("name")
     private final String name;
@@ -118,7 +126,7 @@ public class DatasetInfoController {
   }
 
   //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
-  public static class LanguageView {
+  static class LanguageView {
 
     @JsonProperty("name")
     private final String name;

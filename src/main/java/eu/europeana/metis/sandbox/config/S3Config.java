@@ -11,9 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Config for S3 bucket
- */
 @Configuration
 class S3Config {
 

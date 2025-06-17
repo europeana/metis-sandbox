@@ -21,6 +21,19 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Implementation of {@link ItemWriter} for writing {@link ExecutionRecordDTO} objects to corresponding repositories.
+ *
+ * <p>This class processes a chunk of {@link ExecutionRecordDTO} instances and segregates them into
+ * {@link ExecutionRecord}, {@link ExecutionRecordException} and adds optional {@link ExecutionRecordTierContext} entities based
+ * on the type of {@link ExecutionRecordDTO}.
+ * <p>The segregated entities are then persisted using the respective repositories
+ * {@link ExecutionRecordRepository}, {@link ExecutionRecordExceptionRepository}, and
+ * {@link ExecutionRecordTierContextRepository}.
+ *
+ * <p>The class ensures that successful execution records and their tier contexts are stored appropriately,
+ * while record exceptions are stored as failed records.
+ */
 @StepScope
 @Component
 public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordDTO> {
@@ -31,6 +44,13 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
+  /**
+   * Constructor.
+   *
+   * @param executionRecordRepository The repository for managing ExecutionRecord entities.
+   * @param executionRecordExceptionRepository The repository for managing ExecutionRecordException entities.
+   * @param executionRecordTierContextRepository The repository for managing tier contexts of execution records.
+   */
   @Autowired
   public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionRepository executionRecordExceptionRepository,
@@ -54,8 +74,8 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
               ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordTierContext(successExecutionRecordDTO);
           executionRecordTierContext.ifPresent(executionRecordTierContexts::add);
         }
-        case FailExecutionRecordDTO failExecutionRecordDTO ->
-            executionRecordExceptions.add(ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordExceptionLog(failExecutionRecordDTO));
+        case FailExecutionRecordDTO failExecutionRecordDTO -> executionRecordExceptions.add(
+            ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordExceptionLog(failExecutionRecordDTO));
       }
     }
     LOGGER.info("In writer before saveAll");

@@ -12,10 +12,18 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the main execution record entity.
+ *
+ * <p>The identifier is a composite key provided by the {@link ExecutionRecordIdentifierKey} class.
+ * <p>Includes a one-to-many relationship with {@link ExecutionRecordWarningException} entities
+ * to manage related warning exceptions.
+ */
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record", indexes = {@Index(name = "exec_rec_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+@Table(schema = "engine_record", indexes = {
+    @Index(name = "exec_rec_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
 public class ExecutionRecord implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
 
   @EmbeddedId

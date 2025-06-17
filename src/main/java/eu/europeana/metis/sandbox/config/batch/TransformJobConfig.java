@@ -29,6 +29,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Transform Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class TransformJobConfig {
 
@@ -37,21 +40,21 @@ public class TransformJobConfig {
   public static final String STEP_NAME = "transformStep";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public TransformJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  TransformJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job transformBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step tranformStep) {
+  Job transformBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step tranformStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(tranformStep)
         .build();
   }
 
   @Bean(STEP_NAME)
-  public Step transformStep(JobRepository jobRepository,
+  Step transformStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("transformRepositoryItemReader") RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader,
       @Qualifier("transformAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor,
@@ -68,13 +71,13 @@ public class TransformJobConfig {
 
   @Bean("transformRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader(
+  RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("transformAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor(
+  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor(
       @Qualifier("transformItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> transformItemProcessor,
       @Qualifier("transformStepAsyncTaskExecutor") TaskExecutor transformStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -84,7 +87,7 @@ public class TransformJobConfig {
   }
 
   @Bean
-  public TaskExecutor transformStepAsyncTaskExecutor() {
+  TaskExecutor transformStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

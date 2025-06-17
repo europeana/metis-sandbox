@@ -28,6 +28,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Oai Harvest Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class OaiHarvestJobConfig {
 
@@ -37,14 +40,14 @@ public class OaiHarvestJobConfig {
   public static final String RECORDS_HARVEST_STEP_NAME = "recordsHarvest";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public OaiHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  OaiHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job oaiHarvestJob(
+  Job oaiHarvestJob(
       JobRepository jobRepository,
       @Qualifier(IDENTIFIERS_HARVEST_STEP_NAME) Step identifiersHarvestStep,
       @Qualifier(RECORDS_HARVEST_STEP_NAME) Step recordsHarvestStep) {
@@ -55,7 +58,7 @@ public class OaiHarvestJobConfig {
   }
 
   @Bean(IDENTIFIERS_HARVEST_STEP_NAME)
-  public Step oaidentifiersEndpointHarvestStep(
+  Step oaidentifiersEndpointHarvestStep(
       OaiIdentifiersEndpointItemReader oaiIdentifiersEndpointItemReader,
       OaiIdentifiersWriter oaiIdentifiersWriter,
       JobRepository jobRepository,
@@ -72,7 +75,7 @@ public class OaiHarvestJobConfig {
   }
 
   @Bean(RECORDS_HARVEST_STEP_NAME)
-  public Step oaiRecordsHarvestStep(
+  Step oaiRecordsHarvestStep(
       JobRepository jobRepository,
       OaiIdentifiersRepositoryItemReader oaiIdentifiersRepositoryItemReader,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
@@ -89,7 +92,7 @@ public class OaiHarvestJobConfig {
   }
 
   @Bean
-  public ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> oaiRecordAsyncItemProcessor(
+  ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> oaiRecordAsyncItemProcessor(
       ItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> oaiRecordItemProcessor,
       @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor taskExecutor) {
     AsyncItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -99,7 +102,7 @@ public class OaiHarvestJobConfig {
   }
 
   @Bean
-  public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
+  TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

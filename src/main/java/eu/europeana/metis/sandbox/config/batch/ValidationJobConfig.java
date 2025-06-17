@@ -32,6 +32,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Validate Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class ValidationJobConfig {
 
@@ -40,14 +43,14 @@ public class ValidationJobConfig {
   public static final String STEP_NAME = "validationStep";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public ValidationJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  ValidationJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job validationBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step validationStep,
+  Job validationBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step validationStep,
       LoggingJobExecutionListener loggingJobExecutionListener) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .listener(loggingJobExecutionListener)
@@ -56,7 +59,7 @@ public class ValidationJobConfig {
   }
 
   @Bean("validationStep")
-  public Step validationStep(JobRepository jobRepository,
+  Step validationStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("validationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
       @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
@@ -77,13 +80,13 @@ public class ValidationJobConfig {
 
   @Bean("validationRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader(
+  RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("validationAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor(
+  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor(
       @Qualifier("validationItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> validationItemProcessor,
       @Qualifier("validationStepAsyncTaskExecutor") TaskExecutor validationStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -93,7 +96,7 @@ public class ValidationJobConfig {
   }
 
   @Bean
-  public TaskExecutor validationStepAsyncTaskExecutor() {
+  TaskExecutor validationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

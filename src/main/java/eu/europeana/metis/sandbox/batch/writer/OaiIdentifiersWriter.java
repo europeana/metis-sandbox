@@ -9,19 +9,35 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.stereotype.Component;
 
+/**
+ * Writer implementation for persisting {@link ExecutionRecordExternalIdentifier} entities.
+ *
+ * <p>Processes and writes chunks of {@link ExecutionRecordExternalIdentifier} to a database repository,
+ * leveraging the functionality provided by {@link RepositoryItemWriter}.
+ *
+ * <p>Used specifically for managing external identifiers related to execution records, such as during OAI harvesting.
+ */
 @Component
 public class OaiIdentifiersWriter extends RepositoryItemWriter<ExecutionRecordExternalIdentifier> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public OaiIdentifiersWriter(ExecutionRecordExternalIdentifierRepository repository) {
-        setRepository(repository);
-    }
+  /**
+   * Constructor.
+   *
+   * <p>Initializes the writer with the given repository for managing
+   * {@link ExecutionRecordExternalIdentifier} entities.
+   *
+   * @param repository The repository instance used for persisting execution record external identifiers.
+   */
+  public OaiIdentifiersWriter(ExecutionRecordExternalIdentifierRepository repository) {
+    setRepository(repository);
+  }
 
-    @Override
-    public void write(Chunk<? extends ExecutionRecordExternalIdentifier> chunk) throws Exception {
-        LOGGER.info("Writing chunk of {} oai identifiers to DB", chunk.size());
-        super.write(chunk);
-        LOGGER.info("Chunk of {} oai identifiers written to DB", chunk.size());
-    }
+  @Override
+  public void write(Chunk<? extends ExecutionRecordExternalIdentifier> chunk) throws Exception {
+    LOGGER.info("Writing chunk of {} oai identifiers to DB", chunk.size());
+    super.write(chunk);
+    LOGGER.info("Chunk of {} oai identifiers written to DB", chunk.size());
+  }
 }

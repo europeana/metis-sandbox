@@ -46,10 +46,9 @@ public class DatasetDebiasController {
   /**
    * Constructs a new instance of {@link DatasetDebiasController}.
    *
-   * @param datasetService the service to handle dataset operations
    * @param debiasStateService the service to manage DeBias state
+   * @param datasetExecutionService the service to handle dataset execution
    * @param datasetReportService the service to handle dataset reports
-   * @param lockRegistry the registry for managing dataset locks
    */
   @Autowired
   public DatasetDebiasController(DeBiasStateService debiasStateService, DatasetExecutionService datasetExecutionService,

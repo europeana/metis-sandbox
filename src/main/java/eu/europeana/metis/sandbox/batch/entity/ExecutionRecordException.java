@@ -8,6 +8,11 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Entity representing an exception encountered during the processing of an execution record.
+ *
+ * <p>Uses a composite key, {@link ExecutionRecordIdentifierKey}, to uniquely identify the associated execution record.
+ */
 @Getter
 @Setter
 @Entity

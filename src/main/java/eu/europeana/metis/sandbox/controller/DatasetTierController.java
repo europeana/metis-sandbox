@@ -28,6 +28,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for getting record tiers for a dataset, computing tiers for a record and getting a particular record.
+ */
 @RestController
 @RequestMapping("/dataset/")
 @Tag(name = "Dataset Tier Controller")
@@ -37,6 +40,13 @@ public class DatasetTierController {
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   private final RecordTierCalculationService recordTierCalculationService;
 
+  /**
+   * Constructor.
+   *
+   * @param executionRecordRepository the execution record repository.
+   * @param executionRecordTierContextRepository the execution record tier context repository.
+   * @param recordTierCalculationService the record tier calculation service.
+   */
   public DatasetTierController(ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
       RecordTierCalculationService recordTierCalculationService) {
@@ -118,7 +128,7 @@ public class DatasetTierController {
                            .orElseThrow(() -> new NoRecordFoundException(recordId));
   }
 
-  public static RecordTiersInfoDTO from(ExecutionRecordTierContext context) {
+  private static RecordTiersInfoDTO from(ExecutionRecordTierContext context) {
     return RecordTiersInfoDTO.builder()
                              .recordId(context.getIdentifier().getRecordId())
                              .contentTier(MediaTier.getEnum(context.getContentTier()))
@@ -130,7 +140,6 @@ public class DatasetTierController {
                              .metadataTierContextualClasses(MetadataTier.getEnum(context.getMetadataTierContextualClasses()))
                              .build();
   }
-
 
   private boolean areAllTierValuesNotNullOrEmpty(ExecutionRecordTierContext executionRecordTierContext) {
     return isContentTierValid(executionRecordTierContext) &&

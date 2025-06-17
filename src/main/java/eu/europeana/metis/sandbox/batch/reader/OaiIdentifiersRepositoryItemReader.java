@@ -31,6 +31,11 @@ public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<Exe
 
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
+  /**
+   * Constructor.
+   *
+   * @param executionRecordExternalIdentifierRepository The repository used to retrieve ExecutionRecordExternalIdentifier items.
+   */
   public OaiIdentifiersRepositoryItemReader(
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;

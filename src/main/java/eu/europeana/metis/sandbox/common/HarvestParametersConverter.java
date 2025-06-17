@@ -12,8 +12,24 @@ import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 
+/**
+ * Utility class to convert between HarvestParametersEntity and HarvestParametersDTO.
+ *
+ * <p>Supports conversion for various types of harvesting parameters, including OAI-PMH, HTTP, and File harvests.
+ * <p>Handles mapping of entity-specific fields and validation of supported types.
+ */
 public class HarvestParametersConverter {
 
+  /**
+   * Converts an instance of HarvestParametersEntity to a HarvestParametersDTO.
+   *
+   * <p>This method maps different subclasses of HarvestParametersEntity
+   * (such as {@link OaiHarvestParameters}, {@link HttpHarvestParameters}, and {@link FileHarvestParameters}).
+   *
+   * @param harvestParametersEntity The HarvestParametersEntity object to be converted.
+   * @return A HarvestParametersDTO object to the given HarvestParametersEntity.
+   * @throws IllegalArgumentException if the provided DTO type is unsupported
+   */
   public static HarvestParametersDTO convertToHarvestParametersDTO(HarvestParametersEntity harvestParametersEntity) {
     return switch (harvestParametersEntity) {
       case OaiHarvestParameters oaiHarvestParameters -> new OaiHarvestDTO(
@@ -39,6 +55,14 @@ public class HarvestParametersConverter {
     };
   }
 
+  /**
+   * Converts a HarvestParametersDTO to a HarvestParametersEntity based on the type of the DTO.
+   *
+   * @param datasetEntity The dataset entity to associate with the harvest parameters entity.
+   * @param harvestParametersDTO The data transfer object containing harvest parameters.
+   * @return A new instance of HarvestParametersEntity corresponding to the specific type of DTO provided.
+   * @throws IllegalArgumentException if the provided DTO type is unsupported
+   */
   public static HarvestParametersEntity convertToHarvestParametersEntity(
       DatasetEntity datasetEntity, HarvestParametersDTO harvestParametersDTO) {
     return switch (harvestParametersDTO) {

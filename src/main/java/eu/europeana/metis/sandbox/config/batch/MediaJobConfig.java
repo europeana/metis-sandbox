@@ -29,6 +29,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Media Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class MediaJobConfig {
 
@@ -37,21 +40,21 @@ public class MediaJobConfig {
   public static final String STEP_NAME = "mediaStep";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public MediaJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  MediaJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job mediaBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step mediaStep) {
+  Job mediaBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step mediaStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(mediaStep)
         .build();
   }
 
   @Bean(STEP_NAME)
-  public Step mediaStep(JobRepository jobRepository,
+  Step mediaStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("mediaRepositoryItemReader") RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,
       @Qualifier("mediaAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor,
@@ -68,13 +71,13 @@ public class MediaJobConfig {
 
   @Bean("mediaRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader(
+  RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("mediaAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor(
+  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor(
       @Qualifier("mediaItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> mediaItemProcessor,
       @Qualifier("mediaStepAsyncTaskExecutor") TaskExecutor mediaStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -84,7 +87,7 @@ public class MediaJobConfig {
   }
 
   @Bean
-  public TaskExecutor mediaStepAsyncTaskExecutor() {
+  TaskExecutor mediaStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

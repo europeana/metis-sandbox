@@ -7,6 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
+/**
+ * Immutable class representing metadata for a dataset.
+ *
+ * <p>Contains information about the dataset, including its identifier, name, associated country, language, and workflow type.
+ * <p>All fields in this class are mandatory and must not be null.
+ */
 @Getter
 @AllArgsConstructor
 public final class DatasetMetadata {

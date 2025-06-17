@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
-public class CommonBatchConfig {
+class CommonBatchConfig {
 
   @Bean("asyncJobLauncher")
-  public JobLauncher asyncJobLauncher(JobRepository jobRepository) throws Exception {
+  JobLauncher asyncJobLauncher(JobRepository jobRepository) throws Exception {
     TaskExecutorJobLauncher jobLauncher = new TaskExecutorJobLauncher();
     jobLauncher.setJobRepository(jobRepository);
 

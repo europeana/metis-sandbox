@@ -27,82 +27,89 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+/**
+ * Configuration class for the Sandbox application.
+ *
+ * <p>This class sets up and provides general beans required for the operation of the sandbox.
+ */
 @Configuration
 @ComponentScan("eu.europeana.validation.service")
 @EnableConfigurationProperties({ElasticAPMConfiguration.class, WorkflowConfigurationProperties.class})
 class SandboxConfig {
 
-    @Value("${sandbox.enrichment.dereference-url}")
-    private String dereferenceServiceUrl;
+  @Value("${sandbox.enrichment.dereference-url}")
+  private String dereferenceServiceUrl;
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
-    private String entityManagementUrl;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
+  private String entityManagementUrl;
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
-    private String entityApiUrl;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
+  private String entityApiUrl;
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-token-endpoint}")
-    private String entityApiTokenEndpoint;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-token-endpoint}")
+  private String entityApiTokenEndpoint;
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
-    private String entityApiGrantParams;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
+  private String entityApiGrantParams;
 
-    @Value("${sandbox.portal.publish.record-base-url}")
-    private String portalPublishRecordBaseUrl;
+  @Value("${sandbox.portal.publish.record-base-url}")
+  private String portalPublishRecordBaseUrl;
 
-    @Bean(name = "portalPublishRecordBaseUrl")
-    String portalPublishRecordBaseUrl() {
-        return portalPublishRecordBaseUrl;
-    }
+  @Bean(name = "portalPublishRecordBaseUrl")
+  String portalPublishRecordBaseUrl() {
+    return portalPublishRecordBaseUrl;
+  }
 
-    @Bean(name = "pipelineTaskExecutor")
-    public TaskExecutor taskExecutor() {
-        //Can be configurable
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(20);
-        executor.setThreadNamePrefix("PipelineJob-");
-        executor.initialize();
-        return executor;
-    }
+  @Bean(name = "pipelineTaskExecutor")
+  TaskExecutor taskExecutor() {
+    //Can be configurable
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(4);
+    executor.setMaxPoolSize(4);
+    executor.setQueueCapacity(20);
+    executor.setThreadNamePrefix("PipelineJob-");
+    executor.initialize();
+    return executor;
+  }
 
-    @Bean
-    XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
-                                              LockRegistry lockRegistry, HttpClient httpClient) {
-        return new XsltUrlUpdateService(transformXsltRepository, lockRegistry, httpClient);
-    }
+  @Bean
+  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
+      LockRegistry lockRegistry, HttpClient httpClient) {
+    return new XsltUrlUpdateService(transformXsltRepository, lockRegistry, httpClient);
+  }
 
-    @Bean
-    OaiHarvester oaiHarvester() {
-        return HarvesterFactory.createOaiHarvester();
-    }
+  @Bean
+  OaiHarvester oaiHarvester() {
+    return HarvesterFactory.createOaiHarvester();
+  }
 
-    @Bean
-    HttpHarvester httpHarvester() {
-        return HarvesterFactory.createHttpHarvester();
-    }
+  @Bean
+  HttpHarvester httpHarvester() {
+    return HarvesterFactory.createHttpHarvester();
+  }
 
-    @Bean
-    NormalizerFactory normalizerFactory() {
-        return new NormalizerFactory();
-    }
+  @Bean
+  NormalizerFactory normalizerFactory() {
+    return new NormalizerFactory();
+  }
 
-    @Bean
-    EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
-        DereferencerProvider dereferencerProvider = new DereferencerProvider();
-        dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
-        dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint, entityApiGrantParams);
-        EnricherProvider enricherProvider = new EnricherProvider();
-        enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint, entityApiGrantParams);
-        return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
-    }
+  @Bean
+  EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
+    DereferencerProvider dereferencerProvider = new DereferencerProvider();
+    dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
+    dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
+        entityApiGrantParams);
+    EnricherProvider enricherProvider = new EnricherProvider();
+    enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
+        entityApiGrantParams);
+    return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
+  }
 
-    @Bean
-    HttpClient httpClient() {
-        return HttpClient.newBuilder().version(Version.HTTP_2)
-                .followRedirects(Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
-    }
+  @Bean
+  HttpClient httpClient() {
+    return HttpClient.newBuilder().version(Version.HTTP_2)
+                     .followRedirects(Redirect.NORMAL)
+                     .connectTimeout(Duration.ofSeconds(5))
+                     .build();
+  }
 }

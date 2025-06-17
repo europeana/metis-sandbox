@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 @Configuration
-public class ValidateConfig {
+class ValidateConfig {
 
   @Value("${sandbox.validation.executor.pool-size}")
   private Integer threadCount;

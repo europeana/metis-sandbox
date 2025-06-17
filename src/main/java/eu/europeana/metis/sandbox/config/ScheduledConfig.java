@@ -16,10 +16,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
- * Configuration class for scheduling tasks and defining beans related to scheduling intervals.
+ * Configuration class for scheduling tasks and defining beans related to scheduling tasks.
  */
 @Configuration
-public class ScheduledConfig {
+class ScheduledConfig {
 
   @Configuration
   @EnableScheduling
@@ -42,7 +42,7 @@ public class ScheduledConfig {
     }
 
     @Bean
-    public ThreadPoolTaskScheduler taskScheduler() {
+    ThreadPoolTaskScheduler taskScheduler() {
       ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
       scheduler.setPoolSize(5);
       scheduler.setThreadNamePrefix("Scheduled-");
@@ -57,12 +57,12 @@ public class ScheduledConfig {
     }
 
     @Scheduled(cron = "${sandbox.transformation.xslt-update-frequency:0 0 * * * *}")
-    public void updateDefaultXsltUrl() {
+    void updateDefaultXsltUrl() {
       xsltUrlUpdateService.updateXslt(defaultXsltUrl);
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void initializeAfterStartup() {
+    void initializeAfterStartup() {
       updateDefaultXsltUrl();
       metricsReport();
     }

@@ -40,6 +40,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Controller for triggering a dataset processing.
+ */
 @RestController
 @RequestMapping("/dataset/")
 @Tag(name = "Dataset Harvest Controller")
@@ -50,14 +53,17 @@ public class DatasetHarvestController {
 
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
   private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
-  private final UrlValidator urlValidator;
+  private final UrlValidator urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   private final DatasetExecutionService datasetExecutionService;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetExecutionService DatasetExecutionService used to execute dataset-related operations.
+   */
   public DatasetHarvestController(DatasetExecutionService datasetExecutionService) {
     this.datasetExecutionService = datasetExecutionService;
-    urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   }
-
 
   /**
    * POST API calls for harvesting and processing the records given a URL of an OAI-PMH endpoint
@@ -73,6 +79,7 @@ public class DatasetHarvestController {
    * repository
    * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   * @throws IOException if there was something wrong with the xslt file
    */
   @Operation(summary = "Harvest dataset from OAI-PMH protocol", description = "Process the given dataset using OAI-PMH")
   @ApiResponse(responseCode = "202")
@@ -121,6 +128,7 @@ public class DatasetHarvestController {
    * @param datasetRecordsCompressedFile the given dataset itself to be processed as a compressed file
    * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   * @throws IOException if there was something wrong with the xslt file
    */
   @Operation(summary = "Harvest dataset from file", description = "Process the given dataset by HTTP providing a file")
   @ApiResponse(responseCode = "202")
@@ -184,8 +192,7 @@ public class DatasetHarvestController {
       @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
       @RequestParam(name = "stepsize", required = false, defaultValue = "1") int stepsize,
       @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
-      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile)
-      throws IOException {
+      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
     //Check user id if any. This is temporarily allowed due to api and ui user security.
     final String userId;
     if (jwtPrincipal == null) {

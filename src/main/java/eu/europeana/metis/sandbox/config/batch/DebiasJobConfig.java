@@ -29,6 +29,9 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Configuration class for the Debias Job, responsible for defining the batch job, its step, and components.
+ */
 @Configuration
 public class DebiasJobConfig {
 
@@ -37,20 +40,20 @@ public class DebiasJobConfig {
   public static final String STEP_NAME = "debiasStep";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
-  public DebiasJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+  DebiasJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
     LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(), parallelizeConfig.parallelizeSize());
   }
 
   @Bean
-  public Job debiasBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step debiasStep) {
+  Job debiasBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step debiasStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(debiasStep)
         .build();
   }
 
   @Bean(STEP_NAME)
-  public Step debiasStep(JobRepository jobRepository,
+  Step debiasStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("debiasRepositoryItemReader") RepositoryItemReader<ExecutionRecord> debiasRepositoryItemReader,
       @Qualifier("debiasAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> debiasAsyncItemProcessor,
@@ -67,13 +70,13 @@ public class DebiasJobConfig {
 
   @Bean("debiasRepositoryItemReader")
   @StepScope
-  public RepositoryItemReader<ExecutionRecord> debiasRepositoryItemReader(
+  RepositoryItemReader<ExecutionRecord> debiasRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
   }
 
   @Bean("debiasAsyncItemProcessor")
-  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> debiasAsyncItemProcessor(
+  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> debiasAsyncItemProcessor(
       @Qualifier("debiasItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> debiasItemProcessor,
       @Qualifier("debiasStepAsyncTaskExecutor") TaskExecutor debiasStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
@@ -83,7 +86,7 @@ public class DebiasJobConfig {
   }
 
   @Bean
-  public TaskExecutor debiasStepAsyncTaskExecutor() {
+  TaskExecutor debiasStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
     executor.setCorePoolSize(parallelizeConfig.parallelizeSize());

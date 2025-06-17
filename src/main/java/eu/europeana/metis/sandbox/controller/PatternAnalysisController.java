@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Pattern analysis controller
+ * Controller for retrieving pattern analysis.
  */
 @RestController
 @RequestMapping("/pattern-analysis/")
@@ -59,9 +59,7 @@ public class PatternAnalysisController {
    *
    * @param patternAnalysisService the pattern analysis service
    * @param executionPointService the execution point service
-   * @param recordLogService the record log service
-   * @param datasetReportService the dataset report service
-   * @param lockRegistry the lock registry
+   * @param executionRecordRepository the execution record repository
    */
   public PatternAnalysisController(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService, ExecutionRecordRepository executionRecordRepository) {

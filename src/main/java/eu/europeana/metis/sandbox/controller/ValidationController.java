@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * The type Validation controller.
+ * Controller responsible for validating xml records.
  */
 @RestController
 @RequestMapping("/record/")
@@ -57,9 +57,12 @@ public class ValidationController {
   private final ExecutionPointService executionPointService;
 
   /**
-   * Instantiates a new Validation controller.
+   * Constructor.
    *
-   * @param validationWorkflowService the validation workflow service
+   * @param datasetExecutionService The service responsible for dataset execution processes.
+   * @param datasetReportService The service responsible for generating dataset reports.
+   * @param patternAnalysisService The service for analyzing patterns within datasets.
+   * @param executionPointService The service managing execution points for validation processes.
    */
   public ValidationController(DatasetExecutionService datasetExecutionService,
       DatasetReportService datasetReportService, PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
@@ -128,6 +131,5 @@ public class ValidationController {
       return StringUtils.containsIgnoreCase(fileType, FileType.XML.name());
 
     }
-
   }
 }

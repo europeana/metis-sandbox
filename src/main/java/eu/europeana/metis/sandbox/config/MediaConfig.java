@@ -9,8 +9,11 @@ import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration class for setting up media processing beans.
+ */
 @Configuration
-public class MediaConfig {
+class MediaConfig {
 
   @Bean
   MediaExtractor mediaExtractor() throws MediaProcessorException {

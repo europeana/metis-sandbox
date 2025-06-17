@@ -37,6 +37,12 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
 
+  /**
+   * Constructor.
+   *
+   * @param patternAnalysisService The service to analyze patterns for a specific batch job type and execution point.
+   * @param executionPointService The service to manage execution point entities.
+   */
   //todo: Assuming datasetId uniqueness(therefore no lock) due to sandbox
   public ProblemPatternsStepExecutionListener(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService) {
