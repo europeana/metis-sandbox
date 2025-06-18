@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for managing ExecutionRecordRepository entities.
+ * Repository interface for managing {@link ExecutionRecord} entities.
  */
 @Repository
 public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord, ExecutionRecordIdentifierKey> {

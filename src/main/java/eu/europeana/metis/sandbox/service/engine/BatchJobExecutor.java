@@ -88,6 +88,8 @@ import org.springframework.stereotype.Service;
 public class BatchJobExecutor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int JOB_STATE_POLL_INTERVAL_SECONDS = 5;
+  public static final int JOB_INSTANCE_RETRIEVAL_PAGE_SIZE = 100;
   private final List<? extends Job> jobs;
   private final JobLauncher jobLauncher;
   private final JobExplorer jobExplorer;
@@ -110,7 +112,7 @@ public class BatchJobExecutor {
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, JobExplorer jobExplorer,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository) {
-    this.jobs = jobs;
+    this.jobs = List.copyOf(jobs);
     this.jobLauncher = jobLauncher;
     this.jobExplorer = jobExplorer;
     this.taskExecutor = taskExecutor;
@@ -196,7 +198,7 @@ public class BatchJobExecutor {
   private Optional<JobExecution> findJobInstance(ExecutionMetadata executionMetadata, FullBatchJobType fullBatchJobType) {
     List<JobInstance> jobInstances = new ArrayList<>();
     int start = 0;
-    int pageSize = 100;
+    int pageSize = JOB_INSTANCE_RETRIEVAL_PAGE_SIZE;
     List<JobInstance> page;
 
     do {
@@ -209,36 +211,40 @@ public class BatchJobExecutor {
     for (JobInstance jobInstance : jobInstances) {
       List<JobExecution> jobExecutions = jobExplorer.getJobExecutions(jobInstance);
       for (JobExecution jobExecution : jobExecutions) {
-        JobParameters jobParameters = jobExecution.getJobParameters();
-        String jobSubTypeString = jobParameters.getString(ARGUMENT_BATCH_JOB_SUBTYPE);
-        String datasetId = jobParameters.getString(ARGUMENT_DATASET_ID);
-        boolean datasetMatches = Objects.equals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
-
-        if (datasetMatches) {
-          BatchJobSubType batchJobSubType = fullBatchJobType.getBatchJobSubType();
-          final boolean isMatchingWithoutSubtype = batchJobSubType == null && isBlank(jobSubTypeString);
-          final boolean isMatchingWithSubType = batchJobSubType != null && batchJobSubType.name().equals(jobSubTypeString);
-          if (isMatchingWithoutSubtype || isMatchingWithSubType) {
-            matchingExecution = jobExecution;
-          }
+        if(matches(jobExecution, executionMetadata, fullBatchJobType)){
+          matchingExecution = jobExecution;
         }
-
       }
     }
     return Optional.ofNullable(matchingExecution);
   }
 
+  private boolean matches(JobExecution execution, ExecutionMetadata metadata, FullBatchJobType fullBatchJobType) {
+    JobParameters jobParameters = execution.getJobParameters();
+    String datasetId = jobParameters.getString(ARGUMENT_DATASET_ID);
+    boolean datasetMatches = Objects.equals(datasetId, metadata.getDatasetMetadata().getDatasetId());
+
+    if (!datasetMatches) {
+      return false;
+    }
+
+    BatchJobSubType batchJobSubType = fullBatchJobType.getBatchJobSubType();
+    String jobSubTypeString = jobParameters.getString(ARGUMENT_BATCH_JOB_SUBTYPE);
+    final boolean isMatchingWithoutSubtype = batchJobSubType == null && isBlank(jobSubTypeString);
+    final boolean isMatchingWithSubType = batchJobSubType != null && batchJobSubType.name().equals(jobSubTypeString);
+    return isMatchingWithoutSubtype || isMatchingWithSubType;
+  }
+
   private void waitForCompletion(JobExecution jobExecution) {
     try {
       await().atMost(1, DAYS)
-             .pollInterval(5, SECONDS)
+             .pollInterval(JOB_STATE_POLL_INTERVAL_SECONDS, SECONDS)
              .conditionEvaluationListener((ConditionEvaluationListener<Object>) condition ->
                  LOGGER.info("Job Id: {}, status: {}, isRunning: {}", jobExecution.getJobId(), jobExecution.getStatus(),
                      jobExecution.isRunning()))
              .until(() -> !jobExecution.isRunning());
       LOGGER.info("Job finished with status: {}", jobExecution.getStatus());
     } catch (Exception e) {
-      LOGGER.error("Error while waiting for job completion", e);
       throw new RuntimeException(e);
     }
   }

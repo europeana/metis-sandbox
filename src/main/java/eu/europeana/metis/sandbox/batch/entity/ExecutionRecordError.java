@@ -16,8 +16,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record", indexes = {@Index(name = "exec_rec_exception_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
-public class ExecutionRecordException implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
+@Table(schema = "engine_record", indexes = {@Index(name = "exec_rec_error_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+public class ExecutionRecordError implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
 
   @EmbeddedId
   private ExecutionRecordIdentifierKey identifier;

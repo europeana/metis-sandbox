@@ -7,11 +7,11 @@ import lombok.experimental.SuperBuilder;
 
 /**
  * Represents an execution record that indicates a failure and contains details about the exception. This class is a final
- * implementation of the abstract {@link ExecutionRecordDTO}.
+ * implementation of the abstract {@link AbstractExecutionRecordDTO}.
  */
 @Getter
 @SuperBuilder(builderMethodName = "internalBuilder")
-public final class FailExecutionRecordDTO extends ExecutionRecordDTO {
+public final class FailExecutionRecordDTO extends AbstractExecutionRecordDTO {
 
   @NotNull
   private final Exception exception;

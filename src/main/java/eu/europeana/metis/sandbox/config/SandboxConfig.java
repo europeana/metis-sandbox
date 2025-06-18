@@ -37,6 +37,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableConfigurationProperties({ElasticAPMConfiguration.class, WorkflowConfigurationProperties.class})
 class SandboxConfig {
 
+  private static final int WORKFLOW_CORE_POOL_SIZE = 4;
+  private static final int WORKFLOW_QUEUE_CAPACITY = 20;
+
   @Value("${sandbox.enrichment.dereference-url}")
   private String dereferenceServiceUrl;
 
@@ -62,11 +65,10 @@ class SandboxConfig {
 
   @Bean(name = "pipelineTaskExecutor")
   TaskExecutor taskExecutor() {
-    //Can be configurable
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(4);
-    executor.setMaxPoolSize(4);
-    executor.setQueueCapacity(20);
+    executor.setCorePoolSize(WORKFLOW_CORE_POOL_SIZE);
+    executor.setMaxPoolSize(WORKFLOW_CORE_POOL_SIZE);
+    executor.setQueueCapacity(WORKFLOW_QUEUE_CAPACITY);
     executor.setThreadNamePrefix("PipelineJob-");
     executor.initialize();
     return executor;

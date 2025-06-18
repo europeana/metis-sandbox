@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createValidated;
 
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
@@ -26,7 +26,7 @@ import org.springframework.util.function.ThrowingFunction;
 @Component
 @StepScope
 public class OaiRecordHarvesterItemProcessor extends
-    AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
+    AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -75,7 +75,7 @@ public class OaiRecordHarvesterItemProcessor extends
   }
 
   @Override
-  public ExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
+  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
     LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
 
     HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(
@@ -96,7 +96,7 @@ public class OaiRecordHarvesterItemProcessor extends
   }
 
   @Override
-  public ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction() {
+  public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return null;
   }
 }

@@ -16,7 +16,7 @@ import lombok.Setter;
  * Represents the main execution record entity.
  *
  * <p>The identifier is a composite key provided by the {@link ExecutionRecordIdentifierKey} class.
- * <p>Includes a one-to-many relationship with {@link ExecutionRecordWarningException} entities
+ * <p>Includes a one-to-many relationship with {@link ExecutionRecordWarning} entities
  * to manage related warning exceptions.
  */
 @Getter
@@ -24,6 +24,7 @@ import lombok.Setter;
 @Entity
 @Table(schema = "engine_record", indexes = {
     @Index(name = "exec_rec_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+@SuppressWarnings("javaarchitecture:S7027") // False positive. Valid JPA bi-directional mapping.
 public class ExecutionRecord implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
 
   @EmbeddedId
@@ -33,6 +34,6 @@ public class ExecutionRecord implements HasExecutionRecordIdAccess<ExecutionReco
   private String recordData;
 
   @OneToMany(mappedBy = "executionRecord", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ExecutionRecordWarningException> executionRecordWarningException = new ArrayList<>();
+  private List<ExecutionRecordWarning> executionRecordWarning = new ArrayList<>();
 }
 

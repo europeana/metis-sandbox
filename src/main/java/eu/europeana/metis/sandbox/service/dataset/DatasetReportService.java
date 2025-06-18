@@ -5,14 +5,14 @@ import static java.lang.String.format;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -64,8 +64,8 @@ public class DatasetReportService {
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
-  private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
+  private final ExecutionRecordErrorRepository executionRecordErrorRepository;
+  private final ExecutionRecordWarningRepository executionRecordWarningRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   private final HarvestParameterService harvestParameterService;
 
@@ -74,22 +74,22 @@ public class DatasetReportService {
    *
    * @param datasetRepository repository interface for accessing dataset-related data
    * @param executionRecordRepository repository interface for managing execution records
-   * @param executionRecordExceptionRepository repository interface for managing execution record exceptions
-   * @param executionRecordWarningExceptionRepository repository interface for managing execution record warnings and exceptions
+   * @param executionRecordErrorRepository repository interface for managing execution record errors
+   * @param executionRecordWarningRepository repository interface for managing execution record warnings
    * @param executionRecordTierContextRepository repository interface for managing execution record tier context
    * @param transformXsltRepository repository interface for managing XSLT transformations
    * @param harvestParameterService service for handling harvest parameters
    */
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
-      ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
+      ExecutionRecordErrorRepository executionRecordErrorRepository,
+      ExecutionRecordWarningRepository executionRecordWarningRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
       TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService) {
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
-    this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
+    this.executionRecordErrorRepository = executionRecordErrorRepository;
+    this.executionRecordWarningRepository = executionRecordWarningRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
     this.harvestParameterService = harvestParameterService;
@@ -223,18 +223,18 @@ public class DatasetReportService {
     long totalSuccess =
         executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
     long totalFailure =
-        executionRecordExceptionRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+        executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
     long totalWarning =
-        executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+        executionRecordWarningRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
             datasetId, executionName);
     return new StepStatistics(totalSuccess, totalFailure, totalWarning);
   }
 
   private List<ErrorInfoDTO> getErrorInfo(String datasetId, FullBatchJobType fullBatchJobType) {
-    Map<GroupedExceptionKey, List<String>> groupedExceptions = collectGroupedExceptions(datasetId, fullBatchJobType);
+    Map<GroupedIssueKey, List<String>> groupedIssues = collectGroupedIssues(datasetId, fullBatchJobType);
 
     List<ErrorInfoDTO> result = new ArrayList<>();
-    for (Map.Entry<GroupedExceptionKey, List<String>> entry : groupedExceptions.entrySet()) {
+    for (Map.Entry<GroupedIssueKey, List<String>> entry : groupedIssues.entrySet()) {
       List<String> sortedRecordIds = entry.getValue().stream().sorted().toList();
       result.add(new ErrorInfoDTO(entry.getKey().message(), entry.getKey().status(), sortedRecordIds
       ));
@@ -243,33 +243,32 @@ public class DatasetReportService {
     return result;
   }
 
-  private @NotNull Map<GroupedExceptionKey, List<String>> collectGroupedExceptions(String datasetId,
-      FullBatchJobType fullBatchJobType) {
+  private @NotNull Map<GroupedIssueKey, List<String>> collectGroupedIssues(String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
-    List<ExecutionRecordException> recordExceptionLogs =
-        executionRecordExceptionRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+    List<ExecutionRecordError> executionRecordErrors =
+        executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
 
-    Map<GroupedExceptionKey, List<String>> groupedExceptions = new LinkedHashMap<>();
-    for (ExecutionRecordException recordExceptionLog : recordExceptionLogs) {
-      String recordId = formatRecordId(recordExceptionLog.getIdentifier());
-      GroupedExceptionKey key = new GroupedExceptionKey(Status.FAIL, recordExceptionLog.getException());
-      groupedExceptions.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+    Map<GroupedIssueKey, List<String>> groupedIssues = new LinkedHashMap<>();
+    for (ExecutionRecordError executionRecordError : executionRecordErrors) {
+      String recordId = formatRecordId(executionRecordError.getIdentifier());
+      GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, executionRecordError.getException());
+      groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
 
-    List<ExecutionRecordWarningException> warningExceptions =
-        executionRecordWarningExceptionRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+    List<ExecutionRecordWarning> executionRecordWarnings =
+        executionRecordWarningRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
             datasetId, executionName);
 
-    for (ExecutionRecordWarningException warningException : warningExceptions) {
-      String recordId = formatRecordId(warningException.getExecutionRecord().getIdentifier());
-      GroupedExceptionKey key = new GroupedExceptionKey(Status.WARN, warningException.getMessage());
-      groupedExceptions.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+    for (ExecutionRecordWarning executionRecordWarning : executionRecordWarnings) {
+      String recordId = formatRecordId(executionRecordWarning.getExecutionRecord().getIdentifier());
+      GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
+      groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
-    return groupedExceptions;
+    return groupedIssues;
   }
 
-  private static @NotNull String formatRecordId(ExecutionRecordIdentifierKey warningException) {
-    return String.format("%s | %s", warningException.getRecordId(), warningException.getSourceRecordId());
+  private static @NotNull String formatRecordId(ExecutionRecordIdentifierKey executionRecordIdentifierKey) {
+    return String.format("%s | %s", executionRecordIdentifierKey.getRecordId(), executionRecordIdentifierKey.getSourceRecordId());
   }
 
   private String getPublishPortalUrl(DatasetEntity datasetEntity, long totalRecords, long completedRecords) {
@@ -322,7 +321,7 @@ public class DatasetReportService {
 
   }
 
-  private record GroupedExceptionKey(Status status, String message) {
+  private record GroupedIssueKey(Status status, String message) {
 
   }
 }

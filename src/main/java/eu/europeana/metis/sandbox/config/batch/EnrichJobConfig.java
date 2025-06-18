@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.ENRICH;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
@@ -57,11 +57,11 @@ public class EnrichJobConfig {
   Step enrichStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("enrichRepositoryItemReader") RepositoryItemReader<ExecutionRecord> enrichRepositoryItemReader,
-      @Qualifier("enrichAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor,
-      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      @Qualifier("enrichAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> enrichAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(enrichRepositoryItemReader)
         .processor(enrichAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -77,10 +77,10 @@ public class EnrichJobConfig {
   }
 
   @Bean("enrichAsyncItemProcessor")
-  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichAsyncItemProcessor(
-      @Qualifier("enrichItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichItemProcessor,
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> enrichAsyncItemProcessor(
+      @Qualifier("enrichItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> enrichItemProcessor,
       @Qualifier("enrichStepAsyncTaskExecutor") TaskExecutor enrichStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(enrichItemProcessor);
     asyncItemProcessor.setTaskExecutor(enrichStepAsyncTaskExecutor);
     return asyncItemProcessor;

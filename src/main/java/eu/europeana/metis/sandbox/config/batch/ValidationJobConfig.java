@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingChunkListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
@@ -62,13 +62,13 @@ public class ValidationJobConfig {
   Step validationStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("validationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
-      @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
-      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> validationAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener,
       LoggingChunkListener loggingChunkListener,
       ProblemPatternsStepExecutionListener problemPatternsStepExecutionListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(validationRepositoryItemReader)
         .processor(validationAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -86,10 +86,10 @@ public class ValidationJobConfig {
   }
 
   @Bean("validationAsyncItemProcessor")
-  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor(
-      @Qualifier("validationItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> validationItemProcessor,
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> validationAsyncItemProcessor(
+      @Qualifier("validationItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> validationItemProcessor,
       @Qualifier("validationStepAsyncTaskExecutor") TaskExecutor validationStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(validationItemProcessor);
     asyncItemProcessor.setTaskExecutor(validationStepAsyncTaskExecutor);
     return asyncItemProcessor;

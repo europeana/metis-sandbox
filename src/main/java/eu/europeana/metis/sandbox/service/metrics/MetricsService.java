@@ -3,11 +3,11 @@ package eu.europeana.metis.sandbox.service.metrics;
 import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.DatasetStatisticProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository.DatasetProblemPatternStatisticProjection;
@@ -35,8 +35,8 @@ public class MetricsService {
   public static final String BASE_UNIT_DATASET = "Dataset";
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
-  private final ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
+  private final ExecutionRecordErrorRepository executionRecordErrorRepository;
+  private final ExecutionRecordWarningRepository executionRecordWarningRepository;
   private final DatasetProblemPatternRepository problemPatternRepository;
   private final MeterRegistry meterRegistry;
 
@@ -50,20 +50,20 @@ public class MetricsService {
    * Constructor.
    *
    * @param executionRecordRepository repository for handling execution records
-   * @param executionRecordExceptionRepository repository for handling execution record exceptions
-   * @param executionRecordWarningExceptionRepository repository for handling execution record warnings
+   * @param executionRecordErrorRepository repository for handling execution record exceptions
+   * @param executionRecordWarningRepository repository for handling execution record warnings
    * @param problemPatternRepository repository for managing dataset problem patterns
    * @param meterRegistry registry for managing metrics
    */
   public MetricsService(
       ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
-      ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository,
+      ExecutionRecordErrorRepository executionRecordErrorRepository,
+      ExecutionRecordWarningRepository executionRecordWarningRepository,
       DatasetProblemPatternRepository problemPatternRepository,
       MeterRegistry meterRegistry) {
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
-    this.executionRecordWarningExceptionRepository = executionRecordWarningExceptionRepository;
+    this.executionRecordErrorRepository = executionRecordErrorRepository;
+    this.executionRecordWarningRepository = executionRecordWarningRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
   }
@@ -108,8 +108,8 @@ public class MetricsService {
     problemPatternStatistics = problemPatternRepository.getProblemPatternStatistics();
 
     successStepCounts = mapStepStatistics(executionRecordRepository.getStepStatistics());
-    warningStepCounts = mapStepStatistics(executionRecordWarningExceptionRepository.getStepStatistics());
-    errorStepCounts = mapStepStatistics(executionRecordExceptionRepository.getStepStatistics());
+    warningStepCounts = mapStepStatistics(executionRecordWarningRepository.getStepStatistics());
+    errorStepCounts = mapStepStatistics(executionRecordErrorRepository.getStepStatistics());
 
     LOGGER.debug("metrics report retrieval");
   }

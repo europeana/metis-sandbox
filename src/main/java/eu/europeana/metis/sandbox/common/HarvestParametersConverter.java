@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParameters;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import lombok.experimental.UtilityClass;
 
 /**
  * Utility class to convert between HarvestParametersEntity and HarvestParametersDTO.
@@ -18,6 +19,7 @@ import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
  * <p>Supports conversion for various types of harvesting parameters, including OAI-PMH, HTTP, and File harvests.
  * <p>Handles mapping of entity-specific fields and validation of supported types.
  */
+@UtilityClass
 public class HarvestParametersConverter {
 
   /**

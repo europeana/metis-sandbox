@@ -16,11 +16,11 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -62,9 +62,9 @@ class DatasetReportServiceTest {
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
   @Mock
-  private ExecutionRecordExceptionRepository executionRecordExceptionRepository;
+  private ExecutionRecordErrorRepository executionRecordErrorRepository;
   @Mock
-  private ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
+  private ExecutionRecordWarningRepository executionRecordWarningRepository;
   @Mock
   private ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   @Mock
@@ -195,9 +195,9 @@ class DatasetReportServiceTest {
 
       when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
           .thenReturn(totalSuccessInStep);
-      when(executionRecordExceptionRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
           .thenReturn(totalFailInStep);
-      when(executionRecordWarningExceptionRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+      when(executionRecordWarningRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
           datasetId, stepName)).thenReturn(totalWarningInStep);
 
       ExecutionRecordIdentifierKey identifierKey = new ExecutionRecordIdentifierKey();
@@ -209,15 +209,15 @@ class DatasetReportServiceTest {
       ExecutionRecord executionRecord = new ExecutionRecord();
       executionRecord.setIdentifier(identifierKey);
 
-      ExecutionRecordWarningException warning = new ExecutionRecordWarningException();
-      warning.setExecutionRecord(executionRecord);
-      warning.setException("exception");
-      warning.setMessage("warning");
+      ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
+      executionRecordWarning.setExecutionRecord(executionRecord);
+      executionRecordWarning.setException("exception");
+      executionRecordWarning.setMessage("warning");
 
-      when(executionRecordExceptionRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
           .thenReturn(List.of());
-      when(executionRecordWarningExceptionRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
-          datasetId, stepName)).thenReturn(List.of(warning));
+      when(executionRecordWarningRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+          datasetId, stepName)).thenReturn(List.of(executionRecordWarning));
     }
     ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(valueOf(datasetEntity.getDatasetId()));
 

@@ -112,7 +112,8 @@ public class DatasetTierController {
   @ApiResponse(responseCode = "200")
   @ApiResponse(responseCode = "404")
   @ApiResponse(responseCode = "400")
-  @GetMapping(value = "{id}/record", produces = APPLICATION_XML_VALUE)
+  //todo: remove the application/rdf+xml in coordination with the ui
+  @GetMapping(value = "{id}/record", produces = {APPLICATION_XML_VALUE, "application/rdf+xml"})
   public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
       @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
     final Set<String> executionNames;

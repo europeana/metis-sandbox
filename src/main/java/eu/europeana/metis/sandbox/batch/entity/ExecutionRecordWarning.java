@@ -21,11 +21,11 @@ import lombok.Setter;
  */
 @Entity
 @Table(schema = "engine_record", indexes = {
-    @Index(name = "exec_rec_warning_exception_dataset_id_execution_id_idx", columnList = "datasetId, executionId")
+    @Index(name = "exec_rec_warning_dataset_id_execution_id_idx", columnList = "datasetId, executionId")
 })
 @Getter
 @Setter
-public class ExecutionRecordWarningException {
+public class ExecutionRecordWarning {
 
   @Id
   @GeneratedValue

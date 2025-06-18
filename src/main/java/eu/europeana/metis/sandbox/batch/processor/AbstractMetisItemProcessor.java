@@ -1,9 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import static java.lang.String.format;
-
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
@@ -49,7 +47,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
     LOGGER.info("Initializing batch job type: {}", fullBatchJobType.name());
   }
 
-  abstract ThrowingFunction<JobMetadataDTO, ExecutionRecordDTO> getProcessRecordFunction();
+  abstract ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction();
 
   String getExecutionName() {
     return fullBatchJobType.name();
@@ -72,7 +70,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
     try {
       return function.apply(input);
     } catch (Exception e) {
-      LOGGER.warn(format("Exception occurred while processing input %s: %s", input, e.getMessage()), e);
+      LOGGER.warn("Exception occurred while processing input {}: {}", input, e.getMessage(), e);
       return exceptionHandler.apply(input, e);
     }
   }

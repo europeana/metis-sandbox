@@ -9,11 +9,13 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lombok.experimental.UtilityClass;
 
 /**
  * Utility class providing methods for creating and validating objects built using builders.
  */
-public class ValidatedBuilderUtil {
+@UtilityClass
+public final class ValidatedBuilderUtil {
 
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
   private static final Validator validator = factory.getValidator();

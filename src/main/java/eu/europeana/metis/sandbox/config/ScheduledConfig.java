@@ -26,6 +26,8 @@ class ScheduledConfig {
   static class ScheduledTasks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final int SCHEDULED_TASK_POOL_SIZE = 5;
+    private static final int AWAIT_TERMINATION_SECONDS = 10;
     private final MetricsService metricsService;
     private final XsltUrlUpdateService xsltUrlUpdateService;
     private final DataCleanupService dataCleanupService;
@@ -44,10 +46,10 @@ class ScheduledConfig {
     @Bean
     ThreadPoolTaskScheduler taskScheduler() {
       ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-      scheduler.setPoolSize(5);
+      scheduler.setPoolSize(SCHEDULED_TASK_POOL_SIZE);
       scheduler.setThreadNamePrefix("Scheduled-");
       scheduler.setWaitForTasksToCompleteOnShutdown(true);
-      scheduler.setAwaitTerminationSeconds(10);
+      scheduler.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
       return scheduler;
     }
 

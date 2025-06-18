@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.reader.FileItemReader;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
@@ -48,9 +48,9 @@ public class FileHarvestJobConfig {
   Step fileHarvestStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       FileItemReader fileItemReader,
-      ItemWriter<ExecutionRecordDTO> executionRecordWriter) {
+      ItemWriter<AbstractExecutionRecordDTO> executionRecordWriter) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<AbstractExecutionRecordDTO, AbstractExecutionRecordDTO>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(fileItemReader)
         .writer(executionRecordWriter)
         .build();

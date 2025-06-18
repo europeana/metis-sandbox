@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.batch.processor.listener;
 
 import static java.lang.String.format;
 
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdAccess;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.HasExecutionRecordIdAccess;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 @Component
 public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? extends ExecutionRecordIdAccess>>
-    implements ItemProcessListener<T, Future<ExecutionRecordDTO>> {
+    implements ItemProcessListener<T, Future<AbstractExecutionRecordDTO>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -36,7 +36,7 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? e
   }
 
   @Override
-  public void afterProcess(@NotNull T item, Future<ExecutionRecordDTO> future) {
+  public void afterProcess(@NotNull T item, Future<AbstractExecutionRecordDTO> future) {
     ExecutionRecordIdAccess executionRecordIdAccess = item.getIdentifier();
 
     final StringBuilder logBuilder = new StringBuilder(format(
@@ -50,8 +50,7 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? e
     if (executionRecordIdAccess instanceof ExecutionRecordIdentifierKey executionRecordIdentifierKey) {
       logBuilder.append(format(", recordId: %s", executionRecordIdentifierKey.getRecordId()));
     }
-
-    LOGGER.debug(logBuilder.toString());
+    LOGGER.atDebug().log(logBuilder::toString);
   }
 
   @Override

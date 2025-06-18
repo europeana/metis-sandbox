@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @SuperBuilder(builderMethodName = "internalBuilder")
-public final class SuccessExecutionRecordDTO extends ExecutionRecordDTO {
+public final class SuccessExecutionRecordDTO extends AbstractExecutionRecordDTO {
 
   @NotBlank
   private final String recordData;

@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.DEBIAS;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
@@ -56,11 +56,11 @@ public class DebiasJobConfig {
   Step debiasStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("debiasRepositoryItemReader") RepositoryItemReader<ExecutionRecord> debiasRepositoryItemReader,
-      @Qualifier("debiasAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> debiasAsyncItemProcessor,
-      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      @Qualifier("debiasAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> debiasAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(debiasRepositoryItemReader)
         .processor(debiasAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -76,10 +76,10 @@ public class DebiasJobConfig {
   }
 
   @Bean("debiasAsyncItemProcessor")
-  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> debiasAsyncItemProcessor(
-      @Qualifier("debiasItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> debiasItemProcessor,
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> debiasAsyncItemProcessor(
+      @Qualifier("debiasItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> debiasItemProcessor,
       @Qualifier("debiasStepAsyncTaskExecutor") TaskExecutor debiasStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(debiasItemProcessor);
     asyncItemProcessor.setTaskExecutor(debiasStepAsyncTaskExecutor);
     return asyncItemProcessor;

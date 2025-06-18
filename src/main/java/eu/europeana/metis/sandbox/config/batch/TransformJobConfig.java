@@ -4,7 +4,7 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.TRANSFORM;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -57,11 +57,11 @@ public class TransformJobConfig {
   Step transformStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("transformRepositoryItemReader") RepositoryItemReader<ExecutionRecord> transformRepositoryItemReader,
-      @Qualifier("transformAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor,
-      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      @Qualifier("transformAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> transformAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(transformRepositoryItemReader)
         .processor(transformAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -77,10 +77,10 @@ public class TransformJobConfig {
   }
 
   @Bean("transformAsyncItemProcessor")
-  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformAsyncItemProcessor(
-      @Qualifier("transformItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> transformItemProcessor,
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> transformAsyncItemProcessor(
+      @Qualifier("transformItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> transformItemProcessor,
       @Qualifier("transformStepAsyncTaskExecutor") TaskExecutor transformStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(transformItemProcessor);
     asyncItemProcessor.setTaskExecutor(transformStepAsyncTaskExecutor);
     return asyncItemProcessor;

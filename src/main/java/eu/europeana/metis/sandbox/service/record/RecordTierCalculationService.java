@@ -5,8 +5,8 @@ import eu.europeana.indexing.tiers.view.ProcessingError;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import org.springframework.web.util.UriTemplate;
 public class RecordTierCalculationService {
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
+  private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   @Value("${sandbox.portal.publish.record-base-url}")
   private final String portalPublishRecordBaseUrl;
 
@@ -37,10 +37,10 @@ public class RecordTierCalculationService {
    * @param portalPublishRecordBaseUrl the portal publish record base url
    */
   public RecordTierCalculationService(ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
+      ExecutionRecordErrorRepository executionRecordErrorRepository,
       @Qualifier("portalPublishRecordBaseUrl") String portalPublishRecordBaseUrl) {
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
+    this.executionRecordErrorRepository = executionRecordErrorRepository;
     this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }
 
@@ -60,12 +60,12 @@ public class RecordTierCalculationService {
           executionRecord.getRecordData(),
           portalPublishRecordUrl, processingErrors);
 
-      ExecutionRecordException executionRecordException =
-          executionRecordExceptionRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+      ExecutionRecordError executionRecordError =
+          executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
               datasetId, recordId, FullBatchJobType.MEDIA.name());
-      if (Objects.nonNull(executionRecordException)) {
+      if (Objects.nonNull(executionRecordError)) {
         processingErrors.add(
-            new ProcessingError(executionRecordException.getException(), executionRecordException.getException()));
+            new ProcessingError(executionRecordError.getException(), executionRecordError.getException()));
       }
       recordTierCalculationView = recordTierCalculationViewGenerator.generate();
     }

@@ -14,7 +14,11 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @SuperBuilder(builderMethodName = "internalBuilder")
-public abstract sealed class ExecutionRecordDTO permits SuccessExecutionRecordDTO, FailExecutionRecordDTO {
+@SuppressWarnings({
+    "javaarchitecture:S7027", // False positive circular detection. Valid sealed/permits mapping.
+    "java:S1694"              // Abstract DTO for polymorphic structure – no abstract methods needed.
+})
+public abstract sealed class AbstractExecutionRecordDTO permits SuccessExecutionRecordDTO, FailExecutionRecordDTO {
 
   @NotBlank
   private String datasetId;

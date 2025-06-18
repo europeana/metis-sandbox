@@ -8,11 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.DatasetStatisticProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository.DatasetProblemPatternStatisticProjection;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
@@ -32,9 +32,9 @@ class MetricsServiceTest {
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
   @Mock
-  private ExecutionRecordExceptionRepository executionRecordExceptionRepository;
+  private ExecutionRecordErrorRepository executionRecordErrorRepository;
   @Mock
-  private ExecutionRecordWarningExceptionRepository executionRecordWarningExceptionRepository;
+  private ExecutionRecordWarningRepository executionRecordWarningRepository;
   @Mock
   private DatasetProblemPatternRepository problemPatternRepository;
 
@@ -47,8 +47,8 @@ class MetricsServiceTest {
     meterRegistry = new SimpleMeterRegistry();
     metricsService = new MetricsService(
         executionRecordRepository,
-        executionRecordExceptionRepository,
-        executionRecordWarningExceptionRepository,
+        executionRecordErrorRepository,
+        executionRecordWarningRepository,
         problemPatternRepository,
         meterRegistry
     );
@@ -72,8 +72,8 @@ class MetricsServiceTest {
     when(step1.getStep()).thenReturn(FullBatchJobType.HARVEST_FILE.name());
     when(step1.getCount()).thenReturn(5L);
     when(executionRecordRepository.getStepStatistics()).thenReturn(List.of(step1));
-    when(executionRecordWarningExceptionRepository.getStepStatistics()).thenReturn(List.of());
-    when(executionRecordExceptionRepository.getStepStatistics()).thenReturn(List.of());
+    when(executionRecordWarningRepository.getStepStatistics()).thenReturn(List.of());
+    when(executionRecordErrorRepository.getStepStatistics()).thenReturn(List.of());
 
     metricsService.generateMetrics();
 
@@ -90,8 +90,8 @@ class MetricsServiceTest {
     verify(executionRecordRepository, times(1)).getDatasetStatistics();
     verify(problemPatternRepository, times(1)).getProblemPatternStatistics();
     verify(executionRecordRepository, times(1)).getStepStatistics();
-    verify(executionRecordWarningExceptionRepository, times(1)).getStepStatistics();
-    verify(executionRecordExceptionRepository, times(1)).getStepStatistics();
+    verify(executionRecordWarningRepository, times(1)).getStepStatistics();
+    verify(executionRecordErrorRepository, times(1)).getStepStatistics();
   }
 
   @Test

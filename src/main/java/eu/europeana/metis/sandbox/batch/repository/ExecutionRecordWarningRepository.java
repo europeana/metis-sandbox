@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarningException;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,11 +8,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for managing ExecutionRecordWarningExceptionRepository entities.
+ * Repository interface for managing {@link ExecutionRecordWarning} entities.
  */
 @Repository
-public interface ExecutionRecordWarningExceptionRepository extends
-    JpaRepository<ExecutionRecordWarningException, Long> {
+public interface ExecutionRecordWarningRepository extends
+    JpaRepository<ExecutionRecordWarning, Long> {
 
   /**
    * Finds a list of ExecutionRecordWarningException entities based on the dataset ID and execution name.
@@ -21,7 +21,7 @@ public interface ExecutionRecordWarningExceptionRepository extends
    * @param executionName The name of the execution associated with the execution record.
    * @return A list of ExecutionRecordWarningException entities matching the given criteria.
    */
-  List<ExecutionRecordWarningException> findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+  List<ExecutionRecordWarning> findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
       String datasetId, String executionName);
 
   /**

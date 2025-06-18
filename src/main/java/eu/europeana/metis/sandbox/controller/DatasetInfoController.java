@@ -53,8 +53,6 @@ public class DatasetInfoController {
   @GetMapping(value = "{id}/progress", produces = APPLICATION_JSON_VALUE)
   public ExecutionProgressInfoDTO getDatasetProgress(
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId) {
-    //TODO 24-02-2022: We need to update the type of info encapsulate in this object. The number of duplicated record is missing for example
-    //        return reportService.getReport(datasetId);
     return datasetReportService.getProgress(datasetId);
   }
 

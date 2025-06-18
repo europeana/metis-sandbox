@@ -4,7 +4,7 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.NORMALIZE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -57,11 +57,11 @@ public class NormalizeJobConfig {
   Step normalizeStep(JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("normalizeRepositoryItemReader") RepositoryItemReader<ExecutionRecord> normalizeRepositoryItemReader,
-      @Qualifier("normalizeAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizeAsyncItemProcessor,
-      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      @Qualifier("normalizeAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> normalizeAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(normalizeRepositoryItemReader)
         .processor(normalizeAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -77,10 +77,10 @@ public class NormalizeJobConfig {
   }
 
   @Bean("normalizeAsyncItemProcessor")
-  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizeAsyncItemProcessor(
-      @Qualifier("normalizeItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizeItemProcessor,
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> normalizeAsyncItemProcessor(
+      @Qualifier("normalizeItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> normalizeItemProcessor,
       @Qualifier("normalizeStepAsyncTaskExecutor") TaskExecutor normalizeStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(normalizeItemProcessor);
     asyncItemProcessor.setTaskExecutor(normalizeStepAsyncTaskExecutor);
     return asyncItemProcessor;

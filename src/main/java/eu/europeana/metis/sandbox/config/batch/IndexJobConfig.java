@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.INDEX;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
@@ -58,11 +58,11 @@ public class IndexJobConfig {
       JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("indexRepositoryItemReader") RepositoryItemReader<ExecutionRecord> indexRepositoryItemReader,
-      @Qualifier("indexAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> indexAsyncItemProcessor,
-      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      @Qualifier("indexAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> indexAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(indexRepositoryItemReader)
         .processor(indexAsyncItemProcessor)
         .listener(loggingItemProcessListener)
@@ -78,10 +78,10 @@ public class IndexJobConfig {
   }
 
   @Bean("indexAsyncItemProcessor")
-  ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> indexAsyncItemProcessor(
-      @Qualifier("indexItemProcessor") ItemProcessor<ExecutionRecord, ExecutionRecordDTO> indexItemProcessor,
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> indexAsyncItemProcessor(
+      @Qualifier("indexItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> indexItemProcessor,
       @Qualifier("indexStepAsyncTaskExecutor") TaskExecutor indexAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(indexItemProcessor);
     asyncItemProcessor.setTaskExecutor(indexAsyncTaskExecutor);
     return asyncItemProcessor;

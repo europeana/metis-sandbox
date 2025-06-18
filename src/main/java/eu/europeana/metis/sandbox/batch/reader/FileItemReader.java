@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.service.workflow.FileHarvestService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
@@ -28,14 +28,14 @@ import org.springframework.stereotype.Component;
  * <p>The reader initializes an iterator OF harvested records using {@link FileHarvestService}
  * during the {@code @PostConstruct} phase to prepare the data for batch processing.
  *
- * <p>Each call to {@link #read()} returns an {@link ExecutionRecordDTO}, representing a single
+ * <p>Each call to {@link #read()} returns an {@link AbstractExecutionRecordDTO}, representing a single
  * successfully validated record, or {@code null} when no further records are available.
  *
  * <p>Note: This reader is not restartable and is not optimized at its current state.
  */
 @StepScope
 @Component
-public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
+public class FileItemReader implements ItemReader<AbstractExecutionRecordDTO> {
 
   private static final BatchJobType batchJobType = HARVEST_FILE;
 
@@ -69,7 +69,7 @@ public class FileItemReader implements ItemReader<ExecutionRecordDTO> {
   }
 
   @Override
-  public ExecutionRecordDTO read() {
+  public AbstractExecutionRecordDTO read() {
     Entry<String, HarvestedRecord> recordIdAndContent = takeRecordIdAndContent();
     if (recordIdAndContent != null) {
       return SuccessExecutionRecordDTO.createValidated(b -> b

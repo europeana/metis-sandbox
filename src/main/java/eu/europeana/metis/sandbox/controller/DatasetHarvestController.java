@@ -48,11 +48,17 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Dataset Harvest Controller")
 public class DatasetHarvestController {
 
-  private static final String MESSAGE_FOR_DATASET_VALID_NAME = "dataset name can only include letters, numbers, _ or - characters";
-  private static final String MESSAGE_FOR_STEP_SIZE_VALID_VALUE = "Step size must be a number higher than zero";
+  private static final String INVALID_DATASET_NAME_MESSAGE = "dataset name can only include letters, numbers, _ or - characters";
+  private static final String INVALID_STEP_SIZE_MESSAGE = "Step size must be a number higher than zero";
+  private static final String INVALID_URL_MESSAGE = "The provided url is invalid. Please provide a valid url.";
+  private static final String EMPTY_DATA_FILE_MESSAGE = "Data file must not be empty when provided";
+  private static final String EMPTY_XSLT_FILE_MESSAGE = "Xslt file must not be empty when provided";
 
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
-  private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
+  private static final String HTTP_SCHEME = "http";
+  private static final String HTTPS_SCHEME = "https";
+  private static final String FILE_SCHEME = "file";
+  private static final List<String> VALID_SCHEMES_URL = List.of(HTTP_SCHEME, HTTPS_SCHEME, FILE_SCHEME);
   private final UrlValidator urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
   private final DatasetExecutionService datasetExecutionService;
 
@@ -107,9 +113,10 @@ public class DatasetHarvestController {
     } else {
       userId = getUserId(jwtPrincipal);
     }
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
-    checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), INVALID_DATASET_NAME_MESSAGE);
+    checkArgument(urlValidator.isValid(url), INVALID_URL_MESSAGE);
+    checkArgument(xsltFile == null || !xsltFile.isEmpty(), EMPTY_XSLT_FILE_MESSAGE);
+    checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
 
     String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetName, country, language, stepsize,
         url, setspec, metadataformat, xsltFile, userId);
@@ -154,8 +161,10 @@ public class DatasetHarvestController {
     } else {
       userId = getUserId(jwtPrincipal);
     }
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), INVALID_DATASET_NAME_MESSAGE);
+    checkArgument(datasetRecordsCompressedFile == null || !datasetRecordsCompressedFile.isEmpty(), EMPTY_DATA_FILE_MESSAGE);
+    checkArgument(xsltFile == null || !xsltFile.isEmpty(), EMPTY_XSLT_FILE_MESSAGE);
+    checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
         datasetRecordsCompressedFile);
 
@@ -200,9 +209,9 @@ public class DatasetHarvestController {
     } else {
       userId = getUserId(jwtPrincipal);
     }
-    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), MESSAGE_FOR_DATASET_VALID_NAME);
-    checkArgument(urlValidator.isValid(url), "The provided url is invalid. Please provide a valid url.");
-    checkArgument(stepsize > 0, MESSAGE_FOR_STEP_SIZE_VALID_VALUE);
+    checkArgument(NAME_PATTERN.matcher(datasetName).matches(), INVALID_DATASET_NAME_MESSAGE);
+    checkArgument(urlValidator.isValid(url), INVALID_URL_MESSAGE);
+    checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
     URI uri = URI.create(url);
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
 
@@ -225,15 +234,15 @@ public class DatasetHarvestController {
     try {
       final String scheme = uri.getScheme();
 
-      if ((!"file".equalsIgnoreCase(scheme) &&
-          !"http".equalsIgnoreCase(scheme) &&
-          !"https".equalsIgnoreCase(scheme))) {
+      if ((!FILE_SCHEME.equalsIgnoreCase(scheme) &&
+          !HTTP_SCHEME.equalsIgnoreCase(scheme) &&
+          !HTTPS_SCHEME.equalsIgnoreCase(scheme))) {
         throw new InvalidCompressedFileException(
             new IllegalArgumentException("Unsupported or unsafe URL scheme: " + scheme));
       }
 
       final String fileContentType;
-      if ("file".equalsIgnoreCase(scheme)) {
+      if (FILE_SCHEME.equalsIgnoreCase(scheme)) {
         Path path = Paths.get(uri).normalize();
         fileContentType = Files.probeContentType(path);
       } else {
@@ -264,5 +273,4 @@ public class DatasetHarvestController {
       throw new InvalidCompressedFileException(new Exception("The compressed file type is invalid"));
     }
   }
-
 }

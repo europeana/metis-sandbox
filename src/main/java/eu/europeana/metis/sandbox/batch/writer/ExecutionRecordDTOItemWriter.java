@@ -2,12 +2,12 @@ package eu.europeana.metis.sandbox.batch.writer;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordException;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExceptionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import java.lang.invoke.MethodHandles;
@@ -22,13 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of {@link ItemWriter} for writing {@link ExecutionRecordDTO} objects to corresponding repositories.
+ * Implementation of {@link ItemWriter} for writing {@link AbstractExecutionRecordDTO} objects to corresponding repositories.
  *
- * <p>This class processes a chunk of {@link ExecutionRecordDTO} instances and segregates them into
- * {@link ExecutionRecord}, {@link ExecutionRecordException} and adds optional {@link ExecutionRecordTierContext} entities based
- * on the type of {@link ExecutionRecordDTO}.
+ * <p>This class processes a chunk of {@link AbstractExecutionRecordDTO} instances and segregates them into
+ * {@link ExecutionRecord}, {@link ExecutionRecordError} and adds optional {@link ExecutionRecordTierContext} entities based
+ * on the type of {@link AbstractExecutionRecordDTO}.
  * <p>The segregated entities are then persisted using the respective repositories
- * {@link ExecutionRecordRepository}, {@link ExecutionRecordExceptionRepository}, and
+ * {@link ExecutionRecordRepository}, {@link ExecutionRecordErrorRepository}, and
  * {@link ExecutionRecordTierContextRepository}.
  *
  * <p>The class ensures that successful execution records and their tier contexts are stored appropriately,
@@ -36,52 +36,52 @@ import org.springframework.stereotype.Component;
  */
 @StepScope
 @Component
-public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordDTO> {
+public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ExecutionRecordRepository executionRecordRepository;
-  private final ExecutionRecordExceptionRepository executionRecordExceptionRepository;
+  private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
   /**
    * Constructor.
    *
    * @param executionRecordRepository The repository for managing ExecutionRecord entities.
-   * @param executionRecordExceptionRepository The repository for managing ExecutionRecordException entities.
+   * @param executionRecordErrorRepository The repository for managing ExecutionRecordException entities.
    * @param executionRecordTierContextRepository The repository for managing tier contexts of execution records.
    */
   @Autowired
   public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordExceptionRepository executionRecordExceptionRepository,
+      ExecutionRecordErrorRepository executionRecordErrorRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
     this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordExceptionRepository = executionRecordExceptionRepository;
+    this.executionRecordErrorRepository = executionRecordErrorRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
   @Override
-  public void write(Chunk<? extends ExecutionRecordDTO> chunk) {
+  public void write(Chunk<? extends AbstractExecutionRecordDTO> chunk) {
     LOGGER.info("In writer writing chunk");
     final ArrayList<ExecutionRecord> executionRecords = new ArrayList<>();
-    final ArrayList<ExecutionRecordException> executionRecordExceptions = new ArrayList<>();
+    final ArrayList<ExecutionRecordError> executionRecordErrors = new ArrayList<>();
     final ArrayList<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
-    for (ExecutionRecordDTO executionRecordDTO : chunk) {
+    for (AbstractExecutionRecordDTO executionRecordDTO : chunk) {
       switch (executionRecordDTO) {
         case SuccessExecutionRecordDTO successExecutionRecordDTO -> {
-          executionRecords.add(ExecutionRecordAndDTOConverterUtil.converterToExecutionRecord(successExecutionRecordDTO));
+          executionRecords.add(ExecutionRecordAndDTOConverterUtil.convertToExecutionRecord(successExecutionRecordDTO));
           Optional<ExecutionRecordTierContext> executionRecordTierContext =
-              ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordTierContext(successExecutionRecordDTO);
+              ExecutionRecordAndDTOConverterUtil.convertToExecutionRecordTierContext(successExecutionRecordDTO);
           executionRecordTierContext.ifPresent(executionRecordTierContexts::add);
         }
-        case FailExecutionRecordDTO failExecutionRecordDTO -> executionRecordExceptions.add(
-            ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordExceptionLog(failExecutionRecordDTO));
+        case FailExecutionRecordDTO failExecutionRecordDTO -> executionRecordErrors.add(
+            ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordError(failExecutionRecordDTO));
       }
     }
     LOGGER.info("In writer before saveAll");
     executionRecordRepository.saveAll(executionRecords);
     executionRecordTierContextRepository.saveAll(executionRecordTierContexts);
-    executionRecordExceptionRepository.saveAll(executionRecordExceptions);
+    executionRecordErrorRepository.saveAll(executionRecordErrors);
     LOGGER.info("In writer finished writing chunk");
   }
 }
