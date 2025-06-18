@@ -11,10 +11,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * The type Detection entity.
+ * Dataset debias entity representing its state.
  */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "dataset_debias_detect")
 public class DatasetDeBiasEntity {
@@ -31,95 +37,16 @@ public class DatasetDeBiasEntity {
 
   private ZonedDateTime createdDate;
 
-
   /**
-   * Instantiates a new Detection entity.
-   */
-  public DatasetDeBiasEntity() {
-    // provide explicit no-args constructor as it is required for Hibernate
-  }
-
-  /**
-   * Instantiates a new Detection entity.
+   * Constructor.
    *
-   * @param datasetId the dataset id
-   * @param debiasState the state
+   * @param datasetId the dataset entity associated with the debiasing process
+   * @param debiasState the current state of the debiasing process
+   * @param createdDate the timestamp when the debiasing process was created
    */
   public DatasetDeBiasEntity(DatasetEntity datasetId, DebiasState debiasState, ZonedDateTime createdDate) {
     this.datasetId = datasetId;
     this.debiasState = debiasState;
-    this.createdDate = createdDate;
-  }
-
-  /**
-   * Gets id.
-   *
-   * @return the id
-   */
-  public Long getId() {
-    return id;
-  }
-
-  /**
-   * Sets id.
-   *
-   * @param id the id
-   */
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  /**
-   * Gets dataset id.
-   *
-   * @return the dataset id
-   */
-  public DatasetEntity getDatasetId() {
-    return datasetId;
-  }
-
-  /**
-   * Sets dataset id.
-   *
-   * @param datasetId the dataset id
-   */
-  public void setDatasetId(DatasetEntity datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  /**
-   * Gets state.
-   *
-   * @return the state
-   */
-  public DebiasState getDebiasState() {
-    return debiasState;
-  }
-
-  /**
-   * Sets debiasState.
-   *
-   * @param debiasState the debiasState
-   */
-  public void setDebiasState(DebiasState debiasState) {
-    this.debiasState = debiasState;
-  }
-
-  /**
-   * Gets created date.
-   *
-   * @return the created date
-   */
-  public ZonedDateTime getCreatedDate() {
-    return createdDate;
-  }
-
-  /**
-   * Sets created date.
-   *
-   * @param createdDate the created date
-   */
-  public void setCreatedDate(ZonedDateTime createdDate) {
     this.createdDate = createdDate;
   }
 }

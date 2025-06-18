@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.FileType;
 import lombok.Getter;
 
+/**
+ * Represents the base class for harvesting binary data with file parameters.
+ */
 @Getter
 public abstract class BinaryHarvestDTO extends HarvestParametersDTO {
 
@@ -17,6 +20,14 @@ public abstract class BinaryHarvestDTO extends HarvestParametersDTO {
   @JsonIgnore
   private final byte[] fileContent;
 
+  /**
+   * Constructor.
+   *
+   * @param fileName the name of the file.
+   * @param fileType the type of the file.
+   * @param fileContent the binary content of the file to be harvested.
+   * @param stepSize the step size for harvesting.
+   */
   public BinaryHarvestDTO(String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
     super(stepSize);
     this.fileName = fileName;

@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 
 /**
- * The interface Dataset DeBias repository.
+ * Repository interface for managing DatasetDeBiasEntity entities.
  */
 public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEntity, Long> {
 
@@ -16,24 +16,14 @@ public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEnti
    * Find detection entity by dataset id detection entity.
    *
    * @param datasetId the dataset id
-   * @return the detection entity
+   * @return the dataset debias entity
    */
   DatasetDeBiasEntity findDetectionEntityByDatasetIdDatasetId(Integer datasetId);
 
   /**
-   * Update state.
+   * Deletes all DatasetDeBiasEntity entries associated with the specified dataset ID.
    *
-   * @param datasetId the dataset id
-   * @param state the state
-   */
-  @Modifying
-  @Query("UPDATE DatasetDeBiasEntity dec SET dec.debiasState = :state WHERE dec.datasetId.datasetId = :datasetId")
-  void updateState(@Param("datasetId") Integer datasetId, @Param("state") String state);
-
-  /**
-   * Delete by dataset id.
-   *
-   * @param datasetId the dataset id
+   * @param datasetId the id of the dataset whose associated records are to be deleted
    */
   @Modifying
   @Query("DELETE FROM DatasetDeBiasEntity dec WHERE dec.datasetId.datasetId = :datasetId")

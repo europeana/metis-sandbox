@@ -40,6 +40,12 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Service for handling dataset execution workflows and operations.
+ *
+ * <p>Provides methods for creating and executing datasets with various data sources such as OAI,
+ * file uploads, HTTP URLs, and debiasing operations.
+ */
 @Service
 public class DatasetExecutionService {
 
@@ -52,6 +58,15 @@ public class DatasetExecutionService {
   private final LockRegistry lockRegistry;
   private final BatchJobExecutor batchJobExecutor;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetExecutionSetupService handles setup operations for dataset execution.
+   * @param debiasStateService manages debiasing state and related operations.
+   * @param datasetReportService provides reporting and status tracking for datasets.
+   * @param lockRegistry manages locks for dataset operations to ensure concurrency control.
+   * @param batchJobExecutor executes batch jobs for dataset workflows.
+   */
   public DatasetExecutionService(DatasetExecutionSetupService datasetExecutionSetupService, DeBiasStateService debiasStateService,
       DatasetReportService datasetReportService, LockRegistry lockRegistry, BatchJobExecutor batchJobExecutor) {
     this.datasetExecutionSetupService = datasetExecutionSetupService;
@@ -61,6 +76,24 @@ public class DatasetExecutionService {
     this.batchJobExecutor = batchJobExecutor;
   }
 
+  /**
+   * Creates a dataset based on the provided parameters and submits it for execution.
+   *
+   * <p>This method handles the setup and execution of a dataset workflow using OAI harvest configurations.
+   * <p>After setup, it initiates the dataset processing through the batch job executor.
+   *
+   * @param datasetName the name of the dataset to be created
+   * @param country the country associated with the dataset
+   * @param language the language associated with the dataset
+   * @param stepsize the number of records to process per batch
+   * @param url the URL to fetch OAI-PMH records from
+   * @param setSpec the set specification used for selective harvesting
+   * @param metadataFormat the metadata format of the harvested records
+   * @param xsltFile the XSLT file to transform the harvested records
+   * @param userId the ID of the user initiating the operation
+   * @return the unique dataset ID of the created and submitted dataset
+   * @throws IOException if an error occurs during dataset setup or file handling
+   */
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
@@ -72,6 +105,22 @@ public class DatasetExecutionService {
     return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
+  /**
+   * Creates a dataset and handles the setup and execution of a dataset workflow using compressed FILE harvest configurations.
+   *
+   * <p>After setup, it initiates the dataset processing through the batch job executor.
+   *
+   * @param datasetName the name of the dataset to be created
+   * @param country the country associated with the dataset
+   * @param language the language applicable to the dataset
+   * @param stepsize the step size configuration for the dataset processing
+   * @param compressedFile the compressed file containing dataset data
+   * @param xsltFile the XSLT file for dataset transformation
+   * @param userId the ID of the user initiating the operation
+   * @param extension the file extension type of the compressed file
+   * @return the unique identifier of the created dataset
+   * @throws IOException if an I/O error occurs while processing the files
+   */
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
@@ -84,6 +133,21 @@ public class DatasetExecutionService {
     return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
+  /**
+   * Creates a dataset and handles the setup and execution of a dataset workflow using HTTP/URL harvest configurations.
+   *
+   * <p>After setup, it initiates the dataset processing through the batch job executor.
+   *
+   * @param datasetName the name of the dataset to be created
+   * @param country the country associated with the dataset
+   * @param language the language associated with the dataset
+   * @param stepsize the step size for processing
+   * @param url the URL of the input file to be processed
+   * @param xsltFile the XSLT file for data transformation
+   * @param userId the ID of the user requesting the operation
+   * @param extension the file extension of the compressed input file
+   * @return the unique ID of the created dataset
+   */
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
@@ -103,6 +167,19 @@ public class DatasetExecutionService {
     }
   }
 
+  /**
+   * Creates a dataset and handles the setup and execution of a dataset workflow using XML FILE harvest configurations.
+   *
+   * <p>After setup, it initiates the dataset processing through the batch job executor.
+   * <p>Note: This is a blocking operation and will return when the whole workflow is complete.
+   *
+   * @param datasetName the name of the dataset to be created and validated
+   * @param recordFile the file to be validated as part of the dataset
+   * @param country the country associated with the dataset
+   * @param language the language associated with the dataset
+   * @return the ID of the created dataset
+   * @throws IOException if an I/O error occurs while processing the file
+   */
   public String createAndExecuteDatasetForFileValidationBlocking(String datasetName,
       MultipartFile recordFile, Country country, Language language) throws IOException {
     FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes(), 1);
@@ -113,6 +190,16 @@ public class DatasetExecutionService {
     return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
+  /**
+   * Creates and executes a dataset debiasing process for a given dataset ID.
+   *
+   * <p>Locks the process for a specific dataset ID to ensure exclusive access.
+   * <p>Validates whether the process is ready for debiasing and performs necessary actions.
+   * <p>Triggers the execution of the debias workflow if all conditions are met.
+   *
+   * @param datasetId the unique identifier of the dataset to be debiased
+   * @return true if the debias workflow is successfully triggered; false otherwise
+   */
   public boolean createAndExecuteDatasetForDebias(String datasetId) {
 
     //todo: if the debias db creates DatasetDeBiasEntity that is unique a lock is not needed perse?
@@ -121,9 +208,7 @@ public class DatasetExecutionService {
       lock.lock();
       LOGGER.info("DeBias process: {} lock, Locked", datasetId);
       ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(datasetId);
-
-      ExecutionProgressInfoDTO progress = datasetReportService.getProgress(datasetId);
-      if (progress.executionStatus() != ExecutionStatus.COMPLETED) {
+      if (executionProgressInfoDto.executionStatus() != ExecutionStatus.COMPLETED) {
         return false;
       }
 

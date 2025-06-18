@@ -6,6 +6,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents OAI-specific harvest parameters.
+ */
 @Getter
 @Setter
 @Entity

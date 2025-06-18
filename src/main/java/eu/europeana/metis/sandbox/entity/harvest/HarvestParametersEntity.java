@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,7 +19,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Entity to map harvesting_parameters table
+ * Represents harvest parameters for datasets. It acts as a base class for specific types of harvest parameters.
+ *
+ * <p>It uses database inheritance with {@link Inheritance}.
+ * <p>Classes extending this need to specify {@link DiscriminatorValue} to activate inheritance handling.
  */
 @Getter
 @Setter
@@ -28,13 +32,13 @@ import lombok.Setter;
 @DiscriminatorColumn(name = "harvest_protocol", discriminatorType = DiscriminatorType.STRING)
 public class HarvestParametersEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
-    private DatasetEntity datasetEntity;
+  @OneToOne(cascade = CascadeType.PERSIST)
+  @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
+  private DatasetEntity datasetEntity;
 
-    private Integer stepSize;
+  private Integer stepSize;
 }

@@ -18,6 +18,12 @@ public interface HarvestingParameterRepository extends JpaRepository<HarvestPara
     @Transactional(readOnly = true)
     Optional<HarvestParametersEntity> findById(@NotNull UUID id);
 
+    /**
+     * Retrieves an optional HarvestParametersEntity associated with the specified dataset id.
+     *
+     * @param datasetId the id of the dataset associated with the HarvestParametersEntity
+     * @return an Optional containing the HarvestParametersEntity if present, or empty if not found
+     */
     @Transactional(readOnly = true)
     Optional<HarvestParametersEntity> findByDatasetEntity_DatasetId(Integer datasetId);
 

@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entity to map dataset table
+ * Dataset entity.
  */
 @Getter
 @Setter
@@ -46,14 +46,13 @@ public class DatasetEntity {
   private String createdById;
 
   /**
-   * Constructs a DatasetEntity.
+   * Constructor.
    *
-   * @param datasetName Name of the dataset.
-   * @param language The language associated with the dataset.
-   * @param country The country associated with the dataset.
-   * @param createdById Identifier of the dataset creator.
-   * @param recordsQuantity The number of records in the dataset.
-   * @param recordLimitExceeded A flag indicating whether the dataset exceeds the record limit.
+   * @param datasetName the name of the dataset
+   * @param workflowType the workflow type associated with the dataset
+   * @param language the language of the dataset
+   * @param country the country of the dataset
+   * @param createdById the ID of the user who created the dataset
    */
   public DatasetEntity(String datasetName, WorkflowType workflowType, Language language, Country country, String createdById) {
     this.workflowType = workflowType;

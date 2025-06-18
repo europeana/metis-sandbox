@@ -11,6 +11,9 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Abstract class representing binary-based harvest parameters.
+ */
 @Getter
 @Setter
 @MappedSuperclass

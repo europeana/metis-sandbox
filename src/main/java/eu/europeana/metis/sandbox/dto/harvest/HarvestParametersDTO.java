@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Interface that represents all type of harvesting with their parameters
+ * Interface that represents all types of harvesting with their parameters.
  */
 @Getter
 @AllArgsConstructor

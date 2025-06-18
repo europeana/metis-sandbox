@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import java.util.List;
 
+/**
+ * Represents the execution progress information for a dataset processing workflow.
+ */
 @ApiModel(ExecutionProgressInfoDTO.PROGRESS_SWAGGER_MODEL_NAME)
 public record ExecutionProgressInfoDTO(
     @JsonProperty("portal-publish")

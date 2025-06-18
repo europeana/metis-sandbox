@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entity to map to thumbnail table
+ * Thumbnail identifier entity.
+ *
+ * <p>Represents a mapping between a dataset ID and its associated thumbnail ID.
  */
 @Getter
 @Setter
@@ -27,6 +29,12 @@ public class ThumbnailIdEntity {
 
   private String thumbnailId;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetId the ID of the dataset associated with the thumbnail
+   * @param thumbnailId the ID of the thumbnail associated with the dataset
+   */
   public ThumbnailIdEntity(String datasetId, String thumbnailId) {
     this.datasetId = datasetId;
     this.thumbnailId = thumbnailId;

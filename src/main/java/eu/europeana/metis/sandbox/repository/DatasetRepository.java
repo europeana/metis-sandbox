@@ -6,22 +6,20 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+/**
+ * Repository interface for accessing and performing operations on datasets.
+ */
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
-  /**
-   * Get a list of datasets created before specified date
-   *
-   * @param date must not be null
-   * @return list of dataset ids
-   * @see DatasetIdProjection
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query
-   * Creation</a>
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
-   */
   List<DatasetIdProjection> findByCreatedDateBefore(ZonedDateTime date);
 
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 
+  /**
+   * Projection interface for accessing the dataset ID in queries.
+   *
+   * <p>This projection can be used to fetch only the dataset ID instead of whole dataset entities for optimized queries.
+   */
   interface DatasetIdProjection {
 
     Integer getDatasetId();

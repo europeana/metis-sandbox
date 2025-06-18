@@ -46,6 +46,15 @@ public interface RecordTitleRepository extends JpaRepository<RecordTitle, Record
   void deleteByExecutionPointDatasetId(@Param("datasetId") String datasetId);
 
 
+  /**
+   * Deletes redundant record titles for a given execution point ID.
+   *
+   * <p>Redundant titles are titles that have only one occurrence (case-insensitive).
+   * <p>This allows having only entities for duplicates titles used in reports.
+   *
+   * @param executionPointId the ID of the execution point for which redundant record titles are to be deleted
+   * @return the number of rows affected by the deletion
+   */
   @Modifying
   @Transactional
   @Query(value = """

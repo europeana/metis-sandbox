@@ -13,49 +13,45 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * Entity to map to record_debias_main table
+ * Record debias entity.
  */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "record_debias_main")
 public class RecordDeBiasMainEntity {
 
-  /**
-   * Primary key
-   */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  /**
-   * Reference to record od
-   */
+
   @ManyToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
   private DatasetEntity datasetId;
   private String recordId;
-  /**
-   * The Language.
-   */
+
   @Enumerated(EnumType.STRING)
   protected Language language;
-  /**
-   * The Literal.
-   */
+
   protected String literal;
-  /**
-   * The DeBias source field.
-   */
+
   @Enumerated(EnumType.STRING)
   protected DeBiasSourceField sourceField;
 
   /**
-   * Parameterized constructor
+   * Constructor.
    *
-   * @param recordId the record id
-   * @param literal the literal
-   * @param language the language
-   * @param sourceField the DeBias source field
+   * @param datasetId the associated dataset entity
+   * @param recordId the unique identifier for the record
+   * @param literal the literal value of the record
+   * @param language the language of the record
+   * @param sourceField the source field defining the record's origin
    */
   public RecordDeBiasMainEntity(DatasetEntity datasetId, String recordId, String literal, Language language,
       DeBiasSourceField sourceField) {
@@ -64,110 +60,5 @@ public class RecordDeBiasMainEntity {
     this.literal = literal;
     this.language = language;
     this.sourceField = sourceField;
-  }
-
-  /**
-   * Instantiates a new Record de bias main entity.
-   */
-  public RecordDeBiasMainEntity() {
-    // provide explicit no-args constructor as it is required for Hibernate
-  }
-
-  /**
-   * Gets record id.
-   *
-   * @return the record id
-   */
-  public String getRecordId() {
-    return recordId;
-  }
-
-  /**
-   * Sets record id.
-   *
-   * @param recordId the record id
-   */
-  public void setRecordId(String recordId) {
-    this.recordId = recordId;
-  }
-
-  /**
-   * Gets id.
-   *
-   * @return the id
-   */
-  public Long getId() {
-    return id;
-  }
-
-  /**
-   * Sets id.
-   *
-   * @param id the id
-   */
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  /**
-   * Gets language.
-   *
-   * @return the language
-   */
-  public Language getLanguage() {
-    return language;
-  }
-
-  /**
-   * Sets language.
-   *
-   * @param language the language
-   */
-  public void setLanguage(Language language) {
-    this.language = language;
-  }
-
-  /**
-   * Gets literal.
-   *
-   * @return the literal
-   */
-  public String getLiteral() {
-    return literal;
-  }
-
-  /**
-   * Sets literal.
-   *
-   * @param literal the literal
-   */
-  public void setLiteral(String literal) {
-    this.literal = literal;
-  }
-
-  /**
-   * Gets DeBias source field.
-   *
-   * @return the DeBias source field
-   */
-  public DeBiasSourceField getSourceField() {
-    return sourceField;
-  }
-
-  /**
-   * Sets DeBias source field.
-   *
-   * @param deBiasSourceField the DeBias source field
-   */
-  public void setSourceField(DeBiasSourceField deBiasSourceField) {
-    this.sourceField = deBiasSourceField;
-  }
-
-  public DatasetEntity getDatasetId() {
-    return datasetId;
-  }
-
-  public void setDatasetId(DatasetEntity datasetId) {
-    this.datasetId = datasetId;
   }
 }

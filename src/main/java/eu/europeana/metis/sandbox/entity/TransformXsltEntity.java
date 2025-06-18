@@ -14,9 +14,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entity that maps default xslt transform table
+ * Entity representing a transform XSLT file and its type.
  */
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,12 +35,25 @@ public class TransformXsltEntity {
   @Column(columnDefinition="TEXT", nullable = false)
   private String transformXslt;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetId the identifier of the dataset associated with the transformation
+   * @param type the XSLT type defining the nature of the transformation
+   * @param transformXslt the XSLT content used for the transformation
+   */
   public TransformXsltEntity(String datasetId, XsltType type, String transformXslt) {
     this.datasetId = datasetId;
     this.type = type;
     this.transformXslt = transformXslt;
   }
 
+  /**
+   * Constructor.
+   *
+   * @param xsltType the XSLT type defining the nature of the transformation
+   * @param newTransformXslt the XSLT content used for the transformation
+   */
   public TransformXsltEntity(XsltType xsltType, String newTransformXslt) {
     this.type = xsltType;
     this.transformXslt = newTransformXslt;

@@ -95,7 +95,7 @@ public class ValidationController {
       @Parameter(description = "language of the record")
       @RequestParam(value = "language", required = false, defaultValue = "Multilingual Content") Language language,
       @Parameter(description = "record file to be validated", required = true)
-      @RequestParam("recordToValidate") MultipartFile recordToValidate) throws SerializationException, IOException {
+      @RequestParam("recordToValidate") MultipartFile recordToValidate) throws IOException {
     checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
     String datasetName = "direct_validation_" + UUID.randomUUID();
     String createdDatasetId = datasetExecutionService.createAndExecuteDatasetForFileValidationBlocking(

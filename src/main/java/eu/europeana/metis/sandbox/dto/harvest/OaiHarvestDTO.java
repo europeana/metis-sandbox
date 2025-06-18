@@ -22,6 +22,14 @@ public class OaiHarvestDTO extends HarvestParametersDTO {
     @JsonProperty("metadata-format")
     private final String metadataFormat;
 
+    /**
+     * Constructor.
+     *
+     * @param url the URL of the OAI-PMH endpoint.
+     * @param setSpec the set specification indicating the subset of records to harvest.
+     * @param metadataFormat the metadata format used for harvesting.
+     * @param stepSize the step size for harvesting.
+     */
     public OaiHarvestDTO(String url, String setSpec, String metadataFormat, Integer stepSize) {
         super(stepSize);
         this.url = url;

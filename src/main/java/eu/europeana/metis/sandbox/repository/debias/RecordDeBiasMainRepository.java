@@ -9,13 +9,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
- * The interface Record DeBias main repository.
+ * Repository interface for managing RecordDeBiasMainEntity entities.
  */
 public interface RecordDeBiasMainRepository extends JpaRepository<RecordDeBiasMainEntity, Long> {
 
-
+  /**
+   * Retrieves a list of RecordDeBiasMainEntity instances associated with the given dataset ID.
+   *
+   * @param datasetId the ID of the dataset to filter by
+   * @return a list of matching RecordDeBiasMainEntity objects
+   */
   List<RecordDeBiasMainEntity> findByDatasetId_DatasetId(Integer datasetId);
 
+  /**
+   * Deletes all RecordDeBiasMainEntity entries associated with a specific dataset ID.
+   */
   @Modifying
   @Query("DELETE FROM RecordDeBiasMainEntity rdm WHERE rdm.datasetId.datasetId = :datasetId")
   void deleteByDatasetId(@Param("datasetId") String datasetId);

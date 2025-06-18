@@ -40,6 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class for managing dataset reports and processing statuses.
+ */
 @Service
 public class DatasetReportService {
 
@@ -60,6 +63,17 @@ public class DatasetReportService {
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   private final HarvestParameterService harvestParameterService;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetRepository repository interface for accessing dataset-related data
+   * @param executionRecordRepository repository interface for managing execution records
+   * @param executionRecordExceptionRepository repository interface for managing execution record exceptions
+   * @param executionRecordWarningExceptionRepository repository interface for managing execution record warnings and exceptions
+   * @param executionRecordTierContextRepository repository interface for managing execution record tier context
+   * @param transformXsltRepository repository interface for managing XSLT transformations
+   * @param harvestParameterService service for handling harvest parameters
+   */
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionRepository executionRecordExceptionRepository,
@@ -75,6 +89,15 @@ public class DatasetReportService {
     this.harvestParameterService = harvestParameterService;
   }
 
+  /**
+   * Retrieves dataset information for the specified dataset ID.
+   *
+   * <p>Fetches and processes data from multiple repositories and services to assemble a complete
+   * dataset information object.
+   *
+   * @param datasetId the unique identifier of the dataset to retrieve
+   * @return a Data Transfer Object (DTO) containing the dataset's information
+   */
   public DatasetInfoDTO getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
@@ -94,6 +117,15 @@ public class DatasetReportService {
                          .build();
   }
 
+  /**
+   * Retrieves the progress of the dataset workflow execution.
+   *
+   * <p>This method gathers the necessary information from various sources such as dataset entities,
+   * workflow steps, and error details to compute the overall progress of the dataset workflow execution.
+   *
+   * @param datasetId the unique identifier of the dataset whose progress needs to be retrieved
+   * @return an ExecutionProgressInfoDTO containing detailed progress information of the dataset execution workflow
+   */
   public ExecutionProgressInfoDTO getProgress(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));

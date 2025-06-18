@@ -5,6 +5,11 @@ import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Represents a dataset identifier.
+ *
+ * <p>Used to encapsulate dataset identification details for API communication.
+ */
 @ApiModel(DatasetIdDTO.SWAGGER_MODEL_NAME)
 @Getter
 @AllArgsConstructor
