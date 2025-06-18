@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service class to access harvesting parameters table in the database
+ * Service class responsible for managing harvest parameters related to datasets.
  */
 @Service
 public class HarvestParameterService {
@@ -25,7 +25,7 @@ public class HarvestParameterService {
   private final DatasetRepository datasetRepository;
 
   /**
-   * Constructor
+   * Constructor.
    *
    * @param harvestingParameterRepository The repository that connected to the table harvesting parameters
    * @param datasetRepository The repository that connects to the dataset repository
@@ -36,6 +36,17 @@ public class HarvestParameterService {
     this.datasetRepository = datasetRepository;
   }
 
+  /**
+   * Creates and saves harvest parameters for a given dataset.
+   *
+   * <p>Validates that the dataset exists and converts the provided DTO into
+   * an entity before persisting it in the repository.
+   *
+   * @param datasetId the identifier of the dataset the parameters are associated with
+   * @param harvestParametersDto the data transfer object containing the harvest parameters
+   * @return the saved HarvestParametersEntity
+   * @throws ServiceException in case a {@link RuntimeException} occurred
+   */
   @Transactional
   public HarvestParametersEntity createDatasetHarvestParameters(String datasetId, HarvestParametersDTO harvestParametersDto) {
     requireNonNull(datasetId, "Dataset name must not be null");
@@ -48,17 +59,33 @@ public class HarvestParameterService {
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error saving harvesting parameters for dataset id: [%s]. ", datasetId), e);
     }
-
   }
 
+  /**
+   * Retrieves the harvesting parameters associated with a specific dataset identifier.
+   *
+   * @param datasetId the identifier of the dataset for which harvesting parameters are to be retrieved
+   * @return an Optional containing the HarvestParametersEntity if a match is found, or empty if not
+   */
   public Optional<HarvestParametersEntity> getDatasetHarvestingParameters(String datasetId) {
     return harvestingParameterRepository.findByDatasetEntity_DatasetId(Integer.parseInt(datasetId));
   }
 
+  /**
+   * Retrieves the harvest parameters associated with the given UUID.
+   *
+   * @param uuid the unique identifier of the harvest parameters to be retrieved
+   * @return an Optional containing the HarvestParametersEntity if found, or empty if not
+   */
   public Optional<HarvestParametersEntity> getHarvestingParametersById(UUID uuid) {
     return harvestingParameterRepository.findById(uuid);
   }
 
+  /**
+   * Removes harvesting parameter records associated with a specific dataset identifier.
+   *
+   * @param datasetId the identifier of the dataset whose records are to be removed
+   */
   @Transactional
   public void remove(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");

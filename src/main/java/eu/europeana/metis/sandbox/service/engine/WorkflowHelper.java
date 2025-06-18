@@ -22,9 +22,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Provides workflow-related utility functions for managing different types of workflows.
+ *
+ * <p>Handles the selection and composition of workflow steps based on metadata and workflow types.
+ * <p>Supports conditional modifications of workflows such as adding external transformation steps.
+ * <p>Designed for temporary use until integrated with a proper orchestrator like metis-core.
+ */
 public class WorkflowHelper {
 
-  //Those are all temporary until we have a proper orchestrator(e.g. metis-core)
   private static final List<FullBatchJobType> COMMON_POST_HARVEST =
       List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX_PUBLISH);
 
@@ -54,6 +60,16 @@ public class WorkflowHelper {
       WorkflowType.DEBIAS, ONLY_DEBIAS
   );
 
+  /**
+   * Determines and returns the workflow steps based on the provided execution metadata.
+   *
+   * <p>The method retrieves the workflow type from the dataset metadata within the executionMetadata.
+   * <p>Based on the workflow type, it selects the corresponding base steps and conditionally
+   * adds an external transformation step if required.
+   *
+   * @param executionMetadata contains metadata about the dataset and input for the execution process
+   * @return a list of workflow steps as FullBatchJobType objects
+   */
   public static List<FullBatchJobType> getWorkflow(ExecutionMetadata executionMetadata) {
     WorkflowType workflowType = Optional.of(executionMetadata.getDatasetMetadata().getWorkflowType())
                                         .orElse(WorkflowType.OAI_HARVEST);
@@ -66,9 +82,21 @@ public class WorkflowHelper {
     return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
   }
 
+  /**
+   * Determines and returns the workflow steps based on the provided dataset and transform metadata.
+   *
+   * <p>The method evaluates the workflow type associated with the dataset and excludes unsupported types like DEBIAS(it has its
+   * own report, and it's not part of the main workflows).
+   * <p>It selects the corresponding workflow steps and conditionally includes an external transformation step if required.
+   * <p>This mainly used for reporting and not for execution.
+   *
+   * @param datasetEntity the entity representing the dataset, including its workflow type
+   * @param transformXsltEntity the entity representing an optional XSLT transformation for the dataset
+   * @return a list of workflow steps as FullBatchJobType objects
+   * @throws IllegalArgumentException if the workflow type is DEBIAS, which is not supported
+   */
   public static List<FullBatchJobType> getWorkflow(DatasetEntity datasetEntity, TransformXsltEntity transformXsltEntity) {
     WorkflowType workflowType = Optional.ofNullable(datasetEntity.getWorkflowType()).orElse(WorkflowType.OAI_HARVEST);
-    //In this case DEBIAS workflow is not valid since we don't provide progress info for it for the dataset, it has its own report
     if (workflowType == WorkflowType.DEBIAS) {
       throw new IllegalArgumentException("Debias workflow not supported");
     }
@@ -81,6 +109,18 @@ public class WorkflowHelper {
     return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
   }
 
+  /**
+   * Conditionally adds a {@link FullBatchJobType#TRANSFORM_EXTERNAL} step to the input list of full batch job types.
+   *
+   * <p>The method checks whether the `shouldInsertTransformExternal` flag is true.
+   * <p>If true, it adds a {@link FullBatchJobType#TRANSFORM_EXTERNAL} step directly before a
+   * {@link FullBatchJobType#VALIDATE_EXTERNAL} step in the input list. 
+   * <p>If the flag is false, the input list remains unchanged.
+   *
+   * @param baseSteps the original list of full batch job steps
+   * @param shouldInsertTransformExternal flag indicating whether to add the `TRANSFORM_EXTERNAL` step
+   * @return a list of full batch job types with the conditionally added step
+   */
   public static List<FullBatchJobType> conditionallyAddTransformExternalStep(List<FullBatchJobType> baseSteps,
       boolean shouldInsertTransformExternal) {
     List<FullBatchJobType> finalSteps;

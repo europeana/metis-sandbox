@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The type DeBias detect service.
+ * Service class responsible for managing the debias state and operations.
  */
 public class DeBiasStateService {
 
@@ -37,17 +37,20 @@ public class DeBiasStateService {
   private final ExecutionRecordRepository executionRecordRepository;
 
   /**
-   * Instantiates a new DeBias detect service.
+   * Constructor.
    *
-   * @param datasetDeBiasRepository the detect repository
-   * @param datasetRepository the dataset repository
-   * @param recordDeBiasMainRepository the record de bias main repository
-   * @param recordDeBiasDetailRepository the record de bias detail repository
+   * @param datasetDeBiasRepository repository for managing dataset debias entities
+   * @param datasetRepository repository for accessing and managing dataset entities
+   * @param recordDeBiasMainRepository repository for managing main record debias entries
+   * @param recordDeBiasDetailRepository repository for managing detail record debias entries
+   * @param executionRecordRepository repository for managing execution record entities
    */
-  public DeBiasStateService(DatasetDeBiasRepository datasetDeBiasRepository,
+  public DeBiasStateService(
+      DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
-      RecordDeBiasDetailRepository recordDeBiasDetailRepository, ExecutionRecordRepository executionRecordRepository) {
+      RecordDeBiasDetailRepository recordDeBiasDetailRepository,
+      ExecutionRecordRepository executionRecordRepository) {
     this.datasetDeBiasRepository = datasetDeBiasRepository;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
@@ -55,57 +58,68 @@ public class DeBiasStateService {
     this.executionRecordRepository = executionRecordRepository;
   }
 
+  /**
+   * Generates a debiasing report for a specific dataset.
+   *
+   * @param datasetId the id of the dataset for which the debias report is to be generated
+   * @return the debias report
+   */
   public DeBiasReportDTO getDeBiasReport(String datasetId) {
     DeBiasStatusDTO deBiasStatusDto = getDeBiasStatus(datasetId);
     return new DeBiasReportDTO(Integer.valueOf(datasetId), deBiasStatusDto.getDebiasState(),
         deBiasStatusDto.getCreationDate(), deBiasStatusDto.getTotal(),
-        deBiasStatusDto.getProcessed(), getReportFromDbEntities(datasetId));
-
+        deBiasStatusDto.getProcessed(), generateDebiasReportRows(datasetId));
   }
 
   /**
-   * Clean DeBias report.
+   * Retrieves the debiasing status of a specified dataset.
    *
-   * @param datasetId the dataset id
+   * <p>Determines the status of the dataset debiasing process based on total records to debias, total records already debiased.
+   *
+   * @param datasetId the id of the dataset for which the debiasing status is being retrieved
+   * @return a {@code DeBiasStatusDTO} instance containing the debiasing status of the dataset
    */
-  @Transactional
-  public void remove(String datasetId) {
-    Objects.requireNonNull(datasetId, "Dataset id must not be null");
-    this.recordDeBiasDetailRepository.deleteByDatasetId(datasetId);
-    this.recordDeBiasMainRepository.deleteByDatasetId(datasetId);
-    this.datasetDeBiasRepository.deleteByDatasetId(datasetId);
-  }
-
   public DeBiasStatusDTO getDeBiasStatus(String datasetId) {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
         Integer.valueOf(datasetId));
-    long totalToDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    long totalRecordsToDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name());
-    long progressDebias = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    long totalRecordsDebiased = executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name());
 
     final DebiasState debiasState;
-    if (totalToDebias > 0 && (totalToDebias == progressDebias)) {
+    if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalRecordsDebiased)) {
       debiasState = DebiasState.COMPLETED;
-    } else if (totalToDebias >= 0 && progressDebias == 0) {
+    } else if (totalRecordsToDebias >= 0 && totalRecordsDebiased == 0) {
       debiasState = DebiasState.READY;
-    } else if (totalToDebias > 0 && progressDebias > 0) {
+    } else if (totalRecordsToDebias > 0 && totalRecordsDebiased > 0) {
       debiasState = DebiasState.PROCESSING;
     } else {
       debiasState = DebiasState.INVALID;
     }
 
     if (datasetDeBiasEntity == null) {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState, ZonedDateTime.now(), totalToDebias, progressDebias);
+      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState, ZonedDateTime.now(), totalRecordsToDebias,
+          totalRecordsDebiased);
     } else {
       return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState,
-          datasetDeBiasEntity.getCreatedDate(), totalToDebias, progressDebias);
+          datasetDeBiasEntity.getCreatedDate(), totalRecordsToDebias, totalRecordsDebiased);
     }
   }
 
+  /**
+   * Creates or retrieves a {@link DatasetDeBiasEntity} for the specified dataset ID.
+   *
+   * <p>If an existing {@link DatasetDeBiasEntity} for the given dataset ID is found, it is returned.
+   * Otherwise, a new entity is created with an initial state of {@code DebiasState.READY} and saved.
+   *
+   * @param datasetId the ID of the dataset for which the debias entity is to be created or retrieved
+   * @return the created or retrieved {@link DatasetDeBiasEntity} for the specified dataset
+   */
   public @NotNull DatasetDeBiasEntity createDatasetDeBiasEntity(String datasetId) {
     DatasetEntity dataset = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
-    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId));
+    DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
+        Integer.valueOf(datasetId));
     if (datasetDeBiasEntity == null) {
       datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, DebiasState.READY, ZonedDateTime.now());
       datasetDeBiasEntity = datasetDeBiasRepository.save(datasetDeBiasEntity);
@@ -113,7 +127,16 @@ public class DeBiasStateService {
     return datasetDeBiasEntity;
   }
 
-  private List<DeBiasReportRow> getReportFromDbEntities(String datasetId) {
+  /**
+   * Retrieves a list of debias report rows based on dataset ID by querying and processing data from database entities.
+   *
+   * <p>Fetches main and detail records from the database using the dataset ID, processes the retrieved data into
+   * structured debias report rows, and returns the list.
+   *
+   * @param datasetId the ID of the dataset for which the debias report rows are generated
+   * @return a list of {@link DeBiasReportRow} containing the processed debias report data
+   */
+  private List<DeBiasReportRow> generateDebiasReportRows(String datasetId) {
     List<DeBiasReportRow> reportRows = new ArrayList<>();
     List<RecordDeBiasMainEntity> recordDeBiasMainEntities = this.recordDeBiasMainRepository.findByDatasetId_DatasetId(
         Integer.valueOf(datasetId));
@@ -139,5 +162,18 @@ public class DeBiasStateService {
     });
 
     return reportRows;
+  }
+
+  /**
+   * Clean DeBias report.
+   *
+   * @param datasetId the dataset id
+   */
+  @Transactional
+  public void remove(String datasetId) {
+    Objects.requireNonNull(datasetId, "Dataset id must not be null");
+    this.recordDeBiasDetailRepository.deleteByDatasetId(datasetId);
+    this.recordDeBiasMainRepository.deleteByDatasetId(datasetId);
+    this.datasetDeBiasRepository.deleteByDatasetId(datasetId);
   }
 }

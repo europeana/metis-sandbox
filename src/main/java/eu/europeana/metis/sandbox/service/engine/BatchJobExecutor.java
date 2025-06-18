@@ -76,6 +76,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Executes and manages batch jobs based on the provided metadata.
+ *
+ * <p>This class supports multiple job types and defines the execution
+ * workflow for each using a map of job types to execution functions.
+ * <p>The class delegates job execution to a job launcher and handles
+ * asynchronous task management.
+ */
 @Service
 public class BatchJobExecutor {
 
@@ -88,6 +96,17 @@ public class BatchJobExecutor {
 
   private final EnumMap<FullBatchJobType, Function<ExecutionMetadata, JobExecution>> jobExecutorsByType;
 
+  /**
+   * Constructor.
+   *
+   * <p>Initializes the enum map with the execution function per job type.
+   *
+   * @param jobs list of jobs registered.
+   * @param jobLauncher job launcher instance used to run the batch jobs asynchronously
+   * @param jobExplorer job explorer for retrieving job execution information
+   * @param taskExecutor task executor used for handling concurrent job executions
+   * @param transformXsltRepository repository for managing and retrieving XSLT transformations
+   */
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, JobExplorer jobExplorer,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository) {
@@ -112,14 +131,34 @@ public class BatchJobExecutor {
     this.jobExecutorsByType.put(DEBIAS, this::executeDebias);
   }
 
+  /**
+   * Executes a task asynchronously with the provided execution metadata.
+   *
+   * @param executionMetadata contains metadata required for task execution
+   */
   public void execute(ExecutionMetadata executionMetadata) {
     taskExecutor.execute(() -> executeSteps(executionMetadata));
   }
 
+  /**
+   * Executes the steps in a blocking manner using the provided execution metadata.
+   *
+   * <p>Blocks the current thread until all steps have been executed.
+   *
+   * @param executionMetadata the metadata containing the execution details and context
+   */
   public void executeBlocking(ExecutionMetadata executionMetadata) {
     executeSteps(executionMetadata);
   }
 
+  /**
+   * Executes the debias workflow for the provided execution metadata.
+   *
+   * <p>This is a specialized execution where the debias start from a finished {@link FullBatchJobType#VALIDATE_INTERNAL}
+   * execution.
+   *
+   * @param executionMetadata metadata related to the current execution process, including dataset and job-specific parameters.
+   */
   public void executeDebiasWorkflow(ExecutionMetadata executionMetadata) {
     JobExecution validationExecution = findJobInstance(executionMetadata, FullBatchJobType.VALIDATE_INTERNAL).orElseThrow();
     InputMetadata inputMetadata = new InputMetadata(
@@ -346,5 +385,4 @@ public class BatchJobExecutor {
     }
     return jobExecution;
   }
-
 }

@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The type DeBias process service.
+ * Service class responsible for performing debiasing operations on records.
  */
 @Service
 public class DeBiasProcessService {
@@ -63,12 +63,19 @@ public class DeBiasProcessService {
     this.datasetRepository = datasetRepository;
   }
 
+  /**
+   * Performs debiasing of a record, generates a report, and persists results.
+   *
+   * @param recordContent the content of the record to process
+   * @param datasetId the identifier of the dataset the record belongs to
+   * @param recordId the identifier of the record to process
+   */
   @Transactional
   public void process(String recordContent, String datasetId, String recordId) {
 
     List<DeBiasInputRecord> deBiasInputRecords = getDeBiasSourceFieldsFromRecords(
         recordContent, recordId);
-    List<DeBiasReportRow> deBiasReportRows = doDeBiasAndGenerateReport(deBiasInputRecords);
+    List<DeBiasReportRow> deBiasReportRows = performDeBiasAndGenerateReport(deBiasInputRecords);
 
     if (!deBiasReportRows.isEmpty()) {
       logReport(deBiasReportRows);
@@ -76,7 +83,47 @@ public class DeBiasProcessService {
     }
   }
 
-  public List<DeBiasReportRow> doDeBiasAndGenerateReport(List<DeBiasInputRecord> deBiasInputRecords) {
+  /**
+   * Extracts debiasing source fields from the provided record content in RDF format.
+   *
+   * @param recordContent the RDF content of the record to be processed
+   * @param recordId the unique identifier of the record
+   * @return a list of {@code DeBiasInputRecord} containing extracted field data
+   */
+  public List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(String recordContent, String recordId) {
+    List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
+    try {
+      RDF rdf = new RdfConversionUtils().convertStringToRdf(recordContent);
+      DeBiasRdfInfoExtractor deBiasRdfInfoExtractor = new DeBiasRdfInfoExtractor(rdf, recordId);
+
+      // Get the literal values
+      deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getDescriptionsAndLanguageFromRdf());
+      deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getTitlesAndLanguageFromRdf());
+      deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getAlternativeAndLanguageFromRdf());
+      deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getSubjectAndLanguageFromRdf());
+      deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getTypeAndLanguageFromRdf());
+
+      // Get the literal values that are linked through contextual classes.
+      deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getSubjectReferencesAndTypeReferencesFromRdf());
+
+    } catch (SerializationException e) {
+      deBiasInputRecords = Collections.emptyList();
+      LOGGER.error("Serialization {}", e.getMessage(), e);
+    }
+    return deBiasInputRecords;
+  }
+
+  /**
+   * Processes a list of de-bias input records, executes debiasing tasks in batches by language,
+   * and generates a report containing detection results.
+   *
+   * <p>This method partitions input records by supported language, processes each partition
+   * for debias detection, and creates report rows with de-bias results.
+   *
+   * @param deBiasInputRecords list of input records containing details for de-biasing
+   * @return a list of report rows with the results of the de-bias detection process
+   */
+  public List<DeBiasReportRow> performDeBiasAndGenerateReport(List<DeBiasInputRecord> deBiasInputRecords) {
     List<DeBiasReportRow> deBiasReportRows = new ArrayList<>();
 
     deBiasInputRecords
@@ -149,29 +196,6 @@ public class DeBiasProcessService {
     });
   }
 
-
-  public List<DeBiasInputRecord> getDeBiasSourceFieldsFromRecords(String recordContent, String recordId) {
-      List<DeBiasInputRecord> deBiasInputRecords = new ArrayList<>();
-      try {
-        RDF rdf = new RdfConversionUtils().convertStringToRdf(recordContent);
-        DeBiasRdfInfoExtractor deBiasRdfInfoExtractor = new DeBiasRdfInfoExtractor(rdf, recordId);
-
-        // Get the literal values
-        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getDescriptionsAndLanguageFromRdf());
-        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getTitlesAndLanguageFromRdf());
-        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getAlternativeAndLanguageFromRdf());
-        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getSubjectAndLanguageFromRdf());
-        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getTypeAndLanguageFromRdf());
-
-        // Get the literal values that are linked through contextual classes.
-        deBiasInputRecords.addAll(deBiasRdfInfoExtractor.getSubjectReferencesAndTypeReferencesFromRdf());
-
-      } catch (SerializationException e) {
-        deBiasInputRecords = Collections.emptyList();
-        LOGGER.error("Serialization {}", e.getMessage(), e);
-      }
-      return deBiasInputRecords;
-  }
 
   /**
    * The type DeBias input record.

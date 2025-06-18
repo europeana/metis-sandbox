@@ -25,9 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Metrics Service implementation class
+ * Service responsible for generating metrics and registering them to the meter registry.
  */
-
 public class MetricsService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -47,6 +46,15 @@ public class MetricsService {
   private Map<FullBatchJobType, Long> warningStepCounts;
   private Map<FullBatchJobType, Long> errorStepCounts;
 
+  /**
+   * Constructor.
+   *
+   * @param executionRecordRepository repository for handling execution records
+   * @param executionRecordExceptionRepository repository for handling execution record exceptions
+   * @param executionRecordWarningExceptionRepository repository for handling execution record warnings
+   * @param problemPatternRepository repository for managing dataset problem patterns
+   * @param meterRegistry registry for managing metrics
+   */
   public MetricsService(
       ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordExceptionRepository executionRecordExceptionRepository,
@@ -60,6 +68,14 @@ public class MetricsService {
     this.meterRegistry = meterRegistry;
   }
 
+  /**
+   * Generates and registers various metrics including dataset counts, record totals, step statistics, and problem pattern
+   * occurrences for monitoring purposes.
+   *
+   * <p>Initializes database statistics and registers global gauge metrics for dataset count and total records.
+   * <p>Iterates over all FullBatchJobType values to register step metric gauges for different statuses.
+   * <p>Iterates over all ProblemPatternId values to register gauges for tracking occurrences of specific problem patterns.
+   */
   public void generateMetrics() {
     try {
       getDatabaseStatistics();

@@ -24,34 +24,28 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 
 /**
- * The type DeBias rdf info extractor.
+ * Extracts and processes RDF information for debiasing purposes.
  */
 public class DeBiasRdfInfoExtractor {
 
   private final RDF rdf;
   private final String recordId;
 
+  /**
+   * Constructor.
+   *
+   * @param rdf the rdf instance for data extraction
+   * @param recordId the unique identifier for the record
+   */
   public DeBiasRdfInfoExtractor(RDF rdf, String recordId) {
     this.rdf = rdf;
     this.recordId = recordId;
   }
 
-  /**
-   * Is provider proxy boolean.
-   *
-   * @param proxy the proxy
-   * @return the boolean
-   */
   private static boolean isProviderProxy(ProxyType proxy) {
     return proxy.getEuropeanaProxy() == null || BooleanUtils.isFalse(proxy.getEuropeanaProxy().isEuropeanaProxy());
   }
 
-  /**
-   * Gets provider proxies.
-   *
-   * @param rdf the rdf
-   * @return the provider proxies
-   */
   private static List<ProxyType> getProviderProxies(RDF rdf) {
     return Optional.ofNullable(rdf.getProxyList()).stream().flatMap(Collection::stream).filter(Objects::nonNull)
                    .filter(DeBiasRdfInfoExtractor::isProviderProxy).toList();
@@ -69,11 +63,6 @@ public class DeBiasRdfInfoExtractor {
                             .orElse("");
   }
 
-  /**
-   * Gets choices.
-   *
-   * @return the choices
-   */
   private List<Choice> getChoices() {
     List<ProxyType> providerProxies = getProviderProxies(this.rdf);
     return providerProxies.stream()
@@ -83,19 +72,6 @@ public class DeBiasRdfInfoExtractor {
                           .toList();
   }
 
-  /**
-   * Gets literals and languages from rdf.
-   *
-   * @param <T> the type parameter
-   * @param <U> the type parameter
-   * @param choicePredicate the choice predicate
-   * @param choiceGetter the choice getter
-   * @param lookup the lookup
-   * @param getString the get string
-   * @param getLanguage the get language
-   * @param sourceField the source field
-   * @return the literals and languages from rdf
-   */
   private <T, U> List<DeBiasInputRecord> getLiteralsAndLanguagesFromRdf(
       Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter,
       Function<T, List<? extends U>> lookup, Function<U, String> getString,
@@ -120,11 +96,6 @@ public class DeBiasRdfInfoExtractor {
         .toList();
   }
 
-  /**
-   * Gets contextual class labels by rdf about.
-   *
-   * @return the contextual class labels by rdf about
-   */
   private Map<String, List<PrefLabel>> getContextualClassLabelsByRdfAbout() {
     final Map<String, List<PrefLabel>> result = new HashMap<>();
     Optional.ofNullable(rdf.getAgentList())
