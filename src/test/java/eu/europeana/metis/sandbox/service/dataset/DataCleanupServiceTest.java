@@ -25,7 +25,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DataCleanupServiceTest {
 
   @Mock
-  private DatasetService datasetService;
+  private DatasetDataCleaner datasetDataCleaner;
+
+  @Mock
+  private DatasetReportService datasetReportService;
 
   @Mock
   private ExecutionRecordCleaner executionRecordCleaner;
@@ -50,7 +53,7 @@ class DataCleanupServiceTest {
 
   @Test
   void remove_expectSuccess() {
-    when(datasetService.findDatasetIdsByCreatedBefore(7))
+    when(datasetReportService.findDatasetIdsByCreatedBefore(7))
         .thenReturn(List.of("1", "2", "3", "4"));
 
     dataCleanupService.remove(7);
@@ -59,14 +62,14 @@ class DataCleanupServiceTest {
     verify(indexDataCleaner, times(4)).remove(anyString());
     verify(harvestParameterService, times(4)).remove(anyString());
     verify(executionRecordCleaner, times(4)).remove(anyString());
-    verify(datasetService, times(4)).remove(anyString());
+    verify(datasetDataCleaner, times(4)).remove(anyString());
     verify(problemPatternDataCleaner, times(4)).remove(anyString());
     verify(deBiasStateService, times(4)).remove(anyString());
   }
 
   @Test
   void remove_failToRemoveOneDataset_expectSuccess() {
-    when(datasetService.findDatasetIdsByCreatedBefore(7))
+    when(datasetReportService.findDatasetIdsByCreatedBefore(7))
         .thenReturn(List.of("1", "2", "3", "4"));
 
     doThrow(new ServiceException("1", new Exception()))
@@ -79,7 +82,7 @@ class DataCleanupServiceTest {
     verify(indexDataCleaner, times(3)).remove(anyString());
     verify(harvestParameterService, times(3)).remove(anyString());
     verify(executionRecordCleaner, times(3)).remove(anyString());
-    verify(datasetService, times(3)).remove(anyString());
+    verify(datasetDataCleaner, times(3)).remove(anyString());
     verify(problemPatternDataCleaner, times(3)).remove(anyString());
     verify(deBiasStateService, times(3)).remove(anyString());
   }
@@ -87,11 +90,11 @@ class DataCleanupServiceTest {
   @Test
   void remove_failToRemoveThrowException_expectLogError() {
     doThrow(new ServiceException("Error getting ids", new RuntimeException()))
-        .when(datasetService)
+        .when(datasetReportService)
         .findDatasetIdsByCreatedBefore(7);
 
     dataCleanupService.remove(7);
 
-    verify(datasetService, times(1)).findDatasetIdsByCreatedBefore(anyInt());
+    verify(datasetReportService, times(1)).findDatasetIdsByCreatedBefore(anyInt());
   }
 }

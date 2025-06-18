@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static java.lang.String.format;
+
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
@@ -14,6 +16,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExcepti
 import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
@@ -26,10 +29,13 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -87,6 +93,19 @@ public class DatasetReportService {
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
     this.harvestParameterService = harvestParameterService;
+  }
+
+  public List<String> findDatasetIdsByCreatedBefore(int days) {
+    ZonedDateTime retentionDate = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(days);
+
+    try {
+      return datasetRepository.findByCreatedDateBefore(retentionDate).stream()
+                              .map(DatasetIdProjection::getDatasetId)
+                              .map(Object::toString)
+                              .toList();
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
+    }
   }
 
   /**

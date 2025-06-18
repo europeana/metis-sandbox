@@ -1,7 +1,8 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetDataCleaner;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataCleaner;
@@ -20,7 +21,8 @@ public class DataCleanupService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final DatasetService datasetService;
+  private final DatasetDataCleaner datasetDataCleaner;
+  private final DatasetReportService datasetReportService;
   private final ExecutionRecordCleaner executionRecordCleaner;
   private final IndexDataCleaner indexDataCleaner;
   private final ThumbnailStoreService thumbnailStoreService;
@@ -29,27 +31,26 @@ public class DataCleanupService {
   private final DeBiasStateService debiasStateService;
 
   /**
-   * Instantiates a new Dataset remover service.
+   * Constructor.
    *
-   * @param datasetService the dataset service
-   * @param datasetLogService the dataset log service
-   * @param recordLogService the record log service
-   * @param indexDataCleaner the indexing service
-   * @param thumbnailStoreService the thumbnail store service
-   * @param recordService the record service
-   * @param problemPatternDataCleaner the problem pattern data remover
-   * @param harvestParameterService the harvesting parameter service
-   * @param debiasStateService the debias state service
-   * @param vacuumService the vacuum service
+   * @param datasetDataCleaner datasetService is responsible for managing dataset operations.
+   * @param datasetReportService datasetReportService provides functionality for dataset reports.
+   * @param executionRecordCleaner executionRecordCleaner handles removal of execution records.
+   * @param indexDataCleaner indexDataCleaner manages cleanup of indexed data.
+   * @param thumbnailStoreService thumbnailStoreService removes thumbnails linked to datasets.
+   * @param problemPatternDataCleaner problemPatternDataCleaner handles cleanup of problem pattern data.
+   * @param harvestParameterService harvestParameterService manages removal of harvest parameters.
+   * @param debiasStateService debiasStateService is responsible for managing debias state cleanup.
    */
   DataCleanupService(
-      DatasetService datasetService, ExecutionRecordCleaner executionRecordCleaner,
+      DatasetDataCleaner datasetDataCleaner, DatasetReportService datasetReportService, ExecutionRecordCleaner executionRecordCleaner,
       IndexDataCleaner indexDataCleaner,
       ThumbnailStoreService thumbnailStoreService,
       ProblemPatternDataCleaner problemPatternDataCleaner,
       HarvestParameterService harvestParameterService,
       DeBiasStateService debiasStateService) {
-    this.datasetService = datasetService;
+    this.datasetDataCleaner = datasetDataCleaner;
+    this.datasetReportService = datasetReportService;
     this.executionRecordCleaner = executionRecordCleaner;
     this.indexDataCleaner = indexDataCleaner;
     this.thumbnailStoreService = thumbnailStoreService;
@@ -61,7 +62,7 @@ public class DataCleanupService {
   public void remove(int days) {
     try {
       // get old dataset ids
-      List<String> datasets = datasetService.findDatasetIdsByCreatedBefore(days);
+      List<String> datasets = datasetReportService.findDatasetIdsByCreatedBefore(days);
 
       LOGGER.info("Datasets to remove {} ", datasets);
 
@@ -82,7 +83,7 @@ public class DataCleanupService {
           LOGGER.info("Remove execution records for dataset id: [{}]", dataset);
           executionRecordCleaner.remove(dataset);
           LOGGER.info("Remove dataset with id: [{}]", dataset);
-          datasetService.remove(dataset);
+          datasetDataCleaner.remove(dataset);
         } catch (ServiceException e) {
           LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
         }

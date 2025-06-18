@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
@@ -20,6 +23,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRep
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningExceptionRepository;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
@@ -34,15 +38,19 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
+import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -73,6 +81,37 @@ class DatasetReportServiceTest {
   void setup() {
     ReflectionTestUtils.setField(datasetReportService, "maxRecords", 1000);
     ReflectionTestUtils.setField(datasetReportService, "portalPublishDatasetUrl", "http://test/");
+  }
+
+  @Test
+  void findDatasetIdsByCreatedBefore_shouldReturnDatasetIds() {
+    int days = 10;
+    ZonedDateTime expectedDate = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(days);
+
+    List<String> datasetIds = List.of("111", "222");
+    List<DatasetIdProjection> datasetIdProjections =
+        datasetIds.stream()
+                  .map(datasetId -> (DatasetIdProjection) () -> Integer.valueOf(datasetId))
+                  .toList();
+
+    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class))).thenReturn(datasetIdProjections);
+    List<String> result = datasetReportService.findDatasetIdsByCreatedBefore(days);
+    assertEquals(datasetIds, result);
+
+    ArgumentCaptor<ZonedDateTime> zonedDateTimeArgumentCaptor = ArgumentCaptor.forClass(ZonedDateTime.class);
+    verify(datasetRepository, times(1)).findByCreatedDateBefore(zonedDateTimeArgumentCaptor.capture());
+    ZonedDateTime actualArgument = zonedDateTimeArgumentCaptor.getValue();
+
+    // Allow a small tolerance window because ZonedDateTime.now() is evaluated per line
+    long secondsDifference = Math.abs(Duration.between(expectedDate, actualArgument).getSeconds());
+    assertTrue(secondsDifference < 10);
+  }
+
+  @Test
+  void findDatasetIdsByCreatedBefore_shouldThrowServiceExceptionWhenRepositoryThrows() {
+    int days = 5;
+    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class))).thenThrow(new RuntimeException());
+    assertThrows(ServiceException.class, () -> datasetReportService.findDatasetIdsByCreatedBefore(days));
   }
 
   @Test
