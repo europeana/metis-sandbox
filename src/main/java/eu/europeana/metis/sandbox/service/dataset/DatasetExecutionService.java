@@ -11,9 +11,9 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.debias.DebiasState;
-import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
-import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
-import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -97,7 +97,7 @@ public class DatasetExecutionService {
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
-    OaiHarvestDTO harvestParametersDTO = new OaiHarvestDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
+    OaiHarvestParametersDTO harvestParametersDTO = new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
         WorkflowType.OAI_HARVEST, datasetName, country, language, userId, xsltFile, harvestParametersDTO
     );
@@ -124,7 +124,7 @@ public class DatasetExecutionService {
   @NotNull
   public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
       MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
-    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(compressedFile.getOriginalFilename(), FileType.valueOf(extension.name()),
+    FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(compressedFile.getOriginalFilename(), FileType.valueOf(extension.name()),
         compressedFile.getBytes(), stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
         WorkflowType.FILE_HARVEST, datasetName, country, language, userId, xsltFile, fileHarvestDTO
@@ -153,7 +153,7 @@ public class DatasetExecutionService {
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
     String filename = Path.of(url).getFileName().toString();
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
-      HttpHarvestDTO harvestParametersDTO = new HttpHarvestDTO(url, filename, FileType.valueOf(extension.name()),
+      HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename, FileType.valueOf(extension.name()),
           inputStream.readAllBytes(), stepsize);
       ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
           WorkflowType.FILE_HARVEST, datasetName, country, language, userId, xsltFile, harvestParametersDTO
@@ -182,7 +182,7 @@ public class DatasetExecutionService {
    */
   public String createAndExecuteDatasetForFileValidationBlocking(String datasetName,
       MultipartFile recordFile, Country country, Language language) throws IOException {
-    FileHarvestDTO fileHarvestDTO = new FileHarvestDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes(), 1);
+    FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes(), 1);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
         FILE_HARVEST_ONLY_VALIDATION, datasetName, country, language, null, null, fileHarvestDTO
     );

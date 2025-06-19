@@ -8,7 +8,7 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifierKey;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.util.HarvestServiceImpl;
 import jakarta.annotation.PostConstruct;
@@ -101,10 +101,10 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
     String oaiSet;
     String oaiMetadataPrefix;
 
-    if (harvestParametersEntity instanceof OaiHarvestParameters oaiHarvestParameters) {
-      oaiEndpoint = oaiHarvestParameters.getUrl();
-      oaiSet = oaiHarvestParameters.getSetSpec();
-      oaiMetadataPrefix = oaiHarvestParameters.getMetadataFormat();
+    if (harvestParametersEntity instanceof OaiHarvestParametersEntity oaiHarvestParametersEntity) {
+      oaiEndpoint = oaiHarvestParametersEntity.getUrl();
+      oaiSet = oaiHarvestParametersEntity.getSetSpec();
+      oaiMetadataPrefix = oaiHarvestParametersEntity.getMetadataFormat();
     } else {
       throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for OaiHarvest");
     }

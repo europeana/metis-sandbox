@@ -12,12 +12,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
+import eu.europeana.metis.sandbox.repository.HarvestParametersRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HarvestParameterServiceTest {
 
   @Mock
-  private HarvestingParameterRepository harvestingParameterRepository;
+  private HarvestParametersRepository harvestParametersRepository;
 
   @Mock
   private DatasetRepository datasetRepository;
@@ -42,41 +42,44 @@ class HarvestParameterServiceTest {
   @Test
   void createDatasetHarvestParameters() {
     String datasetId = "1";
-    OaiHarvestDTO oaiHarvestDTO = new OaiHarvestDTO("url", "setStep", "metadataFormat", 1);
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(Integer.valueOf(datasetId));
 
     when(datasetRepository.findById(Integer.valueOf(datasetId))).thenReturn(Optional.of(datasetEntity));
     ArgumentCaptor<HarvestParametersEntity> captor = ArgumentCaptor.forClass(HarvestParametersEntity.class);
-    when(harvestingParameterRepository.save(captor.capture()))
+    when(harvestParametersRepository.save(captor.capture()))
         .thenAnswer(invocation -> invocation.getArgument(0));
     HarvestParametersEntity harvestParametersEntity =
-        harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestDTO);
+        harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestParametersDTO);
     assertNotNull(harvestParametersEntity);
-    assertInstanceOf(OaiHarvestParameters.class, harvestParametersEntity);
+    assertInstanceOf(OaiHarvestParametersEntity.class, harvestParametersEntity);
 
-    OaiHarvestParameters oaiHarvestParameters = (OaiHarvestParameters) harvestParametersEntity;
-    assertEquals(oaiHarvestDTO.getUrl(), oaiHarvestParameters.getUrl());
-    assertEquals(oaiHarvestDTO.getSetSpec(), oaiHarvestParameters.getSetSpec());
-    assertEquals(oaiHarvestDTO.getMetadataFormat(), oaiHarvestParameters.getMetadataFormat());
-    assertEquals(oaiHarvestDTO.getStepSize(), oaiHarvestParameters.getStepSize());
-    assertEquals(datasetEntity, oaiHarvestParameters.getDatasetEntity());
+    OaiHarvestParametersEntity oaiHarvestParametersEntity = (OaiHarvestParametersEntity) harvestParametersEntity;
+    assertEquals(oaiHarvestParametersDTO.getUrl(), oaiHarvestParametersEntity.getUrl());
+    assertEquals(oaiHarvestParametersDTO.getSetSpec(), oaiHarvestParametersEntity.getSetSpec());
+    assertEquals(oaiHarvestParametersDTO.getMetadataFormat(), oaiHarvestParametersEntity.getMetadataFormat());
+    assertEquals(oaiHarvestParametersDTO.getStepSize(), oaiHarvestParametersEntity.getStepSize());
+    assertEquals(datasetEntity, oaiHarvestParametersEntity.getDatasetEntity());
   }
 
   @Test
   void createDatasetHarvestParameters_shouldThrowServiceException_onError() {
     String datasetId = "999";
-    OaiHarvestDTO oaiHarvestDTO = new OaiHarvestDTO("url", "setStep", "metadataFormat", 1);
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
     when(datasetRepository.findById(Integer.valueOf(datasetId))).thenThrow(new RuntimeException());
-    assertThrows(ServiceException.class, () -> harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestDTO));
+    assertThrows(ServiceException.class, () -> harvestParameterService.createDatasetHarvestParameters(datasetId,
+        oaiHarvestParametersDTO));
   }
 
   @Test
   void createDatasetHarvestParameters_NullValues_Exceptions() {
     String datasetId = "1";
-    OaiHarvestDTO oaiHarvestDTO = new OaiHarvestDTO("url", "setStep", "metadataFormat", 1);
-    assertThrows(NullPointerException.class, () -> harvestParameterService.createDatasetHarvestParameters(null, oaiHarvestDTO));
-    assertThrows(IllegalArgumentException.class, () -> harvestParameterService.createDatasetHarvestParameters("", oaiHarvestDTO));
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
+    assertThrows(NullPointerException.class, () -> harvestParameterService.createDatasetHarvestParameters(null,
+        oaiHarvestParametersDTO));
+    assertThrows(IllegalArgumentException.class, () -> harvestParameterService.createDatasetHarvestParameters("",
+        oaiHarvestParametersDTO));
     assertThrows(NullPointerException.class, () -> harvestParameterService.createDatasetHarvestParameters(datasetId, null));
   }
 
@@ -84,7 +87,7 @@ class HarvestParameterServiceTest {
   void getDatasetHarvestingParameters() {
     String datasetId = "1";
     HarvestParametersEntity harvestParametersEntity = new HarvestParametersEntity();
-    when(harvestingParameterRepository.findByDatasetEntity_DatasetId(Integer.valueOf(datasetId))).thenReturn(
+    when(harvestParametersRepository.findByDatasetEntity_DatasetId(Integer.valueOf(datasetId))).thenReturn(
         Optional.of(harvestParametersEntity));
 
     Optional<HarvestParametersEntity> harvestParametersEntityOptional = harvestParameterService.getDatasetHarvestingParameters(
@@ -96,7 +99,7 @@ class HarvestParameterServiceTest {
   @Test
   void getDatasetHarvestingParameters_shouldReturnEmptyIfNotFound() {
     String datasetId = "1";
-    when(harvestingParameterRepository.findByDatasetEntity_DatasetId(Integer.valueOf(datasetId))).thenReturn(Optional.empty());
+    when(harvestParametersRepository.findByDatasetEntity_DatasetId(Integer.valueOf(datasetId))).thenReturn(Optional.empty());
 
     Optional<HarvestParametersEntity> harvestParametersEntityOptional = harvestParameterService.getDatasetHarvestingParameters(
         datasetId);
@@ -107,7 +110,7 @@ class HarvestParameterServiceTest {
   void getHarvestingParametersById() {
     UUID id = UUID.randomUUID();
     HarvestParametersEntity harvestParametersEntity = new HarvestParametersEntity();
-    when(harvestingParameterRepository.findById(id)).thenReturn(Optional.of(harvestParametersEntity));
+    when(harvestParametersRepository.findById(id)).thenReturn(Optional.of(harvestParametersEntity));
 
     Optional<HarvestParametersEntity> harvestParametersOptional = harvestParameterService.getHarvestingParametersById(id);
     assertTrue(harvestParametersOptional.isPresent());
@@ -117,7 +120,7 @@ class HarvestParameterServiceTest {
   @Test
   void getHarvestingParametersById_shouldReturnEmptyIfNotFound() {
     UUID id = UUID.randomUUID();
-    when(harvestingParameterRepository.findById(id)).thenReturn(Optional.empty());
+    when(harvestParametersRepository.findById(id)).thenReturn(Optional.empty());
 
     Optional<HarvestParametersEntity> harvestParametersOptional = harvestParameterService.getHarvestingParametersById(id);
     assertFalse(harvestParametersOptional.isPresent());
@@ -127,13 +130,13 @@ class HarvestParameterServiceTest {
   void remove() {
     String datasetId = "1";
     assertDoesNotThrow(() -> harvestParameterService.remove(datasetId));
-    verify(harvestingParameterRepository).deleteByDatasetIdDatasetId(Integer.valueOf(datasetId));
+    verify(harvestParametersRepository).deleteByDatasetIdDatasetId(Integer.valueOf(datasetId));
   }
 
   @Test
   void remove_shouldThrowServiceException_onError() {
     String datasetId = "1";
-    doThrow(new RuntimeException()).when(harvestingParameterRepository).deleteByDatasetIdDatasetId(Integer.valueOf(datasetId));
+    doThrow(new RuntimeException()).when(harvestParametersRepository).deleteByDatasetIdDatasetId(Integer.valueOf(datasetId));
 
     assertThrows(ServiceException.class, () -> harvestParameterService.remove(datasetId));
   }

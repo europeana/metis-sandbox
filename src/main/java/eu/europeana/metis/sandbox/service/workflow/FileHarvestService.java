@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import eu.europeana.metis.sandbox.common.FileType;
-import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.util.HarvestServiceImpl;
@@ -43,10 +43,10 @@ public class FileHarvestService {
     FileType fileType;
     byte[] fileContent;
 
-    if (harvestParametersEntity instanceof BinaryHarvestParameters binaryHarvestParameters) {
-      fileName = binaryHarvestParameters.getFileName();
-      fileType = binaryHarvestParameters.getFileType();
-      fileContent = binaryHarvestParameters.getFileContent();
+    if (harvestParametersEntity instanceof BinaryHarvestParametersEntity binaryHarvestParametersEntity) {
+      fileName = binaryHarvestParametersEntity.getFileName();
+      fileType = binaryHarvestParametersEntity.getFileType();
+      fileContent = binaryHarvestParametersEntity.getFileContent();
     } else {
       throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for FileHarvest");
     }

@@ -6,7 +6,7 @@ import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
 import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
@@ -58,17 +58,17 @@ public class OaiRecordHarvesterItemProcessor extends
    *
    * <p>Fetches the harvesting parameters from the {@link HarvestParameterService}.
    * <p>Extracts OAI-specific configuration details such as endpoint, set specification,
-   * and metadata prefix if the parameters are of type {@link OaiHarvestParameters}.
+   * and metadata prefix if the parameters are of type {@link OaiHarvestParametersEntity}.
    * <p>Throws an {@link IllegalArgumentException} if the retrieved parameters are not of the expected type.
    */
   @PostConstruct
   private void prepare() {
     HarvestParametersEntity harvestParametersEntity =
         harvestParameterService.getHarvestingParametersById(UUID.fromString(harvestParameterId)).orElseThrow();
-    if (harvestParametersEntity instanceof OaiHarvestParameters oaiHarvestParameters) {
-      oaiEndpoint = oaiHarvestParameters.getUrl();
-      oaiSet = oaiHarvestParameters.getSetSpec();
-      oaiMetadataPrefix = oaiHarvestParameters.getMetadataFormat();
+    if (harvestParametersEntity instanceof OaiHarvestParametersEntity oaiHarvestParametersEntity) {
+      oaiEndpoint = oaiHarvestParametersEntity.getUrl();
+      oaiSet = oaiHarvestParametersEntity.getSetSpec();
+      oaiMetadataPrefix = oaiHarvestParametersEntity.getMetadataFormat();
     } else {
       throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for OaiHarvest");
     }

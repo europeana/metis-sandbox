@@ -7,15 +7,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Represents HTTP-specific harvest parameters.
+ * Represents OAI-specific harvest parameters.
  */
 @Getter
 @Setter
 @Entity
-@DiscriminatorValue("HTTP")
-@Table(name = "harvest_parameters_http")
-public class HttpHarvestParameters extends BinaryHarvestParameters {
+@DiscriminatorValue("OAI")
+@Table(name = "harvest_parameters_oai")
+public class OaiHarvestParametersEntity extends HarvestParametersEntity {
 
   private String url;
+  private String setSpec;
+  private String metadataFormat;
 }
-

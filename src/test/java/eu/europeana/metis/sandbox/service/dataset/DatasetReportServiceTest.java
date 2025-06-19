@@ -27,7 +27,7 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
@@ -36,7 +36,7 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.XsltType;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
@@ -126,17 +126,17 @@ class DatasetReportServiceTest {
     datasetEntity.setCountry(Country.GREECE);
     datasetEntity.setCreatedById("userId");
 
-    OaiHarvestParameters oaiHarvestParameters = new OaiHarvestParameters();
-    oaiHarvestParameters.setUrl("url");
-    oaiHarvestParameters.setSetSpec("setSpec");
-    oaiHarvestParameters.setMetadataFormat("metadataFormat");
-    oaiHarvestParameters.setStepSize(1);
+    OaiHarvestParametersEntity oaiHarvestParametersEntity = new OaiHarvestParametersEntity();
+    oaiHarvestParametersEntity.setUrl("url");
+    oaiHarvestParametersEntity.setSetSpec("setSpec");
+    oaiHarvestParametersEntity.setMetadataFormat("metadataFormat");
+    oaiHarvestParametersEntity.setStepSize(1);
 
     when(datasetRepository.findById(datasetEntity.getDatasetId())).thenReturn(Optional.of(datasetEntity));
     when(transformXsltRepository.findByDatasetId(valueOf(datasetEntity.getDatasetId()))).thenReturn(
         Optional.of(new TransformXsltEntity()));
     when(harvestParameterService.getDatasetHarvestingParameters(valueOf(datasetEntity.getDatasetId()))).thenReturn(
-        Optional.of(oaiHarvestParameters));
+        Optional.of(oaiHarvestParametersEntity));
 
     DatasetInfoDTO datasetInfo = datasetReportService.getDatasetInfo(valueOf(datasetEntity.getDatasetId()));
 
@@ -151,11 +151,11 @@ class DatasetReportServiceTest {
     assertTrue(datasetInfo.isTransformedToEdmExternal());
 
     assertNotNull(datasetInfo.getHarvestParametersDto());
-    OaiHarvestDTO oaiHarvestDTO = assertInstanceOf(OaiHarvestDTO.class, datasetInfo.getHarvestParametersDto());
-    assertEquals(oaiHarvestParameters.getUrl(), oaiHarvestDTO.getUrl());
-    assertEquals(oaiHarvestParameters.getSetSpec(), oaiHarvestDTO.getSetSpec());
-    assertEquals(oaiHarvestParameters.getMetadataFormat(), oaiHarvestDTO.getMetadataFormat());
-    assertEquals(oaiHarvestParameters.getStepSize(), oaiHarvestDTO.getStepSize());
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = assertInstanceOf(OaiHarvestParametersDTO.class, datasetInfo.getHarvestParametersDto());
+    assertEquals(oaiHarvestParametersEntity.getUrl(), oaiHarvestParametersDTO.getUrl());
+    assertEquals(oaiHarvestParametersEntity.getSetSpec(), oaiHarvestParametersDTO.getSetSpec());
+    assertEquals(oaiHarvestParametersEntity.getMetadataFormat(), oaiHarvestParametersDTO.getMetadataFormat());
+    assertEquals(oaiHarvestParametersEntity.getStepSize(), oaiHarvestParametersDTO.getStepSize());
   }
 
   @Test

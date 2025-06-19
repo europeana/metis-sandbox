@@ -1,16 +1,16 @@
 package eu.europeana.metis.sandbox.common;
 
-import eu.europeana.metis.sandbox.dto.harvest.BinaryHarvestDTO;
-import eu.europeana.metis.sandbox.dto.harvest.FileHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.BinaryHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
-import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestDTO;
-import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParameters;
-import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
-import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParameters;
-import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParameters;
+import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -26,7 +26,7 @@ public class HarvestParametersConverter {
    * Converts an instance of HarvestParametersEntity to a HarvestParametersDTO.
    *
    * <p>This method maps different subclasses of HarvestParametersEntity
-   * (such as {@link OaiHarvestParameters}, {@link HttpHarvestParameters}, and {@link FileHarvestParameters}).
+   * (such as {@link OaiHarvestParametersEntity}, {@link HttpHarvestParametersEntity}, and {@link FileHarvestParametersEntity}).
    *
    * @param harvestParametersEntity The HarvestParametersEntity object to be converted.
    * @return A HarvestParametersDTO object to the given HarvestParametersEntity.
@@ -34,20 +34,20 @@ public class HarvestParametersConverter {
    */
   public static HarvestParametersDTO convertToHarvestParametersDTO(HarvestParametersEntity harvestParametersEntity) {
     return switch (harvestParametersEntity) {
-      case OaiHarvestParameters oaiHarvestParameters -> new OaiHarvestDTO(
-          oaiHarvestParameters.getUrl(),
-          oaiHarvestParameters.getSetSpec(),
-          oaiHarvestParameters.getMetadataFormat(),
-          oaiHarvestParameters.getStepSize()
+      case OaiHarvestParametersEntity oaiHarvestParametersEntity -> new OaiHarvestParametersDTO(
+          oaiHarvestParametersEntity.getUrl(),
+          oaiHarvestParametersEntity.getSetSpec(),
+          oaiHarvestParametersEntity.getMetadataFormat(),
+          oaiHarvestParametersEntity.getStepSize()
       );
-      case HttpHarvestParameters httpHarvestParameters -> new HttpHarvestDTO(
+      case HttpHarvestParametersEntity httpHarvestParameters -> new HttpHarvestParametersDTO(
           httpHarvestParameters.getUrl(),
           httpHarvestParameters.getFileName(),
           httpHarvestParameters.getFileType(),
           httpHarvestParameters.getFileContent(),
           httpHarvestParameters.getStepSize()
       );
-      case FileHarvestParameters fileHarvestParameters -> new FileHarvestDTO(
+      case FileHarvestParametersEntity fileHarvestParameters -> new FileHarvestParametersDTO(
           fileHarvestParameters.getFileName(),
           fileHarvestParameters.getFileType(),
           fileHarvestParameters.getFileContent(),
@@ -68,25 +68,25 @@ public class HarvestParametersConverter {
   public static HarvestParametersEntity convertToHarvestParametersEntity(
       DatasetEntity datasetEntity, HarvestParametersDTO harvestParametersDTO) {
     return switch (harvestParametersDTO) {
-      case OaiHarvestDTO oaiHarvestDTO -> {
-        OaiHarvestParameters oaiHarvestParameters = new OaiHarvestParameters();
-        oaiHarvestParameters.setDatasetEntity(datasetEntity);
-        oaiHarvestParameters.setUrl(oaiHarvestDTO.getUrl());
-        oaiHarvestParameters.setSetSpec(oaiHarvestDTO.getSetSpec());
-        oaiHarvestParameters.setMetadataFormat(oaiHarvestDTO.getMetadataFormat());
-        oaiHarvestParameters.setStepSize(oaiHarvestDTO.getStepSize());
-        yield oaiHarvestParameters;
+      case OaiHarvestParametersDTO oaiHarvestParametersDTO -> {
+        OaiHarvestParametersEntity oaiHarvestParametersEntity = new OaiHarvestParametersEntity();
+        oaiHarvestParametersEntity.setDatasetEntity(datasetEntity);
+        oaiHarvestParametersEntity.setUrl(oaiHarvestParametersDTO.getUrl());
+        oaiHarvestParametersEntity.setSetSpec(oaiHarvestParametersDTO.getSetSpec());
+        oaiHarvestParametersEntity.setMetadataFormat(oaiHarvestParametersDTO.getMetadataFormat());
+        oaiHarvestParametersEntity.setStepSize(oaiHarvestParametersDTO.getStepSize());
+        yield oaiHarvestParametersEntity;
       }
-      case HttpHarvestDTO httpHarvestDTO -> {
-        HttpHarvestParameters httpHarvestParameters = new HttpHarvestParameters();
+      case HttpHarvestParametersDTO httpHarvestDTO -> {
+        HttpHarvestParametersEntity httpHarvestParameters = new HttpHarvestParametersEntity();
         httpHarvestParameters.setDatasetEntity(datasetEntity);
         httpHarvestParameters.setUrl(httpHarvestDTO.getUrl());
         httpHarvestParameters.setStepSize(httpHarvestDTO.getStepSize());
         applyBinaryFields(httpHarvestParameters, httpHarvestDTO);
         yield httpHarvestParameters;
       }
-      case FileHarvestDTO fileHarvestDTO -> {
-        FileHarvestParameters fileHarvestParameters = new FileHarvestParameters();
+      case FileHarvestParametersDTO fileHarvestDTO -> {
+        FileHarvestParametersEntity fileHarvestParameters = new FileHarvestParametersEntity();
         fileHarvestParameters.setDatasetEntity(datasetEntity);
         fileHarvestParameters.setStepSize(fileHarvestDTO.getStepSize());
         applyBinaryFields(fileHarvestParameters, fileHarvestDTO);
@@ -96,10 +96,10 @@ public class HarvestParametersConverter {
     };
   }
 
-  private static void applyBinaryFields(BinaryHarvestParameters binaryHarvestParameters, BinaryHarvestDTO binaryHarvestDTO) {
-    binaryHarvestParameters.setFileName(binaryHarvestDTO.getFileName());
-    binaryHarvestParameters.setFileType(binaryHarvestDTO.getFileType());
-    binaryHarvestParameters.setFileContent(binaryHarvestDTO.getFileContent());
+  private static void applyBinaryFields(BinaryHarvestParametersEntity binaryHarvestParametersEntity, BinaryHarvestParametersDTO binaryHarvestParametersDTO) {
+    binaryHarvestParametersEntity.setFileName(binaryHarvestParametersDTO.getFileName());
+    binaryHarvestParametersEntity.setFileType(binaryHarvestParametersDTO.getFileType());
+    binaryHarvestParametersEntity.setFileContent(binaryHarvestParametersDTO.getFileContent());
   }
 }
 

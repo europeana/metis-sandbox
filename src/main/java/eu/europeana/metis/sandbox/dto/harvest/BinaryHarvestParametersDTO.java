@@ -9,7 +9,7 @@ import lombok.Getter;
  * Represents the base class for harvesting binary data with file parameters.
  */
 @Getter
-public abstract class BinaryHarvestDTO extends HarvestParametersDTO {
+public abstract class BinaryHarvestParametersDTO extends HarvestParametersDTO {
 
   @JsonProperty("file-name")
   private final String fileName;
@@ -28,7 +28,7 @@ public abstract class BinaryHarvestDTO extends HarvestParametersDTO {
    * @param fileContent the binary content of the file to be harvested.
    * @param stepSize the step size for harvesting.
    */
-  public BinaryHarvestDTO(String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
+  public BinaryHarvestParametersDTO(String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
     super(stepSize);
     this.fileName = fileName;
     this.fileType = fileType;

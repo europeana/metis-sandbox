@@ -10,7 +10,7 @@ import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
-import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
+import eu.europeana.metis.sandbox.repository.HarvestParametersRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -22,18 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class HarvestParameterService {
 
-  private final HarvestingParameterRepository harvestingParameterRepository;
+  private final HarvestParametersRepository harvestParametersRepository;
   private final DatasetRepository datasetRepository;
 
   /**
    * Constructor.
    *
-   * @param harvestingParameterRepository The repository that connected to the table harvesting parameters
+   * @param harvestParametersRepository The repository that connected to the table harvesting parameters
    * @param datasetRepository The repository that connects to the dataset repository
    */
-  public HarvestParameterService(HarvestingParameterRepository harvestingParameterRepository,
+  public HarvestParameterService(HarvestParametersRepository harvestParametersRepository,
       DatasetRepository datasetRepository) {
-    this.harvestingParameterRepository = harvestingParameterRepository;
+    this.harvestParametersRepository = harvestParametersRepository;
     this.datasetRepository = datasetRepository;
   }
 
@@ -59,7 +59,7 @@ public class HarvestParameterService {
       DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
       HarvestParametersEntity harvestParametersEntity = HarvestParametersConverter.convertToHarvestParametersEntity(datasetEntity,
           harvestParametersDto);
-      return harvestingParameterRepository.save(harvestParametersEntity);
+      return harvestParametersRepository.save(harvestParametersEntity);
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error saving harvesting parameters for dataset id: [%s]. ", datasetId), e);
     }
@@ -72,7 +72,7 @@ public class HarvestParameterService {
    * @return an Optional containing the HarvestParametersEntity if a match is found, or empty if not
    */
   public Optional<HarvestParametersEntity> getDatasetHarvestingParameters(String datasetId) {
-    return harvestingParameterRepository.findByDatasetEntity_DatasetId(Integer.parseInt(datasetId));
+    return harvestParametersRepository.findByDatasetEntity_DatasetId(Integer.parseInt(datasetId));
   }
 
   /**
@@ -82,7 +82,7 @@ public class HarvestParameterService {
    * @return an Optional containing the HarvestParametersEntity if found, or empty if not
    */
   public Optional<HarvestParametersEntity> getHarvestingParametersById(UUID uuid) {
-    return harvestingParameterRepository.findById(uuid);
+    return harvestParametersRepository.findById(uuid);
   }
 
   /**
@@ -97,7 +97,7 @@ public class HarvestParameterService {
       throw new IllegalArgumentException("Dataset id must not be empty");
     }
     try {
-      harvestingParameterRepository.deleteByDatasetIdDatasetId(Integer.parseInt(datasetId));
+      harvestParametersRepository.deleteByDatasetIdDatasetId(Integer.parseInt(datasetId));
     } catch (RuntimeException e) {
       throw new ServiceException(
           format("Error removing records for dataset id: [%s]. ", datasetId), e);

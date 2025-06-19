@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.service.debias;
 
+import static java.util.Objects.requireNonNull;
+import static org.apache.tika.utils.StringUtils.isBlank;
+
 import eu.europeana.metis.debias.detect.model.response.Tag;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
@@ -21,7 +24,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -171,7 +173,10 @@ public class DeBiasStateService {
    */
   @Transactional
   public void remove(String datasetId) {
-    Objects.requireNonNull(datasetId, "Dataset id must not be null");
+    requireNonNull(datasetId, "Dataset id must not be null");
+    if (isBlank(datasetId)) {
+      throw new IllegalArgumentException("Dataset id must not be empty");
+    }
     this.recordDeBiasDetailRepository.deleteByDatasetId(datasetId);
     this.recordDeBiasMainRepository.deleteByDatasetId(datasetId);
     this.datasetDeBiasRepository.deleteByDatasetId(datasetId);

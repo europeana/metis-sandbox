@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Repository connected to Harvesting Parameters table
  */
-public interface HarvestingParameterRepository extends JpaRepository<HarvestParametersEntity, UUID> {
+public interface HarvestParametersRepository extends JpaRepository<HarvestParametersEntity, UUID> {
 
     @Transactional(readOnly = true)
     Optional<HarvestParametersEntity> findById(@NotNull UUID id);

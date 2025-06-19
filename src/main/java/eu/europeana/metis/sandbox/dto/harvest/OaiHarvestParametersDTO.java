@@ -7,9 +7,9 @@ import lombok.Getter;
 /**
  * Represents the data related to OAI-PMH harvesting
  */
-@ApiModel(OaiHarvestDTO.SWAGGER_MODEL_NAME)
+@ApiModel(OaiHarvestParametersDTO.SWAGGER_MODEL_NAME)
 @Getter
-public class OaiHarvestDTO extends HarvestParametersDTO {
+public class OaiHarvestParametersDTO extends HarvestParametersDTO {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 
@@ -30,7 +30,7 @@ public class OaiHarvestDTO extends HarvestParametersDTO {
      * @param metadataFormat the metadata format used for harvesting.
      * @param stepSize the step size for harvesting.
      */
-    public OaiHarvestDTO(String url, String setSpec, String metadataFormat, Integer stepSize) {
+    public OaiHarvestParametersDTO(String url, String setSpec, String metadataFormat, Integer stepSize) {
         super(stepSize);
         this.url = url;
         this.setSpec = setSpec;

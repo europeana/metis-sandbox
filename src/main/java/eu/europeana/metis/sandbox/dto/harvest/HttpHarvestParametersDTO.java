@@ -7,9 +7,9 @@ import lombok.Getter;
 /**
  * Represents the data related to Http harvesting
  */
-@ApiModel(HttpHarvestDTO.SWAGGER_MODEL_NAME)
+@ApiModel(HttpHarvestParametersDTO.SWAGGER_MODEL_NAME)
 @Getter
-public class HttpHarvestDTO extends BinaryHarvestDTO {
+public class HttpHarvestParametersDTO extends BinaryHarvestParametersDTO {
 
   public static final String SWAGGER_MODEL_NAME = "HttpUpload";
 
@@ -24,7 +24,7 @@ public class HttpHarvestDTO extends BinaryHarvestDTO {
    * @param fileContent the binary content of the file to be harvested.
    * @param stepSize the step size for harvesting.
    */
-  public HttpHarvestDTO(String url, String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
+  public HttpHarvestParametersDTO(String url, String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
     super(fileName, fileType, fileContent, stepSize);
     this.url = url;
   }

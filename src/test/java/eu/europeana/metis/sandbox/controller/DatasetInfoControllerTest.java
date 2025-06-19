@@ -16,7 +16,7 @@ import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestDTO;
+import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
@@ -94,7 +94,7 @@ class DatasetInfoControllerTest {
   @Test
   void getDatasetInfo() throws Exception {
     String datasetId = "datasetId";
-    OaiHarvestDTO oaiHarvestDTO = new OaiHarvestDTO("url", "steStep", "metadataFormat", 1);
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "steStep", "metadataFormat", 1);
     DatasetInfoDTO datasetInfoDTO = DatasetInfoDTO.builder()
                                                   .datasetId(datasetId)
                                                   .datasetName("datasetName")
@@ -102,7 +102,7 @@ class DatasetInfoControllerTest {
                                                   .creationDate(ZonedDateTime.now())
                                                   .language(Language.EL)
                                                   .country(Country.GREECE)
-                                                  .harvestParametersDto(oaiHarvestDTO)
+                                                  .harvestParametersDto(oaiHarvestParametersDTO)
                                                   .transformedToEdmExternal(false)
                                                   .build();
 
@@ -114,8 +114,8 @@ class DatasetInfoControllerTest {
            .andExpect(jsonPath("$.dataset-id", is(datasetId)))
            .andExpect(jsonPath("$.language", is(Language.EL.xmlValue())))
            .andExpect(jsonPath("$.country", is(Country.GREECE.xmlValue())))
-           .andExpect(jsonPath("$.harvesting-parameters.url", is(oaiHarvestDTO.getUrl())))
-           .andExpect(jsonPath("$.harvesting-parameters.step-size", is(oaiHarvestDTO.getStepSize())));
+           .andExpect(jsonPath("$.harvesting-parameters.url", is(oaiHarvestParametersDTO.getUrl())))
+           .andExpect(jsonPath("$.harvesting-parameters.step-size", is(oaiHarvestParametersDTO.getStepSize())));
   }
 
   @Test
