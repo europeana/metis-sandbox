@@ -23,6 +23,8 @@ public interface RecordDeBiasMainRepository extends JpaRepository<RecordDeBiasMa
 
   /**
    * Deletes all RecordDeBiasMainEntity entries associated with a specific dataset ID.
+   *
+   * @param datasetId the dataset identifier
    */
   @Modifying
   @Query("DELETE FROM RecordDeBiasMainEntity rdm WHERE rdm.datasetId.datasetId = :datasetId")

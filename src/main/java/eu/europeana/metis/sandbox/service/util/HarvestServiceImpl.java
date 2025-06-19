@@ -54,21 +54,20 @@ public class HarvestServiceImpl {
     this.maxRecords = maxRecords;
   }
 
-  public List<OaiRecordHeader> harvestOaiIdentifiers(String datasetId,
-      @NotNull OaiHarvest oaiHarvest, Integer stepSize) {
+  public List<OaiRecordHeader> harvestOaiIdentifiers(@NotNull OaiHarvest oaiHarvest, Integer stepSize) {
     try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         oaiHarvest)) {
-      return harvestOaiHeaders(recordHeaderIterator, datasetId, stepSize);
+      return harvestOaiHeaders(recordHeaderIterator, stepSize);
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting OAI-PMH records ", e);
     }
   }
 
   private List<OaiRecordHeader> harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,
-      OaiRecordHeader> iteratorToFilter, String datasetId, Integer stepSize) throws HarvesterException {
+      OaiRecordHeader> iteratorToFilter, Integer stepSize) throws HarvesterException {
     StopWatch watch = StopWatch.createStarted();
     final List<OaiRecordHeader> result = new ArrayList<>();
-    harvestFromIterator(iteratorToFilter, datasetId, stepSize, entry -> {
+    harvestFromIterator(iteratorToFilter, stepSize, entry -> {
       result.add(entry);
 
       if (watch.getTime(TimeUnit.SECONDS) > 10) {
@@ -81,7 +80,7 @@ public class HarvestServiceImpl {
     return result;
   }
 
-  public Map<String, String> harvestFromCompressedArchive(InputStream inputStream, String datasetId, Integer stepSize,
+  public Map<String, String> harvestFromCompressedArchive(InputStream inputStream, Integer stepSize,
       CompressedFileExtension compressedFileExtension) throws ServiceException {
 
     final List<Pair<String, Exception>> exception = new ArrayList<>(1);
@@ -89,7 +88,7 @@ public class HarvestServiceImpl {
     try (final HarvestingIterator<FullRecord, Path> iterator = httpHarvester.createFullRecordHarvestIterator(inputStream,
         compressedFileExtension)) {
 
-      harvestFromIterator(iterator, datasetId, stepSize, entry -> {
+      harvestFromIterator(iterator, stepSize, entry -> {
         try (final InputStream content = entry.getContent()) {
           String recordId = entry.getHarvestingIdentifier();
           result.put(recordId, IOUtils.toString(content, StandardCharsets.UTF_8));
@@ -102,8 +101,8 @@ public class HarvestServiceImpl {
       }, FullRecord::isDeleted);
 
       if (!exception.isEmpty()) {
-        throw new HarvesterException("Could not process path " + exception.get(0).getKey() + ".",
-            exception.get(0).getValue());
+        throw new HarvesterException("Could not process path " + exception.getFirst().getKey() + ".",
+            exception.getFirst().getValue());
       }
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting records ", e);
@@ -112,7 +111,7 @@ public class HarvestServiceImpl {
     return result;
   }
 
-  private <T> void harvestFromIterator(HarvestingIterator<T, ?> iterator, String datasetId,
+  private <T> void harvestFromIterator(HarvestingIterator<T, ?> iterator,
       Integer stepSize, Function<T, ReportingIteration.IterationResult> processor,
       Predicate<T> isDeleted) throws HarvesterException {
 

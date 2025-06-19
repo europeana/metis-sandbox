@@ -111,7 +111,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
     LOGGER.info("Harvesting identifiers for {}", oaiEndpoint);
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    oaiRecordHeaders.addAll(harvestServiceImpl.harvestOaiIdentifiers(datasetId, oaiHarvest, Integer.valueOf(stepSize)));
+    oaiRecordHeaders.addAll(harvestServiceImpl.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize)));
     LOGGER.info("Identifiers harvested");
   }
 

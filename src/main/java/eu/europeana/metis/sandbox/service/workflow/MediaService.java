@@ -38,47 +38,62 @@ public class MediaService {
     this.rdfDeserializer = rdfDeserializer;
   }
 
-  public MediaProcessingResult processMediaRecord(String recordData, String datasetId) {
-    try {
-      byte[] rdfBytes = recordData.getBytes(StandardCharsets.UTF_8);
-      EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
+  public MediaProcessingResult processMediaRecord(String recordData, String datasetId) throws MediaExtractionException {
+    byte[] rdfBytes = recordData.getBytes(StandardCharsets.UTF_8);
+    EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
-      List<Exception> warningExceptions = new ArrayList<>();
+    List<Exception> warningExceptions = new ArrayList<>();
 
-      // Main thumbnail first
-      RdfResourceEntry resourceMainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(rdfBytes);
-      boolean hasMainThumbnail = false;
-      if (resourceMainThumbnail != null) {
-        safeProcessResource(
-            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, datasetId),
-            List.of(resourceMainThumbnail),
-            warningExceptions);
-        hasMainThumbnail = warningExceptions.isEmpty();
-      }
-
-      // Remaining resources
-      List<RdfResourceEntry> remainingResources = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
-      if (hasMainThumbnail) {
-        safeProcessResource(
-            entry -> processResourceWithThumbnail(entry, enrichedRdf, datasetId),
-            remainingResources,
-            warningExceptions);
-      } else {
-        safeProcessResource(
-            entry -> processResourceWithoutThumbnail(entry, enrichedRdf, datasetId),
-            remainingResources,
-            warningExceptions);
-      }
-
-      // Serialize RDF
-      byte[] outputRdfBytes = getOutputRdf(enrichedRdf);
-      String updatedRecordData = new String(outputRdfBytes, StandardCharsets.UTF_8);
-
-      return new MediaProcessingResult(updatedRecordData, warningExceptions);
-
-    } catch (Exception e) {
-      throw new RuntimeException("Media processing failed", e);
+    // Main thumbnail first
+    RdfResourceEntry resourceMainThumbnail = getMainThumbnailResourceForMediaExtraction(rdfBytes);
+    boolean hasMainThumbnail = false;
+    if (resourceMainThumbnail != null) {
+      safeProcessResource(
+          entry -> processResourceWithoutThumbnail(entry, enrichedRdf, datasetId),
+          List.of(resourceMainThumbnail),
+          warningExceptions);
+      hasMainThumbnail = warningExceptions.isEmpty();
     }
+
+    // Remaining resources
+    List<RdfResourceEntry> remainingResources = getRemainingResourcesForMediaExtraction(rdfBytes);
+    if (hasMainThumbnail) {
+      safeProcessResource(
+          entry -> processResourceWithThumbnail(entry, enrichedRdf, datasetId),
+          remainingResources,
+          warningExceptions);
+    } else {
+      safeProcessResource(
+          entry -> processResourceWithoutThumbnail(entry, enrichedRdf, datasetId),
+          remainingResources,
+          warningExceptions);
+    }
+
+    // Serialize RDF
+    byte[] outputRdfBytes = getOutputRdf(enrichedRdf);
+    String updatedRecordData = new String(outputRdfBytes, StandardCharsets.UTF_8);
+
+    return new MediaProcessingResult(updatedRecordData, warningExceptions);
+  }
+
+  private List<RdfResourceEntry> getRemainingResourcesForMediaExtraction(byte[] rdfBytes) throws MediaExtractionException {
+    List<RdfResourceEntry> remainingResources;
+    try {
+      remainingResources = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
+    } catch (RdfDeserializationException e) {
+      throw new MediaExtractionException("Failed deserialization", e);
+    }
+    return remainingResources;
+  }
+
+  private RdfResourceEntry getMainThumbnailResourceForMediaExtraction(byte[] rdfBytes) throws MediaExtractionException {
+    RdfResourceEntry resourceMainThumbnail;
+    try {
+      resourceMainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(rdfBytes);
+    } catch (RdfDeserializationException e) {
+      throw new MediaExtractionException("Failed deserialization", e);
+    }
+    return resourceMainThumbnail;
   }
 
   private void safeProcessResource(ThrowingFunction<RdfResourceEntry, Boolean> resourceProcessor,
@@ -92,12 +107,20 @@ public class MediaService {
     }
   }
 
-  private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws RdfDeserializationException {
-    return rdfDeserializer.getRdfForResourceEnriching(rdfBytes);
+  private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws MediaExtractionException {
+    try {
+      return rdfDeserializer.getRdfForResourceEnriching(rdfBytes);
+    } catch (RdfDeserializationException e) {
+      throw new MediaExtractionException("Failed deserialization", e);
+    }
   }
 
-  private byte[] getOutputRdf(EnrichedRdf rdfForEnrichment) throws RdfSerializationException {
-    return rdfSerializer.serialize(rdfForEnrichment);
+  private byte[] getOutputRdf(EnrichedRdf rdfForEnrichment) throws MediaExtractionException {
+    try {
+      return rdfSerializer.serialize(rdfForEnrichment);
+    } catch (RdfSerializationException e) {
+      throw new MediaExtractionException("Failed serialization", e);
+    }
   }
 
   private boolean processResourceWithThumbnail(RdfResourceEntry resourceToProcess, EnrichedRdf rdfForEnrichment,
@@ -129,6 +152,8 @@ public class MediaService {
     }
   }
 
-  public record MediaProcessingResult(String updatedRecordData, List<Exception> warningExceptions) {}
+  public record MediaProcessingResult(String updatedRecordData, List<Exception> warningExceptions) {
+
+  }
 }
 

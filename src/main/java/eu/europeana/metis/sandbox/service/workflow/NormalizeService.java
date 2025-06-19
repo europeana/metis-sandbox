@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
 import eu.europeana.normalization.util.NormalizationConfigurationException;
@@ -11,8 +12,14 @@ public class NormalizeService {
 
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
 
-  public String normalizeRecord(String recordData) throws NormalizationConfigurationException, NormalizationException {
-    NormalizationResult normalizationResult = normalizerFactory.getNormalizer().normalize(recordData);
+  public String normalizeRecord(String recordData) throws NormalizationException {
+    Normalizer normalizer;
+    try {
+      normalizer = normalizerFactory.getNormalizer();
+    } catch (NormalizationConfigurationException e) {
+      throw new NormalizationException("Normalization configuration failed", e);
+    }
+    NormalizationResult normalizationResult = normalizer.normalize(recordData);
     return normalizationResult.getNormalizedRecordInEdmXml();
   }
 }

@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static java.util.Optional.ofNullable;
+
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
@@ -16,7 +18,9 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import lombok.experimental.StandardException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +39,7 @@ public class FileHarvestService {
   }
 
   public Map<String, HarvestedRecord> harvestRecordsFromFile(UUID harvestParameterId, String datasetId, int stepSize)
-      throws IOException, EuropeanaIdException {
+      throws FileHarvestException {
     HarvestParametersEntity harvestParametersEntity =
         harvestParameterService.getHarvestingParametersById(harvestParameterId).orElseThrow();
 
@@ -55,10 +59,11 @@ public class FileHarvestService {
     Map<String, String> recordIdAndContent = new HashMap<>();
 
     if (fileType.equals(FileType.XML)) {
-      recordIdAndContent.put(fileName, IOUtils.toString(inputStream, StandardCharsets.UTF_8));
+      String stringData = getStringData(inputStream);
+      recordIdAndContent.put(fileName, stringData);
     } else {
-      recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(
-          inputStream, datasetId, stepSize, CompressedFileExtension.valueOf(fileType.name())));
+      recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(inputStream, stepSize,
+          CompressedFileExtension.valueOf(fileType.name())));
     }
 
     Map<String, HarvestedRecord> harvestedRecords = new HashMap<>();
@@ -66,21 +71,38 @@ public class FileHarvestService {
       String sourceRecordId = entry.getKey();
       String recordData = entry.getValue();
 
-      EuropeanaIdCreator europeanaIdCreator = new EuropeanaIdCreator();
-      String sourceProvidedChoAbout = sourceRecordId;
-      String recordId = sourceRecordId;
-      try {
-        EuropeanaGeneratedIdsMap idsMap = europeanaIdCreator.constructEuropeanaId(recordData, datasetId);
-        sourceProvidedChoAbout = idsMap.getSourceProvidedChoAbout();
-        recordId = idsMap.getEuropeanaGeneratedId();
-      } catch (EuropeanaIdException e) {
-        LOGGER.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
-      }
-
+      Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
+      String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
+                                                              .orElse(sourceRecordId);
+      String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
       harvestedRecords.put(sourceRecordId, new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData));
     }
 
     return harvestedRecords;
+  }
+
+  private String getStringData(InputStream inputStream) throws FileHarvestException {
+    try {
+      return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new FileHarvestException(e);
+    }
+  }
+
+  private Optional<EuropeanaGeneratedIdsMap> getEuropeanaGeneratedIdsMap(String datasetId, String recordData) {
+    EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
+    try {
+      EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
+      europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
+    } catch (EuropeanaIdException e) {
+      LOGGER.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+    }
+    return ofNullable(europeanaGeneratedIdsMap);
+  }
+
+  @StandardException
+  public static class FileHarvestException extends Exception {
+
   }
 }
 

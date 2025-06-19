@@ -35,6 +35,17 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
       """)
   List<DatasetProblemPatternStatisticProjection> getProblemPatternStatistics();
 
+  /**
+   * Inserts or updates the matching entity with the record occurrences incremented.
+   *
+   * <p>If a record already exists, then it increments the record occurrences by the specified amount.
+   * <p>Note: This is a native query, so spring jpa persistent context might not be auto-updated.
+   *
+   * @param executionPointId the id of the execution point
+   * @param patternId the id of the pattern
+   * @param incrementValue the value to increment the record occurrences by
+   * @return the updated record occurrences
+   */
   @Query(value = """
           INSERT INTO problem_patterns.dataset_problem_pattern (execution_point_id, pattern_id, record_occurrences)
           VALUES (:executionPointId, :patternId, :incrementValue)
@@ -47,6 +58,12 @@ public interface DatasetProblemPatternRepository extends JpaRepository<DatasetPr
       @Param("patternId") String patternId,
       @Param("incrementValue") int incrementValue);
 
+  /**
+   * Projection interface for retrieving dataset problem pattern statistics.
+   *
+   * <p>Represents the aggregated results of problem pattern occurrences across datasets.
+   * <p>Contains methods to retrieve the pattern ID and total occurrences.
+   */
   interface DatasetProblemPatternStatisticProjection {
 
     String getPatternId();

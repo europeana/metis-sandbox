@@ -95,6 +95,12 @@ public class DatasetReportService {
     this.harvestParameterService = harvestParameterService;
   }
 
+  /**
+   * Finds dataset IDs created before a specified number of days.
+   *
+   * @param days the number of days before which the datasets were created
+   * @return a list of dataset IDs created before the specified number of days
+   */
   public List<String> findDatasetIdsByCreatedBefore(int days) {
     ZonedDateTime retentionDate = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(days);
 

@@ -43,7 +43,7 @@ class ThumbnailStoreServiceTest {
   private ThumbnailStoreService service;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     service = new ThumbnailStoreService(s3client, new S3Bucket("bucket"), thumbnailIdRepository);
   }
 
@@ -73,8 +73,8 @@ class ThumbnailStoreServiceTest {
 
     when(s3client.putObject(any(PutObjectRequest.class))).thenThrow(new SdkClientException(""));
 
-    assertThrows(ThumbnailStoringException.class,
-        () -> service.store(List.of(thumbnail1, thumbnail2), "1"));
+    List<Thumbnail> thumbnailList = List.of(thumbnail1, thumbnail2);
+    assertThrows(ThumbnailStoringException.class, () -> service.store(thumbnailList, "1"));
 
     verify(s3client).putObject(any(PutObjectRequest.class));
     verifyNoMoreInteractions(s3client);
@@ -89,12 +89,12 @@ class ThumbnailStoreServiceTest {
     when(thumbnail1.getMimeType()).thenReturn("image/jpg");
     when(thumbnail1.getTargetName()).thenReturn("image1");
     doThrow(new ThumbnailStoringException("", new Exception())).when(thumbnail1)
-        .close();
+                                                               .close();
 
     when(s3client.putObject(any(PutObjectRequest.class))).thenThrow(new SdkClientException(""));
 
-    assertThrows(ThumbnailStoringException.class,
-        () -> service.store(List.of(thumbnail1, thumbnail2), "1"));
+    List<Thumbnail> thumbnailList = List.of(thumbnail1, thumbnail2);
+    assertThrows(ThumbnailStoringException.class, () -> service.store(thumbnailList, "1"));
 
     verify(s3client).putObject(any(PutObjectRequest.class));
     verifyNoMoreInteractions(s3client);
@@ -114,8 +114,9 @@ class ThumbnailStoreServiceTest {
     when(thumbnailIdRepository.saveAll(anyList()))
         .thenThrow(new RuntimeException("Fail", new Exception()));
 
+    List<Thumbnail> thumbnailList = List.of(thumbnail1, thumbnail2);
     assertThrows(ServiceException.class,
-        () -> service.store(List.of(thumbnail1, thumbnail2), "1"));
+        () -> service.store(thumbnailList, "1"));
 
     verify(s3client, times(2)).putObject(any(PutObjectRequest.class));
     verify(thumbnailIdRepository).saveAll(anyList());
@@ -128,7 +129,8 @@ class ThumbnailStoreServiceTest {
 
   @Test
   void store_nullDatasetId_expectFail() {
-    assertThrows(NullPointerException.class, () -> service.store(List.of(), null));
+    List<Thumbnail> thumbnailList = List.of();
+    assertThrows(NullPointerException.class, () -> service.store(thumbnailList, null));
   }
 
   @Test

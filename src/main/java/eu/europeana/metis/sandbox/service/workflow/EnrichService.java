@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.experimental.StandardException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,41 +21,43 @@ public class EnrichService {
     this.enrichmentWorker = enrichmentWorker;
   }
 
-  public EnrichmentProcessingResult enrichRecord(String recordData) {
-    try {
-      ProcessedResult<String> processedResult = enrichmentWorker.process(recordData);
-      Set<Report> reports = processedResult.getReport();
+  public EnrichmentProcessingResult enrichRecord(String recordData) throws EnrichmentException {
+    ProcessedResult<String> processedResult = enrichmentWorker.process(recordData);
+    Set<Report> reports = processedResult.getReport();
 
-      if (processedResult.getRecordStatus() == ProcessedResult.RecordStatus.STOP) {
-        handleRecordStopException(reports);
-      }
-
-      List<ServiceException> warningExceptions =
-          reports.stream()
-                 .filter(report -> Objects.equals(report.getMessageType(), Type.WARN))
-                 .map(report -> new ServiceException(createErrorMessage(report), null))
-                 .toList();
-
-      return new EnrichmentProcessingResult(processedResult.getProcessedRecord(), warningExceptions);
-
-    } catch (Exception e) {
-      throw new RuntimeException("Enrichment processing failed", e);
+    if (processedResult.getRecordStatus() == ProcessedResult.RecordStatus.STOP) {
+      handleRecordStopException(reports);
     }
+
+    List<ServiceException> warningExceptions =
+        reports.stream()
+               .filter(report -> Objects.equals(report.getMessageType(), Type.WARN))
+               .map(report -> new ServiceException(createErrorMessage(report), null))
+               .toList();
+
+    return new EnrichmentProcessingResult(processedResult.getProcessedRecord(), warningExceptions);
   }
 
-  private void handleRecordStopException(Set<Report> reports) {
+  private void handleRecordStopException(Set<Report> reports) throws EnrichmentException {
     Optional<Report> errorReport = reports.stream()
                                           .filter(rep -> Objects.equals(rep.getMessageType(), Type.ERROR))
                                           .findFirst();
     String errorMessage = errorReport.map(this::createErrorMessage)
                                      .orElse("Something went wrong when processing record.");
-    throw new ServiceException(errorMessage);
+    throw new EnrichmentException(errorMessage);
   }
 
   private String createErrorMessage(Report report) {
     return String.format("%s Value: %s", report.getMessage(), report.getValue());
   }
 
-  public record EnrichmentProcessingResult(String processedRecord, List<ServiceException> warningExceptions) {}
+  public record EnrichmentProcessingResult(String processedRecord, List<ServiceException> warningExceptions) {
+
+  }
+
+  @StandardException
+  public static class EnrichmentException extends Exception {
+
+  }
 }
 

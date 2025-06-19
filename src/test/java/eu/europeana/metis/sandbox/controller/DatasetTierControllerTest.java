@@ -45,9 +45,9 @@ import org.springframework.test.web.servlet.MockMvc;
     RestResponseExceptionHandler.class})
 class DatasetTierControllerTest {
 
-  private static final String datasetId = "datasetId";
-  private static final String recordId = "recordId";
-  private static final String europeanaId = "europeanaId";
+  private static final String DATASET_ID = "datasetId";
+  private static final String RECORD_ID = "recordId";
+  private static final String EUROPEANA_ID = "europeanaId";
 
   @MockitoBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -68,25 +68,25 @@ class DatasetTierControllerTest {
   @Test
   void computeRecordTierCalculation_expectSuccess() throws Exception {
     final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
-    recordTierCalculationSummary.setEuropeanaRecordId(europeanaId);
+    recordTierCalculationSummary.setEuropeanaRecordId(EUROPEANA_ID);
     final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(
         recordTierCalculationSummary,
         new ContentTierBreakdown.Builder().build(), null);
-    when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenReturn(
+    when(recordTierCalculationService.calculateTiers(RECORD_ID, DATASET_ID)).thenReturn(
         recordTierCalculationView);
 
-    mockMvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
-               .param("recordId", recordId))
-           .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is(europeanaId)))
+    mockMvc.perform(get("/dataset/{id}/record/compute-tier-calculation", DATASET_ID)
+               .param("recordId", RECORD_ID))
+           .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is(EUROPEANA_ID)))
            .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
   }
 
   @Test
   void computeRecordTierCalculation_NoRecordFoundException() throws Exception {
-    when(recordTierCalculationService.calculateTiers(recordId, datasetId)).thenThrow(
+    when(recordTierCalculationService.calculateTiers(RECORD_ID, DATASET_ID)).thenThrow(
         new NoRecordFoundException("record not found"));
-    mockMvc.perform(get("/dataset/{id}/record/compute-tier-calculation", datasetId)
-               .param("recordId", recordId))
+    mockMvc.perform(get("/dataset/{id}/record/compute-tier-calculation", DATASET_ID)
+               .param("recordId", RECORD_ID))
            .andExpect(status().isNotFound())
            .andExpect(jsonPath("$.message",
                is("record not found")));
@@ -95,8 +95,8 @@ class DatasetTierControllerTest {
   @Test
   void getRecordsTier_expectSuccess() throws Exception {
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
-    executionRecordIdentifierKey.setDatasetId(datasetId);
-    executionRecordIdentifierKey.setRecordId(recordId);
+    executionRecordIdentifierKey.setDatasetId(DATASET_ID);
+    executionRecordIdentifierKey.setRecordId(RECORD_ID);
     executionRecordIdentifierKey.setExecutionId("executionId");
     executionRecordIdentifierKey.setExecutionName("executionName");
     ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
@@ -110,13 +110,13 @@ class DatasetTierControllerTest {
     executionRecordTierContext.setMetadataTierContextualClasses(MetadataTier.T0.toString());
     executionRecordTierContext.setLicense(LicenseType.OPEN.toString());
 
-    when(executionRecordTierContextRepository.findByIdentifier_DatasetId(datasetId)).thenReturn(
+    when(executionRecordTierContextRepository.findByIdentifier_DatasetId(DATASET_ID)).thenReturn(
         List.of(executionRecordTierContext));
 
-    mockMvc.perform(get("/dataset/{id}/records-tiers", datasetId))
+    mockMvc.perform(get("/dataset/{id}/records-tiers", DATASET_ID))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$", hasSize(1)))
-           .andExpect(jsonPath("$[0].record-id", is(recordId)))
+           .andExpect(jsonPath("$[0].record-id", is(RECORD_ID)))
            .andExpect(jsonPath("$[0].content-tier", is("3")))
            .andExpect(jsonPath("$[0].content-tier-before-license-correction", is("4")))
            .andExpect(jsonPath("$[0].license", is("OPEN")))
@@ -129,10 +129,10 @@ class DatasetTierControllerTest {
 
   @Test
   void getRecordsTier_expectInvalidDatasetException() throws Exception {
-    InvalidDatasetException invalidDatasetException = new InvalidDatasetException(datasetId);
-    when(executionRecordTierContextRepository.findByIdentifier_DatasetId(datasetId)).thenThrow(invalidDatasetException);
+    InvalidDatasetException invalidDatasetException = new InvalidDatasetException(DATASET_ID);
+    when(executionRecordTierContextRepository.findByIdentifier_DatasetId(DATASET_ID)).thenThrow(invalidDatasetException);
 
-    mockMvc.perform(get("/dataset/{id}/records-tiers", datasetId))
+    mockMvc.perform(get("/dataset/{id}/records-tiers", DATASET_ID))
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.message", is("Provided dataset id: [datasetId] is not valid. ")));
   }
@@ -143,18 +143,18 @@ class DatasetTierControllerTest {
     final String returnString = "exampleString";
 
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
-    executionRecordIdentifierKey.setDatasetId(datasetId);
-    executionRecordIdentifierKey.setRecordId(recordId);
+    executionRecordIdentifierKey.setDatasetId(DATASET_ID);
+    executionRecordIdentifierKey.setRecordId(RECORD_ID);
     executionRecordIdentifierKey.setExecutionId("executionId");
     executionRecordIdentifierKey.setExecutionName("executionName");
     ExecutionRecord executionRecord = new ExecutionRecord();
     executionRecord.setIdentifier(executionRecordIdentifierKey);
     executionRecord.setRecordData(returnString);
     when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
-        datasetId, recordId, Set.of(step.name()))).thenReturn(Set.of(executionRecord));
+        DATASET_ID, RECORD_ID, Set.of(step.name()))).thenReturn(Set.of(executionRecord));
 
-    mockMvc.perform(get("/dataset/{id}/record", datasetId)
-               .param("recordId", recordId)
+    mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
+               .param("recordId", RECORD_ID)
                .param("step", step.name()))
            .andExpect(status().isOk())
            .andExpect(content().string(returnString));
@@ -164,10 +164,10 @@ class DatasetTierControllerTest {
   void getRecord_NoRecordFoundException() throws Exception {
     final FullBatchJobType step = FullBatchJobType.HARVEST_FILE;
 
-    mockMvc.perform(get("/dataset/{id}/record", datasetId)
-               .param("recordId", recordId)
+    mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
+               .param("recordId", RECORD_ID)
                .param("step", step.name()))
            .andExpect(status().isNotFound())
-           .andExpect(jsonPath("$.message", is(recordId)));
+           .andExpect(jsonPath("$.message", is(RECORD_ID)));
   }
 }

@@ -27,6 +27,9 @@ public class ExecutionRecordDTOAsyncItemWriter extends AsyncItemWriter<AbstractE
     this.executionRecordDTOItemWriter = executionRecordDTOItemWriter;
   }
 
+  /**
+   * Initializes the item writer by setting the delegate for writing execution record DTO items.
+   */
   @PostConstruct
   public void initialize() {
     setDelegate(executionRecordDTOItemWriter);

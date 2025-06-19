@@ -34,6 +34,9 @@ public class OaiIdentifiersWriter extends RepositoryItemWriter<ExecutionRecordEx
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
   }
 
+  /**
+   * Initializes the item writer by setting the repository for writing execution record identifier items.
+   */
   @PostConstruct
   public void initialize() {
     setRepository(executionRecordExternalIdentifierRepository);

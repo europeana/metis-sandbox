@@ -33,7 +33,7 @@ class RecordTierCalculationServiceTest {
   private RecordTierCalculationService recordTierCalculationService;
 
   @BeforeEach
-  public void initialize() {
+  void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
         new RecordTierCalculationService(executionRecordRepository, executionRecordErrorRepository,
             PORTAL_PUBLISH_RECORD_BASE_URL));

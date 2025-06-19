@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
+import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.TierCalculationMode;
 import eu.europeana.indexing.tiers.model.TierResults;
 import java.io.ByteArrayInputStream;
@@ -28,25 +29,20 @@ public class IndexService {
         new Date(), false, Collections.emptyList(), false, TierCalculationMode.OVERWRITE);
   }
 
-  public IndexingResult indexRecord(String recordId, String recordData) {
-    try {
-      LOGGER.info("Indexing: {}", recordId);
+  public IndexingResult indexRecord(String recordId, String recordData) throws IndexingException {
+    LOGGER.info("Indexing: {}", recordId);
 
-      InputStream inputStream = new ByteArrayInputStream(recordData.getBytes(StandardCharsets.UTF_8));
-      TierResults tierResults = indexer.indexAndGetTierCalculations(inputStream, indexingProperties);
+    InputStream inputStream = new ByteArrayInputStream(recordData.getBytes(StandardCharsets.UTF_8));
+    TierResults tierResults = indexer.indexAndGetTierCalculations(inputStream, indexingProperties);
 
-      if (tierResults == null || isAllDataNull(tierResults)) {
-        throw new IndexerRelatedIndexingException(
-            String.format("Something went wrong with tier calculations for record %s", recordId));
-      }
-
-      LOGGER.info("Indexed: {}", recordId);
-
-      return new IndexingResult(recordData, tierResults);
-
-    } catch (Exception e) {
-      throw new RuntimeException("Indexing failed for record " + recordId, e);
+    if (tierResults == null || isAllDataNull(tierResults)) {
+      throw new IndexerRelatedIndexingException(
+          String.format("Something went wrong with tier calculations for record %s", recordId));
     }
+
+    LOGGER.info("Indexed: {}", recordId);
+
+    return new IndexingResult(recordData, tierResults);
   }
 
   private boolean isAllDataNull(TierResults tierResultsToCheck) {
@@ -59,6 +55,8 @@ public class IndexService {
         tierResultsToCheck.getLicenseType() == null;
   }
 
-  public record IndexingResult(String recordData, TierResults tierResults) {}
+  public record IndexingResult(String recordData, TierResults tierResults) {
+
+  }
 }
 

@@ -6,10 +6,9 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.service.workflow.FileHarvestService;
+import eu.europeana.metis.sandbox.service.workflow.FileHarvestService.FileHarvestException;
 import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
-import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,7 +60,7 @@ public class FileItemReader implements ItemReader<AbstractExecutionRecordDTO> {
   }
 
   @PostConstruct
-  private void prepare() throws IOException, EuropeanaIdException {
+  private void prepare() throws FileHarvestException {
     Map<String, HarvestedRecord> recordIdAndContent = fileHarvestService.harvestRecordsFromFile(
         UUID.fromString(harvestParameterId),
         datasetId, Integer.parseInt(stepSize));

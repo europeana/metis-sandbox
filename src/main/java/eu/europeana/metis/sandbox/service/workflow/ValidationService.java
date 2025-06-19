@@ -42,13 +42,17 @@ public class ValidationService {
 
   public ValidationResult validateRecord(String recordData, String recordId, String datasetId, String executionName,
       ValidationBatchJobSubType subtype)
-      throws TransformationException, ValidationFailureException {
-    String schema = switch (subtype) {
+      throws ValidationException {
+
+    String reorderedFileContent = recordData;
+    if (subtype == ValidationBatchJobSubType.EXTERNAL) {
+      reorderedFileContent = reorderFileContent(recordData);
+    }
+
+    final String schema = switch (subtype) {
       case EXTERNAL -> "EDM-EXTERNAL";
       case INTERNAL -> "EDM-INTERNAL";
     };
-
-    String reorderedFileContent = reorderFileContent(recordData);
     ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
 
     if (subtype == ValidationBatchJobSubType.INTERNAL) {
@@ -59,15 +63,20 @@ public class ValidationService {
       LOGGER.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
     } else {
       LOGGER.info("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
-      throw new ValidationFailureException(result.getMessage());
+      throw new ValidationException(result.getMessage());
     }
 
     return result;
   }
 
-  private String reorderFileContent(String recordData) throws TransformationException {
+  private String reorderFileContent(String recordData) throws ValidationException {
     try (XsltTransformer xsltTransformer = xsltTransformerFactory.getObject()) {
-      StringWriter writer = xsltTransformer.transform(recordData.getBytes(StandardCharsets.UTF_8), null);
+      StringWriter writer = null;
+      try {
+        writer = xsltTransformer.transform(recordData.getBytes(StandardCharsets.UTF_8), null);
+      } catch (TransformationException e) {
+        throw new ValidationException(e);
+      }
       return writer.toString();
     }
   }
@@ -86,7 +95,7 @@ public class ValidationService {
   }
 
   @StandardException
-  public static class ValidationFailureException extends Exception {
+  public static class ValidationException extends Exception {
 
   }
 }

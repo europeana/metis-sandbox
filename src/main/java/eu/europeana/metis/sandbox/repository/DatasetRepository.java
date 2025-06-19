@@ -11,8 +11,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
+  /**
+   * Returns a list of DatasetIdProjection objects created before the specified date.
+   *
+   * @param date the date to compare against
+   * @return a list of DatasetIdProjection objects matching the criteria
+   */
   List<DatasetIdProjection> findByCreatedDateBefore(ZonedDateTime date);
 
+  /**
+   * Retrieves a DatasetEntity based on the specified dataset ID.
+   *
+   * @param datasetId the ID of the dataset to retrieve
+   * @return an Optional containing the found DatasetEntity or empty if no dataset matches the ID
+   */
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 
   /**
