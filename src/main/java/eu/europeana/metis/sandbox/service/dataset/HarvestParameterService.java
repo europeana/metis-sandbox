@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -50,6 +51,9 @@ public class HarvestParameterService {
   @Transactional
   public HarvestParametersEntity createDatasetHarvestParameters(String datasetId, HarvestParametersDTO harvestParametersDto) {
     requireNonNull(datasetId, "Dataset name must not be null");
+    if (isBlank(datasetId)) {
+      throw new IllegalArgumentException("Dataset id must not be empty");
+    }
     requireNonNull(harvestParametersDto, "Type of harvesting must not be null");
     try {
       DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
@@ -89,6 +93,9 @@ public class HarvestParameterService {
   @Transactional
   public void remove(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
+    if (isBlank(datasetId)) {
+      throw new IllegalArgumentException("Dataset id must not be empty");
+    }
     try {
       harvestingParameterRepository.deleteByDatasetIdDatasetId(Integer.parseInt(datasetId));
     } catch (RuntimeException e) {
