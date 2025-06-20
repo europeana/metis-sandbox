@@ -23,11 +23,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -54,12 +54,11 @@ public class DatasetHarvestController {
   private static final String EMPTY_XSLT_FILE_MESSAGE = "Xslt file must not be empty when provided";
 
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
-  private static final List<String> VALID_SCHEMES_URL = List.of("http", "https", "file");
-  private final UrlValidator urlValidator = new UrlValidator(VALID_SCHEMES_URL.toArray(new String[0]));
+  private final UrlValidator urlValidator;
   private static final Map<String, CompressedFileExtension> contentTypeToExtension = Map.of(
-      "gzip", CompressedFileExtension.GZIP,
-      "zip", CompressedFileExtension.ZIP,
-      "x-tar", CompressedFileExtension.TAR
+      "application/gzip", CompressedFileExtension.GZIP,
+      "application/zip", CompressedFileExtension.ZIP,
+      "application/x-tar", CompressedFileExtension.TAR
   );
 
   private final DatasetExecutionService datasetExecutionService;
@@ -69,8 +68,10 @@ public class DatasetHarvestController {
    *
    * @param datasetExecutionService DatasetExecutionService used to execute dataset-related operations.
    */
-  public DatasetHarvestController(DatasetExecutionService datasetExecutionService) {
+  @Autowired
+  public DatasetHarvestController(DatasetExecutionService datasetExecutionService, UrlValidator urlValidator) {
     this.datasetExecutionService = datasetExecutionService;
+    this.urlValidator = urlValidator;
   }
 
   /**
@@ -256,7 +257,7 @@ public class DatasetHarvestController {
 
   private CompressedFileExtension mapContentTypeToExtension(String fileContentType) {
     return contentTypeToExtension.entrySet().stream()
-                                 .filter(entry -> fileContentType.contains(entry.getKey()))
+                                 .filter(entry -> fileContentType.startsWith(entry.getKey()))
                                  .map(Map.Entry::getValue)
                                  .findFirst()
                                  .orElseThrow(() -> new InvalidCompressedFileException("File provided is not valid compressed file."));

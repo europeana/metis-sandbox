@@ -1,5 +1,10 @@
 package eu.europeana.metis.sandbox.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static eu.europeana.metis.sandbox.common.locale.Country.GREECE;
 import static eu.europeana.metis.sandbox.common.locale.Language.EL;
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
@@ -8,12 +13,12 @@ import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
@@ -23,33 +28,47 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.security.test.JwtUtils;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.commons.validator.routines.UrlValidator;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(DatasetHarvestController.class)
 @ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
-    DatasetHarvestController.class})
+    DatasetHarvestController.class, DatasetHarvestControllerTest.TestUrlValidatorConfig.class})
 class DatasetHarvestControllerTest {
+
+  @TestConfiguration
+  static class TestUrlValidatorConfig {
+
+    @Bean
+    public UrlValidator urlValidator() {
+      // Accept localhost URLs during testing
+      return new UrlValidator(new String[]{"http", "https"}, UrlValidator.ALLOW_LOCAL_URLS);
+    }
+
+  }
 
   private static final String DATASET_NAME = "my-data-set";
   private static final String OAI_ENDPOINT_URL = "https://example-oai-endpoint.org/repository/oai";
@@ -59,6 +78,11 @@ class DatasetHarvestControllerTest {
   private static final int STEP_SIZE = 1;
   private static final String XSLT_FILE_PARAM = "xsltFile";
   private static final String DATASET_FILE_PARAM = "dataset";
+  private static final String ZIP_DIR = "zip";
+  private static final String DATASET_VALID_ZIP = "dataset-valid.zip";
+  private static final String DATASET_VALID_TAR_GZ = "sandbox.tar.gz";
+  private static final String DATASET_VALID_TAR = "records_to_test.tar";
+  private static String BASE_URL;
 
   @MockitoBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -69,20 +93,46 @@ class DatasetHarvestControllerTest {
   @MockitoBean
   JwtDecoder jwtDecoder;
 
-  private final JwtUtils jwtUtils = new JwtUtils(List.of());
+  @Autowired
   private MockMvc mockMvc;
+
+  private static WireMockServer wireMockServer;
+  private final JwtUtils jwtUtils = new JwtUtils(List.of());
+
+  @BeforeAll
+  static void setupWireMock() throws IOException {
+    wireMockServer = new WireMockServer(0);
+    wireMockServer.start();
+    configureFor("localhost", wireMockServer.port());
+    BASE_URL = "http://localhost:" + wireMockServer.port();
+
+    stubResourceFile(DATASET_VALID_ZIP, "application/zip");
+    stubResourceFile(DATASET_VALID_TAR_GZ, "application/gzip");
+    stubResourceFile(DATASET_VALID_TAR, "application/x-tar");
+  }
+
+  private static void stubResourceFile(String fileName, String contentType) throws IOException {
+    String path = ZIP_DIR + "/" + fileName;
+    try (InputStream stream = DatasetHarvestControllerTest.class.getClassLoader().getResourceAsStream(path)) {
+      if (stream == null) {
+        throw new IllegalStateException("Test resource not found: " + path);
+      }
+
+      stubFor(get(urlEqualTo("/" + fileName))
+          .willReturn(aResponse()
+              .withHeader("Content-Type", contentType)
+              .withBody(stream.readAllBytes())));
+    }
+  }
 
   @BeforeEach
   void setup() {
     Mockito.reset(datasetExecutionService);
   }
 
-  @BeforeEach
-  void setup(WebApplicationContext context) {
-    mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                             .apply(SecurityMockMvcConfigurers.springSecurity())
-                             .defaultRequest(get("/"))
-                             .build();
+  @AfterAll
+  static void cleanup() {
+    wireMockServer.stop();
   }
 
   private Jwt setupJwt() {
@@ -332,7 +382,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromFile_invalidName_expectFail() throws Exception {
     setupJwt();
-    var dataset = new MockMultipartFile(DATASET_FILE_PARAM, "dataset.zip", "application/zip",
+    var dataset = new MockMultipartFile(DATASET_FILE_PARAM, "dataset." + ZIP_DIR, "application/" + ZIP_DIR,
         "<test></test>".getBytes());
 
     mockMvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data=set")
@@ -347,7 +397,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromFile_invalidStepSize_expectFail() throws Exception {
     setupJwt();
-    var dataset = new MockMultipartFile(DATASET_FILE_PARAM, "dataset.zip", "application/zip",
+    var dataset = new MockMultipartFile(DATASET_FILE_PARAM, "dataset." + ZIP_DIR, "application/" + ZIP_DIR,
         "<test></test>".getBytes());
 
     mockMvc.perform(multipart("/dataset/{name}/harvestByFile", "my-data-set")
@@ -378,7 +428,7 @@ class DatasetHarvestControllerTest {
   private static Stream<Arguments> provideDifferentCompressedFiles() {
     return Stream.of(
         Arguments.of(
-            new MockMultipartFile(DATASET_FILE_PARAM, "dataset.zip", "application/zip", "<test></test>".getBytes()),
+            new MockMultipartFile(DATASET_FILE_PARAM, "dataset." + ZIP_DIR, "application/" + ZIP_DIR, "<test></test>".getBytes()),
             CompressedFileExtension.ZIP
         ),
         Arguments.of(
@@ -386,7 +436,7 @@ class DatasetHarvestControllerTest {
             CompressedFileExtension.TAR
         ),
         Arguments.of(
-            new MockMultipartFile(DATASET_FILE_PARAM, "dataset.gz", "application/gzip", "<test></test>".getBytes()),
+            new MockMultipartFile(DATASET_FILE_PARAM, "dataset.gz", "application/g" + ZIP_DIR, "<test></test>".getBytes()),
             CompressedFileExtension.GZIP
         )
     );
@@ -467,7 +517,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromURL_invalidName_expectFail() throws Exception {
     setupJwt();
-    final String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
+    final String url = BASE_URL + "/" + DATASET_VALID_ZIP;
 
     mockMvc.perform(post("/dataset/{name}/harvestByUrl", "my-data=set")
                .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -481,7 +531,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromURL_invalidStepSize_expectFail() throws Exception {
     setupJwt();
-    final String url = Paths.get("zip", "dataset-valid.zip").toUri().toString();
+    final String url = BASE_URL + "/" + DATASET_VALID_ZIP;
 
     mockMvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
                .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -496,7 +546,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromURL_invalidFileType_expectFail() throws Exception {
     setupJwt();
-    final String url = Paths.get("zip", "dataset-valid.TXT").toUri().toString();
+    final String url = BASE_URL + "/dataset-valid.INVALID";
 
     mockMvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
                .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -509,9 +559,9 @@ class DatasetHarvestControllerTest {
 
   private static Stream<Arguments> provideDifferentUrlsOfCompressedFiles() {
     return Stream.of(
-        Arguments.of(Paths.get("zip", "dataset-valid.zip").toUri().toString(), CompressedFileExtension.ZIP),
-        Arguments.of(Paths.get("zip", "sandbox.tar.gz").toUri().toString(), CompressedFileExtension.GZIP),
-        Arguments.of(Paths.get("zip", "records_to_test.tar").toUri().toString(), CompressedFileExtension.TAR)
+        Arguments.of(BASE_URL + "/" + DATASET_VALID_ZIP, CompressedFileExtension.ZIP),
+        Arguments.of(BASE_URL + "/" + DATASET_VALID_TAR_GZ, CompressedFileExtension.GZIP),
+        Arguments.of(BASE_URL + "/" + DATASET_VALID_TAR, CompressedFileExtension.TAR)
     );
   }
 }

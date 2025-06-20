@@ -18,6 +18,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.time.Duration;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -72,6 +73,11 @@ class SandboxConfig {
     executor.setThreadNamePrefix("PipelineJob-");
     executor.initialize();
     return executor;
+  }
+
+  @Bean
+  public UrlValidator urlValidator() {
+    return new UrlValidator(new String[]{"http", "https"});
   }
 
   @Bean
