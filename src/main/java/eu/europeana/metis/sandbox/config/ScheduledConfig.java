@@ -4,6 +4,7 @@ import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.util.DataCleanupService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
 import java.lang.invoke.MethodHandles;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,11 +22,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 class ScheduledConfig {
 
+  @Slf4j
   @Configuration
   @EnableScheduling
   static class ScheduledTasks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final int SCHEDULED_TASK_POOL_SIZE = 5;
     private static final int AWAIT_TERMINATION_SECONDS = 10;
     private final MetricsService metricsService;
@@ -71,9 +72,9 @@ class ScheduledConfig {
 
     @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 * * ?}")
     void remove() {
-      LOGGER.info("Start daily dataset clean up for last {} days", daysToPreserve);
+      log.info("Start daily dataset clean up for last {} days", daysToPreserve);
       dataCleanupService.remove(daysToPreserve);
-      LOGGER.info("Finish daily dataset clean up");
+      log.info("Finish daily dataset clean up");
     }
   }
 }

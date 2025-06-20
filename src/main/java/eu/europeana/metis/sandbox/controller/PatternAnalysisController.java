@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +43,11 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Controller for retrieving pattern analysis.
  */
+@Slf4j
 @RestController
 @RequestMapping("/pattern-analysis/")
 @Tag(name = "Pattern Analysis Controller")
 public class PatternAnalysisController {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
@@ -98,7 +98,7 @@ public class PatternAnalysisController {
                                   analysis -> new DatasetProblemPatternAnalysisView<>(
                                       analysis, ProblemPatternAnalysisStatus.FINALIZED))
                               .orElseGet(() -> {
-                                LOGGER.error(
+                                log.error(
                                     "Result not expected to be empty when there is a non-null execution point.");
                                 return DatasetProblemPatternAnalysisView.getEmptyAnalysis(
                                     escapedDatasetId,

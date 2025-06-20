@@ -15,21 +15,19 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service responsible for generating metrics and registering them to the meter registry.
  */
+@Slf4j
 public class MetricsService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String METRICS_NAMESPACE = "sandbox.metrics.dataset";
   public static final String BASE_UNIT_RECORD = "Record";
   public static final String BASE_UNIT_DATASET = "Dataset";
@@ -99,7 +97,7 @@ public class MetricsService {
         );
       }
     } catch (RuntimeException ex) {
-      LOGGER.error("Unable to init metrics", ex);
+      log.error("Unable to init metrics", ex);
     }
   }
 
@@ -111,7 +109,7 @@ public class MetricsService {
     warningStepCounts = mapStepStatistics(executionRecordWarningRepository.getStepStatistics());
     errorStepCounts = mapStepStatistics(executionRecordErrorRepository.getStepStatistics());
 
-    LOGGER.debug("metrics report retrieval");
+    log.debug("metrics report retrieval");
   }
 
   private Map<FullBatchJobType, Long> mapStepStatistics(List<StepStatisticProjection> stepStatisticProjections) {

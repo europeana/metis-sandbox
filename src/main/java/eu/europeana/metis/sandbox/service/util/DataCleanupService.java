@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataClea
 import eu.europeana.metis.sandbox.service.record.ExecutionRecordCleaner;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,9 @@ import org.springframework.stereotype.Service;
 /**
  * The type Dataset remover service.
  */
+@Slf4j
 @Service
 public class DataCleanupService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final DatasetDataCleaner datasetDataCleaner;
   private final DatasetReportService datasetReportService;
@@ -69,32 +69,32 @@ public class DataCleanupService {
     try {
       List<String> datasets = datasetReportService.findDatasetIdsByCreatedBefore(days);
 
-      LOGGER.info("Datasets to remove {} ", datasets);
+      log.info("Datasets to remove {} ", datasets);
 
       datasets.forEach(dataset -> {
         try {
           // remove thumbnails (s3)
-          LOGGER.info("Remove thumbnails for dataset id: [{}]", dataset);
+          log.info("Remove thumbnails for dataset id: [{}]", dataset);
           thumbnailStoreService.remove(dataset);
           // remove from mongo and solr
-          LOGGER.info("Remove index for dataset id: [{}]", dataset);
+          log.info("Remove index for dataset id: [{}]", dataset);
           indexDataCleaner.remove(dataset);
-          LOGGER.info("Remove debias report with id: [{}]", dataset);
+          log.info("Remove debias report with id: [{}]", dataset);
           debiasStateService.remove(dataset);
-          LOGGER.info("Remove harvesting parameters for dataset id: [{}]", dataset);
+          log.info("Remove harvesting parameters for dataset id: [{}]", dataset);
           harvestParameterService.remove(dataset);
-          LOGGER.info("Remove problem pattern data associated with dataset id: [{}]", dataset);
+          log.info("Remove problem pattern data associated with dataset id: [{}]", dataset);
           problemPatternDataCleaner.remove(dataset);
-          LOGGER.info("Remove execution records for dataset id: [{}]", dataset);
+          log.info("Remove execution records for dataset id: [{}]", dataset);
           executionRecordCleaner.remove(dataset);
-          LOGGER.info("Remove dataset with id: [{}]", dataset);
+          log.info("Remove dataset with id: [{}]", dataset);
           datasetDataCleaner.remove(dataset);
         } catch (ServiceException e) {
-          LOGGER.error("Failed to remove dataset [{}] ", dataset, e);
+          log.error("Failed to remove dataset [{}] ", dataset, e);
         }
       });
     } catch (RuntimeException exception) {
-      LOGGER.error("General failure to remove dataset", exception);
+      log.error("General failure to remove dataset", exception);
     }
   }
 }

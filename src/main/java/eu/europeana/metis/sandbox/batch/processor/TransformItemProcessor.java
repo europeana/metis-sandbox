@@ -44,7 +44,7 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
-      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.successExecutionRecordDTO();
 
       final String resultString = transformService.transformRecord(
           originSuccessExecutionRecordDTO.getRecordId(),
@@ -58,8 +58,8 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
-          jobMetadataDTO.getTargetExecutionId(),
-          jobMetadataDTO.getTargetExecutionName(),
+          jobMetadataDTO.targetExecutionId(),
+          jobMetadataDTO.targetExecutionName(),
           b -> b.recordData(resultString));
     };
   }

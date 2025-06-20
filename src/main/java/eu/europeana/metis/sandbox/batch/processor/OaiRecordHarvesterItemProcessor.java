@@ -13,6 +13,7 @@ import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -23,12 +24,11 @@ import org.springframework.util.function.ThrowingFunction;
 /**
  * Processor responsible for oai record harvest.
  */
+@Slf4j
 @Component
 @StepScope
 public class OaiRecordHarvesterItemProcessor extends
     AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("#{jobParameters['harvestParameterId']}")
   private String harvestParameterId;
@@ -76,7 +76,7 @@ public class OaiRecordHarvesterItemProcessor extends
 
   @Override
   public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
-    LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
+    log.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
 
     HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(
         oaiEndpoint,

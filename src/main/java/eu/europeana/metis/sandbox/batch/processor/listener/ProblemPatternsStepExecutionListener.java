@@ -9,6 +9,7 @@ import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -25,11 +26,11 @@ import org.springframework.stereotype.Component;
  * and the step execution context.
  * <p>Applicable only when the batchJobSubType is {@link ValidationBatchJobSubType#INTERNAL}".
  */
+@Slf4j
 @StepScope
 @Component
 public class ProblemPatternsStepExecutionListener implements StepExecutionListener {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   @Value("#{jobParameters['batchJobSubType']}")
@@ -52,7 +53,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
 
   @Override
   public void beforeStep(StepExecution stepExecution) {
-    LOGGER.info("Running beforeStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
+    log.info("Running beforeStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       initializePatternAnalysisExecution();
     }
@@ -60,12 +61,12 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    LOGGER.info("Running beforeStep for afterStep: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
+    log.info("Running beforeStep for afterStep: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       final ExecutionPoint executionPoint = executionPointService
           .getExecutionPoint(datasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
       final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
-      LOGGER.info("Problem patterns analysis status for datasetId {}: {}", datasetId, status);
+      log.info("Problem patterns analysis status for datasetId {}: {}", datasetId, status);
     }
     return stepExecution.getExitStatus();
   }
@@ -77,14 +78,14 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
 
   private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {
     try {
-      LOGGER.debug("Finalize analysis: {} lock, Locked", datasetId);
+      log.debug("Finalize analysis: {} lock, Locked", datasetId);
       patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
       return ProblemPatternAnalysisStatus.FINALIZED;
     } catch (PatternAnalysisException e) {
-      LOGGER.error("Something went wrong during finalizing pattern analysis", e);
+      log.error("Something went wrong during finalizing pattern analysis", e);
       return ProblemPatternAnalysisStatus.ERROR;
     } finally {
-      LOGGER.debug("Finalize analysis: {} lock, Unlocked", datasetId);
+      log.debug("Finalize analysis: {} lock, Unlocked", datasetId);
     }
   }
 }

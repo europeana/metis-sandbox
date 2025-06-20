@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -39,10 +40,10 @@ import org.springframework.stereotype.Service;
 /**
  * Service implementation responsible for handling OAI-PMH and FILE harvesting operations.
  */
+@Slf4j
 @Service
 public class HarvestServiceImpl {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int DEFAULT_STEP_SIZE = 1;
   private static final int STOP_WATCH_INTERNAL = 10;
 
@@ -89,7 +90,7 @@ public class HarvestServiceImpl {
       result.add(entry);
 
       if (watch.getTime(TimeUnit.SECONDS) > STOP_WATCH_INTERNAL) {
-        LOGGER.info("Already harvested {} records...", result.size());
+        log.info("Already harvested {} records...", result.size());
         watch.reset();
         watch.start();
       }

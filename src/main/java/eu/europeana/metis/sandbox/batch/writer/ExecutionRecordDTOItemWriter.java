@@ -13,6 +13,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRep
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -34,11 +35,10 @@ import org.springframework.stereotype.Component;
  * <p>The class ensures that successful execution records and their tier contexts are stored appropriately,
  * while record exceptions are stored as failed records.
  */
+@Slf4j
 @StepScope
 @Component
 public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutionRecordDTO> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
@@ -62,7 +62,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
 
   @Override
   public void write(Chunk<? extends AbstractExecutionRecordDTO> chunk) {
-    LOGGER.info("In writer writing chunk");
+    log.info("In writer writing chunk");
     final ArrayList<ExecutionRecord> executionRecords = new ArrayList<>();
     final ArrayList<ExecutionRecordError> executionRecordErrors = new ArrayList<>();
     final ArrayList<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
@@ -78,11 +78,11 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
             ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO));
       }
     }
-    LOGGER.info("In writer before saveAll");
+    log.info("In writer before saveAll");
     executionRecordRepository.saveAll(executionRecords);
     executionRecordTierContextRepository.saveAll(executionRecordTierContexts);
     executionRecordErrorRepository.saveAll(executionRecordErrors);
-    LOGGER.info("In writer finished writing chunk");
+    log.info("In writer finished writing chunk");
   }
 }
 

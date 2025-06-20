@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -45,10 +46,10 @@ import org.springframework.web.multipart.MultipartFile;
  * <p>Provides methods for creating and executing datasets with various data sources such as OAI,
  * file uploads, HTTP URLs, and debiasing operations.
  */
+@Slf4j
 @Service
 public class DatasetExecutionService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String HARVESTING_ERROR_MESSAGE = "Error harvesting records for dataset: ";
   private final Map<String, Lock> datasetIdLocksMap = new ConcurrentHashMap<>();
   private final DatasetExecutionSetupService datasetExecutionSetupService;
@@ -201,7 +202,7 @@ public class DatasetExecutionService {
     final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
     try {
       lock.lock();
-      LOGGER.info("DeBias process: {} lock, Locked", datasetId);
+      log.info("DeBias process: {} lock, Locked", datasetId);
       ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(datasetId);
       if (executionProgressInfoDto.executionStatus() != ExecutionStatus.COMPLETED) {
         return false;
@@ -226,7 +227,7 @@ public class DatasetExecutionService {
       return true;
     } finally {
       lock.unlock();
-      LOGGER.info("DeBias process: {} lock, Unlocked", datasetId);
+      log.info("DeBias process: {} lock, Unlocked", datasetId);
     }
 
   }

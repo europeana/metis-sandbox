@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.schema.convert.SerializationException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -25,10 +26,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Handles controller exceptions to report correct http status code to client
  */
+@Slf4j
 @ControllerAdvice
 public class RestResponseExceptionHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String RETRY_MSG = "%s Please retry, if problem persists contact provider.";
 
   /**
@@ -95,7 +96,7 @@ public class RestResponseExceptionHandler {
   }
 
   private ResponseEntity<Object> buildResponse(HttpStatus status, String message, Exception ex) {
-    LOGGER.error(message, ex);
+    log.error(message, ex);
     var dto = new ExceptionModelDTO(status.value(), status, message);
     return new ResponseEntity<>(dto, status);
   }

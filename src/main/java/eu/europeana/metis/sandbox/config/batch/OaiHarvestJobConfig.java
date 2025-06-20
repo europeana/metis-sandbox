@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersRepositoryItemReade
 import eu.europeana.metis.sandbox.batch.writer.OaiIdentifiersWriter;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -31,10 +32,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 /**
  * Configuration class for the Oai Harvest Job, responsible for defining the batch job, its step, and components.
  */
+@Slf4j
 @Configuration
 public class OaiHarvestJobConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final BatchJobType BATCH_JOB = HARVEST_OAI;
   public static final String IDENTIFIERS_HARVEST_STEP_NAME = "identifiersHarvest";
   public static final String RECORDS_HARVEST_STEP_NAME = "recordsHarvest";
@@ -42,7 +43,7 @@ public class OaiHarvestJobConfig {
 
   OaiHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+    log.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 

@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,10 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service class responsible for performing debiasing operations on records.
  */
+@Slf4j
 @Service
 public class DeBiasProcessService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final int DEBIAS_CLIENT_PARTITION_SIZE = 20;
 
@@ -109,7 +109,7 @@ public class DeBiasProcessService {
 
     } catch (SerializationException e) {
       deBiasInputRecords = Collections.emptyList();
-      LOGGER.error("Serialization {}", e.getMessage(), e);
+      log.error("Serialization {}", e.getMessage(), e);
     }
     return deBiasInputRecords;
   }
@@ -150,13 +150,13 @@ public class DeBiasProcessService {
                   }
                   case ErrorDeBiasResult errorDeBiasResult when errorDeBiasResult.getDetailList() != null ->
                       errorDeBiasResult.getDetailList().forEach(
-                          detail -> LOGGER.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc()));
-                  default -> LOGGER.info("DeBias detected nothing");
+                          detail -> log.error("{} {} {}", detail.getMsg(), detail.getType(), detail.getLoc()));
+                  default -> log.info("DeBias detected nothing");
                 }
               } catch (RuntimeException e) {
-                LOGGER.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
               }
-              LOGGER.info("DeBias execution finished for partition: {}",
+              log.info("DeBias execution finished for partition: {}",
                   partition.stream()
                            .map(DeBiasInputRecord::europeanaId)
                            .map(Object::toString)
@@ -188,11 +188,11 @@ public class DeBiasProcessService {
    */
   private void logReport(List<DeBiasReportRow> deBiasReport) {
     deBiasReport.forEach(row -> {
-      LOGGER.info("europeanaId: {} language: {} source: {} literal: {}",
+      log.info("europeanaId: {} language: {} source: {} literal: {}",
           row.europeanaId(), row.valueDetection().getLanguage(),
           row.sourceField(), row.valueDetection().getLiteral());
       row.valueDetection().getTags()
-         .forEach(tag -> LOGGER.info("tag {} {} {} {}",
+         .forEach(tag -> log.info("tag {} {} {} {}",
              tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
     });
   }

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.lang.invoke.MethodHandles;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +33,11 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller that handles API endpoints related to dataset debiasing operations. This controller provides endpoints to process
  * debiasing on datasets, retrieve debiasing reports, and check debiasing status.
  */
+@Slf4j
 @RestController
 @RequestMapping("/dataset/")
 @Tag(name = "Dataset Debias Controller")
 public class DatasetDebiasController {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final DatasetExecutionService datasetExecutionService;
   private final DeBiasStateService debiasStateService;
@@ -82,7 +82,7 @@ public class DatasetDebiasController {
 
       final String userId = getUserId(jwtPrincipal);
       if (!datasetInfo.getCreatedById().equals(userId)) {
-        LOGGER.warn("User {} is not the owner of dataset {}. Ignoring request.", userId, datasetId);
+        log.warn("User {} is not the owner of dataset {}. Ignoring request.", userId, datasetId);
         return false;
       }
     }

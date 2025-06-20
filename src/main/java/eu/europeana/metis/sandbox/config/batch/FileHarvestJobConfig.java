@@ -5,9 +5,7 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.reader.FileItemReader;
-import java.lang.invoke.MethodHandles;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -22,17 +20,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 /**
  * Configuration class for the File Harvest Job, responsible for defining the batch job, its step, and components.
  */
+@Slf4j
 @Configuration
 public class FileHarvestJobConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String STEP_NAME = "fileHarvestStep";
   public static final BatchJobType BATCH_JOB = HARVEST_FILE;
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
   FileHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
     parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+    log.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
         parallelizeConfig.parallelizeSize());
   }
 

@@ -56,6 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 import org.awaitility.core.ConditionEvaluationListener;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -84,10 +85,10 @@ import org.springframework.stereotype.Service;
  * <p>The class delegates job execution to a job launcher and handles
  * asynchronous task management.
  */
+@Slf4j
 @Service
 public class BatchJobExecutor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int JOB_STATE_POLL_INTERVAL_SECONDS = 5;
   public static final int JOB_INSTANCE_RETRIEVAL_PAGE_SIZE = 100;
   private final List<? extends Job> jobs;
@@ -117,7 +118,7 @@ public class BatchJobExecutor {
     this.jobExplorer = jobExplorer;
     this.taskExecutor = taskExecutor;
     this.transformXsltRepository = transformXsltRepository;
-    LOGGER.info("Registered batch workflow: {}", jobs.stream().map(Job::getName).toList());
+    log.info("Registered batch workflow: {}", jobs.stream().map(Job::getName).toList());
 
     this.jobExecutorsByType = new EnumMap<>(FullBatchJobType.class);
     this.jobExecutorsByType.put(HARVEST_OAI, this::runOaiHarvest);
@@ -240,10 +241,10 @@ public class BatchJobExecutor {
       await().atMost(1, DAYS)
              .pollInterval(JOB_STATE_POLL_INTERVAL_SECONDS, SECONDS)
              .conditionEvaluationListener((ConditionEvaluationListener<Object>) condition ->
-                 LOGGER.info("Job Id: {}, status: {}, isRunning: {}", jobExecution.getJobId(), jobExecution.getStatus(),
+                 log.info("Job Id: {}, status: {}, isRunning: {}", jobExecution.getJobId(), jobExecution.getStatus(),
                      jobExecution.isRunning()))
              .until(() -> !jobExecution.isRunning());
-      LOGGER.info("Job finished with status: {}", jobExecution.getStatus());
+      log.info("Job finished with status: {}", jobExecution.getStatus());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

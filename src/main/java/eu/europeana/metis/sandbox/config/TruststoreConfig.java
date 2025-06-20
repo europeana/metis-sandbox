@@ -4,6 +4,7 @@ import eu.europeana.metis.utils.CustomTruststoreAppender;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import eu.europeana.metis.common.config.properties.TruststoreConfigurationProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +17,10 @@ import org.springframework.context.annotation.Configuration;
  * <p>Upon initialization, indicated by the {@link PostConstruct} annotation, it attempts to append a custom truststore to the
  * default Java truststore using a provided path and password from {@link TruststoreConfigurationProperties}.
  */
+@Slf4j
 @Configuration
 @EnableConfigurationProperties({TruststoreConfigurationProperties.class})
 class TruststoreConfig {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final TruststoreConfigurationProperties truststoreConfigurationProperties;
 
@@ -54,7 +54,7 @@ class TruststoreConfig {
         StringUtils.isNotEmpty(truststoreConfigurationProperties.getPassword())) {
       CustomTruststoreAppender.appendCustomTruststoreToDefault(truststoreConfigurationProperties.getPath(),
           truststoreConfigurationProperties.getPassword());
-      LOGGER.info("Custom truststore appended to default truststore");
+      log.info("Custom truststore appended to default truststore");
     }
   }
 }

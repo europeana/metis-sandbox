@@ -127,7 +127,6 @@ class XsltUrlUpdateServiceTest {
     //given
     HttpResponse httpResponse = mock(HttpResponse.class);
     when(httpResponse.statusCode()).thenReturn(404);
-    when(httpResponse.body()).thenReturn("<xslt></xslt>");
     CompletableFuture response = CompletableFuture.completedFuture(httpResponse);
     when(httpClient.sendAsync(any(HttpRequest.class), any())).thenReturn(response);
 

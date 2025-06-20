@@ -4,11 +4,9 @@ import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import jakarta.annotation.PostConstruct;
-import java.lang.invoke.MethodHandles;
 import java.util.function.BiFunction;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.function.ThrowingFunction;
@@ -22,10 +20,9 @@ import org.springframework.util.function.ThrowingFunction;
  * @param <I> The type of input items to process.
  * @param <O> The type of output items produced by processing.
  */
+@Slf4j
 @Getter
 public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<I, O> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("#{stepExecution.jobExecution.jobInstance.jobName}")
   private String jobName;
@@ -44,7 +41,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
   @PostConstruct
   public void init() {
     fullBatchJobType = FullBatchJobType.validateAndGetFullBatchJobType(jobName, batchJobSubTypeString);
-    LOGGER.info("Initializing batch job type: {}", fullBatchJobType.name());
+    log.info("Initializing batch job type: {}", fullBatchJobType.name());
   }
 
   abstract ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction();
@@ -70,7 +67,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
     try {
       return function.apply(input);
     } catch (Exception e) {
-      LOGGER.warn("Exception occurred while processing input {}: {}", input, e.getMessage(), e);
+      log.warn("Exception occurred while processing input {}: {}", input, e.getMessage(), e);
       return exceptionHandler.apply(input, e);
     }
   }

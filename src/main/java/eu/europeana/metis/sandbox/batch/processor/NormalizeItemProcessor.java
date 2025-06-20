@@ -31,13 +31,13 @@ public class NormalizeItemProcessor extends AbstractExecutionRecordMetisItemProc
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
-      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.successExecutionRecordDTO();
       String result = normalizeService.normalizeRecord(originSuccessExecutionRecordDTO.getRecordData());
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
-          jobMetadataDTO.getTargetExecutionId(),
-          jobMetadataDTO.getTargetExecutionName(),
+          jobMetadataDTO.targetExecutionId(),
+          jobMetadataDTO.targetExecutionName(),
           b -> b.recordData(result));
     };
   }

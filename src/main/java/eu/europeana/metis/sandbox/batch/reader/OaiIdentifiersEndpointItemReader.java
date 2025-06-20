@@ -16,6 +16,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -35,11 +36,11 @@ import org.springframework.stereotype.Component;
  *
  * <p>Note: This reader is not restartable and is not optimized at its current state.
  */
+@Slf4j
 @StepScope
 @Component
 public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRecordExternalIdentifier> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final BatchJobType batchJobType = HARVEST_OAI;
 
   @Value("#{jobParameters['targetExecutionId']}")
@@ -109,10 +110,10 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
       throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for OaiHarvest");
     }
 
-    LOGGER.info("Harvesting identifiers for {}", oaiEndpoint);
+    log.info("Harvesting identifiers for {}", oaiEndpoint);
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     oaiRecordHeaders.addAll(harvestServiceImpl.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize)));
-    LOGGER.info("Identifiers harvested");
+    log.info("Identifiers harvested");
   }
 
   private synchronized OaiRecordHeader takeIdentifier() {

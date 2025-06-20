@@ -60,13 +60,15 @@ public class IndexService {
   }
 
   private boolean isAllDataNull(TierResults tierResultsToCheck) {
-    return tierResultsToCheck.getMediaTier() == null &&
-        tierResultsToCheck.getMetadataTier() == null &&
-        tierResultsToCheck.getContentTierBeforeLicenseCorrection() == null &&
-        tierResultsToCheck.getMetadataTierLanguage() == null &&
-        tierResultsToCheck.getMetadataTierContextualClasses() == null &&
-        tierResultsToCheck.getMetadataTierEnablingElements() == null &&
-        tierResultsToCheck.getLicenseType() == null;
+    boolean metadataTiersNull =
+        tierResultsToCheck.getMetadataTier() == null && tierResultsToCheck.getMetadataTierLanguage() == null
+            && tierResultsToCheck.getMetadataTierContextualClasses() == null
+            && tierResultsToCheck.getMetadataTierEnablingElements() == null;
+    boolean contentTiersNull =
+        tierResultsToCheck.getMediaTier() == null && tierResultsToCheck.getContentTierBeforeLicenseCorrection() == null;
+    boolean licenseNull = tierResultsToCheck.getLicenseType() == null;
+
+    return metadataTiersNull && contentTiersNull && licenseNull;
   }
 
   /**

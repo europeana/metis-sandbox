@@ -33,14 +33,14 @@ public class EnrichItemProcessor extends AbstractExecutionRecordMetisItemProcess
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
-      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.successExecutionRecordDTO();
       EnrichmentProcessingResult enrichmentProcessingResult = enrichService.enrichRecord(
           originSuccessExecutionRecordDTO.getRecordData());
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
-          jobMetadataDTO.getTargetExecutionId(),
-          jobMetadataDTO.getTargetExecutionName(),
+          jobMetadataDTO.targetExecutionId(),
+          jobMetadataDTO.targetExecutionName(),
           b -> b.recordData(enrichmentProcessingResult.processedRecord())
                 .exceptionWarnings(new HashSet<>(enrichmentProcessingResult.warningExceptions())));
     };

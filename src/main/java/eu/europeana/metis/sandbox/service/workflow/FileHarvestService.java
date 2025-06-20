@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.experimental.StandardException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,10 @@ import org.springframework.stereotype.Service;
  *
  * <p>Supports both XML and compressed file formats.
  */
+@Slf4j
 @Service
 public class FileHarvestService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final HarvestServiceImpl harvestServiceImpl;
   private final HarvestParameterService harvestParameterService;
 
@@ -119,7 +120,7 @@ public class FileHarvestService {
       EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
       europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
     } catch (EuropeanaIdException e) {
-      LOGGER.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+      log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
     }
     return ofNullable(europeanaGeneratedIdsMap);
   }

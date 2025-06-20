@@ -1,17 +1,21 @@
 package eu.europeana.metis.sandbox.batch.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static eu.europeana.metis.sandbox.common.ValidateObjectHelper.validate;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Data Transfer Object that contains metadata for a job execution.
  */
-@Getter
-@AllArgsConstructor
-public class JobMetadataDTO {
+public record JobMetadataDTO(@NotNull SuccessExecutionRecordDTO successExecutionRecordDTO, @NotBlank String targetExecutionName,
+                             @NotBlank String targetExecutionId) {
 
-  private final SuccessExecutionRecordDTO successExecutionRecordDTO;
-  private final String targetExecutionName;
-  private final String targetExecutionId;
-
+  public JobMetadataDTO(@NotNull SuccessExecutionRecordDTO successExecutionRecordDTO, @NotBlank String targetExecutionName,
+      @NotBlank String targetExecutionId) {
+    this.successExecutionRecordDTO = successExecutionRecordDTO;
+    this.targetExecutionName = targetExecutionName;
+    this.targetExecutionId = targetExecutionId;
+    validate(this);
+  }
 }

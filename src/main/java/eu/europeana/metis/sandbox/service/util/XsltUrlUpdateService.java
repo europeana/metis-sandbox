@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.util;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -12,8 +11,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
@@ -21,10 +19,9 @@ import org.springframework.stereotype.Service;
 /**
  * Service for updating and storing default XSLT transformations from a given URL.
  */
+@Slf4j
 @Service
 public class XsltUrlUpdateService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final TransformXsltRepository transformXsltRepository;
 
@@ -60,11 +57,11 @@ public class XsltUrlUpdateService {
         // TODO: should the response body (xslt) be validated?
         saveDefaultXslt(response.body());
       } else {
-        LOGGER.warn("Failed to update default transform XSLT from URL: {} \nResponse status code: {}", defaultXsltUrl,
-            response.body());
+        log.warn("Failed to update default transform XSLT from URL: [{}]; response code: {}", defaultXsltUrl,
+            response.statusCode());
       }
     } catch (RuntimeException | InterruptedException | ExecutionException e) {
-      LOGGER.error("Failed to update default transform XSLT from URL: {} \n{}", defaultXsltUrl, e);
+      log.error("Failed to update default transform XSLT from URL: {} \n{}", defaultXsltUrl, e);
       Thread.currentThread().interrupt();
     }
   }
@@ -73,7 +70,7 @@ public class XsltUrlUpdateService {
     final Lock lock = lockRegistry.obtain("saveDefaultXslt");
     try {
       lock.lock();
-      LOGGER.info("Save default xslt lock, Locked");
+      log.info("Save default xslt lock, Locked");
       final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT);
 
       if (entity.isPresent()) {
@@ -86,9 +83,9 @@ public class XsltUrlUpdateService {
         transformXsltRepository.save(transformXsltEntity);
       }
     } catch (RuntimeException e) {
-      LOGGER.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
+      log.error("Failed to persist default transform XSLT from URL: {} \n{}", newTransformXslt, e);
     } finally {
-      LOGGER.info("Save default xslt lock, Unlocked");
+      log.info("Save default xslt lock, Unlocked");
       lock.unlock();
     }
   }
