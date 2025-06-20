@@ -1,11 +1,10 @@
-package eu.europeana.metis.sandbox.batch.dto;
+package eu.europeana.metis.sandbox.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.europeana.metis.sandbox.common.ValidateObjectHelper;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;

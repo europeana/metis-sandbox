@@ -100,7 +100,7 @@ public class DatasetExecutionService {
         WorkflowType.OAI_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
     );
     batchJobExecutor.execute(executionMetadata);
-    return executionMetadata.getDatasetMetadata().getDatasetId();
+    return executionMetadata.getDatasetMetadata().datasetId();
   }
 
   /**
@@ -127,7 +127,7 @@ public class DatasetExecutionService {
         WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, fileHarvestDTO
     );
     batchJobExecutor.execute(executionMetadata);
-    return executionMetadata.getDatasetMetadata().getDatasetId();
+    return executionMetadata.getDatasetMetadata().datasetId();
   }
 
   /**
@@ -155,7 +155,7 @@ public class DatasetExecutionService {
           WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
       );
       batchJobExecutor.execute(executionMetadata);
-      return executionMetadata.getDatasetMetadata().getDatasetId();
+      return executionMetadata.getDatasetMetadata().datasetId();
     } catch (UnknownHostException e) {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE + " - Unknown host", e);
     } catch (IOException | URISyntaxException e) {
@@ -182,7 +182,7 @@ public class DatasetExecutionService {
         FILE_HARVEST_ONLY_VALIDATION, datasetMetadataRequest, null, null, fileHarvestDTO
     );
     batchJobExecutor.executeBlocking(executionMetadata);
-    return executionMetadata.getDatasetMetadata().getDatasetId();
+    return executionMetadata.getDatasetMetadata().datasetId();
   }
 
   /**

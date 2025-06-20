@@ -73,7 +73,7 @@ public final class WorkflowHelper {
    * @return a list of workflow steps as FullBatchJobType objects
    */
   public static List<FullBatchJobType> getWorkflow(ExecutionMetadata executionMetadata) {
-    WorkflowType workflowType = Optional.of(executionMetadata.getDatasetMetadata().getWorkflowType())
+    WorkflowType workflowType = Optional.of(executionMetadata.getDatasetMetadata().workflowType())
                                         .orElse(WorkflowType.OAI_HARVEST);
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 

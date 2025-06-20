@@ -222,7 +222,7 @@ public class BatchJobExecutor {
   private boolean matches(JobExecution execution, ExecutionMetadata metadata, FullBatchJobType fullBatchJobType) {
     JobParameters jobParameters = execution.getJobParameters();
     String datasetId = jobParameters.getString(ARGUMENT_DATASET_ID);
-    boolean datasetMatches = Objects.equals(datasetId, metadata.getDatasetMetadata().getDatasetId());
+    boolean datasetMatches = Objects.equals(datasetId, metadata.getDatasetMetadata().datasetId());
 
     if (!datasetMatches) {
       return false;
@@ -284,9 +284,9 @@ public class BatchJobExecutor {
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.INTERNAL.name())
-        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
-        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
-        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
+        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.datasetName())
+        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.country().xmlValue())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.language().name().toLowerCase(Locale.US))
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
@@ -299,9 +299,9 @@ public class BatchJobExecutor {
 
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.EXTERNAL.name())
-        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
-        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
-        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
+        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.datasetName())
+        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.country().xmlValue())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.language().name().toLowerCase(Locale.US))
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
@@ -364,7 +364,7 @@ public class BatchJobExecutor {
   private static @NotNull JobParameters getDefaultJobParameters(DatasetMetadata datasetMetadata) {
     return new JobParametersBuilder()
         .addString(ARGUMENT_TARGET_EXECUTION_ID, UUID.randomUUID().toString())
-        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
+        .addString(ARGUMENT_DATASET_ID, datasetMetadata.datasetId())
         .toJobParameters();
   }
 

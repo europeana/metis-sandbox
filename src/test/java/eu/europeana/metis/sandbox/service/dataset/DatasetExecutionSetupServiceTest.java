@@ -67,7 +67,7 @@ class DatasetExecutionSetupServiceTest {
         workflowType, datasetMetadataRequest, userId, xsltFile, oaiHarvestParametersDTO);
 
     assertNotNull(executionMetadata);
-    assertEquals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
+    assertEquals(datasetId, executionMetadata.getDatasetMetadata().datasetId());
     assertNotNull(executionMetadata.getInputMetadata().getTransformXsltEntity());
     assertEquals(harvestParameters, executionMetadata.getInputMetadata().getHarvestParametersEntity());
     verify(transformXsltRepository).save(any(TransformXsltEntity.class));
@@ -95,7 +95,7 @@ class DatasetExecutionSetupServiceTest {
         workflowType, datasetMetadataRequest, userId, null, oaiHarvestParametersDTO);
 
     assertNotNull(executionMetadata);
-    assertEquals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
+    assertEquals(datasetId, executionMetadata.getDatasetMetadata().datasetId());
     assertNull(executionMetadata.getInputMetadata().getTransformXsltEntity());
     assertEquals(harvestParameters, executionMetadata.getInputMetadata().getHarvestParametersEntity());
   }
