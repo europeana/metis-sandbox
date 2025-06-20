@@ -1,12 +1,12 @@
 package eu.europeana.metis.sandbox.common;
 
-import eu.europeana.metis.sandbox.dto.harvest.BinaryHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractBinaryHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
-import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParametersEntity;
+import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.FileHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HttpHarvestParametersEntity;
@@ -32,7 +32,7 @@ public class HarvestParametersConverter {
    * @return A HarvestParametersDTO object to the given HarvestParametersEntity.
    * @throws IllegalArgumentException if the provided DTO type is unsupported
    */
-  public static HarvestParametersDTO convertToHarvestParametersDTO(HarvestParametersEntity harvestParametersEntity) {
+  public static AbstractHarvestParametersDTO convertToHarvestParametersDTO(HarvestParametersEntity harvestParametersEntity) {
     return switch (harvestParametersEntity) {
       case OaiHarvestParametersEntity oaiHarvestParametersEntity -> new OaiHarvestParametersDTO(
           oaiHarvestParametersEntity.getUrl(),
@@ -61,13 +61,13 @@ public class HarvestParametersConverter {
    * Converts a HarvestParametersDTO to a HarvestParametersEntity based on the type of the DTO.
    *
    * @param datasetEntity The dataset entity to associate with the harvest parameters entity.
-   * @param harvestParametersDTO The data transfer object containing harvest parameters.
+   * @param abstractHarvestParametersDTO The data transfer object containing harvest parameters.
    * @return A new instance of HarvestParametersEntity corresponding to the specific type of DTO provided.
    * @throws IllegalArgumentException if the provided DTO type is unsupported
    */
   public static HarvestParametersEntity convertToHarvestParametersEntity(
-      DatasetEntity datasetEntity, HarvestParametersDTO harvestParametersDTO) {
-    return switch (harvestParametersDTO) {
+      DatasetEntity datasetEntity, AbstractHarvestParametersDTO abstractHarvestParametersDTO) {
+    return switch (abstractHarvestParametersDTO) {
       case OaiHarvestParametersDTO oaiHarvestParametersDTO -> {
         OaiHarvestParametersEntity oaiHarvestParametersEntity = new OaiHarvestParametersEntity();
         oaiHarvestParametersEntity.setDatasetEntity(datasetEntity);
@@ -92,14 +92,15 @@ public class HarvestParametersConverter {
         applyBinaryFields(fileHarvestParameters, fileHarvestDTO);
         yield fileHarvestParameters;
       }
-      default -> throw new IllegalArgumentException("Unsupported DTO type: " + harvestParametersDTO.getClass());
+      default -> throw new IllegalArgumentException("Unsupported DTO type: " + abstractHarvestParametersDTO.getClass());
     };
   }
 
-  private static void applyBinaryFields(BinaryHarvestParametersEntity binaryHarvestParametersEntity, BinaryHarvestParametersDTO binaryHarvestParametersDTO) {
-    binaryHarvestParametersEntity.setFileName(binaryHarvestParametersDTO.getFileName());
-    binaryHarvestParametersEntity.setFileType(binaryHarvestParametersDTO.getFileType());
-    binaryHarvestParametersEntity.setFileContent(binaryHarvestParametersDTO.getFileContent());
+  private static void applyBinaryFields(AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity,
+      AbstractBinaryHarvestParametersDTO abstractBinaryHarvestParametersDTO) {
+    abstractBinaryHarvestParametersEntity.setFileName(abstractBinaryHarvestParametersDTO.getFileName());
+    abstractBinaryHarvestParametersEntity.setFileType(abstractBinaryHarvestParametersDTO.getFileType());
+    abstractBinaryHarvestParametersEntity.setFileContent(abstractBinaryHarvestParametersDTO.getFileContent());
   }
 }
 

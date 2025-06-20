@@ -102,7 +102,7 @@ class DatasetInfoControllerTest {
                                                   .creationDate(ZonedDateTime.now())
                                                   .language(Language.EL)
                                                   .country(Country.GREECE)
-                                                  .harvestParametersDto(oaiHarvestParametersDTO)
+                                                  .abstractHarvestParametersDTO(oaiHarvestParametersDTO)
                                                   .transformedToEdmExternal(false)
                                                   .build();
 

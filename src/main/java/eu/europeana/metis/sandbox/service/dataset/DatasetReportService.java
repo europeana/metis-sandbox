@@ -18,7 +18,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
@@ -129,7 +129,7 @@ public class DatasetReportService {
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId);
     HarvestParametersEntity harvestParametersEntity = harvestParameterService.getDatasetHarvestingParameters(datasetId)
                                                                              .orElseThrow();
-    HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
+    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
     return DatasetInfoDTO.builder()
                          .datasetId(datasetId)
                          .datasetName(datasetEntity.getDatasetName())
@@ -137,7 +137,7 @@ public class DatasetReportService {
                          .creationDate(datasetEntity.getCreatedDate())
                          .language(datasetEntity.getLanguage())
                          .country(datasetEntity.getCountry())
-                         .harvestParametersDto(harvestParametersDTO)
+                         .abstractHarvestParametersDTO(abstractHarvestParametersDTO)
                          .transformedToEdmExternal(transformXsltEntity.isPresent())
                          .build();
   }

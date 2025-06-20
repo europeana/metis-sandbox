@@ -14,7 +14,7 @@ import lombok.Setter;
 @Entity
 @DiscriminatorValue("HTTP")
 @Table(name = "harvest_parameters_http")
-public class HttpHarvestParametersEntity extends BinaryHarvestParametersEntity {
+public class HttpHarvestParametersEntity extends AbstractBinaryHarvestParametersEntity {
 
   private String url;
 }

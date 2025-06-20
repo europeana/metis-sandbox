@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @ApiModel(HttpHarvestParametersDTO.SWAGGER_MODEL_NAME)
 @Getter
-public class HttpHarvestParametersDTO extends BinaryHarvestParametersDTO {
+public class HttpHarvestParametersDTO extends AbstractBinaryHarvestParametersDTO {
 
   public static final String SWAGGER_MODEL_NAME = "HttpUpload";
 

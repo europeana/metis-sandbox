@@ -17,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class BinaryHarvestParametersEntity extends HarvestParametersEntity {
+public abstract class AbstractBinaryHarvestParametersEntity extends HarvestParametersEntity {
 
   private String fileName;
 

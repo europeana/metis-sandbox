@@ -5,6 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
@@ -98,8 +99,9 @@ public class ValidationController {
       @RequestParam("recordToValidate") MultipartFile recordToValidate) throws IOException {
     checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
     String datasetName = "direct_validation_" + UUID.randomUUID();
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
     String createdDatasetId = datasetExecutionService.createAndExecuteDatasetForFileValidationBlocking(
-        datasetName, recordToValidate, country, language);
+        datasetMetadataRequest, recordToValidate);
     ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(createdDatasetId);
 
     List<ValidationResult> validationResults = new ArrayList<>();

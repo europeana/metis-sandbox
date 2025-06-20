@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-class ExecutionRecordAndDTOConverterUtilTest {
+class ExecutionRecordConverterTest {
 
   @Test
   void convertToExecutionRecordDTO() {
@@ -41,7 +41,7 @@ class ExecutionRecordAndDTOConverterUtilTest {
     //    executionRecordWarning.setException("exception");
     //    executionRecord.setExecutionRecordWarning(List.of(executionRecordWarning));
 
-    SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordAndDTOConverterUtil.convertToExecutionRecordDTO(
+    SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordConverter.convertToExecutionRecordDTO(
         executionRecord);
 
     assertEquals(executionRecord.getIdentifier().getDatasetId(), successExecutionRecordDTO.getDatasetId());
@@ -66,7 +66,7 @@ class ExecutionRecordAndDTOConverterUtilTest {
         .exceptionWarnings(Set.of(new IllegalArgumentException("warning")))
     );
 
-    ExecutionRecord executionRecord = ExecutionRecordAndDTOConverterUtil.convertToExecutionRecord(successExecutionRecordDTO);
+    ExecutionRecord executionRecord = ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO);
 
     assertNotNull(executionRecord);
     assertEquals(successExecutionRecordDTO.getDatasetId(), executionRecord.getIdentifier().getDatasetId());
@@ -102,7 +102,7 @@ class ExecutionRecordAndDTOConverterUtilTest {
         .tierResults(mockTierResults)
     );
 
-    Optional<ExecutionRecordTierContext> executionRecordTierContextOptional = ExecutionRecordAndDTOConverterUtil.convertToExecutionRecordTierContext(
+    Optional<ExecutionRecordTierContext> executionRecordTierContextOptional = ExecutionRecordConverter.convertToExecutionRecordTierContext(
         dto);
     assertTrue(executionRecordTierContextOptional.isPresent());
     ExecutionRecordTierContext executionRecordTierContext = executionRecordTierContextOptional.get();
@@ -129,7 +129,7 @@ class ExecutionRecordAndDTOConverterUtilTest {
         .recordData("recordData")
     );
 
-    Optional<ExecutionRecordTierContext> executionRecordTierContext = ExecutionRecordAndDTOConverterUtil.convertToExecutionRecordTierContext(
+    Optional<ExecutionRecordTierContext> executionRecordTierContext = ExecutionRecordConverter.convertToExecutionRecordTierContext(
         successExecutionRecordDTO);
     assertTrue(executionRecordTierContext.isEmpty());
   }
@@ -146,7 +146,7 @@ class ExecutionRecordAndDTOConverterUtilTest {
         .exception(illegalArgumentException)
     );
 
-    ExecutionRecordError executionRecordError = ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordError(
+    ExecutionRecordError executionRecordError = ExecutionRecordConverter.converterToExecutionRecordError(
         failExecutionRecordDTO);
 
     assertNotNull(executionRecordError);

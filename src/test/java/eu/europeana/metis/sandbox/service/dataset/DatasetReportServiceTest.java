@@ -150,8 +150,8 @@ class DatasetReportServiceTest {
     assertEquals(datasetEntity.getCreatedById(), datasetInfo.getCreatedById());
     assertTrue(datasetInfo.isTransformedToEdmExternal());
 
-    assertNotNull(datasetInfo.getHarvestParametersDto());
-    OaiHarvestParametersDTO oaiHarvestParametersDTO = assertInstanceOf(OaiHarvestParametersDTO.class, datasetInfo.getHarvestParametersDto());
+    assertNotNull(datasetInfo.getAbstractHarvestParametersDTO());
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = assertInstanceOf(OaiHarvestParametersDTO.class, datasetInfo.getAbstractHarvestParametersDTO());
     assertEquals(oaiHarvestParametersEntity.getUrl(), oaiHarvestParametersDTO.getUrl());
     assertEquals(oaiHarvestParametersEntity.getSetSpec(), oaiHarvestParametersDTO.getSetSpec());
     assertEquals(oaiHarvestParametersEntity.getMetadataFormat(), oaiHarvestParametersDTO.getMetadataFormat());

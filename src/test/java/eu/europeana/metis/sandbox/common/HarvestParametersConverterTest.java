@@ -1,11 +1,12 @@
 package eu.europeana.metis.sandbox.common;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
-import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -68,7 +69,7 @@ class HarvestParametersConverterTest {
 
   @Test
   void convertToHarvestParametersEntity_UnknownDTO() {
-    HarvestParametersDTO unknown = new HarvestParametersDTO(1) {
+    AbstractHarvestParametersDTO unknown = new AbstractHarvestParametersDTO(1) {
     };
     assertThrows(IllegalArgumentException.class, () ->
         HarvestParametersConverter.convertToHarvestParametersEntity(dataset, unknown)
@@ -83,10 +84,10 @@ class HarvestParametersConverterTest {
     oaiHarvestParametersEntity.setMetadataFormat("oai_dc");
     oaiHarvestParametersEntity.setStepSize(1);
 
-    HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(
+    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(
         oaiHarvestParametersEntity);
-    assertInstanceOf(OaiHarvestParametersDTO.class, harvestParametersDTO);
-    OaiHarvestParametersDTO oaiHarvestParametersDTO = (OaiHarvestParametersDTO) harvestParametersDTO;
+    assertInstanceOf(OaiHarvestParametersDTO.class, abstractHarvestParametersDTO);
+    OaiHarvestParametersDTO oaiHarvestParametersDTO = (OaiHarvestParametersDTO) abstractHarvestParametersDTO;
     assertEquals(oaiHarvestParametersEntity.getUrl(), oaiHarvestParametersDTO.getUrl());
     assertEquals(oaiHarvestParametersEntity.getSetSpec(), oaiHarvestParametersDTO.getSetSpec());
     assertEquals(oaiHarvestParametersEntity.getMetadataFormat(), oaiHarvestParametersDTO.getMetadataFormat());
@@ -102,13 +103,13 @@ class HarvestParametersConverterTest {
     httpHarvestParameters.setFileContent("data".getBytes());
     httpHarvestParameters.setStepSize(1);
 
-    HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(httpHarvestParameters);
-    assertInstanceOf(HttpHarvestParametersDTO.class, harvestParametersDTO);
-    HttpHarvestParametersDTO httpHarvestDTO = (HttpHarvestParametersDTO) harvestParametersDTO;
+    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(httpHarvestParameters);
+    assertInstanceOf(HttpHarvestParametersDTO.class, abstractHarvestParametersDTO);
+    HttpHarvestParametersDTO httpHarvestDTO = (HttpHarvestParametersDTO) abstractHarvestParametersDTO;
     assertEquals(httpHarvestParameters.getUrl(), httpHarvestDTO.getUrl());
     assertEquals(httpHarvestParameters.getFileName(), httpHarvestDTO.getFileName());
     assertEquals(httpHarvestParameters.getFileType(), httpHarvestDTO.getFileType());
-    assertEquals(httpHarvestParameters.getFileContent(), httpHarvestDTO.getFileContent());
+    assertArrayEquals(httpHarvestParameters.getFileContent(), httpHarvestDTO.getFileContent());
     assertEquals(httpHarvestParameters.getStepSize(), httpHarvestDTO.getStepSize());
   }
 
@@ -120,12 +121,12 @@ class HarvestParametersConverterTest {
     fileHarvestParameters.setFileContent("data".getBytes());
     fileHarvestParameters.setStepSize(1);
 
-    HarvestParametersDTO harvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(fileHarvestParameters);
-    assertInstanceOf(FileHarvestParametersDTO.class, harvestParametersDTO);
-    FileHarvestParametersDTO fileHarvestDTO = (FileHarvestParametersDTO) harvestParametersDTO;
+    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(fileHarvestParameters);
+    assertInstanceOf(FileHarvestParametersDTO.class, abstractHarvestParametersDTO);
+    FileHarvestParametersDTO fileHarvestDTO = (FileHarvestParametersDTO) abstractHarvestParametersDTO;
     assertEquals(fileHarvestParameters.getFileName(), fileHarvestDTO.getFileName());
     assertEquals(fileHarvestParameters.getFileType(), fileHarvestDTO.getFileType());
-    assertEquals(fileHarvestParameters.getFileContent(), fileHarvestDTO.getFileContent());
+    assertArrayEquals(fileHarvestParameters.getFileContent(), fileHarvestDTO.getFileContent());
     assertEquals(fileHarvestParameters.getStepSize(), fileHarvestDTO.getStepSize());
   }
 

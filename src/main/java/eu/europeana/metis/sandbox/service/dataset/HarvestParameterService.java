@@ -6,7 +6,7 @@ import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -44,21 +44,21 @@ public class HarvestParameterService {
    * an entity before persisting it in the repository.
    *
    * @param datasetId the identifier of the dataset the parameters are associated with
-   * @param harvestParametersDto the data transfer object containing the harvest parameters
+   * @param abstractHarvestParametersDTO the data transfer object containing the harvest parameters
    * @return the saved HarvestParametersEntity
    * @throws ServiceException in case a {@link RuntimeException} occurred
    */
   @Transactional
-  public HarvestParametersEntity createDatasetHarvestParameters(String datasetId, HarvestParametersDTO harvestParametersDto) {
+  public HarvestParametersEntity createDatasetHarvestParameters(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO) {
     requireNonNull(datasetId, "Dataset id must not be null");
     if (isBlank(datasetId)) {
       throw new IllegalArgumentException("Dataset id must not be empty");
     }
-    requireNonNull(harvestParametersDto, "Type of harvesting must not be null");
+    requireNonNull(abstractHarvestParametersDTO, "Type of harvesting must not be null");
     try {
       DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
       HarvestParametersEntity harvestParametersEntity = HarvestParametersConverter.convertToHarvestParametersEntity(datasetEntity,
-          harvestParametersDto);
+          abstractHarvestParametersDTO);
       return harvestParametersRepository.save(harvestParametersEntity);
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error saving harvesting parameters for dataset id: [%s]. ", datasetId), e);

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.writer;
 
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
@@ -69,13 +69,13 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
     for (AbstractExecutionRecordDTO executionRecordDTO : chunk) {
       switch (executionRecordDTO) {
         case SuccessExecutionRecordDTO successExecutionRecordDTO -> {
-          executionRecords.add(ExecutionRecordAndDTOConverterUtil.convertToExecutionRecord(successExecutionRecordDTO));
+          executionRecords.add(ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO));
           Optional<ExecutionRecordTierContext> executionRecordTierContext =
-              ExecutionRecordAndDTOConverterUtil.convertToExecutionRecordTierContext(successExecutionRecordDTO);
+              ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO);
           executionRecordTierContext.ifPresent(executionRecordTierContexts::add);
         }
         case FailExecutionRecordDTO failExecutionRecordDTO -> executionRecordErrors.add(
-            ExecutionRecordAndDTOConverterUtil.converterToExecutionRecordError(failExecutionRecordDTO));
+            ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO));
       }
     }
     LOGGER.info("In writer before saveAll");

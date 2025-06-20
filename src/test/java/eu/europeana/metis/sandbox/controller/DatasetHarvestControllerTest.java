@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
@@ -101,8 +102,9 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_withoutXslt_shouldSucceed() throws Exception {
     Jwt jwt = setupJwt();
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
     when(datasetExecutionService.createDatasetAndSubmitExecution(
-        DATASET_NAME, GREECE, EL, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
     mockMvc.perform(post("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -118,8 +120,9 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_emptySetSpec_shouldSucceed() throws Exception {
     Jwt jwt = setupJwt();
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
     when(datasetExecutionService.createDatasetAndSubmitExecution(
-        DATASET_NAME, GREECE, EL, STEP_SIZE, OAI_ENDPOINT_URL, "", METADATA_FORMAT, null, getUserId(jwt)
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, "", METADATA_FORMAT, null, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
     mockMvc.perform(post("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -136,8 +139,9 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_withXsltFile_shouldSucceed() throws Exception {
     MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
     Jwt jwt = setupJwt();
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
     when(datasetExecutionService.createDatasetAndSubmitExecution(
-        DATASET_NAME, GREECE, EL, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, getUserId(jwt)
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -155,8 +159,9 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_withXsltFile_nonBrowser_shouldSucceed() throws Exception {
     MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
     setupJwt();
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
     when(datasetExecutionService.createDatasetAndSubmitExecution(
-        DATASET_NAME, GREECE, EL, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, null
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, null
     )).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -227,8 +232,9 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_createDatasetAndSubmitExecutionFails_expectFail() throws Exception {
     Jwt jwt = setupJwt();
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
     when(datasetExecutionService.createDatasetAndSubmitExecution(
-        DATASET_NAME, GREECE, EL, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
     )).thenThrow(new IOException());
 
     mockMvc.perform(post("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -247,7 +253,8 @@ class DatasetHarvestControllerTest {
   void harvestDatasetFromFile_withoutXsltFile_expectSuccess(MockMultipartFile mockMultipart,
       CompressedFileExtension expectedExtension) throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecution(DATASET_NAME, GREECE, EL,
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
+    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, null, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -268,7 +275,8 @@ class DatasetHarvestControllerTest {
         "string".getBytes());
 
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecution(DATASET_NAME, GREECE, EL,
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
+    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, xsltMock, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -290,7 +298,8 @@ class DatasetHarvestControllerTest {
         "string".getBytes());
 
     setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecution(DATASET_NAME, GREECE, EL,
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
+    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, xsltMock, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -357,7 +366,7 @@ class DatasetHarvestControllerTest {
                .params(getCommonLocaleParams()))
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.message",
-               is("File provided is not valid compressed file. ")));
+               is("File provided is not valid compressed file.")));
   }
 
   private static Stream<Arguments> provideDifferentCompressedFiles() {
@@ -383,7 +392,8 @@ class DatasetHarvestControllerTest {
   void harvestDatasetFromURL_withoutXsltFile_expectSuccess(String url, CompressedFileExtension expectedExtension)
       throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecution(DATASET_NAME, GREECE, EL,
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
+    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
         STEP_SIZE, url, null, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -402,7 +412,8 @@ class DatasetHarvestControllerTest {
         "application/xslt+xml",
         "string".getBytes());
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecution(DATASET_NAME, GREECE, EL,
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
+    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
         STEP_SIZE, url, xsltMock, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -423,7 +434,8 @@ class DatasetHarvestControllerTest {
         "application/xslt+xml",
         "string".getBytes());
     setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecution(DATASET_NAME, GREECE, EL,
+    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
+    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
         STEP_SIZE, url, xsltMock, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -486,7 +498,7 @@ class DatasetHarvestControllerTest {
                .param("url", url))
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.message",
-               is("File provided is not valid compressed file. ")));
+               is("File provided is not valid compressed file.")));
   }
 
   private static Stream<Arguments> provideDifferentUrlsOfCompressedFiles() {

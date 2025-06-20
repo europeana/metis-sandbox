@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.experimental.UtilityClass;
 
 /**
  * Provides workflow-related utility functions for managing different types of workflows.
@@ -29,7 +30,8 @@ import java.util.Optional;
  * <p>Supports conditional modifications of workflows such as adding external transformation steps.
  * <p>Designed for temporary use until integrated with a proper orchestrator like metis-core.
  */
-public class WorkflowHelper {
+@UtilityClass
+public final class WorkflowHelper {
 
   private static final List<FullBatchJobType> COMMON_POST_HARVEST =
       List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX_PUBLISH);
@@ -45,20 +47,20 @@ public class WorkflowHelper {
   private static final List<FullBatchJobType> HARVEST_FILE_WORKFLOW = prepend(HARVEST_FILE, COMMON_POST_HARVEST);
   private static final List<FullBatchJobType> HARVEST_FILE_UNTIL_VALIDATION = prepend(HARVEST_FILE, ONLY_VALIDATION);
 
-  private static List<FullBatchJobType> prepend(FullBatchJobType first, List<FullBatchJobType> rest) {
-    List<FullBatchJobType> result = new ArrayList<>(rest.size() + 1);
-    result.add(first);
-    result.addAll(rest);
-    return Collections.unmodifiableList(result);
-  }
-
-  public static final Map<WorkflowType, List<FullBatchJobType>> WORKFLOW_BY_WORKFLOW_TYPE = Map.of(
+  private static final Map<WorkflowType, List<FullBatchJobType>> WORKFLOW_BY_WORKFLOW_TYPE = Map.of(
       WorkflowType.OAI_HARVEST, HARVEST_OAI_WORKFLOW,
       WorkflowType.FILE_HARVEST, HARVEST_FILE_WORKFLOW,
       WorkflowType.FILE_HARVEST_ONLY_VALIDATION, HARVEST_FILE_UNTIL_VALIDATION,
       WorkflowType.OLD_HARVEST, OLD_HARVEST_WORKFLOW_DISPLAY,
       WorkflowType.DEBIAS, ONLY_DEBIAS
   );
+
+  private static List<FullBatchJobType> prepend(FullBatchJobType first, List<FullBatchJobType> rest) {
+    List<FullBatchJobType> result = new ArrayList<>(rest.size() + 1);
+    result.add(first);
+    result.addAll(rest);
+    return Collections.unmodifiableList(result);
+  }
 
   /**
    * Determines and returns the workflow steps based on the provided execution metadata.

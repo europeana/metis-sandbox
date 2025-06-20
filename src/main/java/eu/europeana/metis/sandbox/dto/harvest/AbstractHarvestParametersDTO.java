@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public abstract class HarvestParametersDTO {
+public abstract class AbstractHarvestParametersDTO {
 
   @JsonProperty("step-size")
   private Integer stepSize;

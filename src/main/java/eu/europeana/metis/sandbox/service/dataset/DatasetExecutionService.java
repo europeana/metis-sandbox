@@ -4,11 +4,10 @@ import static eu.europeana.metis.sandbox.entity.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.entity.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.debias.DebiasState;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
@@ -82,9 +81,7 @@ public class DatasetExecutionService {
    * <p>This method handles the setup and execution of a dataset workflow using OAI harvest configurations.
    * <p>After setup, it initiates the dataset processing through the batch job executor.
    *
-   * @param datasetName the name of the dataset to be created
-   * @param country the country associated with the dataset
-   * @param language the language associated with the dataset
+   * @param datasetMetadataRequest the name of the dataset to be created
    * @param stepsize the number of records to process per batch
    * @param url the URL to fetch OAI-PMH records from
    * @param setSpec the set specification used for selective harvesting
@@ -95,11 +92,12 @@ public class DatasetExecutionService {
    * @throws IOException if an error occurs during dataset setup or file handling
    */
   @NotNull
-  public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
+  public String createDatasetAndSubmitExecution(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
-    OaiHarvestParametersDTO harvestParametersDTO = new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
+    OaiHarvestParametersDTO harvestParametersDTO = new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat,
+        stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-        WorkflowType.OAI_HARVEST, datasetName, country, language, userId, xsltFile, harvestParametersDTO
+        WorkflowType.OAI_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
     );
     batchJobExecutor.execute(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -110,9 +108,7 @@ public class DatasetExecutionService {
    *
    * <p>After setup, it initiates the dataset processing through the batch job executor.
    *
-   * @param datasetName the name of the dataset to be created
-   * @param country the country associated with the dataset
-   * @param language the language applicable to the dataset
+   * @param datasetMetadataRequest the name of the dataset to be created
    * @param stepsize the step size configuration for the dataset processing
    * @param compressedFile the compressed file containing dataset data
    * @param xsltFile the XSLT file for dataset transformation
@@ -122,12 +118,13 @@ public class DatasetExecutionService {
    * @throws IOException if an I/O error occurs while processing the files
    */
   @NotNull
-  public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
+  public String createDatasetAndSubmitExecution(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
-    FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(compressedFile.getOriginalFilename(), FileType.valueOf(extension.name()),
+    FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(compressedFile.getOriginalFilename(),
+        FileType.valueOf(extension.name()),
         compressedFile.getBytes(), stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-        WorkflowType.FILE_HARVEST, datasetName, country, language, userId, xsltFile, fileHarvestDTO
+        WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, fileHarvestDTO
     );
     batchJobExecutor.execute(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -138,9 +135,7 @@ public class DatasetExecutionService {
    *
    * <p>After setup, it initiates the dataset processing through the batch job executor.
    *
-   * @param datasetName the name of the dataset to be created
-   * @param country the country associated with the dataset
-   * @param language the language associated with the dataset
+   * @param datasetMetadataRequest the name of the dataset to be created
    * @param stepsize the step size for processing
    * @param url the URL of the input file to be processed
    * @param xsltFile the XSLT file for data transformation
@@ -149,14 +144,15 @@ public class DatasetExecutionService {
    * @return the unique ID of the created dataset
    */
   @NotNull
-  public String createDatasetAndSubmitExecution(String datasetName, Country country, Language language, Integer stepsize,
+  public String createDatasetAndSubmitExecution(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
     String filename = Path.of(url).getFileName().toString();
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
-      HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename, FileType.valueOf(extension.name()),
+      HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
+          FileType.valueOf(extension.name()),
           inputStream.readAllBytes(), stepsize);
       ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-          WorkflowType.FILE_HARVEST, datasetName, country, language, userId, xsltFile, harvestParametersDTO
+          WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
       );
       batchJobExecutor.execute(executionMetadata);
       return executionMetadata.getDatasetMetadata().getDatasetId();
@@ -180,11 +176,12 @@ public class DatasetExecutionService {
    * @return the ID of the created dataset
    * @throws IOException if an I/O error occurs while processing the file
    */
-  public String createAndExecuteDatasetForFileValidationBlocking(String datasetName,
-      MultipartFile recordFile, Country country, Language language) throws IOException {
-    FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(recordFile.getOriginalFilename(), FileType.XML, recordFile.getBytes(), 1);
+  public String createAndExecuteDatasetForFileValidationBlocking(DatasetMetadataRequest datasetMetadataRequest,
+      MultipartFile recordFile) throws IOException {
+    FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(recordFile.getOriginalFilename(), FileType.XML,
+        recordFile.getBytes(), 1);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-        FILE_HARVEST_ONLY_VALIDATION, datasetName, country, language, null, null, fileHarvestDTO
+        FILE_HARVEST_ONLY_VALIDATION, datasetMetadataRequest, null, null, fileHarvestDTO
     );
     batchJobExecutor.executeBlocking(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();

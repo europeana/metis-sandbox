@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * Utility class for converting ExecutionRecord and DTO objects.
  */
 @UtilityClass
-public final class ExecutionRecordAndDTOConverterUtil {
+public final class ExecutionRecordConverter {
 
   /**
    * Converts an ExecutionRecord entity to a SuccessExecutionRecordDTO object.

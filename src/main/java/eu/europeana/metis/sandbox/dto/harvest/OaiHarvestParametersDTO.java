@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @ApiModel(OaiHarvestParametersDTO.SWAGGER_MODEL_NAME)
 @Getter
-public class OaiHarvestParametersDTO extends HarvestParametersDTO {
+public class OaiHarvestParametersDTO extends AbstractHarvestParametersDTO {
 
     public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
 

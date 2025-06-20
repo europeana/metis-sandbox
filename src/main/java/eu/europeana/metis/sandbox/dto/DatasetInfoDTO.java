@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.harvest.HarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
 import lombok.Builder;
@@ -42,5 +42,5 @@ public final class DatasetInfoDTO {
   private final boolean transformedToEdmExternal;
 
   @JsonProperty("harvesting-parameters")
-  private final HarvestParametersDTO harvestParametersDto;
+  private final AbstractHarvestParametersDTO abstractHarvestParametersDTO;
 }

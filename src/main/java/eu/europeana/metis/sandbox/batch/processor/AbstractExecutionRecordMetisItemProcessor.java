@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordAndDTOConverterUtil;
+import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
@@ -22,7 +22,7 @@ public abstract class AbstractExecutionRecordMetisItemProcessor extends
   @Override
   public AbstractExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
     SuccessExecutionRecordDTO originSuccessExecutionRecordDTO =
-        ExecutionRecordAndDTOConverterUtil.convertToExecutionRecordDTO(executionRecord);
+        ExecutionRecordConverter.convertToExecutionRecordDTO(executionRecord);
 
     JobMetadataDTO jobMetadataDTO =
         new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());

@@ -16,6 +16,6 @@ import lombok.Setter;
 @Entity
 @DiscriminatorValue("FILE")
 @Table(name = "harvest_parameters_file")
-public class FileHarvestParametersEntity extends BinaryHarvestParametersEntity {
+public class FileHarvestParametersEntity extends AbstractBinaryHarvestParametersEntity {
 
 }
