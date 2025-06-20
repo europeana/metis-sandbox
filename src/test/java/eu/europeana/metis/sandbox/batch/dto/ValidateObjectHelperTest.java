@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.europeana.metis.sandbox.common.ValidateObjectHelper;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.junit.jupiter.api.Test;
 
-class ValidatedBuilderUtilTest {
+class ValidateObjectHelperTest {
 
   @Value
   @Builder
@@ -26,7 +27,7 @@ class ValidatedBuilderUtilTest {
 
   @Test
   void testValidDto_buildValidated_shouldReturnDto() {
-    TestDto dto = ValidatedBuilderUtil.buildValidated(
+    TestDto dto = ValidateObjectHelper.buildValidated(
         TestDto.TestDtoBuilder::new,
         TestDto.TestDtoBuilder::build,
         builder -> builder.name("Name")
@@ -39,7 +40,7 @@ class ValidatedBuilderUtilTest {
   @Test
   void testInvalidDto_buildValidated_shouldThrowException() {
     ConstraintViolationException exception = assertThrows(ConstraintViolationException.class, () ->
-        ValidatedBuilderUtil.buildValidated(
+        ValidateObjectHelper.buildValidated(
             TestDto.TestDtoBuilder::new,
             TestDto.TestDtoBuilder::build,
             builder -> builder.name("")
@@ -51,7 +52,7 @@ class ValidatedBuilderUtilTest {
 
   @Test
   void testValidDtoWithPreBuilderSetup_shouldReturnDto() {
-    TestDto dto = ValidatedBuilderUtil.buildValidated(
+    TestDto dto = ValidateObjectHelper.buildValidated(
         TestDto.TestDtoBuilder::new,
         TestDto.TestDtoBuilder::build,
         preBuilder -> preBuilder.id("id"), // nothing
@@ -67,7 +68,7 @@ class ValidatedBuilderUtilTest {
   void testPreBuilderSetupRunsBeforeBuilderSetup() {
     List<Integer> steps = new ArrayList<>();
 
-    TestDto dto = ValidatedBuilderUtil.buildValidated(
+    TestDto dto = ValidateObjectHelper.buildValidated(
         TestDto.TestDtoBuilder::new,
         TestDto.TestDtoBuilder::build,
         preBuilder -> steps.add(1),

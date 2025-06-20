@@ -11,35 +11,42 @@ import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
 import java.io.StringWriter;
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
 import lombok.experimental.StandardException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class that provides methods to validate records and perform pattern analysis.
+ */
+@Slf4j
+@AllArgsConstructor
 @Service
 public class ValidationService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ValidationExecutionService validationExecutionService;
   private final ObjectFactory<XsltTransformer> xsltTransformerFactory;
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointRepository executionPointRepository;
 
-  public ValidationService(
-      ValidationExecutionService validationExecutionService,
-      ObjectFactory<XsltTransformer> xsltTransformerFactory,
-      PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
-      ExecutionPointRepository executionPointRepository) {
-    this.validationExecutionService = validationExecutionService;
-    this.xsltTransformerFactory = xsltTransformerFactory;
-    this.patternAnalysisService = patternAnalysisService;
-    this.executionPointRepository = executionPointRepository;
-  }
-
+  /**
+   * Validates a single record based on the provided data and subtype and optionally performs pattern analysis for internal
+   * records.
+   *
+   * <p>The record data may be reordered based on the subtype before validation.
+   * <p>Pattern analysis is executed for internal records after validation.
+   *
+   * @param recordData the raw data of the record to be validated
+   * @param recordId the unique identifier of the record being validated
+   * @param datasetId the identifier of the dataset the record belongs to
+   * @param executionName the name associated with the execution process
+   * @param subtype the subtype of the validation job (e.g., EXTERNAL or INTERNAL)
+   * @return the result of the validation containing validation status and messages
+   * @throws ValidationException if the validation process encounters an error
+   */
   public ValidationResult validateRecord(String recordData, String recordId, String datasetId, String executionName,
       ValidationBatchJobSubType subtype)
       throws ValidationException {
@@ -60,9 +67,9 @@ public class ValidationService {
     }
 
     if (result.isSuccess()) {
-      LOGGER.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
+      log.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
     } else {
-      LOGGER.info("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
+      log.info("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
       throw new ValidationException(result.getMessage());
     }
 
@@ -90,10 +97,13 @@ public class ValidationService {
     try {
       patternAnalysisService.generateRecordPatternAnalysis(executionPoint.get(), reorderedRecordData);
     } catch (PatternAnalysisException e) {
-      LOGGER.error("An error occurred while processing pattern analysis", e);
+      log.error("An error occurred while processing pattern analysis", e);
     }
   }
 
+  /**
+   * Exception thrown when validation processes fail within the ValidationService.
+   */
   @StandardException
   public static class ValidationException extends Exception {
 

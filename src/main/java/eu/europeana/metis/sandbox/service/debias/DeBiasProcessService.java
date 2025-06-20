@@ -47,11 +47,12 @@ public class DeBiasProcessService {
   private final DatasetRepository datasetRepository;
 
   /**
-   * Instantiates a new DeBias process service.
+   * Constructor.
    *
-   * @param deBiasClient the DeBias client
-   * @param recordDeBiasMainRepository the record de bias main repository
-   * @param recordDeBiasDetailRepository the record de bias detail repository
+   * @param deBiasClient the client responsible for de-bias related operations
+   * @param recordDeBiasMainRepository repository for managing main de-bias records
+   * @param recordDeBiasDetailRepository repository for managing detailed de-bias records
+   * @param datasetRepository repository for managing datasets
    */
   public DeBiasProcessService(DeBiasClient deBiasClient,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
@@ -114,8 +115,8 @@ public class DeBiasProcessService {
   }
 
   /**
-   * Processes a list of de-bias input records, executes debiasing tasks in batches by language,
-   * and generates a report containing detection results.
+   * Processes a list of de-bias input records, executes debiasing tasks in batches by language, and generates a report containing
+   * detection results.
    *
    * <p>This method partitions input records by supported language, processes each partition
    * for debias detection, and creates report rows with de-bias results.
@@ -201,8 +202,8 @@ public class DeBiasProcessService {
    * The type DeBias input record.
    */
   public record DeBiasInputRecord(String europeanaId, String literal,
-                           DeBiasSupportedLanguage language,
-                           DeBiasSourceField sourceField) {
+                                  DeBiasSupportedLanguage language,
+                                  DeBiasSourceField sourceField) {
 
   }
 

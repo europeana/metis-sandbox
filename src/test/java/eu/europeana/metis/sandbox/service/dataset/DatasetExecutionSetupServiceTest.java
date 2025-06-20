@@ -115,26 +115,6 @@ class DatasetExecutionSetupServiceTest {
   }
 
   @Test
-  void prepareDatasetExecution_createDataset_BlankValues() {
-    WorkflowType workflowType = WorkflowType.OAI_HARVEST;
-    String userId = "userId";
-    OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
-
-    assertThrows(NullPointerException.class, () ->
-        datasetExecutionSetupService.prepareDatasetExecution(workflowType, new DatasetMetadataRequest(null, Country.GREECE, Language.EL), userId, null,
-            oaiHarvestParametersDTO));
-    assertThrows(IllegalArgumentException.class, () ->
-        datasetExecutionSetupService.prepareDatasetExecution(workflowType, new DatasetMetadataRequest("", Country.GREECE, Language.EL), userId, null,
-            oaiHarvestParametersDTO));
-    assertThrows(NullPointerException.class, () ->
-        datasetExecutionSetupService.prepareDatasetExecution(workflowType, new DatasetMetadataRequest("datasetName", null, Language.EL), userId, null,
-            oaiHarvestParametersDTO));
-    assertThrows(NullPointerException.class, () ->
-        datasetExecutionSetupService.prepareDatasetExecution(workflowType, new DatasetMetadataRequest("datasetName", Country.GREECE, null), userId, null,
-            oaiHarvestParametersDTO));
-  }
-
-  @Test
   void prepareDatasetExecution_saveXslt_ThrowIOException() throws IOException {
     String datasetId = "1";
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;

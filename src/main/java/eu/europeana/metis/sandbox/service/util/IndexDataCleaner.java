@@ -37,7 +37,12 @@ public class IndexDataCleaner {
   }
 
   /**
-   * Releases resources held by the publishIndexer during shutdown.
+   * Releases resources allocated for the indexer.
+   *
+   * <p>This method is annotated with {@code @PreDestroy} and is invoked automatically
+   * during the lifecycle events of the bean.
+   *
+   * @throws IOException if an I/O error occurs while closing the indexer.
    */
   @PreDestroy
   public void destroy() throws IOException {

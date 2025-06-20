@@ -42,7 +42,9 @@ public class ExecutionRecordCleaner {
   }
 
   /**
-   * Removes execution records and associated entities for the given dataset ID.
+   * Removes all execution records and associated entities for the specified dataset ID.
+   *
+   * @param datasetId the ID of the dataset whose associated records are to be removed.
    */
   @Transactional
   public void remove(String datasetId) {

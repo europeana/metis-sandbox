@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.batch.dto;
 
 import eu.europeana.indexing.tiers.model.TierResults;
+import eu.europeana.metis.sandbox.common.ValidateObjectHelper;
 import jakarta.validation.constraints.NotBlank;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -32,7 +33,7 @@ public final class SuccessExecutionRecordDTO extends AbstractExecutionRecordDTO 
    * @return A validated instance of SuccessExecutionRecordDTO.
    */
   public static SuccessExecutionRecordDTO createValidated(Consumer<SuccessExecutionRecordDTOBuilder<?, ?>> builderSetup) {
-    return ValidatedBuilderUtil.buildValidated(
+    return ValidateObjectHelper.buildValidated(
         SuccessExecutionRecordDTO::internalBuilder,
         SuccessExecutionRecordDTOBuilder::build, builderSetup
     );
@@ -49,7 +50,7 @@ public final class SuccessExecutionRecordDTO extends AbstractExecutionRecordDTO 
    */
   public static SuccessExecutionRecordDTO createCopyIdentifiersValidated(SuccessExecutionRecordDTO sourceSuccessExecutionRecordDTO,
       String executionId, String executionName, Consumer<SuccessExecutionRecordDTOBuilder<?, ?>> builderSetup) {
-    return ValidatedBuilderUtil.buildValidated(
+    return ValidateObjectHelper.buildValidated(
         SuccessExecutionRecordDTO::internalBuilder,
         SuccessExecutionRecordDTOBuilder::build, builder -> {
           builder.datasetId(sourceSuccessExecutionRecordDTO.getDatasetId());

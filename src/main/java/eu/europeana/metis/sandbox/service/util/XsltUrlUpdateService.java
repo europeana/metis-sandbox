@@ -47,7 +47,9 @@ public class XsltUrlUpdateService {
   }
 
   /**
-   * Updates the default XSLT transformation by fetching its contents from a remote URL.
+   * Updates the default XSLT transformation by fetching the content from the provided URL.
+   *
+   * @param defaultXsltUrl url from which the XSLT transformation will be fetched
    */
   public void updateXslt(String defaultXsltUrl) {
 

@@ -17,9 +17,14 @@ import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.function.ThrowingFunction;
 
+/**
+ * Service responsible for media metadata extraction.
+ */
+@AllArgsConstructor
 @Service
 public class MediaService {
 
@@ -28,16 +33,15 @@ public class MediaService {
   private final RdfSerializer rdfSerializer;
   private final RdfDeserializer rdfDeserializer;
 
-  public MediaService(MediaExtractor mediaExtractor,
-      ThumbnailStoreService thumbnailStoreService,
-      RdfSerializer rdfSerializer,
-      RdfDeserializer rdfDeserializer) {
-    this.mediaExtractor = mediaExtractor;
-    this.thumbnailStoreService = thumbnailStoreService;
-    this.rdfSerializer = rdfSerializer;
-    this.rdfDeserializer = rdfDeserializer;
-  }
-
+  /**
+   * Extract media metadata from resources defined in the record and enriches the record with those while also creating thumbnails
+   * where applicable.
+   *
+   * @param recordData the RDF data of the record to be processed
+   * @param datasetId the identifier of the dataset to which the record belongs
+   * @return a MediaProcessingResult containing the updated record data and any warning exceptions
+   * @throws MediaExtractionException if there are issues during RDF processing or media extraction
+   */
   public MediaProcessingResult processMediaRecord(String recordData, String datasetId) throws MediaExtractionException {
     byte[] rdfBytes = recordData.getBytes(StandardCharsets.UTF_8);
     EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
@@ -152,6 +156,12 @@ public class MediaService {
     }
   }
 
+  /**
+   * Represents the result of a media processing operation, including updated record data and warnings.
+   *
+   * @param updatedRecordData the updated RDF data after media processing
+   * @param warningExceptions a list of warnings (exceptions) encountered during processing
+   */
   public record MediaProcessingResult(String updatedRecordData, List<Exception> warningExceptions) {
 
   }

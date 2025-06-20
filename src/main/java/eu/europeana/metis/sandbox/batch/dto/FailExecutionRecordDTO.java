@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.batch.dto;
 
+import eu.europeana.metis.sandbox.common.ValidateObjectHelper;
 import jakarta.validation.constraints.NotNull;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -23,7 +24,7 @@ public final class FailExecutionRecordDTO extends AbstractExecutionRecordDTO {
    * @return A validated FailExecutionRecordDTO instance.
    */
   public static FailExecutionRecordDTO createValidated(Consumer<FailExecutionRecordDTOBuilder<?, ?>> builderSetup) {
-    return ValidatedBuilderUtil.buildValidated(
+    return ValidateObjectHelper.buildValidated(
         FailExecutionRecordDTO::internalBuilder,
         FailExecutionRecordDTOBuilder::build, builderSetup
     );

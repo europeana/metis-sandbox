@@ -43,7 +43,8 @@ public class DataCleanupService {
    * @param debiasStateService debiasStateService is responsible for managing debias state cleanup.
    */
   DataCleanupService(
-      DatasetDataCleaner datasetDataCleaner, DatasetReportService datasetReportService, ExecutionRecordCleaner executionRecordCleaner,
+      DatasetDataCleaner datasetDataCleaner, DatasetReportService datasetReportService,
+      ExecutionRecordCleaner executionRecordCleaner,
       IndexDataCleaner indexDataCleaner,
       ThumbnailStoreService thumbnailStoreService,
       ProblemPatternDataCleaner problemPatternDataCleaner,
@@ -60,7 +61,9 @@ public class DataCleanupService {
   }
 
   /**
-   * Removes datasets and associated resources created before the specified number of days.
+   * Removes datasets and associated entities created before the specified number of days.
+   *
+   * @param days the number of days before which datasets and their related data are removed
    */
   public void remove(int days) {
     try {

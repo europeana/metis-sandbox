@@ -76,7 +76,7 @@ class SandboxConfig {
   }
 
   @Bean
-  public UrlValidator urlValidator() {
+  UrlValidator urlValidator() {
     return new UrlValidator(new String[]{"http", "https"});
   }
 

@@ -11,27 +11,38 @@ import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import lombok.experimental.StandardException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for harvesting records from an OAI-PMH compliant repository.
+ */
+@Slf4j
 @Service
 public class OaiHarvestService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final OaiHarvester oaiHarvester;
+  private final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
 
-  public OaiHarvestService() {
-    this.oaiHarvester = HarvesterFactory.createOaiHarvester();
-  }
-
+  /**
+   * Harvests a record from an OAI-PMH endpoint based on the given parameters.
+   *
+   * <p>Fetches metadata and associated identifiers for a specific record,
+   * returning a structured representation of the harvested data.
+   *
+   * @param oaiEndpoint the URL of the OAI-PMH endpoint.
+   * @param oaiSet the specific set within the OAI-PMH endpoint to harvest from.
+   * @param oaiMetadataPrefix the metadata format to be used for harvesting.
+   * @param datasetId the identifier for the dataset associated with the record.
+   * @param sourceRecordId the identifier of the source record to be harvested.
+   * @return a {@link HarvestedRecord} containing the harvested record details.
+   * @throws OaiHarvestException if an error occurs during the harvesting process.
+   */
   public HarvestedRecord harvestRecord(String oaiEndpoint, String oaiSet, String oaiMetadataPrefix, String datasetId,
       String sourceRecordId) throws OaiHarvestException {
-    LOGGER.info("Harvesting record: {}", sourceRecordId);
+    log.info("Harvesting record: {}", sourceRecordId);
 
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     OaiRecord oaiRecord = getOaiRecord(sourceRecordId, oaiHarvest);
@@ -59,11 +70,14 @@ public class OaiHarvestService {
       EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
       europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
     } catch (EuropeanaIdException e) {
-      LOGGER.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+      log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
     }
     return ofNullable(europeanaGeneratedIdsMap);
   }
 
+  /**
+   * Exception class for errors that occur during OAI-PMH harvesting.
+   */
   @StandardException
   public static class OaiHarvestException extends Exception {
 

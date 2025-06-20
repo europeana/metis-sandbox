@@ -13,18 +13,36 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service responsible for transforming records using XSLT transformations.
+ */
+@AllArgsConstructor
 @Service
 public class TransformService {
 
   private final TransformXsltRepository transformXsltRepository;
 
-  public TransformService(TransformXsltRepository transformXsltRepository) {
-    this.transformXsltRepository = transformXsltRepository;
-  }
-
+  /**
+   * Transforms a record using an XSLT transformation based on the specified subtype.
+   *
+   * <p>Uses either external or internal transformation logic depending on the provided subtype.
+   * <p>The XSLT content is retrieved using the given XSLT ID.
+   *
+   * @param recordId the unique identifier of the record to be transformed
+   * @param recordData the data content of the record to be transformed
+   * @param xsltId the identifier of the XSLT to apply during the transformation
+   * @param subType defines whether the transformation is EXTERNAL or INTERNAL
+   * @param datasetId the identifier of the dataset associated with the record
+   * @param datasetName the name of the dataset associated with the record
+   * @param datasetCountry the country associated with the dataset
+   * @param datasetLanguage the language associated with the dataset
+   * @return the transformed record content as a string
+   * @throws TransformationException if an error occurs during the transformation process
+   */
   public String transformRecord(String recordId,
       String recordData,
       String xsltId,

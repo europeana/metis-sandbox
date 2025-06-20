@@ -169,10 +169,8 @@ public class DatasetExecutionService {
    * <p>After setup, it initiates the dataset processing through the batch job executor.
    * <p>Note: This is a blocking operation and will return when the whole workflow is complete.
    *
-   * @param datasetName the name of the dataset to be created and validated
+   * @param datasetMetadataRequest the metadata for the requested dataset
    * @param recordFile the file to be validated as part of the dataset
-   * @param country the country associated with the dataset
-   * @param language the language associated with the dataset
    * @return the ID of the created dataset
    * @throws IOException if an I/O error occurs while processing the file
    */

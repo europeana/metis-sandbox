@@ -66,7 +66,8 @@ public class DatasetHarvestController {
   /**
    * Constructor.
    *
-   * @param datasetExecutionService DatasetExecutionService used to execute dataset-related operations.
+   * @param datasetExecutionService service responsible for handling dataset execution logic
+   * @param urlValidator utility for validating incoming URLs
    */
   @Autowired
   public DatasetHarvestController(DatasetExecutionService datasetExecutionService, UrlValidator urlValidator) {

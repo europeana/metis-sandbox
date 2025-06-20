@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.dto;
+package eu.europeana.metis.sandbox.common;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -15,7 +15,7 @@ import lombok.experimental.UtilityClass;
  * Utility class providing methods for creating and validating objects built using builders.
  */
 @UtilityClass
-public final class ValidatedBuilderUtil {
+public final class ValidateObjectHelper {
 
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
   private static final Validator validator = factory.getValidator();
@@ -32,7 +32,8 @@ public final class ValidatedBuilderUtil {
    * @throws ConstraintViolationException If validation of the built object fails.
    */
   public static <T, B> T buildValidated(Supplier<B> builderSupplier, Function<B, T> builderFunction, Consumer<B> builderSetup) {
-    return buildValidated(builderSupplier, builderFunction, b -> {}, builderSetup);
+    return buildValidated(builderSupplier, builderFunction, b -> {
+    }, builderSetup);
   }
 
   /**
@@ -58,11 +59,24 @@ public final class ValidatedBuilderUtil {
     builderSetup.accept(builder);
     T dto = builderFunction.apply(builder);
 
-    Set<ConstraintViolation<T>> violations = validator.validate(dto);
+    validate(dto);
+
+    return dto;
+  }
+
+  /**
+   * Validates the provided object based on the defined constraints.
+   *
+   * @param <T> the type of the object to be validated
+   * @param obj the object to be validated. Must not be null.
+   * @return the validated object if no constraint violations are found
+   * @throws ConstraintViolationException if any validation constraints are violated
+   */
+  public static <T> T validate(T obj) {
+    Set<ConstraintViolation<T>> violations = validator.validate(obj);
     if (!violations.isEmpty()) {
       throw new ConstraintViolationException(violations);
     }
-
-    return dto;
+    return obj;
   }
 }

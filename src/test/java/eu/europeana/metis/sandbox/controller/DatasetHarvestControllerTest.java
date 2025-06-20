@@ -67,7 +67,6 @@ class DatasetHarvestControllerTest {
       // Accept localhost URLs during testing
       return new UrlValidator(new String[]{"http", "https"}, UrlValidator.ALLOW_LOCAL_URLS);
     }
-
   }
 
   private static final String DATASET_NAME = "my-data-set";
@@ -82,7 +81,7 @@ class DatasetHarvestControllerTest {
   private static final String DATASET_VALID_ZIP = "dataset-valid.zip";
   private static final String DATASET_VALID_TAR_GZ = "sandbox.tar.gz";
   private static final String DATASET_VALID_TAR = "records_to_test.tar";
-  private static String BASE_URL;
+  private static String baseUrl;
 
   @MockitoBean
   private RateLimitInterceptor rateLimitInterceptor;
@@ -104,7 +103,7 @@ class DatasetHarvestControllerTest {
     wireMockServer = new WireMockServer(0);
     wireMockServer.start();
     configureFor("localhost", wireMockServer.port());
-    BASE_URL = "http://localhost:" + wireMockServer.port();
+    baseUrl = "http://localhost:" + wireMockServer.port();
 
     stubResourceFile(DATASET_VALID_ZIP, "application/zip");
     stubResourceFile(DATASET_VALID_TAR_GZ, "application/gzip");
@@ -517,7 +516,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromURL_invalidName_expectFail() throws Exception {
     setupJwt();
-    final String url = BASE_URL + "/" + DATASET_VALID_ZIP;
+    final String url = baseUrl + "/" + DATASET_VALID_ZIP;
 
     mockMvc.perform(post("/dataset/{name}/harvestByUrl", "my-data=set")
                .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -531,7 +530,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromURL_invalidStepSize_expectFail() throws Exception {
     setupJwt();
-    final String url = BASE_URL + "/" + DATASET_VALID_ZIP;
+    final String url = baseUrl + "/" + DATASET_VALID_ZIP;
 
     mockMvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
                .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -546,7 +545,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestDatasetFromURL_invalidFileType_expectFail() throws Exception {
     setupJwt();
-    final String url = BASE_URL + "/dataset-valid.INVALID";
+    final String url = baseUrl + "/dataset-valid.INVALID";
 
     mockMvc.perform(post("/dataset/{name}/harvestByUrl", "my-data-set")
                .header("Authorization", BEARER + MOCK_VALID_TOKEN)
@@ -559,9 +558,9 @@ class DatasetHarvestControllerTest {
 
   private static Stream<Arguments> provideDifferentUrlsOfCompressedFiles() {
     return Stream.of(
-        Arguments.of(BASE_URL + "/" + DATASET_VALID_ZIP, CompressedFileExtension.ZIP),
-        Arguments.of(BASE_URL + "/" + DATASET_VALID_TAR_GZ, CompressedFileExtension.GZIP),
-        Arguments.of(BASE_URL + "/" + DATASET_VALID_TAR, CompressedFileExtension.TAR)
+        Arguments.of(baseUrl + "/" + DATASET_VALID_ZIP, CompressedFileExtension.ZIP),
+        Arguments.of(baseUrl + "/" + DATASET_VALID_TAR_GZ, CompressedFileExtension.GZIP),
+        Arguments.of(baseUrl + "/" + DATASET_VALID_TAR, CompressedFileExtension.TAR)
     );
   }
 }
