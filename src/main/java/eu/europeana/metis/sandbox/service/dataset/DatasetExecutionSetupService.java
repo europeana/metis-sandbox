@@ -19,6 +19,7 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.apache.tika.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,9 +91,12 @@ public class DatasetExecutionSetupService {
   }
 
   private String createDataset(String datasetName, WorkflowType workflowType, Language language, Country country, String userId) {
-    requireNonNull(datasetName, "Dataset name is required");
-    requireNonNull(country, "Country is required");
-    requireNonNull(language, "Language is required");
+    requireNonNull(datasetName, "Dataset name must not be null");
+    if(StringUtils.isBlank(datasetName)) {
+      throw new IllegalArgumentException("Dataset name must not be empty");
+    }
+    requireNonNull(country, "Country must not be null");
+    requireNonNull(language, "Language must not be null");
 
     DatasetEntity datasetEntity = new DatasetEntity(datasetName, workflowType, language, country, userId);
 

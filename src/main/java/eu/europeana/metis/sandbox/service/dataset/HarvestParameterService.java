@@ -50,7 +50,7 @@ public class HarvestParameterService {
    */
   @Transactional
   public HarvestParametersEntity createDatasetHarvestParameters(String datasetId, HarvestParametersDTO harvestParametersDto) {
-    requireNonNull(datasetId, "Dataset name must not be null");
+    requireNonNull(datasetId, "Dataset id must not be null");
     if (isBlank(datasetId)) {
       throw new IllegalArgumentException("Dataset id must not be empty");
     }
