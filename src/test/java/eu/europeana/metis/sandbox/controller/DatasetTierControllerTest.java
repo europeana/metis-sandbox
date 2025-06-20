@@ -41,8 +41,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(DatasetTierController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, DatasetTierController.class, SecurityConfig.class,
-    RestResponseExceptionHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
+    DatasetTierController.class})
 class DatasetTierControllerTest {
 
   private static final String DATASET_ID = "datasetId";

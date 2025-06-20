@@ -39,8 +39,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(DatasetDebiasController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, DatasetDebiasController.class, SecurityConfig.class,
-    RestResponseExceptionHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
+    DatasetDebiasController.class})
 class DatasetDebiasControllerTest {
 
   @MockitoBean

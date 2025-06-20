@@ -55,8 +55,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(PatternAnalysisController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, PatternAnalysisController.class, SecurityConfig.class,
-    RestResponseExceptionHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
+    PatternAnalysisController.class})
 class PatternAnalysisControllerTest {
 
   @MockitoBean

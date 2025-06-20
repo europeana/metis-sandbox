@@ -36,16 +36,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation responsible for handling OAI-PMH and FILE harvesting operations.
+ */
 @Service
 public class HarvestServiceImpl {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int DEFAULT_STEP_SIZE = 1;
+  private static final int STOP_WATCH_INTERNAL = 10;
 
   private final HttpHarvester httpHarvester;
   private final OaiHarvester oaiHarvester;
   private final int maxRecords;
 
+  /**
+   * Constructor.
+   *
+   * @param httpHarvester http harvester used for retrieving full records from compressed archives
+   * @param oaiHarvester oai harvester used for OAI-PMH record harvesting
+   * @param maxRecords maximum number of records that can be processed during harvesting
+   */
   @Autowired
   public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
       @Value("${sandbox.dataset.max-size}") int maxRecords) {
@@ -54,6 +65,13 @@ public class HarvestServiceImpl {
     this.maxRecords = maxRecords;
   }
 
+  /**
+   * Harvests identifiers from an OAI-PMH source specified by the given OAI harvest configuration.
+   *
+   * @param oaiHarvest oai harvest configuration that contains details about the source for harvesting
+   * @param stepSize step size determining the interval at which records are processed
+   * @return a list of harvested OAI record headers
+   */
   public List<OaiRecordHeader> harvestOaiIdentifiers(@NotNull OaiHarvest oaiHarvest, Integer stepSize) {
     try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         oaiHarvest)) {
@@ -70,7 +88,7 @@ public class HarvestServiceImpl {
     harvestFromIterator(iteratorToFilter, stepSize, entry -> {
       result.add(entry);
 
-      if (watch.getTime(TimeUnit.SECONDS) > 10) {
+      if (watch.getTime(TimeUnit.SECONDS) > STOP_WATCH_INTERNAL) {
         LOGGER.info("Already harvested {} records...", result.size());
         watch.reset();
         watch.start();
@@ -80,6 +98,16 @@ public class HarvestServiceImpl {
     return result;
   }
 
+  /**
+   * Harvests records from a compressed archive provided via an InputStream and extracts
+   * them into a map of record identifiers and their respective content as strings.
+   *
+   * @param inputStream input stream providing the compressed archive data
+   * @param stepSize determines the interval for processing records
+   * @param compressedFileExtension specifies the file extension of the compressed archive
+   * @return a map containing the record identifier as the key and its content as the value
+   * @throws ServiceException if any processing or I/O error occurs during the harvesting process
+   */
   public Map<String, String> harvestFromCompressedArchive(InputStream inputStream, Integer stepSize,
       CompressedFileExtension compressedFileExtension) throws ServiceException {
 

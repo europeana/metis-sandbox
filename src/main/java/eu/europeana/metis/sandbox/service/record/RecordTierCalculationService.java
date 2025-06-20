@@ -28,13 +28,11 @@ public class RecordTierCalculationService {
   private final String portalPublishRecordBaseUrl;
 
   /**
-   * Parameterized constructor
+   * Constructor.
    *
-   * @param recordLogService the record log repository
-   * <p>
-   * This string value should conform to {@link UriTemplate}.
-   * </p>
-   * @param portalPublishRecordBaseUrl the portal publish record base url
+   * @param executionRecordRepository repository for handling execution records
+   * @param executionRecordErrorRepository repository for handling execution record errors
+   * @param portalPublishRecordBaseUrl base URL for publishing records in the portal
    */
   public RecordTierCalculationService(ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordErrorRepository executionRecordErrorRepository,
@@ -44,6 +42,17 @@ public class RecordTierCalculationService {
     this.portalPublishRecordBaseUrl = portalPublishRecordBaseUrl;
   }
 
+  /**
+   * Calculates the tier statistics of a record based on its dataset and record identifiers.
+   *
+   * <p>Retrieves the associated execution record, associated errors, and generates
+   * the tier calculation view for the given record.
+   *
+   * @param recordId the unique identifier of the record
+   * @param datasetId the unique identifier of the dataset to which the record belongs
+   * @return a view containing the calculated tier statistics of the record
+   * @throws NoRecordFoundException if the specified record or dataset combination is not found
+   */
   public RecordTierCalculationView calculateTiers(String recordId, String datasetId) throws NoRecordFoundException {
     ExecutionRecord executionRecord = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name());
@@ -71,5 +80,4 @@ public class RecordTierCalculationService {
     }
     return recordTierCalculationView;
   }
-
 }

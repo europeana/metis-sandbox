@@ -8,6 +8,9 @@ import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleReposito
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * A service class responsible for cleaning and removing problem pattern data.
+ */
 @Component
 public class ProblemPatternDataCleaner {
 
@@ -17,6 +20,15 @@ public class ProblemPatternDataCleaner {
   private final RecordProblemPatternRepository recordProblemPatternRepository;
   private final RecordTitleRepository recordTitleRepository;
 
+  /**
+   * Constructor.
+   *
+   * @param datasetProblemPatternRepository the repository for dataset problem patterns
+   * @param executionPointRepository the repository for execution points
+   * @param recordProblemPatternOccurrenceRepository the repository for record problem pattern occurrences
+   * @param recordProblemPatternRepository the repository for record problem patterns
+   * @param recordTitleRepository the repository for record titles
+   */
   public ProblemPatternDataCleaner(DatasetProblemPatternRepository datasetProblemPatternRepository,
       ExecutionPointRepository executionPointRepository,
       RecordProblemPatternOccurrenceRepository recordProblemPatternOccurrenceRepository,
@@ -29,6 +41,11 @@ public class ProblemPatternDataCleaner {
     this.recordTitleRepository = recordTitleRepository;
   }
 
+  /**
+   * Removes all problem pattern data associated with the specified dataset id.
+   *
+   * @param datasetId the dataset id to remove associated data for
+   */
   @Transactional
   public void remove(String datasetId) {
     recordProblemPatternOccurrenceRepository.deleteByRecordProblemPatternExecutionPointDatasetId(datasetId);
@@ -38,6 +55,9 @@ public class ProblemPatternDataCleaner {
     executionPointRepository.deleteByDatasetId(datasetId);
   }
 
+  /**
+   * Deletes all problem pattern data from the system.
+   */
   @Transactional
   public void deleteAll() {
     recordTitleRepository.deleteAll();

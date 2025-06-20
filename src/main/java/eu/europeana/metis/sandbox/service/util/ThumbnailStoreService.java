@@ -26,6 +26,10 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for handling the storage and removal of thumbnail images in an Amazon S3 bucket and maintaining corresponding metadata
+ * in a database.
+ */
 @Service
 public class ThumbnailStoreService {
 
@@ -37,20 +41,38 @@ public class ThumbnailStoreService {
 
   private final ThumbnailIdRepository thumbnailIdRepository;
 
+  /**
+   * Constructor.
+   *
+   * @param s3client the Amazon S3 client used for interacting with the S3 service
+   * @param thumbnailsS3Bucket the S3 bucket where thumbnails are stored
+   * @param thumbnailIdRepository the repository for storing and retrieving thumbnail metadata
+   */
   public ThumbnailStoreService(AmazonS3 s3client, S3Bucket thumbnailsS3Bucket, ThumbnailIdRepository thumbnailIdRepository) {
     this.s3client = s3client;
     this.thumbnailsS3BucketName = requireNonNull(thumbnailsS3Bucket.name(), "Thumbnails bucket name must not be null");
     this.thumbnailIdRepository = thumbnailIdRepository;
   }
 
+  /**
+   * Stores a list of thumbnails in an S3 bucket and records their metadata in the database.
+   *
+   * <p>Ensures each thumbnail is stored in the S3 bucket, and metadata about the thumbnails is
+   * saved into the database for tracking their association with the given dataset.
+   * <p>Null thumbnails in the input list are ignored.
+   *
+   * @param thumbnails the list of thumbnails to be stored
+   * @param datasetId the identifier of the dataset associated with the thumbnails
+   * @throws NullPointerException if thumbnails or datasetId is null
+   * @throws ThumbnailStoringException if a problem occurs during the storage of a thumbnail
+   * @throws ServiceException if an error occurs while saving metadata to the database
+   */
   public void store(List<Thumbnail> thumbnails, String datasetId) {
     requireNonNull(thumbnails, "Thumbnails must not be null");
     requireNonNull(datasetId, "Dataset id must not be null");
 
     // remove null objects
-    var notNullThumbnails = thumbnails.stream()
-                                      .filter(Objects::nonNull)
-                                      .toList();
+    List<Thumbnail> notNullThumbnails = thumbnails.stream().filter(Objects::nonNull).toList();
 
     // store each thumbnail in s3 bucket
     for (Thumbnail thumbnail : notNullThumbnails) {
@@ -61,7 +83,6 @@ public class ThumbnailStoreService {
       }
     }
 
-    // store thumbnail info in DB to keep track of bucket contents
     try {
       thumbnailIdRepository.saveAll(notNullThumbnails.stream()
                                                      .map(x -> new ThumbnailIdEntity(datasetId, x.getTargetName()))
@@ -73,18 +94,27 @@ public class ThumbnailStoreService {
     }
   }
 
+  /**
+   * Removes thumbnails and associated data for the given dataset ID.
+   *
+   * <p>Deletes thumbnail entries in batches from external storage and also removes
+   * the corresponding metadata from the database.
+   *
+   * @param datasetId the unique identifier of the dataset whose thumbnails need to be removed
+   * @throws ServiceException if there is an error during the deletion process.
+   */
   @Transactional
   public void remove(String datasetId) {
     requireNonNull(datasetId, "Dataset id must not be null");
 
-    // get thumbnails that belong to given dataset
-    var thumbnailEntities = getThumbnailEntities(datasetId);
+    // get thumbnails that belong to a given dataset
+    List<ThumbnailIdEntity> thumbnailEntities = getThumbnailEntities(datasetId);
 
     // create objects for s3 batch deletes
-    var thumbnailKeys = thumbnailEntities.stream()
-                                         .map(ThumbnailIdEntity::getThumbnailId)
-                                         .map(KeyVersion::new)
-                                         .toList();
+    List<KeyVersion> thumbnailKeys = thumbnailEntities.stream()
+                                                      .map(ThumbnailIdEntity::getThumbnailId)
+                                                      .map(KeyVersion::new)
+                                                      .toList();
 
     // split deletes in batches (s3 supports a max of 1000 per batch) and delete in batches
     Lists.partition(thumbnailKeys, BATCH_SIZE).forEach(this::deleteBatch);
@@ -99,15 +129,14 @@ public class ThumbnailStoreService {
   }
 
   private void store(Thumbnail thumbnail) throws IOException {
-    var metadata = new ObjectMetadata();
-    metadata.setContentLength(thumbnail.getContentSize());
-    metadata.setContentType(thumbnail.getMimeType());
+    ObjectMetadata objectMetadata = new ObjectMetadata();
+    objectMetadata.setContentLength(thumbnail.getContentSize());
+    objectMetadata.setContentType(thumbnail.getMimeType());
 
-    var request = new PutObjectRequest(
-        thumbnailsS3BucketName, thumbnail.getTargetName(),
-        thumbnail.getContentStream(), metadata);
+    PutObjectRequest putObjectRequest = new PutObjectRequest(thumbnailsS3BucketName, thumbnail.getTargetName(),
+        thumbnail.getContentStream(), objectMetadata);
 
-    s3client.putObject(request);
+    s3client.putObject(putObjectRequest);
   }
 
   private List<ThumbnailIdEntity> getThumbnailEntities(String datasetId) {
@@ -119,16 +148,14 @@ public class ThumbnailStoreService {
     }
   }
 
-  private void deleteBatch(List<KeyVersion> list) {
-    var request = new DeleteObjectsRequest(thumbnailsS3BucketName)
-        .withKeys(list).withQuiet(true);
+  private void deleteBatch(List<KeyVersion> keyVersions) {
+    DeleteObjectsRequest deleteObjectsRequest =
+        new DeleteObjectsRequest(thumbnailsS3BucketName).withKeys(keyVersions).withQuiet(true);
 
     try {
-      s3client.deleteObjects(request);
+      s3client.deleteObjects(deleteObjectsRequest);
     } catch (MultiObjectDeleteException e) {
-      var errors = e.getErrors().stream()
-                    .map(DeleteError::getKey)
-                    .toList();
+      List<String> errors = e.getErrors().stream().map(DeleteError::getKey).toList();
       throw new ThumbnailRemoveException(errors, e);
     } catch (SdkClientException e) {
       throw new ThumbnailRemoveException(e);

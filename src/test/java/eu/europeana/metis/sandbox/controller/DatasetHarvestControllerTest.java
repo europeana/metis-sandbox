@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockMultipartFile;
@@ -46,8 +47,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(DatasetHarvestController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, DatasetHarvestController.class, SecurityConfig.class,
-    RestResponseExceptionHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
+    DatasetHarvestController.class})
 class DatasetHarvestControllerTest {
 
   private static final String DATASET_NAME = "my-data-set";
@@ -70,6 +71,11 @@ class DatasetHarvestControllerTest {
 
   private final JwtUtils jwtUtils = new JwtUtils(List.of());
   private MockMvc mockMvc;
+
+  @BeforeEach
+  void setup() {
+    Mockito.reset(datasetExecutionService);
+  }
 
   @BeforeEach
   void setup(WebApplicationContext context) {

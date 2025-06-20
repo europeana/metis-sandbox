@@ -59,9 +59,11 @@ public class DataCleanupService {
     this.debiasStateService = debiasStateService;
   }
 
+  /**
+   * Removes datasets and associated resources created before the specified number of days.
+   */
   public void remove(int days) {
     try {
-      // get old dataset ids
       List<String> datasets = datasetReportService.findDatasetIdsByCreatedBefore(days);
 
       LOGGER.info("Datasets to remove {} ", datasets);

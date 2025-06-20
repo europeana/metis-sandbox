@@ -8,6 +8,9 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningReposit
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service class responsible for cleaning execution records and associated entities.
+ */
 @Service
 public class ExecutionRecordCleaner {
 
@@ -17,6 +20,15 @@ public class ExecutionRecordCleaner {
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
+  /**
+   * Constructor.
+   *
+   * @param executionRecordRepository repository for managing execution records.
+   * @param executionRecordWarningRepository repository for managing execution record warnings.
+   * @param executionRecordErrorRepository repository for managing execution record errors.
+   * @param executionRecordExternalIdentifierRepository repository for managing execution record external identifiers.
+   * @param executionRecordTierContextRepository repository for managing execution record tier context entities.
+   */
   public ExecutionRecordCleaner(ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordWarningRepository executionRecordWarningRepository,
       ExecutionRecordErrorRepository executionRecordErrorRepository,
@@ -29,8 +41,11 @@ public class ExecutionRecordCleaner {
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
+  /**
+   * Removes execution records and associated entities for the given dataset ID.
+   */
   @Transactional
-  public void remove(String datasetId){
+  public void remove(String datasetId) {
     executionRecordWarningRepository.removeByExecutionRecord_Identifier_DatasetId(datasetId);
     executionRecordRepository.removeByIdentifier_DatasetId(datasetId);
     executionRecordErrorRepository.removeByIdentifier_DatasetId(datasetId);

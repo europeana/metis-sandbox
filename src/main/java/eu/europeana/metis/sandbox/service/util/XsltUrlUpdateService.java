@@ -10,13 +10,18 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.stereotype.Service;
 
+/**
+ * Service for updating and storing default XSLT transformations from a given URL.
+ */
+@Service
 public class XsltUrlUpdateService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -27,6 +32,13 @@ public class XsltUrlUpdateService {
 
   private final HttpClient httpClient;
 
+  /**
+   * Constructor.
+   *
+   * @param transformXsltRepository repository for managing and accessing TransformXSLT entities
+   * @param lockRegistry registry for getting locks to control shared resource access
+   * @param httpClient HTTP client for sending requests and handling responses
+   */
   public XsltUrlUpdateService(
       TransformXsltRepository transformXsltRepository, LockRegistry lockRegistry, HttpClient httpClient) {
     this.transformXsltRepository = transformXsltRepository;
@@ -34,24 +46,20 @@ public class XsltUrlUpdateService {
     this.httpClient = httpClient;
   }
 
+  /**
+   * Updates the default XSLT transformation by fetching its contents from a remote URL.
+   */
   public void updateXslt(String defaultXsltUrl) {
 
-    final HttpRequest request = HttpRequest.newBuilder()
-                                           .GET()
-                                           .uri(URI.create(defaultXsltUrl))
-                                           .build();
+    final HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(defaultXsltUrl)).build();
     try {
-      CompletableFuture<HttpResponse<String>> response =
-          httpClient.sendAsync(request, BodyHandlers.ofString());
-
-      String responseBody = response.thenApply(HttpResponse::body).get();
-      int responseStatusCode = response.thenApply(HttpResponse::statusCode).get();
-      if (responseStatusCode == 200) {
+      HttpResponse<String> response = httpClient.sendAsync(request, BodyHandlers.ofString()).get();
+      if (response.statusCode() == HttpStatus.OK.value()) {
         // TODO: should the response body (xslt) be validated?
-        saveDefaultXslt(responseBody);
+        saveDefaultXslt(response.body());
       } else {
         LOGGER.warn("Failed to update default transform XSLT from URL: {} \nResponse status code: {}", defaultXsltUrl,
-            responseStatusCode);
+            response.body());
       }
     } catch (RuntimeException | InterruptedException | ExecutionException e) {
       LOGGER.error("Failed to update default transform XSLT from URL: {} \n{}", defaultXsltUrl, e);

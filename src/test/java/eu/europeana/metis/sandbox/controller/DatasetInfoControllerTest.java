@@ -38,8 +38,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(DatasetInfoController.class)
-@ContextConfiguration(classes = {WebMvcConfig.class, DatasetInfoController.class, SecurityConfig.class,
-    RestResponseExceptionHandler.class})
+@ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
+    DatasetInfoController.class})
 class DatasetInfoControllerTest {
 
   @MockitoBean
