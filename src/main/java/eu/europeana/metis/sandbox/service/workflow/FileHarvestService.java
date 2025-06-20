@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.workflow;
 import static java.util.Optional.ofNullable;
 
 import eu.europeana.metis.sandbox.common.FileType;
+import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.entity.harvest.BinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;

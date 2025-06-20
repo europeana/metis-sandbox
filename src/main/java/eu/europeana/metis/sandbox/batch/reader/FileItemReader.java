@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.service.workflow.FileHarvestService;
 import eu.europeana.metis.sandbox.service.workflow.FileHarvestService.FileHarvestException;
-import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
+import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import jakarta.annotation.PostConstruct;
 import java.util.Iterator;
 import java.util.Map;

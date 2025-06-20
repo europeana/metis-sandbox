@@ -8,7 +8,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.HarvestedRecord;
+import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
