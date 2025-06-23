@@ -1,9 +1,7 @@
 package eu.europeana.metis.sandbox.controller;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static eu.europeana.metis.sandbox.common.locale.Country.GREECE;
 import static eu.europeana.metis.sandbox.common.locale.Language.EL;
@@ -18,7 +16,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
@@ -32,8 +31,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Stream;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -54,6 +51,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+@WireMockTest
 @WebMvcTest(DatasetHarvestController.class)
 @ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
     DatasetHarvestController.class, DatasetHarvestControllerTest.TestUrlValidatorConfig.class})
@@ -95,43 +93,29 @@ class DatasetHarvestControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  private static WireMockServer wireMockServer;
   private final JwtUtils jwtUtils = new JwtUtils(List.of());
 
-  @BeforeAll
-  static void setupWireMock() throws IOException {
-    wireMockServer = new WireMockServer(0);
-    wireMockServer.start();
-    configureFor("localhost", wireMockServer.port());
-    baseUrl = "http://localhost:" + wireMockServer.port();
-
-    stubResourceFile(DATASET_VALID_ZIP, "application/zip");
-    stubResourceFile(DATASET_VALID_TAR_GZ, "application/gzip");
-    stubResourceFile(DATASET_VALID_TAR, "application/x-tar");
+  @BeforeEach
+  void setup(WireMockRuntimeInfo wireMockRuntimeInfo) throws IOException {
+    baseUrl = wireMockRuntimeInfo.getHttpBaseUrl();
+    stubResourceFile(wireMockRuntimeInfo, DATASET_VALID_ZIP, "application/zip");
+    stubResourceFile(wireMockRuntimeInfo, DATASET_VALID_TAR_GZ, "application/gzip");
+    stubResourceFile(wireMockRuntimeInfo, DATASET_VALID_TAR, "application/x-tar");
+    Mockito.reset(datasetExecutionService);
   }
 
-  private static void stubResourceFile(String fileName, String contentType) throws IOException {
+  private void stubResourceFile(WireMockRuntimeInfo wireMockRuntimeInfo, String fileName, String contentType) throws IOException {
     String path = ZIP_DIR + "/" + fileName;
     try (InputStream stream = DatasetHarvestControllerTest.class.getClassLoader().getResourceAsStream(path)) {
       if (stream == null) {
         throw new IllegalStateException("Test resource not found: " + path);
       }
 
-      stubFor(get(urlEqualTo("/" + fileName))
+      wireMockRuntimeInfo.getWireMock().register(get(urlEqualTo("/" + fileName))
           .willReturn(aResponse()
               .withHeader("Content-Type", contentType)
               .withBody(stream.readAllBytes())));
     }
-  }
-
-  @BeforeEach
-  void setup() {
-    Mockito.reset(datasetExecutionService);
-  }
-
-  @AfterAll
-  static void cleanup() {
-    wireMockServer.stop();
   }
 
   private Jwt setupJwt() {
@@ -158,7 +142,7 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_withoutXslt_shouldSucceed() throws Exception {
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(
+    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
@@ -176,7 +160,7 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_emptySetSpec_shouldSucceed() throws Exception {
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(
+    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, "", METADATA_FORMAT, null, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
@@ -195,7 +179,7 @@ class DatasetHarvestControllerTest {
     MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(
+    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
@@ -215,7 +199,7 @@ class DatasetHarvestControllerTest {
     MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
     setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(
+    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, null
     )).thenReturn(DATASET_ID);
 
@@ -288,7 +272,7 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_createDatasetAndSubmitExecutionFails_expectFail() throws Exception {
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(
+    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
     )).thenThrow(new IOException());
 
@@ -309,7 +293,7 @@ class DatasetHarvestControllerTest {
       CompressedFileExtension expectedExtension) throws Exception {
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, null, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -331,7 +315,7 @@ class DatasetHarvestControllerTest {
 
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, xsltMock, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -354,7 +338,7 @@ class DatasetHarvestControllerTest {
 
     setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, xsltMock, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -448,7 +432,7 @@ class DatasetHarvestControllerTest {
       throws Exception {
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
         STEP_SIZE, url, null, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -468,7 +452,7 @@ class DatasetHarvestControllerTest {
         "string".getBytes());
     Jwt jwt = setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
         STEP_SIZE, url, xsltMock, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -490,7 +474,7 @@ class DatasetHarvestControllerTest {
         "string".getBytes());
     setupJwt();
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(DATASET_NAME, GREECE, EL);
-    when(datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
         STEP_SIZE, url, xsltMock, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 

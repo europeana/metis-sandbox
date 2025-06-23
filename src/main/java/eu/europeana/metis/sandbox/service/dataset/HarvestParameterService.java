@@ -13,29 +13,19 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.HarvestParametersRepository;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class responsible for managing harvest parameters related to datasets.
  */
+@AllArgsConstructor
 @Service
 public class HarvestParameterService {
 
   private final HarvestParametersRepository harvestParametersRepository;
   private final DatasetRepository datasetRepository;
-
-  /**
-   * Constructor.
-   *
-   * @param harvestParametersRepository The repository that connected to the table harvesting parameters
-   * @param datasetRepository The repository that connects to the dataset repository
-   */
-  public HarvestParameterService(HarvestParametersRepository harvestParametersRepository,
-      DatasetRepository datasetRepository) {
-    this.harvestParametersRepository = harvestParametersRepository;
-    this.datasetRepository = datasetRepository;
-  }
 
   /**
    * Creates and saves harvest parameters for a given dataset.

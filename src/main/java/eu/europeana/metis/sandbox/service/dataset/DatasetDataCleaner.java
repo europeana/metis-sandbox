@@ -4,24 +4,17 @@ import static java.lang.String.format;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
  * Service class responsible for cleaning dataset entities.
  */
+@AllArgsConstructor
 @Service
 public class DatasetDataCleaner {
 
   private final DatasetRepository datasetRepository;
-
-  /**
-   * Constructor.
-   *
-   * @param datasetRepository repository responsible for performing dataset operations
-   */
-  public DatasetDataCleaner(DatasetRepository datasetRepository) {
-    this.datasetRepository = datasetRepository;
-  }
 
   /**
    * Removes a dataset entity by its identifier.

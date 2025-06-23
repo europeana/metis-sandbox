@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,26 +26,13 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Service class responsible for preparing, creating, and managing dataset execution setups.
  */
+@AllArgsConstructor
 @Service
 public class DatasetExecutionSetupService {
 
   private final DatasetRepository datasetRepository;
   private final HarvestParameterService harvestParameterService;
   private final TransformXsltRepository transformXsltRepository;
-
-  /**
-   * Constructor.
-   *
-   * @param datasetRepository the repository for dataset entity operations
-   * @param harvestParameterService the service for managing harvest parameters
-   * @param transformXsltRepository the repository for saving XSLT transformations
-   */
-  public DatasetExecutionSetupService(DatasetRepository datasetRepository, HarvestParameterService harvestParameterService,
-      TransformXsltRepository transformXsltRepository) {
-    this.datasetRepository = datasetRepository;
-    this.harvestParameterService = harvestParameterService;
-    this.transformXsltRepository = transformXsltRepository;
-  }
 
   /**
    * Prepares the execution metadata for a dataset based on provided parameters.

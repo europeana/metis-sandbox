@@ -23,19 +23,15 @@ import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,6 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
  * file uploads, HTTP URLs, and debiasing operations.
  */
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DatasetExecutionService {
 
@@ -57,24 +54,6 @@ public class DatasetExecutionService {
   private final DatasetReportService datasetReportService;
   private final LockRegistry lockRegistry;
   private final BatchJobExecutor batchJobExecutor;
-
-  /**
-   * Constructor.
-   *
-   * @param datasetExecutionSetupService handles setup operations for dataset execution.
-   * @param debiasStateService manages debiasing state and related operations.
-   * @param datasetReportService provides reporting and status tracking for datasets.
-   * @param lockRegistry manages locks for dataset operations to ensure concurrency control.
-   * @param batchJobExecutor executes batch jobs for dataset workflows.
-   */
-  public DatasetExecutionService(DatasetExecutionSetupService datasetExecutionSetupService, DeBiasStateService debiasStateService,
-      DatasetReportService datasetReportService, LockRegistry lockRegistry, BatchJobExecutor batchJobExecutor) {
-    this.datasetExecutionSetupService = datasetExecutionSetupService;
-    this.debiasStateService = debiasStateService;
-    this.datasetReportService = datasetReportService;
-    this.lockRegistry = lockRegistry;
-    this.batchJobExecutor = batchJobExecutor;
-  }
 
   /**
    * Creates a dataset based on the provided parameters and submits it for execution.
@@ -93,7 +72,7 @@ public class DatasetExecutionService {
    * @throws IOException if an error occurs during dataset setup or file handling
    */
   @NotNull
-  public String createDatasetAndSubmitExecution(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
+  public String createDatasetAndSubmitExecutionOai(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
     OaiHarvestParametersDTO harvestParametersDTO = new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat,
         stepsize);
@@ -119,7 +98,7 @@ public class DatasetExecutionService {
    * @throws IOException if an I/O error occurs while processing the files
    */
   @NotNull
-  public String createDatasetAndSubmitExecution(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
+  public String createDatasetAndSubmitExecutionFile(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
     FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(compressedFile.getOriginalFilename(),
         FileType.valueOf(extension.name()),
@@ -145,10 +124,11 @@ public class DatasetExecutionService {
    * @return the unique ID of the created dataset
    */
   @NotNull
-  public String createDatasetAndSubmitExecution(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
+  public String createDatasetAndSubmitExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
-    String filename = Path.of(url).getFileName().toString();
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
+      String filename = new URI(url).getPath();
+      filename = filename.substring(filename.lastIndexOf('/') + 1);
       HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
           FileType.valueOf(extension.name()),
           inputStream.readAllBytes(), stepsize);
@@ -157,8 +137,6 @@ public class DatasetExecutionService {
       );
       batchJobExecutor.execute(executionMetadata);
       return executionMetadata.getDatasetMetadata().datasetId();
-    } catch (UnknownHostException e) {
-      throw new ServiceException(HARVESTING_ERROR_MESSAGE + " - Unknown host", e);
     } catch (IOException | URISyntaxException e) {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE, e);
     }

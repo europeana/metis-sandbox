@@ -43,7 +43,7 @@
     <version.slf4j>2.0.12</version.slf4j>
     <version.log4j>2.21.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
-    <version.wiremock>3.4.2</version.wiremock>
+    <version.wiremock>3.13.1</version.wiremock>
     <version.commons.collections4>4.4</version.commons.collections4>
     <version.stax2-api>4.2.1</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>

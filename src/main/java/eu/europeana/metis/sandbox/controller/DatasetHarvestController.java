@@ -123,7 +123,7 @@ public class DatasetHarvestController {
     checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
 
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
-    String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest, stepsize,
+    String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionOai(datasetMetadataRequest, stepsize,
         url, setspec, metadataformat, xsltFile, userId);
 
     return new DatasetIdDTO(createdDatasetId);
@@ -174,7 +174,7 @@ public class DatasetHarvestController {
         datasetRecordsCompressedFile);
 
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
-    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
         stepsize, datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
@@ -223,7 +223,7 @@ public class DatasetHarvestController {
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
 
     DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
-    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecution(datasetMetadataRequest,
+    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
         stepsize, url, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
