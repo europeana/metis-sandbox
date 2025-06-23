@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -78,7 +78,7 @@ public final class WorkflowHelper {
                                         .orElse(WorkflowType.OAI_HARVEST);
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
-    Supplier<Boolean> shouldInsertTransformExternal = () -> executionMetadata.getInputMetadata().getTransformXsltEntity() != null
+    BooleanSupplier shouldInsertTransformExternal = () -> executionMetadata.getInputMetadata().getTransformXsltEntity() != null
         && workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
     return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
@@ -105,7 +105,7 @@ public final class WorkflowHelper {
 
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
-    Supplier<Boolean> shouldInsertTransformExternal = () -> transformXsltEntity != null
+    BooleanSupplier shouldInsertTransformExternal = () -> transformXsltEntity != null
         && workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
     return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
@@ -124,9 +124,9 @@ public final class WorkflowHelper {
    * @return a list of full batch job types with the conditionally added step
    */
   public static List<FullBatchJobType> conditionallyAddTransformExternalStep(List<FullBatchJobType> baseSteps,
-      Supplier<Boolean> shouldInsertTransformExternal) {
+      BooleanSupplier shouldInsertTransformExternal) {
     List<FullBatchJobType> finalSteps;
-    boolean insertTransformExternal = shouldInsertTransformExternal.get();
+    boolean insertTransformExternal = shouldInsertTransformExternal.getAsBoolean();
     if (insertTransformExternal) {
       finalSteps = new ArrayList<>();
       for (FullBatchJobType step : baseSteps) {

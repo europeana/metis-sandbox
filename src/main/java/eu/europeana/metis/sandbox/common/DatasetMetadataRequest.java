@@ -14,7 +14,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class DatasetMetadataRequest {
+public final class DatasetMetadataRequest {
 
   @NotBlank
   String datasetName;
