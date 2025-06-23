@@ -1,62 +1,39 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 
+/**
+ * Repository interface for accessing and performing operations on datasets.
+ */
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
   /**
-   * Get a list of datasets created before specified date
+   * Returns a list of DatasetIdProjection objects created before the specified date.
    *
-   * @param date must not be null
-   * @return list of dataset ids
-   * @see DatasetIdView
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
+   * @param date the date to compare against
+   * @return a list of DatasetIdProjection objects matching the criteria
    */
-  List<DatasetIdView> getByCreatedDateBefore(ZonedDateTime date);
+  List<DatasetIdProjection> findByCreatedDateBefore(ZonedDateTime date);
 
   /**
-   * Updates the value of recordQuantity to the given dataset
-   * @param datasetId The id of the dataset to update to
-   * @param quantity The new value to update into the dataset
-   */
-  @Modifying
-  @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
-  void updateRecordsQuantity(int datasetId, Long quantity);
-
-  /**
-   * Sets to true the boolean recordLimitExceeded
-   * @param datasetId The id of the dataset to update this into
-   */
-  @Modifying
-  @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
-  void setRecordLimitExceeded(int datasetId);
-
-  /**
-   * A boolean type of query to check if dataset has xslt content
-   * @param datasetId The id of the dataset to update into
-   * @return Returns 0 if there is no xslt, 1 otherwise
-   */
-  @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltEdmExternalContent IS NOT NULL")
-  int isXsltPresent(int datasetId);
-
-  /**
-   * Get xslt content based on datasetId
+   * Retrieves a DatasetEntity based on the specified dataset ID.
    *
-   * @param datasetId must not be null
-   * @return xslt content associated to dataset
+   * @param datasetId the ID of the dataset to retrieve
+   * @return an Optional containing the found DatasetEntity or empty if no dataset matches the ID
    */
-  @Query("SELECT " +
-      "dataset.xsltEdmExternalContent " +
-      "FROM " +
-      "    DatasetEntity dataset " +
-      "WHERE dataset.datasetId = ?1 ")
-  String getXsltContentFromDatasetId(int datasetId);
+  Optional<DatasetEntity> findByDatasetId(int datasetId);
 
+  /**
+   * Projection interface for accessing the dataset ID in queries.
+   *
+   * <p>This projection can be used to fetch only the dataset ID instead of whole dataset entities for optimized queries.
+   */
+  interface DatasetIdProjection {
+
+    Integer getDatasetId();
+  }
 }

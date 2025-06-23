@@ -6,14 +6,11 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import eu.europeana.metis.sandbox.domain.Bucket;
+import eu.europeana.metis.sandbox.common.S3Bucket;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Config for S3 bucket
- */
 @Configuration
 class S3Config {
 
@@ -45,7 +42,7 @@ class S3Config {
   }
 
   @Bean
-  Bucket thumbnailsBucket() {
-    return new Bucket(thumbnailsBucket);
+  S3Bucket thumbnailsS3Bucket() {
+    return new S3Bucket(thumbnailsBucket);
   }
 }

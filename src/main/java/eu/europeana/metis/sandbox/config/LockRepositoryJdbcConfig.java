@@ -10,7 +10,7 @@ import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.integration.jdbc.lock.LockRepository;
 
 @Configuration
-public class LockRepositoryJdbcConfig {
+class LockRepositoryJdbcConfig {
 
   @Value("${spring.integration.defaultlockrepository.prefix:integration.int_}")
   private String prefix;
@@ -20,7 +20,7 @@ public class LockRepositoryJdbcConfig {
   private String region;
 
   @Bean
-  public DefaultLockRepository defaultLockRepository(DataSource dataSource) {
+  DefaultLockRepository defaultLockRepository(DataSource dataSource) {
     DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource);
     defaultLockRepository.setPrefix(prefix);
     defaultLockRepository.setTimeToLive(timeToLive);
@@ -29,7 +29,7 @@ public class LockRepositoryJdbcConfig {
   }
 
   @Bean
-  public JdbcLockRegistry jdbcLockRegistry(LockRepository repository) {
+  JdbcLockRegistry jdbcLockRegistry(LockRepository repository) {
     JdbcLockRegistry jdbcLockRegistry = new JdbcLockRegistry(repository);
     jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(1));
     return jdbcLockRegistry;

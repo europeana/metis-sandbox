@@ -5,29 +5,30 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
- * The interface Record DeBias detail repository.
+ * Repository interface for managing RecordDeBiasDetailEntity entities.
  */
 public interface RecordDeBiasDetailRepository extends JpaRepository<RecordDeBiasDetailEntity, Long> {
 
-
   /**
-   * Find by debias id list.
+   * Retrieves a list of RecordDeBiasDetailEntity instances associated with the given debias ID.
    *
-   * @param debiasId the debias id
-   * @return the list
+   * @param debiasId the ID of the debias entity to filter by
+   * @return a list of associated RecordDeBiasDetailEntity objects
    */
   List<RecordDeBiasDetailEntity> findByDebiasIdId(Long debiasId);
 
   /**
-   * Delete by debias id record id dataset id.
+   * Deletes all RecordDeBiasDetailEntity entries associated with a specific dataset ID.
    *
-   * @param datasetId the dataset id
+   * @param datasetId the dataset ID used to identify related records for deletion
    */
   @Modifying
-  @Query("DELETE FROM RecordDeBiasDetailEntity rdd WHERE EXISTS "
-      + "(SELECT 1 FROM RecordDeBiasMainEntity rdm INNER JOIN RecordEntity rec ON rec.id=rdm.recordId.id AND rec.datasetId = ?1 "
-      + "WHERE rdd.debiasId.id = rdm.id)")
-  void deleteByDebiasIdRecordIdDatasetId(String datasetId);
+  @Query("""
+      DELETE FROM RecordDeBiasDetailEntity rdd
+            WHERE rdd.debiasId.id IN (SELECT rdm.id FROM RecordDeBiasMainEntity rdm WHERE rdm.datasetId.datasetId = :datasetId)
+      """)
+  void deleteByDatasetId(@Param("datasetId") String datasetId);
 }

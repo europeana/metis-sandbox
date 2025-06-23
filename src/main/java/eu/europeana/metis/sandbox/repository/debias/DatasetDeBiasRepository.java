@@ -4,10 +4,11 @@ import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 /**
- * The interface Dataset DeBias repository.
+ * Repository interface for managing DatasetDeBiasEntity entities.
  */
 public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEntity, Long> {
 
@@ -15,26 +16,16 @@ public interface DatasetDeBiasRepository extends JpaRepository<DatasetDeBiasEnti
    * Find detection entity by dataset id detection entity.
    *
    * @param datasetId the dataset id
-   * @return the detection entity
+   * @return the dataset debias entity
    */
   DatasetDeBiasEntity findDetectionEntityByDatasetIdDatasetId(Integer datasetId);
 
   /**
-   * Update state.
+   * Deletes all DatasetDeBiasEntity entries associated with the specified dataset ID.
    *
-   * @param datasetId the dataset id
-   * @param state the state
+   * @param datasetId the id of the dataset whose associated records are to be deleted
    */
   @Modifying
-  @Query("UPDATE DatasetDeBiasEntity dec SET dec.state = ?2 WHERE dec.datasetId.datasetId = ?1")
-  void updateState(Integer datasetId, String state);
-
-  /**
-   * Delete by dataset id.
-   *
-   * @param datasetId the dataset id
-   */
-  @Modifying
-  @Query("DELETE FROM DatasetDeBiasEntity dec WHERE dec.datasetId.datasetId = ?1")
-  void deleteByDatasetId(String datasetId);
+  @Query("DELETE FROM DatasetDeBiasEntity dec WHERE dec.datasetId.datasetId = :datasetId")
+  void deleteByDatasetId(@Param("datasetId") String datasetId);
 }

@@ -4,10 +4,13 @@ import eu.europeana.metis.sandbox.entity.problempatterns.RecordProblemPatternOcc
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 /**
  * The interface Record problem pattern occurrence repository.
  */
+@Repository
 public interface RecordProblemPatternOccurrenceRepository extends JpaRepository<RecordProblemPatternOccurrence, Integer> {
 
     /**
@@ -16,12 +19,14 @@ public interface RecordProblemPatternOccurrenceRepository extends JpaRepository<
      * @param datasetId the dataset id
      */
     @Modifying
-    @Query("DELETE FROM RecordProblemPatternOccurrence rppo WHERE "+
-        " EXISTS (SELECT 1 FROM RecordProblemPattern rpp "
-        + " WHERE rppo.recordProblemPattern.recordProblemPatternId = rpp.recordProblemPatternId "
-        + " AND EXISTS (SELECT 1 FROM ExecutionPoint ep "
-        + " WHERE ep.executionPointId = rpp.executionPoint.executionPointId"
-        + " AND ep.datasetId= ?1))")
-    void deleteByRecordProblemPatternExecutionPointDatasetId(String datasetId);
+    @Query("""
+        DELETE FROM RecordProblemPatternOccurrence rppo WHERE
+                EXISTS (SELECT 1 FROM RecordProblemPattern rpp
+                WHERE rppo.recordProblemPattern.recordProblemPatternId = rpp.recordProblemPatternId
+                AND EXISTS (SELECT 1 FROM ExecutionPoint ep
+                WHERE ep.executionPointId = rpp.executionPoint.executionPointId
+                AND ep.datasetId= :datasetId))
+        """)
+    void deleteByRecordProblemPatternExecutionPointDatasetId(@Param("datasetId") String datasetId);
 
 }

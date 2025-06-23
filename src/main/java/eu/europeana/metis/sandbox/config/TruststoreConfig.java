@@ -4,6 +4,7 @@ import eu.europeana.metis.utils.CustomTruststoreAppender;
 import jakarta.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import eu.europeana.metis.common.config.properties.TruststoreConfigurationProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +13,14 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration class for setting up a custom truststore.
- * <p>
- * This class is annotated with {@link Configuration} to denote it as a configuration component in Spring's context. It utilizes
- * {@link EnableConfigurationProperties} to bind and validate external properties into a configuration bean, specifically
- * {@link TruststoreConfigurationProperties}.
- * <p>
- * Upon initialization, indicated by the {@link PostConstruct} annotation, it attempts to append a custom truststore to the
+ *
+ * <p>Upon initialization, indicated by the {@link PostConstruct} annotation, it attempts to append a custom truststore to the
  * default Java truststore using a provided path and password from {@link TruststoreConfigurationProperties}.
  */
+@Slf4j
 @Configuration
 @EnableConfigurationProperties({TruststoreConfigurationProperties.class})
-public class TruststoreConfig {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+class TruststoreConfig {
 
   private final TruststoreConfigurationProperties truststoreConfigurationProperties;
 
@@ -34,7 +30,7 @@ public class TruststoreConfig {
    * @param truststoreConfigurationProperties the configuration properties for the truststore,
    *                                           containing details such as path and password
    */
-  public TruststoreConfig(TruststoreConfigurationProperties truststoreConfigurationProperties) {
+  TruststoreConfig(TruststoreConfigurationProperties truststoreConfigurationProperties) {
     this.truststoreConfigurationProperties = truststoreConfigurationProperties;
   }
 
@@ -48,7 +44,7 @@ public class TruststoreConfig {
    *                                                                   of the custom truststore.
    */
   @PostConstruct
-  public void init() throws CustomTruststoreAppender.TrustStoreConfigurationException {
+  void init() throws CustomTruststoreAppender.TrustStoreConfigurationException {
     initializeTruststore(truststoreConfigurationProperties);
   }
 
@@ -58,7 +54,7 @@ public class TruststoreConfig {
         StringUtils.isNotEmpty(truststoreConfigurationProperties.getPassword())) {
       CustomTruststoreAppender.appendCustomTruststoreToDefault(truststoreConfigurationProperties.getPath(),
           truststoreConfigurationProperties.getPassword());
-      LOGGER.info("Custom truststore appended to default truststore");
+      log.info("Custom truststore appended to default truststore");
     }
   }
 }

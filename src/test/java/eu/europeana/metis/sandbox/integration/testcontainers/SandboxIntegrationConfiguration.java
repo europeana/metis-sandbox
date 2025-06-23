@@ -14,9 +14,9 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
  * <p>
  * The static methods of this class are generally meant to be executed in {@link BeforeAll} methods so that after the required
  * containers are initialized the required properties are set in time and before the beans' autoconfiguration is finished.
+ *
  * @see MongoTestContainersConfiguration
  * @see PostgresTestContainersConfiguration
- * @see RabbitMQTestContainersConfiguration
  * @see S3TestContainersConfiguration
  * @see SolrTestContainersConfiguration
  */
@@ -35,10 +35,7 @@ public final class SandboxIntegrationConfiguration {
 
   public static void testContainersPostgresConfiguration() {
     PostgresTestContainersConfiguration.runScripts(List.of(
-        "database/schema_drop.sql", "database/schema.sql",
-        "database/schema_problem_patterns_drop.sql", "database/schema_problem_patterns.sql",
-        "database/schema_lockrepository_drop.sql", "database/schema_lockrepository.sql",
-        "database/schema_validation_drop.sql", "database/schema_validation.sql"
+        "schema_drop.sql", "schema.sql"
     ));
   }
 

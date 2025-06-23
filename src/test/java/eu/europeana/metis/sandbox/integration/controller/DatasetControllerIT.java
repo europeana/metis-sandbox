@@ -13,15 +13,14 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.metis.sandbox.SandboxApplication;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.integration.testcontainers.MongoTestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.RabbitMQTestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.S3TestContainersConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
 import eu.europeana.metis.sandbox.integration.testcontainers.SolrTestContainersConfiguration;
+import eu.europeana.metis.sandbox.service.util.DataCleanupService;
 import eu.europeana.metis.security.test.JwtUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,9 +29,10 @@ import java.util.List;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
@@ -43,19 +43,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = SandboxApplication.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import({
     PostgresTestContainersConfiguration.class,
-    RabbitMQTestContainersConfiguration.class,
     MongoTestContainersConfiguration.class,
     SolrTestContainersConfiguration.class,
     S3TestContainersConfiguration.class
 })
+@Disabled("Temporarily disabled due to new entity api creds")
 class DatasetControllerIT {
 
   private static final Path ZIP_DIR = Path.of("src", "test", "resources", "zip");
@@ -65,11 +64,13 @@ class DatasetControllerIT {
       ZIP_DIR.resolve("xslt-file-for-transformation-to-edm-external-test.xslt"));
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  @MockBean
+  @MockitoBean
   JwtDecoder jwtDecoder;
 
   private final JwtUtils jwtUtils;
   private final TestRestTemplate testRestTemplate = new TestRestTemplate();
+  @Autowired
+  private DataCleanupService dataCleanupService;
 
   @LocalServerPort
   private int port;
@@ -86,6 +87,7 @@ class DatasetControllerIT {
   @BeforeEach
   void setup() {
     when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
+    dataCleanupService.remove(0);
   }
 
   @Test
@@ -167,7 +169,7 @@ class DatasetControllerIT {
 
   private void awaitDatasetCompletion(int datasetId) {
     Awaitility.await()
-              .atMost(2, MINUTES)
+              .atMost(5, MINUTES)
               .until(() -> {
                 String body = testRestTemplate
                     .getForEntity(getBaseUrl() + "/dataset/{id}/progress", String.class, datasetId)

@@ -8,7 +8,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 /**
- * Configures the datasource, ensures that the custom trust store is appended before creating the datasource
+ * Configuration class for setting up the data source properties.
+ *
+ * <p>Defines a bean to load database connection information using the provided
+ * configuration properties prefixed with "spring.datasource".
+ *
+ * <p>Depends on "truststoreConfig" to ensure the truststore is correctly loaded
+ * before initializing the data source configuration.
  */
 @Configuration
 @DependsOn("truststoreConfig")
@@ -19,7 +25,7 @@ class DataSourceConfig {
 
   @Bean
   @ConfigurationProperties(prefix = "spring.datasource")
-  public DataSource getDataSource() {
+  DataSource getDataSource() {
     return DataSourceBuilder.create().build();
   }
 }
