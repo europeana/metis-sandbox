@@ -11,7 +11,6 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_EXTERNAL;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
 
-import com.google.common.base.Supplier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -22,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -126,7 +126,8 @@ public final class WorkflowHelper {
   public static List<FullBatchJobType> conditionallyAddTransformExternalStep(List<FullBatchJobType> baseSteps,
       Supplier<Boolean> shouldInsertTransformExternal) {
     List<FullBatchJobType> finalSteps;
-    if (shouldInsertTransformExternal.get()) {
+    boolean insertTransformExternal = shouldInsertTransformExternal.get();
+    if (insertTransformExternal) {
       finalSteps = new ArrayList<>();
       for (FullBatchJobType step : baseSteps) {
         if (step == VALIDATE_EXTERNAL) {

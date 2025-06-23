@@ -12,7 +12,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class JobMetadataDTO {
+public final class JobMetadataDTO {
 
   @NotNull
   SuccessExecutionRecordDTO successExecutionRecordDTO;
@@ -23,6 +23,7 @@ public class JobMetadataDTO {
   @NotBlank
   String targetExecutionId;
 
+  @SuppressWarnings("java:S1144") //False positive. It is valid and used by lombok builder to validate the object
   private JobMetadataDTO(SuccessExecutionRecordDTO successExecutionRecordDTO, String targetExecutionName,
       String targetExecutionId) {
     this.successExecutionRecordDTO = successExecutionRecordDTO;

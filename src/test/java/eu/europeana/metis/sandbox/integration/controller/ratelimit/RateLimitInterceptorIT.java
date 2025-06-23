@@ -5,6 +5,8 @@ import static eu.europeana.metis.sandbox.controller.ratelimit.RateLimitIntercept
 import static eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor.X_RATE_LIMIT_REMAINING;
 import static eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor.X_RATE_LIMIT_RESET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.config.RateLimitConfig;
@@ -24,7 +26,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 @Import({PostgresTestContainersConfiguration.class})
 class RateLimitInterceptorIT {
 
-  private RateLimitInterceptor rateLimitInterceptor;
+  private final RateLimitInterceptor rateLimitInterceptor;
 
   @Autowired
   public RateLimitInterceptorIT(RateLimitInterceptor rateLimitInterceptor) {
@@ -36,30 +38,37 @@ class RateLimitInterceptorIT {
     String ipAddress = "192.168.1.2";
     String uri = "/record/validation";
 
-    MockHttpServletResponse response1 = doPreHandle(ipAddress, uri);
-    assertEquals("20", response1.getHeader(X_RATE_LIMIT_LIMIT));
-    assertEquals("19", response1.getHeader(X_RATE_LIMIT_REMAINING));
-    assertTrue(Integer.parseInt(Objects.requireNonNull(response1.getHeader(X_RATE_LIMIT_RESET))) <= 3600);
-
-    MockHttpServletResponse response2 = doPreHandle(ipAddress, uri);
-    assertEquals("20", response2.getHeader(X_RATE_LIMIT_LIMIT));
-    assertEquals("18", response2.getHeader(X_RATE_LIMIT_REMAINING));
-    assertTrue(Integer.parseInt(Objects.requireNonNull(response2.getHeader(X_RATE_LIMIT_RESET))) <= 3600);
-
-    MockHttpServletResponse response3 = doPreHandle(ipAddress, uri);
-    assertEquals("20", response3.getHeader(X_RATE_LIMIT_LIMIT));
-    assertEquals("17", response3.getHeader(X_RATE_LIMIT_REMAINING));
-    assertTrue(Integer.parseInt(Objects.requireNonNull(response3.getHeader(X_RATE_LIMIT_RESET))) <= 3600);
+    int maxRequests = 20;
+    for (int i = 1; i <= maxRequests + 1; i++) {
+      PreHandleResult preHandleResult = doPreHandle(ipAddress, uri);
+      if (i <= maxRequests) {
+        // These requests should be allowed
+        assertEquals(String.valueOf(maxRequests), preHandleResult.response().getHeader(X_RATE_LIMIT_LIMIT));
+        assertEquals(String.valueOf(20 - i), preHandleResult.response().getHeader(X_RATE_LIMIT_REMAINING));
+        assertTrue(Integer.parseInt(Objects.requireNonNull(preHandleResult.response().getHeader(X_RATE_LIMIT_RESET))) <= 3600);
+        assertTrue(preHandleResult.result);
+      } else {
+        // Final request should be blocked
+        assertEquals(String.valueOf(maxRequests), preHandleResult.response().getHeader(X_RATE_LIMIT_LIMIT));
+        assertNull(preHandleResult.response().getHeader(X_RATE_LIMIT_REMAINING));
+        assertTrue(Integer.parseInt(Objects.requireNonNull(preHandleResult.response().getHeader(X_RATE_LIMIT_RESET))) <= 3600);
+        assertFalse(preHandleResult.result);
+      }
+    }
   }
 
-  private MockHttpServletResponse doPreHandle(String ipAddress, String uri) throws Exception {
+  private PreHandleResult doPreHandle(String ipAddress, String uri) throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRemoteAddr(ipAddress);
     request.setRequestURI(uri);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    rateLimitInterceptor.preHandle(request, response, new Object());
+    boolean preHandleResult = rateLimitInterceptor.preHandle(request, response, new Object());
 
-    return response;
+    return new PreHandleResult(preHandleResult, response);
+  }
+
+  private record PreHandleResult(boolean result, MockHttpServletResponse response) {
+
   }
 }

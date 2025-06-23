@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.dataset;
+package eu.europeana.metis.sandbox.service.util;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -8,12 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.service.dataset.DatasetDataCleaner;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
+import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataCleaner;
 import eu.europeana.metis.sandbox.service.record.ExecutionRecordCleaner;
-import eu.europeana.metis.sandbox.service.util.DataCleanupService;
-import eu.europeana.metis.sandbox.service.util.IndexDataCleaner;
-import eu.europeana.metis.sandbox.service.util.ThumbnailStoreService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

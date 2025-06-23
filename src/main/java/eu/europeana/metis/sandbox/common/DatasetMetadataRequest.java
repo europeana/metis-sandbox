@@ -25,6 +25,7 @@ public class DatasetMetadataRequest {
   @NotNull
   Language language;
 
+  @SuppressWarnings("java:S1144") //False positive. It is valid and used by lombok builder to validate the object
   private DatasetMetadataRequest(String datasetName, Country country, Language language) {
     this.datasetName = datasetName;
     this.country = country;

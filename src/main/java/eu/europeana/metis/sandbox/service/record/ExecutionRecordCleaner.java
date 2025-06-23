@@ -5,12 +5,14 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdenti
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class responsible for cleaning execution records and associated entities.
  */
+@AllArgsConstructor
 @Service
 public class ExecutionRecordCleaner {
 
@@ -19,27 +21,6 @@ public class ExecutionRecordCleaner {
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
-
-  /**
-   * Constructor.
-   *
-   * @param executionRecordRepository repository for managing execution records.
-   * @param executionRecordWarningRepository repository for managing execution record warnings.
-   * @param executionRecordErrorRepository repository for managing execution record errors.
-   * @param executionRecordExternalIdentifierRepository repository for managing execution record external identifiers.
-   * @param executionRecordTierContextRepository repository for managing execution record tier context entities.
-   */
-  public ExecutionRecordCleaner(ExecutionRecordRepository executionRecordRepository,
-      ExecutionRecordWarningRepository executionRecordWarningRepository,
-      ExecutionRecordErrorRepository executionRecordErrorRepository,
-      ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
-      ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
-    this.executionRecordRepository = executionRecordRepository;
-    this.executionRecordWarningRepository = executionRecordWarningRepository;
-    this.executionRecordErrorRepository = executionRecordErrorRepository;
-    this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
-    this.executionRecordTierContextRepository = executionRecordTierContextRepository;
-  }
 
   /**
    * Removes all execution records and associated entities for the specified dataset ID.

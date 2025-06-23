@@ -1,23 +1,22 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetDataCleaner;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.problempatterns.ProblemPatternDataCleaner;
 import eu.europeana.metis.sandbox.service.record.ExecutionRecordCleaner;
-import java.lang.invoke.MethodHandles;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
  * The type Dataset remover service.
  */
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DataCleanupService {
 
@@ -29,36 +28,6 @@ public class DataCleanupService {
   private final ProblemPatternDataCleaner problemPatternDataCleaner;
   private final HarvestParameterService harvestParameterService;
   private final DeBiasStateService debiasStateService;
-
-  /**
-   * Constructor.
-   *
-   * @param datasetDataCleaner datasetService is responsible for managing dataset operations.
-   * @param datasetReportService datasetReportService provides functionality for dataset reports.
-   * @param executionRecordCleaner executionRecordCleaner handles removal of execution records.
-   * @param indexDataCleaner indexDataCleaner manages cleanup of indexed data.
-   * @param thumbnailStoreService thumbnailStoreService removes thumbnails linked to datasets.
-   * @param problemPatternDataCleaner problemPatternDataCleaner handles cleanup of problem pattern data.
-   * @param harvestParameterService harvestParameterService manages removal of harvest parameters.
-   * @param debiasStateService debiasStateService is responsible for managing debias state cleanup.
-   */
-  DataCleanupService(
-      DatasetDataCleaner datasetDataCleaner, DatasetReportService datasetReportService,
-      ExecutionRecordCleaner executionRecordCleaner,
-      IndexDataCleaner indexDataCleaner,
-      ThumbnailStoreService thumbnailStoreService,
-      ProblemPatternDataCleaner problemPatternDataCleaner,
-      HarvestParameterService harvestParameterService,
-      DeBiasStateService debiasStateService) {
-    this.datasetDataCleaner = datasetDataCleaner;
-    this.datasetReportService = datasetReportService;
-    this.executionRecordCleaner = executionRecordCleaner;
-    this.indexDataCleaner = indexDataCleaner;
-    this.thumbnailStoreService = thumbnailStoreService;
-    this.problemPatternDataCleaner = problemPatternDataCleaner;
-    this.harvestParameterService = harvestParameterService;
-    this.debiasStateService = debiasStateService;
-  }
 
   /**
    * Removes datasets and associated entities created before the specified number of days.

@@ -19,17 +19,35 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 class ScheduledConfig {
 
+  /**
+   * Retrieves the transformation XSLT update frequency configuration.
+   *
+   * @param transformationFrequency the cron expression for update frequency retrieved from the application configuration
+   * @return the transformation XSLT update frequency as a string
+   */
   @Bean
   public String getTransformationXsltUpdateFrequency(
       @Value("${sandbox.transformation.xslt-update-frequency:0 0 * * * *}") String transformationFrequency) {
     return transformationFrequency;
   }
 
+  /**
+   * Retrieves the metrics frequency configuration value.
+   *
+   * @param metricsFrequency specifies the metrics frequency in cron format; default is used if not provided
+   * @return the configured or default metrics frequency
+   */
   @Bean
   public String getMetricsFrequency(@Value("${sandbox.metrics.frequency:*/5 * * * * *}") String metricsFrequency) {
     return metricsFrequency;
   }
 
+  /**
+   * Retrieves the configured dataset clean frequency cron expression.
+   *
+   * @param datasetCleanFrequency the cron expression for dataset cleaning schedule, injected from the configuration
+   * @return the configured or default cron expression for the dataset cleaning frequency
+   */
   @Bean
   public String getDatasetCleanFrequency(@Value("${sandbox.dataset.clean.frequency:0 0 0 * * ?}") String datasetCleanFrequency) {
     return datasetCleanFrequency;

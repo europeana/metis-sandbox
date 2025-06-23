@@ -35,6 +35,7 @@ public class DatasetMetadata {
   @NotNull
   WorkflowType workflowType;
 
+  @SuppressWarnings("java:S1144") //False positive. It is valid and used by lombok builder to validate the object
   private DatasetMetadata(String datasetId, String datasetName, Country country,
       Language language, WorkflowType workflowType) {
     this.datasetId = datasetId;
