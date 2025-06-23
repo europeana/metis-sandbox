@@ -31,7 +31,7 @@ public class DebiasItemProcessor extends AbstractExecutionRecordMetisItemProcess
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
-      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.successExecutionRecordDTO();
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
 
       deBiasProcessService.process(
           originSuccessExecutionRecordDTO.getRecordData(),
@@ -40,8 +40,8 @@ public class DebiasItemProcessor extends AbstractExecutionRecordMetisItemProcess
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
-          jobMetadataDTO.targetExecutionId(),
-          jobMetadataDTO.targetExecutionName(),
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
           b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
   }

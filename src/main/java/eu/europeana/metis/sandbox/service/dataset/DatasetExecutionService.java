@@ -80,7 +80,7 @@ public class DatasetExecutionService {
         WorkflowType.OAI_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
     );
     batchJobExecutor.execute(executionMetadata);
-    return executionMetadata.getDatasetMetadata().datasetId();
+    return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
   /**
@@ -107,7 +107,7 @@ public class DatasetExecutionService {
         WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, fileHarvestDTO
     );
     batchJobExecutor.execute(executionMetadata);
-    return executionMetadata.getDatasetMetadata().datasetId();
+    return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
   /**
@@ -136,7 +136,7 @@ public class DatasetExecutionService {
           WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
       );
       batchJobExecutor.execute(executionMetadata);
-      return executionMetadata.getDatasetMetadata().datasetId();
+      return executionMetadata.getDatasetMetadata().getDatasetId();
     } catch (IOException | URISyntaxException e) {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE, e);
     }
@@ -161,7 +161,7 @@ public class DatasetExecutionService {
         FILE_HARVEST_ONLY_VALIDATION, datasetMetadataRequest, null, null, fileHarvestDTO
     );
     batchJobExecutor.executeBlocking(executionMetadata);
-    return executionMetadata.getDatasetMetadata().datasetId();
+    return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
   /**
@@ -195,8 +195,12 @@ public class DatasetExecutionService {
 
       DatasetDeBiasEntity datasetDeBiasEntity = debiasStateService.createDatasetDeBiasEntity(datasetId);
       DatasetEntity datasetEntity = datasetDeBiasEntity.getDatasetId();
-      DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetEntity.getDatasetName(),
-          datasetEntity.getCountry(), datasetEntity.getLanguage(), DEBIAS);
+      DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+          .datasetId(datasetId)
+          .datasetName(datasetEntity.getDatasetName())
+          .country(datasetEntity.getCountry())
+          .language(datasetEntity.getLanguage())
+          .workflowType(DEBIAS).build();
 
       ExecutionMetadata executionMetadata = ExecutionMetadata.builder()
                                                              .datasetMetadata(datasetMetadata)

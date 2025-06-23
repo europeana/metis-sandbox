@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
@@ -24,8 +25,10 @@ public abstract class AbstractExecutionRecordMetisItemProcessor extends
     SuccessExecutionRecordDTO originSuccessExecutionRecordDTO =
         ExecutionRecordConverter.convertToExecutionRecordDTO(executionRecord);
 
-    JobMetadataDTO jobMetadataDTO =
-        new JobMetadataDTO(originSuccessExecutionRecordDTO, getExecutionName(), getTargetExecutionId());
+    JobMetadataDTO jobMetadataDTO = JobMetadataDTO.builder()
+                                                  .successExecutionRecordDTO(originSuccessExecutionRecordDTO)
+                                                  .targetExecutionName(getExecutionName())
+                                                  .targetExecutionId(getTargetExecutionId()).build();
 
     return processCapturingException(jobMetadataDTO, getProcessRecordFunction(), defaultHandler()
     );
@@ -42,11 +45,11 @@ public abstract class AbstractExecutionRecordMetisItemProcessor extends
   public static BiFunction<JobMetadataDTO, Exception, AbstractExecutionRecordDTO> defaultHandler() {
     return (jobMetadataDTO, exception) -> FailExecutionRecordDTO.createValidated(
         b -> b
-            .datasetId(jobMetadataDTO.successExecutionRecordDTO().getDatasetId())
-            .recordId(jobMetadataDTO.successExecutionRecordDTO().getRecordId())
-            .executionId(jobMetadataDTO.targetExecutionId())
-            .executionName(jobMetadataDTO.targetExecutionName())
-            .exception(exception)
+            .datasetId(jobMetadataDTO.getSuccessExecutionRecordDTO().getDatasetId())
+            .recordId(jobMetadataDTO.getSuccessExecutionRecordDTO().getRecordId())
+            .executionId(jobMetadataDTO.getTargetExecutionId())
+            .executionName(jobMetadataDTO.getTargetExecutionName())
+            .exceptionInfoDTO(ExceptionInfoDTO.from(exception))
     );
   }
 

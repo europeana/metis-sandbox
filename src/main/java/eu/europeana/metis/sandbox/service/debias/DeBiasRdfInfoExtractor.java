@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.debias;
 
-import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasInputRecord;
 import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
@@ -254,5 +253,14 @@ public class DeBiasRdfInfoExtractor {
       int endIndex = (partition == partitions) ? sourceList.size() : ((partition + 1) * partitionSize);
       return sourceList.subList(startIndex, endIndex);
     });
+  }
+
+  /**
+   * The type DeBias input record.
+   */
+  public record DeBiasInputRecord(String europeanaId, String literal,
+                                  DeBiasSupportedLanguage language,
+                                  DeBiasSourceField sourceField) {
+
   }
 }

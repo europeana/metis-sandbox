@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 public final class FailExecutionRecordDTO extends AbstractExecutionRecordDTO {
 
   @NotNull
-  private final Exception exception;
+  private final ExceptionInfoDTO exceptionInfoDTO;
 
   /**
    * Creates a validated instance of FailExecutionRecordDTO using the provided configuration.

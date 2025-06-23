@@ -54,12 +54,12 @@ public class DatasetHarvestController {
   private static final String EMPTY_XSLT_FILE_MESSAGE = "Xslt file must not be empty when provided";
 
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
-  private final UrlValidator urlValidator;
   private static final Map<String, CompressedFileExtension> contentTypeToExtension = Map.of(
       "application/gzip", CompressedFileExtension.GZIP,
       "application/zip", CompressedFileExtension.ZIP,
       "application/x-tar", CompressedFileExtension.TAR
   );
+  private final UrlValidator urlValidator;
 
   private final DatasetExecutionService datasetExecutionService;
 
@@ -122,7 +122,11 @@ public class DatasetHarvestController {
     checkArgument(xsltFile == null || !xsltFile.isEmpty(), EMPTY_XSLT_FILE_MESSAGE);
     checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
 
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
+    DatasetMetadataRequest datasetMetadataRequest = DatasetMetadataRequest.builder()
+                                                                          .datasetName(datasetName)
+                                                                          .country(country)
+                                                                          .language(language).build();
+
     String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionOai(datasetMetadataRequest, stepsize,
         url, setspec, metadataformat, xsltFile, userId);
 
@@ -173,7 +177,10 @@ public class DatasetHarvestController {
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
         datasetRecordsCompressedFile);
 
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
+    DatasetMetadataRequest datasetMetadataRequest = DatasetMetadataRequest.builder()
+                                                                          .datasetName(datasetName)
+                                                                          .country(country)
+                                                                          .language(language).build();
     final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
         stepsize, datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
 
@@ -222,7 +229,10 @@ public class DatasetHarvestController {
     URI uri = URI.create(url);
     CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
 
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
+    DatasetMetadataRequest datasetMetadataRequest = DatasetMetadataRequest.builder()
+                                                                          .datasetName(datasetName)
+                                                                          .country(country)
+                                                                          .language(language).build();
     final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
         stepsize, url, xsltFile, userId, compressedFileExtension);
 
@@ -261,6 +271,7 @@ public class DatasetHarvestController {
                                  .filter(entry -> fileContentType.startsWith(entry.getKey()))
                                  .map(Map.Entry::getValue)
                                  .findFirst()
-                                 .orElseThrow(() -> new InvalidCompressedFileException("File provided is not valid compressed file."));
+                                 .orElseThrow(
+                                     () -> new InvalidCompressedFileException("File provided is not valid compressed file."));
   }
 }

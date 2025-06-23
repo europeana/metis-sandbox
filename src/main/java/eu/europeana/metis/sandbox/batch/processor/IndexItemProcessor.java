@@ -32,15 +32,15 @@ public class IndexItemProcessor extends AbstractExecutionRecordMetisItemProcesso
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
-      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.successExecutionRecordDTO();
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       IndexingResult result = indexService.indexRecord(
           originSuccessExecutionRecordDTO.getRecordId(),
           originSuccessExecutionRecordDTO.getRecordData()
       );
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
-          jobMetadataDTO.targetExecutionId(),
-          jobMetadataDTO.targetExecutionName(),
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
           b -> b.recordData(result.recordData())
                 .tierResults(result.tierResults()));
     };

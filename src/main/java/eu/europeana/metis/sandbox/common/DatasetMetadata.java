@@ -7,6 +7,8 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Value;
 
 /**
  * Immutable class representing metadata for a dataset.
@@ -14,10 +16,26 @@ import jakarta.validation.constraints.NotNull;
  * <p>Contains information about the dataset, including its identifier, name, associated country, language, and workflow type.
  * <p>All fields in this class are mandatory and must not be null.
  */
-public record DatasetMetadata(@NotBlank String datasetId, @NotBlank String datasetName, @NotNull Country country,
-                              @NotNull Language language, @NotNull WorkflowType workflowType) {
+@Value
+@Builder
+public class DatasetMetadata {
 
-  public DatasetMetadata(String datasetId, String datasetName, Country country,
+  @NotBlank
+  String datasetId;
+
+  @NotBlank
+  String datasetName;
+
+  @NotNull
+  Country country;
+
+  @NotNull
+  Language language;
+
+  @NotNull
+  WorkflowType workflowType;
+
+  private DatasetMetadata(String datasetId, String datasetName, Country country,
       Language language, WorkflowType workflowType) {
     this.datasetId = datasetId;
     this.datasetName = datasetName;

@@ -10,11 +10,9 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.schema.convert.SerializationException;
+import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
@@ -88,7 +86,8 @@ public class RestResponseExceptionHandler {
       RecordParsingException.class,
       InvalidDatasetException.class,
       SerializationException.class,
-      IOException.class
+      IOException.class,
+      ConstraintViolationException.class
   })
   public ResponseEntity<Object> handleBadRequestExceptions(Exception ex) {
     HttpStatus status = resolveStatus(ex, HttpStatus.BAD_REQUEST);

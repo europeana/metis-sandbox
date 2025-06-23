@@ -67,19 +67,24 @@ public class DatasetExecutionSetupService {
         harvestParameterService.createDatasetHarvestParameters(datasetId, abstractHarvestParametersDTO);
     InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, transformXsltEntity);
 
-    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetMetadataRequest.datasetName(),
-        datasetMetadataRequest.country(), datasetMetadataRequest.language(), workflowType);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetMetadataRequest.getDatasetName())
+                                                     .country(datasetMetadataRequest.getCountry())
+                                                     .language(datasetMetadataRequest.getLanguage())
+                                                     .workflowType(workflowType).build();
+
     return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
   }
 
   private String createDataset(DatasetMetadataRequest datasetMetadataRequest, WorkflowType workflowType, String userId) {
-    DatasetEntity datasetEntity = new DatasetEntity(datasetMetadataRequest.datasetName(), workflowType,
-        datasetMetadataRequest.language(), datasetMetadataRequest.country(), userId);
+    DatasetEntity datasetEntity = new DatasetEntity(datasetMetadataRequest.getDatasetName(), workflowType,
+        datasetMetadataRequest.getLanguage(), datasetMetadataRequest.getCountry(), userId);
 
     try {
       return String.valueOf(datasetRepository.save(datasetEntity).getDatasetId());
     } catch (RuntimeException e) {
-      throw new ServiceException(format("Failed to create dataset [%s]", datasetMetadataRequest.datasetName()), e);
+      throw new ServiceException(format("Failed to create dataset [%s]", datasetMetadataRequest.getDatasetName()), e);
     }
   }
 

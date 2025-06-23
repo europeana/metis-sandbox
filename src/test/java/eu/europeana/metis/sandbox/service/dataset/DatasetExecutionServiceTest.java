@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static eu.europeana.metis.sandbox.entity.WorkflowType.OAI_HARVEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -75,7 +76,7 @@ class DatasetExecutionServiceTest {
   private DatasetExecutionService datasetExecutionService;
 
   private static final DatasetMetadataRequest datasetMetadataRequest =
-      new DatasetMetadataRequest("datasetName", Country.GREECE, Language.EL);
+      DatasetMetadataRequest.builder().datasetName("datasetName").country(Country.GREECE).language(Language.EL).build();
   private static final MultipartFile xsltFile = mock(MultipartFile.class);
   private static final String datasetId = "1";
   private static final String userId = "userId";
@@ -94,11 +95,16 @@ class DatasetExecutionServiceTest {
 
   @Test
   void createDatasetAndSubmitExecutionOai() throws IOException {
-    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetMetadataRequest.datasetName(),
-        datasetMetadataRequest.country(), datasetMetadataRequest.language(), WorkflowType.OAI_HARVEST);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetMetadataRequest.getDatasetName())
+                                                     .country(datasetMetadataRequest.getCountry())
+                                                     .language(datasetMetadataRequest.getLanguage())
+                                                     .workflowType(OAI_HARVEST).build();
+
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(
-        datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.OAI_HARVEST), eq(datasetMetadataRequest), eq(userId),
+        datasetExecutionSetupService.prepareDatasetExecution(eq(OAI_HARVEST), eq(datasetMetadataRequest), eq(userId),
             eq(xsltFile), any(OaiHarvestParametersDTO.class))).thenReturn(executionMeta);
 
     String result = datasetExecutionService.createDatasetAndSubmitExecutionOai(datasetMetadataRequest, steSize, "url", "setSpec",
@@ -111,7 +117,7 @@ class DatasetExecutionServiceTest {
   @Test
   void createDatasetAndSubmitExecutionOai_Fail() throws IOException {
     when(
-        datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.OAI_HARVEST), eq(datasetMetadataRequest), eq(userId),
+        datasetExecutionSetupService.prepareDatasetExecution(eq(OAI_HARVEST), eq(datasetMetadataRequest), eq(userId),
             eq(xsltFile), any(OaiHarvestParametersDTO.class))).thenThrow(new IOException());
 
     assertThrows(IOException.class,
@@ -124,8 +130,12 @@ class DatasetExecutionServiceTest {
   void createDatasetAndSubmitExecutionFile() throws IOException {
     MultipartFile contentFile = mock(MultipartFile.class);
     when(contentFile.getBytes()).thenReturn("content".getBytes());
-    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetMetadataRequest.datasetName(),
-        datasetMetadataRequest.country(), datasetMetadataRequest.language(), WorkflowType.OAI_HARVEST);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetMetadataRequest.getDatasetName())
+                                                     .country(datasetMetadataRequest.getCountry())
+                                                     .language(datasetMetadataRequest.getLanguage())
+                                                     .workflowType(OAI_HARVEST).build();
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(
         datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
@@ -155,8 +165,12 @@ class DatasetExecutionServiceTest {
   @Test
   void createDatasetAndSubmitExecutionHttp() throws IOException {
     String url = baseUrl + contentFilePath;
-    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetMetadataRequest.datasetName(),
-        datasetMetadataRequest.country(), datasetMetadataRequest.language(), WorkflowType.OAI_HARVEST);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetMetadataRequest.getDatasetName())
+                                                     .country(datasetMetadataRequest.getCountry())
+                                                     .language(datasetMetadataRequest.getLanguage())
+                                                     .workflowType(OAI_HARVEST).build();
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(
         datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
@@ -197,8 +211,12 @@ class DatasetExecutionServiceTest {
 
   @Test
   void createAndExecuteDatasetForFileValidationBlocking() throws IOException {
-    DatasetMetadata datasetMetadata = new DatasetMetadata(datasetId, datasetMetadataRequest.datasetName(),
-        datasetMetadataRequest.country(), datasetMetadataRequest.language(), WorkflowType.OAI_HARVEST);
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetMetadataRequest.getDatasetName())
+                                                     .country(datasetMetadataRequest.getCountry())
+                                                     .language(datasetMetadataRequest.getLanguage())
+                                                     .workflowType(OAI_HARVEST).build();
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.FILE_HARVEST_ONLY_VALIDATION),
         eq(datasetMetadataRequest), eq(null), eq(null), any(FileHarvestParametersDTO.class))).thenReturn(executionMeta);
@@ -235,9 +253,9 @@ class DatasetExecutionServiceTest {
         0L);
     when(debiasStateService.getDeBiasStatus(datasetId)).thenReturn(deBiasStatusDTO);
     DatasetEntity datasetEntity = new DatasetEntity();
-    datasetEntity.setDatasetName(datasetMetadataRequest.datasetName());
-    datasetEntity.setCountry(datasetMetadataRequest.country());
-    datasetEntity.setLanguage(datasetMetadataRequest.language());
+    datasetEntity.setDatasetName(datasetMetadataRequest.getDatasetName());
+    datasetEntity.setCountry(datasetMetadataRequest.getCountry());
+    datasetEntity.setLanguage(datasetMetadataRequest.getLanguage());
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
     datasetDeBiasEntity.setDatasetId(datasetEntity);
     when(debiasStateService.createDatasetDeBiasEntity(datasetId)).thenReturn(datasetDeBiasEntity);
@@ -254,11 +272,13 @@ class DatasetExecutionServiceTest {
     when(lockRegistry.obtain(anyString())).thenReturn(lock);
     ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, ExecutionStatus.COMPLETED, 0, 0,
         List.of(), false, null);
-    ExecutionProgressInfoDTO executionProgressInfoDTOInProgress = new ExecutionProgressInfoDTO(null, ExecutionStatus.IN_PROGRESS, 0, 0,
+    ExecutionProgressInfoDTO executionProgressInfoDTOInProgress = new ExecutionProgressInfoDTO(null, ExecutionStatus.IN_PROGRESS,
+        0, 0,
         List.of(), false, null);
     when(datasetReportService.getProgress(datasetId))
         .thenReturn(executionProgressInfoDTO).thenReturn(executionProgressInfoDTO).thenReturn(executionProgressInfoDTOInProgress);
-    DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(datasetId), DebiasState.COMPLETED, ZonedDateTime.now(), 0L,
+    DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(datasetId), DebiasState.COMPLETED, ZonedDateTime.now(),
+        0L,
         0L);
     when(debiasStateService.getDeBiasStatus(datasetId)).thenReturn(deBiasStatusDTO).thenReturn(null);
 

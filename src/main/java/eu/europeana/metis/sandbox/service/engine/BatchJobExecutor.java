@@ -47,7 +47,6 @@ import eu.europeana.metis.sandbox.config.batch.ValidationJobConfig;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -59,8 +58,6 @@ import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.core.ConditionEvaluationListener;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -186,7 +183,7 @@ public class BatchJobExecutor {
       JobExecution execution = executor.apply(currentExecutionMetadata);
       waitForCompletion(execution);
       if (execution.getStatus() != BatchStatus.COMPLETED) {
-        throw new RuntimeException("Step failed: " + step);
+        throw new IllegalStateException("Step failed: " + step);
       }
       currentExecutionMetadata = ExecutionMetadata.builder().datasetMetadata(executionMetadata.getDatasetMetadata())
                                                   .inputMetadata(new InputMetadata(
@@ -223,7 +220,7 @@ public class BatchJobExecutor {
   private boolean matches(JobExecution execution, ExecutionMetadata metadata, FullBatchJobType fullBatchJobType) {
     JobParameters jobParameters = execution.getJobParameters();
     String datasetId = jobParameters.getString(ARGUMENT_DATASET_ID);
-    boolean datasetMatches = Objects.equals(datasetId, metadata.getDatasetMetadata().datasetId());
+    boolean datasetMatches = Objects.equals(datasetId, metadata.getDatasetMetadata().getDatasetId());
 
     if (!datasetMatches) {
       return false;
@@ -246,7 +243,7 @@ public class BatchJobExecutor {
              .until(() -> !jobExecution.isRunning());
       log.info("Job finished with status: {}", jobExecution.getStatus());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -285,9 +282,9 @@ public class BatchJobExecutor {
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.INTERNAL.name())
-        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.datasetName())
-        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.country().xmlValue())
-        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.language().name().toLowerCase(Locale.US))
+        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
+        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
@@ -300,9 +297,9 @@ public class BatchJobExecutor {
 
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.EXTERNAL.name())
-        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.datasetName())
-        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.country().xmlValue())
-        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.language().name().toLowerCase(Locale.US))
+        .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
+        .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
+        .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
         .addString(ARGUMENT_XSLT_ID, transformXsltId)
         .toJobParameters();
 
@@ -365,7 +362,7 @@ public class BatchJobExecutor {
   private static @NotNull JobParameters getDefaultJobParameters(DatasetMetadata datasetMetadata) {
     return new JobParametersBuilder()
         .addString(ARGUMENT_TARGET_EXECUTION_ID, UUID.randomUUID().toString())
-        .addString(ARGUMENT_DATASET_ID, datasetMetadata.datasetId())
+        .addString(ARGUMENT_DATASET_ID, datasetMetadata.getDatasetId())
         .toJobParameters();
   }
 
@@ -388,7 +385,7 @@ public class BatchJobExecutor {
       jobExecution = jobLauncher.run(oaiHarvestJob, jobParameters);
     } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
              JobParametersInvalidException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
     return jobExecution;
   }

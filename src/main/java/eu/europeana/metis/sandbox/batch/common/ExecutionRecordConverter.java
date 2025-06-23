@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.common;
 
 import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
@@ -9,11 +10,11 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,13 +31,19 @@ public final class ExecutionRecordConverter {
    * @return The corresponding SuccessExecutionRecordDTO object.
    */
   public static SuccessExecutionRecordDTO convertToExecutionRecordDTO(ExecutionRecord executionRecord) {
+    Set<ExceptionInfoDTO> exceptionInfoDTOs = executionRecord.getExecutionRecordWarning().stream()
+                                                             .map(executionRecordWarning -> new ExceptionInfoDTO(
+                                                                 executionRecordWarning.getMessage(),
+                                                                 executionRecordWarning.getException()))
+                                                             .collect(Collectors.toSet());
     return SuccessExecutionRecordDTO.createValidated(b -> b
         .datasetId(executionRecord.getIdentifier().getDatasetId())
         .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
         .recordId(executionRecord.getIdentifier().getRecordId())
         .executionId(executionRecord.getIdentifier().getExecutionId())
         .executionName(executionRecord.getIdentifier().getExecutionName())
-        .recordData(executionRecord.getRecordData()));
+        .recordData(executionRecord.getRecordData())
+        .exceptionWarnings(exceptionInfoDTOs));
   }
 
   /**
@@ -53,10 +60,10 @@ public final class ExecutionRecordConverter {
     executionRecord.setRecordData(executionRecordDTO.getRecordData());
 
     List<ExecutionRecordWarning> executionRecordWarnings = new ArrayList<>();
-    for (Exception exception : executionRecordDTO.getExceptionWarnings()) {
+    for (ExceptionInfoDTO exceptionInfoDTO : executionRecordDTO.getExceptionWarnings()) {
       ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
-      executionRecordWarning.setMessage(exception.getMessage());
-      executionRecordWarning.setException(formatException(exception));
+      executionRecordWarning.setMessage(exceptionInfoDTO.getMessage());
+      executionRecordWarning.setException(exceptionInfoDTO.getStackTrace());
       executionRecordWarning.setExecutionRecord(executionRecord);
       executionRecordWarnings.add(executionRecordWarning);
     }
@@ -106,7 +113,8 @@ public final class ExecutionRecordConverter {
    * @param executionRecordDTO The ExecutionRecordDTO containing the data to populate the ExecutionRecordIdentifierKey.
    * @return A populated ExecutionRecordIdentifierKey instance derived from the input ExecutionRecordDTO.
    */
-  private static @NotNull ExecutionRecordIdentifierKey getExecutionRecordIdentifier(AbstractExecutionRecordDTO executionRecordDTO) {
+  private static @NotNull ExecutionRecordIdentifierKey getExecutionRecordIdentifier(
+      AbstractExecutionRecordDTO executionRecordDTO) {
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
     executionRecordIdentifierKey.setDatasetId(executionRecordDTO.getDatasetId());
     executionRecordIdentifierKey.setExecutionId(executionRecordDTO.getExecutionId());
@@ -128,24 +136,11 @@ public final class ExecutionRecordConverter {
     final ExecutionRecordError executionRecordError = new ExecutionRecordError();
     executionRecordError.setIdentifier(executionRecordIdentifierKey);
 
-    if (failExecutionRecordDTO.getException() != null) {
-      executionRecordError.setMessage(failExecutionRecordDTO.getException().getMessage());
-      executionRecordError.setException(formatException(failExecutionRecordDTO.getException()));
+    if (failExecutionRecordDTO.getExceptionInfoDTO() != null) {
+      executionRecordError.setMessage(failExecutionRecordDTO.getExceptionInfoDTO().getMessage());
+      executionRecordError.setException(failExecutionRecordDTO.getExceptionInfoDTO().getStackTrace());
     }
 
     return executionRecordError;
-  }
-
-  /**
-   * Formats the stack trace of a Throwable into a String.
-   *
-   * @param throwable The Throwable whose stack trace will be formatted.
-   * @return The formatted stack trace as a String.
-   */
-  private static String formatException(Throwable throwable) {
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter printWriter = new PrintWriter(stringWriter);
-    throwable.printStackTrace(printWriter);
-    return stringWriter.toString();
   }
 }

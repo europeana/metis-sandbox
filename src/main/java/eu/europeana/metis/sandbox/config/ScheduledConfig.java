@@ -3,10 +3,7 @@ package eu.europeana.metis.sandbox.config;
 import eu.europeana.metis.sandbox.service.metrics.MetricsService;
 import eu.europeana.metis.sandbox.service.util.DataCleanupService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
-import java.lang.invoke.MethodHandles;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +18,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @Configuration
 class ScheduledConfig {
+
+  @Bean
+  public String getTransformationXsltUpdateFrequency(
+      @Value("${sandbox.transformation.xslt-update-frequency:0 0 * * * *}") String transformationFrequency) {
+    return transformationFrequency;
+  }
+
+  @Bean
+  public String getMetricsFrequency(@Value("${sandbox.metrics.frequency:*/5 * * * * *}") String metricsFrequency) {
+    return metricsFrequency;
+  }
+
+  @Bean
+  public String getDatasetCleanFrequency(@Value("${sandbox.dataset.clean.frequency:0 0 0 * * ?}") String datasetCleanFrequency) {
+    return datasetCleanFrequency;
+  }
 
   @Slf4j
   @Configuration
@@ -54,12 +67,12 @@ class ScheduledConfig {
       return scheduler;
     }
 
-    @Scheduled(cron = "${sandbox.metrics.frequency:*/5 * * * * *}")
+    @Scheduled(cron = "#{@getMetricsFrequency}")
     void metricsReport() {
       metricsService.generateMetrics();
     }
 
-    @Scheduled(cron = "${sandbox.transformation.xslt-update-frequency:0 0 * * * *}")
+    @Scheduled(cron = "#{@getTransformationXsltUpdateFrequency}")
     void updateDefaultXsltUrl() {
       xsltUrlUpdateService.updateXslt(defaultXsltUrl);
     }
@@ -70,7 +83,7 @@ class ScheduledConfig {
       metricsReport();
     }
 
-    @Scheduled(cron = "${sandbox.dataset.clean.frequency:0 0 0 * * ?}")
+    @Scheduled(cron = "#{@getDatasetCleanFrequency}")
     void remove() {
       log.info("Start daily dataset clean up for last {} days", daysToPreserve);
       dataCleanupService.remove(daysToPreserve);

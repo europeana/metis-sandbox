@@ -99,7 +99,10 @@ public class ValidationController {
       @RequestParam("recordToValidate") MultipartFile recordToValidate) throws IOException {
     checkArgument(isFileTypeValid(recordToValidate), "It is expected for there to be one single xml record file");
     String datasetName = "direct_validation_" + UUID.randomUUID();
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest(datasetName, country, language);
+    DatasetMetadataRequest datasetMetadataRequest = DatasetMetadataRequest.builder()
+                                                                          .datasetName(datasetName)
+                                                                          .country(country)
+                                                                          .language(language).build();
     String createdDatasetId = datasetExecutionService.createAndExecuteDatasetForFileValidationBlocking(
         datasetMetadataRequest, recordToValidate);
     ExecutionProgressInfoDTO executionProgressInfoDto = datasetReportService.getProgress(createdDatasetId);

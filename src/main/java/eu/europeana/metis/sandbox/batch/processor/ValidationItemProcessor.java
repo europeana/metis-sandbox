@@ -32,7 +32,7 @@ public class ValidationItemProcessor extends AbstractExecutionRecordMetisItemPro
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
-      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.successExecutionRecordDTO();
+      SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
       validationService.validateRecord(
           originSuccessExecutionRecordDTO.getRecordData(),
           originSuccessExecutionRecordDTO.getRecordId(),
@@ -43,8 +43,8 @@ public class ValidationItemProcessor extends AbstractExecutionRecordMetisItemPro
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
-          jobMetadataDTO.targetExecutionId(),
-          jobMetadataDTO.targetExecutionName(),
+          jobMetadataDTO.getTargetExecutionId(),
+          jobMetadataDTO.getTargetExecutionName(),
           b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
   }

@@ -43,11 +43,13 @@ class DatasetExecutionSetupServiceTest {
   @InjectMocks
   private DatasetExecutionSetupService datasetExecutionSetupService;
 
+  private static final DatasetMetadataRequest datasetMetadataRequest =
+      DatasetMetadataRequest.builder().datasetName("datasetName").country(Country.GREECE).language(Language.EL).build();
+
   @Test
   void prepareDatasetExecution() throws IOException {
     String datasetId = "1";
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest("datasetName", Country.GREECE, Language.EL);
     String userId = "userId";
     OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
     HarvestParametersEntity harvestParameters = mock(HarvestParametersEntity.class);
@@ -67,7 +69,7 @@ class DatasetExecutionSetupServiceTest {
         workflowType, datasetMetadataRequest, userId, xsltFile, oaiHarvestParametersDTO);
 
     assertNotNull(executionMetadata);
-    assertEquals(datasetId, executionMetadata.getDatasetMetadata().datasetId());
+    assertEquals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
     assertNotNull(executionMetadata.getInputMetadata().getTransformXsltEntity());
     assertEquals(harvestParameters, executionMetadata.getInputMetadata().getHarvestParametersEntity());
     verify(transformXsltRepository).save(any(TransformXsltEntity.class));
@@ -77,7 +79,6 @@ class DatasetExecutionSetupServiceTest {
   void prepareDatasetExecution_withoutXslt() throws IOException {
     String datasetId = "1";
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest("datasetName", Country.GREECE, Language.EL);
     String userId = "userId";
     OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
     HarvestParametersEntity harvestParameters = mock(HarvestParametersEntity.class);
@@ -95,7 +96,7 @@ class DatasetExecutionSetupServiceTest {
         workflowType, datasetMetadataRequest, userId, null, oaiHarvestParametersDTO);
 
     assertNotNull(executionMetadata);
-    assertEquals(datasetId, executionMetadata.getDatasetMetadata().datasetId());
+    assertEquals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
     assertNull(executionMetadata.getInputMetadata().getTransformXsltEntity());
     assertEquals(harvestParameters, executionMetadata.getInputMetadata().getHarvestParametersEntity());
   }
@@ -103,7 +104,6 @@ class DatasetExecutionSetupServiceTest {
   @Test
   void prepareDatasetExecution_createDataset_shouldThrowServiceExceptionOnRepositoryFailure() {
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest("datasetName", Country.GREECE, Language.EL);
     String userId = "userId";
     OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
 
@@ -118,7 +118,6 @@ class DatasetExecutionSetupServiceTest {
   void prepareDatasetExecution_saveXslt_ThrowIOException() throws IOException {
     String datasetId = "1";
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;
-    DatasetMetadataRequest datasetMetadataRequest = new DatasetMetadataRequest("datasetName", Country.GREECE, Language.EL);
     String userId = "userId";
     OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
 

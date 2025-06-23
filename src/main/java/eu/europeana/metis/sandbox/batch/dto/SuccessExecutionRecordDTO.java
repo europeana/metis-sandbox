@@ -19,7 +19,7 @@ public final class SuccessExecutionRecordDTO extends AbstractExecutionRecordDTO 
   @NotBlank
   private final String recordData;
   @Builder.Default
-  private final Set<Exception> exceptionWarnings = Set.of();
+  private final Set<ExceptionInfoDTO> exceptionWarnings = Set.of();
   private final TierResults tierResults;
 
   private static SuccessExecutionRecordDTOBuilder<?, ?> internalBuilder() {

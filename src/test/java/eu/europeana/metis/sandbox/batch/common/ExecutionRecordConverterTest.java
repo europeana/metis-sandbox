@@ -11,6 +11,7 @@ import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.indexing.utils.LicenseType;
+import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
@@ -18,8 +19,10 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class ExecutionRecordConverterTest {
@@ -36,10 +39,10 @@ class ExecutionRecordConverterTest {
     ExecutionRecord executionRecord = new ExecutionRecord();
     executionRecord.setIdentifier(executionRecordIdentifierKey);
     executionRecord.setRecordData("recordData");
-    //    ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
-    //    executionRecordWarning.setMessage("message");DatasetHarvestControllerTest.
-    //    executionRecordWarning.setException("exception");
-    //    executionRecord.setExecutionRecordWarning(List.of(executionRecordWarning));
+    ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
+    executionRecordWarning.setMessage("message");
+    executionRecordWarning.setException("exception");
+    executionRecord.setExecutionRecordWarning(List.of(executionRecordWarning));
 
     SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordConverter.convertToExecutionRecordDTO(
         executionRecord);
@@ -50,12 +53,20 @@ class ExecutionRecordConverterTest {
     assertEquals(executionRecord.getIdentifier().getSourceRecordId(), successExecutionRecordDTO.getSourceRecordId());
     assertEquals(executionRecord.getIdentifier().getRecordId(), successExecutionRecordDTO.getRecordId());
     assertEquals(executionRecord.getRecordData(), successExecutionRecordDTO.getRecordData());
-    assertTrue(successExecutionRecordDTO.getExceptionWarnings().isEmpty());
+    Set<String> entityWarningSet = executionRecord.getExecutionRecordWarning().stream()
+                                                  .map(w -> w.getMessage() + "-" + w.getException())
+                                                  .collect(Collectors.toSet());
+
+    Set<String> dtoWarningSet = successExecutionRecordDTO.getExceptionWarnings().stream()
+                                                         .map(d -> d.getMessage() + "-" + d.getStackTrace())
+                                                         .collect(Collectors.toSet());
+    assertEquals(entityWarningSet, dtoWarningSet, "Warning sets do not match");
     assertNull(successExecutionRecordDTO.getTierResults());
   }
 
   @Test
   void convertToExecutionRecord() {
+    IllegalArgumentException illegalArgumentException = new IllegalArgumentException("warning");
     SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
         .datasetId("datasetId")
         .sourceRecordId("sourceRecordId")
@@ -63,7 +74,7 @@ class ExecutionRecordConverterTest {
         .executionId("executionId")
         .executionName("executionName")
         .recordData("recordData")
-        .exceptionWarnings(Set.of(new IllegalArgumentException("warning")))
+        .exceptionWarnings(Set.of(ExceptionInfoDTO.from(illegalArgumentException)))
     );
 
     ExecutionRecord executionRecord = ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO);
@@ -92,7 +103,7 @@ class ExecutionRecordConverterTest {
     when(mockTierResults.getMetadataTierLanguage()).thenReturn(MetadataTier.TB);
     when(mockTierResults.getMetadataTierEnablingElements()).thenReturn(MetadataTier.TC);
 
-    SuccessExecutionRecordDTO dto = SuccessExecutionRecordDTO.createValidated(b -> b
+    SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
         .datasetId("datasetId")
         .sourceRecordId("sourceRecordId")
         .recordId("recordId")
@@ -102,8 +113,8 @@ class ExecutionRecordConverterTest {
         .tierResults(mockTierResults)
     );
 
-    Optional<ExecutionRecordTierContext> executionRecordTierContextOptional = ExecutionRecordConverter.convertToExecutionRecordTierContext(
-        dto);
+    Optional<ExecutionRecordTierContext> executionRecordTierContextOptional =
+        ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO);
     assertTrue(executionRecordTierContextOptional.isPresent());
     ExecutionRecordTierContext executionRecordTierContext = executionRecordTierContextOptional.get();
     assertEquals(mockTierResults.getMediaTier().toString(), executionRecordTierContext.getContentTier());
@@ -143,7 +154,7 @@ class ExecutionRecordConverterTest {
         .executionName("executionName")
         .sourceRecordId("sourceRecordId")
         .recordId("recordId")
-        .exception(illegalArgumentException)
+        .exceptionInfoDTO(ExceptionInfoDTO.from(illegalArgumentException))
     );
 
     ExecutionRecordError executionRecordError = ExecutionRecordConverter.converterToExecutionRecordError(
@@ -157,6 +168,6 @@ class ExecutionRecordConverterTest {
     assertEquals(failExecutionRecordDTO.getRecordId(), executionRecordError.getIdentifier().getRecordId());
     assertNotNull(executionRecordError.getException());
     assertTrue(executionRecordError.getException().contains("IllegalArgumentException"));
-    assertEquals(failExecutionRecordDTO.getException().getMessage(), executionRecordError.getMessage());
+    assertEquals(failExecutionRecordDTO.getExceptionInfoDTO().getMessage(), executionRecordError.getMessage());
   }
 }

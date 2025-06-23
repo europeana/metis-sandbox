@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.TestUtils;
 import eu.europeana.metis.sandbox.service.debias.DeBiasRdfInfoExtractor;
-import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasInputRecord;
+import eu.europeana.metis.sandbox.service.debias.DeBiasRdfInfoExtractor.DeBiasInputRecord;
 import eu.europeana.metis.sandbox.service.debias.DeBiasSourceField;
 import eu.europeana.metis.sandbox.service.debias.DeBiasSupportedLanguage;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
@@ -46,11 +46,11 @@ class DeBiasRdfInfoExtractorTest {
     assertNotNull(list);
     list.forEach(item -> assertEquals(DeBiasSourceField.DC_DESCRIPTION, item.sourceField()));
     assertEquals(Set.of("nl", "de", "it", "fr", "en"), list.stream()
-                                                           .map(DeBiasInputRecord::language)
+                                                           .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::language)
                                                            .map(DeBiasSupportedLanguage::getCodeISO6391)
                                                            .collect(Collectors.toSet()));
     assertEquals(expected, list.stream()
-                               .map(DeBiasInputRecord::literal)
+                               .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::literal)
                                .map(item -> item.subSequence(0, 85))
                                .collect(Collectors.toSet())
     );
@@ -67,11 +67,11 @@ class DeBiasRdfInfoExtractorTest {
     assertNotNull(list);
     list.forEach(item -> assertEquals(DeBiasSourceField.DC_TITLE, item.sourceField()));
     assertEquals(Set.of("nl", "de", "it", "fr", "en"), list.stream()
-                                                           .map(DeBiasInputRecord::language)
+                                                           .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::language)
                                                            .map(DeBiasSupportedLanguage::getCodeISO6391)
                                                            .collect(Collectors.toSet()));
     assertEquals(expected, list.stream()
-                               .map(DeBiasInputRecord::literal)
+                               .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::literal)
                                .collect(Collectors.toSet()));
   }
 
@@ -89,11 +89,11 @@ class DeBiasRdfInfoExtractorTest {
     assertNotNull(list);
     list.forEach(item -> assertEquals(DeBiasSourceField.DC_SUBJECT_LITERAL, item.sourceField()));
     assertEquals(Set.of("nl", "de", "it", "fr", "en"), list.stream()
-                                                           .map(DeBiasInputRecord::language)
+                                                           .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::language)
                                                            .map(DeBiasSupportedLanguage::getCodeISO6391)
                                                            .collect(Collectors.toSet()));
     assertEquals(expected, list.stream()
-                               .map(DeBiasInputRecord::literal)
+                               .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::literal)
                                .collect(Collectors.toSet()));
   }
 
@@ -108,11 +108,11 @@ class DeBiasRdfInfoExtractorTest {
     assertNotNull(list);
     list.forEach(item -> assertEquals(DeBiasSourceField.DC_TYPE_LITERAL, item.sourceField()));
     assertEquals(Set.of("nl", "de", "it", "fr", "en"), list.stream()
-                                                           .map(DeBiasInputRecord::language)
+                                                           .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::language)
                                                            .map(DeBiasSupportedLanguage::getCodeISO6391)
                                                            .collect(Collectors.toSet()));
     assertEquals(expected, list.stream()
-                               .map(DeBiasInputRecord::literal)
+                               .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::literal)
                                .collect(Collectors.toSet()));
   }
 

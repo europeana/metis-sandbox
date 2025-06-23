@@ -11,6 +11,7 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_EXTERNAL;
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
 
+import com.google.common.base.Supplier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -73,13 +74,12 @@ public final class WorkflowHelper {
    * @return a list of workflow steps as FullBatchJobType objects
    */
   public static List<FullBatchJobType> getWorkflow(ExecutionMetadata executionMetadata) {
-    WorkflowType workflowType = Optional.of(executionMetadata.getDatasetMetadata().workflowType())
+    WorkflowType workflowType = Optional.of(executionMetadata.getDatasetMetadata().getWorkflowType())
                                         .orElse(WorkflowType.OAI_HARVEST);
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
-    boolean shouldInsertTransformExternal =
-        executionMetadata.getInputMetadata().getTransformXsltEntity() != null &&
-            workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
+    Supplier<Boolean> shouldInsertTransformExternal = () -> executionMetadata.getInputMetadata().getTransformXsltEntity() != null
+        && workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
     return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
   }
@@ -105,8 +105,8 @@ public final class WorkflowHelper {
 
     List<FullBatchJobType> baseSteps = WORKFLOW_BY_WORKFLOW_TYPE.get(workflowType);
 
-    boolean shouldInsertTransformExternal = transformXsltEntity != null &&
-        workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
+    Supplier<Boolean> shouldInsertTransformExternal = () -> transformXsltEntity != null
+        && workflowType != WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
     return conditionallyAddTransformExternalStep(baseSteps, shouldInsertTransformExternal);
   }
@@ -116,17 +116,17 @@ public final class WorkflowHelper {
    *
    * <p>The method checks whether the `shouldInsertTransformExternal` flag is true.
    * <p>If true, it adds a {@link FullBatchJobType#TRANSFORM_EXTERNAL} step directly before a
-   * {@link FullBatchJobType#VALIDATE_EXTERNAL} step in the input list. 
+   * {@link FullBatchJobType#VALIDATE_EXTERNAL} step in the input list.
    * <p>If the flag is false, the input list remains unchanged.
    *
    * @param baseSteps the original list of full batch job steps
-   * @param shouldInsertTransformExternal flag indicating whether to add the `TRANSFORM_EXTERNAL` step
+   * @param shouldInsertTransformExternal function indicating whether to add the `TRANSFORM_EXTERNAL` step
    * @return a list of full batch job types with the conditionally added step
    */
   public static List<FullBatchJobType> conditionallyAddTransformExternalStep(List<FullBatchJobType> baseSteps,
-      boolean shouldInsertTransformExternal) {
+      Supplier<Boolean> shouldInsertTransformExternal) {
     List<FullBatchJobType> finalSteps;
-    if (shouldInsertTransformExternal) {
+    if (shouldInsertTransformExternal.get()) {
       finalSteps = new ArrayList<>();
       for (FullBatchJobType step : baseSteps) {
         if (step == VALIDATE_EXTERNAL) {
@@ -138,6 +138,6 @@ public final class WorkflowHelper {
       finalSteps = baseSteps;
     }
 
-    return finalSteps;
+    return Collections.unmodifiableList(finalSteps);
   }
 }

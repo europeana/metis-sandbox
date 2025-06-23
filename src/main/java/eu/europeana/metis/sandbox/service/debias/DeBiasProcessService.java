@@ -15,18 +15,16 @@ import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
+import eu.europeana.metis.sandbox.service.debias.DeBiasRdfInfoExtractor.DeBiasInputRecord;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.metis.schema.jibx.RDF;
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,14 +127,14 @@ public class DeBiasProcessService {
 
     deBiasInputRecords
         .stream()
-        .collect(groupingBy(DeBiasInputRecord::language))
+        .collect(groupingBy(DeBiasRdfInfoExtractor.DeBiasInputRecord::language))
         .forEach(((deBiasSupportedLanguage, recordDescriptions) ->
             // process by language in batches of DEBIAS_CLIENT_PARTITION_SIZE items per request
             partitionList(recordDescriptions, DEBIAS_CLIENT_PARTITION_SIZE).forEach(partition -> {
               BiasInputLiterals biasInputLiterals = new BiasInputLiterals();
               biasInputLiterals.setUseLLM(true);
               biasInputLiterals.setUseNER(true);
-              biasInputLiterals.setValues(partition.stream().map(DeBiasInputRecord::literal).toList());
+              biasInputLiterals.setValues(partition.stream().map(DeBiasRdfInfoExtractor.DeBiasInputRecord::literal).toList());
               biasInputLiterals.setLanguage(deBiasSupportedLanguage.getCodeISO6391());
               try {
                 switch (deBiasClient.detect(biasInputLiterals)) {
@@ -158,7 +156,7 @@ public class DeBiasProcessService {
               }
               log.info("DeBias execution finished for partition: {}",
                   partition.stream()
-                           .map(DeBiasInputRecord::europeanaId)
+                           .map(DeBiasRdfInfoExtractor.DeBiasInputRecord::europeanaId)
                            .map(Object::toString)
                            .collect(Collectors.joining(",")));
             })));
@@ -197,15 +195,6 @@ public class DeBiasProcessService {
     });
   }
 
-
-  /**
-   * The type DeBias input record.
-   */
-  public record DeBiasInputRecord(String europeanaId, String literal,
-                                  DeBiasSupportedLanguage language,
-                                  DeBiasSourceField sourceField) {
-
-  }
 
   /**
    * The type DeBias report row.
