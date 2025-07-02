@@ -32,7 +32,7 @@
     <version.metis-common>16-SNAPSHOT</version.metis-common>
     <version.metis-normalization>15-SNAPSHOT</version.metis-normalization>
     <version.corelib>2.17.3-SNAPSHOT</version.corelib>
-
+    <version.entity-api-client>2.2</version.entity-api-client>
     <!--External-->
     <version.spring.boot>3.4.4</version.spring.boot>
     <version.springdoc-openapi-starter-webmvc-api>2.8.6</version.springdoc-openapi-starter-webmvc-api>
@@ -175,14 +175,31 @@
       <version>${version.metis}</version>
       <exclusions>
         <exclusion>
-          <groupId>eu.europeana.corelib</groupId>
-          <artifactId>corelib-lookup</artifactId>
+          <groupId>org.apache.maven.surefire</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>dev.morphia.morphia</groupId>
-          <artifactId>morphia-core</artifactId>
+          <artifactId>org.springframework</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>org.springframework.security</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-jaxb-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>eu.europeana.api</groupId>
+          <artifactId>entity-api-client</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.api</groupId>
+      <artifactId>entity-api-client</artifactId>
+      <version>${version.entity-api-client}</version>
     </dependency>
 
     <dependency>
