@@ -43,6 +43,8 @@ public interface DatasetService {
    */
   List<String> getDatasetIdsCreatedBefore(int days);
 
+  List<String> getDatasetIdsCreatedByUser(String creatorId);
+
   /**
    * Remove matching dataset id
    *

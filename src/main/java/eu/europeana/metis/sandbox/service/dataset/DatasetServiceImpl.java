@@ -15,6 +15,7 @@ import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
+import eu.europeana.metis.sandbox.entity.projection.CreatedByView;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.IOException;
@@ -49,7 +50,6 @@ class DatasetServiceImpl implements DatasetService {
         xsltEdmExternalContentStream);
 
     return String.valueOf(entity.getDatasetId());
-
   }
 
   @Override
@@ -65,6 +65,18 @@ class DatasetServiceImpl implements DatasetService {
                               .toList();
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets older than %s days. ", days), e);
+    }
+  }
+
+  @Override
+  public List<String> getDatasetIdsCreatedByUser(String userId) {
+    try {
+      return datasetRepository.getByCreatedByUser(userId).stream()
+                              .map(CreatedByView::getCreatedById)
+                              .map(Object::toString)
+                              .toList();
+    } catch (RuntimeException e) {
+      throw new ServiceException(format("Error getting datasets created by user with userId %s. ", userId), e);
     }
   }
 

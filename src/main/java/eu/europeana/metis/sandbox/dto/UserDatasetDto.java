@@ -3,7 +3,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.common.Status;
+//import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
+
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
 
@@ -17,22 +19,22 @@ public final class UserDatasetDto {
   public static final String SWAGGER_MODEL_NAME = "UserDataset";
 
   @JsonProperty("dataset-id")
-  private final String datasetId;
+  private String datasetId;
 
   @JsonProperty("dataset-name")
-  private final String datasetName;
+  private String datasetName;
 
   @JsonProperty("created-by-id")
-  private final String createdById;
+  private String createdById;
 
   @JsonProperty("creation-date")
-  private final ZonedDateTime creationDate;
+  private ZonedDateTime creationDate;
 
   @JsonProperty("language")
-  private final Language language;
+  private Language language;
 
   @JsonProperty("country")
-  private final Country country;
+  private Country country;
 
   //@JsonProperty("transformed-to-edm-external")
   //private final boolean transformedToEdmExternal;
@@ -41,16 +43,29 @@ public final class UserDatasetDto {
   //private final HarvestingParametricDto harvestingParametricDto;
 
   @JsonProperty("harvest-protocol")
-  private final HarvestProtocol harvestProtocol;
+  private HarvestProtocol harvestProtocol;
 
   @JsonProperty("status")
-  private final Status status;
+  private Status status;
 
   @JsonProperty("total-records")
-  private final Long totalRecords;
+  private Long totalRecords;
 
   @JsonProperty("processed-records")
-  private final Long processedRecords;
+  private Long processedRecords;
+
+  public UserDatasetDto() {
+    this.datasetId = "";
+    this.datasetName = "";
+    this.createdById = "";
+    this.creationDate = ZonedDateTime.now();
+    this.language = Language.EN;
+    this.country = Country.NETHERLANDS;
+    this.harvestProtocol = HarvestProtocol.FILE;
+    this.status = Status.FAILED;
+    this.totalRecords = 0L;
+    this.processedRecords = 0L;
+  }
 
   private UserDatasetDto(Builder builder) {
     this.datasetId = builder.datasetId;
@@ -215,10 +230,46 @@ public final class UserDatasetDto {
     }
   }
 
+  public void setDatasetId(String datasetId) {
+    this.datasetId = datasetId;
+  }
+
+  public void setDatasetName(String datasetName) {
+    this.datasetName = datasetName;
+  }
+
+  public void setCountry(Country country) {
+    this.country = country;
+  }
+
+  public void setLanguage(Language language) {
+    this.language = language;
+  }
+
+  public void setCreationDate(ZonedDateTime creationDate) {
+    this.creationDate = creationDate;
+  }
+
+  public void setHarvestProtocol(HarvestProtocol harvestProtocol) {
+    this.harvestProtocol = harvestProtocol;
+  }
+
+  public void setProcessedRecords(Long processedRecords) {
+    this.processedRecords = processedRecords;
+  }
+
+  public void setTotalRecords(Long totalRecords) {
+    this.totalRecords = totalRecords;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
   /**
-   * Gets the dataset ID.
+   * Gets the dataset id.
    *
-   * @return the dataset ID
+   * @return the dataset id
    */
   public String getDatasetId() {
     return datasetId;

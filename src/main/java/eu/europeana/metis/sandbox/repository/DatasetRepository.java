@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.projection.CreatedByView;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -20,6 +21,8 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<DatasetIdView> getByCreatedDateBefore(ZonedDateTime date);
+
+  List<CreatedByView> getByCreatedByUser(String userId);
 
   /**
    * Updates the value of recordQuantity to the given dataset
