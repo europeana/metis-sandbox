@@ -1,57 +1,51 @@
 package eu.europeana.metis.sandbox.dto;
-import com.fasterxml.jackson.annotation.JsonProperty;
+//import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 //import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 
-import io.swagger.annotations.ApiModel;
+//import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
 
 
 /**
  * Represents information about a user dataset.
  */
-@ApiModel(UserDatasetDto.SWAGGER_MODEL_NAME)
+//@ApiModel(UserDatasetDto.SWAGGER_MODEL_NAME)
 public final class UserDatasetDto {
 
-  public static final String SWAGGER_MODEL_NAME = "UserDataset";
+  //public static final String SWAGGER_MODEL_NAME = "UserDataset";
 
-  @JsonProperty("dataset-id")
+  //@JsonProperty("dataset-id")
   private String datasetId;
 
-  @JsonProperty("dataset-name")
+  //@JsonProperty("dataset-name")
   private String datasetName;
 
-  @JsonProperty("created-by-id")
+  //@JsonProperty("created-by-id")
   private String createdById;
 
-  @JsonProperty("creation-date")
+  //@JsonProperty("creation-date")
   private ZonedDateTime creationDate;
 
-  @JsonProperty("language")
+  //@JsonProperty("language")
   private Language language;
 
-  @JsonProperty("country")
+  //@JsonProperty("country")
   private Country country;
 
-  //@JsonProperty("transformed-to-edm-external")
-  //private final boolean transformedToEdmExternal;
-
-  //@JsonProperty("harvesting-parameters")
-  //private final HarvestingParametricDto harvestingParametricDto;
-
-  @JsonProperty("harvest-protocol")
+  //@JsonProperty("harvest-protocol")
   private HarvestProtocol harvestProtocol;
 
-  @JsonProperty("status")
+  //@JsonProperty("status")
   private Status status;
 
-  @JsonProperty("total-records")
+  //@JsonProperty("total-records")
   private Long totalRecords;
 
-  @JsonProperty("processed-records")
+  //@JsonProperty("processed-records")
   private Long processedRecords;
 
   public UserDatasetDto() {
@@ -67,6 +61,7 @@ public final class UserDatasetDto {
     this.processedRecords = 0L;
   }
 
+  /*
   private UserDatasetDto(Builder builder) {
     this.datasetId = builder.datasetId;
     this.datasetName = builder.datasetName;
@@ -81,10 +76,9 @@ public final class UserDatasetDto {
     this.totalRecords = builder.totalRecords;
     this.processedRecords = builder.processedRecords;
   }
+  */
 
-  /**
-   * Builder class for constructing {@link UserDatasetDto} instances.
-   */
+  /*
   public static class Builder {
 
     private String datasetId;
@@ -100,111 +94,42 @@ public final class UserDatasetDto {
     private Long totalRecords;// = 0L;
     private Long processedRecords;// = 0L;
 
-    /**
-     * Sets the dataset ID.
-     *
-     * @param datasetId the dataset ID
-     * @return the builder instance
-     */
     public Builder datasetId(String datasetId) {
       this.datasetId = datasetId;
       return this;
     }
 
-    /**
-     * Sets the dataset name.
-     *
-     * @param datasetName the name of the dataset
-     * @return the builder instance
-     */
     public Builder datasetName(String datasetName) {
       this.datasetName = datasetName;
       return this;
     }
 
-    /**
-     * Sets the ID of the creator.
-     *
-     * @param createdById the creator's ID
-     * @return the builder instance
-     */
     public Builder createdById(String createdById) {
       this.createdById = createdById;
       return this;
     }
 
-    /**
-     * Sets the creation date of the dataset.
-     *
-     * @param creationDate the creation date
-     * @return the builder instance
-     */
     public Builder creationDate(ZonedDateTime creationDate) {
       this.creationDate = creationDate;
       return this;
     }
 
-    /**
-     * Sets the language of the dataset.
-     *
-     * @param language the language
-     * @return the builder instance
-     */
     public Builder language(Language language) {
       this.language = language;
       return this;
     }
 
-    /**
-     * Sets the country of the dataset.
-     *
-     * @param country the country
-     * @return the builder instance
-     */
     public Builder country(Country country) {
       this.country = country;
       return this;
     }
 
-    /**
-     * Sets whether the dataset was transformed to EDM for external use.
-     *
-     * @param transformedToEdmExternal true if transformed, false otherwise
-     * @return the builder instance
-    public Builder transformedToEdmExternal(boolean transformedToEdmExternal) {
-      this.transformedToEdmExternal = transformedToEdmExternal;
-      return this;
-    }
-    */
 
-    /**
-     * Sets the harvesting parameters for the dataset.
-     *
-     * @param harvestingParametricDto the harvesting parameters
-     * @return the builder instance
-    public Builder harvestingParametricDto(HarvestingParametricDto harvestingParametricDto) {
-      this.harvestingParametricDto = harvestingParametricDto;
-      return this;
-    }
-    */
-
-    /**
-     * Sets the harvest protocol for the dataset.
-     *
-     * @param HarvestProtocol the harvest protocol
-     * @return the builder instance
-     */
     public Builder harvestProtocol(HarvestProtocol harvestProtocol) {
       this.harvestProtocol = harvestProtocol;
       return this;
     }
 
-    /**
-     * Sets the status for the dataset.
-     *
-     * @param Status the status
-     * @return the builder instance
-     */
     public Builder status(Status status) {
       this.status = status;
       return this;
@@ -220,15 +145,11 @@ public final class UserDatasetDto {
       return this;
     }
 
-    /**
-     * Builds the {@link UserDatasetDto} instance.
-     *
-     * @return the constructed UserDatasetDto
-     */
     public UserDatasetDto build() {
       return new UserDatasetDto(this);
     }
   }
+  */
 
   public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
