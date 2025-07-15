@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.controller;
 
-
-
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -11,10 +9,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import eu.europeana.metis.sandbox.dto.UserDatasetDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
-
-//
-import eu.europeana.metis.sandbox.entity.DatasetEntity;
-
 
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -70,11 +64,10 @@ class UserDatasetController {
     public List<UserDatasetDto> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal){
 
       List<DatasetInfoDto> datasetInfos = getDatasetsByCreator(jwtPrincipal);
-      List<UserDatasetDto> userDatasetDtos = new ArrayList<UserDatasetDto>();// getDatasetsByCreator(jwtPrincipal);
+      List<UserDatasetDto> userDatasetDtos = new ArrayList<UserDatasetDto>();
 
       for (int i = 0; i < datasetInfos.size(); i++){
         DatasetInfoDto datasetInfoDto = datasetInfos.get(i);
-
         ProgressInfoDto progressData = reportService.getReport(datasetInfoDto.getDatasetId());
 
         UserDatasetDto userDatasetDto = new UserDatasetDto();
@@ -99,9 +92,6 @@ class UserDatasetController {
       return userDatasetDtos;
     }
 
-
-  // TODO: we need a merged list
-//  private List<DatasetEntity> getDatasetsByCreator(
   private List<DatasetInfoDto> getDatasetsByCreator(
       @AuthenticationPrincipal Jwt jwtPrincipal
     )
@@ -112,17 +102,7 @@ class UserDatasetController {
         } else {
           userId = getUserId(jwtPrincipal);
         }
-        // TODO: I want to change this to return an array of my new type
-        //return ...
-        //
-
-      //  List<DatasetEntity> ids = datasetService.getDatasetIdsCreatedById(userId);
-
-        List<DatasetInfoDto> result = new ArrayList<DatasetInfoDto>();
-        result.add(
-          datasetService.getDatasetInfo(userId)
-        );
-        return result;//  datasetService.getDatasetInfo(userId);
+        return datasetService.getDatasetsCreatedById(userId);
     }
 
 }

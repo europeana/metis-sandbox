@@ -3,6 +3,9 @@ package eu.europeana.metis.sandbox.repository;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.CreatedByView;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
+
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,7 +35,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param userId the user id
    * @return the by created by id
    */
-  List<DatasetEntity> getByCreatedById(String userId);
+  List<DatasetInfoDto> getByCreatedById(String userId);
 
   /**
    * Updates the value of recordQuantity to the given dataset

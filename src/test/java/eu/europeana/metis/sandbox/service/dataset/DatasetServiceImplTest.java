@@ -13,6 +13,7 @@ import static org.mockito.Mockito.times;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.CreatedByView;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
@@ -152,30 +153,20 @@ class DatasetServiceImplTest {
   void updateRecordsLimitExceededToTrue_expectFalse(){
     when(datasetRepository.isXsltPresent(1)).thenReturn(0);
     assertFalse(service.isXsltPresent("1"));
-
   }
 
   @Test
-  void getDatasetIdsCreatedById_expectTrue(){
-
-    DatasetEntity datasetEntity1 = new DatasetEntity();
-    datasetEntity1.setDatasetId(1);
-
-    DatasetEntity datasetEntity2 = new DatasetEntity();
-    datasetEntity2.setDatasetId(2);
-
-    DatasetEntity datasetEntity3 = new DatasetEntity();
-    datasetEntity3.setDatasetId(3);
-
-    DatasetEntity datasetEntity4 = new DatasetEntity();
-    datasetEntity4.setDatasetId(4);
+  void getDatasetsCreatedById_expectTrue(){
+    DatasetInfoDto data1 = new DatasetInfoDto.Builder().datasetId("1").build();
+    DatasetInfoDto data2 = new DatasetInfoDto.Builder().datasetId("2").build();
+    DatasetInfoDto data3 = new DatasetInfoDto.Builder().datasetId("3").build();
+    DatasetInfoDto data4 = new DatasetInfoDto.Builder().datasetId("4").build();
 
     when(datasetRepository.getByCreatedById(any(String.class)))
-        .thenReturn(List.of(datasetEntity1, datasetEntity2, datasetEntity3, datasetEntity4));
+        .thenReturn(List.of(data1, data2, data3, data4));
 
-    var result = service.getDatasetIdsCreatedById("2");
-
-    assertEquals(List.of(datasetEntity1, datasetEntity2, datasetEntity3, datasetEntity4), result);
+    var result = service.getDatasetsCreatedById("2");
+    assertEquals(List.of(data1, data2, data3, data4), result);
   }
 
   private static class DatasetIdViewImpl implements DatasetIdView {
