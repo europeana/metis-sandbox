@@ -3,7 +3,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-//import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
