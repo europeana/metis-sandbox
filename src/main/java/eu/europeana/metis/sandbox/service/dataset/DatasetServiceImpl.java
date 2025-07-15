@@ -69,11 +69,11 @@ class DatasetServiceImpl implements DatasetService {
   }
 
   @Override
-  public List<String> getDatasetIdsCreatedById(String userId) {
+  public List<DatasetEntity> getDatasetIdsCreatedById(String userId) {
     try {
       return datasetRepository.getByCreatedById(userId).stream()
-                              .map(CreatedByView::getCreatedById)
-                              .map(Object::toString)
+                              //.map(CreatedByView::getCreatedById)
+                              //.map(Object::toString)
                               .toList();
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets created by user with userId %s. ", userId), e);

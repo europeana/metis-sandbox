@@ -7,6 +7,10 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.domain.Dataset;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 
+//
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -43,7 +47,7 @@ public interface DatasetService {
    */
   List<String> getDatasetIdsCreatedBefore(int days);
 
-  List<String> getDatasetIdsCreatedById(String creatorId);
+  List<DatasetEntity> getDatasetIdsCreatedById(String creatorId);
 
   /**
    * Remove matching dataset id

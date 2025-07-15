@@ -1,14 +1,20 @@
 package eu.europeana.metis.sandbox.controller;
 
+
+
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-//import com.fasterxml.jackson.annotation.JsonProperty;
 
+//import com.fasterxml.jackson.annotation.JsonProperty;
 //import eu.europeana.metis.sandbox.domain.UserDatasetMetadata;
 
 import eu.europeana.metis.sandbox.dto.UserDatasetDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
+
+//
+import eu.europeana.metis.sandbox.entity.DatasetEntity;
+
 
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -18,6 +24,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,64 +62,47 @@ class UserDatasetController {
         this.reportService = reportService;
     }
 
-/*
-
-
-'creation-date': string;
-'created-by-id': string;
-'dataset-id': string;
-'dataset-name': string;
-country: string;
-language: string;
-
-  i.e. DatasetInfoBase
-
-  without:
-    'harvesting-parameters'
-    'transformed-to-edm-external'
-
-  with:
-
-    'harvest-protocol': HarvestProtocol;
-    status: DatasetStatus;
-    'total-records': number;
-    'processed-records': number;
-
-*/
     @Operation(summary = "Get user's datasets", description = "Get user's datasets")
     @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "400", description = "Error")
     @GetMapping(value = "{id}", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public UserDatasetDto getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal){
+    public List<UserDatasetDto> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal){
 
-      DatasetInfoDto datasetInfo = getDatasetsByCreator(jwtPrincipal);
+      List<DatasetInfoDto> datasetInfos = getDatasetsByCreator(jwtPrincipal);
+      List<UserDatasetDto> userDatasetDtos = new ArrayList<UserDatasetDto>();// getDatasetsByCreator(jwtPrincipal);
 
-      ProgressInfoDto progressData = reportService.getReport(datasetInfo.getDatasetId());
+      for (int i = 0; i < datasetInfos.size(); i++){
+        DatasetInfoDto datasetInfoDto = datasetInfos.get(i);
 
-      UserDatasetDto userDatasetDto = new UserDatasetDto();
+        ProgressInfoDto progressData = reportService.getReport(datasetInfoDto.getDatasetId());
 
-      // commute progressData properties
-      userDatasetDto.setStatus(progressData.getStatus());
-      userDatasetDto.setTotalRecords(progressData.getTotalRecords());
-      userDatasetDto.setProcessedRecords(progressData.getProcessedRecords());
+        UserDatasetDto userDatasetDto = new UserDatasetDto();
+        userDatasetDtos.add(userDatasetDto);
 
-      // commute datasetInfo properties
-      userDatasetDto.setDatasetId(datasetInfo.getDatasetId());
-      userDatasetDto.setDatasetName(datasetInfo.getDatasetName());
+        // commute progressData properties
+        userDatasetDto.setStatus(progressData.getStatus());
+        userDatasetDto.setTotalRecords(progressData.getTotalRecords());
+        userDatasetDto.setProcessedRecords(progressData.getProcessedRecords());
 
-      userDatasetDto.setCountry(datasetInfo.getCountry());
-      userDatasetDto.setLanguage(datasetInfo.getLanguage());
+        // commute datasetInfo properties
+        userDatasetDto.setDatasetId(datasetInfoDto.getDatasetId());
+        userDatasetDto.setDatasetName(datasetInfoDto.getDatasetName());
 
-      userDatasetDto.setHarvestProtocol(datasetInfo.getHarvestingParametricDto().getHarvestProtocol());
-      userDatasetDto.setCreationDate(datasetInfo.getCreationDate());
+        userDatasetDto.setCountry(datasetInfoDto.getCountry());
+        userDatasetDto.setLanguage(datasetInfoDto.getLanguage());
 
-      return userDatasetDto;
+        userDatasetDto.setHarvestProtocol(datasetInfoDto.getHarvestingParametricDto().getHarvestProtocol());
+        userDatasetDto.setCreationDate(datasetInfoDto.getCreationDate());
+      }
+
+      return userDatasetDtos;
     }
 
 
   // TODO: we need a merged list
-  private DatasetInfoDto getDatasetsByCreator(
+//  private List<DatasetEntity> getDatasetsByCreator(
+  private List<DatasetInfoDto> getDatasetsByCreator(
       @AuthenticationPrincipal Jwt jwtPrincipal
     )
     {
@@ -124,9 +114,15 @@ language: string;
         }
         // TODO: I want to change this to return an array of my new type
         //return ...
-        List<String> ids = datasetService.getDatasetIdsCreatedById(userId);
+        //
 
-        return datasetService.getDatasetInfo(userId);
+      //  List<DatasetEntity> ids = datasetService.getDatasetIdsCreatedById(userId);
+
+        List<DatasetInfoDto> result = new ArrayList<DatasetInfoDto>();
+        result.add(
+          datasetService.getDatasetInfo(userId)
+        );
+        return result;//  datasetService.getDatasetInfo(userId);
     }
 
 }

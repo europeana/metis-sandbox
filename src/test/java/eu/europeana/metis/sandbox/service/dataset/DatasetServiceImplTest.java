@@ -14,11 +14,13 @@ import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.projection.CreatedByView;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -151,6 +153,29 @@ class DatasetServiceImplTest {
     when(datasetRepository.isXsltPresent(1)).thenReturn(0);
     assertFalse(service.isXsltPresent("1"));
 
+  }
+
+  @Test
+  void getDatasetIdsCreatedById_expectTrue(){
+
+    DatasetEntity datasetEntity1 = new DatasetEntity();
+    datasetEntity1.setDatasetId(1);
+
+    DatasetEntity datasetEntity2 = new DatasetEntity();
+    datasetEntity2.setDatasetId(2);
+
+    DatasetEntity datasetEntity3 = new DatasetEntity();
+    datasetEntity3.setDatasetId(3);
+
+    DatasetEntity datasetEntity4 = new DatasetEntity();
+    datasetEntity4.setDatasetId(4);
+
+    when(datasetRepository.getByCreatedById(any(String.class)))
+        .thenReturn(List.of(datasetEntity1, datasetEntity2, datasetEntity3, datasetEntity4));
+
+    var result = service.getDatasetIdsCreatedById("2");
+
+    assertEquals(List.of(datasetEntity1, datasetEntity2, datasetEntity3, datasetEntity4), result);
   }
 
   private static class DatasetIdViewImpl implements DatasetIdView {
