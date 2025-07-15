@@ -33,7 +33,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * Gets by created by id.
    *
    * @param userId the user id
-   * @return the by created by id
+   * @return datasets created by the user
    */
   List<DatasetInfoDto> getByCreatedById(String userId);
 

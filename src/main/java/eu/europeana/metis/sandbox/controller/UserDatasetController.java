@@ -59,7 +59,8 @@ class UserDatasetController {
     @Operation(summary = "Get user's datasets", description = "Get user's datasets")
     @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "400", description = "Error")
-    @GetMapping(value = "{id}", produces = APPLICATION_JSON_VALUE)
+    //@GetMapping(value = "{id}", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "user-datasets", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public List<UserDatasetDto> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal){
 

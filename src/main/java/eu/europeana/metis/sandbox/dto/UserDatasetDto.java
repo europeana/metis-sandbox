@@ -1,51 +1,49 @@
 package eu.europeana.metis.sandbox.dto;
-//import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 //import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
-
-//import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
-
 
 /**
  * Represents information about a user dataset.
  */
-//@ApiModel(UserDatasetDto.SWAGGER_MODEL_NAME)
+@ApiModel(UserDatasetDto.SWAGGER_MODEL_NAME)
 public final class UserDatasetDto {
 
-  //public static final String SWAGGER_MODEL_NAME = "UserDataset";
+  public static final String SWAGGER_MODEL_NAME = "UserDataset";
 
-  //@JsonProperty("dataset-id")
+  @JsonProperty("dataset-id")
   private String datasetId;
 
-  //@JsonProperty("dataset-name")
+  @JsonProperty("dataset-name")
   private String datasetName;
 
-  //@JsonProperty("created-by-id")
+  @JsonProperty("created-by-id")
   private String createdById;
 
-  //@JsonProperty("creation-date")
+  @JsonProperty("creation-date")
   private ZonedDateTime creationDate;
 
-  //@JsonProperty("language")
+  @JsonProperty("language")
   private Language language;
 
-  //@JsonProperty("country")
+  @JsonProperty("country")
   private Country country;
 
-  //@JsonProperty("harvest-protocol")
+  @JsonProperty("harvest-protocol")
   private HarvestProtocol harvestProtocol;
 
-  //@JsonProperty("status")
+  @JsonProperty("status")
   private Status status;
 
-  //@JsonProperty("total-records")
+  @JsonProperty("total-records")
   private Long totalRecords;
 
-  //@JsonProperty("processed-records")
+  @JsonProperty("processed-records")
   private Long processedRecords;
 
   public UserDatasetDto() {
