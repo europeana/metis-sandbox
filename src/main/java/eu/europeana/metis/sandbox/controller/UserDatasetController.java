@@ -46,7 +46,7 @@ class UserDatasetController {
     /**
      * getUserDatasets
      *
-     * @param Jwt - the user
+     * @param jwtPrincipal - the user
      *
      * loads the users datasets and combines them with their progress data
      *

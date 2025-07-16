@@ -34,7 +34,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+//import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
@@ -53,19 +54,19 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(classes = {WebMvcConfig.class, UserDatasetController.class, SecurityConfig.class, ControllerErrorHandler.class})
 class UserDatasetControllerTest {
 
-  @MockBean
+  @MockitoBean
   private RateLimitInterceptor rateLimitInterceptor;
 
-  @MockBean
+  @MockitoBean
   private DatasetService datasetService;
 
-  @MockBean
+  @MockitoBean
   private DatasetLogService datasetLogService;
 
-  @MockBean
+  @MockitoBean
   private DatasetReportService datasetReportService;
 
-  @MockBean
+  @MockitoBean
   JwtDecoder jwtDecoder;
 
   @Mock
@@ -82,7 +83,7 @@ class UserDatasetControllerTest {
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     reset(jwtDecoder);
   }
 

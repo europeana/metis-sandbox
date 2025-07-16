@@ -45,7 +45,7 @@ public interface DatasetService {
 
   /**
    * Get datasets created by a specific user
-   * @param the creator id
+   * @param creatorId the creator id
    * @return dataset info dtos
    */
   List<DatasetInfoDto> getDatasetsCreatedById(String creatorId);
