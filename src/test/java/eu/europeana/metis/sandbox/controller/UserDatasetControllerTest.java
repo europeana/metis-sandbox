@@ -19,11 +19,13 @@ import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 import eu.europeana.metis.sandbox.dto.report.TierStatistics;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
+
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
@@ -56,7 +58,6 @@ import org.springframework.http.MediaType;
 
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -113,15 +114,23 @@ class UserDatasetControllerTest {
     reset(jwtDecoder);
   }
 
+  private DatasetInfoDto getFakeDatasetInfoDto(String userId, String id) {
+    return new DatasetInfoDto.Builder()
+      .datasetId(id)
+      .createdById(userId)
+      .harvestingParametricDto(new FileHarvestingDto("fileName", "fileType"))
+      .build();
+  }
+
   @Test
-  //@WithMockUser(username="user", password = "pwd", roles = "USER")
   void getUserDatasets_expectSuccess() throws Exception {
 
     String userId = "user";
     List<DatasetInfoDto> datasetInfoDtos = new ArrayList<DatasetInfoDto>();
-    datasetInfoDtos.add(new DatasetInfoDto.Builder().datasetId("1").createdById(userId).build());
-    datasetInfoDtos.add(new DatasetInfoDto.Builder().datasetId("2").createdById(userId).build());
-    datasetInfoDtos.add(new DatasetInfoDto.Builder().datasetId("3").createdById(userId).build());
+
+    datasetInfoDtos.add(getFakeDatasetInfoDto(userId, "1"));
+    datasetInfoDtos.add(getFakeDatasetInfoDto(userId, "2"));
+    datasetInfoDtos.add(getFakeDatasetInfoDto(userId, "3"));
 
     when(datasetService.getDatasetsCreatedById(userId)).thenReturn(datasetInfoDtos);
 
@@ -134,21 +143,19 @@ class UserDatasetControllerTest {
         tiersZeroInfo);
 
     when(datasetReportService.getReport("1")).thenReturn(report);
+    when(datasetReportService.getReport("2")).thenReturn(report);
+    when(datasetReportService.getReport("3")).thenReturn(report);
 
     mvc.perform(
         get("/user-datasets")
         .with(SecurityMockMvcRequestPostProcessors.jwt()
           .jwt(jwt -> {
-               jwt.claim("sub", "user");
+               jwt.claim("sub", userId);
                jwt.claim("scope", "read write");
            })
         )
       )
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$", hasSize(0)));
-
-      // TODO: it should be 3 but the principal isn't mocked correctly
-      //.andExpect(jsonPath("$", hasSize(3)));
-      //.andExpect(jsonPath("$[0].dataset-id", is("1")))
+      .andExpect(jsonPath("$", hasSize(3)));
   }
 }
