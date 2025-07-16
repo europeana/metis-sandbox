@@ -46,7 +46,11 @@ class UserDatasetController {
     /**
      * getUserDatasets
      *
+     * @param Jwt - the user
+     *
      * loads the users datasets and combines them with their progress data
+     *
+     * @return list of UserDatasetDto
      */
     @Operation(summary = "Get user's datasets", description = "Get user's datasets")
     @ApiResponse(responseCode = "200", description = "Success")
@@ -87,7 +91,8 @@ class UserDatasetController {
   /**
    * getDatasetsByCreator
    *
-   * gets the user's datasets
+   * @param Jwt - the user
+   * @return list of user's datasets
    */
   private List<DatasetInfoDto> getDatasetsByCreator(
       @AuthenticationPrincipal Jwt jwtPrincipal

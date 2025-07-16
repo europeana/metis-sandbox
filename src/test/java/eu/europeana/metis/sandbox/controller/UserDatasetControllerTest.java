@@ -23,8 +23,6 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
-import eu.europeana.metis.security.test.JwtUtils;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -74,11 +72,6 @@ class UserDatasetControllerTest {
   private CompletableFuture<Void> asyncResult;
 
   private static MockMvc mvc;
-  private final JwtUtils jwtUtils;
-
-  public UserDatasetControllerTest() {
-    jwtUtils = new JwtUtils(List.of());
-  }
 
   @BeforeAll
   static void setup(WebApplicationContext context) {
