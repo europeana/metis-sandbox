@@ -3,14 +3,10 @@ package eu.europeana.metis.sandbox.controller;
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-//import com.fasterxml.jackson.annotation.JsonProperty;
-//import eu.europeana.metis.sandbox.domain.UserDatasetMetadata;
-
 import eu.europeana.metis.sandbox.dto.UserDatasetDto;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto;
 
-import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
 
@@ -28,10 +24,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
 /**
  * The type User Dataset controller.
  */
@@ -39,20 +31,15 @@ import org.slf4j.LoggerFactory;
 @Tag(name = "User Dataset Controller")
 class UserDatasetController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserDatasetController.class);
-
   private final DatasetService datasetService;
-  private final DatasetLogService datasetLogService;
   private final DatasetReportService reportService;
 
     @Autowired
     public UserDatasetController(
       DatasetService datasetService,
-      DatasetLogService datasetLogService,
       DatasetReportService reportService
      ) {
         this.datasetService = datasetService;
-        this.datasetLogService = datasetLogService;
         this.reportService = reportService;
     }
 
@@ -64,11 +51,8 @@ class UserDatasetController {
 
     public List<UserDatasetDto> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal){
 
-
-      LOGGER.info("\n\n\n\n\n\n\n\n\n\n");
-
       List<DatasetInfoDto> datasetInfos = getDatasetsByCreator(jwtPrincipal);
-      List<UserDatasetDto> userDatasetDtos = new ArrayList<UserDatasetDto>();
+      List<UserDatasetDto> userDatasetDtos = new ArrayList<>();
 
       for (int i = 0; i < datasetInfos.size(); i++){
         DatasetInfoDto datasetInfoDto = datasetInfos.get(i);
@@ -102,17 +86,10 @@ class UserDatasetController {
     {
         final String userId;
         if (jwtPrincipal == null) {
-
-          LOGGER.info("jwtPrincipal is null");
-
           userId = null;
         } else {
           userId = getUserId(jwtPrincipal);
         }
-
-        LOGGER.info("userId " + userId);
-        LOGGER.info("\n\n\n\n\n\n");
-
         return datasetService.getDatasetsCreatedById(userId);
     }
 

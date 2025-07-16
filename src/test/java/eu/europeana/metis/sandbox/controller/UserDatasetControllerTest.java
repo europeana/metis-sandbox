@@ -122,10 +122,17 @@ class UserDatasetControllerTest {
       .build();
   }
 
-  @Test
-  void getUserDatasets_expectSuccess() throws Exception {
+  private ProgressInfoDto getFakeProgressInfo() {
+    var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
+    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, Collections.emptyList());
+    var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
+        new TierStatistics(0, Collections.emptyList()));
+    return new ProgressInfoDto("https://metis-sandbox",
+        10L, 10L, List.of(createProgress, externalProgress), false, "", emptyList(),
+        tiersZeroInfo);
+  }
 
-    String userId = "user";
+  private void prepateServiceMocks(String userId) {
     List<DatasetInfoDto> datasetInfoDtos = new ArrayList<DatasetInfoDto>();
 
     datasetInfoDtos.add(getFakeDatasetInfoDto(userId, "1"));
@@ -134,17 +141,31 @@ class UserDatasetControllerTest {
 
     when(datasetService.getDatasetsCreatedById(userId)).thenReturn(datasetInfoDtos);
 
-    var createProgress = new ProgressByStepDto(Step.HARVEST_FILE, 10, 0, 0, List.of());
-    var externalProgress = new ProgressByStepDto(Step.VALIDATE_EXTERNAL, 7, 3, 0, Collections.emptyList());
-    var tiersZeroInfo = new TiersZeroInfo(new TierStatistics(0, Collections.emptyList()),
-        new TierStatistics(0, Collections.emptyList()));
-    var report = new ProgressInfoDto("https://metis-sandbox",
-        10L, 10L, List.of(createProgress, externalProgress), false, "", emptyList(),
-        tiersZeroInfo);
+    ProgressInfoDto report = getFakeProgressInfo();
 
     when(datasetReportService.getReport("1")).thenReturn(report);
     when(datasetReportService.getReport("2")).thenReturn(report);
     when(datasetReportService.getReport("3")).thenReturn(report);
+  }
+
+  @Test
+  void getUserDatasets_expectFailure() throws Exception {
+
+    String userId = "user";
+    prepateServiceMocks(userId);
+
+    mvc.perform(
+        get("/user-datasets")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$", hasSize(0)));
+  }
+
+  @Test
+  void getUserDatasets_expectSuccess() throws Exception {
+
+    String userId = "user";
+    prepateServiceMocks(userId);
 
     mvc.perform(
         get("/user-datasets")

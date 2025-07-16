@@ -58,96 +58,6 @@ public final class UserDatasetDto {
     this.processedRecords = 0L;
   }
 
-  /*
-  private UserDatasetDto(Builder builder) {
-    this.datasetId = builder.datasetId;
-    this.datasetName = builder.datasetName;
-    this.createdById = builder.createdById;
-    this.creationDate = builder.creationDate;
-    this.language = builder.language;
-    this.country = builder.country;
-    //this.transformedToEdmExternal = builder.transformedToEdmExternal;
-    //this.harvestingParametricDto = builder.harvestingParametricDto;
-    this.harvestProtocol = builder.harvestProtocol;
-    this.status = builder.status;
-    this.totalRecords = builder.totalRecords;
-    this.processedRecords = builder.processedRecords;
-  }
-  */
-
-  /*
-  public static class Builder {
-
-    private String datasetId;
-    private String datasetName;
-    private String createdById;
-    private ZonedDateTime creationDate;
-    private Language language;
-    private Country country;
-    //private boolean transformedToEdmExternal;
-    //private HarvestingParametricDto harvestingParametricDto;
-    private HarvestProtocol harvestProtocol;
-    private Status status;
-    private Long totalRecords;// = 0L;
-    private Long processedRecords;// = 0L;
-
-    public Builder datasetId(String datasetId) {
-      this.datasetId = datasetId;
-      return this;
-    }
-
-    public Builder datasetName(String datasetName) {
-      this.datasetName = datasetName;
-      return this;
-    }
-
-    public Builder createdById(String createdById) {
-      this.createdById = createdById;
-      return this;
-    }
-
-    public Builder creationDate(ZonedDateTime creationDate) {
-      this.creationDate = creationDate;
-      return this;
-    }
-
-    public Builder language(Language language) {
-      this.language = language;
-      return this;
-    }
-
-    public Builder country(Country country) {
-      this.country = country;
-      return this;
-    }
-
-
-    public Builder harvestProtocol(HarvestProtocol harvestProtocol) {
-      this.harvestProtocol = harvestProtocol;
-      return this;
-    }
-
-    public Builder status(Status status) {
-      this.status = status;
-      return this;
-    }
-
-    public Builder totalRecords(Long totalRecords) {
-      this.totalRecords = totalRecords;
-      return this;
-    }
-
-    public Builder processedRecords(Long processedRecords) {
-      this.processedRecords = processedRecords;
-      return this;
-    }
-
-    public UserDatasetDto build() {
-      return new UserDatasetDto(this);
-    }
-  }
-  */
-
   public void setDatasetId(String datasetId) {
     this.datasetId = datasetId;
   }
@@ -237,24 +147,6 @@ public final class UserDatasetDto {
   public Country getCountry() {
     return country;
   }
-
-  /**
-   * Indicates whether the dataset was transformed to EDM for external use.
-   *
-   * @return true if transformed, false otherwise
-  public boolean isTransformedToEdmExternal() {
-    return transformedToEdmExternal;
-  }
-  */
-
-  /**
-   * Gets the harvesting parameters.
-   *
-   * @return the harvesting parameters
-  public HarvestingParametricDto getHarvestingParametricDto() {
-    return harvestingParametricDto;
-  }
-  */
 
   /**
    * Gets the harvest protocol
