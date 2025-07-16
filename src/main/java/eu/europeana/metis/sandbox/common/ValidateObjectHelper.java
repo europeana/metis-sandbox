@@ -74,9 +74,10 @@ public final class ValidateObjectHelper {
    */
   public static <T> T validate(T obj) {
     Set<ConstraintViolation<T>> violations = validator.validate(obj);
-    if (!violations.isEmpty()) {
+    if (violations.isEmpty()) {
+      return obj;
+    } else {
       throw new ConstraintViolationException(violations);
     }
-    return obj;
   }
 }

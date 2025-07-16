@@ -27,8 +27,12 @@ public interface RecordDeBiasDetailRepository extends JpaRepository<RecordDeBias
    */
   @Modifying
   @Query("""
-      DELETE FROM RecordDeBiasDetailEntity rdd
-            WHERE rdd.debiasId.id IN (SELECT rdm.id FROM RecordDeBiasMainEntity rdm WHERE rdm.datasetId.datasetId = :datasetId)
+          DELETE FROM RecordDeBiasDetailEntity rdd
+          WHERE EXISTS (
+              SELECT 1 FROM RecordDeBiasMainEntity rdm
+              WHERE rdm.id = rdd.debiasId.id
+              AND rdm.datasetId.datasetId = :datasetId
+          )
       """)
   void deleteByDatasetId(@Param("datasetId") String datasetId);
 }

@@ -46,8 +46,9 @@ public class EnrichItemProcessor extends AbstractExecutionRecordMetisItemProcess
           originSuccessExecutionRecordDTO,
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
-          b -> b.recordData(enrichmentProcessingResult.processedRecord())
-                .exceptionWarnings(exceptionInfoDTOs));
+          builder -> builder
+              .recordData(enrichmentProcessingResult.processedRecord())
+              .exceptionWarnings(exceptionInfoDTOs));
     };
   }
 

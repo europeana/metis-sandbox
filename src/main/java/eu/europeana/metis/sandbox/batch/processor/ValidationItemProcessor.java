@@ -45,7 +45,7 @@ public class ValidationItemProcessor extends AbstractExecutionRecordMetisItemPro
           originSuccessExecutionRecordDTO,
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
-          b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
+          builder -> builder.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
   }
 }

@@ -50,9 +50,9 @@ public interface ExecutionRecordErrorRepository extends
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT r.identifier.executionName AS step, COUNT(r) AS count 
-            FROM ExecutionRecordError r 
-            GROUP BY r.identifier.executionName
+      SELECT ere.identifier.executionName AS step, COUNT(ere) AS count 
+            FROM ExecutionRecordError ere 
+            GROUP BY ere.identifier.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 

@@ -42,7 +42,7 @@ public class DebiasItemProcessor extends AbstractExecutionRecordMetisItemProcess
           originSuccessExecutionRecordDTO,
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
-          b -> b.recordData(originSuccessExecutionRecordDTO.getRecordData()));
+          builder -> builder.recordData(originSuccessExecutionRecordDTO.getRecordData()));
     };
   }
 

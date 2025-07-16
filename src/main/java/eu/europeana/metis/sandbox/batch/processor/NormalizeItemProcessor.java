@@ -38,7 +38,7 @@ public class NormalizeItemProcessor extends AbstractExecutionRecordMetisItemProc
           originSuccessExecutionRecordDTO,
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
-          b -> b.recordData(result));
+          builder -> builder.recordData(result));
     };
   }
 }

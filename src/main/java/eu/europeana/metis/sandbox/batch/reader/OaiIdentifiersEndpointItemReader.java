@@ -12,13 +12,10 @@ import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.util.HarvestServiceImpl;
 import jakarta.annotation.PostConstruct;
-import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,7 +75,9 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
   public ExecutionRecordExternalIdentifier read() {
 
     final OaiRecordHeader oaiRecordHeader = takeIdentifier();
-    if (oaiRecordHeader != null) {
+    if (oaiRecordHeader == null) {
+      return null;
+    } else {
       ExecutionRecordExternalIdentifierKey executionRecordIdentifierKey = new ExecutionRecordExternalIdentifierKey();
       executionRecordIdentifierKey.setDatasetId(datasetId);
       executionRecordIdentifierKey.setExecutionId(targetExecutionId);
@@ -90,8 +89,6 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
       recordIdentifier.setDeleted(oaiRecordHeader.isDeleted());
 
       return recordIdentifier;
-    } else {
-      return null;
     }
   }
 
@@ -117,10 +114,10 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
   }
 
   private synchronized OaiRecordHeader takeIdentifier() {
-    if (!oaiRecordHeaders.isEmpty()) {
-      return oaiRecordHeaders.removeFirst();
-    } else {
+    if (oaiRecordHeaders.isEmpty()) {
       return null;
+    } else {
+      return oaiRecordHeaders.removeFirst();
     }
   }
 }

@@ -241,7 +241,7 @@ public class DatasetHarvestController {
 
   private CompressedFileExtension getCompressedFileExtensionTypeFromUploadedFile(MultipartFile uploadedFile) {
     String fileContentType = uploadedFile.getContentType();
-    if (StringUtils.isEmpty(fileContentType)) {
+    if (StringUtils.isBlank(fileContentType)) {
       throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
     }
 
@@ -255,9 +255,9 @@ public class DatasetHarvestController {
       URLConnection connection = url.openConnection();
       fileContentType = connection.getContentType();
 
-      if (fileContentType == null || fileContentType.isBlank()) {
+      if (StringUtils.isBlank(fileContentType)) {
         throw new InvalidCompressedFileException(
-            new Exception("Could not determine file's content type"));
+            new Exception("There was an issue inspecting file's content type"));
       }
 
       return mapContentTypeToExtension(fileContentType);

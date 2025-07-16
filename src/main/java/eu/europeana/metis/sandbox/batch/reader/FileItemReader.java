@@ -70,7 +70,9 @@ public class FileItemReader implements ItemReader<AbstractExecutionRecordDTO> {
   @Override
   public AbstractExecutionRecordDTO read() {
     Entry<String, HarvestedRecord> recordIdAndContent = takeRecordIdAndContent();
-    if (recordIdAndContent != null) {
+    if (recordIdAndContent == null) {
+      return null;
+    } else {
       return SuccessExecutionRecordDTO.createValidated(b -> b
           .datasetId(datasetId)
           .sourceRecordId(recordIdAndContent.getValue().sourceRecordId())
@@ -78,8 +80,6 @@ public class FileItemReader implements ItemReader<AbstractExecutionRecordDTO> {
           .executionId(targetExecutionId)
           .executionName(batchJobType.name())
           .recordData(recordIdAndContent.getValue().recordData()));
-    } else {
-      return null;
     }
   }
 

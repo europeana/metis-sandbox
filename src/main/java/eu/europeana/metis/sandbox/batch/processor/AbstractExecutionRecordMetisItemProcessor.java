@@ -44,7 +44,7 @@ public abstract class AbstractExecutionRecordMetisItemProcessor extends
    */
   public static BiFunction<JobMetadataDTO, Exception, AbstractExecutionRecordDTO> defaultHandler() {
     return (jobMetadataDTO, exception) -> FailExecutionRecordDTO.createValidated(
-        b -> b
+        builder -> builder
             .datasetId(jobMetadataDTO.getSuccessExecutionRecordDTO().getDatasetId())
             .recordId(jobMetadataDTO.getSuccessExecutionRecordDTO().getRecordId())
             .executionId(jobMetadataDTO.getTargetExecutionId())

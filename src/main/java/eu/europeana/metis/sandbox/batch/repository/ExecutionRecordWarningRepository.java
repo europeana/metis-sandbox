@@ -40,9 +40,9 @@ public interface ExecutionRecordWarningRepository extends
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT r.identifier.executionName AS step, COUNT(r) AS count 
-            FROM ExecutionRecord r 
-            GROUP BY r.identifier.executionName
+      SELECT er.identifier.executionName AS step, COUNT(er) AS count 
+            FROM ExecutionRecord er 
+            GROUP BY er.identifier.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 

@@ -41,8 +41,9 @@ public class IndexItemProcessor extends AbstractExecutionRecordMetisItemProcesso
           originSuccessExecutionRecordDTO,
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
-          b -> b.recordData(result.recordData())
-                .tierResults(result.tierResults()));
+          builder -> builder
+              .recordData(result.recordData())
+              .tierResults(result.tierResults()));
     };
   }
 }

@@ -36,7 +36,7 @@ public final class ExecutionRecordConverter {
                                                                  executionRecordWarning.getMessage(),
                                                                  executionRecordWarning.getException()))
                                                              .collect(Collectors.toSet());
-    return SuccessExecutionRecordDTO.createValidated(b -> b
+    return SuccessExecutionRecordDTO.createValidated(builder -> builder
         .datasetId(executionRecord.getIdentifier().getDatasetId())
         .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
         .recordId(executionRecord.getIdentifier().getRecordId())
@@ -79,9 +79,9 @@ public final class ExecutionRecordConverter {
    */
   public static Optional<ExecutionRecordTierContext> convertToExecutionRecordTierContext(
       SuccessExecutionRecordDTO successExecutionRecordDTO) {
-    TierResults tierResults = successExecutionRecordDTO.getTierResults();
+    final TierResults tierResults = successExecutionRecordDTO.getTierResults();
 
-    boolean containsTierFields =
+    final boolean containsTierFields =
         tierResults != null && tierResults.getMediaTier() != null && tierResults.getMetadataTier() != null;
 
     final Optional<ExecutionRecordTierContext> result;
