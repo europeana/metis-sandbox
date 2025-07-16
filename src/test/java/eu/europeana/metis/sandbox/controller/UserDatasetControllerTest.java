@@ -1,9 +1,8 @@
 package eu.europeana.metis.sandbox.controller;
 
-import static eu.europeana.metis.security.test.JwtUtils.BEARER;
-import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
-import static java.util.Collections.emptyList;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.hasSize;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -115,10 +114,8 @@ class UserDatasetControllerTest {
   }
 
   @Test
-  @WithMockUser(username="user", password = "pwd", roles = "USER")
+  //@WithMockUser(username="user", password = "pwd", roles = "USER")
   void getUserDatasets_expectSuccess() throws Exception {
-
-    when(jwtDecoder.decode(MOCK_VALID_TOKEN)).thenReturn(jwtUtils.getEmptyRoleJwt());
 
     String userId = "user";
     List<DatasetInfoDto> datasetInfoDtos = new ArrayList<DatasetInfoDto>();
@@ -140,10 +137,12 @@ class UserDatasetControllerTest {
 
     mvc.perform(
         get("/user-datasets")
-
-        .accept(MediaType.APPLICATION_JSON)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-        .contentType(MediaType.APPLICATION_JSON)
+        .with(SecurityMockMvcRequestPostProcessors.jwt()
+          .jwt(jwt -> {
+               jwt.claim("sub", "user");
+               jwt.claim("scope", "read write");
+           })
+        )
       )
       .andExpect(status().isOk())
       .andExpect(jsonPath("$", hasSize(0)));
