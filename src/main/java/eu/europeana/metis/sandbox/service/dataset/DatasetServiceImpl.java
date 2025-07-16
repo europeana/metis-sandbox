@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -29,12 +30,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class DatasetServiceImpl implements DatasetService {
 
+  private final HarvestingParameterRepository harvestingParameterRepository;
   private final DatasetRepository datasetRepository;
   private final HarvestingParameterService harvestingParameterService;
 
-  public DatasetServiceImpl(DatasetRepository datasetRepository, HarvestingParameterService harvestingParameterService) {
+  public DatasetServiceImpl(DatasetRepository datasetRepository,
+      HarvestingParameterRepository harvestingParameterRepository,
+      HarvestingParameterService harvestingParameterService) {
     this.datasetRepository = datasetRepository;
     this.harvestingParameterService = harvestingParameterService;
+    this.harvestingParameterRepository = harvestingParameterRepository;
   }
 
   @Override
@@ -73,8 +78,30 @@ class DatasetServiceImpl implements DatasetService {
   @Override
   public List<DatasetInfoDto> getDatasetsCreatedById(String userId) {
     try {
-      return datasetRepository.getByCreatedById(userId).stream()
-                              .toList();
+      return harvestingParameterRepository
+          .getHarvestingParameterEntitiesByDatasetId_CreatedById(userId)
+          .stream()
+          .map(entity -> {
+                HarvestingParametricDto harvestingParametricDto = null;
+                switch (entity.getProtocol()) {
+                  case FILE -> harvestingParametricDto = new FileHarvestingDto(entity.getFileName(), entity.getFileType());
+                  case HTTP -> harvestingParametricDto = new HttpHarvestingDto(entity.getUrl());
+                  case OAI_PMH -> harvestingParametricDto = new OAIPmhHarvestingDto(entity.getUrl(), entity.getSetSpec(),
+                      entity.getMetadataFormat());
+                }
+                return new DatasetInfoDto
+                    .Builder()
+                    .datasetName(entity.getDatasetId().getDatasetName())
+                    .datasetId(String.valueOf(entity.getDatasetId().getDatasetId()))
+                    .createdById(userId)
+                    .creationDate(entity.getDatasetId().getCreatedDate())
+                    .country(entity.getDatasetId().getCountry())
+                    .language(entity.getDatasetId().getLanguage())
+                    .harvestingParametricDto(harvestingParametricDto)
+                    .build();
+              }
+          )
+          .toList();
     } catch (RuntimeException e) {
       throw new ServiceException(format("Error getting datasets created by user with userId %s. ", userId), e);
     }
