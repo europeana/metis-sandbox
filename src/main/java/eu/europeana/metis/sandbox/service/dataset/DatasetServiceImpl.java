@@ -15,7 +15,6 @@ import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
 import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
-import eu.europeana.metis.sandbox.entity.projection.CreatedByView;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import java.io.IOException;
@@ -68,6 +67,9 @@ class DatasetServiceImpl implements DatasetService {
     }
   }
 
+  /**
+   * Get datasets created by a specific user
+   */
   @Override
   public List<DatasetInfoDto> getDatasetsCreatedById(String userId) {
     try {

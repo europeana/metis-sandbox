@@ -43,12 +43,16 @@ class UserDatasetController {
         this.reportService = reportService;
     }
 
+    /**
+     * getUserDatasets
+     *
+     * loads the users datasets and combines them with their progress data
+     */
     @Operation(summary = "Get user's datasets", description = "Get user's datasets")
     @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "404", description = "User Datatsets not found")
     @ApiResponse(responseCode = "400", description = "Error")
     @GetMapping(value = "/user-datasets", produces = APPLICATION_JSON_VALUE)
-
     public List<UserDatasetDto> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal){
 
       List<DatasetInfoDto> datasetInfos = getDatasetsByCreator(jwtPrincipal);
@@ -80,10 +84,14 @@ class UserDatasetController {
       return userDatasetDtos;
     }
 
+  /**
+   * getDatasetsByCreator
+   *
+   * gets the user's datasets
+   */
   private List<DatasetInfoDto> getDatasetsByCreator(
       @AuthenticationPrincipal Jwt jwtPrincipal
-    )
-    {
+    ) {
         final String userId;
         if (jwtPrincipal == null) {
           userId = null;

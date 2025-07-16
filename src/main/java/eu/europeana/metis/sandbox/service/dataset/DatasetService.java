@@ -43,6 +43,9 @@ public interface DatasetService {
    */
   List<String> getDatasetIdsCreatedBefore(int days);
 
+  /**
+   * Get datasets created by a specific user
+   */
   List<DatasetInfoDto> getDatasetsCreatedById(String creatorId);
 
   /**

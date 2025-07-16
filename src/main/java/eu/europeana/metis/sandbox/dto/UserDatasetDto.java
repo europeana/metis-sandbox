@@ -45,6 +45,9 @@ public final class UserDatasetDto {
   @JsonProperty("processed-records")
   private Long processedRecords;
 
+  /**
+   * constructor / default initialisation
+   */
   public UserDatasetDto() {
     this.datasetId = "";
     this.datasetName = "";
