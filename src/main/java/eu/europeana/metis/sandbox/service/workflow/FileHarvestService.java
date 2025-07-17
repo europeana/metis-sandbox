@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.util.HarvestServiceImpl;
+import eu.europeana.metis.sandbox.service.util.HarvestService;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -15,7 +15,6 @@ import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +23,6 @@ import java.util.UUID;
 import lombok.experimental.StandardException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,17 +34,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileHarvestService {
 
-  private final HarvestServiceImpl harvestServiceImpl;
+  private final HarvestService harvestService;
   private final HarvestParameterService harvestParameterService;
 
   /**
    * Constructor.
    *
-   * @param harvestServiceImpl provides implementation of harvest processing logic
+   * @param harvestService provides implementation of harvest processing logic
    * @param harvestParameterService facilitates access to harvest parameters from the dataset
    */
-  public FileHarvestService(HarvestServiceImpl harvestServiceImpl, HarvestParameterService harvestParameterService) {
-    this.harvestServiceImpl = harvestServiceImpl;
+  public FileHarvestService(HarvestService harvestService, HarvestParameterService harvestParameterService) {
+    this.harvestService = harvestService;
     this.harvestParameterService = harvestParameterService;
   }
 
@@ -87,7 +84,7 @@ public class FileHarvestService {
       String stringData = getStringData(inputStream);
       recordIdAndContent.put(fileName, stringData);
     } else {
-      recordIdAndContent.putAll(harvestServiceImpl.harvestFromCompressedArchive(inputStream, stepSize,
+      recordIdAndContent.putAll(harvestService.harvestFromCompressedArchive(inputStream, stepSize,
           CompressedFileExtension.valueOf(fileType.name())));
     }
 

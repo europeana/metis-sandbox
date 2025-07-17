@@ -7,11 +7,8 @@ import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
-import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -44,7 +41,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
    * @param patternAnalysisService The service to analyze patterns for a specific batch job type and execution point.
    * @param executionPointService The service to manage execution point entities.
    */
-  //todo: Assuming datasetId uniqueness(therefore no lock) due to sandbox
+  //todo MET-6692: This looks fine, todo comment to be removed with ticket completion.
   public ProblemPatternsStepExecutionListener(PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService,
       ExecutionPointService executionPointService) {
     this.patternAnalysisService = patternAnalysisService;

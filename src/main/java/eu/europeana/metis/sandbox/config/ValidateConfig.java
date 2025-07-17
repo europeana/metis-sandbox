@@ -23,8 +23,8 @@ class ValidateConfig {
   @Value("${sandbox.validation.executor.pool-size}")
   private Integer threadCount;
 
-  //TODO: 04-03-2021 We should remove this configuration once
-  //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
+  //TODO MET-3450: 04-03-2021 We should remove this configuration once
+  //TODO: XsltTransformation allows local files.
   @Value("${sandbox.validation.edm-sorter-url}")
   private String edmSorterUrl;
 

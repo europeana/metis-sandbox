@@ -14,7 +14,6 @@ import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -31,8 +30,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,7 +39,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class HarvestServiceImpl {
+public class HarvestService {
 
   private static final int DEFAULT_STEP_SIZE = 1;
   private static final int STOP_WATCH_INTERNAL = 10;
@@ -59,7 +56,7 @@ public class HarvestServiceImpl {
    * @param maxRecords maximum number of records that can be processed during harvesting
    */
   @Autowired
-  public HarvestServiceImpl(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
+  public HarvestService(HttpHarvester httpHarvester, OaiHarvester oaiHarvester,
       @Value("${sandbox.dataset.max-size}") int maxRecords) {
     this.httpHarvester = httpHarvester;
     this.oaiHarvester = oaiHarvester;

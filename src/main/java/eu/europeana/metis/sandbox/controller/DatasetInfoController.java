@@ -104,7 +104,7 @@ public class DatasetInfoController {
     return Language.getLanguageListSortedByName().stream().map(LanguageView::new).toList();
   }
 
-  //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
+  //todo MET-6691: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
   static class CountryView {
 
     @JsonProperty("name")
@@ -123,7 +123,7 @@ public class DatasetInfoController {
     }
   }
 
-  //todo: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
+  //todo MET-6691: This is a copy of the metis-core class, once the metis-core is used as orchestrator this class should be removed.
   static class LanguageView {
 
     @JsonProperty("name")

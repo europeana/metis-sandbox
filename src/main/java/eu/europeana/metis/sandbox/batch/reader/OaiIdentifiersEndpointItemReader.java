@@ -10,7 +10,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.util.HarvestServiceImpl;
+import eu.europeana.metis.sandbox.service.util.HarvestService;
 import jakarta.annotation.PostConstruct;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,19 +51,19 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
   //todo: Align with the FileItemReader. Here we harvestParameterService but in FileItemReader is in FileHarvestService
   private final HarvestParameterService harvestParameterService;
-  private final HarvestServiceImpl harvestServiceImpl;
+  private final HarvestService harvestService;
   private final List<OaiRecordHeader> oaiRecordHeaders = new LinkedList<>();
 
   /**
    * Constructor with service parameters.
    *
    * @param harvestParameterService The service used to access and manage harvest parameters.
-   * @param harvestServiceImpl The service used to perform harvesting operations.
+   * @param harvestService The service used to perform harvesting operations.
    */
   public OaiIdentifiersEndpointItemReader(HarvestParameterService harvestParameterService,
-      HarvestServiceImpl harvestServiceImpl) {
+      HarvestService harvestService) {
     this.harvestParameterService = harvestParameterService;
-    this.harvestServiceImpl = harvestServiceImpl;
+    this.harvestService = harvestService;
   }
 
   @PostConstruct
@@ -109,7 +109,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
     log.info("Harvesting identifiers for {}", oaiEndpoint);
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    oaiRecordHeaders.addAll(harvestServiceImpl.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize)));
+    oaiRecordHeaders.addAll(harvestService.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize)));
     log.info("Identifiers harvested");
   }
 

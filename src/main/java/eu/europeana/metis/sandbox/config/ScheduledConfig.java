@@ -102,7 +102,7 @@ class ScheduledConfig {
     }
 
     @Scheduled(cron = "#{@getDatasetCleanFrequency}")
-    void remove() {
+    void cleanOldDatasets() {
       log.info("Start daily dataset clean up for last {} days", daysToPreserve);
       dataCleanupService.remove(daysToPreserve);
       log.info("Finish daily dataset clean up");

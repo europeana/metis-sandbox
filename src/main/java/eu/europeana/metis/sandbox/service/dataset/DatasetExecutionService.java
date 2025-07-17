@@ -176,7 +176,7 @@ public class DatasetExecutionService {
    */
   public boolean createAndExecuteDatasetForDebias(String datasetId) {
 
-    //todo: if the debias db creates DatasetDeBiasEntity that is unique a lock is not needed perse?
+    //todo MET-6692: if the debias db creates DatasetDeBiasEntity that is unique a lock is not needed perse?
     final Lock lock = datasetIdLocksMap.computeIfAbsent(datasetId, s -> lockRegistry.obtain("debiasProcess_" + datasetId));
     try {
       lock.lock();
