@@ -42,8 +42,6 @@ public final class WorkflowHelper {
 
   private static final List<FullBatchJobType> ONLY_DEBIAS = List.of(FullBatchJobType.DEBIAS);
 
-  private static final List<FullBatchJobType> OLD_HARVEST_WORKFLOW_DISPLAY =
-      prepend(HARVEST_OAI, prepend(HARVEST_FILE, COMMON_POST_HARVEST));
   private static final List<FullBatchJobType> HARVEST_OAI_WORKFLOW = prepend(HARVEST_OAI, COMMON_POST_HARVEST);
   private static final List<FullBatchJobType> HARVEST_FILE_WORKFLOW = prepend(HARVEST_FILE, COMMON_POST_HARVEST);
   private static final List<FullBatchJobType> HARVEST_FILE_UNTIL_VALIDATION = prepend(HARVEST_FILE, ONLY_VALIDATION);
@@ -52,7 +50,6 @@ public final class WorkflowHelper {
       WorkflowType.OAI_HARVEST, HARVEST_OAI_WORKFLOW,
       WorkflowType.FILE_HARVEST, HARVEST_FILE_WORKFLOW,
       WorkflowType.FILE_HARVEST_ONLY_VALIDATION, HARVEST_FILE_UNTIL_VALIDATION,
-      WorkflowType.OLD_HARVEST, OLD_HARVEST_WORKFLOW_DISPLAY,
       WorkflowType.DEBIAS, ONLY_DEBIAS
   );
 

@@ -78,7 +78,7 @@ public class ValidationService {
 
   private String reorderFileContent(String recordData) throws ValidationException {
     try (XsltTransformer xsltTransformer = xsltTransformerFactory.getObject()) {
-      StringWriter writer = null;
+      StringWriter writer;
       try {
         writer = xsltTransformer.transform(recordData.getBytes(StandardCharsets.UTF_8), null);
       } catch (TransformationException e) {

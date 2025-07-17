@@ -8,6 +8,6 @@ package eu.europeana.metis.sandbox.entity;
  * <p>Note: This is a temporary implementation for workflow handling in sandbox.
  */
 public enum WorkflowType {
-  OAI_HARVEST, FILE_HARVEST, FILE_HARVEST_ONLY_VALIDATION, OLD_HARVEST,
+  OAI_HARVEST, FILE_HARVEST, FILE_HARVEST_ONLY_VALIDATION,
   DEBIAS
 }
