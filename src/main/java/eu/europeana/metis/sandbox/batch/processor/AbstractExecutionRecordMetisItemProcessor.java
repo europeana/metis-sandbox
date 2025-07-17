@@ -47,6 +47,7 @@ public abstract class AbstractExecutionRecordMetisItemProcessor extends
         builder -> builder
             .datasetId(jobMetadataDTO.getSuccessExecutionRecordDTO().getDatasetId())
             .recordId(jobMetadataDTO.getSuccessExecutionRecordDTO().getRecordId())
+            .sourceRecordId(jobMetadataDTO.getSuccessExecutionRecordDTO().getSourceRecordId())
             .executionId(jobMetadataDTO.getTargetExecutionId())
             .executionName(jobMetadataDTO.getTargetExecutionName())
             .exceptionInfoDTO(ExceptionInfoDTO.from(exception))

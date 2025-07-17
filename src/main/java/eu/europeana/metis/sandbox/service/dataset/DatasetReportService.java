@@ -186,7 +186,7 @@ public class DatasetReportService {
 
       executionProgressByStepDTOS.add(executionProgressByStepDto);
 
-      previousTotalRecords = currentTotalRecords;
+      previousTotalRecords = stepStatistics.totalSuccess;
       previousCompleted = (currentTotalRecords == totalRecords);
     }
 
