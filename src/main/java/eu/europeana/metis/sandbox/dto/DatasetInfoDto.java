@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import io.swagger.annotations.ApiModel;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 
 /**
@@ -232,5 +233,22 @@ public final class DatasetInfoDto {
    */
   public HarvestingParametricDto getHarvestingParametricDto() {
     return harvestingParametricDto;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof DatasetInfoDto that)) {
+      return false;
+    }
+
+    return transformedToEdmExternal == that.transformedToEdmExternal && Objects.equals(datasetId, that.datasetId)
+        && Objects.equals(datasetName, that.datasetName) && Objects.equals(createdById, that.createdById)
+        && Objects.equals(creationDate, that.creationDate) && language == that.language && country == that.country
+        && Objects.equals(harvestingParametricDto, that.harvestingParametricDto);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(datasetId,datasetName,createdById,creationDate,language,country,transformedToEdmExternal,harvestingParametricDto);
   }
 }
