@@ -49,7 +49,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
   @Value("#{jobParameters['stepSize']}")
   private String stepSize;
 
-  //todo: Align with the FileItemReader. Here we harvestParameterService but in FileItemReader is in FileHarvestService
+  //todo 6695: Align with the FileItemReader. Here we harvestParameterService but in FileItemReader is in FileHarvestService
   private final HarvestParameterService harvestParameterService;
   private final HarvestService harvestService;
   private final List<OaiRecordHeader> oaiRecordHeaders = new LinkedList<>();
