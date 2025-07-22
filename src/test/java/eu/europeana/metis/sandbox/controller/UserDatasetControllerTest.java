@@ -4,15 +4,20 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import eu.europeana.metis.sandbox.common.locale.Country;
 
 import eu.europeana.metis.sandbox.common.Step;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.ControllerErrorHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
+
 import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressByStepDto;
@@ -23,9 +28,11 @@ import eu.europeana.metis.sandbox.dto.report.TiersZeroInfo;
 import eu.europeana.metis.sandbox.service.dataset.DatasetLogService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetService;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
+import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,6 +97,8 @@ class UserDatasetControllerTest {
     return new DatasetInfoDto.Builder()
       .datasetId(id)
       .createdById(userId)
+      .creationDate(ZonedDateTime.now())
+      .country(Country.FRANCE)
       .harvestingParametricDto(new FileHarvestingDto("fileName", "fileType"))
       .build();
   }
@@ -144,11 +153,17 @@ class UserDatasetControllerTest {
         .with(SecurityMockMvcRequestPostProcessors.jwt()
           .jwt(jwt -> {
                jwt.claim("sub", userId);
-               jwt.claim("scope", "read write");
+               jwt.claim("scope", "read");
            })
         )
       )
       .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0]['harvest-protocol']", is("FILE")))
+      .andExpect(jsonPath("$[0]['country']", is("France")))
+      .andExpect(jsonPath("$[0]['creation-date']", notNullValue()))
+      .andExpect(jsonPath("$[0]['status']", is("COMPLETED")))
+      .andExpect(jsonPath("$[0]['processed-records']", is(10)))
+      .andExpect(jsonPath("$[0]['total-records']", is(10)))
       .andExpect(jsonPath("$", hasSize(3)));
   }
 }
