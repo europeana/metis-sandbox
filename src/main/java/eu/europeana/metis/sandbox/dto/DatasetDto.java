@@ -1,16 +1,15 @@
-package eu.europeana.metis.sandbox.dto.report;
+package eu.europeana.metis.sandbox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
  * Represents information about a dataset.
  */
-public abstract class AbstractDatasetDto {
+public class DatasetDto {
 
   @JsonProperty("dataset-id")
   private final String datasetId;
@@ -30,7 +29,7 @@ public abstract class AbstractDatasetDto {
   @JsonProperty("country")
   private final Country country;
 
-  protected AbstractDatasetDto(Builder<?> builder) {
+  protected DatasetDto(AbstractBuilder<?> builder) {
     this.datasetId = builder.datasetId;
     this.datasetName = builder.datasetName;
     this.createdById = builder.createdById;
@@ -41,8 +40,9 @@ public abstract class AbstractDatasetDto {
 
   /**
    * Builder class for constructing {@link DatasetInfoDto} instances.
+   * @param <B> The type of the builder instance to return when chaining.
    */
-  public static abstract class Builder<B extends Builder<?>> {
+  public abstract static class AbstractBuilder<B extends AbstractBuilder<?>> {
 
     private String datasetId;
     private String datasetName;
@@ -176,7 +176,7 @@ public abstract class AbstractDatasetDto {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof AbstractDatasetDto that)) {
+    if (!(o instanceof DatasetDto that)) {
       return false;
     }
 

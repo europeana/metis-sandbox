@@ -2,15 +2,15 @@ package eu.europeana.metis.sandbox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
-import eu.europeana.metis.sandbox.dto.report.AbstractDatasetDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import io.swagger.annotations.ApiModel;
+import java.util.Objects;
 
 /**
  * Represents information about a user dataset.
  */
 @ApiModel(UserDatasetDto.SWAGGER_MODEL_NAME)
-public final class UserDatasetDto extends AbstractDatasetDto {
+public final class UserDatasetDto extends DatasetDto {
 
   public static final String SWAGGER_MODEL_NAME = "UserDataset";
 
@@ -40,7 +40,7 @@ public final class UserDatasetDto extends AbstractDatasetDto {
   /**
    * Builder class for constructing {@link DatasetInfoDto} instances.
    */
-  public static class Builder extends AbstractDatasetDto.Builder<Builder> {
+  public static class Builder extends AbstractBuilder<Builder> {
 
     private HarvestProtocol harvestProtocol;
     private Status status;
@@ -52,21 +52,45 @@ public final class UserDatasetDto extends AbstractDatasetDto {
       return this;
     }
 
+    /**
+     * Sets the protocol through which the dataset was uploaded.
+     *
+     * @param harvestProtocol the protocol through which the dataset was uploaded
+     * @return the builder instance
+     */
     public Builder harvestProtocol(HarvestProtocol harvestProtocol) {
       this.harvestProtocol = harvestProtocol;
       return this;
     }
 
+    /**
+     * Sets the status of the dataset.
+     *
+     * @param status the status of the dataset
+     * @return the builder instance
+     */
     public Builder status(Status status) {
       this.status = status;
       return this;
     }
 
+    /**
+     * Sets the total count of records.
+     *
+     * @param totalRecords the total count of records
+     * @return the builder instance
+     */
     public Builder totalRecords(Long totalRecords) {
       this.totalRecords = totalRecords;
       return this;
     }
 
+    /**
+     * Sets the count of processed records.
+     *
+     * @param processedRecords the count of processed records
+     * @return the builder instance
+     */
     public Builder processedRecords(Long processedRecords) {
       this.processedRecords = processedRecords;
       return this;
@@ -108,4 +132,22 @@ public final class UserDatasetDto extends AbstractDatasetDto {
     return processedRecords;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    UserDatasetDto that = (UserDatasetDto) o;
+    return harvestProtocol == that.harvestProtocol && status == that.status
+        && Objects.equals(totalRecords, that.totalRecords) && Objects.equals(
+        processedRecords, that.processedRecords);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), harvestProtocol, status, totalRecords, processedRecords);
+  }
 }

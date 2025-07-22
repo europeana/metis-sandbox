@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.dto.report.AbstractDatasetDto;
 import io.swagger.annotations.ApiModel;
 import java.util.Objects;
 
@@ -10,7 +9,7 @@ import java.util.Objects;
  * Represents information about a dataset.
  */
 @ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
-public final class DatasetInfoDto extends AbstractDatasetDto {
+public final class DatasetInfoDto extends DatasetDto {
 
   public static final String SWAGGER_MODEL_NAME = "DatasetInfo";
 
@@ -29,7 +28,7 @@ public final class DatasetInfoDto extends AbstractDatasetDto {
   /**
    * Builder class for constructing {@link DatasetInfoDto} instances.
    */
-  public static class Builder extends AbstractDatasetDto.Builder<Builder> {
+  public static class Builder extends AbstractBuilder<Builder> {
 
     private boolean transformedToEdmExternal;
     private HarvestingParametricDto harvestingParametricDto;
