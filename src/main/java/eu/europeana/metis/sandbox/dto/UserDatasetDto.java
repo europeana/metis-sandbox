@@ -1,154 +1,85 @@
 package eu.europeana.metis.sandbox.dto;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.report.AbstractDatasetDto;
 import eu.europeana.metis.sandbox.dto.report.ProgressInfoDto.Status;
 import io.swagger.annotations.ApiModel;
-import java.time.ZonedDateTime;
 
 /**
  * Represents information about a user dataset.
  */
 @ApiModel(UserDatasetDto.SWAGGER_MODEL_NAME)
-public final class UserDatasetDto {
+public final class UserDatasetDto extends AbstractDatasetDto {
 
   public static final String SWAGGER_MODEL_NAME = "UserDataset";
 
-  @JsonProperty("dataset-id")
-  private String datasetId;
-
-  @JsonProperty("dataset-name")
-  private String datasetName;
-
-  @JsonProperty("created-by-id")
-  private String createdById;
-
-  @JsonProperty("creation-date")
-  private ZonedDateTime creationDate;
-
-  @JsonProperty("language")
-  private Language language;
-
-  @JsonProperty("country")
-  private Country country;
-
   @JsonProperty("harvest-protocol")
-  private HarvestProtocol harvestProtocol;
+  private final HarvestProtocol harvestProtocol;
 
   @JsonProperty("status")
-  private Status status;
+  private final Status status;
 
   @JsonProperty("total-records")
-  private Long totalRecords;
+  private final Long totalRecords;
 
   @JsonProperty("processed-records")
-  private Long processedRecords;
+  private final Long processedRecords;
 
   /**
    * constructor / default initialisation
    */
-  public UserDatasetDto() {
-    this.datasetId = "";
-    this.datasetName = "";
-    this.createdById = "";
-    this.creationDate = ZonedDateTime.now();
-    this.language = Language.EN;
-    this.country = Country.NETHERLANDS;
-    this.harvestProtocol = HarvestProtocol.FILE;
-    this.status = Status.FAILED;
-    this.totalRecords = 0L;
-    this.processedRecords = 0L;
-  }
-
-  public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
-  }
-
-  public void setCountry(Country country) {
-    this.country = country;
-  }
-
-  public void setLanguage(Language language) {
-    this.language = language;
-  }
-
-  public void setCreationDate(ZonedDateTime creationDate) {
-    this.creationDate = creationDate;
-  }
-
-  public void setHarvestProtocol(HarvestProtocol harvestProtocol) {
-    this.harvestProtocol = harvestProtocol;
-  }
-
-  public void setProcessedRecords(Long processedRecords) {
-    this.processedRecords = processedRecords;
-  }
-
-  public void setTotalRecords(Long totalRecords) {
-    this.totalRecords = totalRecords;
-  }
-
-  public void setStatus(Status status) {
-    this.status = status;
+  private UserDatasetDto(Builder builder) {
+    super(builder);
+    this.harvestProtocol = builder.harvestProtocol;
+    this.status = builder.status;
+    this.totalRecords = builder.totalRecords;
+    this.processedRecords = builder.processedRecords;
   }
 
   /**
-   * Gets the dataset id.
-   *
-   * @return the dataset id
+   * Builder class for constructing {@link DatasetInfoDto} instances.
    */
-  public String getDatasetId() {
-    return datasetId;
-  }
+  public static class Builder extends AbstractDatasetDto.Builder<Builder> {
 
-  /**
-   * Gets the dataset name.
-   *
-   * @return the dataset name
-   */
-  public String getDatasetName() {
-    return datasetName;
-  }
+    private HarvestProtocol harvestProtocol;
+    private Status status;
+    private Long totalRecords;
+    private Long processedRecords;
 
-  /**
-   * Gets the ID of the creator.
-   *
-   * @return the creator ID
-   */
-  public String getCreatedById() {
-    return createdById;
-  }
+    @Override
+    protected Builder getThisInstance() {
+      return this;
+    }
 
-  /**
-   * Gets the creation date.
-   *
-   * @return the creation date
-   */
-  public ZonedDateTime getCreationDate() {
-    return creationDate;
-  }
+    public Builder harvestProtocol(HarvestProtocol harvestProtocol) {
+      this.harvestProtocol = harvestProtocol;
+      return this;
+    }
 
-  /**
-   * Gets the language of the dataset.
-   *
-   * @return the language
-   */
-  public Language getLanguage() {
-    return language;
-  }
+    public Builder status(Status status) {
+      this.status = status;
+      return this;
+    }
 
-  /**
-   * Gets the country of the dataset.
-   *
-   * @return the country
-   */
-  public Country getCountry() {
-    return country;
+    public Builder totalRecords(Long totalRecords) {
+      this.totalRecords = totalRecords;
+      return this;
+    }
+
+    public Builder processedRecords(Long processedRecords) {
+      this.processedRecords = processedRecords;
+      return this;
+    }
+
+    /**
+     * Builds the {@link DatasetInfoDto} instance.
+     *
+     * @return the constructed DatasetInfoDto
+     */
+    public UserDatasetDto build() {
+      return new UserDatasetDto(this);
+    }
   }
 
   /**

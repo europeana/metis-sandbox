@@ -43,15 +43,12 @@ class UserDatasetController {
         this.reportService = reportService;
     }
 
-    /**
-     * getUserDatasets
-     *
-     * @param jwtPrincipal - the user
-     *
-     * loads the users datasets and combines them with their progress data
-     *
-     * @return list of UserDatasetDto
-     */
+  /**
+   * loads the users datasets and combines them with their progress data
+   *
+   * @param jwtPrincipal - the user
+   * @return list of UserDatasetDto
+   */
     @Operation(summary = "Get user's datasets", description = "Get user's datasets")
     @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "404", description = "User Datatsets not found")
@@ -62,27 +59,19 @@ class UserDatasetController {
       List<DatasetInfoDto> datasetInfos = getDatasetsByCreator(jwtPrincipal);
       List<UserDatasetDto> userDatasetDtos = new ArrayList<>();
 
-      for (int i = 0; i < datasetInfos.size(); i++){
-        DatasetInfoDto datasetInfoDto = datasetInfos.get(i);
-        ProgressInfoDto progressData = reportService.getReport(datasetInfoDto.getDatasetId());
-
-        UserDatasetDto userDatasetDto = new UserDatasetDto();
-        userDatasetDtos.add(userDatasetDto);
-
-        // commute progressData properties
-        userDatasetDto.setStatus(progressData.getStatus());
-        userDatasetDto.setTotalRecords(progressData.getTotalRecords());
-        userDatasetDto.setProcessedRecords(progressData.getProcessedRecords());
-
-        // commute datasetInfo properties
-        userDatasetDto.setDatasetId(datasetInfoDto.getDatasetId());
-        userDatasetDto.setDatasetName(datasetInfoDto.getDatasetName());
-
-        userDatasetDto.setCountry(datasetInfoDto.getCountry());
-        userDatasetDto.setLanguage(datasetInfoDto.getLanguage());
-
-        userDatasetDto.setHarvestProtocol(datasetInfoDto.getHarvestingParametricDto().getHarvestProtocol());
-        userDatasetDto.setCreationDate(datasetInfoDto.getCreationDate());
+      for (DatasetInfoDto datasetInfoDto : datasetInfos) {
+        final ProgressInfoDto progressData = reportService.getReport(datasetInfoDto.getDatasetId());
+        final UserDatasetDto.Builder builder = new UserDatasetDto.Builder()
+            .status(progressData.getStatus())
+            .totalRecords(progressData.getTotalRecords())
+            .processedRecords(progressData.getProcessedRecords())
+            .datasetId(datasetInfoDto.getDatasetId())
+            .datasetName(datasetInfoDto.getDatasetName())
+            .country(datasetInfoDto.getCountry())
+            .language(datasetInfoDto.getLanguage())
+            .harvestProtocol(datasetInfoDto.getHarvestingParametricDto().getHarvestProtocol())
+            .creationDate(datasetInfoDto.getCreationDate());
+        userDatasetDtos.add(builder.build());
       }
 
       return userDatasetDtos;
@@ -91,7 +80,7 @@ class UserDatasetController {
   /**
    * getDatasetsByCreator
    *
-   * @param Jwt - the user
+   * @param jwtPrincipal - the user
    * @return list of user's datasets
    */
   private List<DatasetInfoDto> getDatasetsByCreator(
