@@ -44,6 +44,13 @@ public interface DatasetService {
   List<String> getDatasetIdsCreatedBefore(int days);
 
   /**
+   * Get datasets created by a specific user
+   * @param creatorId the creator id
+   * @return dataset info dtos
+   */
+  List<DatasetInfoDto> getDatasetsCreatedById(String creatorId);
+
+  /**
    * Remove matching dataset id
    *
    * @param datasetId must not be null

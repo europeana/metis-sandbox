@@ -1,25 +1,34 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+import eu.europeana.metis.sandbox.dto.FileHarvestingDto;
+import eu.europeana.metis.sandbox.dto.HttpHarvestingDto;
+import eu.europeana.metis.sandbox.dto.OAIPmhHarvestingDto;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.HarvestingParameterEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import eu.europeana.metis.sandbox.repository.HarvestingParameterRepository;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,12 +43,28 @@ class DatasetServiceImplTest {
   @Mock
   private DatasetRepository datasetRepository;
 
+  @Mock
+  private HarvestingParameterRepository harvestingParameterRepository;
+
   @Captor
   private ArgumentCaptor<DatasetEntity> captor;
 
   @InjectMocks
   private DatasetServiceImpl service;
 
+  private static class DatasetIdViewImpl implements DatasetIdView {
+
+    private final Integer datasetId;
+
+    public DatasetIdViewImpl(Integer datasetId) {
+      this.datasetId = datasetId;
+    }
+
+    @Override
+    public Integer getDatasetId() {
+      return datasetId;
+    }
+  }
 
   @Test
   void remove_expectSuccess() {
@@ -77,93 +102,145 @@ class DatasetServiceImplTest {
   }
 
   @Test
-  void createEmptyDataset_withoutXslt_expectSuccess(){
+  void createEmptyDataset_withoutXslt_expectSuccess() {
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(1);
     when(datasetRepository.save(any(DatasetEntity.class))).thenReturn(datasetEntity);
 
-    String result = service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0]));
+    String result = service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL,
+        new ByteArrayInputStream(new byte[0]));
     assertEquals("1", result);
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
-  void createEmptyDataset_withXslt_expectSuccess(){
+  void createEmptyDataset_withXslt_expectSuccess() {
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(1);
 
     when(datasetRepository.save(captor.capture())).thenReturn(datasetEntity);
 
-    String result = service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL, new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
+    String result = service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL,
+        new ByteArrayInputStream("record".getBytes(StandardCharsets.UTF_8)));
     assertEquals("1", result);
-    assertEquals( "record", captor.getValue().getXsltEdmExternalContent());
+    assertEquals("record", captor.getValue().getXsltEdmExternalContent());
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
-  void createEmptyDataset_nullDatasetName_expectFail(){
+  void createEmptyDataset_nullDatasetName_expectFail() {
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset(null, null, Country.AUSTRIA, Language.BE, null));
+        () -> service.createEmptyDataset(null, null, Country.AUSTRIA, Language.BE, null));
   }
 
   @Test
-  void createEmptyDataset_nullCountry_expectFail(){
+  void createEmptyDataset_nullCountry_expectFail() {
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset("datasetName", null, null, Language.BE, null));
+        () -> service.createEmptyDataset("datasetName", null, null, Language.BE, null));
   }
 
   @Test
-  void createEmptyDataset_nullLanguage_expectFail(){
+  void createEmptyDataset_nullLanguage_expectFail() {
     assertThrows(NullPointerException.class,
-            () -> service.createEmptyDataset("datasetName", null, Country.AUSTRIA, null, null));
+        () -> service.createEmptyDataset("datasetName", null, Country.AUSTRIA, null, null));
   }
 
   @Test
-  void createEmptyDataset_exceptionWhileSavingEntity_expectSuccess(){
+  void createEmptyDataset_exceptionWhileSavingEntity_expectSuccess() {
     when(datasetRepository.save(any(DatasetEntity.class))).thenThrow(new RuntimeException("error test"));
 
     assertThrows(ServiceException.class,
-            () -> service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL, new ByteArrayInputStream(new byte[0])));
+        () -> service.createEmptyDataset("datasetName", null, Country.NETHERLANDS, Language.NL,
+            new ByteArrayInputStream(new byte[0])));
     verify(datasetRepository, times(1)).save(any(DatasetEntity.class));
   }
 
   @Test
-  void updateNumberOfTotalRecord_expectSuccess(){
+  void updateNumberOfTotalRecord_expectSuccess() {
     service.updateNumberOfTotalRecord("1", 10L);
     verify(datasetRepository).updateRecordsQuantity(1, 10L);
   }
 
   @Test
-  void updateRecordsLimitExceededToTrue_expectSuccess(){
+  void updateRecordsLimitExceededToTrue_expectSuccess() {
     service.setRecordLimitExceeded("1");
     verify(datasetRepository).setRecordLimitExceeded(1);
   }
 
   @Test
-  void updateRecordsLimitExceededToTrue_expectTrue(){
+  void updateRecordsLimitExceededToTrue_expectTrue() {
     when(datasetRepository.isXsltPresent(1)).thenReturn(1);
     assertTrue(service.isXsltPresent("1"));
 
   }
 
   @Test
-  void updateRecordsLimitExceededToTrue_expectFalse(){
+  void updateRecordsLimitExceededToTrue_expectFalse() {
     when(datasetRepository.isXsltPresent(1)).thenReturn(0);
     assertFalse(service.isXsltPresent("1"));
-
   }
 
-  private static class DatasetIdViewImpl implements DatasetIdView {
+  @Test
+  void getDatasetsCreatedById_expectTrue() {
+    final String userId = UUID.randomUUID().toString();
+    DatasetInfoDto data1 = new DatasetInfoDto.Builder()
+        .datasetId("1")
+        .createdById(userId)
+        .datasetName("datasetName1")
+        .country(Country.NETHERLANDS)
+        .language(Language.NL)
+        .harvestingParametricDto(new HttpHarvestingDto("url"))
+        .build();
+    DatasetInfoDto data2 = new DatasetInfoDto.Builder()
+        .datasetId("2")
+        .createdById(userId)
+        .datasetName("datasetName2")
+        .country(Country.NETHERLANDS)
+        .language(Language.NL)
+        .harvestingParametricDto(new FileHarvestingDto("fileName","fileType"))
+        .build();
+    DatasetInfoDto data3 = new DatasetInfoDto.Builder()
+        .datasetId("3")
+        .createdById(userId)
+        .datasetName("datasetName3")
+        .country(Country.NETHERLANDS)
+        .language(Language.NL)
+        .harvestingParametricDto(new OAIPmhHarvestingDto("url","setSpecA", "meta"))
+        .build();
+    DatasetInfoDto data4 = new DatasetInfoDto.Builder()
+        .datasetId("4")
+        .createdById(userId)
+        .datasetName("datasetName4")
+        .country(Country.NETHERLANDS)
+        .language(Language.NL)
+        .harvestingParametricDto(new OAIPmhHarvestingDto("url","setSpecB", "meta"))
+        .build();
 
-    private final Integer datasetId;
+    DatasetEntity datasetEntity1 = new DatasetEntity("datasetName1","createdBy",10L,
+        Language.NL, Country.NETHERLANDS, false);
+    datasetEntity1.setDatasetId(1);
+    DatasetEntity datasetEntity2 = new DatasetEntity("datasetName2","createdBy",10L,
+        Language.NL, Country.NETHERLANDS, false);
+    datasetEntity2.setDatasetId(2);
+    DatasetEntity datasetEntity3 = new DatasetEntity("datasetName3","createdBy",10L,
+        Language.NL, Country.NETHERLANDS, false);
+    datasetEntity3.setDatasetId(3);
+    DatasetEntity datasetEntity4 = new DatasetEntity("datasetName4","createdBy",10L,
+        Language.NL, Country.NETHERLANDS, false);
+    datasetEntity4.setDatasetId(4);
 
-    public DatasetIdViewImpl(Integer datasetId) {
-      this.datasetId = datasetId;
-    }
+    HarvestingParameterEntity harvestingParameterEntity1 = new HarvestingParameterEntity(datasetEntity1, HarvestProtocol.HTTP,
+        "","","url","","");
+    HarvestingParameterEntity harvestingParameterEntity2 = new HarvestingParameterEntity(datasetEntity2, HarvestProtocol.FILE,
+        "fileName","fileType","","","");
+    HarvestingParameterEntity harvestingParameterEntity3 = new HarvestingParameterEntity(datasetEntity3, HarvestProtocol.OAI_PMH,
+        "","","url","setSpecA","meta");
+    HarvestingParameterEntity harvestingParameterEntity4 = new HarvestingParameterEntity(datasetEntity4, HarvestProtocol.OAI_PMH,
+        "","","url","setSpecB","meta");
+    when(harvestingParameterRepository.getHarvestingParameterEntitiesByDatasetId_CreatedById(any(String.class)))
+        .thenReturn(List.of(harvestingParameterEntity1,harvestingParameterEntity2,harvestingParameterEntity3,harvestingParameterEntity4));
 
-    @Override
-    public Integer getDatasetId() {
-      return datasetId;
-    }
+    var result = service.getDatasetsCreatedById(userId);
+    assertIterableEquals(List.of(data1, data2, data3, data4), result);
   }
 }

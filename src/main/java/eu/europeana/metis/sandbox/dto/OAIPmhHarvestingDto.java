@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import io.swagger.annotations.ApiModel;
+import java.util.Objects;
 
 /**
  * Represents the data related to OAI-PMH harvesting
@@ -50,5 +51,20 @@ public class OAIPmhHarvestingDto implements HarvestingParametricDto {
 
     public String getMetadataFormat() {
         return metadataFormat;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof OAIPmhHarvestingDto that)) {
+            return false;
+        }
+
+      return Objects.equals(harvestProtocol, that.harvestProtocol) && Objects.equals(url, that.url)
+            && Objects.equals(setSpec, that.setSpec) && Objects.equals(metadataFormat, that.metadataFormat);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(harvestProtocol, url, setSpec, metadataFormat);
     }
 }
