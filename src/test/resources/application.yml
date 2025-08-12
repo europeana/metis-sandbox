@@ -135,11 +135,11 @@ sandbox:
       pool-size: 10
     predefinedSchemas:
       EDM-INTERNAL:
-        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20241127.zip
         rootLocation: EDM-INTERNAL.xsd
         schematronLocation: schematron/schematron-internal.xsl
       EDM-EXTERNAL:
-        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip
+        url: http://ftp.eanadev.org/schema_zips/europeana_schemas-20241127.zip
         rootLocation: EDM.xsd
         schematronLocation: schematron/schematron.xsl
   transformation:
