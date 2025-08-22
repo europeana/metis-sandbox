@@ -14,12 +14,14 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * Config for amqp, contains exchange, queues and dead letter queues definitions as well as their bindings. <br /><br /> If there
  * is a need to add a new queue in the future here is the place to do it
  */
 @Configuration
+@DependsOn("truststoreConfig")
 public class AmqpConfiguration {
 
   private final MessageConverter messageConverter;
@@ -91,6 +93,15 @@ public class AmqpConfiguration {
   @Value("${sandbox.rabbitmq.queues.record.debias.ready.dlq:#{null}}")
   private String deBiasReadyDlq;
 
+  @Value("${sandbox.rabbitmq.queues.record.log.queue:#{null}}")
+  private String logQueue;
+
+  @Value("${sandbox.rabbitmq.queues.record.log.dlq:#{null}}")
+  private String logDlq;
+
+  @Value("${sandbox.rabbitmq.queues.record.log.routing-key:#{null}}")
+  private String logRoutingKey;
+
   public AmqpConfiguration(MessageConverter messageConverter, AmqpAdmin amqpAdmin) {
     this.messageConverter = messageConverter;
     this.amqpAdmin = amqpAdmin;
@@ -117,16 +128,17 @@ public class AmqpConfiguration {
   @Bean
   Declarables deadQueues() {
     return new Declarables(
-        QueueBuilder.durable(createdDlq).build(),
-        QueueBuilder.durable(transformationToEdmExternalDlq).build(),
-        QueueBuilder.durable(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedDlq).build(),
-        QueueBuilder.durable(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedDlq).build(),
-        QueueBuilder.durable(publishedDlq).build(),
-        QueueBuilder.durable(deBiasReadyDlq).build()
+        QueueBuilder.durable(createdDlq).quorum().build(),
+        QueueBuilder.durable(transformationToEdmExternalDlq).quorum().build(),
+        QueueBuilder.durable(externalValidatedDlq).quorum().build(),
+        QueueBuilder.durable(transformedDlq).quorum().build(),
+        QueueBuilder.durable(normalizedDlq).quorum().build(),
+        QueueBuilder.durable(internalValidatedDlq).quorum().build(),
+        QueueBuilder.durable(enrichedDlq).quorum().build(),
+        QueueBuilder.durable(mediaProcessedDlq).quorum().build(),
+        QueueBuilder.durable(publishedDlq).quorum().build(),
+        QueueBuilder.durable(logDlq).quorum().build(),
+        QueueBuilder.durable(deBiasReadyDlq).quorum().build()
     );
   }
 
@@ -142,6 +154,14 @@ public class AmqpConfiguration {
     return getDeclarables(exchangeDlq, createdDlq, transformationToEdmExternalDlq,
         externalValidatedDlq, transformedDlq, normalizedDlq, internalValidatedDlq, enrichedDlq,
         mediaProcessedDlq, publishedDlq, deBiasReadyDlq);
+  }
+
+  @Bean
+  Declarables logBindings() {
+    return new Declarables(
+        new Binding(logQueue, DestinationType.QUEUE, exchange, logRoutingKey, null),
+        new Binding(logDlq, DestinationType.QUEUE, exchange, logDlq, null)
+    );
   }
 
   //Suppress: Methods should not have too many parameters warning
@@ -170,27 +190,28 @@ public class AmqpConfiguration {
   @Bean
   Declarables queues() {
     return new Declarables(
-        QueueBuilder.durable(createdQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(createdQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(createdDlq).build(),
-        QueueBuilder.durable(transformationToEdmExternalQueue).deadLetterExchange(exchangeDlq)
-                    .deadLetterRoutingKey(
-                        transformationToEdmExternalDlq).build(),
-        QueueBuilder.durable(externalValidatedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(transformationToEdmExternalQueue).quorum().deadLetterExchange(exchangeDlq)
+                    .deadLetterRoutingKey(transformationToEdmExternalDlq).build(),
+        QueueBuilder.durable(externalValidatedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(externalValidatedDlq).build(),
-        QueueBuilder.durable(transformedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(transformedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(transformedDlq).build(),
-        QueueBuilder.durable(normalizedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(normalizedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(normalizedDlq).build(),
-        QueueBuilder.durable(internalValidatedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(internalValidatedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(internalValidatedDlq).build(),
-        QueueBuilder.durable(enrichedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(enrichedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(enrichedDlq).build(),
-        QueueBuilder.durable(mediaProcessedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(mediaProcessedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(mediaProcessedDlq).build(),
-        QueueBuilder.durable(publishedQueue).deadLetterExchange(exchangeDlq)
+        QueueBuilder.durable(publishedQueue).quorum().deadLetterExchange(exchangeDlq)
                     .deadLetterRoutingKey(publishedDlq).build(),
-        QueueBuilder.durable(deBiasReadyQueue).deadLetterExchange(deBiasReadyDlq)
-            .deadLetterRoutingKey(deBiasReadyDlq).build()
+        QueueBuilder.durable(logQueue).quorum().deadLetterExchange(exchangeDlq)
+                    .deadLetterRoutingKey(logDlq).build(),
+        QueueBuilder.durable(deBiasReadyQueue).quorum().deadLetterExchange(exchangeDlq)
+                    .deadLetterRoutingKey(deBiasReadyDlq).build()
     );
   }
 
@@ -280,6 +301,14 @@ public class AmqpConfiguration {
     return publishedDlq;
   }
 
+  public String getLogQueue() {
+    return logQueue;
+  }
+
+  public String getLogDlq() {
+    return logDlq;
+  }
+
   public String getDeBiasReadyQueue() {
     return deBiasReadyQueue;
   }
@@ -288,14 +317,14 @@ public class AmqpConfiguration {
     return deBiasReadyDlq;
   }
 
-  public AmqpAdmin getAmqpAdmin(){
+  public AmqpAdmin getAmqpAdmin() {
     return amqpAdmin;
   }
 
-  public List<String> getAllQueuesNames(){
+  public List<String> getAllQueuesNames() {
     return List.of(createdQueue, createdDlq, transformationToEdmExternalQueue, transformationToEdmExternalDlq,
-            externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
-            internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
-            mediaProcessedDlq, publishedQueue, publishedDlq, deBiasReadyQueue, deBiasReadyDlq);
+        externalValidatedQueue, externalValidatedDlq, transformedQueue, transformedDlq, internalValidatedQueue,
+        internalValidatedDlq, normalizedQueue, normalizedDlq, enrichedQueue, enrichedDlq, mediaProcessedQueue,
+        mediaProcessedDlq, publishedQueue, publishedDlq, logQueue, logDlq, deBiasReadyQueue, deBiasReadyDlq);
   }
 }

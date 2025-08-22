@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.dto.report.DatasetLogDto;
 import eu.europeana.metis.sandbox.entity.DatasetLogEntity;
 import eu.europeana.metis.sandbox.repository.DatasetLogRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DatasetLogServiceImpl implements DatasetLogService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetLogServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final DatasetRepository datasetRepository;
     private final DatasetLogRepository datasetLogRepository;

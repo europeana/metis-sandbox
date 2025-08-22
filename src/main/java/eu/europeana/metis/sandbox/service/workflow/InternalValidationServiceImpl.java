@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.service.ValidationExecutionService;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -23,13 +24,15 @@ import java.util.concurrent.locks.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
+@EnableScheduling
 class InternalValidationServiceImpl implements InternalValidationService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(InternalValidationServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String SCHEMA = "EDM-INTERNAL";
   private static final Period MAP_EVICTION_PERIOD = Period.ofDays(1);
 

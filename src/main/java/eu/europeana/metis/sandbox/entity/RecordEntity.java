@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,9 +50,10 @@ public class RecordEntity {
 
   /**
    * Constructor using the builder
+   *
    * @param builder the builder
    */
-  public RecordEntity(RecordEntityBuilder builder){
+  public RecordEntity(RecordEntityBuilder builder) {
     this.europeanaId = builder.europeanaId;
     this.providerId = builder.providerId;
     this.datasetId = builder.datasetId;
@@ -69,7 +71,7 @@ public class RecordEntity {
    *
    * @param recordInput the record
    */
-  public RecordEntity(Record recordInput){
+  public RecordEntity(Record recordInput) {
     this.europeanaId = recordInput.getEuropeanaId();
     this.providerId = recordInput.getProviderId();
     this.datasetId = recordInput.getDatasetId();
@@ -84,10 +86,11 @@ public class RecordEntity {
 
   /**
    * Constructor with id parameters. The remaining of the fields will be null
+   *
    * @param providerId the provider id associated to the record
    * @param datasetId the dataset if it belongs to
    */
-  public RecordEntity(String providerId, String datasetId){
+  public RecordEntity(String providerId, String datasetId) {
     this.europeanaId = null;
     this.providerId = providerId;
     this.datasetId = datasetId;
@@ -194,24 +197,25 @@ public class RecordEntity {
   }
 
   public List<RecordLogEntity> getRecordLogEntity() {
-    return recordLogEntity;
+    return new ArrayList<>(recordLogEntity);
   }
 
-  public void setRecordLogEntity(
-      List<RecordLogEntity> recordLogEntity) {
-    this.recordLogEntity = recordLogEntity;
+  public void setRecordLogEntity(List<RecordLogEntity> recordLogEntity) {
+    this.recordLogEntity = recordLogEntity == null ? new ArrayList<>() : new ArrayList<>(recordLogEntity);
   }
 
   public List<RecordErrorLogEntity> getRecordErrorLogEntity() {
-    return recordErrorLogEntity;
+    return new ArrayList<>(recordErrorLogEntity);
   }
 
-  public void setRecordErrorLogEntity(
-      List<RecordErrorLogEntity> recordErrorLogEntity) {
-    this.recordErrorLogEntity = recordErrorLogEntity;
+  public void setRecordErrorLogEntity(List<RecordErrorLogEntity> recordErrorLogEntity) {
+    this.recordErrorLogEntity = recordErrorLogEntity == null ? new ArrayList<>() : new ArrayList<>(recordErrorLogEntity);
   }
 
-  public static class RecordEntityBuilder{
+  /**
+   * Builder class for constructing instances of RecordEntity.
+   */
+  public static class RecordEntityBuilder {
 
     private String europeanaId;
     private String providerId;
@@ -233,109 +237,120 @@ public class RecordEntity {
 
     /**
      * Sets the value of europeana id
+     *
      * @param europeanaId the europeana id associated to the record
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setEuropeanaId(String europeanaId){
+    public RecordEntityBuilder setEuropeanaId(String europeanaId) {
       this.europeanaId = europeanaId;
       return this;
     }
 
     /**
      * Sets the value of provider id
+     *
      * @param providerId the id of the record provided
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setProviderId(String providerId){
+    public RecordEntityBuilder setProviderId(String providerId) {
       this.providerId = providerId;
       return this;
     }
 
     /**
      * Sets the value of dataset id
+     *
      * @param datasetId the dataset id associated to the record
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setDatasetId(String datasetId){
+    public RecordEntityBuilder setDatasetId(String datasetId) {
       this.datasetId = datasetId;
       return this;
     }
 
     /**
      * Sets the value of content tier
+     *
      * @param contentTier the value of the content tier of the record
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setContentTier(String contentTier){
+    public RecordEntityBuilder setContentTier(String contentTier) {
       this.contentTier = contentTier;
       return this;
     }
 
     /**
      * Sets the value of content tier before license correction
-     * @param contentTierBeforeLicenseCorrection  the value of the content tier before license correction
+     *
+     * @param contentTierBeforeLicenseCorrection the value of the content tier before license correction
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setContentTierBeforeLicenseCorrection(String contentTierBeforeLicenseCorrection){
+    public RecordEntityBuilder setContentTierBeforeLicenseCorrection(String contentTierBeforeLicenseCorrection) {
       this.contentTierBeforeLicenseCorrection = contentTierBeforeLicenseCorrection;
       return this;
     }
 
     /**
      * Sets the value of metadata tier
+     *
      * @param metadataTier the value of the metadata tier of the record
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setMetadataTier(String metadataTier){
+    public RecordEntityBuilder setMetadataTier(String metadataTier) {
       this.metadataTier = metadataTier;
       return this;
     }
 
     /**
      * Sets the value of metadata tier related to Language class
+     *
      * @param metadataTierLanguage the value of the metadata tier related to Language class
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setMetadataTierLanguage(String metadataTierLanguage){
+    public RecordEntityBuilder setMetadataTierLanguage(String metadataTierLanguage) {
       this.metadataTierLanguage = metadataTierLanguage;
       return this;
     }
 
     /**
      * Sets the value of metadata tier related to Enabling Elements class
+     *
      * @param metadataTierEnablingElements the value of the metadata tier related to Enabling Elements class
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setMetadataTierEnablingElements(String metadataTierEnablingElements){
+    public RecordEntityBuilder setMetadataTierEnablingElements(String metadataTierEnablingElements) {
       this.metadataTierEnablingElements = metadataTierEnablingElements;
       return this;
     }
 
     /**
      * Sets the value of metadata tier related to Contextual Classes class
+     *
      * @param metadataTierContextualClasses the value of the metadata tier related to Contextual Classes class
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setMetadataTierContextualClasses(String metadataTierContextualClasses){
+    public RecordEntityBuilder setMetadataTierContextualClasses(String metadataTierContextualClasses) {
       this.metadataTierContextualClasses = metadataTierContextualClasses;
       return this;
     }
 
     /**
      * Sets the value of license type
+     *
      * @param license the value of the license type
      * @return the builder with the new value
      */
-    public RecordEntityBuilder setLicense(String license){
+    public RecordEntityBuilder setLicense(String license) {
       this.license = license;
       return this;
     }
 
     /**
      * Builds a new RecordEntity based on the values given to the builder
+     *
      * @return a new RecordEntity object
      */
-    public RecordEntity build(){
+    public RecordEntity build() {
       return new RecordEntity(this);
     }
 

@@ -42,14 +42,11 @@ public class TiersZeroInfo {
             return true;
         }
 
-        if(!(o instanceof TiersZeroInfo)){
+        if(!(o instanceof TiersZeroInfo other)){
             return false;
         }
 
-        TiersZeroInfo other = (TiersZeroInfo) o;
-
-        return this.contentTier.equals(other.contentTier) &&
-                this.metadataTier.equals(other.metadataTier);
+      return this.contentTier.equals(other.contentTier) && this.metadataTier.equals(other.metadataTier);
     }
 
     @Override

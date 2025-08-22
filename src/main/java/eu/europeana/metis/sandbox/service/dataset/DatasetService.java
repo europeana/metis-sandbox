@@ -10,22 +10,27 @@ import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * Interface representing services related to datasets, including creation, retrieval,
+ * deletion, and updating of dataset-related metadata and records.
+ */
 public interface DatasetService {
 
   /**
    * Creates a dataset id and publishes the given records for further processing
    *
    * @param datasetName must not be null
-   * @param country     must not be null
-   * @param language    must not be null
+   * @param createdById the identifier of the user creating the dataset; can be null.
+   * @param country must not be null
+   * @param language must not be null
+   * @param xsltEdmExternalContentStream an input stream containing XSLT EDM content for external purposes; can be null.
    * @return the created dataset
-   * @throws NullPointerException   if any input is null
-   * @throws ServiceException       if any unhandled exception happens, exception will contain
-   *                                original exception
+   * @throws NullPointerException if any input is null
+   * @throws ServiceException if any unhandled exception happens, exception will contain original exception
    * @throws RecordParsingException if fails to parse a record from the records list
    * @see Dataset
    */
-  String createEmptyDataset(String datasetName, Country country, Language language,
+  String createEmptyDataset(String datasetName, String createdById, Country country, Language language,
       InputStream xsltEdmExternalContentStream);
 
   /**
@@ -37,6 +42,13 @@ public interface DatasetService {
    *                          exception
    */
   List<String> getDatasetIdsCreatedBefore(int days);
+
+  /**
+   * Get datasets created by a specific user
+   * @param creatorId the creator id
+   * @return dataset info dtos
+   */
+  List<DatasetInfoDto> getDatasetsCreatedById(String creatorId);
 
   /**
    * Remove matching dataset id

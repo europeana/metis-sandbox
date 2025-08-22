@@ -20,6 +20,7 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
+import eu.europeana.metis.mediaprocessing.model.RdfResourceKind;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
@@ -66,8 +67,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
     var extraction1 = mock(ResourceExtractionResult.class);
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);
@@ -109,7 +110,7 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
 
     when(deserializer.getMainThumbnailResourceForMediaExtraction(content))
         .thenReturn(entry1);
@@ -137,8 +138,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
 
     when(deserializer.getRemainingResourcesForMediaExtraction(content))
         .thenReturn(List.of(entry2));
@@ -164,8 +165,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
     var extraction1 = mock(ResourceExtractionResult.class);
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);
@@ -223,8 +224,8 @@ class MediaProcessingServiceImplTest {
                        .content(content).language(Language.IT).country(Country.ITALY)
                        .datasetName("").datasetId("1").build();
 
-    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
-    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), false);
+    var entry1 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
+    var entry2 = new RdfResourceEntry("", new ArrayList<>(UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION), RdfResourceKind.STANDARD);
     var extraction1 = mock(ResourceExtractionResult.class);
     var extraction2 = mock(ResourceExtractionResult.class);
     var thumbnail = mock(Thumbnail.class);

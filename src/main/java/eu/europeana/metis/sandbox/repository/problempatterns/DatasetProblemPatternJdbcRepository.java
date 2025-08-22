@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.repository.problempatterns;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
+import java.lang.invoke.MethodHandles;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class DatasetProblemPatternJdbcRepository {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetProblemPatternJdbcRepository.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final int INSERT_COUNTER_INDEX_POSITION = 3;
   public static final int UPDATE_COUNTER_INDEX_POSITION = 4;
   private final JdbcTemplate jdbcTemplate;

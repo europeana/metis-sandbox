@@ -11,6 +11,7 @@ import eu.europeana.metis.sandbox.repository.RecordJdbcRepository;
 import eu.europeana.metis.sandbox.repository.RecordRepository;
 import eu.europeana.metis.sandbox.service.util.XmlRecordProcessorService;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,13 +25,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RecordServiceImpl implements RecordService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RecordServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final RecordRepository recordRepository;
   private final RecordJdbcRepository recordJdbcRepository;
   private final XmlRecordProcessorService xmlRecordProcessorService;
 
+  /**
+   * Constructs an instance of RecordServiceImpl with the required dependencies.
+   *
+   * @param recordRepository the repository for managing Record entities
+   * @param recordJdbcRepository the JDBC repository for Record-related operations
+   * @param xmlRecordProcessorService the service for processing XML-based records
+   */
   public RecordServiceImpl(RecordRepository recordRepository, RecordJdbcRepository recordJdbcRepository,
-                           XmlRecordProcessorService xmlRecordProcessorService) {
+      XmlRecordProcessorService xmlRecordProcessorService) {
     this.recordRepository = recordRepository;
     this.recordJdbcRepository = recordJdbcRepository;
     this.xmlRecordProcessorService = xmlRecordProcessorService;
@@ -38,17 +46,17 @@ public class RecordServiceImpl implements RecordService {
 
   @Override
   @Transactional
-  public List<RecordTiersInfoDto> getRecordsTiers(String datasetId){
+  public List<RecordTiersInfoDto> getRecordsTiers(String datasetId) {
     List<RecordEntity> recordEntities = recordRepository.findByDatasetId(datasetId);
 
-    if(recordEntities.isEmpty()){
+    if (recordEntities.isEmpty()) {
       throw new InvalidDatasetException(datasetId);
     }
 
     return recordEntities.stream()
-            .filter(this::areAllTierValuesNotNullOrEmpty)
-            .map(RecordTiersInfoDto::new)
-            .toList();
+                         .filter(this::areAllTierValuesNotNullOrEmpty)
+                         .map(RecordTiersInfoDto::new)
+                         .toList();
   }
 
   @Override
@@ -58,7 +66,8 @@ public class RecordServiceImpl implements RecordService {
     final String providerId = xmlRecordProcessorService.getProviderId(recordToUpdate.getContent());
     final String europeanaId = EuropeanaIdCreator.constructEuropeanaIdString(providerId, datasetId);
 
-    final int updatedRecords = recordJdbcRepository.updateRecord(recordToUpdate.getRecordId(), europeanaId, providerId, datasetId);
+    final int updatedRecords = recordJdbcRepository.updateRecord(recordToUpdate.getRecordId(), europeanaId, providerId,
+        datasetId);
     handleUpdateQueryResult(updatedRecords, providerId, europeanaId, recordToUpdate);
   }
 
@@ -66,13 +75,13 @@ public class RecordServiceImpl implements RecordService {
   @Transactional
   public void setTierResults(Record recordToUpdate, TierResults tierResults) {
     recordRepository.updateRecordWithTierResults(recordToUpdate.getRecordId(),
-            tierResults.getMediaTier().toString(),
-            tierResults.getMetadataTier().toString(),
-            tierResults.getContentTierBeforeLicenseCorrection().toString(),
-            tierResults.getMetadataTierLanguage().toString(),
-            tierResults.getMetadataTierEnablingElements().toString(),
-            tierResults.getMetadataTierContextualClasses().toString(),
-            tierResults.getLicenseType().toString());
+        tierResults.getMediaTier().toString(),
+        tierResults.getMetadataTier().toString(),
+        tierResults.getContentTierBeforeLicenseCorrection().toString(),
+        tierResults.getMetadataTierLanguage().toString(),
+        tierResults.getMetadataTierEnablingElements().toString(),
+        tierResults.getMetadataTierContextualClasses().toString(),
+        tierResults.getLicenseType().toString());
   }
 
   @Override
@@ -81,7 +90,7 @@ public class RecordServiceImpl implements RecordService {
     recordRepository.deleteByDatasetId(datasetId);
   }
 
-  private void handleUpdateQueryResult(int updatedRecords, String providerId, String europeanaId, Record recordToUpdate){
+  private void handleUpdateQueryResult(int updatedRecords, String providerId, String europeanaId, Record recordToUpdate) {
     switch (updatedRecords) {
       case 0 -> {
         LOGGER.debug("Duplicated ProviderId: {} | EuropeanaId: {}", providerId, europeanaId);
@@ -101,13 +110,21 @@ public class RecordServiceImpl implements RecordService {
     }
   }
 
-  private boolean areAllTierValuesNotNullOrEmpty(RecordEntity recordEntity){
+  private boolean areAllTierValuesNotNullOrEmpty(RecordEntity recordEntity) {
+    return isContentTierValid(recordEntity) &&
+        isMetadataTierValid(recordEntity);
+  }
+
+  private boolean isContentTierValid(RecordEntity recordEntity) {
     return StringUtils.isNotBlank(recordEntity.getContentTier()) &&
-            StringUtils.isNotBlank(recordEntity.getMetadataTier()) &&
-            StringUtils.isNotBlank(recordEntity.getContentTierBeforeLicenseCorrection()) &&
-            StringUtils.isNotBlank(recordEntity.getMetadataTierLanguage()) &&
-            StringUtils.isNotBlank(recordEntity.getMetadataTierEnablingElements()) &&
-            StringUtils.isNotBlank(recordEntity.getMetadataTierContextualClasses()) &&
-            StringUtils.isNotBlank(recordEntity.getLicense());
+        StringUtils.isNotBlank(recordEntity.getContentTierBeforeLicenseCorrection());
+  }
+
+  private boolean isMetadataTierValid(RecordEntity recordEntity) {
+    return StringUtils.isNotBlank(recordEntity.getMetadataTier()) &&
+        StringUtils.isNotBlank(recordEntity.getMetadataTierLanguage()) &&
+        StringUtils.isNotBlank(recordEntity.getMetadataTierEnablingElements()) &&
+        StringUtils.isNotBlank(recordEntity.getMetadataTierContextualClasses()) &&
+        StringUtils.isNotBlank(recordEntity.getLicense());
   }
 }

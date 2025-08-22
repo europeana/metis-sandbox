@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import io.swagger.annotations.ApiModel;
+import java.util.Objects;
 
 /**
  * Represents the data related to File harvesting
@@ -41,5 +42,20 @@ public class FileHarvestingDto implements HarvestingParametricDto {
 
     public String getFileType() {
         return fileType;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof FileHarvestingDto that)) {
+            return false;
+        }
+
+      return Objects.equals(harvestProtocol, that.harvestProtocol) && Objects.equals(fileName, that.fileName)
+            && Objects.equals(fileType, that.fileType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(harvestProtocol, fileName, fileType);
     }
 }

@@ -38,6 +38,7 @@ class S3Config {
     return AmazonS3ClientBuilder
         .standard()
         .withCredentials(new AWSStaticCredentialsProvider(credentials))
+        .withPathStyleAccessEnabled(true)
         .withEndpointConfiguration(
             new EndpointConfiguration(endpoint, signingRegion))
         .build();

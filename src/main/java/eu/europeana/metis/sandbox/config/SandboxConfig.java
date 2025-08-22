@@ -29,6 +29,7 @@ import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
 import eu.europeana.metis.sandbox.service.workflow.TransformationService;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
+import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.validation.service.ClasspathResourceResolver;
 import eu.europeana.validation.service.PredefinedSchemasGenerator;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -59,6 +61,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 @EnableScheduling
 @ComponentScan("eu.europeana.validation.service")
+@EnableConfigurationProperties({ElasticAPMConfiguration.class})
 class SandboxConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -90,8 +93,11 @@ class SandboxConfig {
     @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
     private String entityApiUrl;
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-key}")
-    private String entityApiKey;
+    @Value("${sandbox.enrichment.enrichment-properties.entity-api-token-endpoint}")
+    private String entityApiTokenEndpoint;
+
+    @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
+    private String entityApiGrantParams;
 
     //TODO: 04-03-2021 We should remove this configuration once
     //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
@@ -181,9 +187,9 @@ class SandboxConfig {
     EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
         DereferencerProvider dereferencerProvider = new DereferencerProvider();
         dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
-        dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
+        dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint, entityApiGrantParams);
         EnricherProvider enricherProvider = new EnricherProvider();
-        enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiKey);
+        enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint, entityApiGrantParams);
         return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
     }
 

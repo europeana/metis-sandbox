@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Media queue configuration.
  */
 @Configuration
-public class MediaQueueConfig extends QueueConsumerConfig {
+public class MediaQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.media.concurrency}")
     private int concurrentConsumers;

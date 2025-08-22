@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.repository.problempatterns;
 
+import java.lang.invoke.MethodHandles;
 import java.sql.PreparedStatement;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RecordTitleJdbcRepository {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RecordTitleJdbcRepository.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final JdbcTemplate jdbcTemplate;
 
   /**

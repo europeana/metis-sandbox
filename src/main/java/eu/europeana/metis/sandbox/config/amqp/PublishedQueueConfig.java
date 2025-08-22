@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Published queue configuration.
  */
 @Configuration
-public class PublishedQueueConfig extends QueueConsumerConfig {
+public class PublishedQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.published.concurrency}")
     private int concurrentConsumers;

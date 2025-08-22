@@ -1,30 +1,17 @@
 package eu.europeana.metis.sandbox.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.common.locale.Country;
-import eu.europeana.metis.sandbox.common.locale.Language;
 import io.swagger.annotations.ApiModel;
-import java.time.ZonedDateTime;
+import java.util.Objects;
 
+
+/**
+ * Represents information about a dataset.
+ */
 @ApiModel(DatasetInfoDto.SWAGGER_MODEL_NAME)
-public class DatasetInfoDto {
+public final class DatasetInfoDto extends DatasetDto {
 
   public static final String SWAGGER_MODEL_NAME = "DatasetInfo";
-
-  @JsonProperty("dataset-id")
-  private final String datasetId;
-
-  @JsonProperty("dataset-name")
-  private final String datasetName;
-
-  @JsonProperty("creation-date")
-  private final ZonedDateTime creationDate;
-
-  @JsonProperty("language")
-  private final Language language;
-
-  @JsonProperty("country")
-  private final Country country;
 
   @JsonProperty("transformed-to-edm-external")
   private final boolean transformedToEdmExternal;
@@ -32,43 +19,87 @@ public class DatasetInfoDto {
   @JsonProperty("harvesting-parameters")
   private final HarvestingParametricDto harvestingParametricDto;
 
-  public DatasetInfoDto(String datasetId, String datasetName, ZonedDateTime creationDate,
-                        Language language, Country country, HarvestingParametricDto harvestingParametricDto,
-                        boolean transformedToEdmExternal) {
-
-    this.creationDate = creationDate;
-    this.language = language;
-    this.country = country;
-    this.datasetId = datasetId;
-    this.datasetName = datasetName;
-    this.harvestingParametricDto = harvestingParametricDto;
-    this.transformedToEdmExternal = transformedToEdmExternal;
+  private DatasetInfoDto(Builder builder) {
+    super(builder);
+    this.transformedToEdmExternal = builder.transformedToEdmExternal;
+    this.harvestingParametricDto = builder.harvestingParametricDto;
   }
 
-  public String getDatasetId() {
-    return datasetId;
+  /**
+   * Builder class for constructing {@link DatasetInfoDto} instances.
+   */
+  public static class Builder extends AbstractBuilder<Builder> {
+
+    private boolean transformedToEdmExternal;
+    private HarvestingParametricDto harvestingParametricDto;
+
+    @Override
+    protected Builder getThisInstance() {
+      return this;
+    }
+
+    /**
+     * Sets whether the dataset was transformed to EDM for external use.
+     *
+     * @param transformedToEdmExternal true if transformed, false otherwise
+     * @return the builder instance
+     */
+    public Builder transformedToEdmExternal(boolean transformedToEdmExternal) {
+      this.transformedToEdmExternal = transformedToEdmExternal;
+      return this;
+    }
+
+    /**
+     * Sets the harvesting parameters for the dataset.
+     *
+     * @param harvestingParametricDto the harvesting parameters
+     * @return the builder instance
+     */
+    public Builder harvestingParametricDto(HarvestingParametricDto harvestingParametricDto) {
+      this.harvestingParametricDto = harvestingParametricDto;
+      return this;
+    }
+
+    /**
+     * Builds the {@link DatasetInfoDto} instance.
+     *
+     * @return the constructed DatasetInfoDto
+     */
+    public DatasetInfoDto build() {
+      return new DatasetInfoDto(this);
+    }
   }
 
-  public String getDatasetName() {
-    return datasetName;
+  /**
+   * Indicates whether the dataset was transformed to EDM for external use.
+   *
+   * @return true if transformed, false otherwise
+   */
+  public boolean isTransformedToEdmExternal() {
+    return transformedToEdmExternal;
   }
 
-  public ZonedDateTime getCreationDate() {
-    return creationDate;
-  }
-
-  public Language getLanguage() {
-    return language;
-  }
-
-  public Country getCountry() {
-    return country;
-  }
-
+  /**
+   * Gets the harvesting parameters.
+   *
+   * @return the harvesting parameters
+   */
   public HarvestingParametricDto getHarvestingParametricDto() {
     return harvestingParametricDto;
   }
-  public boolean isTransformedToEdmExternal() {
-    return transformedToEdmExternal;
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof DatasetInfoDto that)) {
+      return false;
+    }
+
+    return super.equals(o) && transformedToEdmExternal == that.transformedToEdmExternal
+        && Objects.equals(harvestingParametricDto, that.harvestingParametricDto);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(),transformedToEdmExternal,harvestingParametricDto);
   }
 }

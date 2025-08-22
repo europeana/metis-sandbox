@@ -2,12 +2,18 @@ package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
+
+import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+/**
+ * The interface Dataset repository.
+ */
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
   /**
@@ -16,13 +22,23 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param date must not be null
    * @return list of dataset ids
    * @see DatasetIdView
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query Creation</a>
+   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query
+   * Creation</a>
    * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
    */
   List<DatasetIdView> getByCreatedDateBefore(ZonedDateTime date);
 
   /**
+   * Gets by created by id.
+   *
+   * @param userId the user id
+   * @return datasets created by the user
+   */
+  List<DatasetInfoDto> getByCreatedById(String userId);
+
+  /**
    * Updates the value of recordQuantity to the given dataset
+   *
    * @param datasetId The id of the dataset to update to
    * @param quantity The new value to update into the dataset
    */
@@ -32,6 +48,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
 
   /**
    * Sets to true the boolean recordLimitExceeded
+   *
    * @param datasetId The id of the dataset to update this into
    */
   @Modifying
@@ -40,6 +57,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
 
   /**
    * A boolean type of query to check if dataset has xslt content
+   *
    * @param datasetId The id of the dataset to update into
    * @return Returns 0 if there is no xslt, 1 otherwise
    */

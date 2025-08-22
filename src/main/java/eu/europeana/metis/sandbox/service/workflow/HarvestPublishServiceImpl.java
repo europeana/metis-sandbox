@@ -12,6 +12,7 @@ import eu.europeana.metis.sandbox.service.dataset.HarvestingParameterService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -23,17 +24,29 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-
+/**
+ * Service implementation class responsible for handling harvest publishing tasks.
+ * <p>
+ * This class provides methods to harvest data from various sources such as files, HTTP endpoints, and OAI-PMH repositories.
+ * Harvesting tasks are executed asynchronously.
+ */
 @Service
 public class HarvestPublishServiceImpl implements HarvestPublishService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(HarvestPublishServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String HARVESTING_ERROR_MESSAGE = "Error harvesting records for dataset: ";
 
   private final HarvestService harvestService;
   private final Executor asyncServiceTaskExecutor;
   private final HarvestingParameterService harvestingParameterService;
 
+  /**
+   * Constructor for HarvestPublishServiceImpl.
+   *
+   * @param harvestService              the service responsible for harvesting records
+   * @param asyncServiceTaskExecutor    the executor for running tasks asynchronously
+   * @param harvestingParameterService  the service for managing harvesting parameters
+   */
   public HarvestPublishServiceImpl(HarvestService harvestService,
       @Qualifier("asyncServiceTaskExecutor") Executor asyncServiceTaskExecutor,
       HarvestingParameterService harvestingParameterService) {
@@ -62,8 +75,7 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
       final InputStream inputStreamToHarvest = new URI(url).toURL().openStream();
       return runHarvestFileAsync(inputStreamToHarvest, datasetMetadata, compressedFileExtension);
     } catch (UnknownHostException e) {
-      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId()
-          + " - unknown host: " + e.getMessage());
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId() + " - Unknown host", e);
     } catch (IOException | URISyntaxException e) {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE + datasetMetadata.getDatasetId(), e);
     }
@@ -73,10 +85,10 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
       DatasetMetadata datasetMetadata, CompressedFileExtension compressedFileExtension) {
     return CompletableFuture.runAsync(() -> {
       final Record.RecordBuilder recordDataEncapsulated = Record.builder()
-          .datasetId(datasetMetadata.getDatasetId())
-          .datasetName(datasetMetadata.getDatasetName())
-          .country(datasetMetadata.getCountry())
-          .language(datasetMetadata.getLanguage());
+                                                                .datasetId(datasetMetadata.getDatasetId())
+                                                                .datasetName(datasetMetadata.getDatasetName())
+                                                                .country(datasetMetadata.getCountry())
+                                                                .language(datasetMetadata.getLanguage());
       try {
         harvestService.harvestFromCompressedArchive(inputStreamToHarvest,
             datasetMetadata.getDatasetId(), recordDataEncapsulated,
@@ -109,3 +121,4 @@ public class HarvestPublishServiceImpl implements HarvestPublishService {
             datasetMetadata.getStepSize()), asyncServiceTaskExecutor);
   }
 }
+

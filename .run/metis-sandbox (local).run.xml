@@ -1,0 +1,28 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="metis-sandbox (local)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="spring-run-configuration">
+    <option name="ALTERNATIVE_JRE_PATH" value="temurin-21" />
+    <module name="metis-sandbox" />
+    <option name="PROGRAM_PARAMETERS" value="--spring.config.location=file:///data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml --server.servlet.context-path=/metis-sandbox --logging.config=file:///data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml --truststore.path=/data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks --spring.rabbitmq.ssl.trust-store=file:///data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europeana.metis.sandbox.SandboxApplication" />
+    <option name="VM_PARAMETERS" value="-Xms600m -Xmx1g -XX:ActiveProcessorCount=1" />
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+      </ENTRIES>
+    </extension>
+    <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+      <option name="credential" />
+      <option name="region" />
+      <option name="useCurrentConnection" value="false" />
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="LaunchBrowser.Before.Run" url="http://localhost:8080/metis-sandbox" />
+    </method>
+  </configuration>
+</component>

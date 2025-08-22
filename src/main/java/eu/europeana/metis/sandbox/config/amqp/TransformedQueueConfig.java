@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The type Transformed queue configuration.
  */
 @Configuration
-public class TransformedQueueConfig extends QueueConsumerConfig {
+public class TransformedQueueConfig extends AbstractQueueConsumerConfig {
 
     @Value("${sandbox.rabbitmq.queues.record.transformed.concurrency}")
     private int concurrentConsumers;

@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.exception.RecordProcessingException;
 import eu.europeana.metis.sandbox.domain.RecordError;
 import eu.europeana.metis.sandbox.domain.RecordInfo;
 import eu.europeana.metis.sandbox.domain.RecordProcessEvent;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ import org.springframework.amqp.core.AmqpTemplate;
  */
 class StepExecutor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StepExecutor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final AmqpTemplate amqpTemplate;
 
   /**
