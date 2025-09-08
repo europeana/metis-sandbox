@@ -40,8 +40,6 @@
     <version.aws.s3>1.12.261</version.aws.s3>
     <version.coveralls>4.0.0</version.coveralls>
     <version.git-commit-id-plugin>4.0.4</version.git-commit-id-plugin>
-    <version.slf4j>2.0.12</version.slf4j>
-    <version.log4j>2.21.1</version.log4j>
     <version.logcaptor>2.7.8</version.logcaptor>
     <version.wiremock>3.13.1</version.wiremock>
     <version.commons.collections4>4.4</version.commons.collections4>
@@ -83,6 +81,16 @@
       <version>${version.guava}</version>
     </dependency>
     <!-- Spring boot -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -321,13 +329,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-log4j2</artifactId>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
