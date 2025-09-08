@@ -2,7 +2,7 @@
 # On re-starts it will contain data(and not execute scripts) but on re-builds it will not.
 services:
   postgres:
-    image: postgres:14-alpine
+    image: postgres:17-alpine
     container_name: metis-sandbox-postgres
     environment:
       - POSTGRES_DB=metis-sandbox

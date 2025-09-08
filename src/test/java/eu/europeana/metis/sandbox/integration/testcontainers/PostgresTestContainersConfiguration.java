@@ -23,7 +23,7 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 public class PostgresTestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String POSTGRES_VERSION = "postgres:14-alpine";
+  private static final String POSTGRES_VERSION = "postgres:17-alpine";
   private static final PostgreSQLContainer<?> postgreSQLContainer;
 
   static {
