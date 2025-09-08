@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.util;
 
 import static java.util.Objects.requireNonNull;
 
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class IndexDataCleaner {
 
-  private final Indexer publishIndexer;
+  private final Indexer<FullBeanImpl> publishIndexer;
 
   /**
    * Removes all indexed data for a specific dataset.

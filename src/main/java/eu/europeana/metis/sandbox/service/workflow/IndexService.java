@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class IndexService {
 
-  private final Indexer indexer;
+  private final Indexer<FullBeanImpl> indexer;
   private final IndexingProperties indexingProperties;
 
   /**
@@ -29,7 +30,7 @@ public class IndexService {
    *
    * @param indexer the indexer instance to process and calculate tier-related properties
    */
-  public IndexService(Indexer indexer) {
+  public IndexService(Indexer<FullBeanImpl> indexer) {
     this.indexer = indexer;
     this.indexingProperties = new IndexingProperties(
         new Date(), false, Collections.emptyList(), false, TierCalculationMode.OVERWRITE);

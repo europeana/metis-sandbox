@@ -5,10 +5,10 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
-import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.SetupRelatedIndexingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -62,8 +62,7 @@ class IndexConfig {
   private Integer zookeeperPublishTimeoutInSecs;
 
   @Bean
-  Indexer publishIndexer()
-      throws URISyntaxException, SetupRelatedIndexingException, IndexerRelatedIndexingException {
+  Indexer<FullBeanImpl> publishIndexer() throws URISyntaxException, SetupRelatedIndexingException {
     return getIndexer(mongoPublishHosts, mongoPublishPorts, mongoPublishDb,
         mongoPublishAuthenticationDb,
         mongoPublishUsername, mongoPublishPassword, mongoPublishEnableSSL, solrPublishHosts,
@@ -74,12 +73,11 @@ class IndexConfig {
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Indexer getIndexer(String[] mongoHosts, int[] mongoPorts, String mongoDb,
+  private Indexer<FullBeanImpl> getIndexer(String[] mongoHosts, int[] mongoPorts, String mongoDb,
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
       Boolean mongoEnableSSL, String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts,
       String zookeeperChroot, String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs,
-      String applicationName)
-      throws SetupRelatedIndexingException, URISyntaxException, IndexerRelatedIndexingException {
+      String applicationName) throws SetupRelatedIndexingException, URISyntaxException {
     checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
     checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
     checkArgument(isNotEmpty(mongoPorts), "Mongo ports must be provided ");
@@ -112,6 +110,6 @@ class IndexConfig {
       settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
     }
 
-    return new IndexerFactory(settings).getIndexer();
+    return IndexerFactory.create(settings).getIndexer();
   }
 }
