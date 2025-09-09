@@ -126,6 +126,26 @@ public class DatasetReportService {
   public DatasetInfoDTO getDatasetInfo(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
+    return getDatasetInfoDTO(datasetEntity);
+  }
+
+  /**
+   * Retrieves a list of dataset information associated with a specific user ID.
+   *
+   * @param userId the ID of the user whose datasets are to be retrieved
+   * @return a list of DatasetInfoDTO objects representing the details of the datasets
+   */
+  public List<DatasetInfoDTO> getDatasetInfoByUserId(String userId) {
+    ArrayList<DatasetInfoDTO> datasetInfoDTOS = new ArrayList<>();
+    List<DatasetEntity> userDatasets = datasetRepository.findAllByCreatedById(userId);
+    for (DatasetEntity datasetEntity : userDatasets) {
+      datasetInfoDTOS.add(getDatasetInfoDTO(datasetEntity));
+    }
+    return datasetInfoDTOS;
+  }
+
+  private DatasetInfoDTO getDatasetInfoDTO(DatasetEntity datasetEntity) {
+    String datasetId = String.valueOf(datasetEntity.getDatasetId());
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId);
     HarvestParametersEntity harvestParametersEntity = harvestParameterService.getDatasetHarvestingParameters(datasetId)
                                                                              .orElseThrow();

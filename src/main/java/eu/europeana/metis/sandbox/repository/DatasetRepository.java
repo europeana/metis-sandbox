@@ -28,6 +28,14 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
   Optional<DatasetEntity> findByDatasetId(int datasetId);
 
   /**
+   * Retrieves a list of DatasetEntity objects that were created by the specified user.
+   *
+   * @param userId the ID of the user who created the datasets
+   * @return a list of DatasetEntity objects created by the given user
+   */
+  List<DatasetEntity> findAllByCreatedById(String userId);
+
+  /**
    * Projection interface for accessing the dataset ID in queries.
    *
    * <p>This projection can be used to fetch only the dataset ID instead of whole dataset entities for optimized queries.
