@@ -87,7 +87,7 @@ class ScheduledConfig {
 
     @Scheduled(cron = "#{@getMetricsFrequency}")
     void metricsReport() {
-      metricsService.generateMetrics();
+      metricsService.refreshStatistics();
     }
 
     @Scheduled(cron = "#{@getTransformationXsltUpdateFrequency}")

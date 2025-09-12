@@ -1,6 +1,8 @@
 package eu.europeana.metis.sandbox.service.metrics;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
@@ -15,11 +17,13 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -64,36 +68,26 @@ public class MetricsService {
     this.executionRecordWarningRepository = executionRecordWarningRepository;
     this.problemPatternRepository = problemPatternRepository;
     this.meterRegistry = meterRegistry;
+    registerMetrics();
   }
 
-  /**
-   * Generates and registers various metrics including dataset counts, record totals, step statistics, and problem pattern
-   * occurrences for monitoring purposes.
-   *
-   * <p>Initializes database statistics and registers global gauge metrics for dataset count and total records.
-   * <p>Iterates over all FullBatchJobType values to register step metric gauges for different statuses.
-   * <p>Iterates over all ProblemPatternId values to register gauges for tracking occurrences of specific problem patterns.
-   */
-  public void generateMetrics() {
+  private void registerMetrics() {
     try {
-      getDatabaseStatistics();
+      refreshDatabaseStatistics();
       registerGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
       registerGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
 
       for (FullBatchJobType jobType : FullBatchJobType.values()) {
-        registerStepMetricGauge(jobType, Status.SUCCESS, successStepCounts);
-        registerStepMetricGauge(jobType, Status.WARN, warningStepCounts);
-        registerStepMetricGauge(jobType, Status.FAIL, errorStepCounts);
+        registerStepMetricGauge(jobType, Status.SUCCESS);
+        registerStepMetricGauge(jobType, Status.WARN);
+        registerStepMetricGauge(jobType, Status.FAIL);
       }
 
       for (ProblemPatternId patternId : ProblemPatternId.values()) {
-        registerGauge(
-            getPatternMetricName(patternId),
-            format("Processed records with problem pattern %s: %s",
-                patternId.name(),
-                ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle()),
-            BASE_UNIT_RECORD,
-            () -> getTotalOccurrences(patternId)
+        String patternMetricName = getPatternMetricName(patternId);
+        String patternDescription = format("Processed records with problem pattern %s: %s",
+            patternId.name(), ProblemPatternDescription.fromName(patternId.name()).getProblemPatternTitle());
+        registerGauge(patternMetricName, patternDescription, BASE_UNIT_RECORD, () -> getTotalOccurrences(patternId)
         );
       }
     } catch (RuntimeException ex) {
@@ -101,34 +95,60 @@ public class MetricsService {
     }
   }
 
-  private void getDatabaseStatistics() {
+  /**
+   * Refreshes metrics including dataset counts, record totals, step statistics, and problem pattern occurrences for monitoring
+   * purposes.
+   */
+  public void refreshStatistics() {
+    refreshDatabaseStatistics();
+    log.debug("Refreshed metrics statistics");
+  }
+
+  private void refreshDatabaseStatistics() {
     datasetStatistics = executionRecordRepository.getDatasetStatistics();
     problemPatternStatistics = problemPatternRepository.getProblemPatternStatistics();
 
     successStepCounts = mapStepStatistics(executionRecordRepository.getStepStatistics());
     warningStepCounts = mapStepStatistics(executionRecordWarningRepository.getStepStatistics());
     errorStepCounts = mapStepStatistics(executionRecordErrorRepository.getStepStatistics());
-
-    log.debug("metrics report retrieval");
   }
 
-  private Map<FullBatchJobType, Long> mapStepStatistics(List<StepStatisticProjection> stepStatisticProjections) {
-    return stepStatisticProjections.stream()
-                                   .collect(Collectors.toMap(
-                                       stepStatisticProjection -> FullBatchJobType.valueOf(stepStatisticProjection.getStep()),
-                                       StepStatisticProjection::getCount,
-                                       (a, b) -> {
-                                         throw new IllegalStateException("Duplicate step name detected: " + a);
-                                       }
-                                   ));
+  private Map<FullBatchJobType, Long> mapStepStatistics(List<StepStatisticProjection> projections) {
+    return projections.stream()
+                      .map(this::toJobTypeOrNull)
+                      .filter(Objects::nonNull)
+                      .collect(toMap(
+                          Map.Entry::getKey,
+                          Map.Entry::getValue,
+                          (a, b) -> {
+                            log.warn("Duplicate step detected, keeping first: {}", a);
+                            return a;
+                          },
+                          () -> new EnumMap<>(FullBatchJobType.class)
+                      ));
   }
 
-  private void registerStepMetricGauge(FullBatchJobType jobType, Status status, Map<FullBatchJobType, Long> jobTypeLongMap) {
-    Supplier<Number> supplier = () -> jobTypeLongMap.getOrDefault(jobType, 0L);
+  private Map.Entry<FullBatchJobType, Long> toJobTypeOrNull(StepStatisticProjection p) {
+    try {
+      return Map.entry(FullBatchJobType.valueOf(p.getStep()), p.getCount());
+    } catch (IllegalArgumentException e) {
+      log.warn("Ignoring unknown step '{}'", p.getStep());
+      return null;
+    }
+  }
+
+  private void registerStepMetricGauge(FullBatchJobType jobType, Status status) {
+    Supplier<Number> supplier = () -> {
+      Map<FullBatchJobType, Long> map = switch (status) {
+        case SUCCESS -> successStepCounts;
+        case WARN -> warningStepCounts;
+        case FAIL -> errorStepCounts;
+      };
+      return map != null ? map.getOrDefault(jobType, 0L) : 0L;
+    };
     registerGauge(getStepMetricName(jobType, status),
         format("%s processed records with status %s", jobType.name(), status.name()),
-        BASE_UNIT_RECORD,
-        supplier);
+        BASE_UNIT_RECORD, supplier);
   }
 
   private void registerGauge(String name, String description, String unit, Supplier<Number> supplier) {
@@ -139,19 +159,22 @@ public class MetricsService {
   }
 
   private long getDatasetCount() {
-    return datasetStatistics == null ? 0 : datasetStatistics.size();
+    return ofNullable(datasetStatistics).map(List::size).orElse(0);
   }
 
   private long getTotalRecords() {
-    return datasetStatistics == null ? 0 : datasetStatistics.stream().mapToLong(DatasetStatisticProjection::getCount).sum();
+    return Stream.ofNullable(datasetStatistics)
+                 .flatMap(List::stream)
+                 .mapToLong(DatasetStatisticProjection::getCount)
+                 .sum();
   }
 
   private long getTotalOccurrences(ProblemPatternId patternId) {
-    return problemPatternStatistics == null ?
-        0 : problemPatternStatistics.stream()
-                                    .filter(p -> patternId.name().equals(p.getPatternId()))
-                                    .mapToLong(DatasetProblemPatternStatisticProjection::getTotalOccurrences)
-                                    .sum();
+    return Stream.ofNullable(problemPatternStatistics)
+                 .flatMap(List::stream)
+                 .filter(p -> patternId.name().equals(p.getPatternId()))
+                 .mapToLong(DatasetProblemPatternStatisticProjection::getTotalOccurrences)
+                 .sum();
   }
 
   private String getMetricName(String name) {
