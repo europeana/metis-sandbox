@@ -11,29 +11,30 @@ import lombok.Getter;
 @Getter
 public class OaiHarvestParametersDTO extends AbstractHarvestParametersDTO {
 
-    public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
+  public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
+  public static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.OAI_PMH;
 
-    @JsonProperty("url")
-    private final String url;
+  @JsonProperty("url")
+  private final String url;
 
-    @JsonProperty("set-spec")
-    private final String setSpec;
+  @JsonProperty("set-spec")
+  private final String setSpec;
 
-    @JsonProperty("metadata-format")
-    private final String metadataFormat;
+  @JsonProperty("metadata-format")
+  private final String metadataFormat;
 
-    /**
-     * Constructor.
-     *
-     * @param url the URL of the OAI-PMH endpoint.
-     * @param setSpec the set specification indicating the subset of records to harvest.
-     * @param metadataFormat the metadata format used for harvesting.
-     * @param stepSize the step size for harvesting.
-     */
-    public OaiHarvestParametersDTO(String url, String setSpec, String metadataFormat, Integer stepSize) {
-        super(stepSize);
-        this.url = url;
-        this.setSpec = setSpec;
-        this.metadataFormat = metadataFormat;
-    }
+  /**
+   * Constructor.
+   *
+   * @param url the URL of the OAI-PMH endpoint.
+   * @param setSpec the set specification indicating the subset of records to harvest.
+   * @param metadataFormat the metadata format used for harvesting.
+   * @param stepSize the step size for harvesting.
+   */
+  public OaiHarvestParametersDTO(String url, String setSpec, String metadataFormat, Integer stepSize) {
+    super(HARVEST_PROTOCOL, stepSize);
+    this.url = url;
+    this.setSpec = setSpec;
+    this.metadataFormat = metadataFormat;
+  }
 }

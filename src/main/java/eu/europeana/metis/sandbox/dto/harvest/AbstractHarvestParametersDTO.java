@@ -12,6 +12,9 @@ import lombok.Getter;
 @SuppressWarnings("java:S1694") // This is intentional. It's a shared field(s) container class for subclasses.
 public abstract class AbstractHarvestParametersDTO {
 
+  @JsonProperty("harvest-protocol")
+  private HarvestProtocol harvestProtocol;
+
   @JsonProperty("step-size")
   private Integer stepSize;
 }

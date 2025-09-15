@@ -12,6 +12,7 @@ import lombok.Getter;
 public class HttpHarvestParametersDTO extends AbstractBinaryHarvestParametersDTO {
 
   public static final String SWAGGER_MODEL_NAME = "HttpUpload";
+  public static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.HTTP;
 
   private final String url;
 
@@ -25,7 +26,7 @@ public class HttpHarvestParametersDTO extends AbstractBinaryHarvestParametersDTO
    * @param stepSize the step size for harvesting.
    */
   public HttpHarvestParametersDTO(String url, String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
-    super(fileName, fileType, fileContent, stepSize);
+    super(fileName, fileType, fileContent, HARVEST_PROTOCOL, stepSize);
     this.url = url;
   }
 }

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.harvest.HarvestProtocol;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -69,7 +70,7 @@ class HarvestParametersConverterTest {
 
   @Test
   void convertToHarvestParametersEntity_UnknownDTO() {
-    AbstractHarvestParametersDTO unknown = new AbstractHarvestParametersDTO(1) {
+    AbstractHarvestParametersDTO unknown = new AbstractHarvestParametersDTO( HarvestProtocol.FILE,1) {
     };
     assertThrows(IllegalArgumentException.class, () ->
         HarvestParametersConverter.convertToHarvestParametersEntity(dataset, unknown)

@@ -27,10 +27,12 @@ public abstract class AbstractBinaryHarvestParametersDTO extends AbstractHarvest
    * @param fileName the name of the file.
    * @param fileType the type of the file.
    * @param fileContent the binary content of the file to be harvested.
+   * @param harvestProtocol the harvest protocol to be used.
    * @param stepSize the step size for harvesting.
    */
-  protected AbstractBinaryHarvestParametersDTO(String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
-    super(stepSize);
+  protected AbstractBinaryHarvestParametersDTO(String fileName, FileType fileType, byte[] fileContent,
+      HarvestProtocol harvestProtocol, Integer stepSize) {
+    super(harvestProtocol, stepSize);
     this.fileName = fileName;
     this.fileType = fileType;
     this.fileContent = Arrays.copyOf(fileContent, fileContent.length);

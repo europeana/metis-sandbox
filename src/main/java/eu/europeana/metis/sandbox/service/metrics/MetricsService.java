@@ -17,7 +17,6 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;

@@ -12,6 +12,7 @@ import lombok.Getter;
 public class FileHarvestParametersDTO extends AbstractBinaryHarvestParametersDTO {
 
   public static final String SWAGGER_MODEL_NAME = "FileUpload";
+  public static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.FILE;
 
   /**
    * Constructor.
@@ -22,6 +23,6 @@ public class FileHarvestParametersDTO extends AbstractBinaryHarvestParametersDTO
    * @param stepSize the step size for harvesting.
    */
   public FileHarvestParametersDTO(String fileName, FileType fileType, byte[] fileContent, Integer stepSize) {
-    super(fileName, fileType, fileContent, stepSize);
+    super(fileName, fileType, fileContent, HARVEST_PROTOCOL, stepSize);
   }
 }
