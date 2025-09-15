@@ -17,6 +17,7 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -73,7 +74,6 @@ public class MetricsService {
 
   private void registerMetrics() {
     try {
-      refreshDatabaseStatistics();
       registerGauge("count", "Dataset count", BASE_UNIT_DATASET, this::getDatasetCount);
       registerGauge("total_records", "Total of Records", BASE_UNIT_RECORD, this::getTotalRecords);
 

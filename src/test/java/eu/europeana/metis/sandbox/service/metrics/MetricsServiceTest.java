@@ -55,38 +55,35 @@ class MetricsServiceTest {
   }
 
   @Test
-  void getDatabaseStatistics() {
-    // Mock dataset statistics
+  void refreshDatabaseStatistics() {
     DatasetStatisticProjection dataset1 = mock(DatasetStatisticProjection.class);
-    when(dataset1.getCount()).thenReturn(10L);
-    when(executionRecordRepository.getDatasetStatistics()).thenReturn(List.of(dataset1));
+    DatasetStatisticProjection dataset2 = mock(DatasetStatisticProjection.class);
+    when(dataset1.getCount()).thenReturn(5L);
+    when(dataset2.getCount()).thenReturn(10L);
 
-    // Mock problem pattern statistics
-    DatasetProblemPatternStatisticProjection pattern1 = mock(DatasetProblemPatternStatisticProjection.class);
-    when(pattern1.getPatternId()).thenReturn(ProblemPatternId.P2.name());
-    when(pattern1.getTotalOccurrences()).thenReturn(3L);
-    when(problemPatternRepository.getProblemPatternStatistics()).thenReturn(List.of(pattern1));
+    StepStatisticProjection stepProjection = mock(StepStatisticProjection.class);
+    when(stepProjection.getStep()).thenReturn(FullBatchJobType.HARVEST_FILE.name());
+    when(stepProjection.getCount()).thenReturn(7L);
 
-    // Mock step statistics
-    StepStatisticProjection step1 = mock(StepStatisticProjection.class);
-    when(step1.getStep()).thenReturn(FullBatchJobType.HARVEST_FILE.name());
-    when(step1.getCount()).thenReturn(5L);
-    when(executionRecordRepository.getStepStatistics()).thenReturn(List.of(step1));
-    when(executionRecordWarningRepository.getStepStatistics()).thenReturn(List.of());
-    when(executionRecordErrorRepository.getStepStatistics()).thenReturn(List.of());
+    DatasetProblemPatternStatisticProjection patternProjection =
+        mock(DatasetProblemPatternStatisticProjection.class);
+    when(patternProjection.getPatternId()).thenReturn(ProblemPatternId.P1.name());
+    when(patternProjection.getTotalOccurrences()).thenReturn(3L);
 
-    metricsService.generateMetrics();
+    when(executionRecordRepository.getDatasetStatistics()).thenReturn(List.of(dataset1, dataset2));
+    when(executionRecordRepository.getStepStatistics()).thenReturn(List.of(stepProjection));
+    when(problemPatternRepository.getProblemPatternStatistics()).thenReturn(List.of(patternProjection));
 
-    // Assert gauges
+    metricsService.refreshStatistics();
+
     String metricType = FullBatchJobType.HARVEST_FILE.name().toLowerCase(Locale.US);
-    assertEquals(1.0, getGaugeValue("sandbox.metrics.dataset.count"));
-    assertEquals(10.0, getGaugeValue("sandbox.metrics.dataset.total_records"));
-    assertEquals(5.0, getGaugeValue(format("sandbox.metrics.dataset.%s.success", metricType)));
+    assertEquals(2.0, getGaugeValue("sandbox.metrics.dataset.count"));
+    assertEquals(15.0, getGaugeValue("sandbox.metrics.dataset.total_records"));
+    assertEquals(7.0, getGaugeValue(format("sandbox.metrics.dataset.%s.success", metricType)));
     assertEquals(0.0, getGaugeValue(format("sandbox.metrics.dataset.%s.warn", metricType)));
     assertEquals(0.0, getGaugeValue(format("sandbox.metrics.dataset.%s.fail", metricType)));
-    assertEquals(3.0, getGaugeValue("sandbox.metrics.dataset.p2"));
+    assertEquals(3.0, getGaugeValue("sandbox.metrics.dataset.p1"));
 
-    // Verify repository calls
     verify(executionRecordRepository, times(1)).getDatasetStatistics();
     verify(problemPatternRepository, times(1)).getProblemPatternStatistics();
     verify(executionRecordRepository, times(1)).getStepStatistics();
@@ -95,15 +92,15 @@ class MetricsServiceTest {
   }
 
   @Test
-  void getDatabaseStatistics_statisticsNull() {
-    metricsService.generateMetrics();
+  void refreshDatabaseStatistics_statisticsNull() {
+    metricsService.refreshStatistics();
     String metricType = FullBatchJobType.HARVEST_FILE.name().toLowerCase(Locale.US);
     assertEquals(0.0, getGaugeValue("sandbox.metrics.dataset.count"));
     assertEquals(0.0, getGaugeValue("sandbox.metrics.dataset.total_records"));
     assertEquals(0.0, getGaugeValue(format("sandbox.metrics.dataset.%s.success", metricType)));
     assertEquals(0.0, getGaugeValue(format("sandbox.metrics.dataset.%s.warn", metricType)));
     assertEquals(0.0, getGaugeValue(format("sandbox.metrics.dataset.%s.fail", metricType)));
-    assertEquals(0.0, getGaugeValue("sandbox.metrics.dataset.p2"));
+    assertEquals(0.0, getGaugeValue("sandbox.metrics.dataset.p1"));
   }
 
   private double getGaugeValue(String gaugeName) {
