@@ -1,80 +1,47 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.projection.DatasetIdView;
-
-import eu.europeana.metis.sandbox.dto.DatasetInfoDto;
-
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 
 /**
- * The interface Dataset repository.
+ * Repository interface for accessing and performing operations on datasets.
  */
 public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer> {
 
   /**
-   * Get a list of datasets created before specified date
+   * Returns a list of DatasetIdProjection objects created before the specified date.
    *
-   * @param date must not be null
-   * @return list of dataset ids
-   * @see DatasetIdView
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation">Query
-   * Creation</a>
-   * @see <a href="https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#projections">Projections</a>
+   * @param date the date to compare against
+   * @return a list of DatasetIdProjection objects matching the criteria
    */
-  List<DatasetIdView> getByCreatedDateBefore(ZonedDateTime date);
+  List<DatasetIdProjection> findByCreatedDateBefore(ZonedDateTime date);
 
   /**
-   * Gets by created by id.
+   * Retrieves a DatasetEntity based on the specified dataset ID.
    *
-   * @param userId the user id
-   * @return datasets created by the user
+   * @param datasetId the ID of the dataset to retrieve
+   * @return an Optional containing the found DatasetEntity or empty if no dataset matches the ID
    */
-  List<DatasetInfoDto> getByCreatedById(String userId);
+  Optional<DatasetEntity> findByDatasetId(int datasetId);
 
   /**
-   * Updates the value of recordQuantity to the given dataset
+   * Retrieves a list of DatasetEntity objects that were created by the specified user.
    *
-   * @param datasetId The id of the dataset to update to
-   * @param quantity The new value to update into the dataset
+   * @param userId the ID of the user who created the datasets
+   * @return a list of DatasetEntity objects created by the given user
    */
-  @Modifying
-  @Query("UPDATE DatasetEntity dataset SET dataset.recordsQuantity = ?2 WHERE dataset.datasetId = ?1")
-  void updateRecordsQuantity(int datasetId, Long quantity);
+  List<DatasetEntity> findAllByCreatedById(String userId);
 
   /**
-   * Sets to true the boolean recordLimitExceeded
+   * Projection interface for accessing the dataset ID in queries.
    *
-   * @param datasetId The id of the dataset to update this into
+   * <p>This projection can be used to fetch only the dataset ID instead of whole dataset entities for optimized queries.
    */
-  @Modifying
-  @Query("UPDATE DatasetEntity dataset SET dataset.recordLimitExceeded = true WHERE dataset.datasetId = ?1")
-  void setRecordLimitExceeded(int datasetId);
+  interface DatasetIdProjection {
 
-  /**
-   * A boolean type of query to check if dataset has xslt content
-   *
-   * @param datasetId The id of the dataset to update into
-   * @return Returns 0 if there is no xslt, 1 otherwise
-   */
-  @Query("SELECT COUNT(*) FROM DatasetEntity dataset WHERE dataset.datasetId = ?1 AND dataset.xsltEdmExternalContent IS NOT NULL")
-  int isXsltPresent(int datasetId);
-
-  /**
-   * Get xslt content based on datasetId
-   *
-   * @param datasetId must not be null
-   * @return xslt content associated to dataset
-   */
-  @Query("SELECT " +
-      "dataset.xsltEdmExternalContent " +
-      "FROM " +
-      "    DatasetEntity dataset " +
-      "WHERE dataset.datasetId = ?1 ")
-  String getXsltContentFromDatasetId(int datasetId);
-
+    Integer getDatasetId();
+  }
 }

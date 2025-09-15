@@ -9,289 +9,115 @@ import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
-import eu.europeana.metis.mediaprocessing.MediaExtractor;
-import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
-import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
-import eu.europeana.metis.mediaprocessing.RdfDeserializer;
-import eu.europeana.metis.mediaprocessing.RdfSerializer;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.sandbox.config.batch.WorkflowConfigurationProperties;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import eu.europeana.metis.sandbox.service.record.RecordLogService;
 import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateService;
-import eu.europeana.metis.sandbox.service.util.XsltUrlUpdateServiceImpl;
-import eu.europeana.metis.sandbox.service.validationworkflow.ExternalValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.HarvestValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.InternalValidationValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.TransformationValidationStep;
-import eu.europeana.metis.sandbox.service.validationworkflow.ValidationStep;
-import eu.europeana.metis.sandbox.service.workflow.ExternalValidationService;
-import eu.europeana.metis.sandbox.service.workflow.InternalValidationService;
-import eu.europeana.metis.sandbox.service.workflow.TransformationService;
-import eu.europeana.metis.transformation.service.TransformationException;
-import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.metis.utils.apm.ElasticAPMConfiguration;
 import eu.europeana.normalization.NormalizerFactory;
-import eu.europeana.validation.service.ClasspathResourceResolver;
-import eu.europeana.validation.service.PredefinedSchemasGenerator;
-import eu.europeana.validation.service.SchemaProvider;
-import java.lang.invoke.MethodHandles;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executor;
-import javax.xml.xpath.XPathFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+/**
+ * Configuration class for the Sandbox application.
+ *
+ * <p>This class sets up and provides general beans required for the operation of the sandbox.
+ */
 @Configuration
-@EnableScheduling
 @ComponentScan("eu.europeana.validation.service")
-@EnableConfigurationProperties({ElasticAPMConfiguration.class})
+@EnableConfigurationProperties({ElasticAPMConfiguration.class, WorkflowConfigurationProperties.class})
 class SandboxConfig {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int WORKFLOW_CORE_POOL_SIZE = 4;
+  private static final int WORKFLOW_QUEUE_CAPACITY = 20;
 
-    @Value("${sandbox.rabbitmq.queues.record.created.queue}")
-    private String createdQueue;
+  @Value("${sandbox.enrichment.dereference-url}")
+  private String dereferenceServiceUrl;
 
-    @Value("${sandbox.rabbitmq.queues.record.debias.ready.queue}")
-    private String deBiasReadyQueue;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
+  private String entityManagementUrl;
 
-    @Value("${sandbox.rabbitmq.queues.record.transformation.edm.external.queue}")
-    private String transformationToEdmExternalQueue;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
+  private String entityApiUrl;
 
-    @Value("${sandbox.dataset.creation.threads.core-pool-size}")
-    private Integer corePoolSize;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-token-endpoint}")
+  private String entityApiTokenEndpoint;
 
-    @Value("${sandbox.dataset.creation.threads.max-pool-size}")
-    private Integer maxPoolSize;
+  @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
+  private String entityApiGrantParams;
 
-    @Value("${sandbox.dataset.creation.threads.thread-prefix}")
-    private String threadPrefix;
+  @Value("${sandbox.portal.publish.record-base-url}")
+  private String portalPublishRecordBaseUrl;
 
-    @Value("${sandbox.enrichment.dereference-url}")
-    private String dereferenceServiceUrl;
+  @Bean(name = "portalPublishRecordBaseUrl")
+  String portalPublishRecordBaseUrl() {
+    return portalPublishRecordBaseUrl;
+  }
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-management-url}")
-    private String entityManagementUrl;
+  @Bean(name = "pipelineTaskExecutor")
+  TaskExecutor taskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(WORKFLOW_CORE_POOL_SIZE);
+    executor.setMaxPoolSize(WORKFLOW_CORE_POOL_SIZE);
+    executor.setQueueCapacity(WORKFLOW_QUEUE_CAPACITY);
+    executor.setThreadNamePrefix("PipelineJob-");
+    executor.initialize();
+    return executor;
+  }
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-url}")
-    private String entityApiUrl;
+  @Bean
+  UrlValidator urlValidator() {
+    return new UrlValidator(new String[]{"http", "https"});
+  }
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-token-endpoint}")
-    private String entityApiTokenEndpoint;
+  @Bean
+  XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
+      LockRegistry lockRegistry, HttpClient httpClient) {
+    return new XsltUrlUpdateService(transformXsltRepository, lockRegistry, httpClient);
+  }
 
-    @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
-    private String entityApiGrantParams;
+  @Bean
+  OaiHarvester oaiHarvester() {
+    return HarvesterFactory.createOaiHarvester();
+  }
 
-    //TODO: 04-03-2021 We should remove this configuration once
-    //TODO: XsltTransformation allows local files. Ticket MET-3450 was created to fix this issue
-    @Value("${sandbox.validation.edm-sorter-url}")
-    private String edmSorterUrl;
+  @Bean
+  HttpHarvester httpHarvester() {
+    return HarvesterFactory.createHttpHarvester();
+  }
 
-    @Value("${sandbox.transformation.xslt-url}")
-    private String defaultXsltUrl;
+  @Bean
+  NormalizerFactory normalizerFactory() {
+    return new NormalizerFactory();
+  }
 
-    @Value("${sandbox.portal.publish.record-base-url}")
-    private String portalPublishRecordBaseUrl;
+  @Bean
+  EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
+    DereferencerProvider dereferencerProvider = new DereferencerProvider();
+    dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
+    dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
+        entityApiGrantParams);
+    EnricherProvider enricherProvider = new EnricherProvider();
+    enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
+        entityApiGrantParams);
+    return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
+  }
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    XPathFactory xPathFactory() {
-        return XPathFactory.newDefaultInstance();
-    }
-
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    XsltTransformer xsltEdmSorter() throws TransformationException {
-        return new XsltTransformer(edmSorterUrl);
-    }
-
-    @Bean
-    XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
-                                              LockRegistry lockRegistry, HttpClient httpClient) {
-        return new XsltUrlUpdateServiceImpl(transformXsltRepository, lockRegistry, httpClient);
-    }
-
-    @Bean
-    Executor asyncServiceTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(corePoolSize);
-        executor.setMaxPoolSize(maxPoolSize);
-        executor.setThreadNamePrefix(threadPrefix);
-        executor.initialize();
-        return executor;
-    }
-
-    @Bean(name = "createdQueue")
-    String createdQueue() {
-        return createdQueue;
-    }
-
-    @Bean(name = "deBiasReadyQueue")
-    String deBiasReadyQueue() {
-        return deBiasReadyQueue;
-    }
-
-    @Bean(name = "transformationToEdmExternalQueue")
-    String transformationToEdmExternalQueue() {
-        return transformationToEdmExternalQueue;
-    }
-
-    @Bean(name = "portalPublishRecordBaseUrl")
-    String portalPublishRecordBaseUrl() {
-        return portalPublishRecordBaseUrl;
-    }
-
-    @Bean
-    OaiHarvester oaiHarvester() {
-        return HarvesterFactory.createOaiHarvester();
-    }
-
-    @Bean
-    HttpHarvester httpHarvester() {
-        return HarvesterFactory.createHttpHarvester();
-    }
-
-    @Bean
-    ClasspathResourceResolver lsResourceResolver() {
-        return new ClasspathResourceResolver();
-    }
-
-    @Bean
-    SchemaProvider schemaProvider() {
-        return new SchemaProvider(PredefinedSchemasGenerator.generate(schemaProperties()));
-    }
-
-    @Bean
-    NormalizerFactory normalizerFactory() {
-        return new NormalizerFactory();
-    }
-
-    @Bean
-    EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
-        DereferencerProvider dereferencerProvider = new DereferencerProvider();
-        dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
-        dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint, entityApiGrantParams);
-        EnricherProvider enricherProvider = new EnricherProvider();
-        enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint, entityApiGrantParams);
-        return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
-    }
-
-    @Bean
-    RdfConverterFactory rdfConverterFactory() {
-        return new RdfConverterFactory();
-    }
-
-    @Bean
-    MediaProcessorFactory mediaProcessorFactory() {
-        return new MediaProcessorFactory();
-    }
-
-    @Bean
-    MediaExtractor mediaExtractor() {
-        try {
-            return mediaProcessorFactory().createMediaExtractor();
-        } catch (MediaProcessorException mediaProcessorException) {
-            LOGGER.error("Unable to create media extractor", mediaProcessorException);
-            return null;
-        }
-    }
-
-    @Bean
-    RdfSerializer rdfSerializer() {
-        return rdfConverterFactory().createRdfSerializer();
-    }
-
-    @Bean
-    RdfDeserializer rdfDeserializer() {
-        return rdfConverterFactory().createRdfDeserializer();
-    }
-
-    @Bean
-    @ConfigurationProperties(prefix = "sandbox.validation")
-    Schema schema() {
-        return new Schema();
-    }
-
-    @Bean
-    HttpClient httpClient() {
-        return HttpClient.newBuilder().version(Version.HTTP_2)
-                .followRedirects(Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
-    }
-
-    @Bean
-    ValidationStep harvestValidationStep(RecordLogService recordLogService) {
-        return new HarvestValidationStep(recordLogService);
-    }
-
-    @Bean
-    ValidationStep externalValidationStep(ExternalValidationService externalValidationService,
-                                          RecordLogService recordLogService) {
-        return new ExternalValidationStep(externalValidationService, recordLogService);
-    }
-
-    @Bean
-    ValidationStep transformationValidationStep(TransformationService transformationService,
-                                                RecordLogService recordLogService) {
-        return new TransformationValidationStep(transformationService, recordLogService);
-    }
-
-    @Bean
-    ValidationStep internalValidationValidationStep(InternalValidationService internalValidationService,
-                                                    RecordLogService recordLogService) {
-        return new InternalValidationValidationStep(internalValidationService, recordLogService);
-    }
-
-    private Properties schemaProperties() {
-        Schema schema = schema();
-        Map<String, Object> predefinedSchemas = schema.getPredefinedSchemas();
-        Properties schemaProps = new Properties();
-        schemaProps.put(Schema.PREDEFINED_SCHEMAS, String.join(",", predefinedSchemas.keySet()));
-        addSchemaProperties(Schema.PREDEFINED_SCHEMAS, predefinedSchemas, schemaProps);
-        return schemaProps;
-    }
-
-    private void addSchemaProperties(String key, Object value, Properties props) {
-      switch (value) {
-        case String string -> props.setProperty(key, string);
-        case Map<?, ?> map -> {
-          for (Map.Entry<?, ?> entry : map.entrySet()) {
-            String nestedKey = key + "." + entry.getKey().toString();
-            Object nestedValue = entry.getValue();
-            addSchemaProperties(nestedKey, nestedValue, props);
-          }
-        }
-        case null, default -> throw new IllegalArgumentException("Property value: " + value);
-      }
-    }
-
-    private static class Schema {
-
-        public static final String PREDEFINED_SCHEMAS = "predefinedSchemas";
-
-        private final Map<String, Object> predefinedSchemas = new HashMap<>();
-
-        public Map<String, Object> getPredefinedSchemas() {
-            return this.predefinedSchemas;
-        }
-    }
-
+  @Bean
+  HttpClient httpClient() {
+    return HttpClient.newBuilder().version(Version.HTTP_2)
+                     .followRedirects(Redirect.NORMAL)
+                     .connectTimeout(Duration.ofSeconds(5))
+                     .build();
+  }
 }
