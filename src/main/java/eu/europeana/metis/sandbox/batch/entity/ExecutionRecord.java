@@ -4,6 +4,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -33,7 +34,7 @@ public class ExecutionRecord implements HasExecutionRecordIdAccess<ExecutionReco
   @Column(columnDefinition = "TEXT")
   private String recordData;
 
-  @OneToMany(mappedBy = "executionRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "executionRecord", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   private List<ExecutionRecordWarning> executionRecordWarning = new ArrayList<>();
 }
 
