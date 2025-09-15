@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 
@@ -12,7 +13,7 @@ import lombok.Getter;
 public class OaiHarvestParametersDTO extends AbstractHarvestParametersDTO {
 
   public static final String SWAGGER_MODEL_NAME = "OAIPmhUpload";
-  public static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.OAI_PMH;
+  public static final HarvestProtocol HARVEST_PROTOCOL = HarvestProtocol.OAI;
 
   @JsonProperty("url")
   private final String url;

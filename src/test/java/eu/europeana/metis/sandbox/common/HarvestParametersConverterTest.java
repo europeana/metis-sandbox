@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
-import eu.europeana.metis.sandbox.dto.harvest.HarvestProtocol;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;

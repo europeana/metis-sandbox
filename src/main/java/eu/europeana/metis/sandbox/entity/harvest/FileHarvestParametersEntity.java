@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.entity.harvest;
 
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -14,7 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@DiscriminatorValue("FILE")
+@DiscriminatorValue(HarvestProtocol.Values.FILE)
 @Table(name = "harvest_parameters_file")
 public class FileHarvestParametersEntity extends AbstractBinaryHarvestParametersEntity {
 

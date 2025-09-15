@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.entity.harvest;
 
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -12,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@DiscriminatorValue("HTTP")
+@DiscriminatorValue(HarvestProtocol.Values.HTTP)
 @Table(name = "harvest_parameters_http")
 public class HttpHarvestParametersEntity extends AbstractBinaryHarvestParametersEntity {
 

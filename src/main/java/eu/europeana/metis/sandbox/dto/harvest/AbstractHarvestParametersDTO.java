@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

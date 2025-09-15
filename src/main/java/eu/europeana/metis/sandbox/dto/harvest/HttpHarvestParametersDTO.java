@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.dto.harvest;
 
 import eu.europeana.metis.sandbox.common.FileType;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 

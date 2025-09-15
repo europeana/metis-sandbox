@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.entity.harvest;
 
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -12,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@DiscriminatorValue("OAI")
+@DiscriminatorValue(HarvestProtocol.Values.OAI)
 @Table(name = "harvest_parameters_oai")
 public class OaiHarvestParametersEntity extends HarvestParametersEntity {
 

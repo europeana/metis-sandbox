@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.dto.harvest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.FileType;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import java.util.Arrays;
 import lombok.Getter;
 
