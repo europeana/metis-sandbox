@@ -172,6 +172,7 @@ sandbox:
       username:
       password:
       ssl-enable: false
+      max-connection-pool-size:
     solr:
       hosts:
       zookeeper:

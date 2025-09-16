@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -43,6 +44,9 @@ class IndexConfig {
   @Value("${sandbox.publish.mongo.application-name:#{null}}")
   private String mongoPublishApplicationName;
 
+  @Value("${sandbox.publish.mongo.max-connection-pool-size:#{null}}")
+  private Integer mongoMaxConnectionPoolSize;
+
   @Value("${sandbox.publish.solr.hosts}")
   private String[] solrPublishHosts;
 
@@ -65,9 +69,11 @@ class IndexConfig {
   Indexer<FullBeanImpl> publishIndexer() throws URISyntaxException, SetupRelatedIndexingException {
     return getIndexer(mongoPublishHosts, mongoPublishPorts, mongoPublishDb,
         mongoPublishAuthenticationDb,
-        mongoPublishUsername, mongoPublishPassword, mongoPublishEnableSSL, solrPublishHosts,
+        mongoPublishUsername, mongoPublishPassword, mongoPublishEnableSSL, mongoPublishApplicationName,
+        mongoMaxConnectionPoolSize, solrPublishHosts,
         zookeeperPublishHosts, zookeeperPublishPorts, zookeeperPublishChroot,
-        zookeeperPublishDefaultCollection, zookeeperPublishTimeoutInSecs, mongoPublishApplicationName);
+        zookeeperPublishDefaultCollection, zookeeperPublishTimeoutInSecs
+    );
   }
 
   //Suppress: Methods should not have too many parameters warning
@@ -75,9 +81,10 @@ class IndexConfig {
   @SuppressWarnings("squid:S107")
   private Indexer<FullBeanImpl> getIndexer(String[] mongoHosts, int[] mongoPorts, String mongoDb,
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
-      Boolean mongoEnableSSL, String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts,
-      String zookeeperChroot, String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs,
-      String applicationName) throws SetupRelatedIndexingException, URISyntaxException {
+      Boolean mongoEnableSSL, String mongoPublishApplicationName, Integer mongoMaxConnectionPoolSize,
+      String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts, String zookeeperChroot,
+      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs)
+      throws SetupRelatedIndexingException, URISyntaxException {
     checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
     checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
     checkArgument(isNotEmpty(mongoPorts), "Mongo ports must be provided ");
@@ -88,8 +95,9 @@ class IndexConfig {
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
         mongoAuthenticationDb, mongoUsername, mongoPassword, Boolean.TRUE.equals(mongoEnableSSL),
-        null, applicationName);
+        null, mongoPublishApplicationName);
     settings.setMongoDatabaseName(mongoDb);
+    ofNullable(mongoMaxConnectionPoolSize).ifPresent(settings::setMongoMaxConnectionPoolSize);
 
     // Set Solr properties
     for (String host : solrHosts) {
