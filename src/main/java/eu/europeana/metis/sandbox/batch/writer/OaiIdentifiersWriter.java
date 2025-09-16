@@ -41,8 +41,8 @@ public class OaiIdentifiersWriter extends RepositoryItemWriter<ExecutionRecordEx
 
   @Override
   public void write(Chunk<? extends ExecutionRecordExternalIdentifier> chunk) throws Exception {
-    log.info("Writing chunk of {} oai identifiers to DB", chunk.size());
+    log.debug("BEGIN -> Writing chunk of {} oai identifiers to DB", chunk.size());
     super.write(chunk);
-    log.info("Chunk of {} oai identifiers written to DB", chunk.size());
+    log.debug("END -> Writing chunk of {} oai identifiers to DB", chunk.size());
   }
 }

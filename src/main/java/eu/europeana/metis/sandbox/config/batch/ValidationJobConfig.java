@@ -5,17 +5,12 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.processor.listener.LoggingChunkListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
-import eu.europeana.metis.sandbox.batch.processor.listener.LoggingJobExecutionListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.ProblemPatternsStepExecutionListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -51,10 +46,8 @@ public class ValidationJobConfig {
   }
 
   @Bean
-  Job validationBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step validationStep,
-      LoggingJobExecutionListener loggingJobExecutionListener) {
+  Job validationBatchJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step validationStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
-        .listener(loggingJobExecutionListener)
         .start(validationStep)
         .build();
   }
@@ -66,14 +59,12 @@ public class ValidationJobConfig {
       @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> validationAsyncItemProcessor,
       ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener,
-      LoggingChunkListener loggingChunkListener,
       ProblemPatternsStepExecutionListener problemPatternsStepExecutionListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(validationRepositoryItemReader)
         .processor(validationAsyncItemProcessor)
         .listener(loggingItemProcessListener)
-        .listener(loggingChunkListener)
         .listener(problemPatternsStepExecutionListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();

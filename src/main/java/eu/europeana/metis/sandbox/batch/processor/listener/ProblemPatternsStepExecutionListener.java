@@ -50,7 +50,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
 
   @Override
   public void beforeStep(StepExecution stepExecution) {
-    log.info("Running beforeStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
+    log.debug("Running beforeStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       initializePatternAnalysisExecution();
     }
@@ -58,12 +58,14 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    log.info("Running beforeStep for afterStep: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
+    log.debug("Running afterStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
+      log.debug("BEGIN -> Finalize problem pattern analysis datasetId: {}", datasetId);
       final ExecutionPoint executionPoint = executionPointService
           .getExecutionPoint(datasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
-      final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(datasetId, executionPoint);
-      log.info("Problem patterns analysis status for datasetId {}: {}", datasetId, status);
+      final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(executionPoint);
+      log.debug("END -> Finalize problem pattern analysis datasetId: {}", datasetId);
+      log.info("Problem pattern analysis status for datasetId {}: {}", datasetId, status);
     }
     return stepExecution.getExitStatus();
   }
@@ -73,16 +75,13 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
     patternAnalysisService.initializePatternAnalysisExecution(datasetId, FullBatchJobType.VALIDATE_INTERNAL, timestamp);
   }
 
-  private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(String datasetId, ExecutionPoint datasetExecutionPoint) {
+  private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(ExecutionPoint datasetExecutionPoint) {
     try {
-      log.debug("Finalize analysis: {} lock, Locked", datasetId);
       patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
       return ProblemPatternAnalysisStatus.FINALIZED;
     } catch (PatternAnalysisException e) {
       log.error("Something went wrong during finalizing pattern analysis", e);
       return ProblemPatternAnalysisStatus.ERROR;
-    } finally {
-      log.debug("Finalize analysis: {} lock, Unlocked", datasetId);
     }
   }
 }

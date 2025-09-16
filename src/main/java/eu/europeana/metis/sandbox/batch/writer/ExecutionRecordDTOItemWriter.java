@@ -1,21 +1,18 @@
 package eu.europeana.metis.sandbox.batch.writer;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -62,7 +59,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
 
   @Override
   public void write(Chunk<? extends AbstractExecutionRecordDTO> chunk) {
-    log.info("In writer writing chunk");
+    log.debug("BEGIN -> Write chunk");
     final ArrayList<ExecutionRecord> executionRecords = new ArrayList<>();
     final ArrayList<ExecutionRecordError> executionRecordErrors = new ArrayList<>();
     final ArrayList<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
@@ -78,11 +75,11 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
             ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO));
       }
     }
-    log.info("In writer before saveAll");
+    log.debug("In writer before saveAll");
     executionRecordRepository.saveAll(executionRecords);
     executionRecordTierContextRepository.saveAll(executionRecordTierContexts);
     executionRecordErrorRepository.saveAll(executionRecordErrors);
-    log.info("In writer finished writing chunk");
+    log.debug("END -> Write chunk");
   }
 }
 

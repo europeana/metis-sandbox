@@ -209,7 +209,7 @@ public class BatchJobExecutor {
     for (JobInstance jobInstance : jobInstances) {
       List<JobExecution> jobExecutions = jobExplorer.getJobExecutions(jobInstance);
       for (JobExecution jobExecution : jobExecutions) {
-        if(matches(jobExecution, executionMetadata, fullBatchJobType)){
+        if (matches(jobExecution, executionMetadata, fullBatchJobType)) {
           matchingExecution = jobExecution;
         }
       }
@@ -241,7 +241,6 @@ public class BatchJobExecutor {
                  log.info("Job Id: {}, status: {}, isRunning: {}", jobExecution.getJobId(), jobExecution.getStatus(),
                      jobExecution.isRunning()))
              .until(() -> !jobExecution.isRunning());
-      log.info("Job finished with status: {}", jobExecution.getStatus());
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
