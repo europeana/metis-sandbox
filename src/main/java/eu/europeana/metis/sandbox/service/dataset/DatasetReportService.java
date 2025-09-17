@@ -224,10 +224,10 @@ public class DatasetReportService {
     final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
     ExecutionStatus executionStatus = computeStatus(datasetEntity, totalRecords, totalProcessed, totalFailInWorkflow);
+    String publishPortalUrl = getPublishPortalUrl(datasetEntity, executionStatus);
     List<DatasetErrorInfoDTO> datasetErrorInfoDTOS = datasetEntity.getDatasetErrors().stream().map(
                                                                       datasetError -> new DatasetErrorInfoDTO(datasetError.getMessage(), Status.FAIL))
                                                                   .toList();
-    String publishPortalUrl = getPublishPortalUrl(datasetEntity, totalRecords, completedRecords);
 
     return new ExecutionProgressInfoDTO(
         publishPortalUrl,
@@ -310,12 +310,12 @@ public class DatasetReportService {
     return String.format("%s | %s", executionRecordIdentifierKey.getRecordId(), executionRecordIdentifierKey.getSourceRecordId());
   }
 
-  private String getPublishPortalUrl(DatasetEntity datasetEntity, long totalRecords, long completedRecords) {
-    if (totalRecords == 0L) {
+  private String getPublishPortalUrl(DatasetEntity datasetEntity, ExecutionStatus executionStatus) {
+    if (ExecutionStatus.HARVESTING_IDENTIFIERS == executionStatus) {
       return HARVESTING_IDENTIFIERS_MESSAGE;
     }
 
-    if (totalRecords != completedRecords) {
+    if (ExecutionStatus.IN_PROGRESS == executionStatus || ExecutionStatus.FAILED == executionStatus) {
       return PROCESSING_DATASET_MESSAGE;
     }
 
@@ -324,7 +324,7 @@ public class DatasetReportService {
   }
 
   private TiersZeroInfoDTO prepareTiersInfo(String datasetId) {
-    // get list of records with content tier 0
+    // get a list of records with content tier 0
     List<String> listOfRecordsIdsWithContentZero =
         executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
                                             .stream().map(ExecutionRecordTierContext::getIdentifier)
