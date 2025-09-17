@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static java.lang.String.format;
 
+import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
@@ -9,6 +10,7 @@ import eu.europeana.metis.sandbox.common.InputMetadata;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.DatasetError;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.XsltType;
@@ -77,6 +79,15 @@ public class DatasetExecutionSetupService {
     return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
   }
 
+  /**
+   * Updates the record limit exceeded status for the specified dataset.
+   *
+   * @param datasetId the ID of the dataset to update
+   */
+  public void updateRecordLimitExceeded(int datasetId) {
+    datasetRepository.updateRecordLimitExceeded(datasetId);
+  }
+
   private String createDataset(DatasetMetadataRequest datasetMetadataRequest, WorkflowType workflowType, String userId) {
     DatasetEntity datasetEntity = new DatasetEntity(datasetMetadataRequest.getDatasetName(), workflowType,
         datasetMetadataRequest.getLanguage(), datasetMetadataRequest.getCountry(), userId);
@@ -93,5 +104,28 @@ public class DatasetExecutionSetupService {
         new String(xsltFile.getBytes(), StandardCharsets.UTF_8));
     transformXsltRepository.save(transformXsltEntity);
     return transformXsltEntity;
+  }
+
+  /**
+   * Updates the dataset with an error by associating an exception's details with the dataset.
+   *
+   * @param datasetId the ID of the dataset to update with the error
+   * @param exception the exception containing the error details to associate with the dataset
+   */
+  @Transactional
+  public void updateDatasetWithError(String datasetId, Exception exception) {
+    DatasetEntity dataset = datasetRepository.findById(Integer.valueOf(datasetId))
+                                             .orElseThrow(() -> new RuntimeException("Dataset not found"));
+
+    ExceptionInfoDTO exceptionInfoDTO = ExceptionInfoDTO.from(exception);
+
+    DatasetError datasetError = new DatasetError();
+    datasetError.setMessage(exceptionInfoDTO.getMessage());
+    datasetError.setException(exceptionInfoDTO.getStackTrace());
+    datasetError.setDatasetEntity(dataset);
+
+    dataset.getDatasetErrors().add(datasetError);
+
+    datasetRepository.save(dataset);
   }
 }

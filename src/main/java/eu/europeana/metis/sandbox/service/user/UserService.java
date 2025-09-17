@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.user;
 
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressSummaryDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import java.util.ArrayList;
@@ -29,17 +29,18 @@ public class UserService {
    * Retrieves a list of datasets owned by a specific user along with their execution progress information.
    *
    * @param userId the unique identifier of the user whose datasets are to be retrieved
-   * @return a list of {@link DatasetWithExecutionProgressInfoDTO} objects combining dataset metadata and corresponding execution progress information
+   * @return a list of {@link DatasetWithExecutionProgressSummaryDTO} objects combining dataset metadata and corresponding
+   * execution progress information
    */
-  public List<DatasetWithExecutionProgressInfoDTO> getDatasetInfoWithProgressOwnedByUserId(String userId) {
-    List<DatasetWithExecutionProgressInfoDTO> datasetWithExecutionProgressInfoDTOs = new ArrayList<>();
+  public List<DatasetWithExecutionProgressSummaryDTO> getDatasetInfoWithProgressOwnedByUserId(String userId) {
+    List<DatasetWithExecutionProgressSummaryDTO> datasetWithExecutionProgressSummaryDTOs = new ArrayList<>();
     List<DatasetInfoDTO> datasetInfoByUserId = datasetReportService.getDatasetInfoByUserId(userId);
     for (DatasetInfoDTO datasetInfoDTO : datasetInfoByUserId) {
       ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(datasetInfoDTO.getDatasetId());
-      DatasetWithExecutionProgressInfoDTO datasetWithExecutionProgressInfoDTO =
-          new DatasetWithExecutionProgressInfoDTO(datasetInfoDTO, executionProgressInfoDTO);
-      datasetWithExecutionProgressInfoDTOs.add(datasetWithExecutionProgressInfoDTO);
+      DatasetWithExecutionProgressSummaryDTO datasetWithExecutionProgressSummaryDTO =
+          DatasetWithExecutionProgressSummaryDTO.from(datasetInfoDTO, executionProgressInfoDTO);
+      datasetWithExecutionProgressSummaryDTOs.add(datasetWithExecutionProgressSummaryDTO);
     }
-    return datasetWithExecutionProgressInfoDTOs;
+    return datasetWithExecutionProgressSummaryDTOs;
   }
 }

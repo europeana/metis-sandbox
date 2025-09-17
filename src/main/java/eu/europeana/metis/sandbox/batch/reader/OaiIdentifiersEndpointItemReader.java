@@ -9,13 +9,16 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifierKey;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
+import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.util.HarvestService;
-import jakarta.annotation.PostConstruct;
+import eu.europeana.metis.sandbox.service.util.HarvestService.OaiHarvestResult;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +55,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
   //todo 6695: Align with the FileItemReader. Here we harvestParameterService but in FileItemReader is in FileHarvestService
   private final HarvestParameterService harvestParameterService;
   private final HarvestService harvestService;
+  private final DatasetExecutionSetupService datasetExecutionSetupService;
   private final List<OaiRecordHeader> oaiRecordHeaders = new LinkedList<>();
 
   /**
@@ -59,16 +63,34 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
    *
    * @param harvestParameterService The service used to access and manage harvest parameters.
    * @param harvestService The service used to perform harvesting operations.
+   * @param datasetExecutionSetupService The service used to manage dataset executions.
    */
   public OaiIdentifiersEndpointItemReader(HarvestParameterService harvestParameterService,
-      HarvestService harvestService) {
+      HarvestService harvestService, DatasetExecutionSetupService datasetExecutionSetupService) {
     this.harvestParameterService = harvestParameterService;
     this.harvestService = harvestService;
+    this.datasetExecutionSetupService = datasetExecutionSetupService;
   }
 
-  @PostConstruct
-  private void prepare() {
-    harvestIdentifiers();
+  /**
+   * Executes logic before the start of a step in a Spring Batch process.
+   * <p>
+   * It attempts to harvest identifiers required for the step execution.
+   * <p>
+   * If an exception is thrown during this process, the dataset is updated with the error details and the exception is rethrown.
+   *
+   * @param stepExecution the context of the currently executing step in the batch process providing metadata and information
+   * needed for execution
+   * @throws RuntimeException if an error occurs during the identifier harvesting process
+   */
+  @BeforeStep
+  public void beforeStep(StepExecution stepExecution) {
+    try {
+      harvestIdentifiers();
+    } catch (RuntimeException exception) {
+      datasetExecutionSetupService.updateDatasetWithError(datasetId, exception);
+      throw exception;
+    }
   }
 
   @Override
@@ -109,7 +131,11 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
     log.info("Harvesting identifiers for {}", oaiEndpoint);
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    oaiRecordHeaders.addAll(harvestService.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize)));
+    OaiHarvestResult oaiHarvestResult = harvestService.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize));
+    oaiRecordHeaders.addAll(oaiHarvestResult.headers());
+    if (oaiHarvestResult.iteratorResult().recordLimitExceeded()) {
+      datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
+    }
     log.info("Identifiers harvested");
   }
 

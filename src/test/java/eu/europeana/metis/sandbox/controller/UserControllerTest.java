@@ -19,7 +19,7 @@ import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressSummaryDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
@@ -98,28 +98,26 @@ class UserControllerTest {
         10,
         List.of(executionProgressByStepDto),
         false,
+        List.of(),
         tiersZeroInfoDTO
     );
 
-    DatasetWithExecutionProgressInfoDTO datasetWithExecutionProgressInfoDTO =
-        new DatasetWithExecutionProgressInfoDTO(datasetInfoDTO, executionProgressInfoDTO);
+    DatasetWithExecutionProgressSummaryDTO datasetWithExecutionProgressSummaryDTO =
+        DatasetWithExecutionProgressSummaryDTO.from(datasetInfoDTO, executionProgressInfoDTO);
 
     when(userService.getDatasetInfoWithProgressOwnedByUserId(getUserId(jwt))).thenReturn(
-        List.of(datasetWithExecutionProgressInfoDTO));
+        List.of(datasetWithExecutionProgressSummaryDTO));
 
     mockMvc.perform(get("/users/me/datasets")
                .headers(getCommonAuthorizationUserAgentHeaders()))
            .andExpect(status().isOk())
            .andExpect(content().contentType("application/json"))
-           .andExpect(jsonPath("$[0].dataset-info").exists())
-           .andExpect(jsonPath("$[0].dataset-info.dataset-id", is(datasetInfoDTO.getDatasetId())))
-
-           .andExpect(jsonPath("$[0].execution-progress-info").exists())
-           .andExpect(jsonPath("$[0].execution-progress-info.status", is(executionProgressInfoDTO.executionStatus().name())))
-           .andExpect(jsonPath("$[0].execution-progress-info.total-records",
+           .andExpect(jsonPath("$[0].dataset-id", is(datasetInfoDTO.getDatasetId())))
+           .andExpect(jsonPath("$[0].status", is(executionProgressInfoDTO.executionStatus().name())))
+           .andExpect(jsonPath("$[0].total-records",
                is(Math.toIntExact(executionProgressInfoDTO.totalRecords()))))
            .andExpect(
-               jsonPath("$[0].execution-progress-info.processed-records",
+               jsonPath("$[0].processed-records",
                    is(Math.toIntExact(executionProgressInfoDTO.processedRecords()))));
 
   }

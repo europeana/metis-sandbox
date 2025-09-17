@@ -6,8 +6,10 @@ import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
+import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.util.HarvestService;
+import eu.europeana.metis.sandbox.service.util.HarvestService.ArchiveHarvestResult;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -36,6 +38,7 @@ public class FileHarvestService {
 
   private final HarvestService harvestService;
   private final HarvestParameterService harvestParameterService;
+  private final DatasetExecutionSetupService datasetExecutionSetupService;
 
   /**
    * Constructor.
@@ -43,9 +46,11 @@ public class FileHarvestService {
    * @param harvestService provides implementation of harvest processing logic
    * @param harvestParameterService facilitates access to harvest parameters from the dataset
    */
-  public FileHarvestService(HarvestService harvestService, HarvestParameterService harvestParameterService) {
+  public FileHarvestService(HarvestService harvestService, HarvestParameterService harvestParameterService,
+      DatasetExecutionSetupService datasetExecutionSetupService) {
     this.harvestService = harvestService;
     this.harvestParameterService = harvestParameterService;
+    this.datasetExecutionSetupService = datasetExecutionSetupService;
   }
 
   /**
@@ -84,8 +89,12 @@ public class FileHarvestService {
       String stringData = getStringData(inputStream);
       recordIdAndContent.put(fileName, stringData);
     } else {
-      recordIdAndContent.putAll(harvestService.harvestFromCompressedArchive(inputStream, stepSize,
-          CompressedFileExtension.valueOf(fileType.name())));
+      ArchiveHarvestResult archiveHarvestResult = harvestService.harvestFromCompressedArchive(inputStream, stepSize,
+          CompressedFileExtension.valueOf(fileType.name()));
+      recordIdAndContent.putAll(archiveHarvestResult.records());
+      if (archiveHarvestResult.iteratorResult().recordLimitExceeded()) {
+        datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
+      }
     }
 
     Map<String, HarvestedRecord> harvestedRecords = new HashMap<>();

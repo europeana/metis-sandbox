@@ -5,6 +5,10 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository interface for accessing and performing operations on datasets.
@@ -34,6 +38,16 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @return a list of DatasetEntity objects created by the given user
    */
   List<DatasetEntity> findAllByCreatedById(String userId);
+
+  /**
+   * Updates the recordLimitExceeded field for a given dataset.
+   *
+   * @param datasetId the ID of the dataset
+   */
+  @Modifying
+  @Transactional
+  @Query("UPDATE DatasetEntity d SET d.recordLimitExceeded = true WHERE d.datasetId = :datasetId")
+  void updateRecordLimitExceeded(@Param("datasetId") int datasetId);
 
   /**
    * Projection interface for accessing the dataset ID in queries.

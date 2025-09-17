@@ -180,10 +180,10 @@ class DatasetReportServiceTest {
 
     when(datasetRepository.findByDatasetId(Integer.parseInt(datasetId))).thenReturn(Optional.of(datasetEntity));
     TransformXsltEntity transformXsltEntity = new TransformXsltEntity();
-    transformXsltEntity.setDatasetId(String.valueOf(datasetId));
+    transformXsltEntity.setDatasetId(datasetId);
     transformXsltEntity.setType(XsltType.EXTERNAL);
     transformXsltEntity.setTransformXslt("transformXslt");
-    when(transformXsltRepository.findByDatasetId(valueOf(datasetId))).thenReturn(
+    when(transformXsltRepository.findByDatasetId(datasetId)).thenReturn(
         Optional.of(transformXsltEntity));
 
     long totalSuccessInStep = 10L;
@@ -197,7 +197,7 @@ class DatasetReportServiceTest {
           .thenReturn(totalSuccessInStep);
       when(executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
           .thenReturn(totalFailInStep);
-      when(executionRecordWarningRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+      when(executionRecordWarningRepository.countDistinctRecordIds(
           datasetId, stepName)).thenReturn(totalWarningInStep);
 
       ExecutionRecordIdentifierKey identifierKey = new ExecutionRecordIdentifierKey();
@@ -232,7 +232,7 @@ class DatasetReportServiceTest {
       ExecutionProgressByStepDTO executionProgressByStepDTO = executionProgressInfoDTO.executionProgressByStepDTOS().get(i);
       assertEquals(jobType, executionProgressByStepDTO.step());
       assertEquals(totalSuccessInStep, executionProgressByStepDTO.total());
-      assertEquals(totalSuccessInStep, executionProgressByStepDTO.success());
+      assertEquals(totalSuccessInStep - totalWarningInStep, executionProgressByStepDTO.success());
       assertEquals(totalFailInStep, executionProgressByStepDTO.fail());
       assertEquals(totalWarningInStep, executionProgressByStepDTO.warn());
       List<ErrorInfoDTO> errors = executionProgressByStepDTO.errors();
@@ -241,7 +241,7 @@ class DatasetReportServiceTest {
       assertEquals("warning", errors.getFirst().errorMessage());
       assertEquals(List.of("recordId | sourceRecordId"), errors.getFirst().recordIds());
     }
-    assertFalse(executionProgressInfoDTO.recordLimitReached());
+    assertFalse(executionProgressInfoDTO.recordLimitExceeded());
     assertNull(executionProgressInfoDTO.tiersZeroInfoDTO());
   }
 

@@ -11,8 +11,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressSummaryDTO;
+import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import java.util.List;
@@ -37,7 +39,7 @@ class UserServiceTest {
   void returnsEmptyListWhenNoDatasets() {
     when(datasetReportService.getDatasetInfoByUserId(USER_ID)).thenReturn(List.of());
 
-    List<DatasetWithExecutionProgressInfoDTO> result = userService.getDatasetInfoWithProgressOwnedByUserId(USER_ID);
+    List<DatasetWithExecutionProgressSummaryDTO> result = userService.getDatasetInfoWithProgressOwnedByUserId(USER_ID);
 
     assertNotNull(result);
     assertTrue(result.isEmpty());
@@ -53,7 +55,11 @@ class UserServiceTest {
     DatasetInfoDTO datasetInfoDTO1 = mock(DatasetInfoDTO.class);
     DatasetInfoDTO datasetInfoDTO2 = mock(DatasetInfoDTO.class);
     when(datasetInfoDTO1.getDatasetId()).thenReturn("dataset1");
+    when(datasetInfoDTO1.getAbstractHarvestParametersDTO()).thenReturn(
+        new FileHarvestParametersDTO("fileName", FileType.ZIP, new byte[0],1));
     when(datasetInfoDTO2.getDatasetId()).thenReturn("dataset2");
+    when(datasetInfoDTO2.getAbstractHarvestParametersDTO()).thenReturn(
+        new FileHarvestParametersDTO("fileName", FileType.ZIP, new byte[0],1));
 
     List<DatasetInfoDTO> datasetInfoDTOs = List.of(datasetInfoDTO1, datasetInfoDTO2);
     when(datasetReportService.getDatasetInfoByUserId(USER_ID)).thenReturn(datasetInfoDTOs);
@@ -63,19 +69,19 @@ class UserServiceTest {
     when(datasetReportService.getProgress("dataset1")).thenReturn(executionProgressInfoDTO1);
     when(datasetReportService.getProgress("dataset2")).thenReturn(executionProgressInfoDTO2);
 
-    List<DatasetWithExecutionProgressInfoDTO> result = userService.getDatasetInfoWithProgressOwnedByUserId(USER_ID);
+    List<DatasetWithExecutionProgressSummaryDTO> result = userService.getDatasetInfoWithProgressOwnedByUserId(USER_ID);
 
     assertNotNull(result);
 
     assertEquals(2, result.size());
 
-    DatasetWithExecutionProgressInfoDTO datasetWithExecutionProgressInfoDTO1 = result.get(0);
-    DatasetWithExecutionProgressInfoDTO datasetWithExecutionProgressInfoDTO2 = result.get(1);
+    DatasetWithExecutionProgressSummaryDTO datasetWithExecutionProgressInfoDTO1 = result.get(0);
+    DatasetWithExecutionProgressSummaryDTO datasetWithExecutionProgressInfoDTO2 = result.get(1);
 
-    assertEquals(datasetInfoDTO1, datasetWithExecutionProgressInfoDTO1.datasetInfo());
-    assertEquals(executionProgressInfoDTO1, datasetWithExecutionProgressInfoDTO1.executionProgressInfo());
-    assertEquals(datasetInfoDTO2, datasetWithExecutionProgressInfoDTO2.datasetInfo());
-    assertEquals(executionProgressInfoDTO2, datasetWithExecutionProgressInfoDTO2.executionProgressInfo());
+    assertEquals(datasetInfoDTO1.getDatasetId(), datasetWithExecutionProgressInfoDTO1.datasetId());
+    assertEquals(executionProgressInfoDTO1.executionStatus(), datasetWithExecutionProgressInfoDTO1.executionStatus());
+    assertEquals(datasetInfoDTO2.getDatasetId(), datasetWithExecutionProgressInfoDTO2.datasetId());
+    assertEquals(executionProgressInfoDTO2.executionStatus(), datasetWithExecutionProgressInfoDTO2.executionStatus());
 
     verify(datasetReportService, times(1)).getDatasetInfoByUserId(USER_ID);
     verify(datasetReportService, times(1)).getProgress("dataset1");

@@ -19,10 +19,11 @@ import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
+import eu.europeana.metis.sandbox.dto.report.DatasetErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
+import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
@@ -149,7 +150,8 @@ public class DatasetReportService {
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId);
     HarvestParametersEntity harvestParametersEntity = harvestParameterService.getDatasetHarvestingParameters(datasetId)
                                                                              .orElseThrow();
-    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(harvestParametersEntity);
+    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(
+        harvestParametersEntity);
     return DatasetInfoDTO.builder()
                          .datasetId(datasetId)
                          .datasetName(datasetEntity.getDatasetName())
@@ -191,14 +193,18 @@ public class DatasetReportService {
         // First step
         totalRecords = currentTotalRecords;
       } else if (previousCompleted) {
-        // Use previous step's total if it was completed
+        // Use the previous step's total if it was completed
         totalRecords = previousTotalRecords;
       }
 
+      //Success records can have warnings.
+      //Due to the current frontend display, we remove the distinct warning counter from the success counter.
+      //That means totalRecords = totalSuccess + totalFail + totalWarning
+      //todo: reassess counters https://europeana.atlassian.net/browse/MET-6804
       ExecutionProgressByStepDTO executionProgressByStepDto = new ExecutionProgressByStepDTO(
           step,
           totalRecords,
-          stepStatistics.totalSuccess,
+          stepStatistics.totalSuccess - stepStatistics.totalWarning,
           stepStatistics.totalFail,
           stepStatistics.totalWarning,
           errorInfoDTOList
@@ -211,13 +217,16 @@ public class DatasetReportService {
     }
 
     final long totalRecords = executionProgressByStepDTOS.getFirst().total();
-    final long completedRecords = executionProgressByStepDTOS.getLast().success();
+    final long completedRecords = executionProgressByStepDTOS.getLast().success() + executionProgressByStepDTOS.getLast().warn();
     final long totalFailInWorkflow = executionProgressByStepDTOS.stream().mapToLong(ExecutionProgressByStepDTO::fail).sum();
     final long totalProcessed = completedRecords + totalFailInWorkflow;
-    final boolean recordLimitExceeded = totalRecords >= maxRecords;
+    final boolean recordLimitExceeded = datasetEntity.isRecordLimitExceeded();
     final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
-    ExecutionStatus executionStatus = computeStatus(totalRecords, totalProcessed, totalFailInWorkflow);
+    ExecutionStatus executionStatus = computeStatus(datasetEntity, totalRecords, totalProcessed, totalFailInWorkflow);
+    List<DatasetErrorInfoDTO> datasetErrorInfoDTOS = datasetEntity.getDatasetErrors().stream().map(
+                                                                      datasetError -> new DatasetErrorInfoDTO(datasetError.getMessage(), Status.FAIL))
+                                                                  .toList();
     String publishPortalUrl = getPublishPortalUrl(datasetEntity, totalRecords, completedRecords);
 
     return new ExecutionProgressInfoDTO(
@@ -227,11 +236,16 @@ public class DatasetReportService {
         totalProcessed,
         executionProgressByStepDTOS,
         recordLimitExceeded,
+        datasetErrorInfoDTOS,
         tiersZeroInfoDTO
     );
   }
 
-  private ExecutionStatus computeStatus(long totalRecords, long totalProcessed, long totalFailInWorkflow) {
+  private ExecutionStatus computeStatus(DatasetEntity datasetEntity, long totalRecords, long totalProcessed,
+      long totalFailInWorkflow) {
+    if (!datasetEntity.getDatasetErrors().isEmpty()) {
+      return ExecutionStatus.FAILED;
+    }
     if (totalRecords > 0 && totalRecords == totalFailInWorkflow) {
       return ExecutionStatus.FAILED;
     } else if (totalRecords == 0L) {
@@ -251,8 +265,7 @@ public class DatasetReportService {
     long totalFailure =
         executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
     long totalWarning =
-        executionRecordWarningRepository.countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
-            datasetId, executionName);
+        executionRecordWarningRepository.countDistinctRecordIds(datasetId, executionName);
     return new StepStatistics(totalSuccess, totalFailure, totalWarning);
   }
 

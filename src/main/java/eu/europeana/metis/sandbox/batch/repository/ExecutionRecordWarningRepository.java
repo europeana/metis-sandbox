@@ -5,6 +5,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.Ste
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -25,14 +26,19 @@ public interface ExecutionRecordWarningRepository extends
       String datasetId, String executionName);
 
   /**
-   * Counts the number of entities based on the dataset ID and execution name.
+   * Counts the number of distinct entities by recordId and based on the dataset ID and execution name.
    *
    * @param datasetId The ID of the dataset.
    * @param executionName The name of the execution associated with the entities.
    * @return The count of entities matching the specified dataset ID and execution name.
    */
-  long countByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(String datasetId,
-      String executionName);
+  @Query("""
+          SELECT COUNT(DISTINCT w.executionRecord.identifier.recordId)
+          FROM ExecutionRecordWarning w
+          WHERE w.executionRecord.identifier.datasetId = :datasetId
+            AND w.executionRecord.identifier.executionName = :executionName
+      """)
+  long countDistinctRecordIds(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
   /**
    * Retrieves statistics of execution steps, including the step name and the count of records grouped per step.

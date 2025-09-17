@@ -4,6 +4,7 @@ import eu.europeana.metis.harvesting.FullRecord;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
+import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.http.HttpHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -70,20 +72,20 @@ public class HarvestService {
    * @param stepSize step size determining the interval at which records are processed
    * @return a list of harvested OAI record headers
    */
-  public List<OaiRecordHeader> harvestOaiIdentifiers(@NotNull OaiHarvest oaiHarvest, Integer stepSize) {
+  public OaiHarvestResult harvestOaiIdentifiers(@NotNull OaiHarvest oaiHarvest, Integer stepSize) {
     try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> recordHeaderIterator = oaiHarvester.harvestRecordHeaders(
         oaiHarvest)) {
       return harvestOaiHeaders(recordHeaderIterator, stepSize);
     } catch (HarvesterException | IOException e) {
-      throw new ServiceException("Error harvesting OAI-PMH records ", e);
+      throw new ServiceException("Error harvesting OAI-PMH records", e);
     }
   }
 
-  private List<OaiRecordHeader> harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,
+  private OaiHarvestResult harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,
       OaiRecordHeader> iteratorToFilter, Integer stepSize) throws HarvesterException {
     StopWatch watch = StopWatch.createStarted();
     final List<OaiRecordHeader> result = new ArrayList<>();
-    harvestFromIterator(iteratorToFilter, stepSize, entry -> {
+    HarvestFromIteratorResult harvestFromIteratorResult = harvestFromIterator(iteratorToFilter, stepSize, entry -> {
       result.add(entry);
 
       if (watch.getTime(TimeUnit.SECONDS) > STOP_WATCH_INTERNAL) {
@@ -91,14 +93,14 @@ public class HarvestService {
         watch.reset();
         watch.start();
       }
-      return ReportingIteration.IterationResult.CONTINUE;
+      return IterationResult.CONTINUE;
     }, OaiRecordHeader::isDeleted);
-    return result;
+    return new OaiHarvestResult(result, harvestFromIteratorResult);
   }
 
   /**
-   * Harvests records from a compressed archive provided via an InputStream and extracts
-   * them into a map of record identifiers and their respective content as strings.
+   * Harvests records from a compressed archive provided via an InputStream and extracts them into a map of record identifiers and
+   * their respective content as strings.
    *
    * @param inputStream input stream providing the compressed archive data
    * @param stepSize determines the interval for processing records
@@ -106,7 +108,7 @@ public class HarvestService {
    * @return a map containing the record identifier as the key and its content as the value
    * @throws ServiceException if any processing or I/O error occurs during the harvesting process
    */
-  public Map<String, String> harvestFromCompressedArchive(InputStream inputStream, Integer stepSize,
+  public ArchiveHarvestResult harvestFromCompressedArchive(InputStream inputStream, Integer stepSize,
       CompressedFileExtension compressedFileExtension) throws ServiceException {
 
     final List<Pair<String, Exception>> exception = new ArrayList<>(1);
@@ -114,15 +116,15 @@ public class HarvestService {
     try (final HarvestingIterator<FullRecord, Path> iterator = httpHarvester.createFullRecordHarvestIterator(inputStream,
         compressedFileExtension)) {
 
-      harvestFromIterator(iterator, stepSize, entry -> {
+      HarvestFromIteratorResult harvestFromIteratorResult = harvestFromIterator(iterator, stepSize, entry -> {
         try (final InputStream content = entry.getContent()) {
           String recordId = entry.getHarvestingIdentifier();
           result.put(recordId, IOUtils.toString(content, StandardCharsets.UTF_8));
-          return ReportingIteration.IterationResult.CONTINUE;
+          return IterationResult.CONTINUE;
 
         } catch (IOException | RuntimeException e) {
           exception.add(new ImmutablePair<>(entry.getHarvestingIdentifier(), e));
-          return ReportingIteration.IterationResult.TERMINATE;
+          return IterationResult.TERMINATE;
         }
       }, FullRecord::isDeleted);
 
@@ -130,14 +132,13 @@ public class HarvestService {
         throw new HarvesterException("Could not process path " + exception.getFirst().getKey() + ".",
             exception.getFirst().getValue());
       }
+      return new ArchiveHarvestResult(result, harvestFromIteratorResult);
     } catch (HarvesterException | IOException e) {
       throw new ServiceException("Error harvesting records ", e);
     }
-
-    return result;
   }
 
-  private <T> void harvestFromIterator(HarvestingIterator<T, ?> iterator,
+  private <T> HarvestFromIteratorResult harvestFromIterator(HarvestingIterator<T, ?> iterator,
       Integer stepSize, Function<T, ReportingIteration.IterationResult> processor,
       Predicate<T> isDeleted) throws HarvesterException {
 
@@ -146,10 +147,12 @@ public class HarvestService {
     final AtomicInteger currentIndex = new AtomicInteger();
     final AtomicInteger nextIndexToSelect = new AtomicInteger(numberOfRecordsToStepInto - 1);
 
+    AtomicBoolean recordLimitExceeded = new AtomicBoolean(false);
     iterator.forEach(entry -> {
       if (numberOfSelectedHeaders.get() >= maxRecords) {
         //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
         //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
+        recordLimitExceeded.set(true); //We start from 0 therefore reaching maxRecords means that the limit was exceeded.
         numberOfSelectedHeaders.set(maxRecords);
         return ReportingIteration.IterationResult.TERMINATE;
       }
@@ -172,9 +175,25 @@ public class HarvestService {
         nextIndexToSelect.get(), numberOfRecordsToStepInto)) {
       throw new StepIsTooBigException(currentIndex.get());
     }
+
+    return new HarvestFromIteratorResult(recordLimitExceeded.get());
   }
 
   private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex, int nextIndexToSelect, int stepSize) {
     return datasetSize == 0 && currentIndex > 0 && currentIndex <= nextIndexToSelect && nextIndexToSelect < stepSize;
+  }
+
+  public record HarvestFromIteratorResult(boolean recordLimitExceeded) {
+
+  }
+
+  public record OaiHarvestResult(List<OaiRecordHeader> headers,
+                                 HarvestFromIteratorResult iteratorResult) {
+
+  }
+
+  public record ArchiveHarvestResult(Map<String, String> records,
+                                     HarvestFromIteratorResult iteratorResult) {
+
   }
 }

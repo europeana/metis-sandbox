@@ -247,7 +247,7 @@ class DatasetExecutionServiceTest {
     Lock lock = mock(Lock.class);
     when(lockRegistry.obtain(anyString())).thenReturn(lock);
     ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, ExecutionStatus.COMPLETED, 0, 0,
-        List.of(), false, null);
+        List.of(), false, List.of(),null);
     when(datasetReportService.getProgress(DATASET_ID)).thenReturn(executionProgressInfoDTO);
     DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.READY, ZonedDateTime.now(), 0L,
         0L);
@@ -271,10 +271,10 @@ class DatasetExecutionServiceTest {
     Lock lock = mock(Lock.class);
     when(lockRegistry.obtain(anyString())).thenReturn(lock);
     ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, ExecutionStatus.COMPLETED, 0, 0,
-        List.of(), false, null);
+        List.of(), false, List.of(),null);
     ExecutionProgressInfoDTO executionProgressInfoDTOInProgress = new ExecutionProgressInfoDTO(null, ExecutionStatus.IN_PROGRESS,
         0, 0,
-        List.of(), false, null);
+        List.of(), false, List.of(),null);
     when(datasetReportService.getProgress(DATASET_ID))
         .thenReturn(executionProgressInfoDTO).thenReturn(executionProgressInfoDTO).thenReturn(executionProgressInfoDTOInProgress);
     DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.COMPLETED, ZonedDateTime.now(),
