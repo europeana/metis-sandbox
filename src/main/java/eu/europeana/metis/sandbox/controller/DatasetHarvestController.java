@@ -6,7 +6,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
-import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
+import eu.europeana.metis.sandbox.common.FileTypeResolver;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.DatasetIdDTO;
@@ -21,11 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Map;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,11 +50,6 @@ public class DatasetHarvestController {
   private static final String EMPTY_XSLT_FILE_MESSAGE = "Xslt file must not be empty when provided";
 
   private static final Pattern NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
-  private static final Map<String, CompressedFileExtension> contentTypeToExtension = Map.of(
-      "application/gzip", CompressedFileExtension.GZIP,
-      "application/zip", CompressedFileExtension.ZIP,
-      "application/x-tar", CompressedFileExtension.TAR
-  );
   private final UrlValidator urlValidator;
 
   private final DatasetExecutionService datasetExecutionService;
@@ -174,8 +165,7 @@ public class DatasetHarvestController {
     checkArgument(datasetRecordsCompressedFile != null && !datasetRecordsCompressedFile.isEmpty(), EMPTY_DATA_FILE_MESSAGE);
     checkArgument(xsltFile == null || !xsltFile.isEmpty(), EMPTY_XSLT_FILE_MESSAGE);
     checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
-    CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUploadedFile(
-        datasetRecordsCompressedFile);
+    CompressedFileExtension compressedFileExtension = FileTypeResolver.fromMultipart(datasetRecordsCompressedFile);
 
     DatasetMetadataRequest datasetMetadataRequest = DatasetMetadataRequest.builder()
                                                                           .datasetName(datasetName)
@@ -227,7 +217,7 @@ public class DatasetHarvestController {
     checkArgument(xsltFile == null || !xsltFile.isEmpty(), EMPTY_XSLT_FILE_MESSAGE);
     checkArgument(stepsize > 0, INVALID_STEP_SIZE_MESSAGE);
     URI uri = URI.create(url);
-    CompressedFileExtension compressedFileExtension = getCompressedFileExtensionTypeFromUrl(uri);
+    CompressedFileExtension compressedFileExtension = FileTypeResolver.fromUrl(uri);
 
     DatasetMetadataRequest datasetMetadataRequest = DatasetMetadataRequest.builder()
                                                                           .datasetName(datasetName)
@@ -237,41 +227,5 @@ public class DatasetHarvestController {
         stepsize, url, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
-  }
-
-  private CompressedFileExtension getCompressedFileExtensionTypeFromUploadedFile(MultipartFile uploadedFile) {
-    String fileContentType = uploadedFile.getContentType();
-    if (StringUtils.isBlank(fileContentType)) {
-      throw new InvalidCompressedFileException(new Exception("There was an issue inspecting file's content type"));
-    }
-
-    return mapContentTypeToExtension(fileContentType);
-  }
-
-  private CompressedFileExtension getCompressedFileExtensionTypeFromUrl(URI uri) {
-    try {
-      final String fileContentType;
-      URL url = uri.toURL();
-      URLConnection connection = url.openConnection();
-      fileContentType = connection.getContentType();
-
-      if (StringUtils.isBlank(fileContentType)) {
-        throw new InvalidCompressedFileException(
-            new Exception("There was an issue inspecting file's content type"));
-      }
-
-      return mapContentTypeToExtension(fileContentType);
-    } catch (IOException e) {
-      throw new InvalidCompressedFileException(e);
-    }
-  }
-
-  private CompressedFileExtension mapContentTypeToExtension(String fileContentType) {
-    return contentTypeToExtension.entrySet().stream()
-                                 .filter(entry -> fileContentType.startsWith(entry.getKey()))
-                                 .map(Map.Entry::getValue)
-                                 .findFirst()
-                                 .orElseThrow(
-                                     () -> new InvalidCompressedFileException("File provided is not valid compressed file."));
   }
 }

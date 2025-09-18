@@ -9,6 +9,7 @@ import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static eu.europeana.metis.security.test.JwtUtils.BEARER;
 import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -401,7 +402,7 @@ class DatasetHarvestControllerTest {
                .params(getCommonLocaleParams()))
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.message",
-               is("File provided is not valid compressed file.")));
+               startsWith("File provided is not a valid compressed file.")));
   }
 
   private static Stream<Arguments> provideDifferentCompressedFiles() {
@@ -530,7 +531,7 @@ class DatasetHarvestControllerTest {
                .param("url", url))
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.message",
-               is("File provided is not valid compressed file.")));
+               startsWith("File provided is not a valid compressed file.")));
   }
 
   private static Stream<Arguments> provideDifferentUrlsOfCompressedFiles() {
