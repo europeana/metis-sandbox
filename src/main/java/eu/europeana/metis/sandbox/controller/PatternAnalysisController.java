@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
-import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,8 +28,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -137,7 +134,7 @@ public class PatternAnalysisController {
                                   .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
                                   .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
                                   .sorted(Comparator.comparing(
-                                      problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
+                                      problemPattern -> problemPattern.problemPatternDescription().getProblemPatternId()))
                                   .toList(),
             HttpStatus.OK);
   }
@@ -172,10 +169,10 @@ public class PatternAnalysisController {
 
     private DatasetProblemPatternAnalysisView(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis,
         ProblemPatternAnalysisStatus status) {
-      this.datasetId = datasetProblemPatternAnalysis.getDatasetId();
-      this.executionStep = datasetProblemPatternAnalysis.getExecutionStep();
-      this.executionTimestamp = datasetProblemPatternAnalysis.getExecutionTimestamp() == null ? null :
-          datasetProblemPatternAnalysis.getExecutionTimestamp().toString();
+      this.datasetId = datasetProblemPatternAnalysis.datasetId();
+      this.executionStep = datasetProblemPatternAnalysis.executionStep();
+      this.executionTimestamp = datasetProblemPatternAnalysis.executionTimestamp() == null ? null :
+          datasetProblemPatternAnalysis.executionTimestamp().toString();
       this.problemPatternList = getSortedProblemPatternList(datasetProblemPatternAnalysis);
       this.analysisStatus = status;
     }
@@ -189,11 +186,11 @@ public class PatternAnalysisController {
     @NotNull
     private List<ProblemPattern> getSortedProblemPatternList(DatasetProblemPatternAnalysis<T> datasetProblemPatternAnalysis) {
       return datasetProblemPatternAnalysis
-          .getProblemPatternList()
+          .problemPatternList()
           .stream()
           .map(DatasetProblemPatternAnalysisFilter::cleanMessageReportForP7TitleIsEnough)
           .map(DatasetProblemPatternAnalysisFilter::sortRecordAnalysisByRecordId)
-          .sorted(Comparator.comparing(problemPattern -> problemPattern.getProblemPatternDescription().getProblemPatternId()))
+          .sorted(Comparator.comparing(problemPattern -> problemPattern.problemPatternDescription().getProblemPatternId()))
           .toList();
     }
   }
@@ -207,11 +204,11 @@ public class PatternAnalysisController {
      * @return the problem pattern
      */
     public static ProblemPattern sortRecordAnalysisByRecordId(ProblemPattern problemPattern) {
-      return new ProblemPattern(problemPattern.getProblemPatternDescription(),
-          problemPattern.getRecordOccurrences(),
-          problemPattern.getRecordAnalysisList()
+      return new ProblemPattern(problemPattern.problemPatternDescription(),
+          problemPattern.recordOccurrences(),
+          problemPattern.recordAnalysisList()
                         .stream()
-                        .sorted(Comparator.comparing(RecordAnalysis::getRecordId))
+                        .sorted(Comparator.comparing(RecordAnalysis::recordId))
                         .toList());
     }
 
@@ -222,16 +219,16 @@ public class PatternAnalysisController {
      * @return the problem pattern
      */
     public static ProblemPattern cleanMessageReportForP7TitleIsEnough(ProblemPattern problemPattern) {
-      if (problemPattern.getProblemPatternDescription().getProblemPatternId().equals(ProblemPatternId.P7)) {
-        return new ProblemPattern(problemPattern.getProblemPatternDescription(),
-            problemPattern.getRecordOccurrences(),
-            problemPattern.getRecordAnalysisList()
+      if (problemPattern.problemPatternDescription().getProblemPatternId().equals(ProblemPatternId.P7)) {
+        return new ProblemPattern(problemPattern.problemPatternDescription(),
+            problemPattern.recordOccurrences(),
+            problemPattern.recordAnalysisList()
                           .stream()
-                          .map(recordAnalysis -> new RecordAnalysis(recordAnalysis.getRecordId(),
-                              recordAnalysis.getProblemOccurrenceList()
+                          .map(recordAnalysis -> new RecordAnalysis(recordAnalysis.recordId(),
+                              recordAnalysis.problemOccurrenceList()
                                             .stream()
                                             .map(problemOccurrence -> new ProblemOccurrence("",
-                                                problemOccurrence.getAffectedRecordIds()))
+                                                problemOccurrence.affectedRecordIds()))
                                             .toList()
                           ))
                           .toList());
