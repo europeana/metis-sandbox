@@ -140,7 +140,7 @@ class PatternAnalysisServiceImplIT {
     assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint1.getExecutionName());
     assertEquals(now, executionPoint1.getExecutionTimestamp());
 
-    //Second time should give back the exact same object
+    //The second time should give back the exact same object
     final ExecutionPoint executionPoint2 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, now);
     assertEquals("1", executionPoint2.getDatasetId());
@@ -184,14 +184,14 @@ class PatternAnalysisServiceImplIT {
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6).orElseThrow();
-    assertEquals(1, datasetPatternAnalysis.getProblemPatternList().size());
+    assertEquals(1, datasetPatternAnalysis.problemPatternList().size());
     final ProblemPattern problemPatternP6 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P6);
 
-    assertEquals(1, problemPatternP6.getRecordAnalysisList().size());
-    assertEquals(1, problemPatternP6.getRecordAnalysisList().getFirst().getProblemOccurrenceList().size());
+    assertEquals(1, problemPatternP6.recordAnalysisList().size());
+    assertEquals(1, problemPatternP6.recordAnalysisList().getFirst().problemOccurrenceList().size());
     assertTrue(isNotBlank(
-        problemPatternP6.getRecordAnalysisList().getFirst().getProblemOccurrenceList().getFirst().getMessageReport()));
+        problemPatternP6.recordAnalysisList().getFirst().problemOccurrenceList().getFirst().messageReport()));
 
     //Empty result
     assertTrue(patternAnalysisServiceImpl.getDatasetPatternAnalysis("1", FullBatchJobType.HARVEST_FILE, nowP6).isEmpty());
@@ -233,15 +233,15 @@ class PatternAnalysisServiceImplIT {
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6).orElseThrow();
-    assertEquals(1, datasetPatternAnalysis.getProblemPatternList().size());
+    assertEquals(1, datasetPatternAnalysis.problemPatternList().size());
     final ProblemPattern problemPatternP6 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P6);
 
-    assertEquals(1, problemPatternP6.getRecordAnalysisList().size());
-    assertEquals(1, problemPatternP6.getRecordAnalysisList().getFirst().getProblemOccurrenceList().size());
+    assertEquals(1, problemPatternP6.recordAnalysisList().size());
+    assertEquals(1, problemPatternP6.recordAnalysisList().getFirst().problemOccurrenceList().size());
     assertTrue(isNotBlank(
-        problemPatternP6.getRecordAnalysisList().getFirst().getProblemOccurrenceList().getFirst().getMessageReport()));
-    assertEquals(2, problemPatternP6.getRecordOccurrences()); //We count more than what we store
+        problemPatternP6.recordAnalysisList().getFirst().problemOccurrenceList().getFirst().messageReport()));
+    assertEquals(2, problemPatternP6.recordOccurrences()); //We count more than what we store
   }
 
   @Test
@@ -315,26 +315,25 @@ class PatternAnalysisServiceImplIT {
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2).orElseThrow();
-    assertEquals(2, datasetPatternAnalysis.getProblemPatternList().size());
+    assertEquals(2, datasetPatternAnalysis.problemPatternList().size());
     final ProblemPattern problemPatternP2 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P2);
 
-    assertEquals(2, problemPatternP2.getRecordAnalysisList().size());
+    assertEquals(2, problemPatternP2.recordAnalysisList().size());
     assertEquals(1,
-        problemPatternP2.getRecordAnalysisList().getFirst().getProblemOccurrenceList().size());
+        problemPatternP2.recordAnalysisList().getFirst().problemOccurrenceList().size());
     assertTrue(isNotBlank(
-        problemPatternP2.getRecordAnalysisList().getFirst().getProblemOccurrenceList().getFirst()
-                        .getMessageReport()));
+        problemPatternP2.recordAnalysisList().getFirst().problemOccurrenceList().getFirst().messageReport()));
 
     //Check a global pattern
     final ProblemPattern problemPatternP1 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P1);
 
-    assertEquals(2, problemPatternP1.getRecordAnalysisList().size());
+    assertEquals(2, problemPatternP1.recordAnalysisList().size());
     assertEquals(2,
-        problemPatternP1.getRecordAnalysisList().getFirst().getProblemOccurrenceList().getFirst().getAffectedRecordIds().size());
+        problemPatternP1.recordAnalysisList().getFirst().problemOccurrenceList().getFirst().affectedRecordIds().size());
     assertTrue(isNotBlank(
-        problemPatternP1.getRecordAnalysisList().getFirst().getProblemOccurrenceList().getFirst().getMessageReport()));
+        problemPatternP1.recordAnalysisList().getFirst().problemOccurrenceList().getFirst().messageReport()));
   }
 
   @Test
@@ -358,22 +357,22 @@ class PatternAnalysisServiceImplIT {
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP1).orElseThrow();
-    assertEquals(1, datasetPatternAnalysis.getProblemPatternList().size());
-    List<RecordAnalysis> recordAnalysisList = datasetPatternAnalysis.getProblemPatternList().getFirst()
-                                                                    .getRecordAnalysisList();
+    assertEquals(1, datasetPatternAnalysis.problemPatternList().size());
+    List<RecordAnalysis> recordAnalysisList = datasetPatternAnalysis.problemPatternList().getFirst()
+                                                                    .recordAnalysisList();
     assertEquals(1, recordAnalysisList.size());
     RecordAnalysis recordAnalysis = recordAnalysisList.getFirst();
-    assertTrue(recordAnalysis.getRecordId().equals("/21/_providedCHO_MHC_EMC_10_ms_06") ||
-        recordAnalysis.getRecordId().equals("/21/_providedCHO_MHC_EMC_10_ms_07_jpg"));
-    assertEquals(1, recordAnalysis.getProblemOccurrenceList().size());
-    ProblemOccurrence occurrence = recordAnalysis.getProblemOccurrenceList().getFirst();
-    assertTrue(occurrence.getMessageReport().equals("LOWERCASE or UPPERCASE title") ||
-        occurrence.getMessageReport().equals("lowercase or uppercase title"));
+    assertTrue(recordAnalysis.recordId().equals("/21/_providedCHO_MHC_EMC_10_ms_06") ||
+        recordAnalysis.recordId().equals("/21/_providedCHO_MHC_EMC_10_ms_07_jpg"));
+    assertEquals(1, recordAnalysis.problemOccurrenceList().size());
+    ProblemOccurrence occurrence = recordAnalysis.problemOccurrenceList().getFirst();
+    assertTrue(occurrence.messageReport().equals("LOWERCASE or UPPERCASE title") ||
+        occurrence.messageReport().equals("lowercase or uppercase title"));
     assertTrue(
-        occurrence.getAffectedRecordIds().containsAll(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
+        occurrence.affectedRecordIds().containsAll(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
             "/21/_providedCHO_MHC_EMC_10_ms_07_jpg")));
     assertTrue(List.of("/21/_providedCHO_MHC_EMC_10_ms_06",
-        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.getAffectedRecordIds()));
+        "/21/_providedCHO_MHC_EMC_10_ms_07_jpg").containsAll(occurrence.affectedRecordIds()));
   }
 
   @Test
@@ -418,9 +417,9 @@ class PatternAnalysisServiceImplIT {
   private ProblemPattern getProblemPatternFromDatasetPatternAnalysis(
       DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis,
       ProblemPatternDescription problemPatternDescription) {
-    return Optional.of(datasetPatternAnalysis.getProblemPatternList()).stream()
+    return Optional.of(datasetPatternAnalysis.problemPatternList()).stream()
                    .flatMap(Collection::stream)
-                   .filter(problemPattern -> problemPattern.getProblemPatternDescription()
+                   .filter(problemPattern -> problemPattern.problemPatternDescription()
                        == problemPatternDescription)
                    .findFirst().orElseThrow();
   }

@@ -120,12 +120,12 @@ public class ValidationController {
 
     final Optional<ExecutionPoint> executionPointOptional = executionPointService
         .getExecutionPoint(createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString());
-    Optional<? extends DatasetProblemPatternAnalysis<FullBatchJobType>> datasetPatternAnalysis =
+    Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> datasetPatternAnalysis =
         executionPointOptional.flatMap(executionPoint -> patternAnalysisService.getDatasetPatternAnalysis(
             createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp()));
 
     return new ValidationWorkflowReport(validationResults,
-        datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::getProblemPatternList).orElse(List.of()));
+        datasetPatternAnalysis.map(DatasetProblemPatternAnalysis::problemPatternList).orElse(List.of()));
   }
 
   private boolean isFileTypeValid(MultipartFile fileToCheck) {
