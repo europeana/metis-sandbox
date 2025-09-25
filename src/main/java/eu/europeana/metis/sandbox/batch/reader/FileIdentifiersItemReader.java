@@ -10,8 +10,9 @@ import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParameters
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.FileHarvestService.FileHarvestIdentifiersResult;
-import eu.europeana.metis.sandbox.service.workflow.FileHarvestService;
+import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestTarget;
+import eu.europeana.metis.sandbox.service.workflow.harvest.HarvestIdentifiersResult;
+import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestService;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -101,10 +102,11 @@ public class FileIdentifiersItemReader implements ItemReader<ExecutionRecordExte
 
     //We have the parameters, we can harvest the identifiers
     log.info("Harvesting identifiers for {}", fileName);
-    FileHarvestIdentifiersResult fileHarvestIdentifiersResult =
-        fileHarvestService.harvestFileNames(fileName, fileType, fileContent, Integer.valueOf(stepSize));
-    fileIdentifiers.addAll(fileHarvestIdentifiersResult.identifiers());
-    if (fileHarvestIdentifiersResult.recordLimitExceeded()) {
+    FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
+    HarvestIdentifiersResult<String> harvestIdentifiersResult = fileHarvestService.harvestExternalIdentifiers(
+        fileHarvestTarget, Integer.valueOf(stepSize));
+    fileIdentifiers.addAll(harvestIdentifiersResult.identifiers());
+    if (harvestIdentifiersResult.recordLimitExceeded()) {
       datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
     }
     log.info("Identifiers harvested");

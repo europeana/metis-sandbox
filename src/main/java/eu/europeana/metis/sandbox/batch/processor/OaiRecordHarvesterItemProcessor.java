@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createValidated;
 
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
@@ -9,7 +10,7 @@ import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.OaiHarvestService;
+import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService;
 import jakarta.annotation.PostConstruct;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -75,10 +76,9 @@ public class OaiRecordHarvesterItemProcessor extends
   public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
     log.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
 
+    OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(
-        oaiEndpoint,
-        oaiSet,
-        oaiMetadataPrefix,
+        oaiHarvest,
         datasetId,
         executionRecordExternalIdentifier.getIdentifier().getSourceRecordId()
     );

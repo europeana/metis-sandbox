@@ -11,8 +11,8 @@ import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.util.HarvestService;
-import eu.europeana.metis.sandbox.service.util.HarvestService.OaiHarvestIdentifiersResult;
+import eu.europeana.metis.sandbox.service.workflow.harvest.HarvestIdentifiersResult;
+import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -54,7 +54,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
   //todo 6695: Align with the FileItemReader. Here we harvestParameterService but in FileItemReader is in FileHarvestService
   private final HarvestParameterService harvestParameterService;
-  private final HarvestService harvestService;
+  private final OaiHarvestService oaiHarvestService;
   private final DatasetExecutionSetupService datasetExecutionSetupService;
   private final List<OaiRecordHeader> oaiRecordHeaders = new LinkedList<>();
 
@@ -62,13 +62,13 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
    * Constructor with service parameters.
    *
    * @param harvestParameterService The service used to access and manage harvest parameters.
-   * @param harvestService The service used to perform harvesting operations.
+   * @param oaiHarvestService The service used to perform harvesting operations.
    * @param datasetExecutionSetupService The service used to manage dataset executions.
    */
   public OaiIdentifiersEndpointItemReader(HarvestParameterService harvestParameterService,
-      HarvestService harvestService, DatasetExecutionSetupService datasetExecutionSetupService) {
+      OaiHarvestService oaiHarvestService, DatasetExecutionSetupService datasetExecutionSetupService) {
     this.harvestParameterService = harvestParameterService;
-    this.harvestService = harvestService;
+    this.oaiHarvestService = oaiHarvestService;
     this.datasetExecutionSetupService = datasetExecutionSetupService;
   }
 
@@ -131,9 +131,10 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
     log.info("Harvesting identifiers for {}", oaiEndpoint);
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    OaiHarvestIdentifiersResult oaiHarvestIdentifiersResult = harvestService.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize));
-    oaiRecordHeaders.addAll(oaiHarvestIdentifiersResult.headers());
-    if (oaiHarvestIdentifiersResult.recordLimitExceeded()) {
+    HarvestIdentifiersResult<OaiRecordHeader> harvestIdentifiersResult =
+        oaiHarvestService.harvestExternalIdentifiers(oaiHarvest, Integer.valueOf(stepSize));
+    oaiRecordHeaders.addAll(harvestIdentifiersResult.identifiers());
+    if (harvestIdentifiersResult.recordLimitExceeded()) {
       datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
     }
     log.info("Identifiers harvested");

@@ -11,7 +11,8 @@ import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParameters
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.FileHarvestService;
+import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestTarget;
+import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestService;
 import jakarta.annotation.PostConstruct;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +79,8 @@ public class FileRecordHarvesterItemProcessor extends
       throws Exception {
     log.info("FileRecordHarvestItemReader thread: {}", Thread.currentThread());
 
-    HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(fileName, fileType, fileContent, datasetId,
+    FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
+    HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(fileHarvestTarget, datasetId,
         executionRecordExternalIdentifier.getIdentifier().getSourceRecordId());
 
     return createValidated(b -> b

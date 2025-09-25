@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.service.workflow;
+package eu.europeana.metis.sandbox.service.workflow.harvest;
 
 import static java.util.Optional.ofNullable;
 import static org.apache.tika.utils.StringUtils.isBlank;
@@ -10,6 +10,7 @@ import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.utils.CompressedFileExtension;
+import jakarta.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import lombok.experimental.StandardException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -36,37 +36,52 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class FileHarvestService {
+public class FileHarvestService implements DefaultHarvestService<String, FileHarvestTarget> {
 
   private static final String MAC_TEMP_FILE = ".DS_Store";
   private static final String MAC_TEMP_FOLDER = "__MACOSX";
-  private static final int DEFAULT_STEP_SIZE = 1;
 
-  private final int maxRecords;
+  private final int maxAllowedRecords;
 
   /**
    * Constructor.
    *
-   * @param harvestService provides implementation of harvest processing logic
-   * @param harvestParameterService facilitates access to harvest parameters from the dataset
+   * @param maxAllowedRecords the maximum number of records allowed to be processed
    */
   @Autowired
-  public FileHarvestService(@Value("${sandbox.dataset.max-size}") int maxRecords) {
-    this.maxRecords = maxRecords;
+  public FileHarvestService(@Value("${sandbox.dataset.max-size}") int maxAllowedRecords) {
+    this.maxAllowedRecords = maxAllowedRecords;
   }
 
-  public FileHarvestIdentifiersResult harvestFileNames(String fileName, FileType fileType, byte[] fileContent,
+  @Override
+  public HarvestIdentifiersResult<String> harvestExternalIdentifiers(@NotNull FileHarvestTarget fileHarvestTarget,
       Integer stepSize) {
-    if (fileType.equals(FileType.XML)) {
-      return new FileHarvestIdentifiersResult(List.of(fileName), false);
+    if (fileHarvestTarget.fileType().equals(FileType.XML)) {
+      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.fileName()), false);
     } else {
-      return harvestIdentifiersFromCompressedArchive(fileContent, stepSize);
+      return harvestIdentifiersFromCompressedArchive(fileHarvestTarget.fileContent(), stepSize);
     }
   }
 
-  private FileHarvestIdentifiersResult harvestIdentifiersFromCompressedArchive(byte[] fileContent, Integer stepSize)
+  @Override
+  public HarvestedRecord harvestRecord(@NotNull FileHarvestTarget fileHarvestTarget, String datasetId,
+      String sourceRecordId) throws HarvestException {
+    if (fileHarvestTarget.fileType().equals(FileType.XML)) {
+      InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.fileContent());
+      String recordData = getStringData(inputStream);
+      Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
+      String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
+                                                              .orElse(sourceRecordId);
+      String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
+      return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
+    } else {
+      return harvestRecordFromArchive(fileHarvestTarget.fileContent(), datasetId, sourceRecordId);
+    }
+  }
+
+  private HarvestIdentifiersResult<String> harvestIdentifiersFromCompressedArchive(byte[] fileContent, Integer stepSize)
       throws ServiceException {
-    final int numberOfRecordsToStepInto = (stepSize == null) ? DEFAULT_STEP_SIZE : stepSize;
+    final int numberOfRecordsToStepInto = normalizeStepSize(stepSize);
     final List<String> result = new ArrayList<>();
     int recordCounter = 0;
     boolean recordLimitExceeded = false;
@@ -78,9 +93,9 @@ public class FileHarvestService {
 
       ArchiveEntry entry;
       while ((entry = ais.getNextEntry()) != null) {
-        if (recordCounter >= maxRecords) {
+        if (recordCounter >= maxAllowedRecords) {
           recordLimitExceeded = true;
-          log.info("Reached maximum number of records ({}) during harvesting.", maxRecords);
+          log.info("Reached maximum number of records ({}) during harvesting.", maxAllowedRecords);
           break;
         }
         if (!entry.isDirectory() && shouldProcess(entry.getName())) {
@@ -97,7 +112,7 @@ public class FileHarvestService {
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records ", e);
     }
-    return new FileHarvestIdentifiersResult(result, recordLimitExceeded);
+    return new HarvestIdentifiersResult<>(result, recordLimitExceeded);
   }
 
   private boolean shouldProcess(String name) {
@@ -118,22 +133,7 @@ public class FileHarvestService {
     return true;
   }
 
-  public HarvestedRecord harvestRecord(String fileName, FileType fileType, byte[] fileContent, String datasetId,
-      String sourceRecordId) throws FileHarvestException {
-    if (fileType.equals(FileType.XML)) {
-      InputStream inputStream = new ByteArrayInputStream(fileContent);
-      String recordData = getStringData(inputStream);
-      Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
-      String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
-                                                              .orElse(sourceRecordId);
-      String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
-      return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
-    } else {
-      return harvestRecordFromArchive(fileContent, datasetId, sourceRecordId);
-    }
-  }
-
-  public HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String datasetId, String sourceRecordId) {
+  private HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String datasetId, String sourceRecordId) {
     String recordData = null;
     try (InputStream bis = new ByteArrayInputStream(fileContent);
         BufferedInputStream buffered = new BufferedInputStream(bis);
@@ -161,11 +161,11 @@ public class FileHarvestService {
     return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
   }
 
-  private String getStringData(InputStream inputStream) throws FileHarvestException {
+  private String getStringData(InputStream inputStream) throws HarvestException {
     try {
       return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new FileHarvestException(e);
+      throw new HarvestException(e);
     }
   }
 
@@ -178,18 +178,6 @@ public class FileHarvestService {
       log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
     }
     return ofNullable(europeanaGeneratedIdsMap);
-  }
-
-  /**
-   * Exception thrown during file harvest operations when an error occurs.
-   */
-  @StandardException
-  public static class FileHarvestException extends Exception {
-
-  }
-
-  public record FileHarvestIdentifiersResult(List<String> identifiers, boolean recordLimitExceeded) {
-
   }
 }
 
