@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
-import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersRepositoryItemReader;
+import eu.europeana.metis.sandbox.batch.reader.ExternalIdentifiersRepositoryItemReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +18,7 @@ public interface ExecutionRecordExternalIdentifierRepository extends
   /**
    * Retrieves a paginated list of ExecutionRecordExternalIdentifier entities by their execution ID.
    *
-   * <p>This is used by the {@link OaiIdentifiersRepositoryItemReader} therefore it is marked as unused from the IDE.
+   * <p>This is used by the {@link ExternalIdentifiersRepositoryItemReader} therefore it is marked as unused from the IDE.
    *
    * @param executionId The ID of the execution.
    * @param pageable Pagination and sorting configuration for the query.

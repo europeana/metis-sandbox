@@ -1,30 +1,32 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
 import static java.util.Optional.ofNullable;
+import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
-import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
-import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
-import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
-import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.util.HarvestService;
-import eu.europeana.metis.sandbox.service.util.HarvestService.ArchiveHarvestResult;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.utils.CompressedFileExtension;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.experimental.StandardException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -36,9 +38,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileHarvestService {
 
-  private final HarvestService harvestService;
-  private final HarvestParameterService harvestParameterService;
-  private final DatasetExecutionSetupService datasetExecutionSetupService;
+  private static final String MAC_TEMP_FILE = ".DS_Store";
+  private static final String MAC_TEMP_FOLDER = "__MACOSX";
+  private static final int DEFAULT_STEP_SIZE = 1;
+
+  private final int maxRecords;
 
   /**
    * Constructor.
@@ -46,70 +50,115 @@ public class FileHarvestService {
    * @param harvestService provides implementation of harvest processing logic
    * @param harvestParameterService facilitates access to harvest parameters from the dataset
    */
-  public FileHarvestService(HarvestService harvestService, HarvestParameterService harvestParameterService,
-      DatasetExecutionSetupService datasetExecutionSetupService) {
-    this.harvestService = harvestService;
-    this.harvestParameterService = harvestParameterService;
-    this.datasetExecutionSetupService = datasetExecutionSetupService;
+  @Autowired
+  public FileHarvestService(@Value("${sandbox.dataset.max-size}") int maxRecords) {
+    this.maxRecords = maxRecords;
   }
 
-  /**
-   * Harvests records from a file based on the specified harvest parameters, dataset identifier, and step size.
-   *
-   * <p>Supports XML and compressed file formats.
-   * <p>Processes records to generate a map of source record IDs to harvested records.
-   *
-   * @param harvestParameterId the unique identifier for harvest parameters
-   * @param datasetId the identifier for the dataset being harvested
-   * @param stepSize the step size
-   * @return a map where keys are source record IDs and values are harvested records
-   * @throws FileHarvestException if an error occurs
-   */
-  public Map<String, HarvestedRecord> harvestRecordsFromFile(UUID harvestParameterId, String datasetId, int stepSize)
-      throws FileHarvestException {
-    HarvestParametersEntity harvestParametersEntity =
-        harvestParameterService.getHarvestingParametersById(harvestParameterId).orElseThrow();
-
-    String fileName;
-    FileType fileType;
-    byte[] fileContent;
-
-    if (harvestParametersEntity instanceof AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity) {
-      fileName = abstractBinaryHarvestParametersEntity.getFileName();
-      fileType = abstractBinaryHarvestParametersEntity.getFileType();
-      fileContent = abstractBinaryHarvestParametersEntity.getFileContent();
-    } else {
-      throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for FileHarvest");
-    }
-
-    InputStream inputStream = new ByteArrayInputStream(fileContent);
-    Map<String, String> recordIdAndContent = new HashMap<>();
-
+  public FileHarvestIdentifiersResult harvestFileNames(String fileName, FileType fileType, byte[] fileContent,
+      Integer stepSize) {
     if (fileType.equals(FileType.XML)) {
-      String stringData = getStringData(inputStream);
-      recordIdAndContent.put(fileName, stringData);
+      return new FileHarvestIdentifiersResult(List.of(fileName), false);
     } else {
-      ArchiveHarvestResult archiveHarvestResult = harvestService.harvestFromCompressedArchive(inputStream, stepSize,
-          CompressedFileExtension.valueOf(fileType.name()));
-      recordIdAndContent.putAll(archiveHarvestResult.records());
-      if (archiveHarvestResult.iteratorResult().recordLimitExceeded()) {
-        datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
+      return harvestIdentifiersFromCompressedArchive(fileContent, stepSize);
+    }
+  }
+
+  private FileHarvestIdentifiersResult harvestIdentifiersFromCompressedArchive(byte[] fileContent, Integer stepSize)
+      throws ServiceException {
+    final int numberOfRecordsToStepInto = (stepSize == null) ? DEFAULT_STEP_SIZE : stepSize;
+    final List<String> result = new ArrayList<>();
+    int recordCounter = 0;
+    boolean recordLimitExceeded = false;
+    int skipCounter = 0;
+
+    try (InputStream bis = new ByteArrayInputStream(fileContent);
+        BufferedInputStream buffered = new BufferedInputStream(bis);
+        ArchiveInputStream<?> ais = new ArchiveStreamFactory().createArchiveInputStream(buffered)) {
+
+      ArchiveEntry entry;
+      while ((entry = ais.getNextEntry()) != null) {
+        if (recordCounter >= maxRecords) {
+          recordLimitExceeded = true;
+          log.info("Reached maximum number of records ({}) during harvesting.", maxRecords);
+          break;
+        }
+        if (!entry.isDirectory() && shouldProcess(entry.getName())) {
+          if (skipCounter == 0) {
+            log.info("Processing entry {}", entry.getName());
+            result.add(entry.getName());
+            recordCounter++;
+            skipCounter = numberOfRecordsToStepInto - 1; // reset skip recordCounter
+          } else {
+            skipCounter--;
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new ServiceException("Error harvesting records ", e);
+    }
+    return new FileHarvestIdentifiersResult(result, recordLimitExceeded);
+  }
+
+  private boolean shouldProcess(String name) {
+    // skip macOS temp entries
+    if (name.contains(MAC_TEMP_FOLDER) || name.endsWith(MAC_TEMP_FILE)) {
+      return false;
+    }
+    // skip hidden dotfiles (like .gitkeep, .DS_Store variants)
+    if (name.startsWith(".") || name.contains("/.")) {
+      return false;
+    }
+    // skip compressed files inside the archive
+    for (CompressedFileExtension extension : CompressedFileExtension.values()) {
+      if (name.toLowerCase(Locale.ROOT).endsWith(extension.getExtension().toLowerCase(Locale.ROOT))) {
+        return false;
       }
     }
+    return true;
+  }
 
-    Map<String, HarvestedRecord> harvestedRecords = new HashMap<>();
-    for (Map.Entry<String, String> entry : recordIdAndContent.entrySet()) {
-      String sourceRecordId = entry.getKey();
-      String recordData = entry.getValue();
-
+  public HarvestedRecord harvestRecord(String fileName, FileType fileType, byte[] fileContent, String datasetId,
+      String sourceRecordId) throws FileHarvestException {
+    if (fileType.equals(FileType.XML)) {
+      InputStream inputStream = new ByteArrayInputStream(fileContent);
+      String recordData = getStringData(inputStream);
       Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
       String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
                                                               .orElse(sourceRecordId);
       String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
-      harvestedRecords.put(sourceRecordId, new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData));
+      return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
+    } else {
+      return harvestRecordFromArchive(fileContent, datasetId, sourceRecordId);
+    }
+  }
+
+  public HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String datasetId, String sourceRecordId) {
+    String recordData = null;
+    try (InputStream bis = new ByteArrayInputStream(fileContent);
+        BufferedInputStream buffered = new BufferedInputStream(bis);
+        ArchiveInputStream<?> ais = new ArchiveStreamFactory().createArchiveInputStream(buffered)) {
+
+      ArchiveEntry entry;
+      while ((entry = ais.getNextEntry()) != null) {
+        if (!entry.isDirectory() && entry.getName().equals(sourceRecordId)) {
+          recordData = IOUtils.toString(ais, StandardCharsets.UTF_8);
+          break;
+        }
+      }
+    } catch (IOException e) {
+      throw new ServiceException("Error harvesting records ", e);
     }
 
-    return harvestedRecords;
+    if (isBlank(recordData)) {
+      throw new ServiceException("Record not found in file");
+    }
+
+    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
+    String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
+                                                            .orElse(sourceRecordId);
+    String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
+    return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
   }
 
   private String getStringData(InputStream inputStream) throws FileHarvestException {
@@ -136,6 +185,10 @@ public class FileHarvestService {
    */
   @StandardException
   public static class FileHarvestException extends Exception {
+
+  }
+
+  public record FileHarvestIdentifiersResult(List<String> identifiers, boolean recordLimitExceeded) {
 
   }
 }

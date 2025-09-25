@@ -7,13 +7,10 @@ import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersEndpointItemReader;
-import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersRepositoryItemReader;
-import eu.europeana.metis.sandbox.batch.writer.OaiIdentifiersWriter;
-import java.lang.invoke.MethodHandles;
+import eu.europeana.metis.sandbox.batch.reader.ExternalIdentifiersRepositoryItemReader;
+import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -37,8 +34,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class OaiHarvestJobConfig {
 
   public static final BatchJobType BATCH_JOB = HARVEST_OAI;
-  public static final String IDENTIFIERS_HARVEST_STEP_NAME = "identifiersHarvest";
-  public static final String RECORDS_HARVEST_STEP_NAME = "recordsHarvest";
+  public static final String IDENTIFIERS_HARVEST_STEP_NAME = "oaiIdentifiersHarvest";
+  public static final String RECORDS_HARVEST_STEP_NAME = "oaiRecordsHarvest";
   private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
 
   OaiHarvestJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
@@ -61,43 +58,42 @@ public class OaiHarvestJobConfig {
   @Bean(IDENTIFIERS_HARVEST_STEP_NAME)
   Step oaidentifiersEndpointHarvestStep(
       OaiIdentifiersEndpointItemReader oaiIdentifiersEndpointItemReader,
-      OaiIdentifiersWriter oaiIdentifiersWriter,
+      ExternalIdentifiersItemWriter externalIdentifiersItemWriter,
       JobRepository jobRepository,
-      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager) {
 
     return new StepBuilder(IDENTIFIERS_HARVEST_STEP_NAME, jobRepository)
-        .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize(),
-            transactionManager)
+        .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(oaiIdentifiersEndpointItemReader)
-        .writer(oaiIdentifiersWriter)
-        //                .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
+        .writer(externalIdentifiersItemWriter)
         .build();
   }
 
   @Bean(RECORDS_HARVEST_STEP_NAME)
   Step oaiRecordsHarvestStep(
       JobRepository jobRepository,
-      OaiIdentifiersRepositoryItemReader oaiIdentifiersRepositoryItemReader,
+      ExternalIdentifiersRepositoryItemReader externalIdentifiersRepositoryItemReader,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
+      @Qualifier("oaiRecordAsyncItemProcessor")
       ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> oaiRecordAsyncItemProcessor,
       ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
       LoggingItemProcessListener<ExecutionRecordExternalIdentifier> loggingItemProcessListener) {
     return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
-        .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
-        .reader(oaiIdentifiersRepositoryItemReader)
+        .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(),
+            transactionManager)
+        .reader(externalIdentifiersRepositoryItemReader)
         .processor(oaiRecordAsyncItemProcessor)
         .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
-  @Bean
+  @Bean("oaiRecordAsyncItemProcessor")
   ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> oaiRecordAsyncItemProcessor(
-      ItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> oaiRecordItemProcessor,
+      @Qualifier("oaiRecordHarvestItemProcessor") ItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> oaiRecordHarvestItemProcessor,
       @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor taskExecutor) {
     AsyncItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(oaiRecordItemProcessor);
+    asyncItemProcessor.setDelegate(oaiRecordHarvestItemProcessor);
     asyncItemProcessor.setTaskExecutor(taskExecutor);
     return asyncItemProcessor;
   }

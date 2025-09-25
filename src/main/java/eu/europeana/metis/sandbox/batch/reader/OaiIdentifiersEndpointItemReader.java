@@ -12,7 +12,7 @@ import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.util.HarvestService;
-import eu.europeana.metis.sandbox.service.util.HarvestService.OaiHarvestResult;
+import eu.europeana.metis.sandbox.service.util.HarvestService.OaiHarvestIdentifiersResult;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -131,9 +131,9 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
     log.info("Harvesting identifiers for {}", oaiEndpoint);
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    OaiHarvestResult oaiHarvestResult = harvestService.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize));
-    oaiRecordHeaders.addAll(oaiHarvestResult.headers());
-    if (oaiHarvestResult.iteratorResult().recordLimitExceeded()) {
+    OaiHarvestIdentifiersResult oaiHarvestIdentifiersResult = harvestService.harvestOaiIdentifiers(oaiHarvest, Integer.valueOf(stepSize));
+    oaiRecordHeaders.addAll(oaiHarvestIdentifiersResult.headers());
+    if (oaiHarvestIdentifiersResult.recordLimitExceeded()) {
       datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
     }
     log.info("Identifiers harvested");
