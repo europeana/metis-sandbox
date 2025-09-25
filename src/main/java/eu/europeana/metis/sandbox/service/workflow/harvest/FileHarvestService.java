@@ -1,14 +1,10 @@
 package eu.europeana.metis.sandbox.service.workflow.harvest;
 
-import static java.util.Optional.ofNullable;
 import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
-import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
@@ -19,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -36,7 +31,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class FileHarvestService implements DefaultHarvestService<String, FileHarvestTarget> {
+public class FileHarvestService implements HarvestService<String, FileHarvestTarget> {
 
   private static final String MAC_TEMP_FILE = ".DS_Store";
   private static final String MAC_TEMP_FOLDER = "__MACOSX";
@@ -64,18 +59,14 @@ public class FileHarvestService implements DefaultHarvestService<String, FileHar
   }
 
   @Override
-  public HarvestedRecord harvestRecord(@NotNull FileHarvestTarget fileHarvestTarget, String datasetId,
-      String sourceRecordId) throws HarvestException {
+  public HarvestedRecord harvestRecord(@NotNull FileHarvestTarget fileHarvestTarget, String sourceRecordId)
+      throws HarvestException {
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
       InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.fileContent());
       String recordData = getStringData(inputStream);
-      Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
-      String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
-                                                              .orElse(sourceRecordId);
-      String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
-      return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
+      return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
     } else {
-      return harvestRecordFromArchive(fileHarvestTarget.fileContent(), datasetId, sourceRecordId);
+      return harvestRecordFromArchive(fileHarvestTarget.fileContent(), sourceRecordId);
     }
   }
 
@@ -133,7 +124,7 @@ public class FileHarvestService implements DefaultHarvestService<String, FileHar
     return true;
   }
 
-  private HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String datasetId, String sourceRecordId) {
+  private HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String sourceRecordId) {
     String recordData = null;
     try (InputStream bis = new ByteArrayInputStream(fileContent);
         BufferedInputStream buffered = new BufferedInputStream(bis);
@@ -153,12 +144,7 @@ public class FileHarvestService implements DefaultHarvestService<String, FileHar
     if (isBlank(recordData)) {
       throw new ServiceException("Record not found in file");
     }
-
-    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
-    String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
-                                                            .orElse(sourceRecordId);
-    String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
-    return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
+    return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
   }
 
   private String getStringData(InputStream inputStream) throws HarvestException {
@@ -167,17 +153,6 @@ public class FileHarvestService implements DefaultHarvestService<String, FileHar
     } catch (IOException e) {
       throw new HarvestException(e);
     }
-  }
-
-  private Optional<EuropeanaGeneratedIdsMap> getEuropeanaGeneratedIdsMap(String datasetId, String recordData) {
-    EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
-    try {
-      EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
-      europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
-    } catch (EuropeanaIdException e) {
-      log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
-    }
-    return ofNullable(europeanaGeneratedIdsMap);
   }
 }
 

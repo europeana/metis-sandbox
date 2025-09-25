@@ -9,7 +9,7 @@ import lombok.experimental.StandardException;
  * @param <T> the type of identifier harvested.
  * @param <S> the type of harvest target.
  */
-public interface DefaultHarvestService<T, S> {
+public interface HarvestService<T, S> {
 
   /**
    * Normalizes the provided step size by ensuring it is a positive number. If the input is null or less than or equal to 0, it
@@ -40,13 +40,12 @@ public interface DefaultHarvestService<T, S> {
    *
    * @param harvestTarget the target object from which the record will be harvested. This can be an instance of a custom class or
    * object defining the data source details.
-   * @param datasetId the identifier for the dataset to which the harvested record belongs.
    * @param sourceRecordId the unique identifier of the source record to be harvested from the specified target.
    * @return a {@code HarvestedRecord} object containing the source record ID, harvested record ID, and its raw data content.
    * @throws HarvestException if an error occurs during the harvesting process, such as issues with accessing the target or
    * processing the record.
    */
-  HarvestedRecord harvestRecord(S harvestTarget, String datasetId, String sourceRecordId) throws HarvestException;
+  HarvestedRecord harvestRecord(S harvestTarget, String sourceRecordId) throws HarvestException;
 
   /**
    * Exception class for errors that occur during harvesting.

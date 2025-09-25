@@ -78,9 +78,7 @@ public class OaiRecordHarvesterItemProcessor extends
 
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(
-        oaiHarvest,
-        datasetId,
-        executionRecordExternalIdentifier.getIdentifier().getSourceRecordId()
+        oaiHarvest, executionRecordExternalIdentifier.getIdentifier().getSourceRecordId()
     );
 
     return createValidated(b -> b

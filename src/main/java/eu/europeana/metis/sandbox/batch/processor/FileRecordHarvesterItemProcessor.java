@@ -80,7 +80,7 @@ public class FileRecordHarvesterItemProcessor extends
     log.info("FileRecordHarvestItemReader thread: {}", Thread.currentThread());
 
     FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
-    HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(fileHarvestTarget, datasetId,
+    HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(fileHarvestTarget,
         executionRecordExternalIdentifier.getIdentifier().getSourceRecordId());
 
     return createValidated(b -> b

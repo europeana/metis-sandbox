@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow.harvest;
 
-import static java.util.Optional.ofNullable;
-
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
@@ -14,9 +12,6 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
-import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
-import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,7 +34,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class OaiHarvestService implements DefaultHarvestService<OaiRecordHeader, OaiHarvest> {
+public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHarvest> {
 
   private static final int STOP_WATCH_INTERNAL = 10;
   private final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
@@ -71,23 +66,16 @@ public class OaiHarvestService implements DefaultHarvestService<OaiRecordHeader,
    * <p>Fetches metadata and associated identifiers for a specific record,
    * returning a structured representation of the harvested data.
    *
-   * @param datasetId the identifier for the dataset associated with the record.
    * @param sourceRecordId the identifier of the source record to be harvested.
    * @return a {@link HarvestedRecord} containing the harvested record details.
    * @throws HarvestException if an error occurs during the harvesting process.
    */
   @Override
-  public HarvestedRecord harvestRecord(@NotNull OaiHarvest oaiHarvest, String datasetId,
-      String sourceRecordId) throws HarvestException {
+  public HarvestedRecord harvestRecord(@NotNull OaiHarvest oaiHarvest, String sourceRecordId) throws HarvestException {
     log.info("Harvesting record: {}", sourceRecordId);
     OaiRecord oaiRecord = getOaiRecord(sourceRecordId, oaiHarvest);
     String recordData = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
-
-    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
-    String sourceProvidedChoAbout = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
-                                                            .orElse(sourceRecordId);
-    String recordId = europeanaGeneratedIdsMap.map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId).orElse(sourceRecordId);
-    return new HarvestedRecord(sourceProvidedChoAbout, recordId, recordData);
+    return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
   }
 
   private OaiRecord getOaiRecord(String sourceRecordId, OaiHarvest oaiHarvest) throws HarvestException {
@@ -96,17 +84,6 @@ public class OaiHarvestService implements DefaultHarvestService<OaiRecordHeader,
     } catch (HarvesterException e) {
       throw new HarvestException(e);
     }
-  }
-
-  private Optional<EuropeanaGeneratedIdsMap> getEuropeanaGeneratedIdsMap(String datasetId, String recordData) {
-    EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
-    try {
-      EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
-      europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
-    } catch (EuropeanaIdException e) {
-      log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
-    }
-    return ofNullable(europeanaGeneratedIdsMap);
   }
 
   private HarvestIdentifiersResult<OaiRecordHeader> harvestOaiHeaders(HarvestingIterator<OaiRecordHeader,

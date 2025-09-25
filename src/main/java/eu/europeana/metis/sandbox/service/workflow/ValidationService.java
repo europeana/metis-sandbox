@@ -1,9 +1,14 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static java.util.Optional.ofNullable;
+
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
+import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
+import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.patternanalysis.PatternAnalysisService;
@@ -47,7 +52,8 @@ public class ValidationService {
    * @return the result of the validation containing validation status and messages
    * @throws ValidationException if the validation process encounters an error
    */
-  public ValidationResult validateRecord(String recordData, String recordId, String datasetId, String executionName,
+  public ValidationResultWithIdentifiers validateRecord(String recordData, String recordId, String datasetId,
+      String executionName,
       ValidationBatchJobSubType subtype)
       throws ValidationException {
 
@@ -62,8 +68,13 @@ public class ValidationService {
     };
     ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
 
-    if (subtype == ValidationBatchJobSubType.INTERNAL) {
+    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap;
+    if (subtype == ValidationBatchJobSubType.EXTERNAL && result.isSuccess()) {
+      //Extract actual identifiers
+      europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
+    } else {
       generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
+      europeanaGeneratedIdsMap = Optional.empty();
     }
 
     if (result.isSuccess()) {
@@ -73,7 +84,7 @@ public class ValidationService {
       throw new ValidationException(result.getMessage());
     }
 
-    return result;
+    return new ValidationResultWithIdentifiers(result, europeanaGeneratedIdsMap);
   }
 
   private String reorderFileContent(String recordData) throws ValidationException {
@@ -99,6 +110,22 @@ public class ValidationService {
     } catch (PatternAnalysisException e) {
       log.error("An error occurred while processing pattern analysis", e);
     }
+  }
+
+  private Optional<EuropeanaGeneratedIdsMap> getEuropeanaGeneratedIdsMap(String datasetId, String recordData) {
+    EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
+    try {
+      EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
+      europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
+    } catch (EuropeanaIdException e) {
+      log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+    }
+    return ofNullable(europeanaGeneratedIdsMap);
+  }
+
+  public record ValidationResultWithIdentifiers(ValidationResult validationResult,
+                                                Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap) {
+
   }
 
   /**
