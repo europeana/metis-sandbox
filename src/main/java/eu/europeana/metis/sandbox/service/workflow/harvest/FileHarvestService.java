@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
@@ -75,30 +76,32 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
     final int numberOfRecordsToStepInto = normalizeStepSize(stepSize);
     final List<String> result = new ArrayList<>();
     int recordCounter = 0;
-    boolean recordLimitExceeded = false;
     int skipCounter = 0;
+    boolean recordLimitExceeded;
 
     try (InputStream bis = new ByteArrayInputStream(fileContent);
         BufferedInputStream buffered = new BufferedInputStream(bis);
         ArchiveInputStream<?> ais = new ArchiveStreamFactory().createArchiveInputStream(buffered)) {
 
       ArchiveEntry entry;
-      while ((entry = ais.getNextEntry()) != null) {
-        if (recordCounter >= maxAllowedRecords) {
-          recordLimitExceeded = true;
-          log.info("Reached maximum number of records ({}) during harvesting.", maxAllowedRecords);
-          break;
+      while ((entry = ais.getNextEntry()) != null && recordCounter < maxAllowedRecords) {
+        if (entry.isDirectory() || shouldSkip(entry.getName())) {
+          continue;
         }
-        if (!entry.isDirectory() && shouldProcess(entry.getName())) {
-          if (skipCounter == 0) {
-            log.info("Processing entry {}", entry.getName());
-            result.add(entry.getName());
-            recordCounter++;
-            skipCounter = numberOfRecordsToStepInto - 1; // reset skip recordCounter
-          } else {
-            skipCounter--;
-          }
+
+        if (skipCounter == 0) {
+          log.debug("Processing entry {}", entry.getName());
+          result.add(entry.getName());
+          recordCounter++;
+          skipCounter = numberOfRecordsToStepInto - 1;
+        } else {
+          skipCounter--;
         }
+      }
+
+      recordLimitExceeded = recordCounter >= maxAllowedRecords;
+      if (recordLimitExceeded) {
+        log.warn("Reached maximum number of records ({}) during harvesting.", maxAllowedRecords);
       }
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records ", e);
@@ -106,22 +109,15 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
     return new HarvestIdentifiersResult<>(result, recordLimitExceeded);
   }
 
-  private boolean shouldProcess(String name) {
-    // skip macOS temp entries
-    if (name.contains(MAC_TEMP_FOLDER) || name.endsWith(MAC_TEMP_FILE)) {
-      return false;
-    }
-    // skip hidden dotfiles (like .gitkeep, .DS_Store variants)
-    if (name.startsWith(".") || name.contains("/.")) {
-      return false;
-    }
-    // skip compressed files inside the archive
-    for (CompressedFileExtension extension : CompressedFileExtension.values()) {
-      if (name.toLowerCase(Locale.ROOT).endsWith(extension.getExtension().toLowerCase(Locale.ROOT))) {
-        return false;
-      }
-    }
-    return true;
+  private boolean shouldSkip(String name) {
+    String nameLowerCase = name.toLowerCase(Locale.ROOT);
+
+    return name.contains(MAC_TEMP_FOLDER)
+        || name.endsWith(MAC_TEMP_FILE)
+        || name.startsWith(".")
+        || name.contains("/.")
+        || Arrays.stream(CompressedFileExtension.values())
+                 .anyMatch(ext -> nameLowerCase.endsWith(ext.getExtension().toLowerCase(Locale.ROOT)));
   }
 
   private HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String sourceRecordId) {
@@ -138,11 +134,11 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
         }
       }
     } catch (IOException e) {
-      throw new ServiceException("Error harvesting records ", e);
+      throw new ServiceException("Error harvesting records", e);
     }
 
     if (isBlank(recordData)) {
-      throw new ServiceException("Record not found in file");
+      throw new ServiceException("Record with ID '%s' not found in archive".formatted(sourceRecordId));
     }
     return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
   }

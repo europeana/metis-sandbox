@@ -6,7 +6,7 @@ import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
-import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersEndpointItemReader;
+import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersItemReader;
 import eu.europeana.metis.sandbox.batch.reader.ExternalIdentifiersRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
@@ -57,14 +57,14 @@ public class OaiHarvestJobConfig {
 
   @Bean(IDENTIFIERS_HARVEST_STEP_NAME)
   Step oaidentifiersEndpointHarvestStep(
-      OaiIdentifiersEndpointItemReader oaiIdentifiersEndpointItemReader,
+      OaiIdentifiersItemReader oaiIdentifiersItemReader,
       ExternalIdentifiersItemWriter externalIdentifiersItemWriter,
       JobRepository jobRepository,
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager) {
 
     return new StepBuilder(IDENTIFIERS_HARVEST_STEP_NAME, jobRepository)
         .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize(), transactionManager)
-        .reader(oaiIdentifiersEndpointItemReader)
+        .reader(oaiIdentifiersItemReader)
         .writer(externalIdentifiersItemWriter)
         .build();
   }

@@ -23,7 +23,7 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
   @Value("#{jobParameters['sourceExecutionId']}")
   private String sourceExecutionId;
 
-  private ExecutionRecordRepository executionRecordRepository;
+  private final ExecutionRecordRepository executionRecordRepository;
   private final int chunkSize;
 
   /**
