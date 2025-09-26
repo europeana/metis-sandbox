@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ExecutionRecordErrorRepository extends
-    JpaRepository<ExecutionRecordError, ExecutionRecordIdentifierKey> {
+    JpaRepository<ExecutionRecordError, Long> {
 
   /**
    * Retrieves a list of ExecutionRecordException entities based on the provided dataset ID and execution name.
