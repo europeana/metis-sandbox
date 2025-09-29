@@ -45,7 +45,7 @@ public class ValidationItemProcessor extends AbstractExecutionRecordMetisItemPro
 
       String sourceProvidedChoAbout =
           validationResultWithIdentifiers.europeanaGeneratedIdsMap().map(EuropeanaGeneratedIdsMap::getSourceProvidedChoAbout)
-                                         .orElse(originSuccessExecutionRecordDTO.getRecordId());
+                                         .orElse(originSuccessExecutionRecordDTO.getSourceRecordId());
       String europeanaId = validationResultWithIdentifiers.europeanaGeneratedIdsMap()
                                                           .map(EuropeanaGeneratedIdsMap::getEuropeanaGeneratedId)
                                                           .orElse(originSuccessExecutionRecordDTO.getRecordId());
@@ -55,7 +55,8 @@ public class ValidationItemProcessor extends AbstractExecutionRecordMetisItemPro
           jobMetadataDTO.getTargetExecutionId(),
           jobMetadataDTO.getTargetExecutionName(),
           builder ->
-              builder.recordData(originSuccessExecutionRecordDTO.getRecordData()).sourceRecordId(sourceProvidedChoAbout)
+              builder.recordData(originSuccessExecutionRecordDTO.getRecordData())
+                     .sourceRecordId(sourceProvidedChoAbout)
                      .recordId(europeanaId));
     };
   }

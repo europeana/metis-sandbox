@@ -4,7 +4,6 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import java.util.List;
-import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,17 +39,6 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    */
   ExecutionRecord findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(String datasetId, String recordId,
       String executionName);
-
-  /**
-   * Finds a set of ExecutionRecord objects based on dataset ID, record ID, and a set of execution names.
-   *
-   * @param datasetId The ID of the dataset.
-   * @param recordId The ID of the record within the dataset.
-   * @param executionName The set of execution names to filter the records by.
-   * @return A set of ExecutionRecord objects matching the given identifiers and execution names.
-   */
-  Set<ExecutionRecord> findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(String datasetId,
-      String recordId, Set<String> executionName);
 
   /**
    * Retrieves a list of ExecutionRecord entities based on the given dataset ID, execution ID, and a list of record IDs.

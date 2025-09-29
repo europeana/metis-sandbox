@@ -9,6 +9,7 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
@@ -20,7 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -116,24 +117,27 @@ public class DatasetTierController {
   @GetMapping(value = "{id}/record", produces = {APPLICATION_XML_VALUE, "application/rdf+xml"})
   public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
       @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
-    final Set<String> executionNames;
-    if (StringUtils.isBlank(step)) {
-      executionNames = Set.of(FullBatchJobType.HARVEST_FILE.name(), FullBatchJobType.HARVEST_OAI.name());
-    } else {
-      FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
-      executionNames = Set.of(fullBatchJobType.name());
+    String convertedRecordId = recordId;
+    FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
+    if (fullBatchJobType == FullBatchJobType.HARVEST_FILE || fullBatchJobType == FullBatchJobType.HARVEST_OAI ||
+        fullBatchJobType == FullBatchJobType.TRANSFORM_EXTERNAL) {
+      ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+          datasetId, recordId, FullBatchJobType.VALIDATE_INTERNAL.name());
+      convertedRecordId = Optional.ofNullable(executionRecordMatchingId).map(ExecutionRecord::getIdentifier).map(
+          ExecutionRecordIdentifierKey::getExternalRecordId).orElse(null);
     }
-    Set<ExecutionRecord> executionRecords = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
-        datasetId, recordId, executionNames);
-    return executionRecords.stream().findFirst().map(ExecutionRecord::getRecordData)
-                           .orElseThrow(() -> new NoRecordFoundException(recordId));
+    ExecutionRecord executionRecord = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+        datasetId, convertedRecordId, fullBatchJobType.name());
+    return Optional.ofNullable(executionRecord).map(ExecutionRecord::getRecordData)
+                   .orElseThrow(() -> new NoRecordFoundException(recordId));
   }
 
   private static RecordTiersInfoDTO from(ExecutionRecordTierContext context) {
     return RecordTiersInfoDTO.builder()
                              .recordId(context.getIdentifier().getRecordId())
                              .contentTier(MediaTier.getEnum(context.getContentTier()))
-                             .contentTierBeforeLicenseCorrection(MediaTier.getEnum(context.getContentTierBeforeLicenseCorrection()))
+                             .contentTierBeforeLicenseCorrection(
+                                 MediaTier.getEnum(context.getContentTierBeforeLicenseCorrection()))
                              .license(LicenseType.valueOf(context.getLicense()))
                              .metadataTier(MetadataTier.getEnum(context.getMetadataTier()))
                              .metadataTierLanguage(MetadataTier.getEnum(context.getMetadataTierLanguage()))

@@ -203,6 +203,7 @@ class DatasetReportServiceTest {
       ExecutionRecordIdentifierKey identifierKey = new ExecutionRecordIdentifierKey();
       identifierKey.setDatasetId(datasetId);
       identifierKey.setExecutionName(stepName);
+      identifierKey.setExternalRecordId("externalRecordId");
       identifierKey.setSourceRecordId("sourceRecordId");
       identifierKey.setRecordId("recordId");
 
@@ -239,7 +240,7 @@ class DatasetReportServiceTest {
       assertEquals(totalWarningInStep + totalFailInStep, errors.size());
       assertEquals(Status.WARN, errors.getFirst().type());
       assertEquals("warning", errors.getFirst().errorMessage());
-      assertEquals(List.of("recordId | sourceRecordId"), errors.getFirst().recordIds());
+      assertEquals(List.of("externalRecordId | sourceRecordId | recordId"), errors.getFirst().recordIds());
     }
     assertFalse(executionProgressInfoDTO.recordLimitExceeded());
     assertNull(executionProgressInfoDTO.tiersZeroInfoDTO());

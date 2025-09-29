@@ -81,7 +81,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     executionRecordExternalIdentifierKey.setDatasetId(datasetId);
     executionRecordExternalIdentifierKey.setExecutionId(targetExecutionId);
     executionRecordExternalIdentifierKey.setExecutionName(getJobType().name());
-    executionRecordExternalIdentifierKey.setSourceRecordId(extractStringIdentifier(identifier));
+    executionRecordExternalIdentifierKey.setExternalRecordId(extractStringIdentifier(identifier));
 
     ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
     executionRecordExternalIdentifier.setIdentifier(executionRecordExternalIdentifierKey);

@@ -27,9 +27,9 @@ public interface ExecutionRecordIdAccess {
   String getExecutionName();
 
   /**
-   * Retrieves the source record identifier.
+   * Retrieves the external record identifier.
    *
-   * @return The source record identifier as a String.
+   * @return The external record identifier as a String.
    */
-  String getSourceRecordId();
+  String getExternalRecordId();
 }

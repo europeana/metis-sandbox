@@ -25,5 +25,5 @@ public class ExecutionRecordExternalIdentifierKey implements ExecutionRecordIdAc
   private String executionName;
 
   @Column(length = 300)
-  private String sourceRecordId;
+  private String externalRecordId;
 }

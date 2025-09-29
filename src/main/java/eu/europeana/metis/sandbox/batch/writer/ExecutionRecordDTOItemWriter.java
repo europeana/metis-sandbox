@@ -127,6 +127,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
         builder -> builder
             .datasetId(abstractExecutionRecordDTO.getDatasetId())
             .recordId(abstractExecutionRecordDTO.getRecordId())
+            .externalRecordId(abstractExecutionRecordDTO.getExternalRecordId())
             .sourceRecordId(abstractExecutionRecordDTO.getSourceRecordId())
             .executionId(abstractExecutionRecordDTO.getExecutionId())
             .executionName(abstractExecutionRecordDTO.getExecutionName())

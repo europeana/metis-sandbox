@@ -75,7 +75,7 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
     log.info("Harvesting record: {}", sourceRecordId);
     OaiRecord oaiRecord = getOaiRecord(sourceRecordId, oaiHarvest);
     String recordData = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
-    return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
+    return new HarvestedRecord(sourceRecordId, recordData);
   }
 
   private OaiRecord getOaiRecord(String sourceRecordId, OaiHarvest oaiHarvest) throws HarvestException {

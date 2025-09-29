@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class ExternalIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
   private static final String REPOSITORY_QUERY_METHOD_NAME = "findByIdentifier_ExecutionId";
-  public static final String SORT_FIELD = "identifier.sourceRecordId";
+  public static final String SORT_FIELD = "identifier.externalRecordId";
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
 

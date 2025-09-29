@@ -307,7 +307,8 @@ public class DatasetReportService {
   }
 
   private static @NotNull String formatRecordId(ExecutionRecordIdentifierKey executionRecordIdentifierKey) {
-    return String.format("%s | %s", executionRecordIdentifierKey.getRecordId(), executionRecordIdentifierKey.getSourceRecordId());
+    return String.format("%s | %s | %s", executionRecordIdentifierKey.getExternalRecordId(),
+        executionRecordIdentifierKey.getSourceRecordId(), executionRecordIdentifierKey.getRecordId());
   }
 
   private String getPublishPortalUrl(DatasetEntity datasetEntity, ExecutionStatus executionStatus) {

@@ -54,6 +54,7 @@ public final class SuccessExecutionRecordDTO extends AbstractExecutionRecordDTO 
         SuccessExecutionRecordDTO::internalBuilder,
         SuccessExecutionRecordDTOBuilder::build, builder -> {
           builder.datasetId(sourceSuccessExecutionRecordDTO.getDatasetId());
+          builder.externalRecordId(sourceSuccessExecutionRecordDTO.getExternalRecordId());
           builder.sourceRecordId(sourceSuccessExecutionRecordDTO.getSourceRecordId());
           builder.recordId(sourceSuccessExecutionRecordDTO.getRecordId());
           builder.executionId(executionId);

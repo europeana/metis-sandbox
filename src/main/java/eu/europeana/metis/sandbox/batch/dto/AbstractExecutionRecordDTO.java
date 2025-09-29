@@ -23,6 +23,8 @@ public abstract sealed class AbstractExecutionRecordDTO permits SuccessExecution
   @NotBlank
   private String datasetId;
   @NotBlank
+  private String externalRecordId;
+  @NotBlank
   private String sourceRecordId;
   @NotBlank
   private String recordId;

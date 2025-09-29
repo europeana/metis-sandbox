@@ -6,12 +6,9 @@ import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdAccess;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.HasExecutionRecordIdAccess;
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
@@ -40,11 +37,11 @@ public class LoggingItemProcessListener<T extends HasExecutionRecordIdAccess<? e
     ExecutionRecordIdAccess executionRecordIdAccess = item.getIdentifier();
 
     final StringBuilder logBuilder = new StringBuilder(format(
-        "Processed datasetId: %s, executionId: %s, executionName: %s, sourceRecordId: %s",
+        "Processed datasetId: %s, executionId: %s, executionName: %s, externalRecordId: %s",
         executionRecordIdAccess.getDatasetId(),
         executionRecordIdAccess.getExecutionId(),
         executionRecordIdAccess.getExecutionName(),
-        executionRecordIdAccess.getSourceRecordId()
+        executionRecordIdAccess.getExternalRecordId()
     ));
 
     if (executionRecordIdAccess instanceof ExecutionRecordIdentifierKey executionRecordIdentifierKey) {

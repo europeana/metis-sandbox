@@ -29,7 +29,6 @@ import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -124,7 +123,6 @@ class DatasetTierControllerTest {
            .andExpect(jsonPath("$[0].metadata-tier-language", is("B")))
            .andExpect(jsonPath("$[0].metadata-tier-enabling-elements", is("C")))
            .andExpect(jsonPath("$[0].metadata-tier-contextual-classes", is("0")));
-
   }
 
   @Test
@@ -144,14 +142,18 @@ class DatasetTierControllerTest {
 
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
     executionRecordIdentifierKey.setDatasetId(DATASET_ID);
+    executionRecordIdentifierKey.setExternalRecordId(RECORD_ID);
+    executionRecordIdentifierKey.setSourceRecordId(RECORD_ID);
     executionRecordIdentifierKey.setRecordId(RECORD_ID);
     executionRecordIdentifierKey.setExecutionId("executionId");
     executionRecordIdentifierKey.setExecutionName("executionName");
     ExecutionRecord executionRecord = new ExecutionRecord();
     executionRecord.setIdentifier(executionRecordIdentifierKey);
     executionRecord.setRecordData(returnString);
-    when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionNameIn(
-        DATASET_ID, RECORD_ID, Set.of(step.name()))).thenReturn(Set.of(executionRecord));
+    when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+        DATASET_ID, RECORD_ID, FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(executionRecord);
+    when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+        DATASET_ID, RECORD_ID, step.name())).thenReturn(executionRecord);
 
     mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
                .param("recordId", RECORD_ID)

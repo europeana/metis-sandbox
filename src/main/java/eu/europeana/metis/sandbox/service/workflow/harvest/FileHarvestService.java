@@ -65,7 +65,7 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
       InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.fileContent());
       String recordData = getStringData(inputStream);
-      return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
+      return new HarvestedRecord(sourceRecordId, recordData);
     } else {
       return harvestRecordFromArchive(fileHarvestTarget.fileContent(), sourceRecordId);
     }
@@ -140,7 +140,7 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
     if (isBlank(recordData)) {
       throw new ServiceException("Record with ID '%s' not found in archive".formatted(sourceRecordId));
     }
-    return new HarvestedRecord(sourceRecordId, sourceRecordId, recordData);
+    return new HarvestedRecord(sourceRecordId, recordData);
   }
 
   private String getStringData(InputStream inputStream) throws HarvestException {

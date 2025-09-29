@@ -38,6 +38,7 @@ public final class ExecutionRecordConverter {
                                                              .collect(Collectors.toSet());
     return SuccessExecutionRecordDTO.createValidated(builder -> builder
         .datasetId(executionRecord.getIdentifier().getDatasetId())
+        .externalRecordId(executionRecord.getIdentifier().getExternalRecordId())
         .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
         .recordId(executionRecord.getIdentifier().getRecordId())
         .executionId(executionRecord.getIdentifier().getExecutionId())
@@ -118,6 +119,7 @@ public final class ExecutionRecordConverter {
     ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
     executionRecordIdentifierKey.setDatasetId(executionRecordDTO.getDatasetId());
     executionRecordIdentifierKey.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRecordIdentifierKey.setExternalRecordId(executionRecordDTO.getExternalRecordId());
     executionRecordIdentifierKey.setSourceRecordId(executionRecordDTO.getSourceRecordId());
     executionRecordIdentifierKey.setRecordId(executionRecordDTO.getRecordId());
     executionRecordIdentifierKey.setExecutionName(executionRecordDTO.getExecutionName());
