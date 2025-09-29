@@ -3,16 +3,12 @@ package eu.europeana.metis.sandbox.config.batch;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.NORMALIZE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -59,13 +55,11 @@ public class NormalizeJobConfig {
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("normalizeRepositoryItemReader") RepositoryItemReader<ExecutionRecord> normalizeRepositoryItemReader,
       @Qualifier("normalizeAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> normalizeAsyncItemProcessor,
-      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(normalizeRepositoryItemReader)
         .processor(normalizeAsyncItemProcessor)
-        .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }

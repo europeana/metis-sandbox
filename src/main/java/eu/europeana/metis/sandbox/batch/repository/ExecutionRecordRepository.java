@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Repository;
  * Repository interface for managing {@link ExecutionRecord} entities.
  */
 @Repository
-public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord, ExecutionRecordIdentifierKey> {
+public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord, Long> {
 
   /**
    * Retrieves a paginated list of ExecutionRecord entities based on dataset ID and execution ID.
@@ -26,7 +25,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @param pageable The paging configuration, including page number and size.
    * @return A paginated list of ExecutionRecord entities matching the criteria.
    */
-  Page<ExecutionRecord> findByIdentifier_DatasetIdAndIdentifier_ExecutionId(String datasetId, String executionId,
+  Page<ExecutionRecord> findByExecution_DatasetIdAndExecution_ExecutionId(String datasetId, String executionId,
       Pageable pageable);
 
   /**
@@ -37,7 +36,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @param executionName The name of the execution.
    * @return The matching ExecutionRecord or null if no match is found.
    */
-  ExecutionRecord findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(String datasetId, String recordId,
+  ExecutionRecord findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(String datasetId, String recordId,
       String executionName);
 
   /**
@@ -48,7 +47,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @param recordIds A list of record IDs within the dataset.
    * @return A list of ExecutionRecord entities matching the specified criteria.
    */
-  List<ExecutionRecord> findByIdentifier_DatasetIdAndIdentifier_ExecutionIdAndIdentifier_RecordIdIn(String datasetId,
+  List<ExecutionRecord> findByExecution_DatasetIdAndExecution_ExecutionIdAndRecordIdIn(String datasetId,
       String executionId, List<String> recordIds);
 
   /**
@@ -58,7 +57,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @param executionName The set of execution names to filter the records by.
    * @return The count of ExecutionRecord entities matching the specified criteria.
    */
-  long countByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
+  long countByExecution_DatasetIdAndExecution_ExecutionName(String datasetId, String executionName);
 
   /**
    * Retrieves dataset statistics by grouping ExecutionRecord entities based on dataset IDs.
@@ -66,8 +65,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing dataset IDs and their respective counts.
    */
   @Query("""
-      SELECT r.identifier.datasetId AS datasetId, COUNT(r) AS count 
-            FROM ExecutionRecord r GROUP BY r.identifier.datasetId
+      SELECT r.execution.datasetId AS datasetId, COUNT(r) AS count 
+            FROM ExecutionRecord r GROUP BY r.execution.datasetId
       """)
   List<DatasetStatisticProjection> getDatasetStatistics();
 
@@ -77,9 +76,9 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing step names and their respective counts.
    */
   @Query("""
-      SELECT r.identifier.executionName AS step, COUNT(r) AS count 
+      SELECT r.execution.executionName AS step, COUNT(r) AS count 
             FROM ExecutionRecord r 
-            GROUP BY r.identifier.executionName
+            GROUP BY r.execution.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 
@@ -88,7 +87,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    *
    * @param datasetId The ID of the dataset for which records will be deleted.
    */
-  void removeByIdentifier_DatasetId(String datasetId);
+  void removeByExecution_DatasetId(String datasetId);
 
   /**
    * Projection interface representing dataset statistics.

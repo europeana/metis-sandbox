@@ -15,12 +15,12 @@ import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.experimental.StandardException;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Service;
 
@@ -62,53 +62,62 @@ public class ValidationService {
       reorderedFileContent = reorderFileContent(recordData);
     }
 
-    final String schema = switch (subtype) {
+    final String schema = resolveSchema(subtype);
+    ValidationResult validationResult = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
+    if (!validationResult.isSuccess()) {
+      log.warn("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
+      throw new ValidationException(validationResult.getMessage());
+    }
+
+    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap =
+        handleSubtype(subtype, datasetId, recordData, executionName, reorderedFileContent);
+
+    log.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
+    return new ValidationResultWithIdentifiers(validationResult, europeanaGeneratedIdsMap);
+  }
+
+  private static @NotNull String resolveSchema(ValidationBatchJobSubType subtype) {
+    return switch (subtype) {
       case EXTERNAL -> "EDM-EXTERNAL";
       case INTERNAL -> "EDM-INTERNAL";
     };
-    ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
-
-    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap;
-    if (subtype == ValidationBatchJobSubType.EXTERNAL && result.isSuccess()) {
-      //Extract actual identifiers
-      europeanaGeneratedIdsMap = getEuropeanaGeneratedIdsMap(datasetId, recordData);
-    } else {
-      generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
-      europeanaGeneratedIdsMap = Optional.empty();
-    }
-
-    if (result.isSuccess()) {
-      log.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
-    } else {
-      log.info("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
-      throw new ValidationException(result.getMessage());
-    }
-
-    return new ValidationResultWithIdentifiers(result, europeanaGeneratedIdsMap);
   }
 
   private String reorderFileContent(String recordData) throws ValidationException {
     try (XsltTransformer xsltTransformer = xsltTransformerFactory.getObject()) {
-      StringWriter writer;
-      try {
-        writer = xsltTransformer.transform(recordData.getBytes(StandardCharsets.UTF_8), null);
-      } catch (TransformationException e) {
-        throw new ValidationException(e);
-      }
-      return writer.toString();
+      return xsltTransformer
+          .transform(recordData.getBytes(StandardCharsets.UTF_8), null)
+          .toString();
+    } catch (TransformationException e) {
+      throw new ValidationException(e);
     }
   }
 
+  private Optional<EuropeanaGeneratedIdsMap> handleSubtype(
+      ValidationBatchJobSubType subtype,
+      String datasetId,
+      String recordData,
+      String executionName,
+      String reorderedFileContent
+  ) {
+    return switch (subtype) {
+      case EXTERNAL -> getEuropeanaGeneratedIdsMap(datasetId, recordData);
+      case INTERNAL -> {
+        generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
+        yield Optional.empty();
+      }
+    };
+  }
+
+
   private void generatePatternAnalysis(String datasetId, String executionName, String reorderedRecordData) {
-    Optional<ExecutionPoint> executionPoint = executionPointRepository.findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(
-        datasetId, executionName);
-    if (executionPoint.isEmpty()) {
-      throw new IllegalStateException("No execution point found for datasetId " + datasetId);
-    }
+    ExecutionPoint executionPoint = executionPointRepository
+        .findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(datasetId, executionName)
+        .orElseThrow(() -> new IllegalStateException("No execution point found for datasetId " + datasetId));
     try {
-      patternAnalysisService.generateRecordPatternAnalysis(executionPoint.get(), reorderedRecordData);
+      patternAnalysisService.generateRecordPatternAnalysis(executionPoint, reorderedRecordData);
     } catch (PatternAnalysisException e) {
-      log.error("An error occurred while processing pattern analysis", e);
+      log.error("Pattern analysis failed for datasetId {}, executionName {}", datasetId, executionName, e);
     }
   }
 

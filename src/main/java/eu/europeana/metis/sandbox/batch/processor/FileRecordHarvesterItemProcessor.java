@@ -81,7 +81,7 @@ public class FileRecordHarvesterItemProcessor extends
 
     FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
     HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(fileHarvestTarget,
-        executionRecordExternalIdentifier.getIdentifier().getExternalRecordId());
+        executionRecordExternalIdentifier.getExternalRecordId());
 
     return createValidated(b -> b
         .datasetId(datasetId)

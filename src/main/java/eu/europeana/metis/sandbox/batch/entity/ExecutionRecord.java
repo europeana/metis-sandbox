@@ -2,10 +2,11 @@ package eu.europeana.metis.sandbox.batch.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Index;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
@@ -23,13 +24,25 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record", indexes = {
-    @Index(name = "exec_rec_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
+@Table(schema = "engine_record")
 @SuppressWarnings("javaarchitecture:S7027") // False positive. Valid JPA bi-directional mapping.
-public class ExecutionRecord implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
+public class ExecutionRecord {
 
-  @EmbeddedId
-  private ExecutionRecordIdentifierKey identifier;
+  @Id
+  @GeneratedValue
+  private Long id;
+
+  @ManyToOne(optional = false, fetch = FetchType.EAGER)
+  private Execution execution;
+
+  @Column(length = 300)
+  private String externalRecordId;
+
+  @Column(length = 300)
+  private String sourceRecordId;
+
+  @Column(length = 300)
+  private String recordId;
 
   @Column(columnDefinition = "TEXT")
   private String recordData;

@@ -5,9 +5,8 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
-import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
-import eu.europeana.metis.sandbox.batch.reader.FileIdentifiersItemReader;
 import eu.europeana.metis.sandbox.batch.reader.ExternalIdentifiersRepositoryItemReader;
+import eu.europeana.metis.sandbox.batch.reader.FileIdentifiersItemReader;
 import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
@@ -76,14 +75,12 @@ public class FileHarvestJobConfig {
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       @Qualifier("fileRecordAsyncItemProcessor")
       ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> fileRecordAsyncItemProcessor,
-      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      LoggingItemProcessListener<ExecutionRecordExternalIdentifier> loggingItemProcessListener) {
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
     return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
         .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(),
             transactionManager)
         .reader(externalIdentifiersRepositoryItemReader)
         .processor(fileRecordAsyncItemProcessor)
-        .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }

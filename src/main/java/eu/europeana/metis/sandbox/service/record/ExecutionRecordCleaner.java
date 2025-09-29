@@ -29,10 +29,10 @@ public class ExecutionRecordCleaner {
    */
   @Transactional
   public void remove(String datasetId) {
-    executionRecordWarningRepository.removeByExecutionRecord_Identifier_DatasetId(datasetId);
-    executionRecordRepository.removeByIdentifier_DatasetId(datasetId);
-    executionRecordErrorRepository.removeByIdentifier_DatasetId(datasetId);
-    executionRecordExternalIdentifierRepository.removeByIdentifier_DatasetId(datasetId);
-    executionRecordTierContextRepository.removeByIdentifier_DatasetId(datasetId);
+    executionRecordWarningRepository.removeByExecutionRecord_Execution_DatasetId(datasetId);
+    executionRecordRepository.removeByExecution_DatasetId(datasetId);
+    executionRecordErrorRepository.removeByExecution_DatasetId(datasetId);
+    executionRecordExternalIdentifierRepository.removeByExecution_DatasetId(datasetId);
+    executionRecordTierContextRepository.removeByExecution_DatasetId(datasetId);
   }
 }

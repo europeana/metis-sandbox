@@ -21,7 +21,7 @@ public interface ExecutionRecordErrorRepository extends
    * @param executionName The name of the execution.
    * @return A list of ExecutionRecordException entities matching the specified dataset ID and execution name.
    */
-  List<ExecutionRecordError> findByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
+  List<ExecutionRecordError> findByExecution_DatasetIdAndExecution_ExecutionName(String datasetId, String executionName);
 
   /**
    * Finds an ExecutionRecordException based on dataset ID, record ID, and execution name.
@@ -31,7 +31,7 @@ public interface ExecutionRecordErrorRepository extends
    * @param executionName The name of the execution.
    * @return The matching ExecutionRecordException, or null if not found.
    */
-  ExecutionRecordError findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(String datasetId,
+  ExecutionRecordError findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(String datasetId,
       String recordId, String executionName);
 
   /**
@@ -41,7 +41,7 @@ public interface ExecutionRecordErrorRepository extends
    * @param executionName The name of the execution.
    * @return The count of matching entries.
    */
-  long countByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
+  long countByExecution_DatasetIdAndExecution_ExecutionName(String datasetId, String executionName);
 
   /**
    * Retrieves statistics of execution steps, including the step name and the count of records grouped per step.
@@ -49,9 +49,9 @@ public interface ExecutionRecordErrorRepository extends
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT ere.identifier.executionName AS step, COUNT(ere) AS count 
+      SELECT ere.execution.executionName AS step, COUNT(ere) AS count 
             FROM ExecutionRecordError ere 
-            GROUP BY ere.identifier.executionName
+            GROUP BY ere.execution.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 
@@ -60,5 +60,5 @@ public interface ExecutionRecordErrorRepository extends
    *
    * @param datasetId The ID of the dataset.
    */
-  void removeByIdentifier_DatasetId(String datasetId);
+  void removeByExecution_DatasetId(String datasetId);
 }

@@ -5,8 +5,8 @@ import static java.lang.String.format;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
@@ -261,9 +261,9 @@ public class DatasetReportService {
       String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
     long totalSuccess =
-        executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+        executionRecordRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
     long totalFailure =
-        executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+        executionRecordErrorRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
     long totalWarning =
         executionRecordWarningRepository.countDistinctRecordIds(datasetId, executionName);
     return new StepStatistics(totalSuccess, totalFailure, totalWarning);
@@ -285,30 +285,35 @@ public class DatasetReportService {
   private @NotNull Map<GroupedIssueKey, List<String>> collectGroupedIssues(String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
     List<ExecutionRecordError> executionRecordErrors =
-        executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, executionName);
+        executionRecordErrorRepository.findByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
 
     Map<GroupedIssueKey, List<String>> groupedIssues = new LinkedHashMap<>();
     for (ExecutionRecordError executionRecordError : executionRecordErrors) {
-      String recordId = formatRecordId(executionRecordError.getIdentifier());
+      String recordId = formatRecordId(executionRecordError);
       GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, executionRecordError.getException());
       groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
 
     List<ExecutionRecordWarning> executionRecordWarnings =
-        executionRecordWarningRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+        executionRecordWarningRepository.findByExecutionRecord_Execution_DatasetIdAndExecutionRecord_Execution_ExecutionName(
             datasetId, executionName);
 
     for (ExecutionRecordWarning executionRecordWarning : executionRecordWarnings) {
-      String recordId = formatRecordId(executionRecordWarning.getExecutionRecord().getIdentifier());
+      String recordId = formatRecordId(executionRecordWarning.getExecutionRecord());
       GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
       groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
     return groupedIssues;
   }
 
-  private static @NotNull String formatRecordId(ExecutionRecordIdentifierKey executionRecordIdentifierKey) {
-    return String.format("%s | %s | %s", executionRecordIdentifierKey.getExternalRecordId(),
-        executionRecordIdentifierKey.getSourceRecordId(), executionRecordIdentifierKey.getRecordId());
+  private static @NotNull String formatRecordId(ExecutionRecord executionRecord) {
+    return String.format("%s | %s | %s", executionRecord.getExternalRecordId(),
+        executionRecord.getSourceRecordId(), executionRecord.getRecordId());
+  }
+
+  private static @NotNull String formatRecordId(ExecutionRecordError executionRecordError) {
+    return String.format("%s | %s | %s", executionRecordError.getExternalRecordId(),
+        executionRecordError.getSourceRecordId(), executionRecordError.getRecordId());
   }
 
   private String getPublishPortalUrl(DatasetEntity datasetEntity, ExecutionStatus executionStatus) {
@@ -327,28 +332,27 @@ public class DatasetReportService {
   private TiersZeroInfoDTO prepareTiersInfo(String datasetId) {
     // get a list of records with content tier 0
     List<String> listOfRecordsIdsWithContentZero =
-        executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
-                                            .stream().map(ExecutionRecordTierContext::getIdentifier)
-                                            .map(ExecutionRecordIdentifierKey::getRecordId).toList();
+        executionRecordTierContextRepository.findTop10ByExecution_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
+                                            .stream()
+                                            .map(ExecutionRecordTierContext::getRecordId).toList();
 
     // get list of records with metadata tier 0
     List<String> listOfRecordsIdsWithMetadataZero =
-        executionRecordTierContextRepository.findTop10ByIdentifier_DatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString())
+        executionRecordTierContextRepository.findTop10ByExecution_DatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString())
                                             .stream()
-                                            .map(ExecutionRecordTierContext::getIdentifier)
-                                            .map(ExecutionRecordIdentifierKey::getRecordId)
+                                            .map(ExecutionRecordTierContext::getRecordId)
                                             .toList();
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
     TierStatisticsDTO contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
         new TierStatisticsDTO(
-            Math.toIntExact(executionRecordTierContextRepository.countByIdentifier_DatasetIdAndContentTier(datasetId,
+            Math.toIntExact(executionRecordTierContextRepository.countByExecution_DatasetIdAndContentTier(datasetId,
                 MediaTier.T0.toString())), listOfRecordsIdsWithContentZero);
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
     TierStatisticsDTO metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
         new TierStatisticsDTO(
-            Math.toIntExact(executionRecordTierContextRepository.countByIdentifier_DatasetIdAndMetadataTier(datasetId,
+            Math.toIntExact(executionRecordTierContextRepository.countByExecution_DatasetIdAndMetadataTier(datasetId,
                 MetadataTier.T0.toString())),
             listOfRecordsIdsWithMetadataZero);
 

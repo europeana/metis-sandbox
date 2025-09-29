@@ -5,13 +5,14 @@ import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
 import eu.europeana.metis.sandbox.common.exception.DuplicateIdException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,6 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutionRecordDTO> {
 
+  private final ExecutionRepository executionRepository;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
@@ -55,9 +57,10 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
    * @param executionRecordTierContextRepository The repository for managing tier contexts of execution records.
    */
   @Autowired
-  public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
+  public ExecutionRecordDTOItemWriter(ExecutionRepository executionRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordErrorRepository executionRecordErrorRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
+    this.executionRepository = executionRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordErrorRepository = executionRecordErrorRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
@@ -69,9 +72,11 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
 
     String datasetId = chunk.getItems().getFirst().getDatasetId();
     String executionId = chunk.getItems().getFirst().getExecutionId();
+    String executionName = chunk.getItems().getFirst().getExecutionName();
+    Execution execution = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(datasetId, executionId, executionName);
 
     Set<String> existingRecordIds = fetchExistingDbRecordIds(datasetId, executionId, chunk);
-    ResultBucket resultBucket = processChunk(chunk, existingRecordIds);
+    ResultBucket resultBucket = processChunk(chunk, existingRecordIds, execution);
     persistResults(resultBucket);
 
     log.debug("END -> Write chunk");
@@ -84,15 +89,14 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
                                   .toList();
 
     return executionRecordRepository
-        .findByIdentifier_DatasetIdAndIdentifier_ExecutionIdAndIdentifier_RecordIdIn(datasetId, executionId, recordIds)
+        .findByExecution_DatasetIdAndExecution_ExecutionIdAndRecordIdIn(datasetId, executionId, recordIds)
         .stream()
-        .map(ExecutionRecord::getIdentifier)
-        .map(ExecutionRecordIdentifierKey::getRecordId)
+        .map(ExecutionRecord::getRecordId)
         .collect(Collectors.toSet());
   }
 
   private ResultBucket processChunk(Chunk<? extends AbstractExecutionRecordDTO> chunk,
-      Set<String> existingRecordIds) {
+      Set<String> existingRecordIds, Execution execution) {
     final List<ExecutionRecord> executionRecords = new ArrayList<>();
     final List<ExecutionRecordError> executionRecordErrors = new ArrayList<>();
     final List<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
@@ -104,24 +108,24 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
       boolean isDuplicate = !seenInChunk.add(recordId) || existingRecordIds.contains(recordId);
 
       if (isDuplicate) {
-        executionRecordErrors.add(handleDuplicate(abstractExecutionRecordDTO));
+        executionRecordErrors.add(handleDuplicate(abstractExecutionRecordDTO, execution));
       } else {
         switch (abstractExecutionRecordDTO) {
           case SuccessExecutionRecordDTO successExecutionRecordDTO -> {
-            executionRecords.add(ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO));
+            executionRecords.add(ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO, execution));
             Optional<ExecutionRecordTierContext> executionRecordTierContext =
-                ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO);
+                ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO, execution);
             executionRecordTierContext.ifPresent(executionRecordTierContexts::add);
           }
           case FailExecutionRecordDTO failExecutionRecordDTO -> executionRecordErrors.add(
-              ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO));
+              ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO, execution));
         }
       }
     }
     return new ResultBucket(executionRecords, executionRecordErrors, executionRecordTierContexts);
   }
 
-  private ExecutionRecordError handleDuplicate(AbstractExecutionRecordDTO abstractExecutionRecordDTO) {
+  private ExecutionRecordError handleDuplicate(AbstractExecutionRecordDTO abstractExecutionRecordDTO, Execution execution) {
     log.warn("Duplicate detected for recordId={} - inserting as error", abstractExecutionRecordDTO.getRecordId());
     FailExecutionRecordDTO fail = FailExecutionRecordDTO.createValidated(
         builder -> builder
@@ -133,7 +137,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
             .executionName(abstractExecutionRecordDTO.getExecutionName())
             .exceptionInfoDTO(ExceptionInfoDTO.from(new DuplicateIdException("Duplicate id detected")))
     );
-    return ExecutionRecordConverter.converterToExecutionRecordError(fail);
+    return ExecutionRecordConverter.converterToExecutionRecordError(fail, execution);
   }
 
   private void persistResults(ResultBucket bucket) {

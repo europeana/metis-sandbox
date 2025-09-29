@@ -14,8 +14,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -193,31 +193,31 @@ class DatasetReportServiceTest {
     for (FullBatchJobType step : workflowSteps) {
       String stepName = step.name();
 
-      when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, stepName))
           .thenReturn(totalSuccessInStep);
-      when(executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordErrorRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, stepName))
           .thenReturn(totalFailInStep);
       when(executionRecordWarningRepository.countDistinctRecordIds(
           datasetId, stepName)).thenReturn(totalWarningInStep);
 
-      ExecutionRecordIdentifierKey identifierKey = new ExecutionRecordIdentifierKey();
-      identifierKey.setDatasetId(datasetId);
-      identifierKey.setExecutionName(stepName);
-      identifierKey.setExternalRecordId("externalRecordId");
-      identifierKey.setSourceRecordId("sourceRecordId");
-      identifierKey.setRecordId("recordId");
+      Execution execution = new Execution();
+      execution.setDatasetId(datasetId);
+      execution.setExecutionName(stepName);
 
       ExecutionRecord executionRecord = new ExecutionRecord();
-      executionRecord.setIdentifier(identifierKey);
+      executionRecord.setExecution(execution);
+      executionRecord.setExternalRecordId("externalRecordId");
+      executionRecord.setSourceRecordId("sourceRecordId");
+      executionRecord.setRecordId("recordId");
 
       ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
       executionRecordWarning.setExecutionRecord(executionRecord);
       executionRecordWarning.setException("exception");
       executionRecordWarning.setMessage("warning");
 
-      when(executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordErrorRepository.findByExecution_DatasetIdAndExecution_ExecutionName(datasetId, stepName))
           .thenReturn(List.of());
-      when(executionRecordWarningRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+      when(executionRecordWarningRepository.findByExecutionRecord_Execution_DatasetIdAndExecutionRecord_Execution_ExecutionName(
           datasetId, stepName)).thenReturn(List.of(executionRecordWarning));
     }
     ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(valueOf(datasetEntity.getDatasetId()));

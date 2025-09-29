@@ -6,8 +6,8 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -46,16 +46,21 @@ class RecordTierCalculationServiceTest {
 
     final String executionId = "executionId";
     final String datasetId = "datasetId";
+    final String externalRecordId = "externalRecordId";
+    final String sourceRecordId = "sourceRecordId";
     final String recordId = "recordId";
-    ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
-    executionRecordIdentifierKey.setDatasetId(datasetId);
-    executionRecordIdentifierKey.setRecordId(recordId);
-    executionRecordIdentifierKey.setExecutionName(FullBatchJobType.MEDIA.name());
-    executionRecordIdentifierKey.setExecutionId(executionId);
+    Execution execution = new Execution();
+    execution.setDatasetId(datasetId);
+    execution.setExecutionId(executionId);
+    execution.setExecutionName(FullBatchJobType.MEDIA.name());
     ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setIdentifier(executionRecordIdentifierKey);
+    executionRecord.setExecution(execution);
+    executionRecord.setExternalRecordId(externalRecordId);
+    executionRecord.setSourceRecordId(sourceRecordId);
+    executionRecord.setRecordId(recordId);
+
     executionRecord.setRecordData(europeanaRecordString);
-    when(executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+    when(executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name())).thenReturn(executionRecord);
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(recordId, datasetId);

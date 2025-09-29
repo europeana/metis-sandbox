@@ -22,7 +22,7 @@ public interface ExecutionRecordWarningRepository extends
    * @param executionName The name of the execution associated with the execution record.
    * @return A list of ExecutionRecordWarningException entities matching the given criteria.
    */
-  List<ExecutionRecordWarning> findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+  List<ExecutionRecordWarning> findByExecutionRecord_Execution_DatasetIdAndExecutionRecord_Execution_ExecutionName(
       String datasetId, String executionName);
 
   /**
@@ -33,10 +33,10 @@ public interface ExecutionRecordWarningRepository extends
    * @return The count of entities matching the specified dataset ID and execution name.
    */
   @Query("""
-          SELECT COUNT(DISTINCT w.executionRecord.identifier.recordId)
+          SELECT COUNT(DISTINCT w.executionRecord.recordId)
           FROM ExecutionRecordWarning w
-          WHERE w.executionRecord.identifier.datasetId = :datasetId
-            AND w.executionRecord.identifier.executionName = :executionName
+          WHERE w.executionRecord.execution.datasetId = :datasetId
+            AND w.executionRecord.execution.executionName = :executionName
       """)
   long countDistinctRecordIds(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
@@ -46,9 +46,9 @@ public interface ExecutionRecordWarningRepository extends
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT er.identifier.executionName AS step, COUNT(er) AS count 
+      SELECT er.execution.executionName AS step, COUNT(er) AS count 
             FROM ExecutionRecord er 
-            GROUP BY er.identifier.executionName
+            GROUP BY er.execution.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 
@@ -57,5 +57,5 @@ public interface ExecutionRecordWarningRepository extends
    *
    * @param datasetId The ID of the dataset.
    */
-  void removeByExecutionRecord_Identifier_DatasetId(String datasetId);
+  void removeByExecutionRecord_Execution_DatasetId(String datasetId);
 }

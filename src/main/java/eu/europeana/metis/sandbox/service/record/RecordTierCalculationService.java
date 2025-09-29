@@ -54,7 +54,7 @@ public class RecordTierCalculationService {
    * @throws NoRecordFoundException if the specified record or dataset combination is not found
    */
   public RecordTierCalculationView calculateTiers(String recordId, String datasetId) throws NoRecordFoundException {
-    ExecutionRecord executionRecord = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+    ExecutionRecord executionRecord = executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name());
     RecordTierCalculationView recordTierCalculationView;
     final ArrayList<ProcessingError> processingErrors = new ArrayList<>();
@@ -63,14 +63,14 @@ public class RecordTierCalculationService {
           String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId));
     } else {
       final String portalPublishRecordUrl =
-          new UriTemplate(this.portalPublishRecordBaseUrl).expand(executionRecord.getIdentifier().getRecordId()).toString();
+          new UriTemplate(this.portalPublishRecordBaseUrl).expand(executionRecord.getRecordId()).toString();
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
-          executionRecord.getIdentifier().getRecordId(), executionRecord.getIdentifier().getRecordId(),
+          executionRecord.getRecordId(), executionRecord.getRecordId(),
           executionRecord.getRecordData(),
           portalPublishRecordUrl, processingErrors);
 
       ExecutionRecordError executionRecordError =
-          executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+          executionRecordErrorRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
               datasetId, recordId, FullBatchJobType.MEDIA.name());
       if (Objects.nonNull(executionRecordError)) {
         processingErrors.add(

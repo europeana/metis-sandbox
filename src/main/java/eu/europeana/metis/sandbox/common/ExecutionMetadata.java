@@ -14,6 +14,8 @@ import lombok.NonNull;
 @Builder
 public class ExecutionMetadata {
 
+  private final String executionId;
+
   @NonNull
   private final DatasetMetadata datasetMetadata;
 

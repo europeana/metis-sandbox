@@ -9,7 +9,6 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
@@ -87,7 +86,7 @@ public class DatasetTierController {
   @ApiResponse(responseCode = "400")
   @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
   public List<RecordTiersInfoDTO> getRecordsTiers(@PathVariable("id") String datasetId) {
-    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByIdentifier_DatasetId(
+    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByExecution_DatasetId(
         datasetId);
 
     if (executionRecordTierContext.isEmpty()) {
@@ -121,12 +120,12 @@ public class DatasetTierController {
     FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
     if (fullBatchJobType == FullBatchJobType.HARVEST_FILE || fullBatchJobType == FullBatchJobType.HARVEST_OAI ||
         fullBatchJobType == FullBatchJobType.TRANSFORM_EXTERNAL) {
-      ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+      ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
           datasetId, recordId, FullBatchJobType.VALIDATE_INTERNAL.name());
-      convertedRecordId = Optional.ofNullable(executionRecordMatchingId).map(ExecutionRecord::getIdentifier).map(
-          ExecutionRecordIdentifierKey::getExternalRecordId).orElse(null);
+      convertedRecordId = Optional.ofNullable(executionRecordMatchingId).map(
+          ExecutionRecord::getExternalRecordId).orElse(null);
     }
-    ExecutionRecord executionRecord = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+    ExecutionRecord executionRecord = executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
         datasetId, convertedRecordId, fullBatchJobType.name());
     return Optional.ofNullable(executionRecord).map(ExecutionRecord::getRecordData)
                    .orElseThrow(() -> new NoRecordFoundException(recordId));
@@ -134,7 +133,7 @@ public class DatasetTierController {
 
   private static RecordTiersInfoDTO from(ExecutionRecordTierContext context) {
     return RecordTiersInfoDTO.builder()
-                             .recordId(context.getIdentifier().getRecordId())
+                             .recordId(context.getRecordId())
                              .contentTier(MediaTier.getEnum(context.getContentTier()))
                              .contentTierBeforeLicenseCorrection(
                                  MediaTier.getEnum(context.getContentTierBeforeLicenseCorrection()))
