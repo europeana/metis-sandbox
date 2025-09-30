@@ -263,11 +263,11 @@ public class DatasetReportService {
       String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
     long totalSuccess =
-        executionRecordRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
+        executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName);
     long totalDuplicates =
         executionRecordRepository.countDuplicateRecords(datasetId, executionName);
     long totalFailure =
-        executionRecordErrorRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
+        executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName);
     long totalDistinctWarning =
         executionRecordWarningRepository.countDistinctRecordIds(datasetId, executionName);
     return new StepStatistics(totalSuccess, totalDuplicates, totalFailure, totalDistinctWarning);
@@ -289,7 +289,7 @@ public class DatasetReportService {
   private @NotNull Map<GroupedIssueKey, List<String>> collectGroupedIssues(String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
     List<ExecutionRecordError> executionRecordErrors =
-        executionRecordErrorRepository.findByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
+        executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName);
 
     Map<GroupedIssueKey, List<String>> groupedIssues = new LinkedHashMap<>();
     for (ExecutionRecordError executionRecordError : executionRecordErrors) {
@@ -299,7 +299,7 @@ public class DatasetReportService {
     }
 
     List<ExecutionRecordWarning> executionRecordWarnings =
-        executionRecordWarningRepository.findByExecutionRecord_Execution_DatasetIdAndExecutionRecord_Execution_ExecutionName(
+        executionRecordWarningRepository.findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
             datasetId, executionName);
 
     for (ExecutionRecordWarning executionRecordWarning : executionRecordWarnings) {
@@ -341,14 +341,14 @@ public class DatasetReportService {
   private TiersZeroInfoDTO prepareTiersInfo(String datasetId) {
     // get a list of records with content tier 0
     List<String> listOfRecordsIdsWithContentZero =
-        executionRecordTierContextRepository.findTop10ByExecution_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
+        executionRecordTierContextRepository.findTop10ByExecutionRun_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
                                             .stream()
                                             .map(ExecutionRecordTierContext::getIdentifier)
                                             .map(ExecutionRecordIdentifier::getRecordId).toList();
 
     // get list of records with metadata tier 0
     List<String> listOfRecordsIdsWithMetadataZero =
-        executionRecordTierContextRepository.findTop10ByExecution_DatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString())
+        executionRecordTierContextRepository.findTop10ByExecutionRun_DatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString())
                                             .stream()
                                             .map(ExecutionRecordTierContext::getIdentifier)
                                             .map(ExecutionRecordIdentifier::getRecordId)
@@ -357,13 +357,13 @@ public class DatasetReportService {
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
     TierStatisticsDTO contentTierInfo = listOfRecordsIdsWithContentZero.isEmpty() ? null :
         new TierStatisticsDTO(
-            Math.toIntExact(executionRecordTierContextRepository.countByExecution_DatasetIdAndContentTier(datasetId,
+            Math.toIntExact(executionRecordTierContextRepository.countByExecutionRun_DatasetIdAndContentTier(datasetId,
                 MediaTier.T0.toString())), listOfRecordsIdsWithContentZero);
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
     TierStatisticsDTO metadataTierInfo = listOfRecordsIdsWithMetadataZero.isEmpty() ? null :
         new TierStatisticsDTO(
-            Math.toIntExact(executionRecordTierContextRepository.countByExecution_DatasetIdAndMetadataTier(datasetId,
+            Math.toIntExact(executionRecordTierContextRepository.countByExecutionRun_DatasetIdAndMetadataTier(datasetId,
                 MetadataTier.T0.toString())),
             listOfRecordsIdsWithMetadataZero);
 

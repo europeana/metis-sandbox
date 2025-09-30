@@ -1,14 +1,14 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
-import eu.europeana.metis.sandbox.batch.entity.Execution;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for managing {@link Execution} entities.
+ * Repository interface for managing {@link ExecutionRun} entities.
  */
 @Repository
-public interface ExecutionRepository extends JpaRepository<Execution, Long> {
+public interface ExecutionRepository extends JpaRepository<ExecutionRun, Long> {
 
   /**
    * Retrieves an Execution entity based on the provided dataset ID, execution ID,
@@ -20,5 +20,5 @@ public interface ExecutionRepository extends JpaRepository<Execution, Long> {
    * @return the Execution entity matching the specified dataset ID, execution ID, and execution executionName,
    *         or null if no matching entity is found
    */
-  Execution getByDatasetIdAndExecutionIdAndExecutionName(String datasetId, String targetExecutionId, String executionName);
+  ExecutionRun getByDatasetIdAndExecutionIdAndExecutionName(String datasetId, String targetExecutionId, String executionName);
 }

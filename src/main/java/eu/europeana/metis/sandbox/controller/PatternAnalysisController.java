@@ -124,7 +124,7 @@ public class PatternAnalysisController {
       @Parameter(description = "id of the dataset", required = true) @PathVariable("id") String datasetId,
       @Parameter(description = "The record content as a file", required = true) @RequestParam("recordId") String recordId)
       throws SerializationException {
-    ExecutionRecord executionRecord = executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+    ExecutionRecord executionRecord = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         datasetId, recordId, FullBatchJobType.VALIDATE_INTERNAL.toString());
     return executionRecord == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) :
         new ResponseEntity<>(

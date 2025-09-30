@@ -17,12 +17,12 @@ import org.springframework.stereotype.Repository;
 public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord, Long> {
 
   /**
-   * Retrieves a paginated list of ExecutionRecord entities based on dataset ID and execution ID excluding duplicates.
+   * Retrieves a paginated list of ExecutionRecord entities based on dataset ID and executionRun ID excluding duplicates.
    *
    * <p>This is used by the {@link DefaultRepositoryItemReader} therefore it is marked as unused from the IDE.
    *
    * @param datasetId The ID of the dataset.
-   * @param executionId The ID of the execution.
+   * @param executionId The ID of the executionRun.
    * @param pageable The paging configuration, including page number and size.
    * @return A paginated list of ExecutionRecord entities excluding duplicates matching the criteria.
    */
@@ -32,8 +32,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
       WHERE r.id IN (
           SELECT MIN(r2.id)
           FROM ExecutionRecord r2
-          WHERE r2.execution.datasetId = :datasetId
-            AND r2.execution.executionId = :executionId
+          WHERE r2.executionRun.datasetId = :datasetId
+            AND r2.executionRun.executionId = :executionId
           GROUP BY r2.identifier.recordId
       )
       """)
@@ -44,25 +44,25 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   );
 
   /**
-   * Finds duplicate execution records for a given dataset and execution name.
+   * Finds duplicate executionRun records for a given dataset and executionRun name.
    * <p>
    * A record is considered duplicate if it shares the same recordId within the provided datasetId and executionName, and is not
    * the record with the smallest ID in the same group.
    *
    * @param datasetId the unique identifier for the dataset used to filter records.
-   * @param executionName the name of the execution used to filter records.
+   * @param executionName the name of the executionRun used to filter records.
    * @return a list of duplicate {@code ExecutionRecord} entities that match the specified datasetId and executionName criteria.
    */
   @Query("""
       SELECT r
       FROM ExecutionRecord r
-      WHERE r.execution.datasetId = :datasetId
-        AND r.execution.executionName = :executionName
+      WHERE r.executionRun.datasetId = :datasetId
+        AND r.executionRun.executionName = :executionName
         AND r.id NOT IN (
             SELECT MIN(r2.id)
             FROM ExecutionRecord r2
-            WHERE r2.execution.datasetId = :datasetId
-              AND r2.execution.executionName = :executionName
+            WHERE r2.executionRun.datasetId = :datasetId
+              AND r2.executionRun.executionName = :executionName
             GROUP BY r2.identifier.recordId
         )
       """)
@@ -72,49 +72,49 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   );
 
   /**
-   * Counts the duplicate records in the database for a specific dataset and execution name.
+   * Counts the duplicate records in the database for a specific dataset and executionRun name.
    * <p>
-   * A record is considered a duplicate if it shares the same dataset ID and execution name and is not the record with the minimum
+   * A record is considered a duplicate if it shares the same dataset ID and executionRun name and is not the record with the minimum
    * ID for the same record ID.
    *
    * @param datasetId the identifier of the dataset to filter the records
-   * @param executionName the name of the execution to filter the records
-   * @return the count of duplicate records matching the given dataset ID and execution name
+   * @param executionName the name of the executionRun to filter the records
+   * @return the count of duplicate records matching the given dataset ID and executionRun name
    */
   @Query("""
       SELECT COUNT(r)
       FROM ExecutionRecord r
-      WHERE r.execution.datasetId = :datasetId
-        AND r.execution.executionName = :executionName
+      WHERE r.executionRun.datasetId = :datasetId
+        AND r.executionRun.executionName = :executionName
         AND r.id NOT IN (
             SELECT MIN(r2.id)
             FROM ExecutionRecord r2
-            WHERE r2.execution.datasetId = :datasetId
-              AND r2.execution.executionName = :executionName
+            WHERE r2.executionRun.datasetId = :datasetId
+              AND r2.executionRun.executionName = :executionName
             GROUP BY r2.identifier.recordId
         )
       """)
   long countDuplicateRecords(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
   /**
-   * Retrieves an ExecutionRecord based on the provided dataset ID, record ID, and execution name.
+   * Retrieves an ExecutionRecord based on the provided dataset ID, record ID, and executionRun name.
    *
    * @param datasetId The ID of the dataset.
    * @param recordId The ID of the record within the dataset.
-   * @param executionName The name of the execution.
+   * @param executionName The name of the executionRun.
    * @return The matching ExecutionRecord or null if no match is found.
    */
-  ExecutionRecord findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(String datasetId, String recordId,
+  ExecutionRecord findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(String datasetId, String recordId,
       String executionName);
 
   /**
-   * Counts the number of ExecutionRecord entities matching the given dataset ID and execution name.
+   * Counts the number of ExecutionRecord entities matching the given dataset ID and executionRun name.
    *
    * @param datasetId The ID of the dataset.
-   * @param executionName The set of execution names to filter the records by.
+   * @param executionName The set of executionRun names to filter the records by.
    * @return The count of ExecutionRecord entities matching the specified criteria.
    */
-  long countByExecution_DatasetIdAndExecution_ExecutionName(String datasetId, String executionName);
+  long countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
   /**
    * Retrieves dataset statistics by grouping ExecutionRecord entities based on dataset IDs.
@@ -122,20 +122,20 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing dataset IDs and their respective counts.
    */
   @Query("""
-      SELECT r.execution.datasetId AS datasetId, COUNT(r) AS count 
-            FROM ExecutionRecord r GROUP BY r.execution.datasetId
+      SELECT r.executionRun.datasetId AS datasetId, COUNT(r) AS count 
+            FROM ExecutionRecord r GROUP BY r.executionRun.datasetId
       """)
   List<DatasetStatisticProjection> getDatasetStatistics();
 
   /**
-   * Retrieves step statistics by grouping ExecutionRecord entities based on execution names.
+   * Retrieves step statistics by grouping ExecutionRecord entities based on executionRun names.
    *
    * @return A list of projections containing step names and their respective counts.
    */
   @Query("""
-      SELECT r.execution.executionName AS step, COUNT(r) AS count 
+      SELECT r.executionRun.executionName AS step, COUNT(r) AS count 
             FROM ExecutionRecord r 
-            GROUP BY r.execution.executionName
+            GROUP BY r.executionRun.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 
@@ -144,12 +144,12 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    *
    * @param datasetId The ID of the dataset for which records will be deleted.
    */
-  void removeByExecution_DatasetId(String datasetId);
+  void removeByExecutionRun_DatasetId(String datasetId);
 
   /**
    * Projection interface representing dataset statistics.
    *
-   * <p>Provides access to dataset ID and the associated count of execution records.
+   * <p>Provides access to dataset ID and the associated count of executionRun records.
    * <p>Used in queries to get aggregated statistics for datasets.
    */
   interface DatasetStatisticProjection {
@@ -162,7 +162,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   /**
    * Projection interface representing step statistics.
    *
-   * <p>Provides access to step names and the associated count of execution records.
+   * <p>Provides access to step names and the associated count of executionRun records.
    * <p>Used in queries to get aggregated statistics for steps.
    */
   interface StepStatisticProjection {

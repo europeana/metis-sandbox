@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -19,7 +20,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record")
+@Table(schema = "engine_record",
+    indexes = {
+        @Index(name = "idx_execrecordtier_executionrun_contenttier", columnList = "execution_run_id, contentTier"),
+        @Index(name = "idx_execrecordtier_executionrun_metadatatier", columnList = "execution_run_id, metadataTier")
+    }
+)
 public class ExecutionRecordTierContext {
 
   @Id
@@ -27,7 +33,7 @@ public class ExecutionRecordTierContext {
   private Long id;
 
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
-  private Execution execution;
+  private ExecutionRun executionRun;
 
   @Embedded
   private ExecutionRecordIdentifier identifier;

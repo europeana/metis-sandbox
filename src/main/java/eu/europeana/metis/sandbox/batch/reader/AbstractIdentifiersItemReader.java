@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.Execution;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
@@ -80,11 +80,11 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     if (identifier == null) {
       return null;
     }
-    Execution execution = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(
+    ExecutionRun executionRun = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(
         datasetId, targetExecutionId, getJobType().name());
 
     ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
-    executionRecordExternalIdentifier.setExecution(execution);
+    executionRecordExternalIdentifier.setExecutionRun(executionRun);
     executionRecordExternalIdentifier.setExternalRecordId(extractStringIdentifier(identifier));
     executionRecordExternalIdentifier.setDeleted(isDeleted(identifier));
     return executionRecordExternalIdentifier;

@@ -84,9 +84,9 @@ public class DeBiasStateService {
   public DeBiasStatusDTO getDeBiasStatus(String datasetId) {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
         Integer.valueOf(datasetId));
-    long totalRecordsToDebias = executionRecordRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId,
+    long totalRecordsToDebias = executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name());
-    long totalRecordsDebiased = executionRecordRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId,
+    long totalRecordsDebiased = executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name());
 
     final DebiasState debiasState;

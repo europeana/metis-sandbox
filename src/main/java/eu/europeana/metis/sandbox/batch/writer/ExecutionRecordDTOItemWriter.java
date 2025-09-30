@@ -4,7 +4,7 @@ import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.entity.Execution;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
@@ -69,15 +69,15 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
     String datasetId = chunk.getItems().getFirst().getDatasetId();
     String executionId = chunk.getItems().getFirst().getExecutionId();
     String executionName = chunk.getItems().getFirst().getExecutionName();
-    Execution execution = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(datasetId, executionId, executionName);
+    ExecutionRun executionRun = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(datasetId, executionId, executionName);
 
-    ResultBucket resultBucket = processChunk(chunk, execution);
+    ResultBucket resultBucket = processChunk(chunk, executionRun);
     persistResults(resultBucket);
 
     log.debug("END -> Write chunk");
   }
 
-  private ResultBucket processChunk(Chunk<? extends AbstractExecutionRecordDTO> chunk, Execution execution) {
+  private ResultBucket processChunk(Chunk<? extends AbstractExecutionRecordDTO> chunk, ExecutionRun executionRun) {
     final List<ExecutionRecord> executionRecords = new ArrayList<>();
     final List<ExecutionRecordError> executionRecordErrors = new ArrayList<>();
     final List<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
@@ -85,13 +85,13 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
     for (AbstractExecutionRecordDTO abstractExecutionRecordDTO : chunk) {
       switch (abstractExecutionRecordDTO) {
         case SuccessExecutionRecordDTO successExecutionRecordDTO -> {
-          executionRecords.add(ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO, execution));
+          executionRecords.add(ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO, executionRun));
           Optional<ExecutionRecordTierContext> executionRecordTierContext =
-              ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO, execution);
+              ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO, executionRun);
           executionRecordTierContext.ifPresent(executionRecordTierContexts::add);
         }
         case FailExecutionRecordDTO failExecutionRecordDTO -> executionRecordErrors.add(
-            ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO, execution));
+            ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO, executionRun));
       }
     }
     return new ResultBucket(executionRecords, executionRecordErrors, executionRecordTierContexts);

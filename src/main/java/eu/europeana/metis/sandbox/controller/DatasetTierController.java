@@ -87,7 +87,7 @@ public class DatasetTierController {
   @ApiResponse(responseCode = "400")
   @GetMapping(value = "{id}/records-tiers", produces = APPLICATION_JSON_VALUE)
   public List<RecordTiersInfoDTO> getRecordsTiers(@PathVariable("id") String datasetId) {
-    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByExecution_DatasetId(
+    List<ExecutionRecordTierContext> executionRecordTierContext = executionRecordTierContextRepository.findByExecutionRun_DatasetId(
         datasetId);
 
     if (executionRecordTierContext.isEmpty()) {
@@ -121,14 +121,14 @@ public class DatasetTierController {
     FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
     if (fullBatchJobType == FullBatchJobType.HARVEST_FILE || fullBatchJobType == FullBatchJobType.HARVEST_OAI ||
         fullBatchJobType == FullBatchJobType.TRANSFORM_EXTERNAL) {
-      ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+      ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
           datasetId, recordId, FullBatchJobType.VALIDATE_INTERNAL.name());
       convertedRecordId = Optional.ofNullable(executionRecordMatchingId)
                                   .map(ExecutionRecord::getIdentifier)
                                   .map(ExecutionRecordIdentifier::getExternalRecordId)
                                   .orElse(null);
     }
-    ExecutionRecord executionRecord = executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+    ExecutionRecord executionRecord = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         datasetId, convertedRecordId, fullBatchJobType.name());
     return Optional.ofNullable(executionRecord).map(ExecutionRecord::getRecordData)
                    .orElseThrow(() -> new NoRecordFoundException(recordId));

@@ -16,7 +16,7 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.Execution;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
@@ -96,12 +96,12 @@ class DatasetTierControllerTest {
 
   @Test
   void getRecordsTier_expectSuccess() throws Exception {
-    Execution execution = new Execution();
-    execution.setDatasetId(DATASET_ID);
-    execution.setExecutionId("executionId");
-    execution.setExecutionName("executionName");
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId(DATASET_ID);
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
     ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
-    executionRecordTierContext.setExecution(execution);
+    executionRecordTierContext.setExecutionRun(executionRun);
 
     ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
     executionRecordIdentifier.setExternalRecordId(EXTERNAL_RECORD_ID);
@@ -117,7 +117,7 @@ class DatasetTierControllerTest {
     executionRecordTierContext.setMetadataTierContextualClasses(MetadataTier.T0.toString());
     executionRecordTierContext.setLicense(LicenseType.OPEN.toString());
 
-    when(executionRecordTierContextRepository.findByExecution_DatasetId(DATASET_ID)).thenReturn(
+    when(executionRecordTierContextRepository.findByExecutionRun_DatasetId(DATASET_ID)).thenReturn(
         List.of(executionRecordTierContext));
 
     mockMvc.perform(get("/dataset/{id}/records-tiers", DATASET_ID))
@@ -136,7 +136,7 @@ class DatasetTierControllerTest {
   @Test
   void getRecordsTier_expectInvalidDatasetException() throws Exception {
     InvalidDatasetException invalidDatasetException = new InvalidDatasetException(DATASET_ID);
-    when(executionRecordTierContextRepository.findByExecution_DatasetId(DATASET_ID)).thenThrow(invalidDatasetException);
+    when(executionRecordTierContextRepository.findByExecutionRun_DatasetId(DATASET_ID)).thenThrow(invalidDatasetException);
 
     mockMvc.perform(get("/dataset/{id}/records-tiers", DATASET_ID))
            .andExpect(status().isBadRequest())
@@ -148,12 +148,12 @@ class DatasetTierControllerTest {
   void getRecord_expectSuccess(FullBatchJobType step) throws Exception {
     final String returnString = "exampleString";
 
-    Execution execution = new Execution();
-    execution.setDatasetId(DATASET_ID);
-    execution.setExecutionId("executionId");
-    execution.setExecutionName("executionName");
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId(DATASET_ID);
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
     ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setExecution(execution);
+    executionRecord.setExecutionRun(executionRun);
 
     ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
     executionRecordIdentifier.setExternalRecordId(EXTERNAL_RECORD_ID);
@@ -162,12 +162,12 @@ class DatasetTierControllerTest {
     executionRecord.setIdentifier(executionRecordIdentifier);
 
     executionRecord.setRecordData(returnString);
-    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         DATASET_ID, RECORD_ID, FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(executionRecord);
-    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         DATASET_ID, RECORD_ID, step.name())).thenReturn(executionRecord);
     //Cover the case where the id is converted to external id for steps that don't have the record_id yet
-    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         DATASET_ID, EXTERNAL_RECORD_ID, step.name())).thenReturn(executionRecord);
 
     mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)

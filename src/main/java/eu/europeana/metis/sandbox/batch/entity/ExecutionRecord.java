@@ -24,8 +24,8 @@ import lombok.Setter;
 @Entity
 @Table(schema = "engine_record",
     indexes = {
-        @Index(name = "idx_exec_record_exec_record", columnList = "execution_id, recordId"),
-        @Index(name = "idx_exec_record_exec_recordid", columnList = "execution_id, recordId, id")
+        @Index(name = "idx_execrecord_recordid", columnList = "recordId"),
+        @Index(name = "idx_execrecord_executionrun_recordid", columnList = "execution_run_id, recordId")
     }
 )
 public class ExecutionRecord {
@@ -35,7 +35,7 @@ public class ExecutionRecord {
   private Long id;
 
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
-  private Execution execution;
+  private ExecutionRun executionRun;
 
   @Embedded
   private ExecutionRecordIdentifier identifier;

@@ -32,7 +32,7 @@ import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.IndexBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
-import eu.europeana.metis.sandbox.batch.entity.Execution;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
@@ -187,12 +187,12 @@ public class BatchJobExecutor {
         throw new IllegalStateException("No executor for step: " + step);
       }
 
-      Execution execution = new Execution();
-      execution.setDatasetId(executionMetadata.getDatasetMetadata().getDatasetId());
-      execution.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
-      execution.setExecutionName(step.name());
+      ExecutionRun executionRun = new ExecutionRun();
+      executionRun.setDatasetId(executionMetadata.getDatasetMetadata().getDatasetId());
+      executionRun.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
+      executionRun.setExecutionName(step.name());
 
-      executionRepository.save(execution);
+      executionRepository.save(executionRun);
       JobExecution jobExecution = executor.apply(currentExecutionMetadataWithTargetId);
       waitForCompletion(jobExecution);
       if (jobExecution.getStatus() != BatchStatus.COMPLETED) {

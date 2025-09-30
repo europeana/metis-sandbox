@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.Execution;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
@@ -50,12 +50,12 @@ class RecordTierCalculationServiceTest {
     final String externalRecordId = "externalRecordId";
     final String sourceRecordId = "sourceRecordId";
     final String recordId = "recordId";
-    Execution execution = new Execution();
-    execution.setDatasetId(datasetId);
-    execution.setExecutionId(executionId);
-    execution.setExecutionName(FullBatchJobType.MEDIA.name());
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId(datasetId);
+    executionRun.setExecutionId(executionId);
+    executionRun.setExecutionName(FullBatchJobType.MEDIA.name());
     ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setExecution(execution);
+    executionRecord.setExecutionRun(executionRun);
 
     ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
     executionRecordIdentifier.setExternalRecordId(externalRecordId);
@@ -64,7 +64,7 @@ class RecordTierCalculationServiceTest {
     executionRecord.setIdentifier(executionRecordIdentifier);
 
     executionRecord.setRecordData(europeanaRecordString);
-    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name())).thenReturn(executionRecord);
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(recordId, datasetId);

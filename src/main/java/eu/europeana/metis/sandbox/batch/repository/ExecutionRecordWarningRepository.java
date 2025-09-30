@@ -16,39 +16,39 @@ public interface ExecutionRecordWarningRepository extends
     JpaRepository<ExecutionRecordWarning, Long> {
 
   /**
-   * Finds a list of ExecutionRecordWarningException entities based on the dataset ID and execution name.
+   * Finds a list of ExecutionRecordWarningException entities based on the dataset ID and executionRun name.
    *
    * @param datasetId The ID of the dataset.
-   * @param executionName The name of the execution associated with the execution record.
+   * @param executionName The name of the executionRun associated with the executionRun record.
    * @return A list of ExecutionRecordWarningException entities matching the given criteria.
    */
-  List<ExecutionRecordWarning> findByExecutionRecord_Execution_DatasetIdAndExecutionRecord_Execution_ExecutionName(
+  List<ExecutionRecordWarning> findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
       String datasetId, String executionName);
 
   /**
-   * Counts the number of distinct entities by recordId and based on the dataset ID and execution name.
+   * Counts the number of distinct entities by recordId and based on the dataset ID and executionRun name.
    *
    * @param datasetId The ID of the dataset.
-   * @param executionName The name of the execution associated with the entities.
-   * @return The count of entities matching the specified dataset ID and execution name.
+   * @param executionName The name of the executionRun associated with the entities.
+   * @return The count of entities matching the specified dataset ID and executionRun name.
    */
   @Query("""
           SELECT COUNT(DISTINCT w.executionRecord.identifier.recordId)
           FROM ExecutionRecordWarning w
-          WHERE w.executionRecord.execution.datasetId = :datasetId
-            AND w.executionRecord.execution.executionName = :executionName
+          WHERE w.executionRecord.executionRun.datasetId = :datasetId
+            AND w.executionRecord.executionRun.executionName = :executionName
       """)
   long countDistinctRecordIds(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
   /**
-   * Retrieves statistics of execution steps, including the step name and the count of records grouped per step.
+   * Retrieves statistics of executionRun steps, including the step name and the count of records grouped per step.
    *
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT er.execution.executionName AS step, COUNT(er) AS count 
+      SELECT er.executionRun.executionName AS step, COUNT(er) AS count 
             FROM ExecutionRecord er 
-            GROUP BY er.execution.executionName
+            GROUP BY er.executionRun.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 
@@ -57,5 +57,5 @@ public interface ExecutionRecordWarningRepository extends
    *
    * @param datasetId The ID of the dataset.
    */
-  void removeByExecutionRecord_Execution_DatasetId(String datasetId);
+  void removeByExecutionRecord_ExecutionRun_DatasetId(String datasetId);
 }

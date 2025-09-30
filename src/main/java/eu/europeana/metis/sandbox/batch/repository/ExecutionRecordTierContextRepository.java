@@ -18,7 +18,7 @@ public interface ExecutionRecordTierContextRepository extends
    * @param datasetId The ID of the dataset.
    * @return A list of ExecutionRecordTierContext entities matching the dataset ID.
    */
-  List<ExecutionRecordTierContext> findByExecution_DatasetId(String datasetId);
+  List<ExecutionRecordTierContext> findByExecutionRun_DatasetId(String datasetId);
 
   /**
    * Retrieves the top 10 ExecutionRecordTierContext entities based on the given dataset ID and content tier.
@@ -27,7 +27,7 @@ public interface ExecutionRecordTierContextRepository extends
    * @param contentTier The content tier.
    * @return A list of up to 10 ExecutionRecordTierContext entities matching the criteria.
    */
-  List<ExecutionRecordTierContext> findTop10ByExecution_DatasetIdAndContentTier(String datasetId, String contentTier);
+  List<ExecutionRecordTierContext> findTop10ByExecutionRun_DatasetIdAndContentTier(String datasetId, String contentTier);
 
   /**
    * Retrieves the top 10 execution record tier contexts based on the given dataset identifier and metadata tier.
@@ -36,7 +36,7 @@ public interface ExecutionRecordTierContextRepository extends
    * @param metadataTier The metadata tier.
    * @return A list of up to 10 execution record tier contexts matching the specified dataset ID and metadata tier.
    */
-  List<ExecutionRecordTierContext> findTop10ByExecution_DatasetIdAndMetadataTier(String datasetId, String metadataTier);
+  List<ExecutionRecordTierContext> findTop10ByExecutionRun_DatasetIdAndMetadataTier(String datasetId, String metadataTier);
 
   /**
    * Counts the number of ExecutionRecordTierContext entities matching the given dataset ID and content tier.
@@ -45,7 +45,7 @@ public interface ExecutionRecordTierContextRepository extends
    * @param contentTier The content tier.
    * @return The count of records matching the specified dataset ID and content tier.
    */
-  long countByExecution_DatasetIdAndContentTier(String datasetId, String contentTier);
+  long countByExecutionRun_DatasetIdAndContentTier(String datasetId, String contentTier);
 
   /**
    * Counts the number of ExecutionRecordTierContext entities matching the given dataset ID and metadata tier.
@@ -54,13 +54,13 @@ public interface ExecutionRecordTierContextRepository extends
    * @param metadataTier The metadata tier.
    * @return The count of records matching the specified dataset ID and metadata tier.
    */
-  long countByExecution_DatasetIdAndMetadataTier(String datasetId, String metadataTier);
+  long countByExecutionRun_DatasetIdAndMetadataTier(String datasetId, String metadataTier);
 
   /**
    * Removes all ExecutionRecordTierContext entities that match the specified dataset ID.
    *
    * @param datasetId The ID of the dataset.
    */
-  void removeByExecution_DatasetId(String datasetId);
+  void removeByExecutionRun_DatasetId(String datasetId);
 }
 

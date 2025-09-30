@@ -23,13 +23,13 @@ public interface ExecutionRecordExternalIdentifierRepository extends
    * @param pageable Pagination and sorting configuration for the query.
    * @return A paginated list of ExecutionRecordExternalIdentifier entities matching the execution ID.
    */
-  Page<ExecutionRecordExternalIdentifier> findByExecution_ExecutionId(String executionId, Pageable pageable);
+  Page<ExecutionRecordExternalIdentifier> findByExecutionRun_ExecutionId(String executionId, Pageable pageable);
 
   /**
    * Removes all records associated with the specified dataset ID from the repository.
    *
    * @param datasetId The ID of the dataset whose associated records should be removed.
    */
-  void removeByExecution_DatasetId(String datasetId);
+  void removeByExecutionRun_DatasetId(String datasetId);
 
 }

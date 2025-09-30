@@ -17,10 +17,14 @@ import lombok.Setter;
 @Entity
 @Table(schema = "engine_record",
     indexes = {
+        @Index(name = "idx_exec_dataset", columnList = "datasetId"),
+        @Index(name = "idx_exec_execid", columnList = "executionId"),
+        @Index(name = "idx_exec_execname", columnList = "executionName"),
         @Index(name = "idx_exec_dataset_execid", columnList = "datasetId, executionId"),
-        @Index(name = "idx_exec_dataset_execname", columnList = "datasetId, executionName")
+        @Index(name = "idx_exec_dataset_execname", columnList = "datasetId, executionName"),
+        @Index(name = "idx_exec_dataset_execid_execname", columnList = "datasetId, executionId, executionName")
     })
-public class Execution {
+public class ExecutionRun {
 
   @Id
   @GeneratedValue
