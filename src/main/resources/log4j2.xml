@@ -1,36 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration>
-  <Properties>
-    <Property name="LOG_PATTERN">%d{yyyy-MMM-dd HH:mm:ss} metis-sandbox %p [%thread] [%logger{36}] - %message%xException{150}%n</Property>
-    <Property name="LOG_DIR">@log.dir@/@app.name@</Property>
-    <Property name="APP_NAME">@app.name@</Property>
-  </Properties>
+<Configuration status="WARN">
   <Appenders>
-    <Console name="Console">
-      <PatternLayout pattern="${LOG_PATTERN}" />
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5p %C:%L [%t] - %m%n"/>
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="eu.europeana" level="warn">
+    <Root level="INFO">
       <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="eu.europeana.metis.sandbox" level="info">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.springframework" level="warn">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.hibernate" level="error">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.mongo.driver.connection" level="error">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.zaxxer.hikari" level="debug">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Root level="info">
-      <AppenderRef ref="Console" />
     </Root>
   </Loggers>
 </Configuration>

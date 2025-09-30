@@ -1,0 +1,100 @@
+package eu.europeana.metis.sandbox.config.batch;
+
+import static eu.europeana.metis.sandbox.batch.common.BatchJobType.INDEX;
+
+import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
+import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
+
+/**
+ * Configuration class for the Index Job, responsible for defining the batch job, its step, and components.
+ */
+@Slf4j
+@Configuration
+public class IndexJobConfig {
+
+  public static final BatchJobType BATCH_JOB = INDEX;
+  public static final String STEP_NAME = "indexStep";
+  private final WorkflowConfigurationProperties.ParallelizeConfig parallelizeConfig;
+
+  IndexJobConfig(WorkflowConfigurationProperties workflowConfigurationProperties) {
+    parallelizeConfig = workflowConfigurationProperties.workflow().get(BATCH_JOB);
+    log.info("Chunk size: {}, Parallelization size: {}", parallelizeConfig.chunkSize(),
+        parallelizeConfig.parallelizeSize());
+  }
+
+  @Bean
+  Job indexJob(JobRepository jobRepository, @Qualifier(STEP_NAME) Step indexStep) {
+    return new JobBuilder(BATCH_JOB.name(), jobRepository)
+        .start(indexStep)
+        .build();
+  }
+
+  @Bean(STEP_NAME)
+  Step indexStep(
+      JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
+      @Qualifier("indexRepositoryItemReader") RepositoryItemReader<ExecutionRecord> indexRepositoryItemReader,
+      @Qualifier("indexAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> indexAsyncItemProcessor,
+      ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
+    return new StepBuilder(STEP_NAME, jobRepository)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .reader(indexRepositoryItemReader)
+        .processor(indexAsyncItemProcessor)
+        .listener(loggingItemProcessListener)
+        .writer(executionRecordDTOAsyncItemWriter)
+        .build();
+  }
+
+  @Bean("indexRepositoryItemReader")
+  @StepScope
+  RepositoryItemReader<ExecutionRecord> indexRepositoryItemReader(
+      ExecutionRecordRepository executionRecordRepository) {
+    return new DefaultRepositoryItemReader(executionRecordRepository, parallelizeConfig.chunkSize());
+  }
+
+  @Bean("indexAsyncItemProcessor")
+  ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> indexAsyncItemProcessor(
+      @Qualifier("indexItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> indexItemProcessor,
+      @Qualifier("indexStepAsyncTaskExecutor") TaskExecutor indexAsyncTaskExecutor) {
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    asyncItemProcessor.setDelegate(indexItemProcessor);
+    asyncItemProcessor.setTaskExecutor(indexAsyncTaskExecutor);
+    return asyncItemProcessor;
+  }
+
+  @Bean
+  TaskExecutor indexStepAsyncTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setThreadNamePrefix(BATCH_JOB.name() + "-");
+    executor.setCorePoolSize(parallelizeConfig.parallelizeSize());
+    executor.setMaxPoolSize(parallelizeConfig.parallelizeSize());
+    executor.initialize();
+    return executor;
+  }
+}

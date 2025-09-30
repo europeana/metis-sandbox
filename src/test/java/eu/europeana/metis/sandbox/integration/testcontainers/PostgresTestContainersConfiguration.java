@@ -38,7 +38,6 @@ public class PostgresTestContainersConfiguration {
     System.setProperty("spring.datasource.jdbcUrl", postgreSQLContainer.getJdbcUrl());
     System.setProperty("spring.datasource.username", postgreSQLContainer.getUsername());
     System.setProperty("spring.datasource.password", postgreSQLContainer.getPassword());
-    System.setProperty("spring.jpa.hibernate.ddl-auto", "none");
     System.setProperty("spring.datasource.driver-class-name", "org.postgresql.Driver");
   }
 
