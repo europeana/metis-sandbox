@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import java.util.List;
@@ -36,9 +37,13 @@ class ExecutionRecordConverterTest {
 
     ExecutionRecord executionRecord = new ExecutionRecord();
     executionRecord.setExecution(execution);
-    executionRecord.setExternalRecordId("externalRecordId");
-    executionRecord.setSourceRecordId("sourceRecordId");
-    executionRecord.setRecordId("recordId");
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId("externalRecordId");
+    executionRecordIdentifier.setSourceRecordId("sourceRecordId");
+    executionRecordIdentifier.setRecordId("recordId");
+    executionRecord.setIdentifier(executionRecordIdentifier);
+
     executionRecord.setRecordData("recordData");
     ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
     executionRecordWarning.setMessage("message");
@@ -51,9 +56,9 @@ class ExecutionRecordConverterTest {
     assertEquals(executionRecord.getExecution().getDatasetId(), successExecutionRecordDTO.getDatasetId());
     assertEquals(executionRecord.getExecution().getExecutionId(), successExecutionRecordDTO.getExecutionId());
     assertEquals(executionRecord.getExecution().getExecutionName(), successExecutionRecordDTO.getExecutionName());
-    assertEquals(executionRecord.getExternalRecordId(), successExecutionRecordDTO.getExternalRecordId());
-    assertEquals(executionRecord.getSourceRecordId(), successExecutionRecordDTO.getSourceRecordId());
-    assertEquals(executionRecord.getRecordId(), successExecutionRecordDTO.getRecordId());
+    assertEquals(executionRecord.getIdentifier().getExternalRecordId(), successExecutionRecordDTO.getExternalRecordId());
+    assertEquals(executionRecord.getIdentifier().getSourceRecordId(), successExecutionRecordDTO.getSourceRecordId());
+    assertEquals(executionRecord.getIdentifier().getRecordId(), successExecutionRecordDTO.getRecordId());
     assertEquals(executionRecord.getRecordData(), successExecutionRecordDTO.getRecordData());
     Set<String> entityWarningSet = executionRecord.getExecutionRecordWarning().stream()
                                                   .map(w -> w.getMessage() + "-" + w.getException())
@@ -90,9 +95,9 @@ class ExecutionRecordConverterTest {
     assertEquals(successExecutionRecordDTO.getDatasetId(), executionRecord.getExecution().getDatasetId());
     assertEquals(successExecutionRecordDTO.getExecutionId(), executionRecord.getExecution().getExecutionId());
     assertEquals(successExecutionRecordDTO.getExecutionName(), executionRecord.getExecution().getExecutionName());
-    assertEquals(successExecutionRecordDTO.getExternalRecordId(), executionRecord.getExternalRecordId());
-    assertEquals(successExecutionRecordDTO.getSourceRecordId(), executionRecord.getSourceRecordId());
-    assertEquals(successExecutionRecordDTO.getRecordId(), executionRecord.getRecordId());
+    assertEquals(successExecutionRecordDTO.getExternalRecordId(), executionRecord.getIdentifier().getExternalRecordId());
+    assertEquals(successExecutionRecordDTO.getSourceRecordId(), executionRecord.getIdentifier().getSourceRecordId());
+    assertEquals(successExecutionRecordDTO.getRecordId(), executionRecord.getIdentifier().getRecordId());
     assertEquals(successExecutionRecordDTO.getRecordData(), executionRecord.getRecordData());
     assertEquals(1, executionRecord.getExecutionRecordWarning().size());
     ExecutionRecordWarning executionRecordWarning = executionRecord.getExecutionRecordWarning().getFirst();
@@ -187,9 +192,9 @@ class ExecutionRecordConverterTest {
     assertEquals(failExecutionRecordDTO.getDatasetId(), executionRecordError.getExecution().getDatasetId());
     assertEquals(failExecutionRecordDTO.getExecutionId(), executionRecordError.getExecution().getExecutionId());
     assertEquals(failExecutionRecordDTO.getExecutionName(), executionRecordError.getExecution().getExecutionName());
-    assertEquals(failExecutionRecordDTO.getExternalRecordId(), executionRecordError.getExternalRecordId());
-    assertEquals(failExecutionRecordDTO.getSourceRecordId(), executionRecordError.getSourceRecordId());
-    assertEquals(failExecutionRecordDTO.getRecordId(), executionRecordError.getRecordId());
+    assertEquals(failExecutionRecordDTO.getExternalRecordId(), executionRecordError.getIdentifier().getExternalRecordId());
+    assertEquals(failExecutionRecordDTO.getSourceRecordId(), executionRecordError.getIdentifier().getSourceRecordId());
+    assertEquals(failExecutionRecordDTO.getRecordId(), executionRecordError.getIdentifier().getRecordId());
     assertNotNull(executionRecordError.getException());
     assertTrue(executionRecordError.getException().contains("IllegalArgumentException"));
     assertEquals(failExecutionRecordDTO.getExceptionInfoDTO().getMessage(), executionRecordError.getMessage());

@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.batch.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -28,14 +29,8 @@ public class ExecutionRecordTierContext {
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
   private Execution execution;
 
-  @Column(length = 300)
-  private String externalRecordId;
-
-  @Column(length = 300)
-  private String sourceRecordId;
-
-  @Column(length = 300)
-  private String recordId;
+  @Embedded
+  private ExecutionRecordIdentifier identifier;
 
   @Column(length = 1)
   protected String contentTier;

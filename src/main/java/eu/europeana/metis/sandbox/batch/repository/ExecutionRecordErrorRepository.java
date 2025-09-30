@@ -31,7 +31,7 @@ public interface ExecutionRecordErrorRepository extends
    * @param executionName The name of the execution.
    * @return The matching ExecutionRecordException, or null if not found.
    */
-  ExecutionRecordError findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(String datasetId,
+  ExecutionRecordError findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(String datasetId,
       String recordId, String executionName);
 
   /**
@@ -49,8 +49,8 @@ public interface ExecutionRecordErrorRepository extends
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT ere.execution.executionName AS step, COUNT(ere) AS count 
-            FROM ExecutionRecordError ere 
+      SELECT ere.execution.executionName AS step, COUNT(ere) AS count
+            FROM ExecutionRecordError ere
             GROUP BY ere.execution.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();

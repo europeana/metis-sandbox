@@ -208,7 +208,7 @@ class PatternAnalysisControllerTest {
 
     ExecutionRecord mockExecutionRecord = mock(ExecutionRecord.class);
     when(mockExecutionRecord.getRecordData()).thenReturn(recordContent);
-    when(mockExecutionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
+    when(mockExecutionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
         anyString(), anyString(), anyString())).thenReturn(mockExecutionRecord);
     when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class))).thenReturn(problemPatternList);
 
@@ -295,7 +295,7 @@ class PatternAnalysisControllerTest {
 
     ExecutionRecord mockExecutionRecord = mock(ExecutionRecord.class);
     when(mockExecutionRecord.getRecordData()).thenReturn(recordContent);
-    when(mockExecutionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
+    when(mockExecutionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
         anyString(), anyString(), anyString())).thenReturn(mockExecutionRecord);
     when(mockPatternAnalysisService.getRecordPatternAnalysis(any(RDF.class)))
         .thenReturn(problemPatternList);

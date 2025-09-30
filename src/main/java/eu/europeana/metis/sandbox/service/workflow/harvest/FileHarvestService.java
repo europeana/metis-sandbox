@@ -52,22 +52,22 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
   @Override
   public HarvestIdentifiersResult<String> harvestExternalIdentifiers(@NotNull FileHarvestTarget fileHarvestTarget,
       Integer stepSize) {
-    if (fileHarvestTarget.fileType().equals(FileType.XML)) {
-      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.fileName()), false);
+    if (fileHarvestTarget.getFileType().equals(FileType.XML)) {
+      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.getFileName()), false);
     } else {
-      return harvestIdentifiersFromCompressedArchive(fileHarvestTarget.fileContent(), stepSize);
+      return harvestIdentifiersFromCompressedArchive(fileHarvestTarget.getFileContent(), stepSize);
     }
   }
 
   @Override
   public HarvestedRecord harvestRecord(@NotNull FileHarvestTarget fileHarvestTarget, String sourceRecordId)
       throws HarvestException {
-    if (fileHarvestTarget.fileType().equals(FileType.XML)) {
-      InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.fileContent());
+    if (fileHarvestTarget.getFileType().equals(FileType.XML)) {
+      InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.getFileContent());
       String recordData = getStringData(inputStream);
       return new HarvestedRecord(sourceRecordId, recordData);
     } else {
-      return harvestRecordFromArchive(fileHarvestTarget.fileContent(), sourceRecordId);
+      return harvestRecordFromArchive(fileHarvestTarget.getFileContent(), sourceRecordId);
     }
   }
 

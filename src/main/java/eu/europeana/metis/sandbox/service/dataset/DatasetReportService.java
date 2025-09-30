@@ -7,6 +7,7 @@ import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
@@ -59,8 +60,6 @@ public class DatasetReportService {
   private static final String SUFFIX = "*";
   @Value("${sandbox.portal.publish.dataset-base-url}")
   private String portalPublishDatasetUrl;
-  @Value("${sandbox.dataset.max-size}")
-  private int maxRecords;
 
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
@@ -196,23 +195,25 @@ public class DatasetReportService {
         // Use the previous step's total if it was completed
         totalRecords = previousTotalRecords;
       }
-
-      //Success records can have warnings.
-      //Due to the current frontend display, we remove the distinct warning counter from the success counter.
-      //That means totalRecords = totalSuccess + totalFail + totalWarning
       //todo: reassess counters https://europeana.atlassian.net/browse/MET-6804
+      //Due to the current frontend display
+      long successWithoutDuplicatesCount = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
+      long successCount = successWithoutDuplicatesCount - stepStatistics.totalDistinctWarning;
+      long failCount = stepStatistics.totalFail + stepStatistics.totalDuplicates;
+      long warnCount = stepStatistics.totalDistinctWarning;
+
       ExecutionProgressByStepDTO executionProgressByStepDto = new ExecutionProgressByStepDTO(
           step,
           totalRecords,
-          stepStatistics.totalSuccess - stepStatistics.totalWarning,
-          stepStatistics.totalFail,
-          stepStatistics.totalWarning,
+          successCount,
+          failCount,
+          warnCount,
           errorInfoDTOList
       );
 
       executionProgressByStepDTOS.add(executionProgressByStepDto);
 
-      previousTotalRecords = stepStatistics.totalSuccess;
+      previousTotalRecords = successWithoutDuplicatesCount;
       previousCompleted = (currentTotalRecords == totalRecords);
     }
 
@@ -243,18 +244,19 @@ public class DatasetReportService {
 
   private ExecutionStatus computeStatus(DatasetEntity datasetEntity, long totalRecords, long totalProcessed,
       long totalFailInWorkflow) {
+    ExecutionStatus executionStatus;
     if (!datasetEntity.getDatasetErrors().isEmpty()) {
-      return ExecutionStatus.FAILED;
-    }
-    if (totalRecords > 0 && totalRecords == totalFailInWorkflow) {
-      return ExecutionStatus.FAILED;
+      executionStatus = ExecutionStatus.FAILED;
+    } else if (totalRecords > 0 && totalRecords == totalFailInWorkflow) {
+      executionStatus = ExecutionStatus.FAILED;
     } else if (totalRecords == 0L) {
-      return ExecutionStatus.HARVESTING_IDENTIFIERS;
+      executionStatus = ExecutionStatus.HARVESTING_IDENTIFIERS;
     } else if (totalRecords == totalProcessed) {
-      return ExecutionStatus.COMPLETED;
+      executionStatus = ExecutionStatus.COMPLETED;
     } else {
-      return ExecutionStatus.IN_PROGRESS;
+      executionStatus = ExecutionStatus.IN_PROGRESS;
     }
+    return executionStatus;
   }
 
   private @NotNull StepStatistics getStepStatistics(
@@ -262,11 +264,13 @@ public class DatasetReportService {
     String executionName = fullBatchJobType.name();
     long totalSuccess =
         executionRecordRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
+    long totalDuplicates =
+        executionRecordRepository.countDuplicateRecords(datasetId, executionName);
     long totalFailure =
         executionRecordErrorRepository.countByExecution_DatasetIdAndExecution_ExecutionName(datasetId, executionName);
-    long totalWarning =
+    long totalDistinctWarning =
         executionRecordWarningRepository.countDistinctRecordIds(datasetId, executionName);
-    return new StepStatistics(totalSuccess, totalFailure, totalWarning);
+    return new StepStatistics(totalSuccess, totalDuplicates, totalFailure, totalDistinctWarning);
   }
 
   private List<ErrorInfoDTO> getErrorInfo(String datasetId, FullBatchJobType fullBatchJobType) {
@@ -289,7 +293,7 @@ public class DatasetReportService {
 
     Map<GroupedIssueKey, List<String>> groupedIssues = new LinkedHashMap<>();
     for (ExecutionRecordError executionRecordError : executionRecordErrors) {
-      String recordId = formatRecordId(executionRecordError);
+      String recordId = formatRecordId(executionRecordError.getIdentifier());
       GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, executionRecordError.getException());
       groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
@@ -299,21 +303,26 @@ public class DatasetReportService {
             datasetId, executionName);
 
     for (ExecutionRecordWarning executionRecordWarning : executionRecordWarnings) {
-      String recordId = formatRecordId(executionRecordWarning.getExecutionRecord());
+      String recordId = formatRecordId(executionRecordWarning.getExecutionRecord().getIdentifier());
       GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
       groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
     }
+
+    List<ExecutionRecord> duplicateRecords =
+        executionRecordRepository.findDuplicateRecords(datasetId, executionName);
+
+    for (ExecutionRecord duplicateExecutionRecord : duplicateRecords) {
+      String recordId = formatRecordId(duplicateExecutionRecord.getIdentifier());
+      GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, "Duplicate record detected");
+      groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+    }
+
     return groupedIssues;
   }
 
-  private static @NotNull String formatRecordId(ExecutionRecord executionRecord) {
-    return String.format("%s | %s | %s", executionRecord.getExternalRecordId(),
-        executionRecord.getSourceRecordId(), executionRecord.getRecordId());
-  }
-
-  private static @NotNull String formatRecordId(ExecutionRecordError executionRecordError) {
-    return String.format("%s | %s | %s", executionRecordError.getExternalRecordId(),
-        executionRecordError.getSourceRecordId(), executionRecordError.getRecordId());
+  private static @NotNull String formatRecordId(ExecutionRecordIdentifier executionRecordIdentifier) {
+    return String.format("%s | %s | %s", executionRecordIdentifier.getExternalRecordId(),
+        executionRecordIdentifier.getSourceRecordId(), executionRecordIdentifier.getRecordId());
   }
 
   private String getPublishPortalUrl(DatasetEntity datasetEntity, ExecutionStatus executionStatus) {
@@ -334,13 +343,15 @@ public class DatasetReportService {
     List<String> listOfRecordsIdsWithContentZero =
         executionRecordTierContextRepository.findTop10ByExecution_DatasetIdAndContentTier(datasetId, MediaTier.T0.toString())
                                             .stream()
-                                            .map(ExecutionRecordTierContext::getRecordId).toList();
+                                            .map(ExecutionRecordTierContext::getIdentifier)
+                                            .map(ExecutionRecordIdentifier::getRecordId).toList();
 
     // get list of records with metadata tier 0
     List<String> listOfRecordsIdsWithMetadataZero =
         executionRecordTierContextRepository.findTop10ByExecution_DatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString())
                                             .stream()
-                                            .map(ExecutionRecordTierContext::getRecordId)
+                                            .map(ExecutionRecordTierContext::getIdentifier)
+                                            .map(ExecutionRecordIdentifier::getRecordId)
                                             .toList();
 
     // encapsulate values into TierStatistics. Cut list of record ids into limit number
@@ -361,7 +372,7 @@ public class DatasetReportService {
         new TiersZeroInfoDTO(contentTierInfo, metadataTierInfo);
   }
 
-  private record StepStatistics(long totalSuccess, long totalFail, long totalWarning) {
+  private record StepStatistics(long totalSuccess, long totalDuplicates, long totalFail, long totalDistinctWarning) {
 
   }
 

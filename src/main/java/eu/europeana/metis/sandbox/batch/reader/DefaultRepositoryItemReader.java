@@ -16,8 +16,8 @@ import org.springframework.data.domain.Sort.Direction;
  */
 public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionRecord> {
 
-  private static final String REPOSITORY_QUERY_METHOD_NAME = "findByExecution_DatasetIdAndExecution_ExecutionId";
-  public static final String SORT_FIELD = "recordId";
+  private static final String REPOSITORY_QUERY_METHOD_NAME = "findCanonicalRecords";
+  public static final String SORT_FIELD = "identifier.recordId";
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
   @Value("#{jobParameters['sourceExecutionId']}")

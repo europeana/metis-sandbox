@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.batch.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -12,8 +13,6 @@ import lombok.Setter;
 
 /**
  * Entity representing an exception encountered during the processing of an execution record.
- *
- * <p>Uses a composite key, {@link ExecutionRecordIdentifierKey}, to uniquely identify the associated execution record.
  */
 @Getter
 @Setter
@@ -28,14 +27,8 @@ public class ExecutionRecordError {
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
   private Execution execution;
 
-  @Column(length = 300)
-  private String externalRecordId;
-
-  @Column(length = 300)
-  private String sourceRecordId;
-
-  @Column(length = 300)
-  private String recordId;
+  @Embedded
+  private ExecutionRecordIdentifier identifier;
 
   @Column(columnDefinition = "TEXT")
   private String message;

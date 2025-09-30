@@ -11,7 +11,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-
+/**
+ * Represents a warning for an execution record entity.
+ */
 @Getter
 @Setter
 @Entity

@@ -18,6 +18,7 @@ import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
@@ -101,9 +102,12 @@ class DatasetTierControllerTest {
     execution.setExecutionName("executionName");
     ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
     executionRecordTierContext.setExecution(execution);
-    executionRecordTierContext.setExternalRecordId(RECORD_ID);
-    executionRecordTierContext.setSourceRecordId(RECORD_ID);
-    executionRecordTierContext.setRecordId(RECORD_ID);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(EXTERNAL_RECORD_ID);
+    executionRecordIdentifier.setSourceRecordId(SOURCE_RECORD_ID);
+    executionRecordIdentifier.setRecordId(RECORD_ID);
+    executionRecordTierContext.setIdentifier(executionRecordIdentifier);
 
     executionRecordTierContext.setContentTier(MediaTier.T3.toString());
     executionRecordTierContext.setContentTierBeforeLicenseCorrection(MediaTier.T4.toString());
@@ -150,14 +154,21 @@ class DatasetTierControllerTest {
     execution.setExecutionName("executionName");
     ExecutionRecord executionRecord = new ExecutionRecord();
     executionRecord.setExecution(execution);
-    executionRecord.setExternalRecordId(RECORD_ID);
-    executionRecord.setSourceRecordId(RECORD_ID);
-    executionRecord.setRecordId(RECORD_ID);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(EXTERNAL_RECORD_ID);
+    executionRecordIdentifier.setSourceRecordId(SOURCE_RECORD_ID);
+    executionRecordIdentifier.setRecordId(RECORD_ID);
+    executionRecord.setIdentifier(executionRecordIdentifier);
+
     executionRecord.setRecordData(returnString);
-    when(executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
         DATASET_ID, RECORD_ID, FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(executionRecord);
-    when(executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
         DATASET_ID, RECORD_ID, step.name())).thenReturn(executionRecord);
+    //Cover the case where the id is converted to external id for steps that don't have the record_id yet
+    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
+        DATASET_ID, EXTERNAL_RECORD_ID, step.name())).thenReturn(executionRecord);
 
     mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
                .param("recordId", RECORD_ID)

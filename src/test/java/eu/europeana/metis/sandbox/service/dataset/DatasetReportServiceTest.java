@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -79,7 +80,6 @@ class DatasetReportServiceTest {
 
   @BeforeEach
   void setup() {
-    ReflectionTestUtils.setField(datasetReportService, "maxRecords", 1000);
     ReflectionTestUtils.setField(datasetReportService, "portalPublishDatasetUrl", "http://test/");
   }
 
@@ -206,9 +206,12 @@ class DatasetReportServiceTest {
 
       ExecutionRecord executionRecord = new ExecutionRecord();
       executionRecord.setExecution(execution);
-      executionRecord.setExternalRecordId("externalRecordId");
-      executionRecord.setSourceRecordId("sourceRecordId");
-      executionRecord.setRecordId("recordId");
+
+      ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+      executionRecordIdentifier.setExternalRecordId("externalRecordId");
+      executionRecordIdentifier.setSourceRecordId("sourceRecordId");
+      executionRecordIdentifier.setRecordId("recordId");
+      executionRecord.setIdentifier(executionRecordIdentifier);
 
       ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
       executionRecordWarning.setExecutionRecord(executionRecord);

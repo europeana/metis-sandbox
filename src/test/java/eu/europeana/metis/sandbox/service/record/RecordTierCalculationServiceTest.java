@@ -8,6 +8,7 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.Execution;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.TestUtils;
@@ -55,12 +56,15 @@ class RecordTierCalculationServiceTest {
     execution.setExecutionName(FullBatchJobType.MEDIA.name());
     ExecutionRecord executionRecord = new ExecutionRecord();
     executionRecord.setExecution(execution);
-    executionRecord.setExternalRecordId(externalRecordId);
-    executionRecord.setSourceRecordId(sourceRecordId);
-    executionRecord.setRecordId(recordId);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(externalRecordId);
+    executionRecordIdentifier.setSourceRecordId(sourceRecordId);
+    executionRecordIdentifier.setRecordId(recordId);
+    executionRecord.setIdentifier(executionRecordIdentifier);
 
     executionRecord.setRecordData(europeanaRecordString);
-    when(executionRecordRepository.findByExecution_DatasetIdAndRecordIdAndExecution_ExecutionName(
+    when(executionRecordRepository.findByExecution_DatasetIdAndIdentifier_RecordIdAndExecution_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name())).thenReturn(executionRecord);
 
     final RecordTierCalculationView recordTierCalculationView = recordTierCalculationService.calculateTiers(recordId, datasetId);

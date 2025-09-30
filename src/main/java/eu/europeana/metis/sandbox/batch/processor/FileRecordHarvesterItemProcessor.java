@@ -45,7 +45,7 @@ public class FileRecordHarvesterItemProcessor extends
    * Constructor with service parameters.
    *
    * @param harvestParameterService The service responsible for providing the harvesting parameters.
-   * @param oaiHarvestService The service responsible for oai harvesting record data.
+   * @param fileHarvestService The service responsible for file harvesting record data.
    */
   public FileRecordHarvesterItemProcessor(HarvestParameterService harvestParameterService,
       FileHarvestService fileHarvestService) {

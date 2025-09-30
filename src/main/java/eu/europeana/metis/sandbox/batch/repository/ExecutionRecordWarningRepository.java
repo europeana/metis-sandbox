@@ -33,7 +33,7 @@ public interface ExecutionRecordWarningRepository extends
    * @return The count of entities matching the specified dataset ID and execution name.
    */
   @Query("""
-          SELECT COUNT(DISTINCT w.executionRecord.recordId)
+          SELECT COUNT(DISTINCT w.executionRecord.identifier.recordId)
           FROM ExecutionRecordWarning w
           WHERE w.executionRecord.execution.datasetId = :datasetId
             AND w.executionRecord.execution.executionName = :executionName
