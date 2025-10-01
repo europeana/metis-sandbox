@@ -11,7 +11,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutionRecordDTO> {
 
-  private final ExecutionRepository executionRepository;
+  private final ExecutionRunRepository executionRunRepository;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
@@ -47,16 +47,17 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
   /**
    * Constructor.
    *
+   * @param executionRunRepository the repository used to store execution runs
    * @param executionRecordRepository The repository for managing ExecutionRecord entities.
    * @param executionRecordErrorRepository The repository for managing ExecutionRecordException entities.
    * @param executionRecordTierContextRepository The repository for managing tier contexts of execution records.
    */
   @Autowired
-  public ExecutionRecordDTOItemWriter(ExecutionRepository executionRepository,
+  public ExecutionRecordDTOItemWriter(ExecutionRunRepository executionRunRepository,
       ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordErrorRepository executionRecordErrorRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository) {
-    this.executionRepository = executionRepository;
+    this.executionRunRepository = executionRunRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordErrorRepository = executionRecordErrorRepository;
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
@@ -69,7 +70,7 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
     String datasetId = chunk.getItems().getFirst().getDatasetId();
     String executionId = chunk.getItems().getFirst().getExecutionId();
     String executionName = chunk.getItems().getFirst().getExecutionName();
-    ExecutionRun executionRun = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(datasetId, executionId, executionName);
+    ExecutionRun executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(datasetId, executionId, executionName);
 
     ResultBucket resultBucket = processChunk(chunk, executionRun);
     persistResults(resultBucket);

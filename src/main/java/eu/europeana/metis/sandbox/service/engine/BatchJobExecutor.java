@@ -33,7 +33,7 @@ import eu.europeana.metis.sandbox.batch.common.IndexBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
 import eu.europeana.metis.sandbox.common.InputMetadata;
@@ -95,7 +95,7 @@ public class BatchJobExecutor {
   private final JobExplorer jobExplorer;
   private final TaskExecutor taskExecutor;
   private final TransformXsltRepository transformXsltRepository;
-  private final ExecutionRepository executionRepository;
+  private final ExecutionRunRepository executionRunRepository;
 
   private final EnumMap<FullBatchJobType, Function<ExecutionMetadataWithTargetId, JobExecution>> jobExecutorsByType;
 
@@ -109,17 +109,18 @@ public class BatchJobExecutor {
    * @param jobExplorer job explorer for retrieving job execution information
    * @param taskExecutor task executor used for handling concurrent job executions
    * @param transformXsltRepository repository for managing and retrieving XSLT transformations
+   * @param executionRunRepository the repository used to store execution runs
    */
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("asyncJobLauncher") JobLauncher jobLauncher, JobExplorer jobExplorer,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository,
-      ExecutionRepository executionRepository) {
+      ExecutionRunRepository executionRunRepository) {
     this.jobs = List.copyOf(jobs);
     this.jobLauncher = jobLauncher;
     this.jobExplorer = jobExplorer;
     this.taskExecutor = taskExecutor;
     this.transformXsltRepository = transformXsltRepository;
-    this.executionRepository = executionRepository;
+    this.executionRunRepository = executionRunRepository;
     log.info("Registered batch workflow: {}", jobs.stream().map(Job::getName).toList());
 
     this.jobExecutorsByType = new EnumMap<>(FullBatchJobType.class);
@@ -192,7 +193,7 @@ public class BatchJobExecutor {
       executionRun.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
       executionRun.setExecutionName(step.name());
 
-      executionRepository.save(executionRun);
+      executionRunRepository.save(executionRun);
       JobExecution jobExecution = executor.apply(currentExecutionMetadataWithTargetId);
       waitForCompletion(jobExecution);
       if (jobExecution.getStatus() != BatchStatus.COMPLETED) {

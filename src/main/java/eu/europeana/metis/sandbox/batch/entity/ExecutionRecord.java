@@ -28,6 +28,7 @@ import lombok.Setter;
         @Index(name = "idx_execrecord_executionrun_recordid", columnList = "execution_run_id, recordId")
     }
 )
+@SuppressWarnings("javaarchitecture:S7027") // False positive. Valid JPA bi-directional mapping.
 public class ExecutionRecord {
 
   @Id

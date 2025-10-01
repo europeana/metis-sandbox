@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
@@ -42,14 +42,14 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
   protected final HarvestParameterService harvestParameterService;
   protected final DatasetExecutionSetupService datasetExecutionSetupService;
-  protected final ExecutionRepository executionRepository;
+  protected final ExecutionRunRepository executionRunRepository;
   private final Deque<T> identifiers = new ArrayDeque<>();
 
   protected AbstractIdentifiersItemReader(HarvestParameterService harvestParameterService,
-      DatasetExecutionSetupService datasetExecutionSetupService, ExecutionRepository executionRepository) {
+      DatasetExecutionSetupService datasetExecutionSetupService, ExecutionRunRepository executionRunRepository) {
     this.harvestParameterService = harvestParameterService;
     this.datasetExecutionSetupService = datasetExecutionSetupService;
-    this.executionRepository = executionRepository;
+    this.executionRunRepository = executionRunRepository;
   }
 
   /**
@@ -80,7 +80,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     if (identifier == null) {
       return null;
     }
-    ExecutionRun executionRun = executionRepository.getByDatasetIdAndExecutionIdAndExecutionName(
+    ExecutionRun executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
         datasetId, targetExecutionId, getJobType().name());
 
     ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();

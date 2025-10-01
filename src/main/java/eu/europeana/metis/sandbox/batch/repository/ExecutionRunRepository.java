@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
  * Repository interface for managing {@link ExecutionRun} entities.
  */
 @Repository
-public interface ExecutionRepository extends JpaRepository<ExecutionRun, Long> {
+public interface ExecutionRunRepository extends JpaRepository<ExecutionRun, Long> {
 
   /**
    * Retrieves an Execution entity based on the provided dataset ID, execution ID,

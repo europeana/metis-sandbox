@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.repository.ExecutionRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
@@ -31,11 +31,12 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Str
    * @param harvestParameterService the service responsible for managing harvest parameters related to datasets
    * @param datasetExecutionSetupService the service responsible for the setup and management of dataset execution
    * @param fileHarvestService the service responsible for harvesting identifiers from file-based sources
+   * @param executionRunRepository the repository used to store execution runs
    */
   public FileIdentifiersItemReader(HarvestParameterService harvestParameterService,
       DatasetExecutionSetupService datasetExecutionSetupService, FileHarvestService fileHarvestService,
-      ExecutionRepository executionRepository) {
-    super(harvestParameterService, datasetExecutionSetupService, executionRepository);
+      ExecutionRunRepository executionRunRepository) {
+    super(harvestParameterService, datasetExecutionSetupService, executionRunRepository);
     this.fileHarvestService = fileHarvestService;
   }
 

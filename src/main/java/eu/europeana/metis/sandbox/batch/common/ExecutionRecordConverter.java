@@ -52,7 +52,7 @@ public final class ExecutionRecordConverter {
    * Converts a SuccessExecutionRecordDTO object to an ExecutionRecord object.
    *
    * @param executionRecordDTO The SuccessExecutionRecordDTO object containing execution record data to be converted.
-   * @param executionRun
+   * @param executionRun the execution run for which the record is created.
    * @return The converted ExecutionRecord object.
    */
   public static ExecutionRecord convertToExecutionRecord(SuccessExecutionRecordDTO executionRecordDTO, ExecutionRun executionRun) {
@@ -83,7 +83,7 @@ public final class ExecutionRecordConverter {
    * Converts a SuccessExecutionRecordDTO object into an Optional containing an ExecutionRecordTierContext.
    *
    * @param successExecutionRecordDTO The input object containing tier results and relevant execution record details.
-   * @param executionRun
+   * @param executionRun the execution run for which the record tier context is created.
    * @return An Optional containing the ExecutionRecordTierContext if tier fields are present, otherwise an empty Optional.
    */
   public static Optional<ExecutionRecordTierContext> convertToExecutionRecordTierContext(
@@ -141,7 +141,7 @@ public final class ExecutionRecordConverter {
    * Converts a FailExecutionRecordDTO object into an ExecutionRecordException entity.
    *
    * @param failExecutionRecordDTO The FailExecutionRecordDTO containing failure details to be converted.
-   * @param executionRun
+   * @param executionRun the execution run for which the record is created.
    * @return An ExecutionRecordException entity reflecting the input data.
    */
   public static ExecutionRecordError converterToExecutionRecordError(FailExecutionRecordDTO failExecutionRecordDTO,
