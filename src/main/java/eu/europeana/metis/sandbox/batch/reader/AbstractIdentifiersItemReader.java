@@ -1,9 +1,10 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
+import eu.europeana.metis.sandbox.common.exception.DatasetEmptyException;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
@@ -64,10 +65,13 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
           .getHarvestingParametersById(UUID.fromString(harvestParameterId))
           .orElseThrow();
       HarvestIdentifiersResult<T> harvestIdentifiersResult = doHarvest(harvestParametersEntity, Integer.parseInt(stepSize));
-      identifiers.addAll(harvestIdentifiersResult.identifiers());
       if (harvestIdentifiersResult.recordLimitExceeded()) {
         datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
       }
+      if (harvestIdentifiersResult.identifiers().isEmpty()) {
+        throw new DatasetEmptyException("No identifiers found for dataset %s".formatted(datasetId));
+      }
+      identifiers.addAll(harvestIdentifiersResult.identifiers());
     } catch (RuntimeException ex) {
       datasetExecutionSetupService.updateDatasetWithError(datasetId, ex);
       throw ex;
