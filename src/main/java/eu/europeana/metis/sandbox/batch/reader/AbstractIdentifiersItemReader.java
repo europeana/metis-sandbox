@@ -13,7 +13,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
@@ -45,6 +44,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   protected final DatasetExecutionSetupService datasetExecutionSetupService;
   protected final ExecutionRunRepository executionRunRepository;
   private final Deque<T> identifiers = new ArrayDeque<>();
+  private ExecutionRun executionRun;
 
   protected AbstractIdentifiersItemReader(HarvestParameterService harvestParameterService,
       DatasetExecutionSetupService datasetExecutionSetupService, ExecutionRunRepository executionRunRepository) {
@@ -54,16 +54,17 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   }
 
   /**
-   * Harvests identifiers and stores them in a queue in memory.
-   *
-   * @param stepExecution encapsulates the execution context of a step in a batch job, providing metadata and runtime information
+   * Performs pre-step initialization. Harvests identifiers and stores them in a queue in memory.
    */
   @BeforeStep
-  public void beforeStep(StepExecution stepExecution) {
+  public void beforeStep() {
     try {
       HarvestParametersEntity harvestParametersEntity = harvestParameterService
           .getHarvestingParametersById(UUID.fromString(harvestParameterId))
           .orElseThrow();
+      executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
+          datasetId, targetExecutionId, getJobType().name());
+
       HarvestIdentifiersResult<T> harvestIdentifiersResult = doHarvest(harvestParametersEntity, Integer.parseInt(stepSize));
       if (harvestIdentifiersResult.recordLimitExceeded()) {
         datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
@@ -84,8 +85,6 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     if (identifier == null) {
       return null;
     }
-    ExecutionRun executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
-        datasetId, targetExecutionId, getJobType().name());
 
     ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
     executionRecordExternalIdentifier.setExecutionRun(executionRun);

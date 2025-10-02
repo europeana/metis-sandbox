@@ -1,13 +1,14 @@
 package eu.europeana.metis.sandbox.batch.writer;
 
 import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
@@ -16,10 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +47,17 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
 
+  @Value("#{stepExecution.jobExecution.jobInstance.jobName}")
+  private String jobName;
+  @Value("#{jobParameters['datasetId']}")
+  protected String datasetId;
+  @Value("#{jobParameters['targetExecutionId']}")
+  private String targetExecutionId;
+  @Value("#{jobParameters['batchJobSubType']}")
+  private String batchJobSubTypeString;
+
+  private ExecutionRun executionRun;
+
   /**
    * Constructor.
    *
@@ -63,22 +77,23 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
   }
 
+  void beforeStepInitializeExecutionRun() {
+    this.executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
+        datasetId, targetExecutionId,
+        FullBatchJobType.validateAndGetFullBatchJobType(jobName, batchJobSubTypeString).name());
+  }
+
   @Override
-  public void write(Chunk<? extends AbstractExecutionRecordDTO> chunk) {
+  public void write(@NotNull Chunk<? extends AbstractExecutionRecordDTO> chunk) {
     log.debug("BEGIN -> Write chunk");
 
-    String datasetId = chunk.getItems().getFirst().getDatasetId();
-    String executionId = chunk.getItems().getFirst().getExecutionId();
-    String executionName = chunk.getItems().getFirst().getExecutionName();
-    ExecutionRun executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(datasetId, executionId, executionName);
-
-    ResultBucket resultBucket = processChunk(chunk, executionRun);
-    persistResults(resultBucket);
+    ResultEntitiesBucket resultEntitiesBucket = processChunk(chunk);
+    persistResults(resultEntitiesBucket);
 
     log.debug("END -> Write chunk");
   }
 
-  private ResultBucket processChunk(Chunk<? extends AbstractExecutionRecordDTO> chunk, ExecutionRun executionRun) {
+  private ResultEntitiesBucket processChunk(Chunk<? extends AbstractExecutionRecordDTO> chunk) {
     final List<ExecutionRecord> executionRecords = new ArrayList<>();
     final List<ExecutionRecordError> executionRecordErrors = new ArrayList<>();
     final List<ExecutionRecordTierContext> executionRecordTierContexts = new ArrayList<>();
@@ -95,21 +110,20 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<AbstractExecutio
             ExecutionRecordConverter.converterToExecutionRecordError(failExecutionRecordDTO, executionRun));
       }
     }
-    return new ResultBucket(executionRecords, executionRecordErrors, executionRecordTierContexts);
+    return new ResultEntitiesBucket(executionRecords, executionRecordErrors, executionRecordTierContexts);
   }
 
-  private void persistResults(ResultBucket bucket) {
+  private void persistResults(ResultEntitiesBucket resultEntitiesBucket) {
     log.debug("In writer before saveAll");
-    executionRecordRepository.saveAll(bucket.executionRecords());
-    executionRecordTierContextRepository.saveAll(bucket.executionRecordTierContexts());
-    executionRecordErrorRepository.saveAll(bucket.executionRecordErrors());
+    executionRecordRepository.saveAll(resultEntitiesBucket.executionRecords());
+    executionRecordTierContextRepository.saveAll(resultEntitiesBucket.executionRecordTierContexts());
+    executionRecordErrorRepository.saveAll(resultEntitiesBucket.executionRecordErrors());
   }
 
-  private record ResultBucket(
+  private record ResultEntitiesBucket(
       List<ExecutionRecord> executionRecords,
       List<ExecutionRecordError> executionRecordErrors,
       List<ExecutionRecordTierContext> executionRecordTierContexts) {
-
   }
 }
 
