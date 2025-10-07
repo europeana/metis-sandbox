@@ -137,16 +137,15 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
       return Optional.ofNullable(result).orElse(ReportingIteration.IterationResult.CONTINUE);
     });
 
-    if (isStepSizeBiggerThanDatasetSize(numberOfSelectedHeaders.get(), currentIndex.get(),
-        nextIndexToSelect.get(), numberOfRecordsToStepInto)) {
+    if (isStepSizeBiggerThanDatasetSize(numberOfSelectedHeaders.get(), currentIndex.get())) {
       throw new StepIsTooBigException(currentIndex.get());
     }
 
     return new HarvestFromIteratorResult(recordLimitExceeded.get());
   }
 
-  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex, int nextIndexToSelect, int stepSize) {
-    return datasetSize == 0 && currentIndex > 0 && currentIndex <= nextIndexToSelect && nextIndexToSelect < stepSize;
+  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
+    return datasetSize == 0 && currentIndex > 0;
   }
 
   /**

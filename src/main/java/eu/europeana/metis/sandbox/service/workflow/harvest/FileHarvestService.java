@@ -6,6 +6,7 @@ import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
@@ -76,38 +77,39 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
       throws ServiceException {
     final int numberOfRecordsToStepInto = normalizeStepSize(stepSize);
     final List<String> result = new ArrayList<>();
-    int recordCounter = 0;
-    int skipCounter = 0;
-    boolean recordLimitExceeded;
+    int currentIndex = 0;
+    int nextIndexToSelect = numberOfRecordsToStepInto - 1;
 
     try (InputStream bis = new ByteArrayInputStream(fileContent);
         BufferedInputStream buffered = new BufferedInputStream(bis);
         ArchiveInputStream<?> ais = new ArchiveStreamFactory().createArchiveInputStream(buffered)) {
 
       ArchiveEntry entry;
-      while ((entry = ais.getNextEntry()) != null && recordCounter < maxAllowedRecords) {
+      while ((entry = ais.getNextEntry()) != null && result.size() < maxAllowedRecords) {
         if (entry.isDirectory() || shouldSkip(entry.getName())) {
           continue;
         }
 
-        if (skipCounter == 0) {
+        if (currentIndex == nextIndexToSelect) {
           log.debug("Processing entry {}", entry.getName());
           result.add(entry.getName());
-          recordCounter++;
-          skipCounter = numberOfRecordsToStepInto - 1;
-        } else {
-          skipCounter--;
+          nextIndexToSelect += numberOfRecordsToStepInto;
         }
+        currentIndex++;
       }
 
-      recordLimitExceeded = recordCounter >= maxAllowedRecords;
-      if (recordLimitExceeded) {
-        log.warn("Reached maximum number of records ({}) during harvesting.", maxAllowedRecords);
+      if (isStepSizeBiggerThanDatasetSize(result.size(), currentIndex)) {
+        throw new StepIsTooBigException(currentIndex);
       }
     } catch (IOException e) {
       throw new ServiceException("Error harvesting records ", e);
     }
+    boolean recordLimitExceeded = result.size() >= maxAllowedRecords;
     return new HarvestIdentifiersResult<>(result, recordLimitExceeded);
+  }
+
+  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
+    return datasetSize == 0 && currentIndex > 0;
   }
 
   private boolean shouldSkip(String name) {
