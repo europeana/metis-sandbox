@@ -14,8 +14,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -79,7 +80,6 @@ class DatasetReportServiceTest {
 
   @BeforeEach
   void setup() {
-    ReflectionTestUtils.setField(datasetReportService, "maxRecords", 1000);
     ReflectionTestUtils.setField(datasetReportService, "portalPublishDatasetUrl", "http://test/");
   }
 
@@ -193,30 +193,34 @@ class DatasetReportServiceTest {
     for (FullBatchJobType step : workflowSteps) {
       String stepName = step.name();
 
-      when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, stepName))
           .thenReturn(totalSuccessInStep);
-      when(executionRecordErrorRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, stepName))
           .thenReturn(totalFailInStep);
       when(executionRecordWarningRepository.countDistinctRecordIds(
           datasetId, stepName)).thenReturn(totalWarningInStep);
 
-      ExecutionRecordIdentifierKey identifierKey = new ExecutionRecordIdentifierKey();
-      identifierKey.setDatasetId(datasetId);
-      identifierKey.setExecutionName(stepName);
-      identifierKey.setSourceRecordId("sourceRecordId");
-      identifierKey.setRecordId("recordId");
+      ExecutionRun executionRun = new ExecutionRun();
+      executionRun.setDatasetId(datasetId);
+      executionRun.setExecutionName(stepName);
 
       ExecutionRecord executionRecord = new ExecutionRecord();
-      executionRecord.setIdentifier(identifierKey);
+      executionRecord.setExecutionRun(executionRun);
+
+      ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+      executionRecordIdentifier.setExternalRecordId("externalRecordId");
+      executionRecordIdentifier.setSourceRecordId("sourceRecordId");
+      executionRecordIdentifier.setRecordId("recordId");
+      executionRecord.setIdentifier(executionRecordIdentifier);
 
       ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
       executionRecordWarning.setExecutionRecord(executionRecord);
       executionRecordWarning.setException("exception");
       executionRecordWarning.setMessage("warning");
 
-      when(executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId, stepName))
+      when(executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, stepName))
           .thenReturn(List.of());
-      when(executionRecordWarningRepository.findByExecutionRecord_Identifier_DatasetIdAndExecutionRecord_Identifier_ExecutionName(
+      when(executionRecordWarningRepository.findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
           datasetId, stepName)).thenReturn(List.of(executionRecordWarning));
     }
     ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(valueOf(datasetEntity.getDatasetId()));
@@ -239,7 +243,7 @@ class DatasetReportServiceTest {
       assertEquals(totalWarningInStep + totalFailInStep, errors.size());
       assertEquals(Status.WARN, errors.getFirst().type());
       assertEquals("warning", errors.getFirst().errorMessage());
-      assertEquals(List.of("recordId | sourceRecordId"), errors.getFirst().recordIds());
+      assertEquals(List.of("externalRecordId | sourceRecordId | recordId"), errors.getFirst().recordIds());
     }
     assertFalse(executionProgressInfoDTO.recordLimitExceeded());
     assertNull(executionProgressInfoDTO.tiersZeroInfoDTO());

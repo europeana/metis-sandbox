@@ -1,26 +1,40 @@
 package eu.europeana.metis.sandbox.batch.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * Entity representing an exception encountered during the processing of an execution record.
- *
- * <p>Uses a composite key, {@link ExecutionRecordIdentifierKey}, to uniquely identify the associated execution record.
  */
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record", indexes = {@Index(name = "exec_rec_error_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
-public class ExecutionRecordError implements HasExecutionRecordIdAccess<ExecutionRecordIdentifierKey> {
+@Table(schema = "engine_record",
+    indexes = {
+        @Index(name = "idx_execrecorderror_recordid", columnList = "recordId"),
+        @Index(name = "idx_execrecorderror_executionrun_recordid", columnList = "execution_run_id, recordId")
+    }
+)
+public class ExecutionRecordError {
 
-  @EmbeddedId
-  private ExecutionRecordIdentifierKey identifier;
+  @Id
+  @GeneratedValue
+  private Long id;
+
+  @ManyToOne(optional = false, fetch = FetchType.EAGER)
+  private ExecutionRun executionRun;
+
+  @Embedded
+  private ExecutionRecordIdentifier identifier;
 
   @Column(columnDefinition = "TEXT")
   private String message;

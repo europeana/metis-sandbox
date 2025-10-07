@@ -5,7 +5,6 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.processor.listener.LoggingItemProcessListener;
 import eu.europeana.metis.sandbox.batch.processor.listener.ProblemPatternsStepExecutionListener;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -58,13 +57,11 @@ public class ValidationJobConfig {
       @Qualifier("validationRepositoryItemReader") RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
       @Qualifier("validationAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> validationAsyncItemProcessor,
       ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener,
       ProblemPatternsStepExecutionListener problemPatternsStepExecutionListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
         .reader(validationRepositoryItemReader)
         .processor(validationAsyncItemProcessor)
-        .listener(loggingItemProcessListener)
         .listener(problemPatternsStepExecutionListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();

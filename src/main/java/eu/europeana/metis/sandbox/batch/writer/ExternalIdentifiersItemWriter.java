@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component;
  * <p>Processes and writes chunks of {@link ExecutionRecordExternalIdentifier} to a database repository,
  * leveraging the functionality provided by {@link RepositoryItemWriter}.
  *
- * <p>Used specifically for managing external identifiers related to execution records, such as during OAI harvesting.
+ * <p>Used specifically for managing external identifiers related to execution records.
  */
 @Component
 @Slf4j
-public class OaiIdentifiersWriter extends RepositoryItemWriter<ExecutionRecordExternalIdentifier> {
+public class ExternalIdentifiersItemWriter extends RepositoryItemWriter<ExecutionRecordExternalIdentifier> {
 
   private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
@@ -27,7 +27,7 @@ public class OaiIdentifiersWriter extends RepositoryItemWriter<ExecutionRecordEx
    *
    * @param executionRecordExternalIdentifierRepository The repository instance used for persisting execution record external identifiers.
    */
-  public OaiIdentifiersWriter(ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
+  public ExternalIdentifiersItemWriter(ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
   }
 

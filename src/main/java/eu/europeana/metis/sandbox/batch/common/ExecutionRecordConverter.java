@@ -5,9 +5,10 @@ import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import java.util.ArrayList;
@@ -37,11 +38,12 @@ public final class ExecutionRecordConverter {
                                                                  executionRecordWarning.getException()))
                                                              .collect(Collectors.toSet());
     return SuccessExecutionRecordDTO.createValidated(builder -> builder
-        .datasetId(executionRecord.getIdentifier().getDatasetId())
+        .datasetId(executionRecord.getExecutionRun().getDatasetId())
+        .externalRecordId(executionRecord.getIdentifier().getExternalRecordId())
         .sourceRecordId(executionRecord.getIdentifier().getSourceRecordId())
         .recordId(executionRecord.getIdentifier().getRecordId())
-        .executionId(executionRecord.getIdentifier().getExecutionId())
-        .executionName(executionRecord.getIdentifier().getExecutionName())
+        .executionId(executionRecord.getExecutionRun().getExecutionId())
+        .executionName(executionRecord.getExecutionRun().getExecutionName())
         .recordData(executionRecord.getRecordData())
         .exceptionWarnings(exceptionInfoDTOs));
   }
@@ -50,13 +52,19 @@ public final class ExecutionRecordConverter {
    * Converts a SuccessExecutionRecordDTO object to an ExecutionRecord object.
    *
    * @param executionRecordDTO The SuccessExecutionRecordDTO object containing execution record data to be converted.
+   * @param executionRun the execution run for which the record is created.
    * @return The converted ExecutionRecord object.
    */
-  public static ExecutionRecord convertToExecutionRecord(SuccessExecutionRecordDTO executionRecordDTO) {
-    ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(executionRecordDTO);
-
+  public static ExecutionRecord convertToExecutionRecord(SuccessExecutionRecordDTO executionRecordDTO, ExecutionRun executionRun) {
     final ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setIdentifier(executionRecordIdentifierKey);
+    executionRecord.setExecutionRun(executionRun);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(executionRecordDTO.getExternalRecordId());
+    executionRecordIdentifier.setSourceRecordId(executionRecordDTO.getSourceRecordId());
+    executionRecordIdentifier.setRecordId(executionRecordDTO.getRecordId());
+    executionRecord.setIdentifier(executionRecordIdentifier);
+
     executionRecord.setRecordData(executionRecordDTO.getRecordData());
 
     List<ExecutionRecordWarning> executionRecordWarnings = new ArrayList<>();
@@ -75,10 +83,11 @@ public final class ExecutionRecordConverter {
    * Converts a SuccessExecutionRecordDTO object into an Optional containing an ExecutionRecordTierContext.
    *
    * @param successExecutionRecordDTO The input object containing tier results and relevant execution record details.
+   * @param executionRun the execution run for which the record tier context is created.
    * @return An Optional containing the ExecutionRecordTierContext if tier fields are present, otherwise an empty Optional.
    */
   public static Optional<ExecutionRecordTierContext> convertToExecutionRecordTierContext(
-      SuccessExecutionRecordDTO successExecutionRecordDTO) {
+      SuccessExecutionRecordDTO successExecutionRecordDTO, ExecutionRun executionRun) {
     final TierResults tierResults = successExecutionRecordDTO.getTierResults();
 
     final boolean containsTierFields =
@@ -86,10 +95,16 @@ public final class ExecutionRecordConverter {
 
     final Optional<ExecutionRecordTierContext> result;
     if (containsTierFields) {
-      ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(successExecutionRecordDTO);
 
       ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
-      executionRecordTierContext.setIdentifier(executionRecordIdentifierKey);
+      executionRecordTierContext.setExecutionRun(executionRun);
+
+      ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+      executionRecordIdentifier.setExternalRecordId(successExecutionRecordDTO.getExternalRecordId());
+      executionRecordIdentifier.setSourceRecordId(successExecutionRecordDTO.getSourceRecordId());
+      executionRecordIdentifier.setRecordId(successExecutionRecordDTO.getRecordId());
+      executionRecordTierContext.setIdentifier(executionRecordIdentifier);
+
       executionRecordTierContext.setContentTier(tierResults.getMediaTier().toString());
       executionRecordTierContext.setContentTierBeforeLicenseCorrection(
           tierResults.getContentTierBeforeLicenseCorrection().toString());
@@ -113,28 +128,33 @@ public final class ExecutionRecordConverter {
    * @param executionRecordDTO The ExecutionRecordDTO containing the data to populate the ExecutionRecordIdentifierKey.
    * @return A populated ExecutionRecordIdentifierKey instance derived from the input ExecutionRecordDTO.
    */
-  private static @NotNull ExecutionRecordIdentifierKey getExecutionRecordIdentifier(
+  private static @NotNull ExecutionRun getExecution(
       AbstractExecutionRecordDTO executionRecordDTO) {
-    ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
-    executionRecordIdentifierKey.setDatasetId(executionRecordDTO.getDatasetId());
-    executionRecordIdentifierKey.setExecutionId(executionRecordDTO.getExecutionId());
-    executionRecordIdentifierKey.setSourceRecordId(executionRecordDTO.getSourceRecordId());
-    executionRecordIdentifierKey.setRecordId(executionRecordDTO.getRecordId());
-    executionRecordIdentifierKey.setExecutionName(executionRecordDTO.getExecutionName());
-    return executionRecordIdentifierKey;
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId(executionRecordDTO.getDatasetId());
+    executionRun.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRun.setExecutionName(executionRecordDTO.getExecutionName());
+    return executionRun;
   }
 
   /**
    * Converts a FailExecutionRecordDTO object into an ExecutionRecordException entity.
    *
    * @param failExecutionRecordDTO The FailExecutionRecordDTO containing failure details to be converted.
+   * @param executionRun the execution run for which the record is created.
    * @return An ExecutionRecordException entity reflecting the input data.
    */
-  public static ExecutionRecordError converterToExecutionRecordError(FailExecutionRecordDTO failExecutionRecordDTO) {
-    ExecutionRecordIdentifierKey executionRecordIdentifierKey = getExecutionRecordIdentifier(failExecutionRecordDTO);
+  public static ExecutionRecordError converterToExecutionRecordError(FailExecutionRecordDTO failExecutionRecordDTO,
+      ExecutionRun executionRun) {
 
     final ExecutionRecordError executionRecordError = new ExecutionRecordError();
-    executionRecordError.setIdentifier(executionRecordIdentifierKey);
+    executionRecordError.setExecutionRun(executionRun);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(failExecutionRecordDTO.getExternalRecordId());
+    executionRecordIdentifier.setSourceRecordId(failExecutionRecordDTO.getSourceRecordId());
+    executionRecordIdentifier.setRecordId(failExecutionRecordDTO.getRecordId());
+    executionRecordError.setIdentifier(executionRecordIdentifier);
 
     if (failExecutionRecordDTO.getExceptionInfoDTO() != null) {
       executionRecordError.setMessage(failExecutionRecordDTO.getExceptionInfoDTO().getMessage());

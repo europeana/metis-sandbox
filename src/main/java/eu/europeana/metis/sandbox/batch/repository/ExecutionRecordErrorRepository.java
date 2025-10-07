@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,46 +12,46 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ExecutionRecordErrorRepository extends
-    JpaRepository<ExecutionRecordError, ExecutionRecordIdentifierKey> {
+    JpaRepository<ExecutionRecordError, Long> {
 
   /**
-   * Retrieves a list of ExecutionRecordException entities based on the provided dataset ID and execution name.
+   * Retrieves a list of ExecutionRecordException entities based on the provided dataset ID and executionRun name.
    *
    * @param datasetId The ID of the dataset.
-   * @param executionName The name of the execution.
-   * @return A list of ExecutionRecordException entities matching the specified dataset ID and execution name.
+   * @param executionName The name of the executionRun.
+   * @return A list of ExecutionRecordException entities matching the specified dataset ID and executionRun name.
    */
-  List<ExecutionRecordError> findByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
+  List<ExecutionRecordError> findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
   /**
-   * Finds an ExecutionRecordException based on dataset ID, record ID, and execution name.
+   * Finds an ExecutionRecordException based on dataset ID, record ID, and executionRun name.
    *
    * @param datasetId The ID of the dataset.
    * @param recordId The ID of the record within the dataset.
-   * @param executionName The name of the execution.
+   * @param executionName The name of the executionRun.
    * @return The matching ExecutionRecordException, or null if not found.
    */
-  ExecutionRecordError findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(String datasetId,
+  ExecutionRecordError findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(String datasetId,
       String recordId, String executionName);
 
   /**
-   * Counts the number of entries matching the specified dataset ID and execution name.
+   * Counts the number of entries matching the specified dataset ID and executionRun name.
    *
    * @param datasetId The ID of the dataset.
-   * @param executionName The name of the execution.
+   * @param executionName The name of the executionRun.
    * @return The count of matching entries.
    */
-  long countByIdentifier_DatasetIdAndIdentifier_ExecutionName(String datasetId, String executionName);
+  long countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
   /**
-   * Retrieves statistics of execution steps, including the step name and the count of records grouped per step.
+   * Retrieves statistics of executionRun steps, including the step name and the count of records grouped per step.
    *
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT ere.identifier.executionName AS step, COUNT(ere) AS count 
-            FROM ExecutionRecordError ere 
-            GROUP BY ere.identifier.executionName
+      SELECT ere.executionRun.executionName AS step, COUNT(ere) AS count
+            FROM ExecutionRecordError ere
+            GROUP BY ere.executionRun.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();
 
@@ -61,5 +60,5 @@ public interface ExecutionRecordErrorRepository extends
    *
    * @param datasetId The ID of the dataset.
    */
-  void removeByIdentifier_DatasetId(String datasetId);
+  void removeByExecutionRun_DatasetId(String datasetId);
 }

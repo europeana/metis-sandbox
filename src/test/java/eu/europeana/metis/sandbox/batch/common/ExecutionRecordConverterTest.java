@@ -14,9 +14,10 @@ import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifierKey;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import java.util.List;
@@ -29,15 +30,20 @@ class ExecutionRecordConverterTest {
 
   @Test
   void convertToExecutionRecordDTO() {
-    ExecutionRecordIdentifierKey executionRecordIdentifierKey = new ExecutionRecordIdentifierKey();
-    executionRecordIdentifierKey.setDatasetId("datasetId");
-    executionRecordIdentifierKey.setExecutionId("executionId");
-    executionRecordIdentifierKey.setExecutionName("executionName");
-    executionRecordIdentifierKey.setSourceRecordId("sourceRecordId");
-    executionRecordIdentifierKey.setRecordId("recordId");
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId("datasetId");
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
 
     ExecutionRecord executionRecord = new ExecutionRecord();
-    executionRecord.setIdentifier(executionRecordIdentifierKey);
+    executionRecord.setExecutionRun(executionRun);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId("externalRecordId");
+    executionRecordIdentifier.setSourceRecordId("sourceRecordId");
+    executionRecordIdentifier.setRecordId("recordId");
+    executionRecord.setIdentifier(executionRecordIdentifier);
+
     executionRecord.setRecordData("recordData");
     ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
     executionRecordWarning.setMessage("message");
@@ -47,9 +53,10 @@ class ExecutionRecordConverterTest {
     SuccessExecutionRecordDTO successExecutionRecordDTO = ExecutionRecordConverter.convertToExecutionRecordDTO(
         executionRecord);
 
-    assertEquals(executionRecord.getIdentifier().getDatasetId(), successExecutionRecordDTO.getDatasetId());
-    assertEquals(executionRecord.getIdentifier().getExecutionId(), successExecutionRecordDTO.getExecutionId());
-    assertEquals(executionRecord.getIdentifier().getExecutionName(), successExecutionRecordDTO.getExecutionName());
+    assertEquals(executionRecord.getExecutionRun().getDatasetId(), successExecutionRecordDTO.getDatasetId());
+    assertEquals(executionRecord.getExecutionRun().getExecutionId(), successExecutionRecordDTO.getExecutionId());
+    assertEquals(executionRecord.getExecutionRun().getExecutionName(), successExecutionRecordDTO.getExecutionName());
+    assertEquals(executionRecord.getIdentifier().getExternalRecordId(), successExecutionRecordDTO.getExternalRecordId());
     assertEquals(executionRecord.getIdentifier().getSourceRecordId(), successExecutionRecordDTO.getSourceRecordId());
     assertEquals(executionRecord.getIdentifier().getRecordId(), successExecutionRecordDTO.getRecordId());
     assertEquals(executionRecord.getRecordData(), successExecutionRecordDTO.getRecordData());
@@ -69,6 +76,7 @@ class ExecutionRecordConverterTest {
     IllegalArgumentException illegalArgumentException = new IllegalArgumentException("warning");
     SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
         .datasetId("datasetId")
+        .externalRecordId("externalRecordId")
         .sourceRecordId("sourceRecordId")
         .recordId("recordId")
         .executionId("executionId")
@@ -76,13 +84,18 @@ class ExecutionRecordConverterTest {
         .recordData("recordData")
         .exceptionWarnings(Set.of(ExceptionInfoDTO.from(illegalArgumentException)))
     );
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId("datasetId");
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
 
-    ExecutionRecord executionRecord = ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO);
+    ExecutionRecord executionRecord = ExecutionRecordConverter.convertToExecutionRecord(successExecutionRecordDTO, executionRun);
 
     assertNotNull(executionRecord);
-    assertEquals(successExecutionRecordDTO.getDatasetId(), executionRecord.getIdentifier().getDatasetId());
-    assertEquals(successExecutionRecordDTO.getExecutionId(), executionRecord.getIdentifier().getExecutionId());
-    assertEquals(successExecutionRecordDTO.getExecutionName(), executionRecord.getIdentifier().getExecutionName());
+    assertEquals(successExecutionRecordDTO.getDatasetId(), executionRecord.getExecutionRun().getDatasetId());
+    assertEquals(successExecutionRecordDTO.getExecutionId(), executionRecord.getExecutionRun().getExecutionId());
+    assertEquals(successExecutionRecordDTO.getExecutionName(), executionRecord.getExecutionRun().getExecutionName());
+    assertEquals(successExecutionRecordDTO.getExternalRecordId(), executionRecord.getIdentifier().getExternalRecordId());
     assertEquals(successExecutionRecordDTO.getSourceRecordId(), executionRecord.getIdentifier().getSourceRecordId());
     assertEquals(successExecutionRecordDTO.getRecordId(), executionRecord.getIdentifier().getRecordId());
     assertEquals(successExecutionRecordDTO.getRecordData(), executionRecord.getRecordData());
@@ -105,6 +118,7 @@ class ExecutionRecordConverterTest {
 
     SuccessExecutionRecordDTO successExecutionRecordDTO = SuccessExecutionRecordDTO.createValidated(b -> b
         .datasetId("datasetId")
+        .externalRecordId("externalRecordId")
         .sourceRecordId("sourceRecordId")
         .recordId("recordId")
         .executionId("executionId")
@@ -112,9 +126,13 @@ class ExecutionRecordConverterTest {
         .recordData("recordData")
         .tierResults(mockTierResults)
     );
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId("datasetId");
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
 
     Optional<ExecutionRecordTierContext> executionRecordTierContextOptional =
-        ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO);
+        ExecutionRecordConverter.convertToExecutionRecordTierContext(successExecutionRecordDTO, executionRun);
     assertTrue(executionRecordTierContextOptional.isPresent());
     ExecutionRecordTierContext executionRecordTierContext = executionRecordTierContextOptional.get();
     assertEquals(mockTierResults.getMediaTier().toString(), executionRecordTierContext.getContentTier());
@@ -135,13 +153,18 @@ class ExecutionRecordConverterTest {
         .datasetId("datasetId")
         .executionId("executionId")
         .executionName("executionName")
+        .externalRecordId("externalRecordId")
         .sourceRecordId("sourceRecordId")
         .recordId("recordId")
         .recordData("recordData")
     );
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId("datasetId");
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
 
     Optional<ExecutionRecordTierContext> executionRecordTierContext = ExecutionRecordConverter.convertToExecutionRecordTierContext(
-        successExecutionRecordDTO);
+        successExecutionRecordDTO, executionRun);
     assertTrue(executionRecordTierContext.isEmpty());
   }
 
@@ -152,18 +175,24 @@ class ExecutionRecordConverterTest {
         .datasetId("datasetId")
         .executionId("executionId")
         .executionName("executionName")
+        .externalRecordId("externalRecordId")
         .sourceRecordId("sourceRecordId")
         .recordId("recordId")
         .exceptionInfoDTO(ExceptionInfoDTO.from(illegalArgumentException))
     );
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId("datasetId");
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
 
     ExecutionRecordError executionRecordError = ExecutionRecordConverter.converterToExecutionRecordError(
-        failExecutionRecordDTO);
+        failExecutionRecordDTO, executionRun);
 
     assertNotNull(executionRecordError);
-    assertEquals(failExecutionRecordDTO.getDatasetId(), executionRecordError.getIdentifier().getDatasetId());
-    assertEquals(failExecutionRecordDTO.getExecutionId(), executionRecordError.getIdentifier().getExecutionId());
-    assertEquals(failExecutionRecordDTO.getExecutionName(), executionRecordError.getIdentifier().getExecutionName());
+    assertEquals(failExecutionRecordDTO.getDatasetId(), executionRecordError.getExecutionRun().getDatasetId());
+    assertEquals(failExecutionRecordDTO.getExecutionId(), executionRecordError.getExecutionRun().getExecutionId());
+    assertEquals(failExecutionRecordDTO.getExecutionName(), executionRecordError.getExecutionRun().getExecutionName());
+    assertEquals(failExecutionRecordDTO.getExternalRecordId(), executionRecordError.getIdentifier().getExternalRecordId());
     assertEquals(failExecutionRecordDTO.getSourceRecordId(), executionRecordError.getIdentifier().getSourceRecordId());
     assertEquals(failExecutionRecordDTO.getRecordId(), executionRecordError.getIdentifier().getRecordId());
     assertNotNull(executionRecordError.getException());

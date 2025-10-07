@@ -2,15 +2,17 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createValidated;
 
-import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
+import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
+import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService;
+import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestTarget;
+import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestService;
 import jakarta.annotation.PostConstruct;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -23,32 +25,32 @@ import org.springframework.util.function.ThrowingFunction;
  * Processor responsible for oai record harvest.
  */
 @Slf4j
-@Component("oaiRecordHarvestItemProcessor")
+@Component("fileRecordHarvestItemProcessor")
 @StepScope
-public class OaiRecordHarvesterItemProcessor extends
+public class FileRecordHarvesterItemProcessor extends
     AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> {
 
   @Value("#{jobParameters['harvestParameterId']}")
   private String harvestParameterId;
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
-  private String oaiEndpoint;
-  private String oaiSet;
-  private String oaiMetadataPrefix;
+  private String fileName;
+  private FileType fileType;
+  private byte[] fileContent;
 
   private final HarvestParameterService harvestParameterService;
-  private final OaiHarvestService oaiHarvestService;
+  private final FileHarvestService fileHarvestService;
 
   /**
    * Constructor with service parameters.
    *
    * @param harvestParameterService The service responsible for providing the harvesting parameters.
-   * @param oaiHarvestService The service responsible for oai harvesting record data.
+   * @param fileHarvestService The service responsible for file harvesting record data.
    */
-  public OaiRecordHarvesterItemProcessor(HarvestParameterService harvestParameterService,
-      OaiHarvestService oaiHarvestService) {
+  public FileRecordHarvesterItemProcessor(HarvestParameterService harvestParameterService,
+      FileHarvestService fileHarvestService) {
     this.harvestParameterService = harvestParameterService;
-    this.oaiHarvestService = oaiHarvestService;
+    this.fileHarvestService = fileHarvestService;
   }
 
   /**
@@ -63,23 +65,23 @@ public class OaiRecordHarvesterItemProcessor extends
   private void prepare() {
     HarvestParametersEntity harvestParametersEntity =
         harvestParameterService.getHarvestingParametersById(UUID.fromString(harvestParameterId)).orElseThrow();
-    if (harvestParametersEntity instanceof OaiHarvestParametersEntity oaiHarvestParametersEntity) {
-      oaiEndpoint = oaiHarvestParametersEntity.getUrl();
-      oaiSet = oaiHarvestParametersEntity.getSetSpec();
-      oaiMetadataPrefix = oaiHarvestParametersEntity.getMetadataFormat();
+    if (harvestParametersEntity instanceof AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity) {
+      fileName = abstractBinaryHarvestParametersEntity.getFileName();
+      fileType = abstractBinaryHarvestParametersEntity.getFileType();
+      fileContent = abstractBinaryHarvestParametersEntity.getFileContent();
     } else {
-      throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for OaiHarvest");
+      throw new IllegalArgumentException("Unsupported HarvestParametersEntity type for FileHarvest");
     }
   }
 
   @Override
-  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
-    log.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
+  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier)
+      throws Exception {
+    log.info("FileRecordHarvestItemReader thread: {}", Thread.currentThread());
 
-    OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(
-        oaiHarvest, executionRecordExternalIdentifier.getExternalRecordId()
-    );
+    FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
+    HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(fileHarvestTarget,
+        executionRecordExternalIdentifier.getExternalRecordId());
 
     return createValidated(b -> b
         .datasetId(datasetId)
@@ -96,3 +98,4 @@ public class OaiRecordHarvesterItemProcessor extends
     return null;
   }
 }
+

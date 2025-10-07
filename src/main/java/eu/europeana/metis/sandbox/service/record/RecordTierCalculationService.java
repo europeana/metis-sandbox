@@ -6,6 +6,7 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -54,7 +55,7 @@ public class RecordTierCalculationService {
    * @throws NoRecordFoundException if the specified record or dataset combination is not found
    */
   public RecordTierCalculationView calculateTiers(String recordId, String datasetId) throws NoRecordFoundException {
-    ExecutionRecord executionRecord = executionRecordRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+    ExecutionRecord executionRecord = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
         datasetId, recordId, FullBatchJobType.MEDIA.name());
     RecordTierCalculationView recordTierCalculationView;
     final ArrayList<ProcessingError> processingErrors = new ArrayList<>();
@@ -62,15 +63,16 @@ public class RecordTierCalculationService {
       throw new NoRecordFoundException(
           String.format("Record not found for recordId: %s, datasetId: %s", recordId, datasetId));
     } else {
+      ExecutionRecordIdentifier executionRecordIdentifier = executionRecord.getIdentifier();
       final String portalPublishRecordUrl =
-          new UriTemplate(this.portalPublishRecordBaseUrl).expand(executionRecord.getIdentifier().getRecordId()).toString();
+          new UriTemplate(this.portalPublishRecordBaseUrl).expand(executionRecordIdentifier.getRecordId()).toString();
       final RecordTierCalculationViewGenerator recordTierCalculationViewGenerator = new RecordTierCalculationViewGenerator(
-          executionRecord.getIdentifier().getRecordId(), executionRecord.getIdentifier().getRecordId(),
+          executionRecordIdentifier.getRecordId(), executionRecordIdentifier.getRecordId(),
           executionRecord.getRecordData(),
           portalPublishRecordUrl, processingErrors);
 
       ExecutionRecordError executionRecordError =
-          executionRecordErrorRepository.findByIdentifier_DatasetIdAndIdentifier_RecordIdAndIdentifier_ExecutionName(
+          executionRecordErrorRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
               datasetId, recordId, FullBatchJobType.MEDIA.name());
       if (Objects.nonNull(executionRecordError)) {
         processingErrors.add(

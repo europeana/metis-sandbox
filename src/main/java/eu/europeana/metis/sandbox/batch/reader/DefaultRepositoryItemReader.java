@@ -16,14 +16,14 @@ import org.springframework.data.domain.Sort.Direction;
  */
 public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionRecord> {
 
-  private static final String REPOSITORY_QUERY_METHOD_NAME = "findByIdentifier_DatasetIdAndIdentifier_ExecutionId";
+  private static final String REPOSITORY_QUERY_METHOD_NAME = "findCanonicalRecords";
   public static final String SORT_FIELD = "identifier.recordId";
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
   @Value("#{jobParameters['sourceExecutionId']}")
   private String sourceExecutionId;
 
-  private ExecutionRecordRepository executionRecordRepository;
+  private final ExecutionRecordRepository executionRecordRepository;
   private final int chunkSize;
 
   /**

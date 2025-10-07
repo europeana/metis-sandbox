@@ -17,15 +17,15 @@ import org.springframework.stereotype.Component;
  * a target execution ID.
  *
  * <p>We are using target execution id and not a source execution id. This is because this is meant to be run as a follow-up step
- * in the same job after the oai identifiers are harvested, and therefore there is no source execution id available for this
- * reader.
+ * in the same job after the external identifiers are harvested, and therefore at this point there is no source execution id
+ * available for this reader.
  */
 @StepScope
 @Component
-public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
+public class ExternalIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
-  private static final String REPOSITORY_QUERY_METHOD_NAME = "findByIdentifier_ExecutionId";
-  public static final String SORT_FIELD = "identifier.sourceRecordId";
+  private static final String REPOSITORY_QUERY_METHOD_NAME = "findByExecutionRun_ExecutionId";
+  public static final String SORT_FIELD = "externalRecordId";
   @Value("#{jobParameters['targetExecutionId']}")
   private String targetExecutionId;
 
@@ -36,7 +36,7 @@ public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<Exe
    *
    * @param executionRecordExternalIdentifierRepository The repository used to retrieve ExecutionRecordExternalIdentifier items.
    */
-  public OaiIdentifiersRepositoryItemReader(
+  public ExternalIdentifiersRepositoryItemReader(
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
   }

@@ -94,9 +94,9 @@ class DeBiasStateServiceTest {
   @Test
   void testGetDeBiasStatus_Ready() {
     String datasetId = "1";
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name())).thenReturn(0L);
 
     DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
@@ -114,9 +114,9 @@ class DeBiasStateServiceTest {
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name())).thenReturn(5L);
 
     DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
@@ -135,9 +135,9 @@ class DeBiasStateServiceTest {
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name())).thenReturn(10L);
 
     DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
@@ -156,9 +156,9 @@ class DeBiasStateServiceTest {
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(-10L);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name())).thenReturn(0L);
 
     DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
@@ -177,9 +177,9 @@ class DeBiasStateServiceTest {
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
-    when(executionRecordRepository.countByIdentifier_DatasetIdAndIdentifier_ExecutionName(datasetId,
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         DebiasJobConfig.BATCH_JOB.name())).thenReturn(10L);
 
     // Report rows

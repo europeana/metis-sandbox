@@ -43,6 +43,8 @@
     <version.logcaptor>2.7.8</version.logcaptor>
     <version.wiremock>3.13.1</version.wiremock>
     <version.commons.collections4>4.4</version.commons.collections4>
+    <version.commons.compress>1.28.0</version.commons.compress>
+    <version.commons.io>2.20.0</version.commons.io>
     <version.stax2-api>4.2.1</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
     <version.testcontainers>1.20.2</version.testcontainers>
@@ -335,6 +337,16 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
       <version>${version.commons.collections4}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>${version.commons.compress}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${version.commons.io}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>

@@ -1,7 +1,12 @@
 package eu.europeana.metis.sandbox.batch.entity;
 
-import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,10 +20,22 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(schema = "engine_record")
-public class ExecutionRecordExternalIdentifier implements HasExecutionRecordIdAccess<ExecutionRecordExternalIdentifierKey> {
+@Table(schema = "engine_record",
+    indexes = {
+        @Index(name = "idx_execrecordextid_executionrun_id", columnList = "execution_run_id, id")
+    }
+)
+public class ExecutionRecordExternalIdentifier {
 
-  @EmbeddedId
-  private ExecutionRecordExternalIdentifierKey identifier;
+  @Id
+  @GeneratedValue
+  private Long id;
+
+  @ManyToOne(optional = false, fetch = FetchType.EAGER)
+  private ExecutionRun executionRun;
+
+  @Column(length = 300)
+  private String externalRecordId;
+
   private boolean isDeleted;
 }

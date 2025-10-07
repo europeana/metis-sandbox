@@ -1,21 +1,26 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
+import static java.util.Optional.ofNullable;
+
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
+import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
+import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.experimental.StandardException;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +52,8 @@ public class ValidationService {
    * @return the result of the validation containing validation status and messages
    * @throws ValidationException if the validation process encounters an error
    */
-  public ValidationResult validateRecord(String recordData, String recordId, String datasetId, String executionName,
+  public ValidationResultWithIdentifiers validateRecord(String recordData, String recordId, String datasetId,
+      String executionName,
       ValidationBatchJobSubType subtype)
       throws ValidationException {
 
@@ -56,49 +62,86 @@ public class ValidationService {
       reorderedFileContent = reorderFileContent(recordData);
     }
 
-    final String schema = switch (subtype) {
+    final String schema = resolveSchema(subtype);
+    ValidationResult validationResult = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
+    if (!validationResult.isSuccess()) {
+      log.warn("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
+      throw new ValidationException(validationResult.getMessage());
+    }
+
+    Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap =
+        handleSubtype(subtype, datasetId, recordData, executionName, reorderedFileContent);
+
+    log.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
+    return new ValidationResultWithIdentifiers(validationResult, europeanaGeneratedIdsMap);
+  }
+
+  private static @NotNull String resolveSchema(ValidationBatchJobSubType subtype) {
+    return switch (subtype) {
       case EXTERNAL -> "EDM-EXTERNAL";
       case INTERNAL -> "EDM-INTERNAL";
     };
-    ValidationResult result = validationExecutionService.singleValidation(schema, null, null, reorderedFileContent);
-
-    if (subtype == ValidationBatchJobSubType.INTERNAL) {
-      generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
-    }
-
-    if (result.isSuccess()) {
-      log.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
-    } else {
-      log.info("Validation Failure for datasetId {}, recordId {}", datasetId, recordId);
-      throw new ValidationException(result.getMessage());
-    }
-
-    return result;
   }
 
   private String reorderFileContent(String recordData) throws ValidationException {
     try (XsltTransformer xsltTransformer = xsltTransformerFactory.getObject()) {
-      StringWriter writer;
-      try {
-        writer = xsltTransformer.transform(recordData.getBytes(StandardCharsets.UTF_8), null);
-      } catch (TransformationException e) {
-        throw new ValidationException(e);
-      }
-      return writer.toString();
+      return xsltTransformer
+          .transform(recordData.getBytes(StandardCharsets.UTF_8), null)
+          .toString();
+    } catch (TransformationException e) {
+      throw new ValidationException(e);
     }
   }
 
+  private Optional<EuropeanaGeneratedIdsMap> handleSubtype(
+      ValidationBatchJobSubType subtype,
+      String datasetId,
+      String recordData,
+      String executionName,
+      String reorderedFileContent
+  ) {
+    return switch (subtype) {
+      case EXTERNAL -> getEuropeanaGeneratedIdsMap(datasetId, recordData);
+      case INTERNAL -> {
+        generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
+        yield Optional.empty();
+      }
+    };
+  }
+
+
   private void generatePatternAnalysis(String datasetId, String executionName, String reorderedRecordData) {
-    Optional<ExecutionPoint> executionPoint = executionPointRepository.findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(
-        datasetId, executionName);
-    if (executionPoint.isEmpty()) {
-      throw new IllegalStateException("No execution point found for datasetId " + datasetId);
-    }
+    ExecutionPoint executionPoint = executionPointRepository
+        .findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(datasetId, executionName)
+        .orElseThrow(() -> new IllegalStateException("No execution point found for datasetId " + datasetId));
     try {
-      patternAnalysisService.generateRecordPatternAnalysis(executionPoint.get(), reorderedRecordData);
+      patternAnalysisService.generateRecordPatternAnalysis(executionPoint, reorderedRecordData);
     } catch (PatternAnalysisException e) {
-      log.error("An error occurred while processing pattern analysis", e);
+      log.error("Pattern analysis failed for datasetId {}, executionName {}", datasetId, executionName, e);
     }
+  }
+
+  private Optional<EuropeanaGeneratedIdsMap> getEuropeanaGeneratedIdsMap(String datasetId, String recordData) {
+    EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
+    try {
+      EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
+      europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(recordData, datasetId);
+    } catch (EuropeanaIdException e) {
+      log.debug("Reading edm ids failed(probably not edm format), proceed without them", e);
+    }
+    return ofNullable(europeanaGeneratedIdsMap);
+  }
+
+  /**
+   * A record that encapsulates the result of a validation process along with optional identifiers generated by Europeana's ID
+   * creation service.
+   *
+   * @param validationResult the result of the validation process
+   * @param europeanaGeneratedIdsMap an optional map of identifiers generated during the validation process
+   */
+  public record ValidationResultWithIdentifiers(ValidationResult validationResult,
+                                                Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap) {
+
   }
 
   /**

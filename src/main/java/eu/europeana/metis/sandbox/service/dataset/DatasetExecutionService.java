@@ -126,6 +126,7 @@ public class DatasetExecutionService {
   @NotNull
   public String createDatasetAndSubmitExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
+    //todo: Size of zip file should be limited?
     try (InputStream inputStream = new URI(url).toURL().openStream()) {
       String filename = new URI(url).getPath();
       filename = filename.substring(filename.lastIndexOf('/') + 1);
