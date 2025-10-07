@@ -4,6 +4,7 @@ import static org.apache.tika.utils.StringUtils.isBlank;
 
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
+import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import jakarta.validation.constraints.NotNull;
@@ -52,22 +53,22 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
   @Override
   public HarvestIdentifiersResult<String> harvestExternalIdentifiers(@NotNull FileHarvestTarget fileHarvestTarget,
       Integer stepSize) {
-    if (fileHarvestTarget.getFileType().equals(FileType.XML)) {
-      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.getFileName()), false);
+    if (fileHarvestTarget.fileType().equals(FileType.XML)) {
+      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.fileName()), false);
     } else {
-      return harvestIdentifiersFromCompressedArchive(fileHarvestTarget.getFileContent(), stepSize);
+      return harvestIdentifiersFromCompressedArchive(fileHarvestTarget.fileContent(), stepSize);
     }
   }
 
   @Override
   public HarvestedRecord harvestRecord(@NotNull FileHarvestTarget fileHarvestTarget, String sourceRecordId)
       throws HarvestException {
-    if (fileHarvestTarget.getFileType().equals(FileType.XML)) {
-      InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.getFileContent());
+    if (fileHarvestTarget.fileType().equals(FileType.XML)) {
+      InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.fileContent());
       String recordData = getStringData(inputStream);
       return new HarvestedRecord(sourceRecordId, recordData);
     } else {
-      return harvestRecordFromArchive(fileHarvestTarget.getFileContent(), sourceRecordId);
+      return harvestRecordFromArchive(fileHarvestTarget.fileContent(), sourceRecordId);
     }
   }
 

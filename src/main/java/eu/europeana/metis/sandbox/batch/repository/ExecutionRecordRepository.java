@@ -29,13 +29,14 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   @Query("""
       SELECT r
       FROM ExecutionRecord r
-      WHERE r.id IN (
-          SELECT MIN(r2.id)
+      JOIN (
+          SELECT MIN(r2.id) AS id
           FROM ExecutionRecord r2
           WHERE r2.executionRun.datasetId = :datasetId
             AND r2.executionRun.executionId = :executionId
           GROUP BY r2.identifier.recordId
-      )
+      ) sub ON r.id = sub.id
+      ORDER BY r.id
       """)
   Page<ExecutionRecord> findCanonicalRecords(
       @Param("datasetId") String datasetId,

@@ -81,7 +81,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
   @Override
   public ExecutionRecordExternalIdentifier read() {
-    T identifier = takeIdentifier();
+    T identifier = identifiers.pollFirst();
     if (identifier == null) {
       return null;
     }
@@ -91,10 +91,6 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     executionRecordExternalIdentifier.setExternalRecordId(extractStringIdentifier(identifier));
     executionRecordExternalIdentifier.setDeleted(isDeleted(identifier));
     return executionRecordExternalIdentifier;
-  }
-
-  private synchronized T takeIdentifier() {
-    return identifiers.pollFirst();
   }
 
   protected abstract HarvestIdentifiersResult<T> doHarvest(HarvestParametersEntity params, int stepSize);

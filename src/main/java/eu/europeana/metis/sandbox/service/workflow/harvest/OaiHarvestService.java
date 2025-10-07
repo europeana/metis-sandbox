@@ -10,6 +10,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
+import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import jakarta.validation.constraints.NotNull;
@@ -36,7 +37,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHarvest> {
 
-  private static final int STOP_WATCH_INTERNAL = 10;
+  private static final int STOP_WATCH_INTERNAL_SECONDS = 10;
   private final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
   private final int maxAllowedRecords;
 
@@ -93,7 +94,7 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
     HarvestFromIteratorResult harvestFromIteratorResult = harvestFromIterator(iteratorToFilter, stepSize, entry -> {
       result.add(entry);
 
-      if (watch.getTime(TimeUnit.SECONDS) > STOP_WATCH_INTERNAL) {
+      if (watch.getTime(TimeUnit.SECONDS) > STOP_WATCH_INTERNAL_SECONDS) {
         log.info("Already harvested {} records...", result.size());
         watch.reset();
         watch.start();

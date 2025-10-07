@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.service.workflow.harvest;
 
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
-import lombok.experimental.StandardException;
+import eu.europeana.metis.sandbox.common.exception.HarvestException;
 
 /**
  * Interface defining services for harvesting data from a specified target.
@@ -46,13 +46,4 @@ public interface HarvestService<T, S> {
    * processing the record.
    */
   HarvestedRecord harvestRecord(S harvestTarget, String sourceRecordId) throws HarvestException;
-
-  /**
-   * Exception class for errors that occur during harvesting.
-   */
-  @StandardException
-  class HarvestException extends Exception {
-
-  }
 }
-
