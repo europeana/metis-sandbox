@@ -67,6 +67,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
       HarvestIdentifiersResult<T> harvestIdentifiersResult = doHarvest(harvestParametersEntity, Integer.parseInt(stepSize));
       if (harvestIdentifiersResult.recordLimitExceeded()) {
+        log.warn("Maximum number of records harvested for datasetId {} exceeded.", datasetId);
         datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
       }
       if (harvestIdentifiersResult.identifiers().isEmpty()) {
