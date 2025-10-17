@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.batch.repository;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,7 +22,7 @@ public interface ExecutionRecordErrorRepository extends
    * @param executionName The name of the executionRun.
    * @return A list of ExecutionRecordException entities matching the specified dataset ID and executionRun name.
    */
-  List<ExecutionRecordError> findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
+  Stream<ExecutionRecordError> findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
   /**
    * Finds an ExecutionRecordException based on dataset ID, record ID, and executionRun name.

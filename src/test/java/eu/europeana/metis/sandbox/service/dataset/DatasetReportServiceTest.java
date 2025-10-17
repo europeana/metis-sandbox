@@ -47,6 +47,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -219,9 +220,9 @@ class DatasetReportServiceTest {
       executionRecordWarning.setMessage("warning");
 
       when(executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, stepName))
-          .thenReturn(List.of());
+          .thenReturn(Stream.of());
       when(executionRecordWarningRepository.findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
-          datasetId, stepName)).thenReturn(List.of(executionRecordWarning));
+          datasetId, stepName)).thenReturn(Stream.of(executionRecordWarning));
     }
     ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(valueOf(datasetEntity.getDatasetId()));
 

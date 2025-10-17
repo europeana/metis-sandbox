@@ -44,14 +44,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class for managing dataset reports and processing statuses.
  */
 @Service
+@Slf4j
 public class DatasetReportService {
 
   private static final String HARVESTING_IDENTIFIERS_MESSAGE = "Harvesting dataset identifiers and records.";
@@ -172,6 +176,7 @@ public class DatasetReportService {
    * @param datasetId the unique identifier of the dataset whose progress needs to be retrieved
    * @return an ExecutionProgressInfoDTO containing detailed progress information of the dataset execution workflow
    */
+  @Transactional(readOnly = true)
   public ExecutionProgressInfoDTO getProgress(String datasetId) {
     DatasetEntity datasetEntity = datasetRepository.findByDatasetId(Integer.parseInt(datasetId))
                                                    .orElseThrow(() -> new InvalidDatasetException(datasetId));
@@ -288,33 +293,32 @@ public class DatasetReportService {
 
   private @NotNull Map<GroupedIssueKey, List<String>> collectGroupedIssues(String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
-    List<ExecutionRecordError> executionRecordErrors =
-        executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName);
-
     Map<GroupedIssueKey, List<String>> groupedIssues = new LinkedHashMap<>();
-    for (ExecutionRecordError executionRecordError : executionRecordErrors) {
-      String recordId = formatRecordId(executionRecordError.getIdentifier());
-      GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, executionRecordError.getException());
-      groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+    try (Stream<ExecutionRecordError> executionRecordErrors =
+        executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName)) {
+      executionRecordErrors.forEach(executionRecordError -> {
+        String recordId = formatRecordId(executionRecordError.getIdentifier());
+        GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, executionRecordError.getException());
+        groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+      });
     }
 
-    List<ExecutionRecordWarning> executionRecordWarnings =
+    try (Stream<ExecutionRecordWarning> executionRecordWarnings =
         executionRecordWarningRepository.findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
-            datasetId, executionName);
-
-    for (ExecutionRecordWarning executionRecordWarning : executionRecordWarnings) {
-      String recordId = formatRecordId(executionRecordWarning.getExecutionRecord().getIdentifier());
-      GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
-      groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+            datasetId, executionName)) {
+      executionRecordWarnings.forEach(executionRecordWarning -> {
+        String recordId = formatRecordId(executionRecordWarning.getExecutionRecord().getIdentifier());
+        GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
+        groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+      });
     }
 
-    List<ExecutionRecord> duplicateRecords =
-        executionRecordRepository.findDuplicateRecords(datasetId, executionName);
-
-    for (ExecutionRecord duplicateExecutionRecord : duplicateRecords) {
-      String recordId = formatRecordId(duplicateExecutionRecord.getIdentifier());
-      GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, "Duplicate record detected");
-      groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+    try (Stream<ExecutionRecord> stream = executionRecordRepository.findDuplicateRecords(datasetId, executionName)) {
+      stream.forEach(duplicate -> {
+        String recordId = formatRecordId(duplicate.getIdentifier());
+        GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, "Duplicate record detected");
+        groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
+      });
     }
 
     return groupedIssues;
@@ -348,7 +352,8 @@ public class DatasetReportService {
 
     // get list of records with metadata tier 0
     List<String> listOfRecordsIdsWithMetadataZero =
-        executionRecordTierContextRepository.findTop10ByExecutionRun_DatasetIdAndMetadataTier(datasetId, MetadataTier.T0.toString())
+        executionRecordTierContextRepository.findTop10ByExecutionRun_DatasetIdAndMetadataTier(datasetId,
+                                                MetadataTier.T0.toString())
                                             .stream()
                                             .map(ExecutionRecordTierContext::getIdentifier)
                                             .map(ExecutionRecordIdentifier::getRecordId)

@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.batch.repository;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,7 +23,7 @@ public interface ExecutionRecordWarningRepository extends
    * @param executionName The name of the executionRun associated with the executionRun record.
    * @return A list of ExecutionRecordWarningException entities matching the given criteria.
    */
-  List<ExecutionRecordWarning> findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
+  Stream<ExecutionRecordWarning> findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
       String datasetId, String executionName);
 
   /**

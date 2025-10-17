@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.batch.repository;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -67,7 +68,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
             GROUP BY r2.identifier.recordId
         )
       """)
-  List<ExecutionRecord> findDuplicateRecords(
+  Stream<ExecutionRecord> findDuplicateRecords(
       @Param("datasetId") String datasetId,
       @Param("executionName") String executionName
   );
