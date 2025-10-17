@@ -1,19 +1,20 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
  * Repository interface for managing {@link ExecutionRecordError} entities.
  */
 @Repository
-public interface ExecutionRecordErrorRepository extends
-    JpaRepository<ExecutionRecordError, Long> {
+public interface ExecutionRecordErrorRepository extends JpaRepository<ExecutionRecordError, Long> {
 
   /**
    * Retrieves a list of ExecutionRecordException entities based on the provided dataset ID and executionRun name.
@@ -22,7 +23,16 @@ public interface ExecutionRecordErrorRepository extends
    * @param executionName The name of the executionRun.
    * @return A list of ExecutionRecordException entities matching the specified dataset ID and executionRun name.
    */
-  Stream<ExecutionRecordError> findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
+  @Query("""
+      SELECT e.identifier AS identifier,
+             e.exception AS exception
+      FROM ExecutionRecordError e
+      WHERE e.executionRun.datasetId = :datasetId
+        AND e.executionRun.executionName = :executionName
+      """)
+  Stream<ExecutionRecordErrorProjection> findErrorsWithIdentifiers(
+      @Param("datasetId") String datasetId,
+      @Param("executionName") String executionName);
 
   /**
    * Finds an ExecutionRecordException based on dataset ID, record ID, and executionRun name.
@@ -62,4 +72,15 @@ public interface ExecutionRecordErrorRepository extends
    * @param datasetId The ID of the dataset.
    */
   void removeByExecutionRun_DatasetId(String datasetId);
+
+  /**
+   * Projection interface for exposing specific fields related to execution record errors.
+   */
+  interface ExecutionRecordErrorProjection {
+
+    ExecutionRecordIdentifier getIdentifier();
+
+    String getException();
+  }
+
 }

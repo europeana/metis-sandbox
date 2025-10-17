@@ -14,14 +14,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository.ExecutionRecordWarningProjection;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
@@ -219,10 +220,22 @@ class DatasetReportServiceTest {
       executionRecordWarning.setException("exception");
       executionRecordWarning.setMessage("warning");
 
-      when(executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, stepName))
+      ExecutionRecordWarningProjection executionRecordWarningProjection = new ExecutionRecordWarningProjection() {
+        @Override
+        public ExecutionRecordIdentifier getIdentifier() {
+          return executionRecordIdentifier;
+        }
+
+        @Override
+        public String getMessage() {
+          return "warning";
+        }
+      };
+
+      when(executionRecordErrorRepository.findErrorsWithIdentifiers(datasetId, stepName))
           .thenReturn(Stream.of());
-      when(executionRecordWarningRepository.findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
-          datasetId, stepName)).thenReturn(Stream.of(executionRecordWarning));
+      when(executionRecordWarningRepository.findWarningsWithIdentifiers(
+          datasetId, stepName)).thenReturn(Stream.of(executionRecordWarningProjection));
     }
     ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(valueOf(datasetEntity.getDatasetId()));
 

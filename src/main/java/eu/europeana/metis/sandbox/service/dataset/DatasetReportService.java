@@ -5,15 +5,15 @@ import static java.lang.String.format;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository.ExecutionRecordErrorProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.ExecutionRecordIdentifierProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository.ExecutionRecordWarningProjection;
 import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -294,8 +294,8 @@ public class DatasetReportService {
   private @NotNull Map<GroupedIssueKey, List<String>> collectGroupedIssues(String datasetId, FullBatchJobType fullBatchJobType) {
     String executionName = fullBatchJobType.name();
     Map<GroupedIssueKey, List<String>> groupedIssues = new LinkedHashMap<>();
-    try (Stream<ExecutionRecordError> executionRecordErrors =
-        executionRecordErrorRepository.findByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName)) {
+    try (Stream<ExecutionRecordErrorProjection> executionRecordErrors =
+        executionRecordErrorRepository.findErrorsWithIdentifiers(datasetId, executionName)) {
       executionRecordErrors.forEach(executionRecordError -> {
         String recordId = formatRecordId(executionRecordError.getIdentifier());
         GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, executionRecordError.getException());
@@ -303,17 +303,17 @@ public class DatasetReportService {
       });
     }
 
-    try (Stream<ExecutionRecordWarning> executionRecordWarnings =
-        executionRecordWarningRepository.findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
-            datasetId, executionName)) {
+    try (Stream<ExecutionRecordWarningProjection> executionRecordWarnings =
+        executionRecordWarningRepository.findWarningsWithIdentifiers(datasetId, executionName)) {
       executionRecordWarnings.forEach(executionRecordWarning -> {
-        String recordId = formatRecordId(executionRecordWarning.getExecutionRecord().getIdentifier());
+        String recordId = formatRecordId(executionRecordWarning.getIdentifier());
         GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
         groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
       });
     }
 
-    try (Stream<ExecutionRecord> stream = executionRecordRepository.findDuplicateRecords(datasetId, executionName)) {
+    try (Stream<ExecutionRecordIdentifierProjection> stream =
+        executionRecordRepository.findDuplicateRecords(datasetId, executionName)) {
       stream.forEach(duplicate -> {
         String recordId = formatRecordId(duplicate.getIdentifier());
         GroupedIssueKey key = new GroupedIssueKey(Status.FAIL, "Duplicate record detected");
@@ -323,6 +323,10 @@ public class DatasetReportService {
 
     return groupedIssues;
   }
+
+//  private String formatRecordId(ExecutionRecordIdentifierProjection duplicate) {
+//    return String.format("%s | %s | %s", duplicate.getExternalRecordId(), duplicate.getSourceRecordId(), duplicate.getRecordId());
+//  }
 
   private static @NotNull String formatRecordId(ExecutionRecordIdentifier executionRecordIdentifier) {
     return String.format("%s | %s | %s", executionRecordIdentifier.getExternalRecordId(),

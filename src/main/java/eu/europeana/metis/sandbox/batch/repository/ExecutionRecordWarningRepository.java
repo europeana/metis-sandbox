@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
 import java.util.List;
@@ -13,8 +14,7 @@ import org.springframework.stereotype.Repository;
  * Repository interface for managing {@link ExecutionRecordWarning} entities.
  */
 @Repository
-public interface ExecutionRecordWarningRepository extends
-    JpaRepository<ExecutionRecordWarning, Long> {
+public interface ExecutionRecordWarningRepository extends JpaRepository<ExecutionRecordWarning, Long> {
 
   /**
    * Finds a list of ExecutionRecordWarningException entities based on the dataset ID and executionRun name.
@@ -23,8 +23,16 @@ public interface ExecutionRecordWarningRepository extends
    * @param executionName The name of the executionRun associated with the executionRun record.
    * @return A list of ExecutionRecordWarningException entities matching the given criteria.
    */
-  Stream<ExecutionRecordWarning> findByExecutionRecord_ExecutionRun_DatasetIdAndExecutionRecord_ExecutionRun_ExecutionName(
-      String datasetId, String executionName);
+  @Query("""
+      SELECT r.executionRecord.identifier AS identifier,
+             r.message AS message
+        FROM ExecutionRecordWarning r
+        WHERE r.executionRecord.executionRun.datasetId = :datasetId
+          AND r.executionRecord.executionRun.executionName = :executionName
+      """)
+  Stream<ExecutionRecordWarningProjection> findWarningsWithIdentifiers(
+      @Param("datasetId") String datasetId,
+      @Param("executionName") String executionName);
 
   /**
    * Counts the number of distinct entities by recordId and based on the dataset ID and executionRun name.
@@ -59,4 +67,15 @@ public interface ExecutionRecordWarningRepository extends
    * @param datasetId The ID of the dataset.
    */
   void removeByExecutionRecord_ExecutionRun_DatasetId(String datasetId);
+
+  /**
+   * Projection interface for exposing specific fields related to execution record warnings.
+   */
+  interface ExecutionRecordWarningProjection {
+
+    ExecutionRecordIdentifier getIdentifier();
+
+    String getMessage();
+  }
+
 }
