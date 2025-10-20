@@ -126,7 +126,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing dataset IDs and their respective counts.
    */
   @Query("""
-      SELECT r.executionRun.datasetId AS datasetId, COUNT(r) AS count 
+      SELECT r.executionRun.datasetId AS datasetId, COUNT(r) AS count
             FROM ExecutionRecord r GROUP BY r.executionRun.datasetId
       """)
   List<DatasetStatisticProjection> getDatasetStatistics();
@@ -137,7 +137,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing step names and their respective counts.
    */
   @Query("""
-      SELECT r.executionRun.executionName AS step, COUNT(r) AS count 
+      SELECT r.executionRun.executionName AS step, COUNT(r) AS count
             FROM ExecutionRecord r 
             GROUP BY r.executionRun.executionName
       """)

@@ -55,7 +55,7 @@ public interface ExecutionRecordWarningRepository extends JpaRepository<Executio
    * @return A list of StepStatisticProjection containing the step name and the corresponding count.
    */
   @Query("""
-      SELECT er.executionRun.executionName AS step, COUNT(er) AS count 
+      SELECT er.executionRun.executionName AS step, COUNT(er) AS count
             FROM ExecutionRecord er 
             GROUP BY er.executionRun.executionName
       """)

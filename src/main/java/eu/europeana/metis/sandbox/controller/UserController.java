@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.controller;
 import static eu.europeana.metis.security.AuthenticationUtils.getUserId;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressSummaryDTO;
+import eu.europeana.metis.sandbox.dto.DatasetSummaryDTO;
 import eu.europeana.metis.sandbox.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -48,7 +48,7 @@ public class UserController {
   @ApiResponse(responseCode = "404", description = "User datasets not found")
   @ApiResponse(responseCode = "400", description = "Error")
   @GetMapping(value = "/me/datasets", produces = APPLICATION_JSON_VALUE)
-  public List<DatasetWithExecutionProgressSummaryDTO> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal) {
+  public List<DatasetSummaryDTO> getUserDatasets(@AuthenticationPrincipal Jwt jwtPrincipal) {
     //Check user id if any. This is temporarily allowed due to api and ui user security.
     final String userId;
     if (jwtPrincipal == null) {

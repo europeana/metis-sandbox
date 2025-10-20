@@ -16,7 +16,6 @@ import static org.mockito.Mockito.when;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordWarning;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -214,11 +213,6 @@ class DatasetReportServiceTest {
       executionRecordIdentifier.setSourceRecordId("sourceRecordId");
       executionRecordIdentifier.setRecordId("recordId");
       executionRecord.setIdentifier(executionRecordIdentifier);
-
-      ExecutionRecordWarning executionRecordWarning = new ExecutionRecordWarning();
-      executionRecordWarning.setExecutionRecord(executionRecord);
-      executionRecordWarning.setException("exception");
-      executionRecordWarning.setMessage("warning");
 
       ExecutionRecordWarningProjection executionRecordWarningProjection = new ExecutionRecordWarningProjection() {
         @Override

@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
@@ -19,13 +18,8 @@ import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
-import eu.europeana.metis.sandbox.dto.DatasetWithExecutionProgressSummaryDTO;
+import eu.europeana.metis.sandbox.dto.DatasetSummaryDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
-import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
-import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
-import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
-import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
-import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.service.user.UserService;
 import eu.europeana.metis.security.test.JwtUtils;
 import java.time.ZonedDateTime;
@@ -85,40 +79,17 @@ class UserControllerTest {
                                                   .transformedToEdmExternal(false)
                                                   .build();
 
-    ExecutionProgressByStepDTO executionProgressByStepDto = new ExecutionProgressByStepDTO(
-        FullBatchJobType.HARVEST_OAI, 10, 0, 0, 0, List.of()
-    );
-    TiersZeroInfoDTO tiersZeroInfoDTO = new TiersZeroInfoDTO(new TierStatisticsDTO(0, List.of()),
-        new TierStatisticsDTO(0, List.of()));
-
-    ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(
-        "publishPortalUrl",
-        ExecutionStatus.COMPLETED,
-        10,
-        10,
-        List.of(executionProgressByStepDto),
-        false,
-        List.of(),
-        tiersZeroInfoDTO
-    );
-
-    DatasetWithExecutionProgressSummaryDTO datasetWithExecutionProgressSummaryDTO =
-        DatasetWithExecutionProgressSummaryDTO.from(datasetInfoDTO, executionProgressInfoDTO);
+    DatasetSummaryDTO datasetSummaryDTO =
+        DatasetSummaryDTO.from(datasetInfoDTO);
 
     when(userService.getDatasetInfoWithProgressOwnedByUserId(getUserId(jwt))).thenReturn(
-        List.of(datasetWithExecutionProgressSummaryDTO));
+        List.of(datasetSummaryDTO));
 
     mockMvc.perform(get("/users/me/datasets")
                .headers(getCommonAuthorizationUserAgentHeaders()))
            .andExpect(status().isOk())
            .andExpect(content().contentType("application/json"))
-           .andExpect(jsonPath("$[0].dataset-id", is(datasetInfoDTO.getDatasetId())))
-           .andExpect(jsonPath("$[0].status", is(executionProgressInfoDTO.executionStatus().name())))
-           .andExpect(jsonPath("$[0].total-records",
-               is(Math.toIntExact(executionProgressInfoDTO.totalRecords()))))
-           .andExpect(
-               jsonPath("$[0].processed-records",
-                   is(Math.toIntExact(executionProgressInfoDTO.processedRecords()))));
+           .andExpect(jsonPath("$[0].dataset-id", is(datasetInfoDTO.getDatasetId())));
 
   }
 
