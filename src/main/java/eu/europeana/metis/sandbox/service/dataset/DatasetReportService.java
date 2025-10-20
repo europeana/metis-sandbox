@@ -324,10 +324,6 @@ public class DatasetReportService {
     return groupedIssues;
   }
 
-//  private String formatRecordId(ExecutionRecordIdentifierProjection duplicate) {
-//    return String.format("%s | %s | %s", duplicate.getExternalRecordId(), duplicate.getSourceRecordId(), duplicate.getRecordId());
-//  }
-
   private static @NotNull String formatRecordId(ExecutionRecordIdentifier executionRecordIdentifier) {
     return String.format("%s | %s | %s", executionRecordIdentifier.getExternalRecordId(),
         executionRecordIdentifier.getSourceRecordId(), executionRecordIdentifier.getRecordId());
