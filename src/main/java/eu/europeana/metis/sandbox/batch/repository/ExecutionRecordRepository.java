@@ -1,12 +1,17 @@
 package eu.europeana.metis.sandbox.batch.repository;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
+import jakarta.persistence.QueryHint;
 import java.util.List;
+import java.util.stream.Stream;
+import org.hibernate.jpa.HibernateHints;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -55,19 +60,20 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return a list of duplicate {@code ExecutionRecord} entities that match the specified datasetId and executionName criteria.
    */
   @Query("""
-      SELECT r
-      FROM ExecutionRecord r
-      WHERE r.executionRun.datasetId = :datasetId
-        AND r.executionRun.executionName = :executionName
-        AND r.id NOT IN (
-            SELECT MIN(r2.id)
-            FROM ExecutionRecord r2
-            WHERE r2.executionRun.datasetId = :datasetId
-              AND r2.executionRun.executionName = :executionName
-            GROUP BY r2.identifier.recordId
-        )
+      SELECT r.identifier AS identifier
+        FROM ExecutionRecord r
+        WHERE r.executionRun.datasetId = :datasetId
+          AND r.executionRun.executionName = :executionName
+          AND r.id NOT IN (
+              SELECT MIN(r2.id)
+              FROM ExecutionRecord r2
+              WHERE r2.executionRun.datasetId = :datasetId
+                AND r2.executionRun.executionName = :executionName
+              GROUP BY r2.identifier.recordId
+          )
       """)
-  List<ExecutionRecord> findDuplicateRecords(
+  @QueryHints(@QueryHint(name = HibernateHints.HINT_FETCH_SIZE, value = "100"))
+  Stream<ExecutionRecordIdentifierProjection> findDuplicateRecords(
       @Param("datasetId") String datasetId,
       @Param("executionName") String executionName
   );
@@ -75,8 +81,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   /**
    * Counts the duplicate records in the database for a specific dataset and executionRun name.
    * <p>
-   * A record is considered a duplicate if it shares the same dataset ID and executionRun name and is not the record with the minimum
-   * ID for the same record ID.
+   * A record is considered a duplicate if it shares the same dataset ID and executionRun name and is not the record with the
+   * minimum ID for the same record ID.
    *
    * @param datasetId the identifier of the dataset to filter the records
    * @param executionName the name of the executionRun to filter the records
@@ -105,7 +111,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @param executionName The name of the executionRun.
    * @return The matching ExecutionRecord or null if no match is found.
    */
-  ExecutionRecord findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(String datasetId, String recordId,
+  ExecutionRecord findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(String datasetId,
+      String recordId,
       String executionName);
 
   /**
@@ -123,7 +130,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing dataset IDs and their respective counts.
    */
   @Query("""
-      SELECT r.executionRun.datasetId AS datasetId, COUNT(r) AS count 
+      SELECT r.executionRun.datasetId AS datasetId, COUNT(r) AS count
             FROM ExecutionRecord r GROUP BY r.executionRun.datasetId
       """)
   List<DatasetStatisticProjection> getDatasetStatistics();
@@ -134,7 +141,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @return A list of projections containing step names and their respective counts.
    */
   @Query("""
-      SELECT r.executionRun.executionName AS step, COUNT(r) AS count 
+      SELECT r.executionRun.executionName AS step, COUNT(r) AS count
             FROM ExecutionRecord r 
             GROUP BY r.executionRun.executionName
       """)
@@ -172,4 +179,13 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
 
     long getCount();
   }
+
+  /**
+   * Projection interface for exposing specific fields related to execution record.
+   */
+  interface ExecutionRecordIdentifierProjection {
+
+    ExecutionRecordIdentifier getIdentifier();
+  }
+
 }
