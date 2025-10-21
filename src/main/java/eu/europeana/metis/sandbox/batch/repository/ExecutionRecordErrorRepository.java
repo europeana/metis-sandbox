@@ -3,10 +3,13 @@ package eu.europeana.metis.sandbox.batch.repository;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.StepStatisticProjection;
+import jakarta.persistence.QueryHint;
 import java.util.List;
 import java.util.stream.Stream;
+import org.hibernate.jpa.HibernateHints;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +33,7 @@ public interface ExecutionRecordErrorRepository extends JpaRepository<ExecutionR
       WHERE e.executionRun.datasetId = :datasetId
         AND e.executionRun.executionName = :executionName
       """)
+  @QueryHints(@QueryHint(name = HibernateHints.HINT_FETCH_SIZE, value = "100"))
   Stream<ExecutionRecordErrorProjection> findErrorsWithIdentifiers(
       @Param("datasetId") String datasetId,
       @Param("executionName") String executionName);

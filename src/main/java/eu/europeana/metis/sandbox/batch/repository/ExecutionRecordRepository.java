@@ -3,12 +3,15 @@ package eu.europeana.metis.sandbox.batch.repository;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
+import jakarta.persistence.QueryHint;
 import java.util.List;
 import java.util.stream.Stream;
+import org.hibernate.jpa.HibernateHints;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -69,6 +72,7 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
               GROUP BY r2.identifier.recordId
           )
       """)
+  @QueryHints(@QueryHint(name = HibernateHints.HINT_FETCH_SIZE, value = "100"))
   Stream<ExecutionRecordIdentifierProjection> findDuplicateRecords(
       @Param("datasetId") String datasetId,
       @Param("executionName") String executionName
