@@ -5,13 +5,13 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.common.exception.DatasetEmptyException;
+import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.harvest.HarvestIdentifiersResult;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.Iterator;
 import java.util.UUID;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -39,12 +39,20 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   protected String datasetId;
   @Value("#{jobParameters['stepSize']}")
   protected String stepSize;
+  @Value("${sandbox.dataset.max-size}")
+  protected int maxAllowedRecords;
 
   protected final HarvestParameterService harvestParameterService;
   protected final DatasetExecutionSetupService datasetExecutionSetupService;
   protected final ExecutionRunRepository executionRunRepository;
-  private final Deque<T> identifiers = new ArrayDeque<>();
+  private Iterator<T> iterator;
   private ExecutionRun executionRun;
+
+  int step;
+  int selectedCount;
+  int currentIndex;
+  int nextIndexToSelect;
+  boolean recordLimitExceeded;
 
   protected AbstractIdentifiersItemReader(HarvestParameterService harvestParameterService,
       DatasetExecutionSetupService datasetExecutionSetupService, ExecutionRunRepository executionRunRepository) {
@@ -59,21 +67,24 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   @BeforeStep
   public void beforeStep() {
     try {
+      // Initialize iteration settings
+      step = normalizeStepSize(Integer.parseInt(stepSize));
+      selectedCount = 0;
+      currentIndex = 0;
+      nextIndexToSelect = step - 1;
+      recordLimitExceeded = false;
+
       HarvestParametersEntity harvestParametersEntity = harvestParameterService
           .getHarvestingParametersById(UUID.fromString(harvestParameterId))
           .orElseThrow();
       executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
           datasetId, targetExecutionId, getJobType().name());
+      iterator = getIterable(harvestParametersEntity, Integer.parseInt(stepSize)).iterator();
 
-      HarvestIdentifiersResult<T> harvestIdentifiersResult = doHarvest(harvestParametersEntity, Integer.parseInt(stepSize));
-      if (harvestIdentifiersResult.recordLimitExceeded()) {
-        log.warn("Maximum number of records harvested for datasetId {} exceeded.", datasetId);
-        datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
-      }
-      if (harvestIdentifiersResult.identifiers().isEmpty()) {
+      if (!iterator.hasNext()) {
         throw new DatasetEmptyException("No identifiers found for dataset %s".formatted(datasetId));
       }
-      identifiers.addAll(harvestIdentifiersResult.identifiers());
+
     } catch (RuntimeException ex) {
       datasetExecutionSetupService.updateDatasetWithError(datasetId, ex);
       throw ex;
@@ -82,19 +93,56 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
   @Override
   public ExecutionRecordExternalIdentifier read() {
-    T identifier = identifiers.pollFirst();
-    if (identifier == null) {
+    if (iterator == null) {
       return null;
     }
 
-    ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
-    executionRecordExternalIdentifier.setExecutionRun(executionRun);
-    executionRecordExternalIdentifier.setExternalRecordId(extractStringIdentifier(identifier));
-    executionRecordExternalIdentifier.setDeleted(isDeleted(identifier));
-    return executionRecordExternalIdentifier;
+    //Iterate until the selected identifier is found
+    while (iterator.hasNext()) {
+
+      if (selectedCount >= maxAllowedRecords) {
+        recordLimitExceeded = true;
+        log.warn("Maximum number of records harvested for datasetId {} exceeded.", datasetId);
+        datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
+        break;
+      }
+
+      T identifier = getIdentifierTransformer().apply(iterator.next());
+      currentIndex++;
+      if (currentIndex - 1 == nextIndexToSelect) {
+        if (isDeleted(identifier)) {
+          nextIndexToSelect++; // skip deleted
+        } else {
+          nextIndexToSelect += step;
+          selectedCount++;
+
+          ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
+          executionRecordExternalIdentifier.setExecutionRun(executionRun);
+          executionRecordExternalIdentifier.setExternalRecordId(extractStringIdentifier(identifier));
+          executionRecordExternalIdentifier.setDeleted(false);
+          return executionRecordExternalIdentifier;
+        }
+      }
+    }
+
+    if (isStepSizeBiggerThanDatasetSize(selectedCount, currentIndex)) {
+      datasetExecutionSetupService.updateDatasetWithError(datasetId, new StepIsTooBigException(currentIndex));
+    }
+
+    return null;
   }
 
-  protected abstract HarvestIdentifiersResult<T> doHarvest(HarvestParametersEntity params, int stepSize);
+  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
+    return datasetSize == 0 && currentIndex > 0;
+  }
+
+  private int normalizeStepSize(Integer stepSize) {
+    return (stepSize == null || stepSize <= 0) ? 1 : stepSize;
+  }
+
+  protected abstract Function<T, T> getIdentifierTransformer();
+
+  protected abstract Iterable<T> getIterable(HarvestParametersEntity params, int stepSize);
 
   protected abstract String extractStringIdentifier(T identifier);
 

@@ -10,7 +10,8 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestService;
 import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestTarget;
-import eu.europeana.metis.sandbox.service.workflow.harvest.HarvestIdentifiersResult;
+import java.nio.file.Path;
+import java.util.function.Function;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @StepScope
-public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<String> {
+public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Path> {
 
   private static final BatchJobType batchJobType = HARVEST_FILE;
   private final FileHarvestService fileHarvestService;
@@ -41,7 +42,12 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Str
   }
 
   @Override
-  protected HarvestIdentifiersResult<String> doHarvest(HarvestParametersEntity params, int stepSize) {
+  protected Function<Path, Path> getIdentifierTransformer() {
+    return (path) -> FileHarvestService.getPathToTempDestinationDirectoryById(datasetId).relativize(path);
+  }
+
+  @Override
+  protected Iterable<Path> getIterable(HarvestParametersEntity params, int stepSize) {
     if (!(params instanceof AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity)) {
       throw new IllegalArgumentException("Expected AbstractBinaryHarvestParametersEntity");
     }
@@ -49,16 +55,16 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Str
         abstractBinaryHarvestParametersEntity.getFileName(),
         abstractBinaryHarvestParametersEntity.getFileType(),
         abstractBinaryHarvestParametersEntity.getFileContent());
-    return fileHarvestService.harvestExternalIdentifiers(datasetId, fileHarvestTarget, stepSize);
+    return fileHarvestService.harvestExternalIdentifiers(datasetId, fileHarvestTarget);
   }
 
   @Override
-  protected String extractStringIdentifier(String identifier) {
-    return identifier;
+  protected String extractStringIdentifier(Path identifier) {
+    return identifier.toString();
   }
 
   @Override
-  protected boolean isDeleted(String identifier) {
+  protected boolean isDeleted(Path identifier) {
     return false;
   }
 

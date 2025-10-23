@@ -2,14 +2,11 @@ package eu.europeana.metis.sandbox.service.workflow.harvest;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
-import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.file.FileHarvester;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService.HarvestFromIteratorResult;
 import eu.europeana.metis.utils.TempFileUtils;
 import jakarta.validation.constraints.NotNull;
 import java.io.ByteArrayInputStream;
@@ -18,12 +15,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,29 +27,17 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class FileHarvestService implements HarvestService<String, FileHarvestTarget> {
+public class FileHarvestService implements HarvestService<Path, FileHarvestTarget> {
 
   private final FileHarvester fileHarvester = HarvesterFactory.createFileHarvester();
-  private final int maxAllowedRecords;
-
-  /**
-   * Constructor.
-   *
-   * @param maxAllowedRecords the maximum number of records allowed to be processed
-   */
-  @Autowired
-  public FileHarvestService(@Value("${sandbox.dataset.max-size}") int maxAllowedRecords) {
-    this.maxAllowedRecords = maxAllowedRecords;
-  }
 
   @Override
-  public HarvestIdentifiersResult<String> harvestExternalIdentifiers(String datasetId,
-      @NotNull FileHarvestTarget fileHarvestTarget,
-      Integer stepSize) {
+  public Iterable<Path> harvestExternalIdentifiers(String datasetId,
+      @NotNull FileHarvestTarget fileHarvestTarget) {
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
-      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.fileName()), false);
+      return List.of(Path.of(fileHarvestTarget.fileName()));
     } else {
-      return harvestIdentifiersFromCompressedArchive(datasetId, fileHarvestTarget, stepSize);
+      return harvestIdentifiersFromCompressedArchive(datasetId, fileHarvestTarget);
     }
   }
 
@@ -71,13 +53,7 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
     }
   }
 
-  @Override
-  public int getMaxAllowedRecords() {
-    return maxAllowedRecords;
-  }
-
-  private HarvestIdentifiersResult<String> harvestIdentifiersFromCompressedArchive(String datasetId,
-      @NotNull FileHarvestTarget fileHarvestTarget, Integer stepSize) {
+  private Iterable<Path> harvestIdentifiersFromCompressedArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
     Path destinationDirectory = getPathToTempDestinationDirectoryById(datasetId);
     Path destinationArchiveFile;
     try {
@@ -90,15 +66,7 @@ public class FileHarvestService implements HarvestService<String, FileHarvestTar
 
     try {
       //Do not close because the directory is then deleted.
-      HarvestingIterator<Path, Path> pathIterator =
-          fileHarvester.createHarvestIterator(destinationArchiveFile, destinationArchiveFile.getParent());
-      final List<String> result = new ArrayList<>();
-      HarvestFromIteratorResult harvestFromIteratorResult = harvestFromIterator(pathIterator, stepSize, entry -> {
-        Path relativePath = destinationDirectory.relativize(entry);
-        result.add(relativePath.toString());
-        return IterationResult.CONTINUE;
-      }, (p) -> false);
-      return new HarvestIdentifiersResult<>(result, harvestFromIteratorResult.recordLimitExceeded());
+      return fileHarvester.createHarvestIterator(destinationArchiveFile, destinationArchiveFile.getParent());
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting File records", e);
     }
