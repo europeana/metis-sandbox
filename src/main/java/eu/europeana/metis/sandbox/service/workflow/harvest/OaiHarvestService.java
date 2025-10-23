@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.service.workflow.harvest;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
@@ -12,18 +11,12 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +45,7 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
   }
 
   @Override
-  public HarvestIdentifiersResult<OaiRecordHeader> harvestExternalIdentifiers(@NotNull OaiHarvest oaiHarvest, Integer stepSize) {
+  public HarvestIdentifiersResult<OaiRecordHeader> harvestExternalIdentifiers(String datasetId, @NotNull OaiHarvest oaiHarvest, Integer stepSize) {
     try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> recordHeaderIterator =
         oaiHarvester.harvestRecordHeaders(oaiHarvest)) {
       return harvestOaiHeaders(recordHeaderIterator, stepSize);
@@ -72,11 +65,16 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
    * @throws HarvestException if an error occurs during the harvesting process.
    */
   @Override
-  public HarvestedRecord harvestRecord(@NotNull OaiHarvest oaiHarvest, String sourceRecordId) throws HarvestException {
+  public HarvestedRecord harvestRecord(String datasetId, @NotNull OaiHarvest oaiHarvest, String sourceRecordId) throws HarvestException {
     log.info("Harvesting record: {}", sourceRecordId);
     OaiRecord oaiRecord = getOaiRecord(sourceRecordId, oaiHarvest);
     String recordData = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
     return new HarvestedRecord(sourceRecordId, recordData);
+  }
+
+  @Override
+  public int getMaxAllowedRecords() {
+    return maxAllowedRecords;
   }
 
   private OaiRecord getOaiRecord(String sourceRecordId, OaiHarvest oaiHarvest) throws HarvestException {
@@ -102,50 +100,6 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
       return IterationResult.CONTINUE;
     }, OaiRecordHeader::isDeleted);
     return new HarvestIdentifiersResult<>(result, harvestFromIteratorResult.recordLimitExceeded());
-  }
-
-  private <T> HarvestFromIteratorResult harvestFromIterator(HarvestingIterator<T, ?> iterator,
-      Integer stepSize, Function<T, IterationResult> processor,
-      Predicate<T> isDeleted) throws HarvesterException {
-
-    final int numberOfRecordsToStepInto = normalizeStepSize(stepSize);
-    final AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
-    final AtomicInteger currentIndex = new AtomicInteger();
-    final AtomicInteger nextIndexToSelect = new AtomicInteger(numberOfRecordsToStepInto - 1);
-
-    AtomicBoolean recordLimitExceeded = new AtomicBoolean(false);
-    iterator.forEach(entry -> {
-      if (numberOfSelectedHeaders.get() >= maxAllowedRecords) {
-        //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-        //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-        recordLimitExceeded.set(true); //We start from 0 therefore reaching maxRecords means that the limit was exceeded.
-        numberOfSelectedHeaders.set(maxAllowedRecords);
-        return ReportingIteration.IterationResult.TERMINATE;
-      }
-
-      ReportingIteration.IterationResult result = null;
-      if (currentIndex.get() == nextIndexToSelect.get()) {
-        if (isDeleted.test(entry)) {
-          nextIndexToSelect.getAndIncrement();
-        } else {
-          result = processor.apply(entry);
-          nextIndexToSelect.addAndGet(numberOfRecordsToStepInto);
-          numberOfSelectedHeaders.getAndIncrement();
-        }
-      }
-      currentIndex.getAndIncrement();
-      return Optional.ofNullable(result).orElse(ReportingIteration.IterationResult.CONTINUE);
-    });
-
-    if (isStepSizeBiggerThanDatasetSize(numberOfSelectedHeaders.get(), currentIndex.get())) {
-      throw new StepIsTooBigException(currentIndex.get());
-    }
-
-    return new HarvestFromIteratorResult(recordLimitExceeded.get());
-  }
-
-  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
-    return datasetSize == 0 && currentIndex > 0;
   }
 
   /**

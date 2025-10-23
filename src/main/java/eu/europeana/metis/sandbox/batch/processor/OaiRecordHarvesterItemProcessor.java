@@ -73,11 +73,10 @@ public class OaiRecordHarvesterItemProcessor extends
   }
 
   @Override
-  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier) throws Exception {
-    log.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
-
+  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier)
+      throws Exception {
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(
+    HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(datasetId,
         oaiHarvest, executionRecordExternalIdentifier.getExternalRecordId()
     );
 

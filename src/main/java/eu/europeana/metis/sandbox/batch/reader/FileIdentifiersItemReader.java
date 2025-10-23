@@ -49,7 +49,7 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Str
         abstractBinaryHarvestParametersEntity.getFileName(),
         abstractBinaryHarvestParametersEntity.getFileType(),
         abstractBinaryHarvestParametersEntity.getFileContent());
-    return fileHarvestService.harvestExternalIdentifiers(fileHarvestTarget, stepSize);
+    return fileHarvestService.harvestExternalIdentifiers(datasetId, fileHarvestTarget, stepSize);
   }
 
   @Override

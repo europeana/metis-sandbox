@@ -50,7 +50,7 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
         oaiHarvestParametersEntity.getUrl(),
         oaiHarvestParametersEntity.getMetadataFormat(),
         oaiHarvestParametersEntity.getSetSpec());
-    return oaiHarvestService.harvestExternalIdentifiers(oaiHarvest, stepSize);
+    return oaiHarvestService.harvestExternalIdentifiers(datasetId, oaiHarvest, stepSize);
   }
 
   @Override
