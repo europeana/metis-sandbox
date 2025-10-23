@@ -1,16 +1,11 @@
 package eu.europeana.metis.sandbox.service.workflow.harvest;
 
 import eu.europeana.metis.harvesting.HarvesterException;
-import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService.HarvestFromIteratorResult;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -60,44 +55,48 @@ public interface HarvestService<T, S> {
 
   int getMaxAllowedRecords();
 
-  default <R> HarvestFromIteratorResult harvestFromIterator(HarvestingIterator<R, ?> iterator,
-      Integer stepSize, Function<R, IterationResult> processor,
-      Predicate<R> isDeleted) throws HarvesterException {
+  default <R> HarvestFromIteratorResult harvestFromIterator(
+      Iterable<R> iterator,
+      Integer stepSize,
+      Function<R, IterationResult> processor,
+      Predicate<R> isDeleted
+  ) throws HarvesterException {
 
-    final int numberOfRecordsToStepInto = normalizeStepSize(stepSize);
-    final AtomicInteger numberOfSelectedHeaders = new AtomicInteger();
-    final AtomicInteger currentIndex = new AtomicInteger();
-    final AtomicInteger nextIndexToSelect = new AtomicInteger(numberOfRecordsToStepInto - 1);
+    int step = normalizeStepSize(stepSize);
+    int selectedCount = 0;
+    int currentIndex = 0;
+    int nextIndexToSelect = step - 1;
 
-    AtomicBoolean recordLimitExceeded = new AtomicBoolean(false);
-    iterator.forEach(entry -> {
-      if (numberOfSelectedHeaders.get() >= getMaxAllowedRecords()) {
-        //TODO: MET-4888 This method currently causes no race condition issues. But if harvesting is to ever happen
-        //TODO: through multiple nodes, then a race condition will surface because of the method bellow.
-        recordLimitExceeded.set(true); //We start from 0 therefore reaching maxRecords means that the limit was exceeded.
-        numberOfSelectedHeaders.set(getMaxAllowedRecords());
-        return ReportingIteration.IterationResult.TERMINATE;
+    boolean recordLimitExceeded = false;
+    int maxRecords = getMaxAllowedRecords();
+
+    for (R entry : iterator) {
+      if (selectedCount >= maxRecords) {
+        recordLimitExceeded = true;
+        break;
       }
 
-      ReportingIteration.IterationResult result = null;
-      if (currentIndex.get() == nextIndexToSelect.get()) {
+      if (currentIndex == nextIndexToSelect) {
         if (isDeleted.test(entry)) {
-          nextIndexToSelect.getAndIncrement();
+          nextIndexToSelect++; // skip deleted, pick next one
         } else {
-          result = processor.apply(entry);
-          nextIndexToSelect.addAndGet(numberOfRecordsToStepInto);
-          numberOfSelectedHeaders.getAndIncrement();
+          IterationResult result = processor.apply(entry);
+          nextIndexToSelect += step;
+          selectedCount++;
+          if (result == IterationResult.TERMINATE) {
+            break;
+          }
         }
       }
-      currentIndex.getAndIncrement();
-      return Optional.ofNullable(result).orElse(ReportingIteration.IterationResult.CONTINUE);
-    });
 
-    if (isStepSizeBiggerThanDatasetSize(numberOfSelectedHeaders.get(), currentIndex.get())) {
-      throw new StepIsTooBigException(currentIndex.get());
+      currentIndex++;
     }
 
-    return new HarvestFromIteratorResult(recordLimitExceeded.get());
+    if (isStepSizeBiggerThanDatasetSize(selectedCount, currentIndex)) {
+      throw new StepIsTooBigException(currentIndex);
+    }
+
+    return new HarvestFromIteratorResult(recordLimitExceeded);
   }
 
   private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
