@@ -32,12 +32,12 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
   private final FileHarvester fileHarvester = HarvesterFactory.createFileHarvester();
 
   @Override
-  public Iterable<Path> harvestExternalIdentifiers(String datasetId,
+  public Iterable<Path> getIterableHarvestingIdentifiers(String datasetId,
       @NotNull FileHarvestTarget fileHarvestTarget) {
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
       return List.of(Path.of(fileHarvestTarget.fileName()));
     } else {
-      return harvestIdentifiersFromCompressedArchive(datasetId, fileHarvestTarget);
+      return getIterableHarvestingIdentifiersForArchive(datasetId, fileHarvestTarget);
     }
   }
 
@@ -53,7 +53,7 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
     }
   }
 
-  private Iterable<Path> harvestIdentifiersFromCompressedArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+  private Iterable<Path> getIterableHarvestingIdentifiersForArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
     Path destinationDirectory = getPathToTempDestinationDirectoryById(datasetId);
     Path destinationArchiveFile;
     try {
@@ -65,7 +65,7 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
     }
 
     try {
-      //Do not close because the directory is then deleted.
+      //Do not close because the directory is then deleted. Handle deletion elsewhere.
       return fileHarvester.createHarvestIterator(destinationArchiveFile, destinationArchiveFile.getParent());
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting File records", e);

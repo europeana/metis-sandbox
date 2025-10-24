@@ -55,7 +55,7 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
         oaiHarvestParametersEntity.getUrl(),
         oaiHarvestParametersEntity.getMetadataFormat(),
         oaiHarvestParametersEntity.getSetSpec());
-    return oaiHarvestService.harvestExternalIdentifiers(datasetId, oaiHarvest);
+    return oaiHarvestService.getIterableHarvestingIdentifiers(datasetId, oaiHarvest);
   }
 
   @Override

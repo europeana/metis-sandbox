@@ -23,7 +23,7 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
   private final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
 
   @Override
-  public Iterable<OaiRecordHeader> harvestExternalIdentifiers(String datasetId, @NotNull OaiHarvest oaiHarvest) {
+  public Iterable<OaiRecordHeader> getIterableHarvestingIdentifiers(String datasetId, @NotNull OaiHarvest oaiHarvest) {
     return oaiHarvester.harvestRecordHeaders(oaiHarvest);
   }
 
