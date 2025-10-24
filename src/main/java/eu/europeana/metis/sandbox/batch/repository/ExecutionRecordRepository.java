@@ -75,8 +75,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   /**
    * Counts the duplicate records in the database for a specific dataset and executionRun name.
    * <p>
-   * A record is considered a duplicate if it shares the same dataset ID and executionRun name and is not the record with the minimum
-   * ID for the same record ID.
+   * A record is considered a duplicate if it shares the same dataset ID and executionRun name and is not the record with the
+   * minimum ID for the same record ID.
    *
    * @param datasetId the identifier of the dataset to filter the records
    * @param executionName the name of the executionRun to filter the records
@@ -105,8 +105,24 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    * @param executionName The name of the executionRun.
    * @return The matching ExecutionRecord or null if no match is found.
    */
-  ExecutionRecord findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(String datasetId, String recordId,
+  ExecutionRecord findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(String datasetId,
+      String recordId,
       String executionName);
+
+  /**
+   * Retrieves the first {@code ExecutionRecord} that matches the specified dataset ID, record ID, and any of the provided
+   * executionRun names.
+   * <p>
+   * This is a convenience method for cases where the UI requests a record from e.g., HARVEST, and we don't know which harvest was
+   * performed, therefore, we need to send the list of the two possible.
+   *
+   * @param datasetId the unique identifier of the dataset.
+   * @param recordId the unique identifier of the record within the dataset.
+   * @param executionNames a list of executionRun names to filter the records.
+   * @return the first matching {@code ExecutionRecord} or {@code null} if no match is found.
+   */
+  ExecutionRecord findFirstByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionNameIn(
+      String datasetId, String recordId, List<String> executionNames);
 
   /**
    * Counts the number of ExecutionRecord entities matching the given dataset ID and executionRun name.
