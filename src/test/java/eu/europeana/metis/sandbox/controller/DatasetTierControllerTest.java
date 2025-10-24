@@ -3,6 +3,9 @@ package eu.europeana.metis.sandbox.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -16,10 +19,10 @@ import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
 import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
 import eu.europeana.indexing.utils.LicenseType;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -29,10 +32,12 @@ import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -144,8 +149,8 @@ class DatasetTierControllerTest {
   }
 
   @ParameterizedTest
-  @EnumSource(FullBatchJobType.class)
-  void getRecord_expectSuccess(FullBatchJobType step) throws Exception {
+  @MethodSource("provideSteps")
+  void getRecord_expectSuccess(String step) throws Exception {
     final String returnString = "exampleString";
 
     ExecutionRun executionRun = new ExecutionRun();
@@ -162,19 +167,28 @@ class DatasetTierControllerTest {
     executionRecord.setIdentifier(executionRecordIdentifier);
 
     executionRecord.setRecordData(returnString);
+    // This mock is used when converting to externalRecordId for HARVEST_FILE/OAI/TRANSFORM_EXTERNAL
     when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
-        DATASET_ID, RECORD_ID, FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(executionRecord);
-    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
-        DATASET_ID, RECORD_ID, step.name())).thenReturn(executionRecord);
-    //Cover the case where the id is converted to external id for steps that don't have the record_id yet
-    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
-        DATASET_ID, EXTERNAL_RECORD_ID, step.name())).thenReturn(executionRecord);
+        DATASET_ID, RECORD_ID, FullBatchJobType.VALIDATE_INTERNAL.name()))
+        .thenReturn(executionRecord);
+
+    // Mock repository lookups for normal flow
+    when(executionRecordRepository.findFirstByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionNameIn(
+        eq(DATASET_ID), anyString(), anyList()))
+        .thenReturn(executionRecord);
 
     mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
                .param("recordId", RECORD_ID)
-               .param("step", step.name()))
+               .param("step", step))
            .andExpect(status().isOk())
            .andExpect(content().string(returnString));
+  }
+
+  private static Stream<String> provideSteps() {
+    return Stream.of(
+        Arrays.stream(FullBatchJobType.values()).map(Enum::name),
+        Stream.of("HARVEST")
+    ).flatMap(s -> s);
   }
 
   @Test
