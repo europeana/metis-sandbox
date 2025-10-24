@@ -72,6 +72,14 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
     }
   }
 
+  /**
+   * Returns the path to a temporary destination directory for a given identifier.
+   * The directory path is constructed within the system's temporary directory
+   * and is uniquely tied to the provided identifier.
+   *
+   * @param id the unique identifier used to create the temporary destination directory path
+   * @return the {@link Path} object representing the temporary destination directory
+   */
   public static @NotNull Path getPathToTempDestinationDirectoryById(String id) {
     return Path.of(System.getProperty("java.io.tmpdir"), FileHarvestService.class.getSimpleName() + "-" + id);
   }

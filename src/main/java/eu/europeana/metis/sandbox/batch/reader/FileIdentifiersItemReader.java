@@ -43,7 +43,7 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Pat
 
   @Override
   protected Function<Path, Path> getIdentifierTransformer() {
-    return (path) -> FileHarvestService.getPathToTempDestinationDirectoryById(datasetId).relativize(path);
+    return path -> FileHarvestService.getPathToTempDestinationDirectoryById(datasetId).relativize(path);
   }
 
   @Override

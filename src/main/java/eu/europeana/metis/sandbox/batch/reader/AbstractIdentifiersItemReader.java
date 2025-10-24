@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.UUID;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
@@ -45,14 +48,14 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   protected final HarvestParameterService harvestParameterService;
   protected final DatasetExecutionSetupService datasetExecutionSetupService;
   protected final ExecutionRunRepository executionRunRepository;
-  private Iterator<T> iterator;
   private ExecutionRun executionRun;
 
-  int step;
-  int selectedCount;
-  int currentIndex;
-  int nextIndexToSelect;
-  boolean recordLimitExceeded;
+  private Iterator<T> iterator;
+  private int step;
+  private int selectedCount;
+  private int currentIndex;
+  private int nextIndexToSelect;
+  private boolean recordLimitExceeded;
 
   protected AbstractIdentifiersItemReader(HarvestParameterService harvestParameterService,
       DatasetExecutionSetupService datasetExecutionSetupService, ExecutionRunRepository executionRunRepository) {
@@ -62,7 +65,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   }
 
   /**
-   * Performs pre-step initialization. Harvests identifiers and stores them in a queue in memory.
+   * Performs pre-step initialization.
    */
   @BeforeStep
   public void beforeStep() {
@@ -81,10 +84,6 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
           datasetId, targetExecutionId, getJobType().name());
       iterator = getIterable(harvestParametersEntity, Integer.parseInt(stepSize)).iterator();
 
-      if (!iterator.hasNext()) {
-        throw new DatasetEmptyException("No identifiers found for dataset %s".formatted(datasetId));
-      }
-
     } catch (RuntimeException ex) {
       datasetExecutionSetupService.updateDatasetWithError(datasetId, ex);
       throw ex;
@@ -102,8 +101,6 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
       if (selectedCount >= maxAllowedRecords) {
         recordLimitExceeded = true;
-        log.warn("Maximum number of records harvested for datasetId {} exceeded.", datasetId);
-        datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
         break;
       }
 
@@ -124,12 +121,48 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
         }
       }
     }
+    return null;
+  }
 
+  /**
+   * This method is executed after the step to perform cleanup and error handling.
+   * <p>
+   * It evaluates the results of the step execution and adjusts the execution status accordingly.
+   * <p>
+   * If the step size is too big compared to the dataset, or if no identifiers are found, it updates the dataset with the
+   * corresponding error and marks the step as failed.
+   * <p>
+   * Additionally, if a record limit is exceeded, it logs a warning and updates the dataset with this status.
+   *
+   * @param stepExecution the context of the step execution, containing information about the executed step
+   * @return the exit status of the step execution, indicating success or failure
+   */
+  @AfterStep
+  public ExitStatus afterStep(StepExecution stepExecution) {
+    // Fatal: step size too big
     if (isStepSizeBiggerThanDatasetSize(selectedCount, currentIndex)) {
-      datasetExecutionSetupService.updateDatasetWithError(datasetId, new StepIsTooBigException(currentIndex));
+      StepIsTooBigException stepIsTooBigException = new StepIsTooBigException(currentIndex);
+      datasetExecutionSetupService.updateDatasetWithError(datasetId, stepIsTooBigException);
+      log.error("Step failed: step size too big for dataset {}", datasetId, stepIsTooBigException);
+      return ExitStatus.FAILED;
     }
 
-    return null;
+    // Fatal: no identifiers found
+    if (selectedCount == 0) {
+      DatasetEmptyException datasetEmptyException = new DatasetEmptyException(
+          "No identifiers found for dataset %s".formatted(datasetId));
+      datasetExecutionSetupService.updateDatasetWithError(datasetId, datasetEmptyException);
+      log.error("Step failed: no identifiers found for dataset {}", datasetId, datasetEmptyException);
+      return ExitStatus.FAILED;
+    }
+
+    // Non-fatal: record limit exceeded
+    if (recordLimitExceeded) {
+      log.warn("Maximum number of records harvested for datasetId {} exceeded.", datasetId);
+      datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
+    }
+
+    return stepExecution.getExitStatus();
   }
 
   private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
