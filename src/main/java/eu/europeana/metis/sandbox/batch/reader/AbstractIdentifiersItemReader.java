@@ -54,7 +54,6 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   private int step;
   private int selectedCount;
   private int currentIndex;
-  private int nextIndexToSelect;
   private boolean recordLimitExceeded;
 
   protected AbstractIdentifiersItemReader(HarvestParameterService harvestParameterService,
@@ -74,7 +73,6 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
       step = normalizeStepSize(Integer.parseInt(stepSize));
       selectedCount = 0;
       currentIndex = 0;
-      nextIndexToSelect = step - 1;
       recordLimitExceeded = false;
 
       HarvestParametersEntity harvestParametersEntity = harvestParameterService
@@ -96,31 +94,30 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
       return null;
     }
 
-    //Iterate until the selected identifier is found
     while (iterator.hasNext()) {
-
       if (selectedCount >= maxAllowedRecords) {
         recordLimitExceeded = true;
         break;
       }
 
       T identifier = getIdentifierTransformer().apply(iterator.next());
-      currentIndex++;
-      if (currentIndex - 1 == nextIndexToSelect) {
-        if (isDeleted(identifier)) {
-          nextIndexToSelect++; // skip deleted
-        } else {
-          nextIndexToSelect += step;
+
+      if (!isDeleted(identifier)) {
+        currentIndex++;
+
+        if (currentIndex % step == 0) {
           selectedCount++;
 
           ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
           executionRecordExternalIdentifier.setExecutionRun(executionRun);
           executionRecordExternalIdentifier.setExternalRecordId(extractStringIdentifier(identifier));
           executionRecordExternalIdentifier.setDeleted(false);
+
           return executionRecordExternalIdentifier;
         }
       }
     }
+
     return null;
   }
 
@@ -140,7 +137,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   @AfterStep
   public ExitStatus afterStep(StepExecution stepExecution) {
     // Fatal: step size too big
-    if (isStepSizeBiggerThanDatasetSize(selectedCount, currentIndex)) {
+    if (isStepSizeBiggerThanDatasetSize()) {
       StepIsTooBigException stepIsTooBigException = new StepIsTooBigException(currentIndex);
       datasetExecutionSetupService.updateDatasetWithError(datasetId, stepIsTooBigException);
       log.error("Step failed: step size too big for dataset {}", datasetId, stepIsTooBigException);
@@ -165,8 +162,8 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     return stepExecution.getExitStatus();
   }
 
-  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
-    return datasetSize == 0 && currentIndex > 0;
+  private boolean isStepSizeBiggerThanDatasetSize() {
+    return selectedCount == 0 && currentIndex > 0;
   }
 
   private int normalizeStepSize(Integer stepSize) {
