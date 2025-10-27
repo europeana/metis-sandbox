@@ -54,7 +54,7 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
   }
 
   private Iterable<Path> getIterableHarvestingIdentifiersForArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
-    Path destinationDirectory = getPathToTempDestinationDirectoryById(datasetId);
+    Path destinationDirectory = getDeterministicPathToTempDirectoryById(datasetId);
     Path destinationArchiveFile;
     try {
       TempFileUtils.createSecureDirectory(destinationDirectory);
@@ -80,8 +80,8 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
    * @param id the unique identifier used to create the temporary destination directory path
    * @return the {@link Path} object representing the temporary destination directory
    */
-  public static @NotNull Path getPathToTempDestinationDirectoryById(String id) {
-    return Path.of(System.getProperty("java.io.tmpdir"), FileHarvestService.class.getSimpleName() + "-" + id);
+  public static @NotNull Path getDeterministicPathToTempDirectoryById(String id) {
+    return TempFileUtils.getDeterministicPathToTempDirectoryById(FileHarvestService.class.getSimpleName() + "-" + id);
   }
 
   private HarvestedRecord harvestRecordFromArchive(String datasetId, String sourceRecordId) throws HarvestException {
@@ -91,7 +91,7 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
 
   private String getRecord(String datasetId, String sourceRecordId) throws HarvestException {
     try {
-      Path destinationDirectory = getPathToTempDestinationDirectoryById(datasetId);
+      Path destinationDirectory = getDeterministicPathToTempDirectoryById(datasetId);
       Path recordFilePath = destinationDirectory.resolve(Path.of(sourceRecordId));
       return Files.readString(recordFilePath);
     } catch (IOException e) {

@@ -29,7 +29,7 @@ public class FileHarvestCleanupJobExecutionListener implements JobExecutionListe
 
   @Override
   public void afterJob(JobExecution jobExecution) {
-    Path pathToTempDestinationDirectoryById = FileHarvestService.getPathToTempDestinationDirectoryById(datasetId);
+    Path pathToTempDestinationDirectoryById = FileHarvestService.getDeterministicPathToTempDirectoryById(datasetId);
     try {
       FileUtils.deleteDirectory(pathToTempDestinationDirectoryById.toFile());
     } catch (IOException e) {
