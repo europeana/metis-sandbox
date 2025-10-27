@@ -116,6 +116,21 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
       String executionName);
 
   /**
+   * Retrieves the first {@code ExecutionRecord} that matches the specified dataset ID, record ID, and any of the provided
+   * executionRun names.
+   * <p>
+   * This is a convenience method for cases where the UI requests a record from e.g., HARVEST, and we don't know which harvest was
+   * performed, therefore, we need to send the list of the two possible.
+   *
+   * @param datasetId the unique identifier of the dataset.
+   * @param recordId the unique identifier of the record within the dataset.
+   * @param executionNames a list of executionRun names to filter the records.
+   * @return the first matching {@code ExecutionRecord} or {@code null} if no match is found.
+   */
+  ExecutionRecord findFirstByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionNameIn(
+      String datasetId, String recordId, List<String> executionNames);
+
+  /**
    * Counts the number of ExecutionRecord entities matching the given dataset ID and executionRun name.
    *
    * @param datasetId The ID of the dataset.

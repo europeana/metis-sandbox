@@ -118,9 +118,15 @@ public class DatasetTierController {
   public String getRecord(@PathVariable("id") String datasetId, @RequestParam("recordId") String recordId,
       @RequestParam(name = "step", required = false) String step) throws NoRecordFoundException {
     String convertedRecordId = recordId;
-    FullBatchJobType fullBatchJobType = FullBatchJobType.valueOf(step);
-    if (fullBatchJobType == FullBatchJobType.HARVEST_FILE || fullBatchJobType == FullBatchJobType.HARVEST_OAI ||
-        fullBatchJobType == FullBatchJobType.TRANSFORM_EXTERNAL) {
+
+    List<FullBatchJobType> fullBatchJobTypes;
+    if ("HARVEST".equals(step)) {
+      fullBatchJobTypes = List.of(FullBatchJobType.HARVEST_FILE, FullBatchJobType.HARVEST_OAI);
+    } else {
+      fullBatchJobTypes = List.of(FullBatchJobType.valueOf(step));
+    }
+    if (fullBatchJobTypes.contains(FullBatchJobType.HARVEST_FILE) || fullBatchJobTypes.contains(FullBatchJobType.HARVEST_OAI)
+    ||fullBatchJobTypes.contains(FullBatchJobType.TRANSFORM_EXTERNAL)) {
       ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
           datasetId, recordId, FullBatchJobType.VALIDATE_INTERNAL.name());
       convertedRecordId = Optional.ofNullable(executionRecordMatchingId)
@@ -128,8 +134,8 @@ public class DatasetTierController {
                                   .map(ExecutionRecordIdentifier::getExternalRecordId)
                                   .orElse(null);
     }
-    ExecutionRecord executionRecord = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
-        datasetId, convertedRecordId, fullBatchJobType.name());
+    ExecutionRecord executionRecord = executionRecordRepository.findFirstByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionNameIn(
+        datasetId, convertedRecordId, fullBatchJobTypes.stream().map(Enum::name).toList());
     return Optional.ofNullable(executionRecord).map(ExecutionRecord::getRecordData)
                    .orElseThrow(() -> new NoRecordFoundException(recordId));
   }
