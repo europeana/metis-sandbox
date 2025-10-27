@@ -66,7 +66,7 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
 
     try {
       //Do not close because the directory is then deleted. Handle deletion elsewhere.
-      return fileHarvester.createHarvestIterator(destinationArchiveFile, destinationArchiveFile.getParent());
+      return fileHarvester.createHarvestIteratorFromArchive(destinationArchiveFile, destinationArchiveFile.getParent());
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting File records", e);
     }

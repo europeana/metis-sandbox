@@ -13,9 +13,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class TestUtils {
 
@@ -72,6 +74,11 @@ public class TestUtils {
     @Override
     public void close() {
     }
+
+    @Override
+    public @NotNull Iterator<OaiRecordHeader> iterator() {
+      return null;
+    }
   }
 
   public static class TestHttpRecordIterator implements
@@ -107,6 +114,11 @@ public class TestUtils {
 
     @Override
     public void close() {
+    }
+
+    @Override
+    public @NotNull Iterator<FullRecord> iterator() {
+      return null;
     }
   }
 
