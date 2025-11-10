@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
@@ -47,7 +48,7 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Pat
   }
 
   @Override
-  protected Iterable<Path> getIterable(HarvestParametersEntity params, int stepSize) {
+  protected HarvestingIterator<Path, Path> getHarvestingIterator(HarvestParametersEntity params, int stepSize) {
     if (!(params instanceof AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity)) {
       throw new IllegalArgumentException("Expected AbstractBinaryHarvestParametersEntity");
     }
@@ -55,7 +56,7 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Pat
         abstractBinaryHarvestParametersEntity.getFileName(),
         abstractBinaryHarvestParametersEntity.getFileType(),
         abstractBinaryHarvestParametersEntity.getFileContent());
-    return fileHarvestService.getIterableHarvestingIdentifiers(datasetId, fileHarvestTarget);
+    return fileHarvestService.getHarvestingIteratorIdentifiers(datasetId, fileHarvestTarget);
   }
 
   @Override

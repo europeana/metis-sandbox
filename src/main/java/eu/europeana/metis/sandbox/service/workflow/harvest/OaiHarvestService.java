@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.service.workflow.harvest;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
@@ -23,7 +24,7 @@ public class OaiHarvestService implements HarvestService<OaiRecordHeader, OaiHar
   private final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
 
   @Override
-  public Iterable<OaiRecordHeader> getIterableHarvestingIdentifiers(String datasetId, @NotNull OaiHarvest oaiHarvest) {
+  public HarvestingIterator<OaiRecordHeader, OaiRecordHeader> getHarvestingIteratorIdentifiers(String datasetId, @NotNull OaiHarvest oaiHarvest) {
     return oaiHarvester.harvestRecordHeaders(oaiHarvest);
   }
 

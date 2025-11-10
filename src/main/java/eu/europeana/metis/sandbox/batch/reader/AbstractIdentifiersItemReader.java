@@ -1,5 +1,8 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
+import eu.europeana.metis.harvesting.HarvestingIterator;
+import eu.europeana.metis.harvesting.file.CloseableIterator;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvestingIterator;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
@@ -9,7 +12,7 @@ import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import java.util.Iterator;
+import java.io.IOException;
 import java.util.UUID;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +53,8 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
   protected final ExecutionRunRepository executionRunRepository;
   private ExecutionRun executionRun;
 
-  private Iterator<T> iterator;
+  private HarvestingIterator<T, T> harvestingIterator;
+  private CloseableIterator<T> closeableIterator;
   private int step;
   private int selectedCount;
   private int currentIndex;
@@ -80,7 +84,8 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
           .orElseThrow();
       executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
           datasetId, targetExecutionId, getJobType().name());
-      iterator = getIterable(harvestParametersEntity, Integer.parseInt(stepSize)).iterator();
+      harvestingIterator = getHarvestingIterator(harvestParametersEntity, step);
+      closeableIterator = harvestingIterator.getCloseableIterator();
 
     } catch (RuntimeException ex) {
       datasetExecutionSetupService.updateDatasetWithError(datasetId, ex);
@@ -90,17 +95,17 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
   @Override
   public ExecutionRecordExternalIdentifier read() {
-    if (iterator == null) {
+    if (closeableIterator == null) {
       return null;
     }
 
-    while (iterator.hasNext()) {
+    while (closeableIterator.hasNext()) {
       if (selectedCount >= maxAllowedRecords) {
         recordLimitExceeded = true;
         break;
       }
 
-      T identifier = getIdentifierTransformer().apply(iterator.next());
+      T identifier = getIdentifierTransformer().apply(closeableIterator.next());
 
       if (!isDeleted(identifier)) {
         currentIndex++;
@@ -159,6 +164,20 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
       datasetExecutionSetupService.updateRecordLimitExceeded(Integer.parseInt(datasetId));
     }
 
+    // Finally, close resources
+    if (harvestingIterator instanceof OaiHarvestingIterator) {
+      try {
+        harvestingIterator.close();
+      } catch (IOException e) {
+        log.error("Error closing OAI-PMH harvesting iterator", e);
+      }
+    }
+    try {
+      closeableIterator.close();
+    } catch (IOException e) {
+      log.error("Error closing closeable iterator", e);
+    }
+
     return stepExecution.getExitStatus();
   }
 
@@ -172,7 +191,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
   protected abstract Function<T, T> getIdentifierTransformer();
 
-  protected abstract Iterable<T> getIterable(HarvestParametersEntity params, int stepSize);
+  protected abstract HarvestingIterator<T, T> getHarvestingIterator(HarvestParametersEntity params, int stepSize);
 
   protected abstract String extractStringIdentifier(T identifier);
 

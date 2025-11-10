@@ -2,7 +2,9 @@ package eu.europeana.metis.sandbox.service.workflow.harvest;
 
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.file.FileHarvester;
+import eu.europeana.metis.harvesting.file.PathIterator;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
@@ -15,7 +17,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
@@ -32,10 +33,10 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
   private final FileHarvester fileHarvester = HarvesterFactory.createFileHarvester();
 
   @Override
-  public Iterable<Path> getIterableHarvestingIdentifiers(String datasetId,
+  public HarvestingIterator<Path, Path> getHarvestingIteratorIdentifiers(String datasetId,
       @NotNull FileHarvestTarget fileHarvestTarget) {
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
-      return List.of(Path.of(fileHarvestTarget.fileName()));
+      return getIterableHarvestingIdentifiersSingleFile(datasetId, fileHarvestTarget);
     } else {
       return getIterableHarvestingIdentifiersForArchive(datasetId, fileHarvestTarget);
     }
@@ -53,22 +54,32 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
     }
   }
 
-  private Iterable<Path> getIterableHarvestingIdentifiersForArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
-    Path destinationDirectory = getDeterministicPathToTempDirectoryById(datasetId);
-    Path destinationArchiveFile;
-    try {
-      TempFileUtils.createSecureDirectory(destinationDirectory);
-      destinationArchiveFile = destinationDirectory.resolve(Path.of(fileHarvestTarget.fileName()));
-      Files.write(destinationArchiveFile, fileHarvestTarget.fileContent());
-    } catch (IOException e) {
-      throw new ServiceException("Error creating temporary file", e);
-    }
+  private HarvestingIterator<Path, Path> getIterableHarvestingIdentifiersSingleFile(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+    Path destinationArchiveFile = createFileInTempDirectoryAndGetPath(datasetId, fileHarvestTarget);
+    return new PathIterator(destinationArchiveFile.getParent());
+  }
+
+  private HarvestingIterator<Path, Path> getIterableHarvestingIdentifiersForArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+    Path destinationArchiveFile = createFileInTempDirectoryAndGetPath(datasetId, fileHarvestTarget);
 
     try {
       //Do not close because the directory is then deleted. Handle deletion elsewhere.
       return fileHarvester.createHarvestIteratorFromArchive(destinationArchiveFile, destinationArchiveFile.getParent());
     } catch (HarvesterException e) {
       throw new ServiceException("Error harvesting File records", e);
+    }
+  }
+
+  private Path createFileInTempDirectoryAndGetPath(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+    Path destinationDirectory = getDeterministicPathToTempDirectoryById(datasetId);
+    Path destinationArchiveFile;
+    try {
+      TempFileUtils.createSecureDirectory(destinationDirectory);
+      destinationArchiveFile = destinationDirectory.resolve(Path.of(fileHarvestTarget.fileName()));
+      Files.write(destinationArchiveFile, fileHarvestTarget.fileContent());
+      return destinationArchiveFile;
+    } catch (IOException e) {
+      throw new ServiceException("Error creating temporary file", e);
     }
   }
 

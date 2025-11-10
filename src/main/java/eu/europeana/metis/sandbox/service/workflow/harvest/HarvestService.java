@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow.harvest;
 
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
 
@@ -21,7 +22,7 @@ public interface HarvestService<T, S> {
    * @param harvestTarget the target object representing the source of harvestable data.
    * @return an iterable collection of record identifiers available for harvesting.
    */
-  Iterable<T> getIterableHarvestingIdentifiers(String datasetId, S harvestTarget);
+  HarvestingIterator<T, T> getHarvestingIteratorIdentifiers(String datasetId, S harvestTarget);
 
   /**
    * Harvests a record from the specified harvest target, corresponding to the provided dataset ID and source record ID.

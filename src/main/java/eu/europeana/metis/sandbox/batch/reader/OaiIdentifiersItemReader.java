@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
 
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
@@ -47,7 +48,7 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
   }
 
   @Override
-  protected Iterable<OaiRecordHeader> getIterable(HarvestParametersEntity harvestParametersEntity, int stepSize) {
+  protected HarvestingIterator<OaiRecordHeader, OaiRecordHeader> getHarvestingIterator(HarvestParametersEntity harvestParametersEntity, int stepSize) {
     if (!(harvestParametersEntity instanceof OaiHarvestParametersEntity oaiHarvestParametersEntity)) {
       throw new IllegalArgumentException("Expected OaiHarvestParametersEntity");
     }
@@ -55,7 +56,7 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
         oaiHarvestParametersEntity.getUrl(),
         oaiHarvestParametersEntity.getMetadataFormat(),
         oaiHarvestParametersEntity.getSetSpec());
-    return oaiHarvestService.getIterableHarvestingIdentifiers(datasetId, oaiHarvest);
+    return oaiHarvestService.getHarvestingIteratorIdentifiers(datasetId, oaiHarvest);
   }
 
   @Override

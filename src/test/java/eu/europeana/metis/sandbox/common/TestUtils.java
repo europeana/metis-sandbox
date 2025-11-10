@@ -7,17 +7,16 @@ import eu.europeana.metis.harvesting.FullRecordHarvestingIterator;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
+import eu.europeana.metis.harvesting.file.CloseableIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public class TestUtils {
 
@@ -72,12 +71,13 @@ public class TestUtils {
     }
 
     @Override
-    public void close() {
+    public CloseableIterator<OaiRecordHeader> getCloseableIterator() {
+      return null;
     }
 
     @Override
-    public @NotNull Iterator<OaiRecordHeader> iterator() {
-      return null;
+    public void close() {
+      //Nothing to do
     }
   }
 
@@ -113,12 +113,13 @@ public class TestUtils {
     }
 
     @Override
-    public void close() {
+    public CloseableIterator<FullRecord> getCloseableIterator() {
+      return null;
     }
 
     @Override
-    public @NotNull Iterator<FullRecord> iterator() {
-      return null;
+    public void close() {
+      //Nothing to do
     }
   }
 
