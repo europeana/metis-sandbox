@@ -165,6 +165,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     }
 
     // Finally, close resources
+    //todo: https://europeana.atlassian.net/browse/MET-6889 To update so that we can properly close here without the need to check type.
     if (harvestingIterator instanceof OaiHarvestingIterator) {
       try {
         harvestingIterator.close();
