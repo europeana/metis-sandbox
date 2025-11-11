@@ -5,11 +5,13 @@ import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
+import eu.europeana.metis.sandbox.batch.processor.listener.FileHarvestCleanupJobExecutionListener;
 import eu.europeana.metis.sandbox.batch.reader.ExternalIdentifiersRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.reader.FileIdentifiersItemReader;
 import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -47,10 +49,14 @@ public class FileHarvestJobConfig {
   Job fileHarvestJob(
       JobRepository jobRepository,
       @Qualifier(IDENTIFIERS_HARVEST_STEP_NAME) Step identifiersHarvestStep,
-      @Qualifier(RECORDS_HARVEST_STEP_NAME) Step recordsHarvestStep) {
+      @Qualifier(RECORDS_HARVEST_STEP_NAME) Step recordsHarvestStep,
+      FileHarvestCleanupJobExecutionListener fileHarvestCleanupJobExecutionListener) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
+        .listener(fileHarvestCleanupJobExecutionListener)
         .start(identifiersHarvestStep)
-        .next(recordsHarvestStep)
+        .on(ExitStatus.FAILED.getExitCode()).stop()
+        .from(identifiersHarvestStep).on("*").to(recordsHarvestStep)
+        .end()
         .build();
   }
 

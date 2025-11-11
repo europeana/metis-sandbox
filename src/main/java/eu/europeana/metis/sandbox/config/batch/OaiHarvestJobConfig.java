@@ -10,6 +10,7 @@ import eu.europeana.metis.sandbox.batch.reader.OaiIdentifiersItemReader;
 import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -50,7 +51,9 @@ public class OaiHarvestJobConfig {
       @Qualifier(RECORDS_HARVEST_STEP_NAME) Step recordsHarvestStep) {
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .start(identifiersHarvestStep)
-        .next(recordsHarvestStep)
+        .on(ExitStatus.FAILED.getExitCode()).stop()
+        .from(identifiersHarvestStep).on("*").to(recordsHarvestStep)
+        .end()
         .build();
   }
 

@@ -1,30 +1,24 @@
 package eu.europeana.metis.sandbox.service.workflow.harvest;
 
-import static org.apache.tika.utils.StringUtils.isBlank;
-
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvestingIterator;
+import eu.europeana.metis.harvesting.file.FileHarvester;
+import eu.europeana.metis.harvesting.file.PathIterator;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.common.exception.HarvestException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.common.exception.StepIsTooBigException;
-import eu.europeana.metis.utils.CompressedFileExtension;
+import eu.europeana.metis.utils.TempFileUtils;
 import jakarta.validation.constraints.NotNull;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,116 +28,86 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class FileHarvestService implements HarvestService<String, FileHarvestTarget> {
+public class FileHarvestService implements HarvestService<Path, FileHarvestTarget> {
 
-  private static final String MAC_TEMP_FILE = ".DS_Store";
-  private static final String MAC_TEMP_FOLDER = "__MACOSX";
-
-  private final int maxAllowedRecords;
-
-  /**
-   * Constructor.
-   *
-   * @param maxAllowedRecords the maximum number of records allowed to be processed
-   */
-  @Autowired
-  public FileHarvestService(@Value("${sandbox.dataset.max-size}") int maxAllowedRecords) {
-    this.maxAllowedRecords = maxAllowedRecords;
-  }
+  private final FileHarvester fileHarvester = HarvesterFactory.createFileHarvester();
 
   @Override
-  public HarvestIdentifiersResult<String> harvestExternalIdentifiers(@NotNull FileHarvestTarget fileHarvestTarget,
-      Integer stepSize) {
+  public HarvestingIterator<Path, Path> getHarvestingIteratorIdentifiers(String datasetId,
+      @NotNull FileHarvestTarget fileHarvestTarget) {
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
-      return new HarvestIdentifiersResult<>(List.of(fileHarvestTarget.fileName()), false);
+      return getIterableHarvestingIdentifiersSingleFile(datasetId, fileHarvestTarget);
     } else {
-      return harvestIdentifiersFromCompressedArchive(fileHarvestTarget.fileContent(), stepSize);
+      return getIterableHarvestingIdentifiersForArchive(datasetId, fileHarvestTarget);
     }
   }
 
   @Override
-  public HarvestedRecord harvestRecord(@NotNull FileHarvestTarget fileHarvestTarget, String sourceRecordId)
+  public HarvestedRecord harvestRecord(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget, String sourceRecordId)
       throws HarvestException {
     if (fileHarvestTarget.fileType().equals(FileType.XML)) {
       InputStream inputStream = new ByteArrayInputStream(fileHarvestTarget.fileContent());
       String recordData = getStringData(inputStream);
       return new HarvestedRecord(sourceRecordId, recordData);
     } else {
-      return harvestRecordFromArchive(fileHarvestTarget.fileContent(), sourceRecordId);
+      return harvestRecordFromArchive(datasetId, sourceRecordId);
     }
   }
 
-  private HarvestIdentifiersResult<String> harvestIdentifiersFromCompressedArchive(byte[] fileContent, Integer stepSize)
-      throws ServiceException {
-    final int numberOfRecordsToStepInto = normalizeStepSize(stepSize);
-    final List<String> result = new ArrayList<>();
-    int currentIndex = 0;
-    int nextIndexToSelect = numberOfRecordsToStepInto - 1;
+  private HarvestingIterator<Path, Path> getIterableHarvestingIdentifiersSingleFile(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+    Path destinationArchiveFile = createFileInTempDirectoryAndGetPath(datasetId, fileHarvestTarget);
+    return new PathIterator(destinationArchiveFile.getParent());
+  }
 
-    try (InputStream bis = new ByteArrayInputStream(fileContent);
-        BufferedInputStream buffered = new BufferedInputStream(bis);
-        ArchiveInputStream<?> ais = new ArchiveStreamFactory().createArchiveInputStream(buffered)) {
+  private HarvestingIterator<Path, Path> getIterableHarvestingIdentifiersForArchive(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+    Path destinationArchiveFile = createFileInTempDirectoryAndGetPath(datasetId, fileHarvestTarget);
 
-      ArchiveEntry entry;
-      while ((entry = ais.getNextEntry()) != null && result.size() < maxAllowedRecords) {
-        if (entry.isDirectory() || shouldSkip(entry.getName())) {
-          continue;
-        }
+    try {
+      //Do not close because the directory is then deleted. Handle deletion elsewhere.
+      return fileHarvester.createHarvestIteratorFromArchive(destinationArchiveFile, destinationArchiveFile.getParent());
+    } catch (HarvesterException e) {
+      throw new ServiceException("Error harvesting File records", e);
+    }
+  }
 
-        if (currentIndex == nextIndexToSelect) {
-          log.debug("Processing entry {}", entry.getName());
-          result.add(entry.getName());
-          nextIndexToSelect += numberOfRecordsToStepInto;
-        }
-        currentIndex++;
-      }
-
-      if (isStepSizeBiggerThanDatasetSize(result.size(), currentIndex)) {
-        throw new StepIsTooBigException(currentIndex);
-      }
+  private Path createFileInTempDirectoryAndGetPath(String datasetId, @NotNull FileHarvestTarget fileHarvestTarget) {
+    Path destinationDirectory = getDeterministicPathToTempDirectoryById(datasetId);
+    Path destinationArchiveFile;
+    try {
+      TempFileUtils.createSecureDirectory(destinationDirectory);
+      destinationArchiveFile = destinationDirectory.resolve(Path.of(fileHarvestTarget.fileName()));
+      Files.write(destinationArchiveFile, fileHarvestTarget.fileContent());
+      return destinationArchiveFile;
     } catch (IOException e) {
-      throw new ServiceException("Error harvesting records ", e);
+      throw new ServiceException("Error creating temporary file", e);
     }
-    boolean recordLimitExceeded = result.size() >= maxAllowedRecords;
-    return new HarvestIdentifiersResult<>(result, recordLimitExceeded);
   }
 
-  private boolean isStepSizeBiggerThanDatasetSize(int datasetSize, int currentIndex) {
-    return datasetSize == 0 && currentIndex > 0;
+  /**
+   * Returns the path to a temporary destination directory for a given identifier.
+   * The directory path is constructed within the system's temporary directory
+   * and is uniquely tied to the provided identifier.
+   *
+   * @param id the unique identifier used to create the temporary destination directory path
+   * @return the {@link Path} object representing the temporary destination directory
+   */
+  public static @NotNull Path getDeterministicPathToTempDirectoryById(String id) {
+    return TempFileUtils.getDeterministicPathToTempDirectoryById(FileHarvestService.class.getSimpleName() + "-" + id);
   }
 
-  private boolean shouldSkip(String name) {
-    String nameLowerCase = name.toLowerCase(Locale.ROOT);
-
-    return name.contains(MAC_TEMP_FOLDER)
-        || name.endsWith(MAC_TEMP_FILE)
-        || name.startsWith(".")
-        || name.contains("/.")
-        || Arrays.stream(CompressedFileExtension.values())
-                 .anyMatch(ext -> nameLowerCase.endsWith(ext.getExtension().toLowerCase(Locale.ROOT)));
-  }
-
-  private HarvestedRecord harvestRecordFromArchive(byte[] fileContent, String sourceRecordId) {
-    String recordData = null;
-    try (InputStream bis = new ByteArrayInputStream(fileContent);
-        BufferedInputStream buffered = new BufferedInputStream(bis);
-        ArchiveInputStream<?> ais = new ArchiveStreamFactory().createArchiveInputStream(buffered)) {
-
-      ArchiveEntry entry;
-      while ((entry = ais.getNextEntry()) != null) {
-        if (!entry.isDirectory() && entry.getName().equals(sourceRecordId)) {
-          recordData = IOUtils.toString(ais, StandardCharsets.UTF_8);
-          break;
-        }
-      }
-    } catch (IOException e) {
-      throw new ServiceException("Error harvesting records", e);
-    }
-
-    if (isBlank(recordData)) {
-      throw new ServiceException("Record with ID '%s' not found in archive".formatted(sourceRecordId));
-    }
+  private HarvestedRecord harvestRecordFromArchive(String datasetId, String sourceRecordId) throws HarvestException {
+    String recordData = getRecord(datasetId, sourceRecordId);
     return new HarvestedRecord(sourceRecordId, recordData);
+  }
+
+  private String getRecord(String datasetId, String sourceRecordId) throws HarvestException {
+    try {
+      Path destinationDirectory = getDeterministicPathToTempDirectoryById(datasetId);
+      Path recordFilePath = destinationDirectory.resolve(Path.of(sourceRecordId));
+      return Files.readString(recordFilePath);
+    } catch (IOException e) {
+      throw new HarvestException(e);
+    }
   }
 
   private String getStringData(InputStream inputStream) throws HarvestException {

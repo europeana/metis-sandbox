@@ -7,6 +7,7 @@ import eu.europeana.metis.harvesting.FullRecordHarvestingIterator;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
+import eu.europeana.metis.harvesting.file.CloseableIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -70,7 +71,13 @@ public class TestUtils {
     }
 
     @Override
+    public CloseableIterator<OaiRecordHeader> getCloseableIterator() {
+      return null;
+    }
+
+    @Override
     public void close() {
+      //Nothing to do
     }
   }
 
@@ -106,7 +113,13 @@ public class TestUtils {
     }
 
     @Override
+    public CloseableIterator<FullRecord> getCloseableIterator() {
+      return null;
+    }
+
+    @Override
     public void close() {
+      //Nothing to do
     }
   }
 

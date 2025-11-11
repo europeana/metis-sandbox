@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 
 import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
 
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.sandbox.batch.common.BatchJobType;
@@ -10,8 +11,8 @@ import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
-import eu.europeana.metis.sandbox.service.workflow.harvest.HarvestIdentifiersResult;
 import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService;
+import java.util.function.Function;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +43,12 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
   }
 
   @Override
-  protected HarvestIdentifiersResult<OaiRecordHeader> doHarvest(HarvestParametersEntity harvestParametersEntity, int stepSize) {
+  protected Function<OaiRecordHeader, OaiRecordHeader> getIdentifierTransformer() {
+    return Function.identity();
+  }
+
+  @Override
+  protected HarvestingIterator<OaiRecordHeader, OaiRecordHeader> getHarvestingIterator(HarvestParametersEntity harvestParametersEntity, int stepSize) {
     if (!(harvestParametersEntity instanceof OaiHarvestParametersEntity oaiHarvestParametersEntity)) {
       throw new IllegalArgumentException("Expected OaiHarvestParametersEntity");
     }
@@ -50,7 +56,7 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
         oaiHarvestParametersEntity.getUrl(),
         oaiHarvestParametersEntity.getMetadataFormat(),
         oaiHarvestParametersEntity.getSetSpec());
-    return oaiHarvestService.harvestExternalIdentifiers(oaiHarvest, stepSize);
+    return oaiHarvestService.getHarvestingIteratorIdentifiers(datasetId, oaiHarvest);
   }
 
   @Override
