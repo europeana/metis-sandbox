@@ -103,7 +103,7 @@ class SandboxConfig {
     return new NormalizerFactory();
   }
 
-  @Bean(destroyMethod = "close")
+  @Bean
   Dereferencer dereferencer() throws DereferenceException {
     DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
@@ -112,7 +112,7 @@ class SandboxConfig {
     return  dereferencerProvider.create();
   }
 
-  @Bean(destroyMethod = "close")
+  @Bean
   Enricher enricher() throws EnrichmentException {
     EnricherProvider enricherProvider = new EnricherProvider();
     enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
