@@ -2,7 +2,9 @@ package eu.europeana.metis.sandbox.config;
 
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
+import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
+import eu.europeana.enrichment.rest.client.enrichment.Enricher;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
@@ -102,15 +104,25 @@ class SandboxConfig {
   }
 
   @Bean
-  EnrichmentWorker enrichmentWorker() throws DereferenceException, EnrichmentException {
+  Dereferencer dereferencer() throws DereferenceException {
     DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceServiceUrl);
     dereferencerProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
         entityApiGrantParams);
+    return  dereferencerProvider.create();
+  }
+
+  @Bean
+  Enricher enricher() throws EnrichmentException {
     EnricherProvider enricherProvider = new EnricherProvider();
     enricherProvider.setEnrichmentPropertiesValues(entityManagementUrl, entityApiUrl, entityApiTokenEndpoint,
         entityApiGrantParams);
-    return new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
+    return enricherProvider.create();
+  }
+
+  @Bean
+  EnrichmentWorker enrichmentWorker(Dereferencer dereferencer, Enricher enricher) {
+    return new EnrichmentWorkerImpl(dereferencer, enricher);
   }
 
   @Bean
