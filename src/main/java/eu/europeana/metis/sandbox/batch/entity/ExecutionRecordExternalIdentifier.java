@@ -34,8 +34,22 @@ public class ExecutionRecordExternalIdentifier {
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
   private ExecutionRun executionRun;
 
+  /**
+   * Represents an external record identifier as it comes from the provider.
+   * <p>For example, an oai-pmh identifier or a file path.</p>
+   */
   @Column(length = 300)
   private String externalRecordId;
 
+  /**
+   * Represents a derived record identifier from an external record identifier.
+   * <p>For example, a file path that has been partitioned.</p>
+   */
+  @Column(length = 300)
+  private String derivedRecordId;
+
+  /**
+   * Indicates whether the current execution record represented by its identifiers is marked as deleted.
+   */
   private boolean isDeleted;
 }

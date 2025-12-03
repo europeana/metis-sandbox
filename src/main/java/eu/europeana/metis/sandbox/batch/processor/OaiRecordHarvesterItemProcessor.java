@@ -77,15 +77,16 @@ public class OaiRecordHarvesterItemProcessor extends
       throws Exception {
     OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
     HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(datasetId,
-        oaiHarvest, executionRecordExternalIdentifier.getExternalRecordId()
+        oaiHarvest, executionRecordExternalIdentifier.getDerivedRecordId()
     );
+    String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
 
     return createValidated(b -> b
         .datasetId(datasetId)
         .executionId(getTargetExecutionId())
-        .externalRecordId(harvestedRecord.sourceRecordId())
-        .sourceRecordId(harvestedRecord.sourceRecordId())
-        .recordId(harvestedRecord.sourceRecordId())
+        .externalRecordId(externalRecordId)
+        .sourceRecordId(externalRecordId)
+        .recordId(externalRecordId)
         .executionName(getExecutionName())
         .recordData(harvestedRecord.recordData()));
   }

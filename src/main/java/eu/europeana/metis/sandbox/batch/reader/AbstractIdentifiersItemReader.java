@@ -14,7 +14,6 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
@@ -84,7 +83,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
           .orElseThrow();
       executionRun = executionRunRepository.getByDatasetIdAndExecutionIdAndExecutionName(
           datasetId, targetExecutionId, getJobType().name());
-      harvestingIterator = getHarvestingIterator(harvestParametersEntity, step);
+      harvestingIterator = getHarvestingIterator(harvestParametersEntity);
       closeableIterator = harvestingIterator.getCloseableIterator();
 
     } catch (RuntimeException ex) {
@@ -105,7 +104,7 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
         break;
       }
 
-      T identifier = getIdentifierTransformer().apply(closeableIterator.next());
+      T identifier = normalizeIdentifier(closeableIterator.next());
 
       if (!isDeleted(identifier)) {
         currentIndex++;
@@ -115,14 +114,14 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
 
           ExecutionRecordExternalIdentifier executionRecordExternalIdentifier = new ExecutionRecordExternalIdentifier();
           executionRecordExternalIdentifier.setExecutionRun(executionRun);
-          executionRecordExternalIdentifier.setExternalRecordId(extractStringIdentifier(identifier));
+          executionRecordExternalIdentifier.setExternalRecordId(convertToCanonicalIdentifier(identifier));
+          executionRecordExternalIdentifier.setDerivedRecordId(extractStringIdentifier(identifier));
           executionRecordExternalIdentifier.setDeleted(false);
 
           return executionRecordExternalIdentifier;
         }
       }
     }
-
     return null;
   }
 
@@ -190,14 +189,53 @@ public abstract class AbstractIdentifiersItemReader<T> implements ItemReader<Exe
     return (stepSize == null || stepSize <= 0) ? 1 : stepSize;
   }
 
-  protected abstract Function<T, T> getIdentifierTransformer();
+  /**
+   * Normalizes the given identifier, ensuring it adheres to a specific format or structure.
+   * <p>For example, a relative identifier for a system path becomes absolute</p>
+   *
+   * @param identifier the identifier to be normalized
+   * @return the normalized identifier
+   */
+  protected abstract T normalizeIdentifier(T identifier);
 
-  protected abstract HarvestingIterator<T, T> getHarvestingIterator(HarvestParametersEntity params, int stepSize);
+  /**
+   * Creates and returns a harvesting iterator configured with the specified parameters.
+   *
+   * @param harvestParametersEntity the harvest parameters entity containing the configuration for the harvesting process
+   * @return a harvesting iterator
+   */
+  protected abstract HarvestingIterator<T, T> getHarvestingIterator(HarvestParametersEntity harvestParametersEntity);
 
+  /**
+   * Extracts a string representation of the given identifier.
+   *
+   * @param identifier the identifier from which the string representation is extracted
+   * @return the string representation of the given identifier
+   */
   protected abstract String extractStringIdentifier(T identifier);
 
+  /**
+   * Converts the given identifier to its canonical form.
+   * <p>For example, a partitioned file path is converted back to its real/canonical form</p>
+   *
+   * @param identifier the identifier to be converted to its canonical form
+   * @return the canonical representation of the identifier
+   */
+  protected abstract String convertToCanonicalIdentifier(T identifier);
+
+  /**
+   * Determines if the specified identifier is marked as deleted.
+   *
+   * @param identifier the identifier to check for deletion status
+   * @return true if the identifier is deleted, false otherwise
+   */
   protected abstract boolean isDeleted(T identifier);
 
+  /**
+   * Retrieves the type of batch job associated with this reader.
+   *
+   * @return the {@link BatchJobType} representing the specific type of job handled by this reader
+   */
   protected abstract BatchJobType getJobType();
 }
 

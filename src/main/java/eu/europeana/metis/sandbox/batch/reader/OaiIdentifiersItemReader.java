@@ -12,7 +12,6 @@ import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.workflow.harvest.OaiHarvestService;
-import java.util.function.Function;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
@@ -43,12 +42,12 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
   }
 
   @Override
-  protected Function<OaiRecordHeader, OaiRecordHeader> getIdentifierTransformer() {
-    return Function.identity();
+  protected OaiRecordHeader normalizeIdentifier(OaiRecordHeader identifier) {
+    return identifier;
   }
 
   @Override
-  protected HarvestingIterator<OaiRecordHeader, OaiRecordHeader> getHarvestingIterator(HarvestParametersEntity harvestParametersEntity, int stepSize) {
+  protected HarvestingIterator<OaiRecordHeader, OaiRecordHeader> getHarvestingIterator(HarvestParametersEntity harvestParametersEntity) {
     if (!(harvestParametersEntity instanceof OaiHarvestParametersEntity oaiHarvestParametersEntity)) {
       throw new IllegalArgumentException("Expected OaiHarvestParametersEntity");
     }
@@ -62,6 +61,11 @@ public class OaiIdentifiersItemReader extends AbstractIdentifiersItemReader<OaiR
   @Override
   protected String extractStringIdentifier(OaiRecordHeader identifier) {
     return identifier.getOaiIdentifier();
+  }
+
+  @Override
+  protected String convertToCanonicalIdentifier(OaiRecordHeader identifier) {
+    return extractStringIdentifier(identifier);
   }
 
   @Override
