@@ -307,7 +307,7 @@ public class DatasetReportService {
         executionRecordWarningRepository.findWarningsWithIdentifiers(datasetId, executionName)) {
       executionRecordWarnings.forEach(executionRecordWarning -> {
         String recordId = formatRecordId(executionRecordWarning.getIdentifier());
-        GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getMessage());
+        GroupedIssueKey key = new GroupedIssueKey(Status.WARN, executionRecordWarning.getException());
         groupedIssues.computeIfAbsent(key, k -> new ArrayList<>()).add(recordId);
       });
     }

@@ -221,8 +221,8 @@ class DatasetReportServiceTest {
         }
 
         @Override
-        public String getMessage() {
-          return "warning";
+        public String getException() {
+          return "exception";
         }
       };
 
