@@ -16,12 +16,24 @@ import lombok.Setter;
 @Embeddable
 public class ExecutionRecordIdentifier {
 
+  /**
+   * Represents an external identifier retrieved from a provider.
+   * <p>For example, an oai-pmh identifier or a file path.</p>
+   */
   @Column(length = 300)
   private String externalRecordId;
 
+  /**
+   * Represents a source identifier retrieved from inside the record data.
+   * <p>For example, the provided cho about</p>
+   */
   @Column(length = 300)
   private String sourceRecordId;
 
+  /**
+   * Represents a record identifier generated/transformed from the source identifier.
+   * <p>For example, the converted provided cho about</p>
+   */
   @Column(length = 300)
   private String recordId;
 }

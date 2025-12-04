@@ -12,7 +12,6 @@ import eu.europeana.metis.sandbox.service.dataset.HarvestParameterService;
 import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestService;
 import eu.europeana.metis.sandbox.service.workflow.harvest.FileHarvestTarget;
 import java.nio.file.Path;
-import java.util.function.Function;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
@@ -43,13 +42,13 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Pat
   }
 
   @Override
-  protected Function<Path, Path> getIdentifierTransformer() {
-    return path -> FileHarvestService.getDeterministicPathToTempDirectoryById(datasetId).relativize(path);
+  protected Path normalizeIdentifier(Path identifier) {
+    return FileHarvestService.getDeterministicPathToTempDirectoryById(datasetId).relativize(identifier);
   }
 
   @Override
-  protected HarvestingIterator<Path, Path> getHarvestingIterator(HarvestParametersEntity params, int stepSize) {
-    if (!(params instanceof AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity)) {
+  protected HarvestingIterator<Path, Path> getHarvestingIterator(HarvestParametersEntity harvestParametersEntity) {
+    if (!(harvestParametersEntity instanceof AbstractBinaryHarvestParametersEntity abstractBinaryHarvestParametersEntity)) {
       throw new IllegalArgumentException("Expected AbstractBinaryHarvestParametersEntity");
     }
     FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(
@@ -62,6 +61,11 @@ public class FileIdentifiersItemReader extends AbstractIdentifiersItemReader<Pat
   @Override
   protected String extractStringIdentifier(Path identifier) {
     return identifier.toString();
+  }
+
+  @Override
+  protected String convertToCanonicalIdentifier(Path identifier) {
+    return fileHarvestService.convertPartitionedPathToCanonicalString(identifier);
   }
 
   @Override

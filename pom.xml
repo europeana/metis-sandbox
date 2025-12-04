@@ -31,7 +31,7 @@
     <version.metis>16-SNAPSHOT</version.metis>
     <version.metis-common>17-SNAPSHOT</version.metis-common>
     <version.metis-normalization>16-SNAPSHOT</version.metis-normalization>
-    <version.corelib>2.17.5-SNAPSHOT</version.corelib>
+    <version.corelib>2.17.6-SNAPSHOT</version.corelib>
 
     <!--External-->
     <version.spring.boot>3.4.4</version.spring.boot>

@@ -126,7 +126,7 @@ public class DatasetTierController {
       fullBatchJobTypes = List.of(FullBatchJobType.valueOf(step));
     }
     if (fullBatchJobTypes.contains(FullBatchJobType.HARVEST_FILE) || fullBatchJobTypes.contains(FullBatchJobType.HARVEST_OAI)
-    ||fullBatchJobTypes.contains(FullBatchJobType.TRANSFORM_EXTERNAL)) {
+        || fullBatchJobTypes.contains(FullBatchJobType.TRANSFORM_EXTERNAL)) {
       ExecutionRecord executionRecordMatchingId = executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
           datasetId, recordId, FullBatchJobType.VALIDATE_INTERNAL.name());
       convertedRecordId = Optional.ofNullable(executionRecordMatchingId)

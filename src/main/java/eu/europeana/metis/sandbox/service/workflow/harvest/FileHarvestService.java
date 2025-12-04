@@ -95,6 +95,16 @@ public class FileHarvestService implements HarvestService<Path, FileHarvestTarge
     return TempFileUtils.getDeterministicPathToTempDirectoryById(FileHarvestService.class.getSimpleName() + "-" + id);
   }
 
+  /**
+   * Converts a partitioned {@link Path} into its canonical string-based representation.
+   *
+   * @param partitionedPath the partitioned {@link Path} to be converted
+   * @return the canonical string representation of the partitioned path
+   */
+  public @NotNull String convertPartitionedPathToCanonicalString(Path partitionedPath) {
+    return fileHarvester.convertPartitionedPathToCanonical(partitionedPath).toString();
+  }
+
   private HarvestedRecord harvestRecordFromArchive(String datasetId, String sourceRecordId) throws HarvestException {
     String recordData = getRecord(datasetId, sourceRecordId);
     return new HarvestedRecord(sourceRecordId, recordData);
