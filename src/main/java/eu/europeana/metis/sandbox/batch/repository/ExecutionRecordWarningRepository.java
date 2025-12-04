@@ -28,7 +28,7 @@ public interface ExecutionRecordWarningRepository extends JpaRepository<Executio
    */
   @Query("""
       SELECT r.executionRecord.identifier AS identifier,
-             r.message AS message
+             r.exception AS exception
         FROM ExecutionRecordWarning r
         WHERE r.executionRecord.executionRun.datasetId = :datasetId
           AND r.executionRecord.executionRun.executionName = :executionName
@@ -79,7 +79,7 @@ public interface ExecutionRecordWarningRepository extends JpaRepository<Executio
 
     ExecutionRecordIdentifier getIdentifier();
 
-    String getMessage();
+    String getException();
   }
 
 }

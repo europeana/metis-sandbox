@@ -221,8 +221,8 @@ class DatasetReportServiceTest {
         }
 
         @Override
-        public String getMessage() {
-          return "warning";
+        public String getException() {
+          return "exception";
         }
       };
 
@@ -250,7 +250,7 @@ class DatasetReportServiceTest {
       List<ErrorInfoDTO> errors = executionProgressByStepDTO.errors();
       assertEquals(totalWarningInStep + totalFailInStep, errors.size());
       assertEquals(Status.WARN, errors.getFirst().type());
-      assertEquals("warning", errors.getFirst().errorMessage());
+      assertEquals("exception", errors.getFirst().errorMessage());
       assertEquals(List.of("externalRecordId | sourceRecordId | recordId"), errors.getFirst().recordIds());
     }
     assertFalse(executionProgressInfoDTO.recordLimitExceeded());
