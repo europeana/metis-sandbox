@@ -81,7 +81,7 @@ public class OaiRecordHarvesterItemProcessor extends
     );
     String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
 
-    return createValidated(b -> b
+    return createValidated(successExecutionRecordDTOBuilder -> successExecutionRecordDTOBuilder
         .datasetId(datasetId)
         .executionId(getTargetExecutionId())
         .externalRecordId(externalRecordId)
