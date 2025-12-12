@@ -2,6 +2,8 @@ package eu.europeana.metis.sandbox.service.dataset;
 
 import static eu.europeana.metis.sandbox.entity.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.entity.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
+import static eu.europeana.metis.sandbox.service.util.DatasetValidation.DEFAULT_MAX_FILE_SIZE;
+import static eu.europeana.metis.sandbox.service.util.DatasetValidation.checkUrlContentLength;
 
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
@@ -25,12 +27,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
@@ -126,8 +131,13 @@ public class DatasetExecutionService {
   @NotNull
   public String createDatasetAndSubmitExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
-    //todo: Size of zip file should be limited?
-    try (InputStream inputStream = new URI(url).toURL().openStream()) {
+
+    checkUrlContentLength(url);
+
+    try (InputStream inputStream = BoundedInputStream.builder()
+                                                     .setInputStream(new URI(url).toURL().openStream())
+                                                     .setMaxCount(DEFAULT_MAX_FILE_SIZE)
+                                                     .get()) {
       String filename = new URI(url).getPath();
       filename = filename.substring(filename.lastIndexOf('/') + 1);
       HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
