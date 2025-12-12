@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.sandbox.common.exception.DatasetFileSizeException;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,7 +40,7 @@ public final class DatasetValidation {
             + "max allowed: " + DEFAULT_MAX_FILE_SIZE + " bytes");
       }
     } catch (IOException | URISyntaxException e) {
-      throw new IllegalArgumentException("Invalid URL: " + url, e);
+      throw new ServiceException("Invalid URL: " + url, e);
     }
   }
 }

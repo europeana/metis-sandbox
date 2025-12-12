@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import eu.europeana.metis.sandbox.common.exception.DatasetFileSizeException;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,8 +42,8 @@ class DatasetValidationTest {
    */
   @Test
   void checkUrlContentLength_InvalidURL() {
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, ()->
-    DatasetValidation.checkUrlContentLength("my url"));
+    ServiceException exception = assertThrows(ServiceException.class, () ->
+        DatasetValidation.checkUrlContentLength("my url"));
     assertEquals("Invalid URL: my url", exception.getMessage());
   }
 }
