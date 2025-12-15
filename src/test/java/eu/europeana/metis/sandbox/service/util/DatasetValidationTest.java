@@ -8,15 +8,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import eu.europeana.metis.sandbox.common.exception.DatasetFileSizeException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * The type Dataset validation test.
  */
 @WireMockTest
 class DatasetValidationTest {
+
+  private DatasetValidationService datasetValidation;
+
+  @BeforeEach
+  void setUp() {
+    datasetValidation = new DatasetValidationService();
+    datasetValidation.setDefaultMaxFileSize(DataSize.of(64, DataUnit.MEGABYTES));
+  }
 
   /**
    * Check url content length.
@@ -27,13 +38,13 @@ class DatasetValidationTest {
   void checkUrlContentLength(WireMockRuntimeInfo wireMockRuntimeInfo) {
     stubFor(get("/largefile").willReturn(aResponse()
         .withHeader("Content-Type", "application/octet-stream")
-        .withHeader("Content-Length", String.valueOf(DatasetValidation.DEFAULT_MAX_FILE_SIZE + 1))
+        .withHeader("Content-Length", String.valueOf(datasetValidation.getDefaultMaxFileSize().toBytes() + 1))
         .withBody("large content")));
 
     String testUrl = wireMockRuntimeInfo.getHttpBaseUrl() + "/largefile";
-    DatasetFileSizeException exception = assertThrows(DatasetFileSizeException.class,
-        () -> DatasetValidation.checkUrlContentLength(testUrl));
-    assertEquals("File content too large: 67108865 bytes, max allowed: 67108864 bytes",
+    MaxUploadSizeExceededException exception = assertThrows(MaxUploadSizeExceededException.class,
+        () -> datasetValidation.checkUrlContentLength(testUrl));
+    assertEquals("Maximum upload size of 67108864 bytes exceeded",
         exception.getMessage());
   }
 
@@ -43,7 +54,7 @@ class DatasetValidationTest {
   @Test
   void checkUrlContentLength_InvalidURL() {
     ServiceException exception = assertThrows(ServiceException.class, () ->
-        DatasetValidation.checkUrlContentLength("my url"));
+        datasetValidation.checkUrlContentLength("my url"));
     assertEquals("Invalid URL: my url", exception.getMessage());
   }
 }

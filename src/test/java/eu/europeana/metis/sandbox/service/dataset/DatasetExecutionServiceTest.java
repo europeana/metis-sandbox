@@ -36,6 +36,7 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
+import eu.europeana.metis.sandbox.service.util.DatasetValidationService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,6 +52,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
 import org.springframework.web.multipart.MultipartFile;
 
 @WireMockTest
@@ -68,6 +71,9 @@ class DatasetExecutionServiceTest {
 
   @Mock
   private LockRegistry lockRegistry;
+
+  @Mock
+  private DatasetValidationService datasetValidationService;
 
   @Mock
   private BatchJobExecutor batchJobExecutor;
@@ -176,6 +182,7 @@ class DatasetExecutionServiceTest {
         datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
             eq(USER_ID), eq(xsltFile), any(HttpHarvestParametersDTO.class))).thenReturn(executionMeta);
 
+    when(datasetValidationService.getDefaultMaxFileSize()).thenReturn(DataSize.of(64, DataUnit.MEGABYTES));
     String result = datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest, STE_SIZE, url, xsltFile,
         USER_ID, CompressedFileExtension.ZIP);
 
