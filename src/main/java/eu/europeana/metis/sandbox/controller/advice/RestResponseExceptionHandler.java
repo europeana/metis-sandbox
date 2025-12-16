@@ -14,6 +14,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.task.TaskRejectedException;
@@ -60,12 +61,8 @@ public class RestResponseExceptionHandler {
   })
   public ResponseEntity<Object> handleInternalServerError(Exception ex) {
     HttpStatus status = resolveStatus(ex, HttpStatus.INTERNAL_SERVER_ERROR);
-    String message;
-    if (status == HttpStatus.NOT_FOUND && ex.getCause() instanceof FileNotFoundException) {
-       message = ex.getCause().getMessage();
-    } else {
-       message = format(RETRY_MSG, ex.getMessage());
-    }
+    String message = format(RETRY_MSG,
+        ex.getMessage() + (ex.getCause() != null ? (" Cause: " + ex.getCause().getMessage()) : ""));
     return buildResponse(status, message, ex);
   }
 
@@ -95,11 +92,16 @@ public class RestResponseExceptionHandler {
       InvalidDatasetException.class,
       SerializationException.class,
       IOException.class,
-      ConstraintViolationException.class
+      ConstraintViolationException.class,
+      MaxUploadSizeExceededException.class,
+      SizeLimitExceededException.class,
+      FileUploadException.class,
+      FileNotFoundException.class,
   })
   public ResponseEntity<Object> handleBadRequestExceptions(Exception ex) {
     HttpStatus status = resolveStatus(ex, HttpStatus.BAD_REQUEST);
-    return buildResponse(status, ex.getMessage(), ex);
+    String message = ex.getMessage() + (ex.getCause() != null ? (" Cause: " + ex.getCause().getMessage()) : "");
+    return buildResponse(status, message, ex);
   }
 
   private ResponseEntity<Object> buildResponse(HttpStatus status, String message, Exception ex) {
@@ -110,7 +112,8 @@ public class RestResponseExceptionHandler {
 
   private HttpStatus resolveStatus(Exception ex, HttpStatus defaultStatus) {
     ResponseStatus annotation = AnnotationUtils.findAnnotation(ex.getClass(), ResponseStatus.class);
-    if (ex.getCause() instanceof FileNotFoundException || ex instanceof FileNotFoundException) {
+    if (ex.getCause() instanceof FileNotFoundException || ex.getCause() instanceof FileUploadException
+        || ex instanceof FileNotFoundException) {
       return HttpStatus.NOT_FOUND;
     } else if (ex instanceof MaxUploadSizeExceededException || ex instanceof SizeLimitExceededException) {
       return HttpStatus.PAYLOAD_TOO_LARGE;
