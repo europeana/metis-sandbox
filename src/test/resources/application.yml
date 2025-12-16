@@ -66,8 +66,8 @@ spring:
     name: *appTitle
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
+      max-file-size: 64MB
+      max-request-size: 64MB
   security:
     oauth2:
       resourceserver:

@@ -11,8 +11,11 @@ import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
 import eu.europeana.metis.schema.convert.SerializationException;
 import jakarta.validation.ConstraintViolationException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * Handles controller exceptions to report correct http status code to client
@@ -57,7 +61,8 @@ public class RestResponseExceptionHandler {
   })
   public ResponseEntity<Object> handleInternalServerError(Exception ex) {
     HttpStatus status = resolveStatus(ex, HttpStatus.INTERNAL_SERVER_ERROR);
-    String message = format(RETRY_MSG, ex.getMessage());
+    String message = format(RETRY_MSG,
+        ex.getMessage() + (ex.getCause() != null ? (" Cause: " + ex.getCause().getMessage()) : ""));
     return buildResponse(status, message, ex);
   }
 
@@ -87,11 +92,16 @@ public class RestResponseExceptionHandler {
       InvalidDatasetException.class,
       SerializationException.class,
       IOException.class,
-      ConstraintViolationException.class
+      ConstraintViolationException.class,
+      MaxUploadSizeExceededException.class,
+      SizeLimitExceededException.class,
+      FileUploadException.class,
+      FileNotFoundException.class,
   })
   public ResponseEntity<Object> handleBadRequestExceptions(Exception ex) {
     HttpStatus status = resolveStatus(ex, HttpStatus.BAD_REQUEST);
-    return buildResponse(status, ex.getMessage(), ex);
+    String message = ex.getMessage() + (ex.getCause() != null ? (" Cause: " + ex.getCause().getMessage()) : "");
+    return buildResponse(status, message, ex);
   }
 
   private ResponseEntity<Object> buildResponse(HttpStatus status, String message, Exception ex) {
@@ -102,6 +112,13 @@ public class RestResponseExceptionHandler {
 
   private HttpStatus resolveStatus(Exception ex, HttpStatus defaultStatus) {
     ResponseStatus annotation = AnnotationUtils.findAnnotation(ex.getClass(), ResponseStatus.class);
-    return annotation != null ? annotation.value() : defaultStatus;
+    if (ex.getCause() instanceof FileNotFoundException || ex.getCause() instanceof FileUploadException
+        || ex instanceof FileNotFoundException) {
+      return HttpStatus.NOT_FOUND;
+    } else if (ex instanceof MaxUploadSizeExceededException || ex instanceof SizeLimitExceededException) {
+      return HttpStatus.PAYLOAD_TOO_LARGE;
+    } else {
+      return annotation != null ? annotation.value() : defaultStatus;
+    }
   }
 }
