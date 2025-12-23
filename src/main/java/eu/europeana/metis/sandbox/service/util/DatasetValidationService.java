@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.service.util;
 
-
-import static eu.europeana.enrichment.rest.client.ConnectionProvider.DEFAULT_CONNECT_TIMEOUT;
 import static org.apache.commons.lang3.math.NumberUtils.isParsable;
 import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
 
@@ -28,6 +26,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @Service
 public final class DatasetValidationService {
 
+  private static final int DEFAULT_CONNECT_TIMEOUT = 10000;
   private static final int DEFAULT_SOCKET_TIMEOUT = 50000;
   @Value("${spring.servlet.multipart.max-file-size}")
   private DataSize defaultMaxFileSize;
