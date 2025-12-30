@@ -1,35 +1,18 @@
 package eu.europeana.metis.sandbox.service.util;
 
-import static org.apache.commons.lang3.math.NumberUtils.isParsable;
-import static org.apache.tika.metadata.TikaCoreProperties.RESOURCE_NAME_KEY;
-import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
-
 import eu.europeana.metis.network.AbstractHttpClient;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.utils.TempFileUtils;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.tika.metadata.Metadata;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -39,11 +22,17 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
  */
 @Service
 public class FileSizeValidationClient extends AbstractHttpClient<URI, InputStream> {
+
   private static final int MAX_NUMBER_OF_REDIRECTS = 5;
   private static final int DEFAULT_CONNECT_TIMEOUT = 10_000;
   private static final int DEFAULT_RESPONSE_TIMEOUT = 20_000;
   private static final int DEFAULT_REQUEST_TIMEOUT = 60_000;
+  /**
+   * The Default max file size.
+   */
   @Value("${spring.servlet.multipart.max-file-size}")
+  @Setter
+  @Getter
   private DataSize defaultMaxFileSize;
 
   /**
@@ -89,7 +78,8 @@ public class FileSizeValidationClient extends AbstractHttpClient<URI, InputStrea
    * @throws IOException
    */
   @Override
-  protected InputStream createResult(URI providedURI, URI actualURI, ContentDisposition contentDisposition, String mimetype, Long fileSize,
+  protected InputStream createResult(URI providedURI, URI actualURI,
+      ContentDisposition contentDisposition, String mimetype, Long fileSize,
       ContentRetriever contentRetriever) throws IOException {
     if (fileSize != null && fileSize > defaultMaxFileSize.toBytes()) {
       throw new MaxUploadSizeExceededException(defaultMaxFileSize.toBytes());
@@ -97,23 +87,5 @@ public class FileSizeValidationClient extends AbstractHttpClient<URI, InputStrea
     Path tempFile = TempFileUtils.createSecureTempFile("filesize-validation", ".tmp");
     Files.copy(contentRetriever.getContent(), tempFile, StandardCopyOption.REPLACE_EXISTING);
     return new BoundedInputStream(Files.newInputStream(tempFile), defaultMaxFileSize.toBytes());
-  }
-
-  /**
-   * Gets default max file size.
-   *
-   * @return the default max file size
-   */
-  public DataSize getDefaultMaxFileSize() {
-    return defaultMaxFileSize;
-  }
-
-  /**
-   * Sets default max file size.
-   *
-   * @param defaultMaxFileSize the default max file size
-   */
-  public void setDefaultMaxFileSize(DataSize defaultMaxFileSize) {
-    this.defaultMaxFileSize = defaultMaxFileSize;
   }
 }
