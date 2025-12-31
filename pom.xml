@@ -28,9 +28,9 @@
     <version.maven.release.plugin>2.5.3</version.maven.release.plugin>
 
     <!--Internal-->
-    <version.metis>16</version.metis>
-    <version.metis-common>18</version.metis-common>
-    <version.metis-normalization>16</version.metis-normalization>
+    <version.metis>17-SNAPSHOT</version.metis>
+    <version.metis-common>19-SNAPSHOT</version.metis-common>
+    <version.metis-normalization>17-SNAPSHOT</version.metis-normalization>
     <version.corelib>2.17.6</version.corelib>
 
     <!--External-->
