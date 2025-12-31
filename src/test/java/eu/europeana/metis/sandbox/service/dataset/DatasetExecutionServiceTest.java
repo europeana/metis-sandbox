@@ -36,7 +36,7 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
-import eu.europeana.metis.sandbox.service.util.ContentUploadWithMaxSizeClient;
+import eu.europeana.metis.sandbox.service.util.ContentWithMaxSizeClient;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -75,7 +75,7 @@ class DatasetExecutionServiceTest {
   private BatchJobExecutor batchJobExecutor;
 
   @Mock
-  private ContentUploadWithMaxSizeClient contentUploadWithMaxSizeClient;
+  private ContentWithMaxSizeClient contentWithMaxSizeClient;
 
   @InjectMocks
   private DatasetExecutionService datasetExecutionService;
@@ -180,7 +180,7 @@ class DatasetExecutionServiceTest {
     when(
         datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
             eq(USER_ID), eq(xsltFile), any(HttpHarvestParametersDTO.class))).thenReturn(executionMeta);
-    when(contentUploadWithMaxSizeClient.download(any(URI.class))).thenReturn("content".getBytes());
+    when(contentWithMaxSizeClient.download(any(URI.class))).thenReturn("content".getBytes());
     String result = datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest, STE_SIZE, url, xsltFile,
         USER_ID, CompressedFileExtension.ZIP);
 
@@ -191,7 +191,7 @@ class DatasetExecutionServiceTest {
   @Test
   void createDatasetAndSubmitExecutionHttp_Fail() throws IOException {
 
-    when(contentUploadWithMaxSizeClient.download(any(URI.class)))
+    when(contentWithMaxSizeClient.download(any(URI.class)))
         .thenThrow(new ServiceException("/invalidPath",new FileNotFoundException()))
         .thenThrow(new ServiceException("malformedUrl",new MalformedURLException()))
         .thenThrow(new IllegalArgumentException("Illegal character in scheme name at index 2: ht^tp://invalid_url"));

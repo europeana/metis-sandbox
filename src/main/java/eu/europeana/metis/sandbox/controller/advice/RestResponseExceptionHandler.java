@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.controller.advice;
 
 import static java.lang.String.format;
 
+import eu.europeana.metis.sandbox.common.exception.DownloadSizeExceededException;
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
@@ -94,6 +95,7 @@ public class RestResponseExceptionHandler {
       IOException.class,
       ConstraintViolationException.class,
       MaxUploadSizeExceededException.class,
+      DownloadSizeExceededException.class,
       SizeLimitExceededException.class,
       FileUploadException.class,
       FileNotFoundException.class,

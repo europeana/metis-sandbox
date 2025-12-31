@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.service.util;
 
 import eu.europeana.metis.network.AbstractHttpClient;
+import eu.europeana.metis.sandbox.common.exception.DownloadSizeExceededException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -11,14 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ContentDisposition;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 
 /**
- * The type Content upload with max size client.
+ * The type Content download with max size client.
  */
 @Service
-public class ContentUploadWithMaxSizeClient extends AbstractHttpClient<URI, byte[]> {
+public class ContentWithMaxSizeClient extends AbstractHttpClient<URI, byte[]> {
 
   private static final int MAX_NUMBER_OF_REDIRECTS = 5;
   private static final int DEFAULT_CONNECT_TIMEOUT = 10_000;
@@ -35,22 +35,22 @@ public class ContentUploadWithMaxSizeClient extends AbstractHttpClient<URI, byte
 
 
   /**
-   * Instantiates a new Content upload with max size client.
+   * Instantiates a new Content download with max size client.
    */
-  public ContentUploadWithMaxSizeClient() {
+  public ContentWithMaxSizeClient() {
     this(MAX_NUMBER_OF_REDIRECTS, DEFAULT_CONNECT_TIMEOUT, DEFAULT_RESPONSE_TIMEOUT, DEFAULT_REQUEST_TIMEOUT);
   }
 
 
   /**
-   * Instantiates a new Content upload with max size client.
+   * Instantiates a new Content download with max size client.
    *
    * @param maxRedirectCount the max redirect count
    * @param connectTimeout the connect timeout
    * @param responseTimeout the response timeout
    * @param requestTimeout the request timeout
    */
-  protected ContentUploadWithMaxSizeClient(int maxRedirectCount, int connectTimeout, int responseTimeout, int requestTimeout) {
+  protected ContentWithMaxSizeClient(int maxRedirectCount, int connectTimeout, int responseTimeout, int requestTimeout) {
     super(maxRedirectCount, connectTimeout, responseTimeout, requestTimeout);
   }
 
@@ -75,14 +75,14 @@ public class ContentUploadWithMaxSizeClient extends AbstractHttpClient<URI, byte
    * @param fileSize file size
    * @param contentRetriever content retriever
    * @return byte[] file content
-   * @throws IOException or MaxUploadSizeExceededException if the upload size is exceeded
+   * @throws IOException or DownloadSizeExceededException if the download size is exceeded
    */
   @Override
   protected byte[] createResult(URI providedURI, URI actualURI,
       ContentDisposition contentDisposition, String mimetype, Long fileSize,
       ContentRetriever contentRetriever) throws IOException {
     if (fileSize != null && fileSize > defaultMaxFileSize.toBytes()) {
-      throw new MaxUploadSizeExceededException(defaultMaxFileSize.toBytes());
+      throw new DownloadSizeExceededException("Maximum download size exceeded  "+defaultMaxFileSize.toBytes()+" bytes");
     }
 
     int numberBytesRead;
@@ -94,7 +94,7 @@ public class ContentUploadWithMaxSizeClient extends AbstractHttpClient<URI, byte
       buffer.write(data, 0, numberBytesRead);
       totalBytesRead += numberBytesRead;
       if (totalBytesRead > defaultMaxFileSize.toBytes()) {
-        throw new MaxUploadSizeExceededException(defaultMaxFileSize.toBytes());
+        throw new DownloadSizeExceededException("Maximum download size exceeded  "+defaultMaxFileSize.toBytes()+" bytes");
       }
     }
     buffer.flush();

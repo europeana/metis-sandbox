@@ -20,7 +20,7 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
-import eu.europeana.metis.sandbox.service.util.ContentUploadWithMaxSizeClient;
+import eu.europeana.metis.sandbox.service.util.ContentWithMaxSizeClient;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class DatasetExecutionService {
   private final DatasetReportService datasetReportService;
   private final LockRegistry lockRegistry;
   private final BatchJobExecutor batchJobExecutor;
-  private final ContentUploadWithMaxSizeClient contentUploadWithMaxSizeClient;
+  private final ContentWithMaxSizeClient contentWithMaxSizeClient;
 
   private static void checkFileNotFoundInProvidedUrl(String url, Exception e) {
     if (e instanceof IOException ioException
@@ -140,7 +140,7 @@ public class DatasetExecutionService {
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
 
     try {
-      final byte[] fileContent = contentUploadWithMaxSizeClient.download(URI.create(url));
+      final byte[] fileContent = contentWithMaxSizeClient.download(URI.create(url));
       String filename = new URI(url).getPath();
       filename = filename.substring(filename.lastIndexOf('/') + 1);
       HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
