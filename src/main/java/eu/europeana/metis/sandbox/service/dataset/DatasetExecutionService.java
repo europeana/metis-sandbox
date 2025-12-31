@@ -20,13 +20,13 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
-import eu.europeana.metis.sandbox.service.util.FileSizeValidationClient;
+import eu.europeana.metis.sandbox.service.util.ContentUploadWithMaxSizeClient;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -56,7 +56,16 @@ public class DatasetExecutionService {
   private final DatasetReportService datasetReportService;
   private final LockRegistry lockRegistry;
   private final BatchJobExecutor batchJobExecutor;
-  private final FileSizeValidationClient fileSizeValidationClient;
+  private final ContentUploadWithMaxSizeClient contentUploadWithMaxSizeClient;
+
+  private static void checkFileNotFoundInProvidedUrl(String url, Exception e) {
+    if (e instanceof IOException ioException
+        && ioException.getMessage() != null
+        && ioException.getMessage().toLowerCase(Locale.US).contains("status code 404")) {
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE,
+          new FileNotFoundException("The provided URL does not exist or cannot be accessed: " + url));
+    }
+  }
 
   /**
    * Creates a dataset based on the provided parameters and submits it for execution.
@@ -130,22 +139,20 @@ public class DatasetExecutionService {
   public String createDatasetAndSubmitExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
 
-    try (InputStream inputStream = fileSizeValidationClient.download(URI.create(url))) {
+    try {
+      final byte[] fileContent = contentUploadWithMaxSizeClient.download(URI.create(url));
       String filename = new URI(url).getPath();
       filename = filename.substring(filename.lastIndexOf('/') + 1);
       HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
           FileType.valueOf(extension.name()),
-          inputStream.readAllBytes(), stepsize);
+          fileContent, stepsize);
       ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
           WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
       );
       batchJobExecutor.execute(executionMetadata);
       return executionMetadata.getDatasetMetadata().getDatasetId();
     } catch (IOException | URISyntaxException e) {
-      if (e instanceof IOException ioException && ioException.getMessage().contains("Status code 404")) {
-        throw new ServiceException(HARVESTING_ERROR_MESSAGE,
-            new FileNotFoundException("The provided URL does not exist or cannot be accessed: " + url));
-      }
+      checkFileNotFoundInProvidedUrl(url, e);
       throw new ServiceException(HARVESTING_ERROR_MESSAGE, e);
     }
   }

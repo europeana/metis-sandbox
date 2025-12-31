@@ -36,10 +36,12 @@ import eu.europeana.metis.sandbox.entity.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
+import eu.europeana.metis.sandbox.service.util.ContentUploadWithMaxSizeClient;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -51,8 +53,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.util.unit.DataSize;
-import org.springframework.util.unit.DataUnit;
 import org.springframework.web.multipart.MultipartFile;
 
 @WireMockTest
@@ -73,6 +73,9 @@ class DatasetExecutionServiceTest {
 
   @Mock
   private BatchJobExecutor batchJobExecutor;
+
+  @Mock
+  private ContentUploadWithMaxSizeClient contentUploadWithMaxSizeClient;
 
   @InjectMocks
   private DatasetExecutionService datasetExecutionService;
@@ -177,7 +180,7 @@ class DatasetExecutionServiceTest {
     when(
         datasetExecutionSetupService.prepareDatasetExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
             eq(USER_ID), eq(xsltFile), any(HttpHarvestParametersDTO.class))).thenReturn(executionMeta);
-
+    when(contentUploadWithMaxSizeClient.download(any(URI.class))).thenReturn("content".getBytes());
     String result = datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest, STE_SIZE, url, xsltFile,
         USER_ID, CompressedFileExtension.ZIP);
 
@@ -186,9 +189,14 @@ class DatasetExecutionServiceTest {
   }
 
   @Test
-  void createDatasetAndSubmitExecutionHttp_Fail() {
-    String invalidPath = baseUrl + "/invalidPath";
+  void createDatasetAndSubmitExecutionHttp_Fail() throws IOException {
 
+    when(contentUploadWithMaxSizeClient.download(any(URI.class)))
+        .thenThrow(new ServiceException("/invalidPath",new FileNotFoundException()))
+        .thenThrow(new ServiceException("malformedUrl",new MalformedURLException()))
+        .thenThrow(new IllegalArgumentException("Illegal character in scheme name at index 2: ht^tp://invalid_url"));
+
+    String invalidPath = baseUrl + "/invalidPath";
     ServiceException serviceException = assertThrows(ServiceException.class,
         () -> datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest, STE_SIZE, invalidPath, xsltFile,
             USER_ID, CompressedFileExtension.ZIP));
@@ -201,11 +209,11 @@ class DatasetExecutionServiceTest {
     assertInstanceOf(MalformedURLException.class, serviceException.getCause());
 
     String uriSyntaxException = "ht^tp://invalid_url";
-    serviceException = assertThrows(ServiceException.class,
+    IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class,
         () -> datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest, STE_SIZE, uriSyntaxException,
             xsltFile,
             USER_ID, CompressedFileExtension.ZIP));
-    assertInstanceOf(URISyntaxException.class, serviceException.getCause());
+    assertInstanceOf(URISyntaxException.class, illegalArgumentException.getCause());
 
     verifyNoInteractions(datasetExecutionSetupService);
     verifyNoInteractions(batchJobExecutor);
