@@ -1,23 +1,39 @@
 package eu.europeana.metis.sandbox.common;
 
+import lombok.Getter;
+
 /**
- * Enum class to represent the type of harvesting
+ * Enum representing the harvest protocols.
  */
+@Getter
 public enum HarvestProtocol {
-    FILE("HARVEST_FILE"),
-    HTTP("HARVEST_HTTP"),
-    OAI_PMH("HARVEST_OAI_PMH");
-    private final String value;
+  HTTP(Values.HTTP),
+  FILE(Values.FILE),
+  OAI(Values.OAI);
 
-    HarvestProtocol(String value) {
-        this.value = value;
-    }
+  private final String value;
 
-    /**
-     * Returns the enum value as a String
-     * @return a String value of the enum
-     */
-    public String value() {
-        return value;
+  HarvestProtocol(String value) {
+    //Enforce equality between the enum constant name and the string value.
+    if (!this.name().equals(value)) {
+      throw new IllegalArgumentException("Incorrect use of ELanguage");
     }
+    this.value = value;
+  }
+
+  /**
+   * Contains constant string values representing different harvest protocols.
+   * <p>
+   * These constants are used as discriminators.
+   */
+  public static final class Values {
+
+    public static final String HTTP = "HTTP";
+    public static final String FILE = "FILE";
+    public static final String OAI = "OAI";
+
+    private Values() {
+    }
+  }
 }
+
