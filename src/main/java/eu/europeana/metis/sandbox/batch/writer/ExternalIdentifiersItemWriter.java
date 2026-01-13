@@ -2,10 +2,9 @@ package eu.europeana.metis.sandbox.batch.writer;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.data.RepositoryItemWriter;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,23 +19,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ExternalIdentifiersItemWriter extends RepositoryItemWriter<ExecutionRecordExternalIdentifier> {
 
-  private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
-
   /**
    * Constructor.
    *
    * @param executionRecordExternalIdentifierRepository The repository instance used for persisting execution record external identifiers.
    */
   public ExternalIdentifiersItemWriter(ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
-    this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
-  }
-
-  /**
-   * Initializes the item writer by setting the repository for writing execution record identifier items.
-   */
-  @PostConstruct
-  public void initialize() {
-    setRepository(executionRecordExternalIdentifierRepository);
+    super(executionRecordExternalIdentifierRepository);
   }
 
   @Override

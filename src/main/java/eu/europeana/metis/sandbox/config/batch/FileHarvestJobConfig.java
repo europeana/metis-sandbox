@@ -12,14 +12,14 @@ import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,7 +68,8 @@ public class FileHarvestJobConfig {
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager) {
 
     return new StepBuilder(IDENTIFIERS_HARVEST_STEP_NAME, jobRepository)
-        .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize())
+        .transactionManager(transactionManager)
         .reader(fileIdentifiersItemReader)
         .writer(externalIdentifiersItemWriter)
         .build();
@@ -83,8 +84,8 @@ public class FileHarvestJobConfig {
       ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> fileRecordAsyncItemProcessor,
       ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
     return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
-        .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(),
-            transactionManager)
+        .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize())
+        .transactionManager(transactionManager)
         .reader(externalIdentifiersRepositoryItemReader)
         .processor(fileRecordAsyncItemProcessor)
         .writer(executionRecordDTOAsyncItemWriter)
@@ -95,8 +96,8 @@ public class FileHarvestJobConfig {
   ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> fileRecordAsyncItemProcessor(
       @Qualifier("fileRecordHarvestItemProcessor") ItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> fileRecordHarvestItemProcessor,
       @Qualifier("fileHarvestStepAsyncTaskExecutor") TaskExecutor taskExecutor) {
-    AsyncItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(fileRecordHarvestItemProcessor);
+    AsyncItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> asyncItemProcessor
+        = new AsyncItemProcessor<>(fileRecordHarvestItemProcessor);
     asyncItemProcessor.setTaskExecutor(taskExecutor);
     return asyncItemProcessor;
   }

@@ -2,12 +2,10 @@ package eu.europeana.metis.sandbox.batch.reader;
 
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.infrastructure.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
@@ -38,18 +36,15 @@ public class ExternalIdentifiersRepositoryItemReader extends RepositoryItemReade
    */
   public ExternalIdentifiersRepositoryItemReader(
       ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
+    super(executionRecordExternalIdentifierRepository, Map.of(SORT_FIELD, Direction.ASC));
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
   }
 
   @Override
   public void afterPropertiesSet() throws Exception {
     setRepository(executionRecordExternalIdentifierRepository);
-    setSort(Collections.emptyMap());
     setMethodName(REPOSITORY_QUERY_METHOD_NAME);
     setArguments(List.of(targetExecutionId));
-    Map<String, Direction> sorts = new HashMap<>();
-    sorts.put(SORT_FIELD, Direction.ASC);
-    setSort(sorts);
 
     super.afterPropertiesSet();
   }

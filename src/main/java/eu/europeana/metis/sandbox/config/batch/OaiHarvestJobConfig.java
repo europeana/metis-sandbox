@@ -11,14 +11,14 @@ import eu.europeana.metis.sandbox.batch.writer.ExternalIdentifiersItemWriter;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,7 +65,8 @@ public class OaiHarvestJobConfig {
       @Qualifier("transactionManager") PlatformTransactionManager transactionManager) {
 
     return new StepBuilder(IDENTIFIERS_HARVEST_STEP_NAME, jobRepository)
-        .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(parallelizeConfig.chunkSize())
+        .transactionManager(transactionManager)
         .reader(oaiIdentifiersItemReader)
         .writer(externalIdentifiersItemWriter)
         .build();
@@ -80,8 +81,8 @@ public class OaiHarvestJobConfig {
       ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> oaiRecordAsyncItemProcessor,
       ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
     return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
-        .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(),
-            transactionManager)
+        .<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize())
+        .transactionManager(transactionManager)
         .reader(externalIdentifiersRepositoryItemReader)
         .processor(oaiRecordAsyncItemProcessor)
         .writer(executionRecordDTOAsyncItemWriter)
@@ -92,8 +93,8 @@ public class OaiHarvestJobConfig {
   ItemProcessor<ExecutionRecordExternalIdentifier, Future<AbstractExecutionRecordDTO>> oaiRecordAsyncItemProcessor(
       @Qualifier("oaiRecordHarvestItemProcessor") ItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> oaiRecordHarvestItemProcessor,
       @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor taskExecutor) {
-    AsyncItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(oaiRecordHarvestItemProcessor);
+    AsyncItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> asyncItemProcessor
+        = new AsyncItemProcessor<>(oaiRecordHarvestItemProcessor);
     asyncItemProcessor.setTaskExecutor(taskExecutor);
     return asyncItemProcessor;
   }

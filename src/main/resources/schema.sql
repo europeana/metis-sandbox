@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS integration.int_lock
     region       VARCHAR(100) NOT NULL,
     client_id    CHAR(36),
     created_date TIMESTAMP    NOT NULL,
+    expired_after TIMESTAMP NOT NULL,
     CONSTRAINT int_lock_pk PRIMARY KEY (lock_key, region)
 );
