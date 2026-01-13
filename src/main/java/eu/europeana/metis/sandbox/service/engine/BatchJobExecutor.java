@@ -71,7 +71,7 @@ import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
-import org.springframework.batch.core.repository.explore.JobExplorer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
@@ -92,7 +92,7 @@ public class BatchJobExecutor {
   public static final int JOB_INSTANCE_RETRIEVAL_PAGE_SIZE = 100;
   private final List<? extends Job> jobs;
   private final JobOperator jobOperator;
-  private final JobExplorer jobExplorer;
+  private final JobRepository jobRepository;
   private final TaskExecutor taskExecutor;
   private final TransformXsltRepository transformXsltRepository;
   private final ExecutionRunRepository executionRunRepository;
@@ -106,17 +106,17 @@ public class BatchJobExecutor {
    *
    * @param jobs list of jobs registered.
    * @param jobOperator job launcher instance used to run the batch jobs asynchronously
-   * @param jobExplorer job explorer for retrieving job execution information
+   * @param jobRepository job explorer for retrieving job execution information
    * @param taskExecutor task executor used for handling concurrent job executions
    * @param transformXsltRepository repository for managing and retrieving XSLT transformations
    * @param executionRunRepository the repository used to store execution runs
    */
-  public BatchJobExecutor(List<? extends Job> jobs, JobOperator jobOperator, JobExplorer jobExplorer,
+  public BatchJobExecutor(List<? extends Job> jobs, JobOperator jobOperator, JobRepository jobRepository,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository,
       ExecutionRunRepository executionRunRepository) {
     this.jobs = List.copyOf(jobs);
     this.jobOperator = jobOperator;
-    this.jobExplorer = jobExplorer;
+    this.jobRepository = jobRepository;
     this.taskExecutor = taskExecutor;
     this.transformXsltRepository = transformXsltRepository;
     this.executionRunRepository = executionRunRepository;
@@ -214,14 +214,14 @@ public class BatchJobExecutor {
     List<JobInstance> page;
 
     do {
-      page = jobExplorer.getJobInstances(fullBatchJobType.getBatchJobType().name(), start, pageSize);
+      page = jobRepository.getJobInstances(fullBatchJobType.getBatchJobType().name(), start, pageSize);
       jobInstances.addAll(page);
       start += pageSize;
     } while (!page.isEmpty());
 
     JobExecution matchingExecution = null;
     for (JobInstance jobInstance : jobInstances) {
-      List<JobExecution> jobExecutions = jobExplorer.getJobExecutions(jobInstance);
+      List<JobExecution> jobExecutions = jobRepository.getJobExecutions(jobInstance);
       for (JobExecution jobExecution : jobExecutions) {
         if (matches(jobExecution, executionMetadata, fullBatchJobType)) {
           matchingExecution = jobExecution;
@@ -397,7 +397,7 @@ public class BatchJobExecutor {
   private @NotNull JobExecution runJob(Job oaiHarvestJob, JobParameters jobParameters) {
     JobExecution jobExecution;
     try {
-      jobExecution = jobOperator.run(oaiHarvestJob, jobParameters);
+      jobExecution = jobOperator.start(oaiHarvestJob, jobParameters);
     } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
              InvalidJobParametersException e) {
       throw new IllegalStateException(e);

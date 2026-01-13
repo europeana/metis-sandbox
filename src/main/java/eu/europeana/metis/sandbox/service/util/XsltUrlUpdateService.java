@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class XsltUrlUpdateService {
 
   private final TransformXsltRepository transformXsltRepository;
 
-  private final LockRegistry lockRegistry;
+  private final LockRegistry<DistributedLock> lockRegistry;
 
   private final HttpClient httpClient;
 
@@ -37,7 +38,7 @@ public class XsltUrlUpdateService {
    * @param httpClient HTTP client for sending requests and handling responses
    */
   public XsltUrlUpdateService(
-      TransformXsltRepository transformXsltRepository, LockRegistry lockRegistry, HttpClient httpClient) {
+      TransformXsltRepository transformXsltRepository, LockRegistry<DistributedLock> lockRegistry, HttpClient httpClient) {
     this.transformXsltRepository = transformXsltRepository;
     this.lockRegistry = lockRegistry;
     this.httpClient = httpClient;

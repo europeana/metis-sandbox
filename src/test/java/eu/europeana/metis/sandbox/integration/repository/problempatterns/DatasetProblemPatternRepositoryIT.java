@@ -28,9 +28,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Import(PostgresTestContainersConfiguration.class)
 class DatasetProblemPatternRepositoryIT {
 
-  private ExecutionPointRepository executionPointRepository;
-  private DatasetProblemPatternRepository datasetProblemPatternRepository;
-  private EntityManager entityManager;
+  private final ExecutionPointRepository executionPointRepository;
+  private final DatasetProblemPatternRepository datasetProblemPatternRepository;
+  private final EntityManager entityManager;
 
   @Autowired
   DatasetProblemPatternRepositoryIT(ExecutionPointRepository executionPointRepository,

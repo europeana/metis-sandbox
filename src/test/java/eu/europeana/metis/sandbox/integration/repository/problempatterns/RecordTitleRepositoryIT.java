@@ -27,8 +27,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Import(PostgresTestContainersConfiguration.class)
 class RecordTitleRepositoryIT {
 
-  private RecordTitleRepository recordTitleRepository;
-  private ExecutionPointRepository executionPointRepository;
+  private final RecordTitleRepository recordTitleRepository;
+  private final ExecutionPointRepository executionPointRepository;
 
   @Autowired
   public RecordTitleRepositoryIT(RecordTitleRepository recordTitleRepository,
