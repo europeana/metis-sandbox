@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.common.exception;
 
+import java.io.Serial;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No record found")
 public class NoRecordFoundException extends Exception {
 
+  @Serial
   private static final long serialVersionUID = -3332292346834265371L;
 
   /**

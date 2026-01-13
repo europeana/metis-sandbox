@@ -3,10 +3,12 @@ package eu.europeana.metis.sandbox.common.exception;
 import static java.lang.String.format;
 import static java.lang.String.join;
 
+import java.io.Serial;
 import java.util.List;
 
 public class ThumbnailRemoveException extends ServiceException {
 
+  @Serial
   private static final long serialVersionUID = -3507180122567870480L;
 
   public ThumbnailRemoveException(List<String> thumbnailIds, Throwable cause) {
