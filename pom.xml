@@ -54,7 +54,6 @@
     <version.bucket4j>8.3.0</version.bucket4j>
     <version.postgresql.bucket4j>8.1.1</version.postgresql.bucket4j>
     <version.guava>32.1.3-jre</version.guava>
-    <version.mockito-core>5.17.0</version.mockito-core>
     <version.xml.bind>4.0.2</version.xml.bind>
     <version.morphia>2.5.0</version.morphia>
   </properties>
@@ -340,7 +339,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${version.mockito-core}</version>
       <scope>test</scope>
     </dependency>
 
