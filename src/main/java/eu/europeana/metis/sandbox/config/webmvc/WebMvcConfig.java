@@ -2,7 +2,6 @@ package eu.europeana.metis.sandbox.config.webmvc;
 
 import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import org.apache.commons.lang3.ArrayUtils;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +44,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
   }
 
   @Override
-  public void addCorsMappings(@NonNull CorsRegistry registry) {
+  public void addCorsMappings(CorsRegistry registry) {
     if (ArrayUtils.isNotEmpty(corsMapping)) {
       registry.addMapping("/**").allowedOrigins(corsMapping)
               .allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS");
