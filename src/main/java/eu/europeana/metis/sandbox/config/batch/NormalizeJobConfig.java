@@ -9,16 +9,16 @@ import eu.europeana.metis.sandbox.batch.reader.DefaultRepositoryItemReader;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +57,8 @@ public class NormalizeJobConfig {
       @Qualifier("normalizeAsyncItemProcessor") ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> normalizeAsyncItemProcessor,
       ItemWriter<Future<AbstractExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize(), transactionManager)
+        .<ExecutionRecord, Future<AbstractExecutionRecordDTO>>chunk(parallelizeConfig.chunkSize())
+        .transactionManager(transactionManager)
         .reader(normalizeRepositoryItemReader)
         .processor(normalizeAsyncItemProcessor)
         .writer(executionRecordDTOAsyncItemWriter)
@@ -75,8 +76,8 @@ public class NormalizeJobConfig {
   ItemProcessor<ExecutionRecord, Future<AbstractExecutionRecordDTO>> normalizeAsyncItemProcessor(
       @Qualifier("normalizeItemProcessor") ItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> normalizeItemProcessor,
       @Qualifier("normalizeStepAsyncTaskExecutor") TaskExecutor normalizeStepAsyncTaskExecutor) {
-    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
-    asyncItemProcessor.setDelegate(normalizeItemProcessor);
+    AsyncItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> asyncItemProcessor
+        = new AsyncItemProcessor<>(normalizeItemProcessor);
     asyncItemProcessor.setTaskExecutor(normalizeStepAsyncTaskExecutor);
     return asyncItemProcessor;
   }

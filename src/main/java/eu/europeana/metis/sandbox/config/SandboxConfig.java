@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -84,7 +85,7 @@ class SandboxConfig {
 
   @Bean
   XsltUrlUpdateService xsltUrlUpdateService(TransformXsltRepository transformXsltRepository,
-      LockRegistry lockRegistry, HttpClient httpClient) {
+      LockRegistry<DistributedLock> lockRegistry, HttpClient httpClient) {
     return new XsltUrlUpdateService(transformXsltRepository, lockRegistry, httpClient);
   }
 

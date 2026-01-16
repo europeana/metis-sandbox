@@ -7,7 +7,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.function.BiFunction;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.function.ThrowingFunction;
 

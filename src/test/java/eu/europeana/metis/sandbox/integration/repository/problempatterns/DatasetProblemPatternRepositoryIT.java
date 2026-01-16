@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -28,9 +28,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Import(PostgresTestContainersConfiguration.class)
 class DatasetProblemPatternRepositoryIT {
 
-  private ExecutionPointRepository executionPointRepository;
-  private DatasetProblemPatternRepository datasetProblemPatternRepository;
-  private EntityManager entityManager;
+  private final ExecutionPointRepository executionPointRepository;
+  private final DatasetProblemPatternRepository datasetProblemPatternRepository;
+  private final EntityManager entityManager;
 
   @Autowired
   DatasetProblemPatternRepositoryIT(ExecutionPointRepository executionPointRepository,

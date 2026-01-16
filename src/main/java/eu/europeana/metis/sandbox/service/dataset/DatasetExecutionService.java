@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,7 +55,7 @@ public class DatasetExecutionService {
   private final DatasetExecutionSetupService datasetExecutionSetupService;
   private final DeBiasStateService debiasStateService;
   private final DatasetReportService datasetReportService;
-  private final LockRegistry lockRegistry;
+  private final LockRegistry<DistributedLock> lockRegistry;
   private final BatchJobExecutor batchJobExecutor;
   private final ContentWithMaxSizeClient contentWithMaxSizeClient;
 

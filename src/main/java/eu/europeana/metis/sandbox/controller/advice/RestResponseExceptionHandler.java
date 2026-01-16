@@ -118,7 +118,7 @@ public class RestResponseExceptionHandler {
         || ex instanceof FileNotFoundException) {
       return HttpStatus.NOT_FOUND;
     } else if (ex instanceof MaxUploadSizeExceededException || ex instanceof SizeLimitExceededException) {
-      return HttpStatus.PAYLOAD_TOO_LARGE;
+      return HttpStatus.CONTENT_TOO_LARGE;
     } else {
       return annotation != null ? annotation.value() : defaultStatus;
     }

@@ -23,14 +23,13 @@ class LockRepositoryJdbcConfig {
   DefaultLockRepository defaultLockRepository(DataSource dataSource) {
     DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource);
     defaultLockRepository.setPrefix(prefix);
-    defaultLockRepository.setTimeToLive(timeToLive);
     defaultLockRepository.setRegion(region);
     return defaultLockRepository;
   }
 
   @Bean
   JdbcLockRegistry jdbcLockRegistry(LockRepository repository) {
-    JdbcLockRegistry jdbcLockRegistry = new JdbcLockRegistry(repository);
+    JdbcLockRegistry jdbcLockRegistry = new JdbcLockRegistry(repository, Duration.ofMillis(timeToLive));
     jdbcLockRegistry.setIdleBetweenTries(Duration.ofSeconds(1));
     return jdbcLockRegistry;
   }

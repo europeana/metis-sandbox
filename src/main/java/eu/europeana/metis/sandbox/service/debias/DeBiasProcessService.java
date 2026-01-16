@@ -186,11 +186,11 @@ public class DeBiasProcessService {
    */
   private void logReport(List<DeBiasReportRow> deBiasReport) {
     deBiasReport.forEach(row -> {
-      log.info("europeanaId: {} language: {} source: {} literal: {}",
+      log.debug("europeanaId: {} language: {} source: {} literal: {}",
           row.europeanaId(), row.valueDetection().getLanguage(),
           row.sourceField(), row.valueDetection().getLiteral());
       row.valueDetection().getTags()
-         .forEach(tag -> log.info("tag {} {} {} {}",
+         .forEach(tag -> log.debug("tag {} {} {} {}",
              tag.getStart(), tag.getEnd(), tag.getLength(), tag.getUri()));
     });
   }

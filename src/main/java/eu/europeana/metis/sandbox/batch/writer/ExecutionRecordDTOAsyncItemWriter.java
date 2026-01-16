@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.batch.writer;
 
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import jakarta.annotation.PostConstruct;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.stereotype.Component;
@@ -25,6 +24,7 @@ public class ExecutionRecordDTOAsyncItemWriter extends AsyncItemWriter<AbstractE
    * {@link AbstractExecutionRecordDTO} objects.
    */
   public ExecutionRecordDTOAsyncItemWriter(ExecutionRecordDTOItemWriter executionRecordDTOItemWriter) {
+    super(executionRecordDTOItemWriter);
     this.executionRecordDTOItemWriter = executionRecordDTOItemWriter;
   }
 
@@ -34,13 +34,5 @@ public class ExecutionRecordDTOAsyncItemWriter extends AsyncItemWriter<AbstractE
   @BeforeStep
   public void beforeStep() {
     executionRecordDTOItemWriter.beforeStepInitializeExecutionRun();
-  }
-
-  /**
-   * Initializes the item writer by setting the delegate for writing execution record DTO items.
-   */
-  @PostConstruct
-  public void initialize() {
-    setDelegate(executionRecordDTOItemWriter);
   }
 }

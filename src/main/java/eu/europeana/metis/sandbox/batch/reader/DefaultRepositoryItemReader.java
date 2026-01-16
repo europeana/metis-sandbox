@@ -3,10 +3,9 @@ package eu.europeana.metis.sandbox.batch.reader;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.infrastructure.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort.Direction;
 
@@ -33,7 +32,7 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
    * @param chunkSize The size of the chunks to be processed.
    */
   public DefaultRepositoryItemReader(ExecutionRecordRepository executionRecordRepository, int chunkSize) {
-    super();
+    super(executionRecordRepository, Map.of(SORT_FIELD, Direction.ASC));
     this.executionRecordRepository = executionRecordRepository;
     this.chunkSize = chunkSize;
   }
@@ -49,9 +48,5 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
 
     setArguments(queryMethodArguments);
     setPageSize(chunkSize);
-
-    Map<String, Direction> sorts = new HashMap<>();
-    sorts.put(SORT_FIELD, Direction.ASC);
-    setSort(sorts);
   }
 }

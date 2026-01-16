@@ -1,14 +1,11 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
-import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
 /**
