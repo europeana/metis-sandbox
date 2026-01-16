@@ -8,10 +8,13 @@ import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is a listener for chunk lifecycle events in a Spring Batch process,
- * logging specific events such as before and after chunk execution.
+ * Listener for logging events during the execution of a Spring Batch chunk.
+ * <p>
+ * Logs events before a chunk is processed, after a chunk is processed, and when an error occurs during chunk processing. Useful
+ * for monitoring and debugging in batch processing workflows.
  *
- * <p>Used to provide information about the processing of chunks in the batch workflow.
+ * @param <I> Type of input items in the chunk.
+ * @param <O> Type of output items in the chunk.
  */
 @Slf4j
 @StepScope
