@@ -1,5 +1,9 @@
-[![CI](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=coverage)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
+[![CI](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=coverage)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
+
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=bugs)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)  
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)  
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)  
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
 
 # Metis Sandbox
 
