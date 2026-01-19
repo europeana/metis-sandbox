@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import lombok.Getter;
 /**
  * Represents information about a dataset.
  */
-@ApiModel(DatasetInfoDTO.SWAGGER_MODEL_NAME)
+@Schema(name = DatasetInfoDTO.SWAGGER_MODEL_NAME)
 @Getter
 @Builder
 public final class DatasetInfoDTO {

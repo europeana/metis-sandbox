@@ -2,13 +2,13 @@ package eu.europeana.metis.sandbox.dto.harvest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 /**
  * Represents the data related to OAI-PMH harvesting
  */
-@ApiModel(OaiHarvestParametersDTO.SWAGGER_MODEL_NAME)
+@Schema(name = OaiHarvestParametersDTO.SWAGGER_MODEL_NAME)
 @Getter
 public class OaiHarvestParametersDTO extends AbstractHarvestParametersDTO {
 

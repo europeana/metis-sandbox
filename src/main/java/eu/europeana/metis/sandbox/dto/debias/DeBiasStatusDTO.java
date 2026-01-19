@@ -2,13 +2,13 @@ package eu.europeana.metis.sandbox.dto.debias;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 
 /**
  * The type Detection info dto.
  */
-@ApiModel(DeBiasStatusDTO.SWAGGER_MODEL_NAME)
+@Schema(name = DeBiasStatusDTO.SWAGGER_MODEL_NAME)
 public class DeBiasStatusDTO {
 
   /**

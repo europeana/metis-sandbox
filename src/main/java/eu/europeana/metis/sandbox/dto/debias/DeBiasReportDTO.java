@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.dto.debias;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasReportRow;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * The type Detection info dto.
  */
-@ApiModel(DeBiasReportDTO.SWAGGER_MODEL_NAME)
+@Schema(name = DeBiasReportDTO.SWAGGER_MODEL_NAME)
 public class DeBiasReportDTO extends DeBiasStatusDTO {
 
   /**

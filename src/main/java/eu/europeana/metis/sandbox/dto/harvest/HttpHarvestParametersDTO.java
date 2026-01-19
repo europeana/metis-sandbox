@@ -2,13 +2,13 @@ package eu.europeana.metis.sandbox.dto.harvest;
 
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 /**
  * Represents the data related to Http harvesting
  */
-@ApiModel(HttpHarvestParametersDTO.SWAGGER_MODEL_NAME)
+@Schema(name = HttpHarvestParametersDTO.SWAGGER_MODEL_NAME)
 @Getter
 public class HttpHarvestParametersDTO extends AbstractBinaryHarvestParametersDTO {
 

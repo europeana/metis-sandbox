@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.utils.LicenseType;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 /**
  * Object to encapsulate all tiers values related to a record
  */
-@ApiModel(RecordTiersInfoDTO.SWAGGER_MODEL_NAME)
+@Schema(name = RecordTiersInfoDTO.SWAGGER_MODEL_NAME)
 @Builder
 public class RecordTiersInfoDTO {
 

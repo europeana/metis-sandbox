@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 
 /**
  * Represents a dataset summary.
  */
-@ApiModel(DatasetSummaryDTO.SWAGGER_MODEL_NAME)
+@Schema(name = DatasetSummaryDTO.SWAGGER_MODEL_NAME)
 public record DatasetSummaryDTO(
     @JsonProperty("dataset-id")
     String datasetId,

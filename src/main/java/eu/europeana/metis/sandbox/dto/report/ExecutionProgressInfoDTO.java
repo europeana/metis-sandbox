@@ -2,13 +2,13 @@ package eu.europeana.metis.sandbox.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
  * Represents the execution progress information for a dataset processing workflow.
  */
-@ApiModel(ExecutionProgressInfoDTO.PROGRESS_SWAGGER_MODEL_NAME)
+@Schema(name = ExecutionProgressInfoDTO.PROGRESS_SWAGGER_MODEL_NAME)
 public record ExecutionProgressInfoDTO(
     @JsonProperty("portal-publish")
     String portalPublishUrl,
