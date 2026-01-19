@@ -47,7 +47,6 @@
     <version.commons.io>2.20.0</version.commons.io>
     <version.stax2-api>4.2.1</version.stax2-api>
     <version.woodstox-core>6.4.0</version.woodstox-core>
-    <version.testcontainers>1.20.2</version.testcontainers>
     <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.15.4</version.micrometer>
     <version.elastic.apm>1.55.0</version.elastic.apm>
@@ -83,6 +82,10 @@
       <artifactId>bucket4j-postgresql</artifactId>
       <version>${version.postgresql.bucket4j}</version>
       <exclusions>
+        <exclusion>
+          <groupId>org.testcontainers</groupId>
+          <artifactId>postgresql</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>com.zaxxer</groupId>
           <artifactId>HikariCP-java6</artifactId>
@@ -404,43 +407,31 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>${version.testcontainers}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-compress</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${version.testcontainers}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>mongodb</artifactId>
-      <version>${version.testcontainers}</version>
+      <artifactId>testcontainers-postgresql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>solr</artifactId>
-      <version>${version.testcontainers}</version>
+      <artifactId>testcontainers-mongodb</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>localstack</artifactId>
-      <version>${version.testcontainers}</version>
+      <artifactId>testcontainers-solr</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>${version.testcontainers}</version>
+      <artifactId>testcontainers-localstack</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
 
