@@ -5,10 +5,6 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.Refill;
-import io.github.bucket4j.distributed.remote.CommandResult;
-import io.github.bucket4j.distributed.remote.Request;
-import io.github.bucket4j.distributed.remote.commands.TryConsumeAndReturnRemainingTokensCommand;
 import io.github.bucket4j.postgresql.PostgreSQLadvisoryLockBasedProxyManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +25,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
   public static final String X_RATE_LIMIT_RESET = "X-Rate-Limit-Reset";
 
   private final Integer capacity;
-  private final PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager;
+  private final PostgreSQLadvisoryLockBasedProxyManager<Long> postgreSQLManager;
   private final BucketConfiguration bucketConfiguration;
 
   /**
@@ -39,12 +35,15 @@ public class RateLimitInterceptor implements HandlerInterceptor {
    * @param time The time it takes to refresh the tokens per uset
    * @param postgreSQLManager The database manager of the tokens per user
    */
-  public RateLimitInterceptor(Integer capacity, Long time, PostgreSQLadvisoryLockBasedProxyManager postgreSQLManager) {
+  public RateLimitInterceptor(Integer capacity, Long time, PostgreSQLadvisoryLockBasedProxyManager<Long> postgreSQLManager) {
     this.capacity = capacity;
     this.postgreSQLManager = postgreSQLManager;
     bucketConfiguration = BucketConfiguration.builder()
-                                             .addLimit(Bandwidth.classic(capacity,
-                                                 Refill.intervally(capacity, Duration.ofSeconds(time))))
+                                             .addLimit(
+                                                 Bandwidth.builder()
+                                                          .capacity(capacity)
+                                                          .refillIntervally(capacity, Duration.ofSeconds(time))
+                                                          .build())
                                              .build();
   }
 
@@ -68,14 +67,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
   }
 
   private ConsumptionProbe resolveBucket(Long apiKey) {
-    final Request<ConsumptionProbe> request = new Request<>(new TryConsumeAndReturnRemainingTokensCommand(1), null, null);
-    final CommandResult<ConsumptionProbe> commandResult = postgreSQLManager.execute(apiKey, request);
-    if (commandResult.isBucketNotFound()) {
-      Bucket bucket = postgreSQLManager.builder().build(apiKey, bucketConfiguration);
-      return bucket.tryConsumeAndReturnRemaining(1);
-    } else {
-      return commandResult.getData();
-    }
+    Bucket bucket = postgreSQLManager.builder().build(apiKey, () -> bucketConfiguration);
+
+    return bucket.tryConsumeAndReturnRemaining(1);
   }
 
   // Although collision can still happen, this approach provides higher chances of uniqueness than simply using hashCode()

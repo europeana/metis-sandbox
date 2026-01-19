@@ -50,8 +50,7 @@
     <version.awaitability>4.2.0</version.awaitability>
     <version.micrometer>1.15.4</version.micrometer>
     <version.elastic.apm>1.55.0</version.elastic.apm>
-    <version.bucket4j>8.3.0</version.bucket4j>
-    <version.postgresql.bucket4j>8.1.1</version.postgresql.bucket4j>
+    <version.bucket4j>8.10.1</version.bucket4j>
     <version.guava>32.1.3-jre</version.guava>
     <version.xml.bind>4.0.2</version.xml.bind>
     <version.morphia>2.5.0</version.morphia>
@@ -74,23 +73,8 @@
     <!-- Rate limiting dependencies-->
     <dependency>
       <groupId>com.bucket4j</groupId>
-      <artifactId>bucket4j-core</artifactId>
-      <version>${version.bucket4j}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.bucket4j</groupId>
       <artifactId>bucket4j-postgresql</artifactId>
-      <version>${version.postgresql.bucket4j}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.testcontainers</groupId>
-          <artifactId>postgresql</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.zaxxer</groupId>
-          <artifactId>HikariCP-java6</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>${version.bucket4j}</version>
     </dependency>
     <!-- guava -->
     <dependency>
