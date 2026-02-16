@@ -44,7 +44,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class DatasetHarvestController {
 
   private static final String INVALID_DATASET_NAME_MESSAGE = "dataset name can only include letters, numbers, _ or - characters";
-  private static final String INVALID_STEP_SIZE_MESSAGE = "Step size must be a number higher than zero";
+  public static final String INVALID_STEP_SIZE_MESSAGE = "Step size must be a number higher than zero";
   private static final String INVALID_URL_MESSAGE = "The provided url is invalid. Please provide a valid url.";
   private static final String EMPTY_DATA_FILE_MESSAGE = "Data file must not be empty when provided";
   private static final String EMPTY_XSLT_FILE_MESSAGE = "Xslt file must not be empty when provided";

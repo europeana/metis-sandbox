@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
 import static java.lang.String.format;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
@@ -18,6 +19,7 @@ import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.controller.task.input.SandboxTaskProgress;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.DatasetErrorInfoDTO;
@@ -44,9 +46,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +78,7 @@ public class DatasetReportService {
   private final ExecutionRecordWarningRepository executionRecordWarningRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   private final HarvestParameterService harvestParameterService;
+  private final JobRepository jobRepository;
 
   /**
    * Constructor.
@@ -89,7 +96,8 @@ public class DatasetReportService {
       ExecutionRecordErrorRepository executionRecordErrorRepository,
       ExecutionRecordWarningRepository executionRecordWarningRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
-      TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService) {
+      TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService,
+      JobRepository jobRepository) {
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordErrorRepository = executionRecordErrorRepository;
@@ -97,6 +105,7 @@ public class DatasetReportService {
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
     this.harvestParameterService = harvestParameterService;
+    this.jobRepository = jobRepository;
   }
 
   /**
@@ -244,6 +253,33 @@ public class DatasetReportService {
         recordLimitExceeded,
         datasetErrorInfoDTOS,
         tiersZeroInfoDTO
+    );
+  }
+
+  public SandboxTaskProgress getProgressForStep(long jobExecutionId, String datasetId, FullBatchJobType step) {
+    JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId);
+    Set<JobParameter<?>> parameters = jobExecution.getJobParameters().parameters();
+    Optional<String> sourceExecutionId = parameters.stream()
+                                                   .filter(parameter -> parameter.name().equals(ARGUMENT_SOURCE_EXECUTION_ID))
+                                                   .map(JobParameter::toString)
+                                                   .findFirst();
+
+    StepStatistics stepStatistics = getStepStatistics(datasetId, step);
+
+    long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
+    long failedRecords = stepStatistics.totalFail;
+    long warningRecords = stepStatistics.totalDistinctWarning;
+    long deletedRecords = 0;
+    long duplicatedRecords = stepStatistics.totalDuplicates;
+    long expectedRecords = sourceExecutionId.map(executionRecordRepository::countByExecutionRun_ExecutionId).orElse(processedRecords);
+
+    return new SandboxTaskProgress(
+        expectedRecords,
+        processedRecords,
+        failedRecords,
+        warningRecords,
+        deletedRecords,
+        duplicatedRecords
     );
   }
 

@@ -36,6 +36,45 @@ public class DatasetExecutionSetupService {
   private final HarvestParameterService harvestParameterService;
   private final TransformXsltRepository transformXsltRepository;
 
+  @Transactional
+  public ExecutionMetadata prepareDatasetExecutionHarvest(String datasetId,
+      AbstractHarvestParametersDTO abstractHarvestParametersDTO) {
+    //We assume dataset was already created with another call
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+
+    HarvestParametersEntity harvestParametersEntity =
+        harvestParameterService.createDatasetHarvestParameters(datasetId, abstractHarvestParametersDTO);
+    InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, null);
+
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetEntity.getDatasetName())
+                                                     .country(datasetEntity.getCountry())
+                                                     .language(datasetEntity.getLanguage())
+                                                     .workflowType(WorkflowType.SINGLE).build();
+
+    return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
+  }
+
+  @Transactional
+  public ExecutionMetadata prepareDatasetExecution(String datasetId, String sourceExecutionId, MultipartFile xsltFile) throws IOException {
+    //We assume dataset was already created with another call
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+    TransformXsltEntity transformXsltEntity = (xsltFile != null)
+        ? saveXslt(xsltFile, datasetId)
+        : null;
+    InputMetadata inputMetadata = new InputMetadata(sourceExecutionId, new InputMetadata(null, transformXsltEntity));
+    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
+                                                     .datasetId(datasetId)
+                                                     .datasetName(datasetEntity.getDatasetName())
+                                                     .country(datasetEntity.getCountry())
+                                                     .language(datasetEntity.getLanguage())
+                                                     .workflowType(WorkflowType.SINGLE).build();
+
+    return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
+
+  }
+
   /**
    * Prepares the execution metadata for a dataset based on provided parameters.
    *
@@ -88,7 +127,7 @@ public class DatasetExecutionSetupService {
     datasetRepository.updateRecordLimitExceeded(datasetId);
   }
 
-  private String createDataset(DatasetMetadataRequest datasetMetadataRequest, WorkflowType workflowType, String userId) {
+  public String createDataset(DatasetMetadataRequest datasetMetadataRequest, WorkflowType workflowType, String userId) {
     DatasetEntity datasetEntity = new DatasetEntity(datasetMetadataRequest.getDatasetName(), workflowType,
         datasetMetadataRequest.getLanguage(), datasetMetadataRequest.getCountry(), userId);
 

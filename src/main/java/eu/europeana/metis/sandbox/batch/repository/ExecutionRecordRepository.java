@@ -139,6 +139,8 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    */
   long countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
+  long countByExecutionRun_ExecutionId(String executionId);
+
   /**
    * Retrieves dataset statistics by grouping ExecutionRecord entities based on dataset IDs.
    *

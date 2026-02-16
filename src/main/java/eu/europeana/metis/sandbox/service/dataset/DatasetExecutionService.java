@@ -3,6 +3,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static eu.europeana.metis.sandbox.entity.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.entity.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
+import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.ExecutionMetadata;
@@ -34,6 +35,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.batch.core.job.JobExecution;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
@@ -66,6 +68,25 @@ public class DatasetExecutionService {
       throw new ServiceException(HARVESTING_ERROR_MESSAGE,
           new FileNotFoundException("The provided URL does not exist or cannot be accessed: " + url));
     }
+  }
+
+  public long submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat) {
+    OaiHarvestParametersDTO harvestParametersDTO =
+        new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
+    ExecutionMetadata executionMetadata =
+        datasetExecutionSetupService.prepareDatasetExecutionHarvest(datasetId, harvestParametersDTO);
+    JobExecution jobExecution = batchJobExecutor.executeStepAsync(executionMetadata, FullBatchJobType.HARVEST_OAI);
+    return jobExecution.getJobInstanceId();
+  }
+
+  public long submitExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile, FullBatchJobType step)
+      throws IOException {
+    ExecutionMetadata executionMetadata =
+        datasetExecutionSetupService.prepareDatasetExecution(datasetId, sourceExecutionId, xsltFile);
+    JobExecution jobExecution = batchJobExecutor.executeStepAsync(executionMetadata, step);
+
+    //todo: We should use the executionId that we control instead.
+    return jobExecution.getId();
   }
 
   /**

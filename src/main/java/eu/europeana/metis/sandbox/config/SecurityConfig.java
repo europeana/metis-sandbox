@@ -57,6 +57,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/dataset/*/harvestByFile").permitAll()
                     .requestMatchers(HttpMethod.POST, "/dataset/*/harvestByUrl").permitAll()
                     .requestMatchers(HttpMethod.POST, "/dataset/*/harvestOaiPmh").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/task/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/task/**").permitAll()
                     .anyRequest().permitAll()
                 );
 
