@@ -16,7 +16,9 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,24 +63,28 @@ public class TaskController {
           oaiHarvestInputMetadataRequest.url(),
           oaiHarvestInputMetadataRequest.set(),
           oaiHarvestInputMetadataRequest.metadataPrefix());
-      case InternalInputMetadataRequest internalInputMetadataRequest ->
-          datasetExecutionService.submitExecutionSingle(datasetId, internalInputMetadataRequest.sourceExecutionId(), null,
-              FullBatchJobType.valueOf(jobName));
+      case InternalInputMetadataRequest internalInputMetadataRequest -> {
+        String sourceExecutionId = internalInputMetadataRequest.sourceExecutionId();
+        checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
+        yield datasetExecutionService.submitExecutionSingle(datasetId, internalInputMetadataRequest.sourceExecutionId(), null,
+            FullBatchJobType.valueOf(jobName));
+      }
     };
   }
 
-  @GetMapping("/progress")
-  public SandboxTaskProgress taskProgress(
-      @RequestParam(name = "executionId") String executionId,
-      @RequestParam(name = "datasetId") String datasetId,
-      @RequestParam(name = "step") FullBatchJobType step) {
-    return datasetReportService.getProgressForStep(executionId, datasetId, step);
-  }
+@GetMapping("/progress")
+public SandboxTaskProgress taskProgress(
+    @RequestParam(name = "executionId") String executionId,
+    @RequestParam(name = "datasetId") String datasetId,
+    @RequestParam(name = "step") FullBatchJobType step) {
+  return datasetReportService.getProgressForStep(executionId, datasetId, step);
+}
 
-  @PostMapping("/cancel")
-  public String cancelTask(@RequestParam(name = "param1") String param1, @RequestParam(name = "param2") String param2) {
-    //todo: update what input and output
-    return "Task requested with parameters: " + param1 + ", " + param2;
-  }
+@PostMapping("/cancel")
+public void cancelTask(
+    @RequestParam(name = "executionId") String executionId,
+    @RequestParam(name = "step") FullBatchJobType step) throws JobExecutionNotRunningException {
+  datasetExecutionService.cancelTask(executionId, step);
+}
 
 }

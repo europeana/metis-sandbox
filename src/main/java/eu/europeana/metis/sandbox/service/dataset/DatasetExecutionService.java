@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
@@ -261,5 +262,9 @@ public class DatasetExecutionService {
 
   private String normalizeSetSpec(String setSpec) {
     return StringUtils.isBlank(setSpec) ? null : setSpec;
+  }
+
+  public void cancelTask(String executionId, FullBatchJobType step) throws JobExecutionNotRunningException {
+    batchJobExecutor.cancelTask(executionId, step);
   }
 }

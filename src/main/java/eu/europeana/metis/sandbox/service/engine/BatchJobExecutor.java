@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +69,7 @@ import org.springframework.batch.core.job.parameters.InvalidJobParametersExcepti
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
@@ -111,7 +113,8 @@ public class BatchJobExecutor {
    * @param transformXsltRepository repository for managing and retrieving XSLT transformations
    * @param executionRunRepository the repository used to store execution runs
    */
-  public BatchJobExecutor(List<? extends Job> jobs, JobOperator jobOperator, JobRepository jobRepository,
+  public BatchJobExecutor(List<? extends Job> jobs,
+      @Qualifier("myJobOperator") JobOperator jobOperator, JobRepository jobRepository,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository,
       ExecutionRunRepository executionRunRepository) {
     this.jobs = List.copyOf(jobs);
@@ -177,6 +180,17 @@ public class BatchJobExecutor {
                                                                   .inputMetadata(inputMetadata)
                                                                   .build();
     execute(currentExecutionMetadata);
+  }
+
+  public void cancelTask(String executionId, FullBatchJobType step) throws JobExecutionNotRunningException {
+    Set<JobExecution> runningJobExecutions = jobRepository.findRunningJobExecutions(step.getBatchJobType().name());
+    for (JobExecution jobExecution : runningJobExecutions) {
+      String targetExecutionId = jobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID);
+      if (executionId.equals(targetExecutionId)) {
+        jobOperator.stop(jobExecution);
+        return;
+      }
+    }
   }
 
   private void executeSteps(ExecutionMetadata executionMetadata) {
