@@ -47,7 +47,7 @@ public class TaskController {
   }
 
   @PostMapping("/submit")
-  public long submitTask(@RequestBody SandboxTask sandboxTask) throws IOException {
+  public String submitTask(@RequestBody SandboxTask sandboxTask) throws IOException {
     int stepSize = Integer.valueOf(sandboxTask.getParameters().get(SandboxTaskKey.STEP_SIZE));
     String datasetId = sandboxTask.getParameters().get(SandboxTaskKey.ENGINE_DATASET_ID);
     String jobName = sandboxTask.getParameters().get(SandboxTaskKey.JOB_NAME);
@@ -69,10 +69,10 @@ public class TaskController {
 
   @GetMapping("/progress")
   public SandboxTaskProgress taskProgress(
-      @RequestParam(name = "jobExecutionId") long jobExecutionId,
+      @RequestParam(name = "executionId") String executionId,
       @RequestParam(name = "datasetId") String datasetId,
       @RequestParam(name = "step") FullBatchJobType step) {
-    return datasetReportService.getProgressForStep(jobExecutionId, datasetId, step);
+    return datasetReportService.getProgressForStep(executionId, datasetId, step);
   }
 
   @PostMapping("/cancel")

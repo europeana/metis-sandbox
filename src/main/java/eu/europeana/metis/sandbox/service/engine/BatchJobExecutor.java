@@ -181,6 +181,7 @@ public class BatchJobExecutor {
 
   private void executeSteps(ExecutionMetadata executionMetadata) {
     ExecutionMetadata currentExecutionMetadata = executionMetadata;
+    String currentSourceExecutionId = executionMetadata.getInputMetadata().getSourceExecutionId();
     ExecutionMetadataWithTargetId currentExecutionMetadataWithTargetId =
         new ExecutionMetadataWithTargetId(currentExecutionMetadata, UUID.randomUUID());
 
@@ -192,6 +193,7 @@ public class BatchJobExecutor {
       }
 
       ExecutionRun executionRun = new ExecutionRun();
+      executionRun.setSourceExecutionId(currentSourceExecutionId);
       executionRun.setDatasetId(executionMetadata.getDatasetMetadata().getDatasetId());
       executionRun.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
       executionRun.setExecutionName(step.name());
@@ -207,6 +209,7 @@ public class BatchJobExecutor {
                                                       jobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID),
                                                       currentExecutionMetadata.getInputMetadata()))
                                                   .build();
+      currentSourceExecutionId = currentExecutionMetadataWithTargetId.targetUUId.toString();
       currentExecutionMetadataWithTargetId = new ExecutionMetadataWithTargetId(currentExecutionMetadata, UUID.randomUUID());
     }
   }
@@ -219,6 +222,7 @@ public class BatchJobExecutor {
     ExecutionMetadataWithTargetId currentExecutionMetadataWithTargetId =
         new ExecutionMetadataWithTargetId(executionMetadata, UUID.randomUUID());
     ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setSourceExecutionId(executionMetadata.getInputMetadata().getSourceExecutionId());
     executionRun.setDatasetId(executionMetadata.getDatasetMetadata().getDatasetId());
     executionRun.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
     executionRun.setExecutionName(step.name());

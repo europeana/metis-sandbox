@@ -9,6 +9,7 @@ import eu.europeana.metis.sandbox.common.locale.Language;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -16,6 +17,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
+@EqualsAndHashCode
 public class DatasetMetadataRequest {
 
   @NotBlank

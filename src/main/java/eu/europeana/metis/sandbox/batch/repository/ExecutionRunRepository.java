@@ -21,4 +21,6 @@ public interface ExecutionRunRepository extends JpaRepository<ExecutionRun, Long
    *         or null if no matching entity is found
    */
   ExecutionRun getByDatasetIdAndExecutionIdAndExecutionName(String datasetId, String targetExecutionId, String executionName);
+
+  ExecutionRun findDistinctByExecutionId(String executionId);
 }

@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_SOURCE_EXECUTION_ID;
 import static java.lang.String.format;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
@@ -8,6 +7,7 @@ import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository.ExecutionRecordErrorProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
@@ -15,6 +15,7 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.Exe
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository.ExecutionRecordWarningProjection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
@@ -46,12 +47,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.batch.core.job.JobExecution;
-import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -73,6 +71,7 @@ public class DatasetReportService {
 
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
+  private final ExecutionRunRepository executionRunRepository;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordWarningRepository executionRecordWarningRepository;
@@ -92,13 +91,14 @@ public class DatasetReportService {
    * @param harvestParameterService service for handling harvest parameters
    */
   public DatasetReportService(
-      DatasetRepository datasetRepository, ExecutionRecordRepository executionRecordRepository,
+      DatasetRepository datasetRepository, ExecutionRunRepository executionRunRepository, ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordErrorRepository executionRecordErrorRepository,
       ExecutionRecordWarningRepository executionRecordWarningRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
       TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService,
       JobRepository jobRepository) {
     this.datasetRepository = datasetRepository;
+    this.executionRunRepository = executionRunRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordErrorRepository = executionRecordErrorRepository;
     this.executionRecordWarningRepository = executionRecordWarningRepository;
@@ -256,26 +256,31 @@ public class DatasetReportService {
     );
   }
 
-  public SandboxTaskProgress getProgressForStep(long jobExecutionId, String datasetId, FullBatchJobType step) {
-    JobExecution jobExecution = jobRepository.getJobExecution(jobExecutionId);
-    Set<JobParameter<?>> parameters = jobExecution.getJobParameters().parameters();
-    Optional<String> sourceExecutionId = parameters.stream()
-                                                   .filter(parameter -> parameter.name().equals(ARGUMENT_SOURCE_EXECUTION_ID))
-                                                   .map(JobParameter::toString)
-                                                   .findFirst();
-
+  public SandboxTaskProgress getProgressForStep(String executionId, String datasetId, FullBatchJobType step) {
+    ExecutionRun executionRun = executionRunRepository.findDistinctByExecutionId(executionId);
+    if (executionRun == null) {
+      throw new IllegalArgumentException("ExecutionRun not found for executionId: " + executionId);
+    }
+    String sourceExecutionId = executionRun.getSourceExecutionId();
     StepStatistics stepStatistics = getStepStatistics(datasetId, step);
 
     long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
+    long successRecords = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
     long failedRecords = stepStatistics.totalFail;
     long warningRecords = stepStatistics.totalDistinctWarning;
     long deletedRecords = 0;
     long duplicatedRecords = stepStatistics.totalDuplicates;
-    long expectedRecords = sourceExecutionId.map(executionRecordRepository::countByExecutionRun_ExecutionId).orElse(processedRecords);
+    long expectedRecords;
+    if (sourceExecutionId == null) {
+      expectedRecords = processedRecords;
+    } else {
+      expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
+    }
 
     return new SandboxTaskProgress(
         expectedRecords,
         processedRecords,
+        successRecords,
         failedRecords,
         warningRecords,
         deletedRecords,

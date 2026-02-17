@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static eu.europeana.metis.sandbox.batch.common.ArgumentString.ARGUMENT_TARGET_EXECUTION_ID;
 import static eu.europeana.metis.sandbox.entity.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.entity.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
@@ -29,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import lombok.AllArgsConstructor;
@@ -36,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
@@ -70,23 +73,28 @@ public class DatasetExecutionService {
     }
   }
 
-  public long submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat) {
+  public String submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat) {
     OaiHarvestParametersDTO harvestParametersDTO =
         new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareDatasetExecutionHarvest(datasetId, harvestParametersDTO);
     JobExecution jobExecution = batchJobExecutor.executeStepAsync(executionMetadata, FullBatchJobType.HARVEST_OAI);
-    return jobExecution.getJobInstanceId();
+    return getTargetExecutionId(jobExecution);
   }
 
-  public long submitExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile, FullBatchJobType step)
+  public String submitExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile, FullBatchJobType step)
       throws IOException {
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareDatasetExecution(datasetId, sourceExecutionId, xsltFile);
     JobExecution jobExecution = batchJobExecutor.executeStepAsync(executionMetadata, step);
+    return getTargetExecutionId(jobExecution);
+  }
 
-    //todo: We should use the executionId that we control instead.
-    return jobExecution.getId();
+  private static String getTargetExecutionId(JobExecution jobExecution) {
+    Set<JobParameter<?>> parameters = jobExecution.getJobParameters().parameters();
+    return parameters.stream()
+                     .filter(parameter -> parameter.name().equals(ARGUMENT_TARGET_EXECUTION_ID))
+                     .map(JobParameter::value).map(Object::toString).findFirst().orElseThrow();
   }
 
   /**

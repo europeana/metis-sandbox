@@ -17,6 +17,7 @@ import lombok.Setter;
 @Entity
 @Table(schema = "engine_record",
     indexes = {
+        @Index(name = "idx_exec_execid", columnList = "sourceExecutionId"),
         @Index(name = "idx_exec_dataset", columnList = "datasetId"),
         @Index(name = "idx_exec_execid", columnList = "executionId"),
         @Index(name = "idx_exec_execname", columnList = "executionName"),
@@ -29,6 +30,9 @@ public class ExecutionRun {
   @Id
   @GeneratedValue
   private Long id;
+
+  @Column(length = 50)
+  private String sourceExecutionId;
 
   @Column(length = 50)
   private String datasetId;
