@@ -25,6 +25,8 @@ public interface ExecutionRecordExternalIdentifierRepository extends
    */
   Page<ExecutionRecordExternalIdentifier> findByExecutionRun_ExecutionId(String executionId, Pageable pageable);
 
+  long countByExecutionRun_ExecutionId(String executionId);
+
   /**
    * Removes all records associated with the specified dataset ID from the repository.
    *

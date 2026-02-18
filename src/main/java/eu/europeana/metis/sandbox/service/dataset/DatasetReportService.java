@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
+import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.BatchJobGroup.HARVEST;
 import static java.lang.String.format;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
@@ -10,6 +11,7 @@ import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository.ExecutionRecordErrorProjection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordExternalIdentifierRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository.ExecutionRecordIdentifierProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
@@ -72,6 +74,7 @@ public class DatasetReportService {
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
   private final ExecutionRunRepository executionRunRepository;
+  private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
   private final ExecutionRecordRepository executionRecordRepository;
   private final ExecutionRecordErrorRepository executionRecordErrorRepository;
   private final ExecutionRecordWarningRepository executionRecordWarningRepository;
@@ -91,7 +94,9 @@ public class DatasetReportService {
    * @param harvestParameterService service for handling harvest parameters
    */
   public DatasetReportService(
-      DatasetRepository datasetRepository, ExecutionRunRepository executionRunRepository, ExecutionRecordRepository executionRecordRepository,
+      DatasetRepository datasetRepository, ExecutionRunRepository executionRunRepository,
+      ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository,
+      ExecutionRecordRepository executionRecordRepository,
       ExecutionRecordErrorRepository executionRecordErrorRepository,
       ExecutionRecordWarningRepository executionRecordWarningRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
@@ -99,6 +104,7 @@ public class DatasetReportService {
       JobRepository jobRepository) {
     this.datasetRepository = datasetRepository;
     this.executionRunRepository = executionRunRepository;
+    this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordErrorRepository = executionRecordErrorRepository;
     this.executionRecordWarningRepository = executionRecordWarningRepository;
@@ -262,6 +268,12 @@ public class DatasetReportService {
       throw new IllegalArgumentException("ExecutionRun not found for executionId: " + executionId);
     }
     String sourceExecutionId = executionRun.getSourceExecutionId();
+    long expectedRecords;
+    if (sourceExecutionId == null && step.getBatchJobGroup() == HARVEST) {
+      expectedRecords = executionRecordExternalIdentifierRepository.countByExecutionRun_ExecutionId(executionId);
+    } else {
+      expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
+    }
     StepStatistics stepStatistics = getStepStatistics(datasetId, step);
 
     long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
@@ -270,12 +282,6 @@ public class DatasetReportService {
     long warningRecords = stepStatistics.totalDistinctWarning;
     long deletedRecords = 0;
     long duplicatedRecords = stepStatistics.totalDuplicates;
-    long expectedRecords;
-    if (sourceExecutionId == null) {
-      expectedRecords = processedRecords;
-    } else {
-      expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
-    }
 
     return new SandboxTaskProgress(
         expectedRecords,

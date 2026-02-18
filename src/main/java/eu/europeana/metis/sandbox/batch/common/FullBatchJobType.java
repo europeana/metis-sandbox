@@ -3,44 +3,41 @@ package eu.europeana.metis.sandbox.batch.common;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import lombok.Getter;
 import org.apache.tika.utils.StringUtils;
 
 /**
  * Represents the different types of full batch jobs by combining a {@link BatchJobType} with an optional {@link BatchJobSubType}.
  * This enumeration supports job-specific distinctions such as transform and validate.
  */
+@Getter
 public enum FullBatchJobType {
-  HARVEST_OAI(BatchJobType.HARVEST_OAI),
-  HARVEST_FILE(BatchJobType.HARVEST_FILE),
-  TRANSFORM_EXTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.EXTERNAL),
-  VALIDATE_EXTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.EXTERNAL),
-  TRANSFORM_INTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.INTERNAL),
-  VALIDATE_INTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.INTERNAL),
-  NORMALIZE(BatchJobType.NORMALIZE),
-  ENRICH(BatchJobType.ENRICH),
-  MEDIA(BatchJobType.MEDIA),
-  INDEX_PUBLISH(BatchJobType.INDEX, IndexBatchJobSubType.PUBLISH),
-  DEBIAS(BatchJobType.DEBIAS);
+  HARVEST_OAI(BatchJobType.HARVEST_OAI, BatchJobGroup.HARVEST),
+  HARVEST_FILE(BatchJobType.HARVEST_FILE, BatchJobGroup.HARVEST),
+  TRANSFORM_EXTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.EXTERNAL, BatchJobGroup.CURATE),
+  VALIDATE_EXTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.EXTERNAL, BatchJobGroup.CURATE),
+  TRANSFORM_INTERNAL(BatchJobType.TRANSFORM, TransformationBatchJobSubType.INTERNAL, BatchJobGroup.CURATE),
+  VALIDATE_INTERNAL(BatchJobType.VALIDATE, ValidationBatchJobSubType.INTERNAL, BatchJobGroup.CURATE),
+  NORMALIZE(BatchJobType.NORMALIZE, BatchJobGroup.CURATE),
+  ENRICH(BatchJobType.ENRICH, BatchJobGroup.CURATE),
+  MEDIA(BatchJobType.MEDIA, BatchJobGroup.CURATE),
+  INDEX_PUBLISH(BatchJobType.INDEX, IndexBatchJobSubType.PUBLISH, BatchJobGroup.INDEX),
+  DEBIAS(BatchJobType.DEBIAS, BatchJobGroup.DEBIAS);
 
   private final BatchJobType batchJobType;
   private final BatchJobSubType batchJobSubType;
+  private final BatchJobGroup batchJobGroup;
 
-  FullBatchJobType(BatchJobType batchJobType) {
+  FullBatchJobType(BatchJobType batchJobType, BatchJobGroup batchJobGroup) {
     this.batchJobType = batchJobType;
     this.batchJobSubType = null;
+    this.batchJobGroup = batchJobGroup;
   }
 
-  FullBatchJobType(BatchJobType batchJobType, BatchJobSubType batchJobSubType) {
+  FullBatchJobType(BatchJobType batchJobType, BatchJobSubType batchJobSubType, BatchJobGroup batchJobGroup) {
     this.batchJobType = batchJobType;
     this.batchJobSubType = batchJobSubType;
-  }
-
-  public BatchJobType getBatchJobType() {
-    return batchJobType;
-  }
-
-  public BatchJobSubType getBatchJobSubType() {
-    return batchJobSubType;
+    this.batchJobGroup = batchJobGroup;
   }
 
   /**
@@ -64,5 +61,9 @@ public enum FullBatchJobType {
 
     return candidateFullBatchJobTypes.stream().filter(f -> f.getBatchJobSubType().name().equals(suffix)).findFirst()
                                      .orElseThrow();
+  }
+
+  public enum BatchJobGroup {
+    HARVEST, CURATE, INDEX, DEPUBLISH, DEBIAS
   }
 }
