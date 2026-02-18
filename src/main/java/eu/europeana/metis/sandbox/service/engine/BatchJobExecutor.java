@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
@@ -183,14 +182,22 @@ public class BatchJobExecutor {
   }
 
   public void cancelTask(String executionId, FullBatchJobType step) throws JobExecutionNotRunningException {
-    Set<JobExecution> runningJobExecutions = jobRepository.findRunningJobExecutions(step.getBatchJobType().name());
-    for (JobExecution jobExecution : runningJobExecutions) {
-      String targetExecutionId = jobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID);
-      if (executionId.equals(targetExecutionId)) {
-        jobOperator.stop(jobExecution);
-        return;
+    JobExecution jobExecution = findJobExecutionByParameter(executionId, step);
+    jobOperator.stop(jobExecution);
+  }
+
+  public JobExecution findJobExecutionByParameter(String executionId, FullBatchJobType step) {
+    List<JobInstance> jobInstances = jobRepository.findJobInstances(step.getBatchJobType().name());
+    for (JobInstance jobInstance : jobInstances) {
+      List<JobExecution> jobExecutions = jobRepository.getJobExecutions(jobInstance);
+      for (JobExecution jobExecution : jobExecutions) {
+        String targetExecutionId = jobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID);
+        if (executionId.equals(targetExecutionId)) {
+          return jobExecution;
+        }
       }
     }
+    return null;
   }
 
   private void executeSteps(ExecutionMetadata executionMetadata) {

@@ -23,6 +23,7 @@ import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.controller.task.input.SandboxTaskProgress;
+import eu.europeana.metis.sandbox.controller.task.input.SandboxTaskProgress.SandboxTaskState;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.DatasetErrorInfoDTO;
@@ -38,6 +39,7 @@ import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjection;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -52,7 +54,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.job.JobExecution;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +83,7 @@ public class DatasetReportService {
   private final ExecutionRecordWarningRepository executionRecordWarningRepository;
   private final ExecutionRecordTierContextRepository executionRecordTierContextRepository;
   private final HarvestParameterService harvestParameterService;
-  private final JobRepository jobRepository;
+  private final BatchJobExecutor batchJobExecutor;
 
   /**
    * Constructor.
@@ -101,7 +104,7 @@ public class DatasetReportService {
       ExecutionRecordWarningRepository executionRecordWarningRepository,
       ExecutionRecordTierContextRepository executionRecordTierContextRepository,
       TransformXsltRepository transformXsltRepository, HarvestParameterService harvestParameterService,
-      JobRepository jobRepository) {
+      BatchJobExecutor batchJobExecutor) {
     this.datasetRepository = datasetRepository;
     this.executionRunRepository = executionRunRepository;
     this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
@@ -111,7 +114,7 @@ public class DatasetReportService {
     this.executionRecordTierContextRepository = executionRecordTierContextRepository;
     this.transformXsltRepository = transformXsltRepository;
     this.harvestParameterService = harvestParameterService;
-    this.jobRepository = jobRepository;
+    this.batchJobExecutor = batchJobExecutor;
   }
 
   /**
@@ -283,6 +286,9 @@ public class DatasetReportService {
     long deletedRecords = 0;
     long duplicatedRecords = stepStatistics.totalDuplicates;
 
+    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, step);
+    BatchStatus batchStatus = Optional.ofNullable(jobExecution).map(JobExecution::getStatus).orElse(BatchStatus.UNKNOWN);
+    SandboxTaskState sandboxTaskState = SandboxTaskState.fromBatchStatus(batchStatus);
     return new SandboxTaskProgress(
         expectedRecords,
         processedRecords,
@@ -290,7 +296,8 @@ public class DatasetReportService {
         failedRecords,
         warningRecords,
         deletedRecords,
-        duplicatedRecords
+        duplicatedRecords,
+        sandboxTaskState
     );
   }
 
