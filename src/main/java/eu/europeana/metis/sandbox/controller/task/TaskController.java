@@ -19,6 +19,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
@@ -46,7 +47,9 @@ public class TaskController {
 
   @PostMapping("/submit")
   public String submitTask(@RequestBody SandboxTask sandboxTask) throws IOException {
-    int stepSize = Integer.valueOf(sandboxTask.getParameters().get(SandboxTaskKey.STEP_SIZE));
+    int stepSize = Optional.ofNullable(sandboxTask.getParameters().get(SandboxTaskKey.STEP_SIZE))
+                           .map(Integer::parseInt)
+                           .orElse(1);
     String datasetId = sandboxTask.getParameters().get(SandboxTaskKey.ENGINE_DATASET_ID);
     String jobName = sandboxTask.getParameters().get(SandboxTaskKey.JOB_NAME);
 
