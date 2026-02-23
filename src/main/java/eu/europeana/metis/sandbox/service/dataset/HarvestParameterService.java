@@ -47,6 +47,12 @@ public class HarvestParameterService {
     requireNonNull(abstractHarvestParametersDTO, "Type of harvesting must not be null");
     try {
       DatasetEntity datasetEntity = datasetRepository.findById(Integer.parseInt(datasetId)).orElseThrow();
+      harvestParametersRepository
+          .findByDatasetEntity_DatasetId(Integer.valueOf(datasetId))
+          .ifPresent(entity -> {
+            harvestParametersRepository.delete(entity);
+            harvestParametersRepository.flush();
+          });
       HarvestParametersEntity harvestParametersEntity = HarvestParametersConverter.convertToHarvestParametersEntity(datasetEntity,
           abstractHarvestParametersDTO);
       return harvestParametersRepository.save(harvestParametersEntity);
