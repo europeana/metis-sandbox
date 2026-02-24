@@ -404,9 +404,6 @@
             <goals>
               <goal>repackage</goal>
             </goals>
-            <configuration>
-              <classifier>boot</classifier>
-            </configuration>
           </execution>
           <execution>
             <id>build-info</id>
