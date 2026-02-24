@@ -138,7 +138,7 @@ public class BatchJobExecutor {
     this.jobExecutorsByType.put(DEBIAS, this::executeDebias);
   }
 
-  public JobExecution executeStepAsync(ExecutionMetadata executionMetadata, FullBatchJobType step) {
+  public String executeStepAsync(ExecutionMetadata executionMetadata, FullBatchJobType step) {
     return executeStep(executionMetadata, step);
   }
 
@@ -235,7 +235,7 @@ public class BatchJobExecutor {
     }
   }
 
-  private JobExecution executeStep(ExecutionMetadata executionMetadata, FullBatchJobType step) {
+  private String executeStep(ExecutionMetadata executionMetadata, FullBatchJobType step) {
     Function<ExecutionMetadataWithTargetId, JobExecution> executor = jobExecutorsByType.get(step);
     if (executor == null) {
       throw new IllegalStateException("No executor for step: " + step);
@@ -249,7 +249,8 @@ public class BatchJobExecutor {
     executionRun.setExecutionName(step.name());
 
     executionRunRepository.save(executionRun);
-    return executor.apply(currentExecutionMetadataWithTargetId);
+    taskExecutor.execute(() -> executor.apply(currentExecutionMetadataWithTargetId));
+    return currentExecutionMetadataWithTargetId.targetUUId().toString();
   }
 
   private Optional<JobExecution> findJobInstance(ExecutionMetadata executionMetadata, FullBatchJobType fullBatchJobType) {
