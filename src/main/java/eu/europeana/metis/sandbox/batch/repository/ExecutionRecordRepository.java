@@ -103,6 +103,19 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
       """)
   long countDuplicateRecords(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
+  @Query("""
+      SELECT COUNT(r)
+      FROM ExecutionRecord r
+      WHERE r.executionRun.executionId = :executionId
+        AND r.id NOT IN (
+            SELECT MIN(r2.id)
+            FROM ExecutionRecord r2
+            WHERE r2.executionRun.executionId = :executionId
+            GROUP BY r2.identifier.recordId
+        )
+      """)
+  long countDuplicateRecords(@Param("executionId") String executionId);
+
   /**
    * Retrieves an ExecutionRecord based on the provided dataset ID, record ID, and executionRun name.
    *

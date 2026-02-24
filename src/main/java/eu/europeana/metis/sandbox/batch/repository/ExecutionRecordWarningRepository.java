@@ -53,6 +53,13 @@ public interface ExecutionRecordWarningRepository extends JpaRepository<Executio
       """)
   long countDistinctRecordIds(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
+  @Query("""
+          SELECT COUNT(DISTINCT w.executionRecord.identifier.recordId)
+          FROM ExecutionRecordWarning w
+          WHERE w.executionRecord.executionRun.executionId = :executionId
+      """)
+  long countDistinctRecordIds(@Param("executionId") String executionId);
+
   /**
    * Retrieves statistics of executionRun steps, including the step name and the count of records grouped per step.
    *

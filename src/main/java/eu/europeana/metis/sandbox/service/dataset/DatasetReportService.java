@@ -265,7 +265,7 @@ public class DatasetReportService {
     );
   }
 
-  public SandboxTaskProgress getProgressForStep(String executionId, String datasetId, FullBatchJobType step) {
+  public SandboxTaskProgress getProgressForStep(String executionId, FullBatchJobType step) {
     ExecutionRun executionRun = executionRunRepository.findDistinctByExecutionId(executionId);
     if (executionRun == null) {
       throw new IllegalArgumentException("ExecutionRun not found for executionId: " + executionId);
@@ -277,7 +277,7 @@ public class DatasetReportService {
     } else {
       expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
     }
-    StepStatistics stepStatistics = getStepStatistics(datasetId, step);
+    StepStatistics stepStatistics = getStepStatisticsForStep(executionId);
 
     long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
     long successRecords = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
@@ -329,6 +329,18 @@ public class DatasetReportService {
         executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId, executionName);
     long totalDistinctWarning =
         executionRecordWarningRepository.countDistinctRecordIds(datasetId, executionName);
+    return new StepStatistics(totalSuccess, totalDuplicates, totalFailure, totalDistinctWarning);
+  }
+
+  private @NotNull StepStatistics getStepStatisticsForStep(String executionId) {
+    long totalSuccess =
+        executionRecordRepository.countByExecutionRun_ExecutionId(executionId);
+    long totalDuplicates =
+        executionRecordRepository.countDuplicateRecords(executionId);
+    long totalFailure =
+        executionRecordErrorRepository.countByExecutionRun_ExecutionId(executionId);
+    long totalDistinctWarning =
+        executionRecordWarningRepository.countDistinctRecordIds(executionId);
     return new StepStatistics(totalSuccess, totalDuplicates, totalFailure, totalDistinctWarning);
   }
 

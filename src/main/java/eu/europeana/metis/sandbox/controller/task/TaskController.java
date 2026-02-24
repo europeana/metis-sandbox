@@ -74,9 +74,8 @@ public class TaskController {
   @GetMapping("/progress")
   public SandboxTaskProgress taskProgress(
       @RequestParam(name = "executionId") String executionId,
-      @RequestParam(name = "datasetId") String datasetId,
       @RequestParam(name = "step") FullBatchJobType step) {
-    return datasetReportService.getProgressForStep(executionId, datasetId, step);
+    return datasetReportService.getProgressForStep(executionId, step);
   }
 
   @PostMapping("/cancel")
