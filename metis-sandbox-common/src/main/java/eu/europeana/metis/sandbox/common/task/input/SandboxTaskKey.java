@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.controller.task.input;
+package eu.europeana.metis.sandbox.common.task.input;
 
 /**
  * Enum representing various keys used to configure and manage tasks within the processing engine.

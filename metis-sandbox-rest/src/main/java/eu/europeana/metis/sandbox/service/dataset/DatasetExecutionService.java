@@ -1,12 +1,12 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static eu.europeana.metis.sandbox.entity.WorkflowType.DEBIAS;
-import static eu.europeana.metis.sandbox.entity.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
+import static eu.europeana.metis.sandbox.common.WorkflowType.DEBIAS;
+import static eu.europeana.metis.sandbox.common.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.common.DatasetMetadata;
+import eu.europeana.metis.sandbox.dto.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
-import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
@@ -17,7 +17,7 @@ import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
+import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;

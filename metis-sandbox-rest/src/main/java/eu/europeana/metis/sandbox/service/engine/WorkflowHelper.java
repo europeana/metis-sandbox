@@ -12,10 +12,10 @@ import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_
 import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
 
 import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.common.ExecutionMetadata;
+import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
+import eu.europeana.metis.sandbox.common.WorkflowType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

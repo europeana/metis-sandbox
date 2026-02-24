@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.apache.tika.utils.StringUtils.isBlank;
 
-import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
+import eu.europeana.metis.sandbox.dto.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.controller.task.input;
+package eu.europeana.metis.sandbox.common.task.input;
 
 import java.util.Date;
 

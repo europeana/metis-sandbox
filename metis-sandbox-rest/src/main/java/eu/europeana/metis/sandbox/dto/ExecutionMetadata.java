@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.common;
+package eu.europeana.metis.sandbox.dto;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -18,12 +18,12 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRep
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository.ExecutionRecordWarningProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
-import eu.europeana.metis.sandbox.common.HarvestParametersConverter;
+import eu.europeana.metis.sandbox.dto.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.controller.task.input.SandboxTaskProgress;
-import eu.europeana.metis.sandbox.controller.task.input.SandboxTaskProgress.SandboxTaskState;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress.SandboxTaskState;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.DatasetErrorInfoDTO;

@@ -1,7 +1,5 @@
 package eu.europeana.metis.sandbox.common;
 
-import static eu.europeana.metis.sandbox.common.ValidateObjectHelper.validate;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -38,6 +36,6 @@ public class DatasetMetadataRequest {
     this.datasetName = datasetName;
     this.country = country;
     this.language = language;
-    validate(this);
+    ValidateObjectHelper.validate(this);
   }
 }

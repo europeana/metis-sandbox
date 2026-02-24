@@ -1,10 +1,10 @@
-package eu.europeana.metis.sandbox.common;
+package eu.europeana.metis.sandbox.dto;
 
 import static eu.europeana.metis.sandbox.common.ValidateObjectHelper.validate;
 
+import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

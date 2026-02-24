@@ -35,7 +35,7 @@ import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
-import eu.europeana.metis.sandbox.entity.WorkflowType;
+import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;

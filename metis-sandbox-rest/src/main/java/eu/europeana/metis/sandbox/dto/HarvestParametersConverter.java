@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.common;
+package eu.europeana.metis.sandbox.dto;
 
 import eu.europeana.metis.sandbox.dto.harvest.AbstractBinaryHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;

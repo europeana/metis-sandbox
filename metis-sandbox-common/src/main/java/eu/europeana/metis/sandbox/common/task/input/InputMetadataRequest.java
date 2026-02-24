@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.controller.task.input;
+package eu.europeana.metis.sandbox.common.task.input;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

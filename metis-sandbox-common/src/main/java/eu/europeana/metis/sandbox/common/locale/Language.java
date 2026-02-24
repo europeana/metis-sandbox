@@ -43,8 +43,7 @@ public enum Language {
    * @return the list of languages sorted
    */
   public static List<Language> getLanguageListSortedByName() {
-    List<Language> languages = Arrays
-        .asList(Language.values());
+    List<Language> languages = Arrays.asList(Language.values());
     languages.sort(Comparator.comparing(Language::xmlValue));
     return languages;
   }

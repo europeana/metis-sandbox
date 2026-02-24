@@ -40,7 +40,7 @@ public class DatasetEntity {
   private String datasetName;
 
   @Enumerated(EnumType.STRING)
-  private WorkflowType workflowType;
+  private eu.europeana.metis.sandbox.common.WorkflowType workflowType;
 
   @Enumerated(EnumType.STRING)
   private Language language;
@@ -64,7 +64,7 @@ public class DatasetEntity {
    * @param country the country of the dataset
    * @param createdById the ID of the user who created the dataset
    */
-  public DatasetEntity(String datasetName, WorkflowType workflowType, Language language, Country country, String createdById) {
+  public DatasetEntity(String datasetName, eu.europeana.metis.sandbox.common.WorkflowType workflowType, Language language, Country country, String createdById) {
     this.workflowType = workflowType;
     this.datasetName = datasetName;
     this.createdById = createdById;
