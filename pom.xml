@@ -8,6 +8,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>metis-sandbox-common</module>
     <module>metis-sandbox-rest</module>
   </modules>
 
