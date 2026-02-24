@@ -12,7 +12,7 @@
     <!-- Submodules -->
     <dependency>
       <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-sandbox-common</artifactId>
+      <artifactId>metis-sandbox-service</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -21,12 +21,6 @@
       <groupId>com.bucket4j</groupId>
       <artifactId>bucket4j-postgresql</artifactId>
       <version>${version.bucket4j}</version>
-    </dependency>
-    <!-- guava -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${version.guava}</version>
     </dependency>
     <!-- Spring boot -->
     <dependency>
@@ -50,10 +44,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -84,117 +74,6 @@
       <artifactId>metis-common-spring-properties</artifactId>
       <version>${version.metis-common}</version>
     </dependency>
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-transformation-service</artifactId>
-      <version>${version.metis}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-validation-service</artifactId>
-      <version>${version.metis}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-normalization</artifactId>
-      <version>${version.metis-normalization}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-enrichment-client</artifactId>
-      <version>${version.metis}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>eu.europeana.corelib</groupId>
-          <artifactId>corelib-lookup</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>dev.morphia.morphia</groupId>
-          <artifactId>morphia-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-harvesting</artifactId>
-      <version>${version.metis}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
-        <exclusion>
-          <groupId>org.codehaus.woodstox</groupId>
-          <artifactId>stax2-api</artifactId>
-        </exclusion>
-        <!-- This is not really part of the library, but we excluded just in case.-->
-        <exclusion>
-          <groupId>com.fasterxml.woodstox</groupId>
-          <artifactId>woodstox-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-debias-detect-service</artifactId>
-      <version>${version.metis}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-media-service</artifactId>
-      <version>${version.metis}</version>
-      <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
-      <exclusions>
-        <exclusion>
-          <groupId>org.codehaus.woodstox</groupId>
-          <artifactId>stax2-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.woodstox</groupId>
-          <artifactId>woodstox-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-indexing</artifactId>
-      <version>${version.metis}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
-        <exclusion>
-          <groupId>org.codehaus.woodstox</groupId>
-          <artifactId>stax2-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.codehaus.woodstox</groupId>
-          <artifactId>woodstox-core-asl</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>javax.annotation</groupId>
-          <artifactId>javax.annotation-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.module</groupId>
-          <artifactId>jackson-module-jaxb-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>dev.morphia.morphia</groupId>
-          <artifactId>morphia-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
 
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -222,12 +101,6 @@
     </dependency>
 
     <dependency>
-      <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-pattern-analysis</artifactId>
-      <version>${version.metis}</version>
-    </dependency>
-
-    <dependency>
       <groupId>eu.europeana.corelib</groupId>
       <artifactId>corelib-web</artifactId>
       <version>${version.corelib}</version>
@@ -245,11 +118,6 @@
           <artifactId>javax.annotation-api</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <!-- logging -->
@@ -277,15 +145,6 @@
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${version.aws.s3}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-    </dependency>
     <!-- Test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -294,57 +153,9 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.vintage</groupId>
-          <artifactId>junit-vintage-engine</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.vaadin.external.google</groupId>
-          <artifactId>android-json</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa-test</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- testcontainers -->
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-postgresql</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-mongodb</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-solr</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-localstack</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
@@ -355,12 +166,6 @@
       <artifactId>wiremock-standalone</artifactId>
       <version>${version.wiremock}</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-      <version>${version.springdoc-openapi-starter-webmvc-api}</version>
     </dependency>
 
     <!--Metrics-->

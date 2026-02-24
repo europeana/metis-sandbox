@@ -8,11 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.test.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
 import eu.europeana.metis.sandbox.integration.service.problempatterns.PatternAnalysisServiceImplIT.PatternAnalysisServiceImplMaxPatternsConfig;
-import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -104,12 +104,12 @@ class PatternAnalysisServiceImplIT {
     this.recordTitleRepository = recordTitleRepository;
     this.problemPatternDataCleaner = problemPatternDataCleaner;
 
-    String rdfStringNoProblems = readTestResourceAsString("record.problempatterns/europeana_record_no_problem_patterns.xml");
-    this.rdfStringP2 = readTestResourceAsString("record.problempatterns/europeana_record_with_P2.xml");
+    String rdfStringNoProblems = readTestResourceAsString("record/problempatterns/europeana_record_no_problem_patterns.xml");
+    this.rdfStringP2 = readTestResourceAsString("record/problempatterns/europeana_record_with_P2.xml");
     String rdfStringP2MultipleOccurrences = readTestResourceAsString(
-        "record.problempatterns/europeana_record_with_P2_multiple.xml");
-    String rdfStringP6 = readTestResourceAsString("record.problempatterns/europeana_record_with_P6.xml");
-    String rdfStringP12 = readTestResourceAsString("record.problempatterns/europeana_record_with_P12.xml");
+        "record/problempatterns/europeana_record_with_P2_multiple.xml");
+    String rdfStringP6 = readTestResourceAsString("record/problempatterns/europeana_record_with_P6.xml");
+    String rdfStringP12 = readTestResourceAsString("record/problempatterns/europeana_record_with_P12.xml");
 
     RdfConversionUtils rdfConversionUtils = new RdfConversionUtils();
     this.rdfRecordNoProblems = rdfConversionUtils.convertStringToRdf(rdfStringNoProblems);
@@ -343,10 +343,10 @@ class PatternAnalysisServiceImplIT {
     final LocalDateTime nowP1 = LocalDateTime.now();
     final RDF rdfRecords1 = new RdfConversionUtils().convertStringToRdf(
         IOUtils.toString(
-            new FileInputStream("src/test/resources/record.problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
+            new FileInputStream("src/test/resources/record/problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
     final RDF rdfRecords2 = new RdfConversionUtils().convertStringToRdf(
         IOUtils.toString(
-            new FileInputStream("src/test/resources/record.problempatterns/P1_uppercase_title.xml"), StandardCharsets.UTF_8));
+            new FileInputStream("src/test/resources/record/problempatterns/P1_uppercase_title.xml"), StandardCharsets.UTF_8));
 
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP1);

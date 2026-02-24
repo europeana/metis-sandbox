@@ -3,9 +3,10 @@ package eu.europeana.metis.sandbox.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.schema.convert.RdfConversionUtils;

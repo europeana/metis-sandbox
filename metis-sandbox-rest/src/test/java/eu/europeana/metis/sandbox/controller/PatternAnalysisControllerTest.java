@@ -117,7 +117,8 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
-       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())));
+       .andExpect(jsonPath("$.analysisStatus", is(
+           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED.name())));
   }
 
   @Test
@@ -151,7 +152,8 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
+       .andExpect(jsonPath("$.analysisStatus", is(
+           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
            is(ProblemPatternDescription.ProblemPatternId.P2.toString())))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[0].recordId", is("recordId1")))
@@ -175,7 +177,8 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isNotFound())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.PENDING.name())));
+       .andExpect(jsonPath("$.analysisStatus", is(
+           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.PENDING.name())));
     verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
   }
 
@@ -195,7 +198,8 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isInternalServerError())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
+       .andExpect(jsonPath("$.analysisStatus", is(
+           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.ERROR.name())));
   }
 
   @Test
@@ -203,7 +207,8 @@ class PatternAnalysisControllerTest {
     ProblemPattern problemPattern = new ProblemPattern(ProblemPatternDescription.P2, 0, new ArrayList<>());
     List<ProblemPattern> problemPatternList = List.of(problemPattern);
     String recordContent = IOUtils.toString(
-        new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem.xml"),
+        new FileInputStream("src/test/resources/record/problempatterns/record_pattern_problem.xml"),
+
         StandardCharsets.UTF_8);
 
     ExecutionRecord mockExecutionRecord = mock(ExecutionRecord.class);
@@ -272,7 +277,8 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
+       .andExpect(jsonPath("$.analysisStatus", is(
+           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
            is(ProblemPatternDescription.ProblemPatternId.P7.toString())))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[0].recordId", is("recordId1")))
@@ -290,7 +296,7 @@ class PatternAnalysisControllerTest {
     problemPatternList.add(new ProblemPattern(ProblemPatternDescription.P7, 1,
         List.of(recordAnalysis1)));
     String recordContent = IOUtils.toString(
-        new FileInputStream("src/test/resources/record.problempatterns/record_pattern_problem_with_P7.xml"),
+        new FileInputStream("src/test/resources/record/problempatterns/record_pattern_problem_with_P7.xml"),
         StandardCharsets.UTF_8);
 
     ExecutionRecord mockExecutionRecord = mock(ExecutionRecord.class);

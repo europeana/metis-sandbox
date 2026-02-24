@@ -2,11 +2,11 @@ package eu.europeana.metis.sandbox.integration;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import eu.europeana.metis.sandbox.integration.testcontainers.MongoTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.S3TestContainersConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SandboxIntegrationConfiguration;
-import eu.europeana.metis.sandbox.integration.testcontainers.SolrTestContainersConfiguration;
+import eu.europeana.metis.sandbox.common.test.MongoTestContainersConfiguration;
+import eu.europeana.metis.sandbox.common.test.PostgresTestContainersConfiguration;
+import eu.europeana.metis.sandbox.common.test.S3TestContainersConfiguration;
+import eu.europeana.metis.sandbox.common.test.SandboxIntegrationConfiguration;
+import eu.europeana.metis.sandbox.common.test.SolrTestContainersConfiguration;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

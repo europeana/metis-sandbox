@@ -19,7 +19,7 @@ import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
-import eu.europeana.metis.sandbox.dto.debias.DebiasState;
+import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;

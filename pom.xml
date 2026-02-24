@@ -9,6 +9,7 @@
 
   <modules>
     <module>metis-sandbox-common</module>
+    <module>metis-sandbox-service</module>
     <module>metis-sandbox-rest</module>
   </modules>
 
@@ -51,6 +52,7 @@
     <version.bucket4j>8.10.1</version.bucket4j>
     <version.guava>32.1.3-jre</version.guava>
     <version.morphia>2.5.0</version.morphia>
+    <version.jetbrains.annotations>24.0.1</version.jetbrains.annotations>
   </properties>
 
   <dependencyManagement>

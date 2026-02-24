@@ -3,10 +3,10 @@ package eu.europeana.metis.sandbox.integration.repository.problempatterns;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.europeana.metis.sandbox.common.test.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
-import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordTitleRepository;
 import java.time.LocalDateTime;

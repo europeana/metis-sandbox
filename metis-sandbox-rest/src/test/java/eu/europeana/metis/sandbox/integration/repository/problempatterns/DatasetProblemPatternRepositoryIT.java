@@ -2,9 +2,9 @@ package eu.europeana.metis.sandbox.integration.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import eu.europeana.metis.sandbox.common.test.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
-import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import jakarta.persistence.EntityManager;
