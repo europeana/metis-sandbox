@@ -1,0 +1,35 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2" xmlns:oai="http://www.openarchives.org/OAI/2.0/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dcterms="http://purl.org/dc/terms/">
+<edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-B1HM2TA6/664fef89-4948-4037-a8c9-50d9f811ab98/PDF">
+<dcterms:extent>63874 KB</dcterms:extent>
+</edm:WebResource>
+<edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-B1HM2TA6/eaf0fa0f-21bf-432d-9765-d24a2149c90c/TEXT">
+<dcterms:extent>140 KB</dcterms:extent>
+</edm:WebResource>
+<edm:ProvidedCHO rdf:about="URN:NBN:SI:doc-B1HM2TA6">
+<dcterms:issued>1788</dcterms:issued>
+<dc:creator>Gutsman, Ožbalt</dc:creator>
+<dc:format xml:lang="sl">141, 3 str., 8° (15 cm)</dc:format>
+<dc:identifier>COBISSID:81406464</dc:identifier>
+<dc:identifier>URN:URN:NBN:SI:doc-B1HM2TA6</dc:identifier>
+<dc:language>sl</dc:language>
+<dc:publisher xml:lang="sl">
+vtisnjene per Josh. Shoterju shtamparju, 1788. per katirem se tudi naprude naidejo
+</dc:publisher>
+<dc:source xml:lang="sl">knjige</dc:source>
+<dc:subject xml:lang="sl">molitveniki</dc:subject>
+<dc:title xml:lang="sl">
+Molitoune bukvize; v' katireh se najdejo juterne, inu vezherne molitvize; tudi molitve per svetei meshi, per spovedi, inu svetem obhaili; s' permishluvanjam Christusovega terplenja; sraven drugeh posebneh molitviz k' svetei Divizi Marii ...
+</dc:title>
+<dc:type xml:lang="sl">knjige</dc:type>
+<edm:type>TEXT</edm:type>
+</edm:ProvidedCHO>
+<ore:Aggregation rdf:about="http://www.dlib.si/?URN=URN:NBN:SI:doc-B1HM2TA6">
+<edm:aggregatedCHO rdf:resource="URN:NBN:SI:doc-B1HM2TA6"/>
+<edm:dataProvider xml:lang="en">National and University Library of Slovenia</edm:dataProvider>
+<edm:isShownAt rdf:resource="http://www.dlib.si/details/URN:NBN:SI:doc-B1HM2TA6"/>
+<edm:isShownBy rdf:resource="http://www.dlib.si/stream/URN:NBN:SI:doc-B1HM2TA6/664fef89-4948-4037-a8c9-50d9f811ab98/PDF"/>
+<edm:object rdf:resource="http://www.dlib.si/streamdb/URN:NBN:SI:doc-B1HM2TA6/maxi/edm"/>
+<edm:provider>Slovenian National E-content Aggregator</edm:provider>
+<edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+</ore:Aggregation>
+</rdf:RDF>

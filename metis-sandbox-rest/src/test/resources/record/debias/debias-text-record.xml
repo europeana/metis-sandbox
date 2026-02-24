@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:edm="http://www.europeana.eu/schemas/edm/"
+  xmlns:ore="http://www.openarchives.org/ore/terms/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+>
+  <edm:ProvidedCHO rdf:about="/352/_nnhSX08"/>
+  <edm:WebResource rdf:about="http://mbc.malopolska.pl/Content/48386/d2j:big,0/0437_0001.djvu.jpg">
+    <edm:rights rdf:resource="http://rightsstatements.org/vocab/InC/1.0/"/>
+  </edm:WebResource>
+  <edm:TimeSpan rdf:about="#1923">
+    <skos:prefLabel xml:lang="zxx">1923</skos:prefLabel>
+    <dcterms:isPartOf rdf:resource="http://data.europeana.eu/timespan/20"/>
+    <edm:begin>1923-01-01</edm:begin>
+    <edm:end>1923-12-31</edm:end>
+    <skos:notation rdf:datatype="http://id.loc.gov/datatypes/edtf/EDTF-level1">1923</skos:notation>
+  </edm:TimeSpan>
+  <ore:Aggregation rdf:about="/aggregation/provider/352/_nnhSX08">
+    <edm:aggregatedCHO rdf:resource="/352/_nnhSX08"/>
+    <edm:dataProvider>Małopolska Biblioteka Cyfrowa</edm:dataProvider>
+    <edm:isShownAt rdf:resource="http://fbc.pionier.net.pl/id/oai:mbc.malopolska.pl:48386"/>
+    <edm:object rdf:resource="http://mbc.malopolska.pl/Content/48386/d2j:big,0/0437_0001.djvu.jpg"/>
+    <edm:provider>Federacja Bibliotek Cyfrowych</edm:provider>
+    <edm:rights rdf:resource="http://rightsstatements.org/vocab/InC/1.0/"/>
+  </ore:Aggregation>
+  <ore:Proxy rdf:about="/proxy/provider/352/_nnhSX08">
+    <dc:contributor xml:lang="pl">Beaupre, Antoni.(Red.)</dc:contributor>
+    <dc:date xml:lang="pl">1923</dc:date>
+    <dc:description xml:lang="pl">Pan i niewolnik Wojewódzka Biblioteka Publiczna w Krakowie dla ludzkości</dc:description>
+    <dc:description xml:lang="en">Master and slave Provincial Public Library in Krakow</dc:description>
+    <dc:description xml:lang="de">Herr und Sklave Öffentliche Provinzbibliothek in Krakau für die Menschheit</dc:description>
+    <dc:description xml:lang="it">Biblioteca pubblica provinciale del padrone e dello schiavo di Cracovia per l'umanità
+    </dc:description>
+    <dc:description xml:lang="fr">Bibliothèque publique provinciale Maître et esclave de Cracovie pour l'humanité</dc:description>
+    <dc:description xml:lang="nl">Meester en slaaf Provinciale Openbare Bibliotheek in Krakau voor de mensheid</dc:description>
+    <dc:format>image/vnd.djvu</dc:format>
+    <dc:language>pol</dc:language>
+    <dc:publisher xml:lang="pl">Spółka Wydawnicza "Czas"</dc:publisher>
+    <dc:rights xml:lang="pl">Biblioteka Książąt Czartoryskich</dc:rights>
+    <dc:subject xml:lang="pl">20 w.</dc:subject>
+    <dc:subject xml:lang="pl">gazety polskie</dc:subject>
+    <dc:title xml:lang="pl">Czas. 1923, nr 251 (10 XI)</dc:title>
+    <dc:type xml:lang="pl">czasopismo</dc:type>
+
+    <dcterms:extent>Dziennik polityczny i literacko-społeczny; organ konserwatystów. - Opis fiz.: 4 s. ; 61 cm.</dcterms:extent>
+    <edm:europeanaProxy>false</edm:europeanaProxy>
+    <ore:proxyFor rdf:resource="/352/_nnhSX08"/>
+    <ore:proxyIn rdf:resource="/aggregation/provider/352/_nnhSX08"/>
+    <edm:type>TEXT</edm:type>
+  </ore:Proxy>
+  <ore:Proxy rdf:about="/proxy/europeana/352/_nnhSX08">
+    <dc:date rdf:resource="#1923"/>
+    <dc:identifier>#nnhSX08</dc:identifier>
+    <dc:language>pl</dc:language>
+    <edm:europeanaProxy>true</edm:europeanaProxy>
+    <ore:proxyFor rdf:resource="/352/_nnhSX08"/>
+    <ore:proxyIn rdf:resource="/aggregation/europeana/352/_nnhSX08"/>
+    <ore:lineage rdf:resource="/proxy/provider/352/_nnhSX08"/>
+  </ore:Proxy>
+  <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/352/_nnhSX08">
+    <edm:aggregatedCHO rdf:resource="/352/_nnhSX08"/>
+    <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
+    <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
+    <edm:datasetName>352_local_23102024_1633</edm:datasetName>
+    <edm:country>Netherlands</edm:country>
+    <edm:language>nl</edm:language>
+  </edm:EuropeanaAggregation>
+</rdf:RDF>
