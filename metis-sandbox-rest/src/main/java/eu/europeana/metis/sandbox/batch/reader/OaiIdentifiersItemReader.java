@@ -1,11 +1,11 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
+import static eu.europeana.metis.sandbox.common.batch.BatchJobType.HARVEST_OAI;
 
 import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;

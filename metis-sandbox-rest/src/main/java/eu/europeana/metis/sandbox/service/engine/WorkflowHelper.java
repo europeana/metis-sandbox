@@ -1,17 +1,17 @@
 package eu.europeana.metis.sandbox.service.engine;
 
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.ENRICH;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_FILE;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.HARVEST_OAI;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.INDEX_PUBLISH;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.MEDIA;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.NORMALIZE;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_EXTERNAL;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.TRANSFORM_INTERNAL;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_EXTERNAL;
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.VALIDATE_INTERNAL;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.ENRICH;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.HARVEST_FILE;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.HARVEST_OAI;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.INDEX_PUBLISH;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.MEDIA;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.NORMALIZE;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.TRANSFORM_EXTERNAL;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.TRANSFORM_INTERNAL;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.VALIDATE_EXTERNAL;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.VALIDATE_INTERNAL;
 
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;

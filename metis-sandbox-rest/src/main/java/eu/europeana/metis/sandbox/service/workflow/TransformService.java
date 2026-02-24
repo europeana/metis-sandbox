@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.sandbox.batch.common.TransformationBatchJobSubType;
+import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;

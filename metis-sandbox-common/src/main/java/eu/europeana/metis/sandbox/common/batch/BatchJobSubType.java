@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.common;
+package eu.europeana.metis.sandbox.common.batch;
 
 /**
  * Represents a subtype of a batch job.

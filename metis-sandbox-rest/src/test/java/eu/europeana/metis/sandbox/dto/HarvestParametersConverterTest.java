@@ -1,11 +1,12 @@
-package eu.europeana.metis.sandbox.common;
+package eu.europeana.metis.sandbox.dto;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import eu.europeana.metis.sandbox.dto.HarvestParametersConverter;
+import eu.europeana.metis.sandbox.common.FileType;
+import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;

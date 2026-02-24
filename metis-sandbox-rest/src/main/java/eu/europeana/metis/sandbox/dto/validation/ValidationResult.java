@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.dto.validation;
 
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.controller.ValidationController;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.common;
+package eu.europeana.metis.sandbox.common.batch;
 
 /**
  * Defines specific subtypes of the INDEX batch job type.

@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.common;
+package eu.europeana.metis.sandbox.common.batch;
 
 /**
  * Common parameter string names.

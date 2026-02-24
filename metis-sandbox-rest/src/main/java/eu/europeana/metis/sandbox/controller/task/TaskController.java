@@ -6,7 +6,7 @@ import static eu.europeana.metis.sandbox.controller.DatasetHarvestController.INV
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.InputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.InternalInputMetadataRequest;

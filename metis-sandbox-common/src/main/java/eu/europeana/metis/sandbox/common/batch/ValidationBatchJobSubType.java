@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.batch.common;
+package eu.europeana.metis.sandbox.common.batch;
 
 /**
  * Enum representing specific subtypes of the VALIDATE batch job type.

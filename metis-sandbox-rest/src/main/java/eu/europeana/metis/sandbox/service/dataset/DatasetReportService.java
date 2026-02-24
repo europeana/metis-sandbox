@@ -1,11 +1,11 @@
 package eu.europeana.metis.sandbox.service.dataset;
 
-import static eu.europeana.metis.sandbox.batch.common.FullBatchJobType.BatchJobGroup.HARVEST;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.BatchJobGroup.HARVEST;
 import static java.lang.String.format;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;

@@ -1,8 +1,8 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.VALIDATE;
+import static eu.europeana.metis.sandbox.common.batch.BatchJobType.VALIDATE;
 
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.processor.listener.ProblemPatternsStepExecutionListener;

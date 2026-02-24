@@ -1,10 +1,6 @@
-package eu.europeana.metis.sandbox.batch.common;
+package eu.europeana.metis.sandbox.batch.dto;
 
 import eu.europeana.indexing.tiers.model.TierResults;
-import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
-import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordError;

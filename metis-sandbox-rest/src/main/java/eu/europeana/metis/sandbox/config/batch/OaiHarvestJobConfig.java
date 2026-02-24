@@ -1,8 +1,8 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_OAI;
+import static eu.europeana.metis.sandbox.common.batch.BatchJobType.HARVEST_OAI;
 
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.reader.ExternalIdentifiersRepositoryItemReader;

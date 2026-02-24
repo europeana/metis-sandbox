@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.config.batch;
 
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

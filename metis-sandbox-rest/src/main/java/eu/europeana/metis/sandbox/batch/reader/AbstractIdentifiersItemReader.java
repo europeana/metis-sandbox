@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.batch.reader;
 import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.file.CloseableIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvestingIterator;
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;

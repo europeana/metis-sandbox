@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static eu.europeana.metis.sandbox.common.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.common.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.dto.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.dto.ExecutionMetadata;

@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
-import eu.europeana.metis.sandbox.batch.common.ExecutionRecordConverter;
+import eu.europeana.metis.sandbox.batch.dto.ExecutionRecordConverter;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.ExceptionInfoDTO;
 import eu.europeana.metis.sandbox.batch.dto.FailExecutionRecordDTO;

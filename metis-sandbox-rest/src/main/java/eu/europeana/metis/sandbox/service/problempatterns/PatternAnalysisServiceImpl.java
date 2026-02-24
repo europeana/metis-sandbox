@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 import static java.util.Objects.nonNull;
 
 import com.google.common.collect.Sets;
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPatternCompositeKey;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;

@@ -1,9 +1,9 @@
 package eu.europeana.metis.sandbox.batch.reader;
 
-import static eu.europeana.metis.sandbox.batch.common.BatchJobType.HARVEST_FILE;
+import static eu.europeana.metis.sandbox.common.batch.BatchJobType.HARVEST_FILE;
 
 import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.sandbox.batch.common.BatchJobType;
+import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
 import eu.europeana.metis.sandbox.entity.harvest.AbstractBinaryHarvestParametersEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;

@@ -2,7 +2,7 @@ package eu.europeana.metis.sandbox.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 

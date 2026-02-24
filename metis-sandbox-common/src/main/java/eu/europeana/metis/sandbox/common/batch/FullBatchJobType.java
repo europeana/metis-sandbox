@@ -1,10 +1,9 @@
-package eu.europeana.metis.sandbox.batch.common;
+package eu.europeana.metis.sandbox.common.batch;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import lombok.Getter;
-import org.apache.tika.utils.StringUtils;
+import lombok.Getter;import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents the different types of full batch jobs by combining a {@link BatchJobType} with an optional {@link BatchJobSubType}.

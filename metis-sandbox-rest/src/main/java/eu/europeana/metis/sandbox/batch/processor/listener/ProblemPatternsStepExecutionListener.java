@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
-import eu.europeana.metis.sandbox.batch.common.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.common.ValidationBatchJobSubType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.batch.ValidationBatchJobSubType;
 import eu.europeana.metis.sandbox.controller.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;

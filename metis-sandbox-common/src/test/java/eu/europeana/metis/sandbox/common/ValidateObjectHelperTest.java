@@ -1,16 +1,12 @@
 package eu.europeana.metis.sandbox.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Value;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ValidateObjectHelperTest {
@@ -32,13 +28,13 @@ class ValidateObjectHelperTest {
         builder -> builder.name("Name")
     );
 
-    assertNotNull(dto);
-    assertEquals("Name", dto.getName());
+    Assertions.assertNotNull(dto);
+    Assertions.assertEquals("Name", dto.getName());
   }
 
   @Test
   void testInvalidDto_buildValidated_shouldThrowException() {
-    ConstraintViolationException exception = assertThrows(ConstraintViolationException.class, () ->
+    ConstraintViolationException exception = Assertions.assertThrows(ConstraintViolationException.class, () ->
         ValidateObjectHelper.buildValidated(
             TestDto.TestDtoBuilder::new,
             TestDto.TestDtoBuilder::build,
@@ -46,7 +42,7 @@ class ValidateObjectHelperTest {
         )
     );
 
-    assertTrue(exception.getMessage().contains("name"));
+    Assertions.assertTrue(exception.getMessage().contains("name"));
   }
 
   @Test
@@ -58,9 +54,9 @@ class ValidateObjectHelperTest {
         builder -> builder.name("Name")
     );
 
-    assertNotNull(dto);
-    assertEquals("id", dto.getId());
-    assertEquals("Name", dto.getName());
+    Assertions.assertNotNull(dto);
+    Assertions.assertEquals("id", dto.getId());
+    Assertions.assertEquals("Name", dto.getName());
   }
 
   @Test
@@ -77,7 +73,7 @@ class ValidateObjectHelperTest {
         }
     );
 
-    assertNotNull(dto);
-    assertEquals(List.of(1, 2), steps);
+    Assertions.assertNotNull(dto);
+    Assertions.assertEquals(List.of(1, 2), steps);
   }
 }
