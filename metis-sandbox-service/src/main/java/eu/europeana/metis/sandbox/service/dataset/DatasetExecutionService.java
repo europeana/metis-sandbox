@@ -3,21 +3,22 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static eu.europeana.metis.sandbox.common.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.common.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
-import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
-import eu.europeana.metis.sandbox.dto.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
-import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.common.FileType;
-import eu.europeana.metis.sandbox.common.exception.ServiceException;
-import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
+import eu.europeana.metis.sandbox.common.FileTypeResolver;
+import eu.europeana.metis.sandbox.common.WorkflowType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.debias.DebiasState;
+import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.dto.DatasetMetadata;
+import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
+import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
@@ -76,6 +77,24 @@ public class DatasetExecutionService {
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareDatasetExecutionHarvest(datasetId, harvestParametersDTO);
     return batchJobExecutor.executeStepAsync(executionMetadata, FullBatchJobType.HARVEST_OAI);
+  }
+
+  public String submitExecutionHttpSingle(String datasetId, Integer stepsize, String url) {
+    try {
+      final byte[] fileContent = contentWithMaxSizeClient.download(URI.create(url));
+      String filename = new URI(url).getPath();
+      filename = filename.substring(filename.lastIndexOf('/') + 1);
+      CompressedFileExtension extension = FileTypeResolver.fromUrl(URI.create(url));
+      HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
+          FileType.valueOf(extension.name()),
+          fileContent, stepsize);
+      ExecutionMetadata executionMetadata =
+          datasetExecutionSetupService.prepareDatasetExecutionHarvest(datasetId, harvestParametersDTO);
+      return batchJobExecutor.executeStepAsync(executionMetadata, FullBatchJobType.HARVEST_FILE);
+    } catch (IOException | URISyntaxException e) {
+      checkFileNotFoundInProvidedUrl(url, e);
+      throw new ServiceException(HARVESTING_ERROR_MESSAGE, e);
+    }
   }
 
   public String submitExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile, FullBatchJobType step)

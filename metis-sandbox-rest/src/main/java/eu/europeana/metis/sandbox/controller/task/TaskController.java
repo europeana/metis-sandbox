@@ -8,6 +8,7 @@ import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
+import eu.europeana.metis.sandbox.common.task.input.HttpHarvestInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.InputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.InternalInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.OaiHarvestInputMetadataRequest;
@@ -68,6 +69,8 @@ public class TaskController {
         yield datasetExecutionService.submitExecutionSingle(datasetId, internalInputMetadataRequest.sourceExecutionId(), null,
             FullBatchJobType.valueOf(jobName));
       }
+      case HttpHarvestInputMetadataRequest httpHarvestInputMetadataRequest ->
+          datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, httpHarvestInputMetadataRequest.url());
     };
   }
 
