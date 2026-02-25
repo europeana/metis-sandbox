@@ -6,6 +6,7 @@ import static eu.europeana.metis.sandbox.controller.DatasetHarvestController.INV
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
+import eu.europeana.metis.sandbox.common.FileTypeResolver;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.HttpHarvestInputMetadataRequest;
@@ -19,7 +20,9 @@ import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
+import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -61,11 +64,13 @@ public class TaskController {
     return switch (inputMetadataRequest) {
       case OaiHarvestInputMetadataRequest(String url, String set, String metadataPrefix, Date from, Date until) ->
           datasetExecutionService.submitExecutionOaiSingle(datasetId, stepSize, url, set, metadataPrefix);
-      case HttpHarvestInputMetadataRequest(String url) ->
-          datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url);
+      case HttpHarvestInputMetadataRequest(String url) -> {
+        CompressedFileExtension compressedFileExtension = FileTypeResolver.fromUrl(URI.create(url));
+        yield datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url, compressedFileExtension);
+      }
       case InternalInputMetadataRequest(String sourceExecutionId) -> {
         checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
-        yield datasetExecutionService.submitExecutionSingle(datasetId, sourceExecutionId, null,
+        yield datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId, null,
             FullBatchJobType.valueOf(jobName));
       }
     };

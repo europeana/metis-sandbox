@@ -118,7 +118,7 @@ public class DatasetHarvestController {
                                                                           .country(country)
                                                                           .language(language).build();
 
-    String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionOai(datasetMetadataRequest, stepsize,
+    String createdDatasetId = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(datasetMetadataRequest, stepsize,
         url, setspec, metadataformat, xsltFile, userId);
 
     return new DatasetIdDTO(createdDatasetId);
@@ -171,7 +171,7 @@ public class DatasetHarvestController {
                                                                           .datasetName(datasetName)
                                                                           .country(country)
                                                                           .language(language).build();
-    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
+    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
         stepsize, datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
@@ -204,7 +204,8 @@ public class DatasetHarvestController {
       @Parameter(description = "step size to apply in record selection", schema = @Schema(description = "step size", defaultValue = "1"))
       @RequestParam(name = "stepsize", required = false, defaultValue = "1") int stepsize,
       @Parameter(description = "dataset records URL to download in a zip file", required = true) @RequestParam("url") String url,
-      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile) {
+      @Parameter(description = "xslt file to transform to EDM external") @RequestParam(name = "xsltFile", required = false) MultipartFile xsltFile)
+      throws IOException {
     //Check user id if any. This is temporarily allowed due to api and ui user security.
     final String userId;
     if (jwtPrincipal == null) {
@@ -223,7 +224,7 @@ public class DatasetHarvestController {
                                                                           .datasetName(datasetName)
                                                                           .country(country)
                                                                           .language(language).build();
-    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
+    final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
         stepsize, url, xsltFile, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);

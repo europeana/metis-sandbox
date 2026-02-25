@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,42 +39,15 @@ public class DatasetExecutionSetupService {
   private final TransformXsltRepository transformXsltRepository;
 
   @Transactional
-  public ExecutionMetadata prepareDatasetExecutionHarvest(String datasetId,
-      AbstractHarvestParametersDTO abstractHarvestParametersDTO) {
-    //We assume dataset was already created with another call
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
-
-    HarvestParametersEntity harvestParametersEntity =
-        harvestParameterService.createDatasetHarvestParameters(datasetId, abstractHarvestParametersDTO);
-    InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, null);
-
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                     .datasetId(datasetId)
-                                                     .datasetName(datasetEntity.getDatasetName())
-                                                     .country(datasetEntity.getCountry())
-                                                     .language(datasetEntity.getLanguage())
-                                                     .workflowType(WorkflowType.SINGLE).build();
-
-    return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
+  public ExecutionMetadata prepareHarvestExecution(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO)
+      throws IOException {
+    return prepareExecution(WorkflowType.SINGLE, datasetId, null, abstractHarvestParametersDTO, null);
   }
 
   @Transactional
-  public ExecutionMetadata prepareDatasetExecution(String datasetId, String sourceExecutionId, MultipartFile xsltFile) throws IOException {
-    //We assume dataset was already created with another call
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
-    TransformXsltEntity transformXsltEntity = (xsltFile != null)
-        ? saveXslt(xsltFile, datasetId)
-        : null;
-    InputMetadata inputMetadata = new InputMetadata(sourceExecutionId, new InputMetadata(null, transformXsltEntity));
-    DatasetMetadata datasetMetadata = DatasetMetadata.builder()
-                                                     .datasetId(datasetId)
-                                                     .datasetName(datasetEntity.getDatasetName())
-                                                     .country(datasetEntity.getCountry())
-                                                     .language(datasetEntity.getLanguage())
-                                                     .workflowType(WorkflowType.SINGLE).build();
-
-    return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
-
+  public ExecutionMetadata prepareIntermediateExecution(String datasetId, String sourceExecutionId, MultipartFile xsltFile)
+      throws IOException {
+    return prepareExecution(WorkflowType.SINGLE, datasetId, xsltFile, null, sourceExecutionId);
   }
 
   /**
@@ -91,7 +66,7 @@ public class DatasetExecutionSetupService {
    * @throws IOException if an error occurs while processing the XSLT file
    */
   @Transactional
-  public ExecutionMetadata prepareDatasetExecution(
+  public ExecutionMetadata prepareDatasetAndExecution(
       WorkflowType workflowType,
       DatasetMetadataRequest datasetMetadataRequest,
       String userId,
@@ -99,23 +74,46 @@ public class DatasetExecutionSetupService {
       AbstractHarvestParametersDTO abstractHarvestParametersDTO
   ) throws IOException {
     String datasetId = createDataset(datasetMetadataRequest, workflowType, userId);
+    return prepareExecution(workflowType, datasetId, xsltFile, abstractHarvestParametersDTO, null);
+  }
 
-    TransformXsltEntity transformXsltEntity = (xsltFile != null)
-        ? saveXslt(xsltFile, datasetId)
-        : null;
+  private ExecutionMetadata prepareExecution(
+      WorkflowType workflowType,
+      String datasetId,
+      MultipartFile xsltFile,
+      AbstractHarvestParametersDTO abstractHarvestParametersDTO,
+      String sourceExecutionId
+  ) throws IOException {
+    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
 
-    HarvestParametersEntity harvestParametersEntity =
-        harvestParameterService.createDatasetHarvestParameters(datasetId, abstractHarvestParametersDTO);
-    InputMetadata inputMetadata = new InputMetadata(harvestParametersEntity, transformXsltEntity);
+    TransformXsltEntity transformXsltEntity = handleXslt(datasetId, xsltFile);
 
+    InputMetadata inputMetadata =
+        buildInputMetadata(datasetId, abstractHarvestParametersDTO, sourceExecutionId, transformXsltEntity);
     DatasetMetadata datasetMetadata = DatasetMetadata.builder()
                                                      .datasetId(datasetId)
-                                                     .datasetName(datasetMetadataRequest.getDatasetName())
-                                                     .country(datasetMetadataRequest.getCountry())
-                                                     .language(datasetMetadataRequest.getLanguage())
+                                                     .datasetName(datasetEntity.getDatasetName())
+                                                     .country(datasetEntity.getCountry())
+                                                     .language(datasetEntity.getLanguage())
                                                      .workflowType(workflowType).build();
-
     return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
+  }
+
+  private @NonNull InputMetadata buildInputMetadata(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO,
+      String sourceExecutionId, TransformXsltEntity transformXsltEntity) {
+    InputMetadata inputMetadata;
+    if (abstractHarvestParametersDTO == null) {
+      inputMetadata = new InputMetadata(sourceExecutionId, new InputMetadata(null, transformXsltEntity));
+    } else {
+      HarvestParametersEntity harvestParametersEntity = harvestParameterService.createDatasetHarvestParameters(datasetId,
+          abstractHarvestParametersDTO);
+      inputMetadata = new InputMetadata(harvestParametersEntity, transformXsltEntity);
+    }
+    return inputMetadata;
+  }
+
+  private @Nullable TransformXsltEntity handleXslt(String datasetId, MultipartFile xsltFile) throws IOException {
+    return (xsltFile != null) ? saveXslt(xsltFile, datasetId) : null;
   }
 
   /**

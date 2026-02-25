@@ -5,7 +5,6 @@ import static eu.europeana.metis.sandbox.common.WorkflowType.FILE_HARVEST_ONLY_V
 
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.FileType;
-import eu.europeana.metis.sandbox.common.FileTypeResolver;
 import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.debias.DebiasState;
@@ -27,7 +26,7 @@ import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,37 +70,28 @@ public class DatasetExecutionService {
     }
   }
 
-  public String submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat) {
+  public String submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat)
+      throws IOException {
     OaiHarvestParametersDTO harvestParametersDTO =
         new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
     ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareDatasetExecutionHarvest(datasetId, harvestParametersDTO);
-    return batchJobExecutor.executeStepAsync(executionMetadata, FullBatchJobType.HARVEST_OAI);
+        datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
+    return batchJobExecutor.executeStep(executionMetadata, FullBatchJobType.HARVEST_OAI);
   }
 
-  public String submitExecutionHttpSingle(String datasetId, Integer stepsize, String url) {
-    try {
-      final byte[] fileContent = contentWithMaxSizeClient.download(URI.create(url));
-      String filename = new URI(url).getPath();
-      filename = filename.substring(filename.lastIndexOf('/') + 1);
-      CompressedFileExtension extension = FileTypeResolver.fromUrl(URI.create(url));
-      HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
-          FileType.valueOf(extension.name()),
-          fileContent, stepsize);
-      ExecutionMetadata executionMetadata =
-          datasetExecutionSetupService.prepareDatasetExecutionHarvest(datasetId, harvestParametersDTO);
-      return batchJobExecutor.executeStepAsync(executionMetadata, FullBatchJobType.HARVEST_FILE);
-    } catch (IOException | URISyntaxException e) {
-      checkFileNotFoundInProvidedUrl(url, e);
-      throw new ServiceException(HARVESTING_ERROR_MESSAGE, e);
-    }
-  }
-
-  public String submitExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile, FullBatchJobType step)
-      throws IOException {
+  public String submitExecutionHttpSingle(String datasetId, Integer stepsize, String url,
+      CompressedFileExtension compressedFileExtension) throws IOException {
+    HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, compressedFileExtension);
     ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareDatasetExecution(datasetId, sourceExecutionId, xsltFile);
-    return batchJobExecutor.executeStepAsync(executionMetadata, step);
+        datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
+    return batchJobExecutor.executeStep(executionMetadata, FullBatchJobType.HARVEST_FILE);
+  }
+
+  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile,
+      FullBatchJobType step) throws IOException {
+    ExecutionMetadata executionMetadata =
+        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId, xsltFile);
+    return batchJobExecutor.executeStep(executionMetadata, step);
   }
 
   /**
@@ -121,11 +111,11 @@ public class DatasetExecutionService {
    * @throws IOException if an error occurs during dataset setup or file handling
    */
   @NotNull
-  public String createDatasetAndSubmitExecutionOai(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
+  public String createDatasetAndSubmitWorkflowExecutionOai(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
     OaiHarvestParametersDTO harvestParametersDTO = new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat,
         stepsize);
-    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
+    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
         WorkflowType.OAI_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
     );
     batchJobExecutor.executeWorkflow(executionMetadata);
@@ -147,12 +137,11 @@ public class DatasetExecutionService {
    * @throws IOException if an I/O error occurs while processing the files
    */
   @NotNull
-  public String createDatasetAndSubmitExecutionFile(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
+  public String createDatasetAndSubmitWorkflowExecutionFile(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
       MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
     FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(compressedFile.getOriginalFilename(),
-        FileType.valueOf(extension.name()),
-        compressedFile.getBytes(), stepsize);
-    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
+        FileType.valueOf(extension.name()), compressedFile.getBytes(), stepsize);
+    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
         WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, fileHarvestDTO
     );
     batchJobExecutor.executeWorkflow(executionMetadata);
@@ -173,22 +162,27 @@ public class DatasetExecutionService {
    * @return the unique ID of the created dataset
    */
   @NotNull
-  public String createDatasetAndSubmitExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
-      String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) {
+  public String createDatasetAndSubmitWorkflowExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
+      String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
 
+    HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, extension);
+    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
+        WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
+    );
+    batchJobExecutor.executeWorkflow(executionMetadata);
+    return executionMetadata.getDatasetMetadata().getDatasetId();
+  }
+
+  private HttpHarvestParametersDTO buildHttpHarvestParametersDTO(String url, Integer stepsize,
+      CompressedFileExtension extension) {
     try {
-      final byte[] fileContent = contentWithMaxSizeClient.download(URI.create(url));
-      String filename = new URI(url).getPath();
-      filename = filename.substring(filename.lastIndexOf('/') + 1);
-      HttpHarvestParametersDTO harvestParametersDTO = new HttpHarvestParametersDTO(url, filename,
-          FileType.valueOf(extension.name()),
-          fileContent, stepsize);
-      ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
-          WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
+      URI uri = URI.create(url);
+      byte[] fileContent = contentWithMaxSizeClient.download(uri);
+      String filename = Paths.get(uri.getPath()).getFileName().toString();
+
+      return new HttpHarvestParametersDTO(url, filename, FileType.valueOf(extension.name()), fileContent, stepsize
       );
-      batchJobExecutor.executeWorkflow(executionMetadata);
-      return executionMetadata.getDatasetMetadata().getDatasetId();
-    } catch (IOException | URISyntaxException e) {
+    } catch (IOException e) {
       checkFileNotFoundInProvidedUrl(url, e);
       throw new ServiceException(HARVESTING_ERROR_MESSAGE, e);
     }
@@ -209,7 +203,7 @@ public class DatasetExecutionService {
       MultipartFile recordFile) throws IOException {
     FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(recordFile.getOriginalFilename(), FileType.XML,
         recordFile.getBytes(), 1);
-    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
+    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
         FILE_HARVEST_ONLY_VALIDATION, datasetMetadataRequest, null, null, fileHarvestDTO
     );
     batchJobExecutor.executeBlocking(executionMetadata);

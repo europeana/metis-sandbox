@@ -146,7 +146,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_withoutXslt_shouldSucceed() throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
@@ -163,7 +163,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_emptySetSpec_shouldSucceed() throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, "", METADATA_FORMAT, null, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
@@ -181,7 +181,7 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_withXsltFile_shouldSucceed() throws Exception {
     MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
@@ -200,7 +200,7 @@ class DatasetHarvestControllerTest {
   void harvestOaiPmh_withXsltFile_nonBrowser_shouldSucceed() throws Exception {
     MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
     setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, null
     )).thenReturn(DATASET_ID);
 
@@ -272,7 +272,7 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_createDatasetAndSubmitExecutionFails_expectFail() throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionOai(
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
         datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
     )).thenThrow(new IOException());
 
@@ -292,7 +292,7 @@ class DatasetHarvestControllerTest {
   void harvestDatasetFromFile_withoutXsltFile_expectSuccess(MockMultipartFile mockMultipart,
       CompressedFileExtension expectedExtension) throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, null, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -313,7 +313,7 @@ class DatasetHarvestControllerTest {
         "string".getBytes());
 
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, xsltMock, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -335,7 +335,7 @@ class DatasetHarvestControllerTest {
         "string".getBytes());
 
     setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionFile(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
         STEP_SIZE, mockMultipart, xsltMock, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -428,7 +428,7 @@ class DatasetHarvestControllerTest {
   void harvestDatasetFromURL_withoutXsltFile_expectSuccess(String url, CompressedFileExtension expectedExtension)
       throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
         STEP_SIZE, url, null, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -447,7 +447,7 @@ class DatasetHarvestControllerTest {
         "application/xslt+xml",
         "string".getBytes());
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
         STEP_SIZE, url, xsltMock, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
@@ -468,7 +468,7 @@ class DatasetHarvestControllerTest {
         "application/xslt+xml",
         "string".getBytes());
     setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitExecutionHttp(datasetMetadataRequest,
+    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
         STEP_SIZE, url, xsltMock, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 

@@ -129,7 +129,7 @@ public class BatchJobExecutor {
     this.jobExecutorsByType.put(DEBIAS, this::executeDebias);
   }
 
-  public String executeStepAsync(ExecutionMetadata executionMetadata, FullBatchJobType step) {
+  public String executeStep(ExecutionMetadata executionMetadata, FullBatchJobType step) {
     UUID targetId = UUID.randomUUID();
     taskExecutor.execute(() ->
         executeStep(executionMetadata, step, targetId)
