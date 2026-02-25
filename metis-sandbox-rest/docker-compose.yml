@@ -21,8 +21,8 @@ services:
       - '27017:27017'
   solr:
     build:
-      context: ../docker/solr
-      dockerfile: ../docker/solr/Dockerfile
+      context: docker/solr/
+      dockerfile: Dockerfile
     container_name: metis-sandbox-solr
     ports:
       - "8983:8983"
