@@ -61,13 +61,13 @@ public class TaskController {
     return switch (inputMetadataRequest) {
       case OaiHarvestInputMetadataRequest(String url, String set, String metadataPrefix, Date from, Date until) ->
           datasetExecutionService.submitExecutionOaiSingle(datasetId, stepSize, url, set, metadataPrefix);
+      case HttpHarvestInputMetadataRequest(String url) ->
+          datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url);
       case InternalInputMetadataRequest(String sourceExecutionId) -> {
         checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
         yield datasetExecutionService.submitExecutionSingle(datasetId, sourceExecutionId, null,
             FullBatchJobType.valueOf(jobName));
       }
-      case HttpHarvestInputMetadataRequest(String url) ->
-          datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url);
     };
   }
 

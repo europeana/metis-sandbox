@@ -128,7 +128,7 @@ public class DatasetExecutionService {
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
         WorkflowType.OAI_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
     );
-    batchJobExecutor.execute(executionMetadata);
+    batchJobExecutor.executeWorkflow(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
@@ -155,7 +155,7 @@ public class DatasetExecutionService {
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
         WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, fileHarvestDTO
     );
-    batchJobExecutor.execute(executionMetadata);
+    batchJobExecutor.executeWorkflow(executionMetadata);
     return executionMetadata.getDatasetMetadata().getDatasetId();
   }
 
@@ -186,7 +186,7 @@ public class DatasetExecutionService {
       ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetExecution(
           WorkflowType.FILE_HARVEST, datasetMetadataRequest, userId, xsltFile, harvestParametersDTO
       );
-      batchJobExecutor.execute(executionMetadata);
+      batchJobExecutor.executeWorkflow(executionMetadata);
       return executionMetadata.getDatasetMetadata().getDatasetId();
     } catch (IOException | URISyntaxException e) {
       checkFileNotFoundInProvidedUrl(url, e);

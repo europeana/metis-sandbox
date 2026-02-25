@@ -116,7 +116,7 @@ class DatasetExecutionServiceTest {
         "metadataFormat", xsltFile, USER_ID);
 
     assertEquals(DATASET_ID, result);
-    verify(batchJobExecutor).execute(executionMeta);
+    verify(batchJobExecutor).executeWorkflow(executionMeta);
   }
 
   @Test
@@ -151,7 +151,7 @@ class DatasetExecutionServiceTest {
         USER_ID, CompressedFileExtension.ZIP);
 
     assertEquals(DATASET_ID, result);
-    verify(batchJobExecutor).execute(executionMeta);
+    verify(batchJobExecutor).executeWorkflow(executionMeta);
   }
 
   @Test
@@ -185,7 +185,7 @@ class DatasetExecutionServiceTest {
         USER_ID, CompressedFileExtension.ZIP);
 
     assertEquals(DATASET_ID, result);
-    verify(batchJobExecutor).execute(executionMeta);
+    verify(batchJobExecutor).executeWorkflow(executionMeta);
   }
 
   @Test

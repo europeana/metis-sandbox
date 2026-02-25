@@ -130,7 +130,11 @@ public class BatchJobExecutor {
   }
 
   public String executeStepAsync(ExecutionMetadata executionMetadata, FullBatchJobType step) {
-    return executeStep(executionMetadata, step);
+    UUID targetId = UUID.randomUUID();
+    taskExecutor.execute(() ->
+        executeStep(executionMetadata, step, targetId)
+    );
+    return targetId.toString();
   }
 
   /**
@@ -138,7 +142,7 @@ public class BatchJobExecutor {
    *
    * @param executionMetadata contains metadata required for task execution
    */
-  public void execute(ExecutionMetadata executionMetadata) {
+  public void executeWorkflow(ExecutionMetadata executionMetadata) {
     taskExecutor.execute(() -> executeSteps(executionMetadata));
   }
 
@@ -169,7 +173,7 @@ public class BatchJobExecutor {
                                                                   .datasetMetadata(executionMetadata.getDatasetMetadata())
                                                                   .inputMetadata(inputMetadata)
                                                                   .build();
-    execute(currentExecutionMetadata);
+    executeWorkflow(currentExecutionMetadata);
   }
 
   public void cancelTask(String executionId, FullBatchJobType step) throws JobExecutionNotRunningException {
@@ -192,56 +196,43 @@ public class BatchJobExecutor {
   }
 
   private void executeSteps(ExecutionMetadata executionMetadata) {
-    ExecutionMetadata currentExecutionMetadata = executionMetadata;
-    String currentSourceExecutionId = executionMetadata.getInputMetadata().getSourceExecutionId();
-    ExecutionMetadataWithTargetId currentExecutionMetadataWithTargetId =
-        new ExecutionMetadataWithTargetId(currentExecutionMetadata, UUID.randomUUID());
-
+    ExecutionMetadata currentMetadata = executionMetadata;
     for (FullBatchJobType step : WorkflowHelper.getWorkflow(executionMetadata)) {
-
-      Function<ExecutionMetadataWithTargetId, JobExecution> executor = jobExecutorsByType.get(step);
-      if (executor == null) {
-        throw new IllegalStateException("No executor for step: " + step);
-      }
-
-      ExecutionRun executionRun = new ExecutionRun();
-      executionRun.setSourceExecutionId(currentSourceExecutionId);
-      executionRun.setDatasetId(executionMetadata.getDatasetMetadata().getDatasetId());
-      executionRun.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
-      executionRun.setExecutionName(step.name());
-
-      executionRunRepository.save(executionRun);
-      JobExecution jobExecution = executor.apply(currentExecutionMetadataWithTargetId);
+      UUID targetId = UUID.randomUUID();
+      JobExecution jobExecution = executeStep(currentMetadata, step, targetId);
       waitForCompletion(jobExecution);
+
       if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
         throw new IllegalStateException("Step failed: " + step);
       }
-      currentExecutionMetadata = ExecutionMetadata.builder().datasetMetadata(executionMetadata.getDatasetMetadata())
-                                                  .inputMetadata(new InputMetadata(
-                                                      jobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID),
-                                                      currentExecutionMetadata.getInputMetadata()))
-                                                  .build();
-      currentSourceExecutionId = currentExecutionMetadataWithTargetId.targetUUId.toString();
-      currentExecutionMetadataWithTargetId = new ExecutionMetadataWithTargetId(currentExecutionMetadata, UUID.randomUUID());
+
+      currentMetadata = ExecutionMetadata.builder()
+                                         .datasetMetadata(executionMetadata.getDatasetMetadata())
+                                         .inputMetadata(new InputMetadata(
+                                             jobExecution.getJobParameters().getString(ARGUMENT_TARGET_EXECUTION_ID),
+                                             currentMetadata.getInputMetadata()))
+                                         .build();
     }
   }
 
-  private String executeStep(ExecutionMetadata executionMetadata, FullBatchJobType step) {
+  private JobExecution executeStep(ExecutionMetadata executionMetadata, FullBatchJobType step, UUID targetExecutionId) {
     Function<ExecutionMetadataWithTargetId, JobExecution> executor = jobExecutorsByType.get(step);
     if (executor == null) {
       throw new IllegalStateException("No executor for step: " + step);
     }
-    ExecutionMetadataWithTargetId currentExecutionMetadataWithTargetId =
-        new ExecutionMetadataWithTargetId(executionMetadata, UUID.randomUUID());
+
+    ExecutionMetadataWithTargetId metadataWithTargetId =
+        new ExecutionMetadataWithTargetId(executionMetadata, targetExecutionId);
+
     ExecutionRun executionRun = new ExecutionRun();
     executionRun.setSourceExecutionId(executionMetadata.getInputMetadata().getSourceExecutionId());
     executionRun.setDatasetId(executionMetadata.getDatasetMetadata().getDatasetId());
-    executionRun.setExecutionId(currentExecutionMetadataWithTargetId.targetUUId.toString());
+    executionRun.setExecutionId(targetExecutionId.toString());
     executionRun.setExecutionName(step.name());
 
     executionRunRepository.save(executionRun);
-    taskExecutor.execute(() -> executor.apply(currentExecutionMetadataWithTargetId));
-    return currentExecutionMetadataWithTargetId.targetUUId().toString();
+
+    return executor.apply(metadataWithTargetId);
   }
 
   private Optional<JobExecution> findJobInstance(ExecutionMetadata executionMetadata, FullBatchJobType fullBatchJobType) {
