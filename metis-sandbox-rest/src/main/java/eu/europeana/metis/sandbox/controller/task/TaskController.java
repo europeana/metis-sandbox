@@ -20,6 +20,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -58,19 +59,15 @@ public class TaskController {
 
     InputMetadataRequest inputMetadataRequest = sandboxTask.getInputMetadataRequest();
     return switch (inputMetadataRequest) {
-      case OaiHarvestInputMetadataRequest oaiHarvestInputMetadataRequest -> datasetExecutionService.submitExecutionOaiSingle(
-          datasetId, stepSize,
-          oaiHarvestInputMetadataRequest.url(),
-          oaiHarvestInputMetadataRequest.set(),
-          oaiHarvestInputMetadataRequest.metadataPrefix());
-      case InternalInputMetadataRequest internalInputMetadataRequest -> {
-        String sourceExecutionId = internalInputMetadataRequest.sourceExecutionId();
+      case OaiHarvestInputMetadataRequest(String url, String set, String metadataPrefix, Date from, Date until) ->
+          datasetExecutionService.submitExecutionOaiSingle(datasetId, stepSize, url, set, metadataPrefix);
+      case InternalInputMetadataRequest(String sourceExecutionId) -> {
         checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
-        yield datasetExecutionService.submitExecutionSingle(datasetId, internalInputMetadataRequest.sourceExecutionId(), null,
+        yield datasetExecutionService.submitExecutionSingle(datasetId, sourceExecutionId, null,
             FullBatchJobType.valueOf(jobName));
       }
-      case HttpHarvestInputMetadataRequest httpHarvestInputMetadataRequest ->
-          datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, httpHarvestInputMetadataRequest.url());
+      case HttpHarvestInputMetadataRequest(String url) ->
+          datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url);
     };
   }
 
