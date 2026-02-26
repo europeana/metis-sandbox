@@ -9,7 +9,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-//todo:decide if we keep this class as is, it was more strict before use in controller.
 public class SandboxTask {
   private Map<SandboxTaskKey, String> parameters;
   private InputMetadataRequest inputMetadataRequest;

@@ -41,7 +41,7 @@ public class SecurityConfig {
   @SuppressWarnings("squid:S4502")
   @Order(1)
   @Bean
-  SecurityFilterChain configureApiSecurity(HttpSecurity httpSecurity) throws Exception {
+  SecurityFilterChain configureApiSecurity(HttpSecurity httpSecurity) {
     httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .securityMatcher(request -> {
@@ -77,7 +77,7 @@ public class SecurityConfig {
   @SuppressWarnings("squid:S4502")
   @Order(2)
   @Bean
-  SecurityFilterChain configureUiSecurity(HttpSecurity httpSecurity) throws Exception {
+  SecurityFilterChain configureUiSecurity(HttpSecurity httpSecurity) {
     httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(registry -> registry

@@ -27,7 +27,15 @@ public class DatasetMetadataRequest {
   @NotNull
   Language language;
 
-  //todo: check if we keep this, use @Jacksonized or create a separate controller class
+  /**
+   * Constructor.
+   * <p>
+   * Annotated for Jackson.
+   *
+   * @param datasetName the name of the dataset
+   * @param country the country associated with the dataset
+   * @param language the language associated with the dataset
+   */
   @JsonCreator
   public DatasetMetadataRequest(
       @JsonProperty("datasetName") String datasetName,

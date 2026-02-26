@@ -31,7 +31,12 @@ public enum Language {
     this.value = value;
   }
 
-  // The xmlValue of the language is used for the UI, NOT for the database
+  /**
+   * Returns the string representation of the language enum constant.
+   * The returned value is intended for use in the UI and not for database operations.
+   *
+   * @return the string representation of the enum constant
+   */
   @JsonValue
   public String xmlValue() {
     return value;

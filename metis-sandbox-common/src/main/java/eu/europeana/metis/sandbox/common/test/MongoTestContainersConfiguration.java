@@ -20,6 +20,7 @@ import org.testcontainers.containers.MongoDBContainer;
 public class MongoTestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private static final String MONGO_VERSION = "mongo:5.0.12";
   private static final MongoDBContainer mongoDBContainer;
 
@@ -37,6 +38,12 @@ public class MongoTestContainersConfiguration {
     System.setProperty("spring.data.mongodb.db", "test");
   }
 
+  /**
+   * Sets a dynamic system property with the given key and value provider.
+   *
+   * @param key       the name of the system property to be set
+   * @param getValue  a function that determines the value of the system property by taking the {@link MongoDBContainer} instance as input
+   */
   public static void setDynamicProperty(String key, Function<MongoDBContainer, String> getValue) {
     System.setProperty(key, getValue.apply(mongoDBContainer));
   }

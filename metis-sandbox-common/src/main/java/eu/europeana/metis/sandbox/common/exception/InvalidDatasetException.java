@@ -4,6 +4,9 @@ import static java.lang.String.format;
 
 import java.io.Serial;
 
+/**
+ * Exception indicating that the provided dataset identifier is invalid.
+ */
 public class InvalidDatasetException extends ServiceException {
 
   @Serial

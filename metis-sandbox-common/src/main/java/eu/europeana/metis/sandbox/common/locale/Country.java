@@ -42,6 +42,12 @@ public enum Country {
     this.value = value;
   }
 
+  /**
+   * Returns the string representation of the language enum constant.
+   * The returned value is intended for use in the UI and not for database operations.
+   *
+   * @return the string representation of the enum constant
+   */
   @JsonValue
   public String xmlValue() {
     return value;

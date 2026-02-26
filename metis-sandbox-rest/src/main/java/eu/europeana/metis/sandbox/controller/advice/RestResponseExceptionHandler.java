@@ -6,7 +6,6 @@ import eu.europeana.metis.sandbox.common.exception.DownloadSizeExceededException
 import eu.europeana.metis.sandbox.common.exception.InvalidCompressedFileException;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
-import eu.europeana.metis.sandbox.common.exception.RecordParsingException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.exception.XsltProcessingException;
 import eu.europeana.metis.sandbox.dto.ExceptionModelDTO;
@@ -89,7 +88,6 @@ public class RestResponseExceptionHandler {
   @ExceptionHandler({
       IllegalArgumentException.class,
       InvalidCompressedFileException.class,
-      RecordParsingException.class,
       InvalidDatasetException.class,
       SerializationException.class,
       IOException.class,

@@ -1,14 +1,11 @@
 package eu.europeana.metis.sandbox.common.exception;
 
-import java.io.Serial;
+import lombok.experimental.StandardException;
 
-public class XsltProcessingException extends RuntimeException{
-
-  @Serial
-  private static final long serialVersionUID = -1308555888429284944L;
-
-  public XsltProcessingException(String message, Throwable cause) {
-    super(message, cause);
-  }
+/**
+ * Exception indicating an error occurred during XSLT processing.
+ */
+@StandardException
+public class XsltProcessingException extends RuntimeException {
 
 }

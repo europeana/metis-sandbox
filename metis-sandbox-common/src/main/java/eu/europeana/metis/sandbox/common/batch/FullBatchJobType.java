@@ -3,7 +3,8 @@ package eu.europeana.metis.sandbox.common.batch;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import lombok.Getter;import org.apache.commons.lang3.StringUtils;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents the different types of full batch jobs by combining a {@link BatchJobType} with an optional {@link BatchJobSubType}.
@@ -62,6 +63,12 @@ public enum FullBatchJobType {
                                      .orElseThrow();
   }
 
+  /**
+   * Represents a category of batch jobs.
+   * <p>
+   * Each constant in this enum corresponds to a broad category under which specific batch job types or subtypes may be
+   * organized.
+   */
   public enum BatchJobGroup {
     HARVEST, CURATE, INDEX, DEPUBLISH, DEBIAS
   }

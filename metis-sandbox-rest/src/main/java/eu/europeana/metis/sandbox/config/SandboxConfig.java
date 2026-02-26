@@ -43,6 +43,7 @@ class SandboxConfig {
 
   private static final int WORKFLOW_CORE_POOL_SIZE = 4;
   private static final int WORKFLOW_QUEUE_CAPACITY = 20;
+  public static final int HTTP_CLIENT_TIMEOUT_SECONDS = 5;
 
   @Value("${sandbox.enrichment.dereference-url}")
   private String dereferenceServiceUrl;
@@ -130,7 +131,7 @@ class SandboxConfig {
   HttpClient httpClient() {
     return HttpClient.newBuilder().version(Version.HTTP_2)
                      .followRedirects(Redirect.NORMAL)
-                     .connectTimeout(Duration.ofSeconds(5))
+                     .connectTimeout(Duration.ofSeconds(HTTP_CLIENT_TIMEOUT_SECONDS))
                      .build();
   }
 }

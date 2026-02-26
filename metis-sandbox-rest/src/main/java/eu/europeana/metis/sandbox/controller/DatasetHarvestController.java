@@ -188,6 +188,7 @@ public class DatasetHarvestController {
    * @param url the given dataset itself to be processed as a URL of a zip file
    * @param xsltFile the xslt file used for transformation to edm external
    * @return 202 if it's processed correctly, 4xx or 500 otherwise
+   * @throws IOException if there was something wrong
    */
   @Operation(summary = "Harvest dataset from url", description = "Process the given dataset by HTTP providing an URL")
   @ApiResponse(responseCode = "202")

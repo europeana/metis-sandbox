@@ -4,23 +4,23 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
-import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.FileType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressByStepDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
-import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
-import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
-import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
-import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.sandbox.dto.validation.RecordValidationMessage;
 import eu.europeana.metis.sandbox.dto.validation.RecordValidationMessage.Type;
 import eu.europeana.metis.sandbox.dto.validation.ValidationResult;
 import eu.europeana.metis.sandbox.dto.validation.ValidationResult.Status;
 import eu.europeana.metis.sandbox.dto.validation.ValidationWorkflowReport;
+import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
+import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
+import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.metis.schema.convert.SerializationException;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.view.DatasetProblemPatternAnalysis;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -133,8 +134,7 @@ public class ValidationController {
     if (StringUtils.isBlank(fileType)) {
       throw new IllegalArgumentException("Something went wrong checking file's content type.");
     } else {
-      return StringUtils.containsIgnoreCase(fileType, FileType.XML.name());
-
+      return Strings.CI.contains(fileType, FileType.XML.name());
     }
   }
 }

@@ -42,12 +42,28 @@ public final class FileTypeResolver {
       ".gz", CompressedFileExtension.GZIP
   );
 
+  /**
+   * Determines the compressed file extension from a multipart file.
+   *
+   * @param uploadedFile the multipart file to process.
+   * @return the inferred {@link CompressedFileExtension}.
+   * @throws InvalidCompressedFileException if the content type and filename do not correspond to a known compressed file
+   * extension.
+   */
   public static CompressedFileExtension fromMultipart(MultipartFile uploadedFile) {
     String contentType = uploadedFile.getContentType();
     String filename = uploadedFile.getOriginalFilename();
     return resolve(contentType, filename);
   }
 
+  /**
+   * Determines the compressed file extension based on the provided URI.
+   *
+   * @param uri the URI of the file to process.
+   * @return the inferred {@link CompressedFileExtension}.
+   * @throws InvalidCompressedFileException if the content type and filename do not correspond to a known compressed file
+   * extension, or if an I/O error occurs.
+   */
   public static CompressedFileExtension fromUrl(URI uri) {
     try {
       URL url = uri.toURL();
