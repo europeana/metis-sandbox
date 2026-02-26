@@ -6,10 +6,13 @@ public record SandboxTaskProgress(
     long expectedRecords,
     long processedRecords,
     long successRecords,
-    long failedRecords,
+    long failRecords,
     long warningRecords,
-    long deletedRecords,
-    long duplicatedRecords,
+    long duplicateRecords,
+    long expectedDepublishRecords,
+    long successDepublishRecords,
+    long failDepublishRecords,
+    long processedDepublishRecords,
     SandboxTaskState sandboxTaskState) {
 
   public enum SandboxTaskState {

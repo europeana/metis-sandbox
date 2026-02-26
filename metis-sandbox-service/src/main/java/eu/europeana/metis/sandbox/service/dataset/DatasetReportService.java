@@ -281,9 +281,12 @@ public class DatasetReportService {
 
     long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
     long successRecords = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
-    long failedRecords = stepStatistics.totalFail;
+    long failRecords = stepStatistics.totalFail;
     long warningRecords = stepStatistics.totalDistinctWarning;
-    long deletedRecords = 0;
+    long expectedDepublishRecords = 0;
+    long successDepublishRecords = 0;
+    long failDepublishRecords = 0;
+    long processedDepublishRecords = 0;
     long duplicatedRecords = stepStatistics.totalDuplicates;
 
     JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, step);
@@ -293,10 +296,13 @@ public class DatasetReportService {
         expectedRecords,
         processedRecords,
         successRecords,
-        failedRecords,
+        failRecords,
         warningRecords,
-        deletedRecords,
         duplicatedRecords,
+        expectedDepublishRecords,
+        successDepublishRecords,
+        failDepublishRecords,
+        processedDepublishRecords,
         sandboxTaskState
     );
   }
