@@ -16,6 +16,7 @@ public record OaiHarvestInputMetadataRequest(
     String set,
     String metadataPrefix,
     Date from,
-    Date until) implements InputMetadataRequest {
+    Date until,
+    Integer stepSize) implements HarvestInputMetadataRequest {
 
 }
