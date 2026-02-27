@@ -11,6 +11,12 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents an error associated with a dataset.
+ * <p>
+ * This entity is used to store information about errors that occur during dataset processing. This usually represents a failure
+ * at the dataset level and not individual errors of particular records.
+ */
 @Getter
 @Setter
 @Entity
