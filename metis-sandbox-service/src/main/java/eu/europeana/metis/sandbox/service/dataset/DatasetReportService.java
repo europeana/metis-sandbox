@@ -89,12 +89,16 @@ public class DatasetReportService {
    * Constructor.
    *
    * @param datasetRepository repository interface for accessing dataset-related data
+   * @param executionRunRepository repository interface for managing execution runs
+   * @param executionRecordExternalIdentifierRepository repository interface for managing external identifiers of execution
+   * records
    * @param executionRecordRepository repository interface for managing execution records
    * @param executionRecordErrorRepository repository interface for managing execution record errors
    * @param executionRecordWarningRepository repository interface for managing execution record warnings
    * @param executionRecordTierContextRepository repository interface for managing execution record tier context
    * @param transformXsltRepository repository interface for managing XSLT transformations
    * @param harvestParameterService service for handling harvest parameters
+   * @param batchJobExecutor service for executing batch jobs
    */
   public DatasetReportService(
       DatasetRepository datasetRepository, ExecutionRunRepository executionRunRepository,
@@ -218,8 +222,7 @@ public class DatasetReportService {
         // Use the previous step's total if it was completed
         totalRecords = previousTotalRecords;
       }
-      //todo: reassess counters https://europeana.atlassian.net/browse/MET-6804
-      //Due to the current frontend display
+      //The following calculations are due to the current frontend display
       long successWithoutDuplicatesCount = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
       long successCount = successWithoutDuplicatesCount - stepStatistics.totalDistinctWarning;
       long failCount = stepStatistics.totalFail + stepStatistics.totalDuplicates;
@@ -265,14 +268,24 @@ public class DatasetReportService {
     );
   }
 
-  public SandboxTaskProgress getProgressForStep(String executionId, FullBatchJobType step) {
-    ExecutionRun executionRun = executionRunRepository.findDistinctByExecutionId(executionId);
+  /**
+   * Retrieves the progress of a specific batch job for a given execution identifier.
+   * <p>
+   * For a harvest job we calculate the expected records based on the number of external identifiers harvested.
+   *
+   * @param executionId the unique identifier of the execution run
+   * @param fullBatchJobType the batch job step whose progress is being retrieved
+   * @return a {@code SandboxTaskProgress} object containing detailed statistics about the job's progress,
+   * @throws IllegalArgumentException if no execution run is found for the given execution ID
+   */
+  public SandboxTaskProgress getProgressForJob(String executionId, FullBatchJobType fullBatchJobType) {
+    ExecutionRun executionRun = executionRunRepository.findByExecutionId(executionId);
     if (executionRun == null) {
       throw new IllegalArgumentException("ExecutionRun not found for executionId: " + executionId);
     }
     String sourceExecutionId = executionRun.getSourceExecutionId();
     long expectedRecords;
-    if (sourceExecutionId == null && step.getBatchJobGroup() == HARVEST) {
+    if (sourceExecutionId == null && fullBatchJobType.getBatchJobGroup() == HARVEST) {
       expectedRecords = executionRecordExternalIdentifierRepository.countByExecutionRun_ExecutionId(executionId);
     } else {
       expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
@@ -289,7 +302,7 @@ public class DatasetReportService {
     long processedDepublishRecords = 0;
     long duplicatedRecords = stepStatistics.totalDuplicates;
 
-    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, step);
+    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, fullBatchJobType);
     BatchStatus batchStatus = Optional.ofNullable(jobExecution).map(JobExecution::getStatus).orElse(BatchStatus.UNKNOWN);
     SandboxTaskState sandboxTaskState = SandboxTaskState.fromBatchStatus(batchStatus);
     return new SandboxTaskProgress(

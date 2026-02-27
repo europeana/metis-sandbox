@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import lombok.Getter;
-import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ContentDisposition;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import org.springframework.util.unit.DataSize;
 
 
 /**
- * The type Content download with max size client.
+ * The type Content download with a max size client.
  */
 @Service
 public class ContentWithMaxSizeClient extends AbstractHttpClient<URI, byte[]> {
@@ -25,25 +25,24 @@ public class ContentWithMaxSizeClient extends AbstractHttpClient<URI, byte[]> {
   private static final int DEFAULT_RESPONSE_TIMEOUT = 20_000;
   private static final int DEFAULT_REQUEST_TIMEOUT = 60_000;
   private static final int DEFAULT_BUFFER_SIZE = 8 * 1024; // 8 KB
-  /**
-   * The Default max file size.
-   */
-  @Value("${spring.servlet.multipart.max-file-size}")
-  @Setter
+
   @Getter
   private DataSize defaultMaxFileSize;
 
-
   /**
-   * Instantiates a new Content download with max size client.
+   * Constructor.
+   *
+   * @param defaultMaxFileSize the default maximum file size for downloads. Configured as a {@link DataSize} bean property.
    */
-  public ContentWithMaxSizeClient() {
+  @Autowired
+  public ContentWithMaxSizeClient(@Value("${spring.servlet.multipart.max-file-size}") DataSize defaultMaxFileSize) {
     this(MAX_NUMBER_OF_REDIRECTS, DEFAULT_CONNECT_TIMEOUT, DEFAULT_RESPONSE_TIMEOUT, DEFAULT_REQUEST_TIMEOUT);
+    this.defaultMaxFileSize = defaultMaxFileSize;
   }
 
 
   /**
-   * Instantiates a new Content download with max size client.
+   * Instantiates a new Content download with a max size client.
    *
    * @param maxRedirectCount the max redirect count
    * @param connectTimeout the connect timeout
@@ -82,7 +81,7 @@ public class ContentWithMaxSizeClient extends AbstractHttpClient<URI, byte[]> {
       ContentDisposition contentDisposition, String mimetype, Long fileSize,
       ContentRetriever contentRetriever) throws IOException {
     if (fileSize != null && fileSize > defaultMaxFileSize.toBytes()) {
-      throw new DownloadSizeExceededException("Maximum download size exceeded  "+defaultMaxFileSize.toBytes()+" bytes");
+      throw new DownloadSizeExceededException("Maximum download size exceeded  " + defaultMaxFileSize.toBytes() + " bytes");
     }
 
     int numberBytesRead;
@@ -94,7 +93,7 @@ public class ContentWithMaxSizeClient extends AbstractHttpClient<URI, byte[]> {
       buffer.write(data, 0, numberBytesRead);
       totalBytesRead += numberBytesRead;
       if (totalBytesRead > defaultMaxFileSize.toBytes()) {
-        throw new DownloadSizeExceededException("Maximum download size exceeded  "+defaultMaxFileSize.toBytes()+" bytes");
+        throw new DownloadSizeExceededException("Maximum download size exceeded  " + defaultMaxFileSize.toBytes() + " bytes");
       }
     }
     buffer.flush();

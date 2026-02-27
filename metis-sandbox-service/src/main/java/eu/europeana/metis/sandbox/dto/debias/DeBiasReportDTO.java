@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.dto.debias;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasReportRow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
@@ -29,9 +30,9 @@ public class DeBiasReportDTO extends DeBiasStatusDTO {
    * @param creationDate the creation date
    * @param total the total records
    * @param processed the processed records
-   * @param deBiasReportRowList the de bias report row list
+   * @param deBiasReportRowList the debias report row list
    */
-  public DeBiasReportDTO(Integer datasetId, eu.europeana.metis.sandbox.common.debias.DebiasState debiasState, ZonedDateTime creationDate, long total, long processed,
+  public DeBiasReportDTO(Integer datasetId, DebiasState debiasState, ZonedDateTime creationDate, long total, long processed,
       List<DeBiasReportRow> deBiasReportRowList) {
     super(datasetId, debiasState, creationDate, total, processed);
     this.deBiasReportRowList = Collections.unmodifiableList(deBiasReportRowList);

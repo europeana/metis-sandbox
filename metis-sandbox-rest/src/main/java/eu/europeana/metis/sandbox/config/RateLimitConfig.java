@@ -18,20 +18,21 @@ import javax.sql.DataSource;
 @Configuration
 public class RateLimitConfig {
 
-    @Value("${sandbox.rate-limit.bandwidth.capacity}")
-    private String capacity;
+  @Value("${sandbox.rate-limit.bandwidth.capacity}")
+  private String capacity;
 
-    @Value("${sandbox.rate-limit.bandwidth.time}")
-    private String time;
+  @Value("${sandbox.rate-limit.bandwidth.time}")
+  private String time;
 
-    @Bean
-    RateLimitInterceptor rateLimitInterceptor(DataSource dataSource){
-        SQLProxyConfiguration<Long> sqlProxyConfiguration = SQLProxyConfiguration.builder()
-                .withClientSideConfig(ClientSideConfig.getDefault().withClientClock(TimeMeter.SYSTEM_MILLISECONDS))
-                .withTableSettings(BucketTableSettings.customSettings("rate_limit.buckets", "id", "bucket_state"))
-                .build(dataSource);
-        PostgreSQLadvisoryLockBasedProxyManager proxyManager = new PostgreSQLadvisoryLockBasedProxyManager(sqlProxyConfiguration);
-        return new RateLimitInterceptor(Integer.parseInt(capacity), Long.parseLong(time), proxyManager);
-
-    }
+  @Bean
+  RateLimitInterceptor rateLimitInterceptor(DataSource dataSource) {
+    SQLProxyConfiguration<Long> sqlProxyConfiguration =
+        SQLProxyConfiguration.builder()
+                             .withClientSideConfig(ClientSideConfig.getDefault().withClientClock(TimeMeter.SYSTEM_MILLISECONDS))
+                             .withTableSettings(BucketTableSettings.customSettings("rate_limit.buckets", "id", "bucket_state"))
+                             .build(dataSource);
+    PostgreSQLadvisoryLockBasedProxyManager<Long> proxyManager =
+        new PostgreSQLadvisoryLockBasedProxyManager<>(sqlProxyConfiguration);
+    return new RateLimitInterceptor(Integer.parseInt(capacity), Long.parseLong(time), proxyManager);
+  }
 }

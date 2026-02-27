@@ -129,10 +129,17 @@ public class BatchJobExecutor {
     this.jobExecutorsByType.put(DEBIAS, this::executeDebias);
   }
 
-  public String executeStep(ExecutionMetadata executionMetadata, FullBatchJobType step) {
+  /**
+   * Executes a step of a batch job and spawns an asynchronous task to handle the execution.
+   *
+   * @param executionMetadata the execution metadata related to the requested execution task
+   * @param fullBatchJobType the full batch job type
+   * @return A string representation of a generated UUID that identifies the execution task
+   */
+  public String executeStep(ExecutionMetadata executionMetadata, FullBatchJobType fullBatchJobType) {
     UUID targetId = UUID.randomUUID();
     taskExecutor.execute(() ->
-        executeStep(executionMetadata, step, targetId)
+        executeStep(executionMetadata, fullBatchJobType, targetId)
     );
     return targetId.toString();
   }
@@ -176,13 +183,28 @@ public class BatchJobExecutor {
     executeWorkflow(currentExecutionMetadata);
   }
 
-  public void cancelTask(String executionId, FullBatchJobType step) throws JobExecutionNotRunningException {
-    JobExecution jobExecution = findJobExecutionByParameter(executionId, step);
+  /**
+   * Cancels the task associated with the specified execution identifier and batch job type.
+   *
+   * @param executionId the execution identifier
+   * @param fullBatchJobType the full batch job type
+   * @throws JobExecutionNotRunningException if the job execution is not currently running
+   */
+  public void cancelTask(String executionId, FullBatchJobType fullBatchJobType) throws JobExecutionNotRunningException {
+    JobExecution jobExecution = findJobExecutionByParameter(executionId, fullBatchJobType);
     jobOperator.stop(jobExecution);
   }
 
-  public JobExecution findJobExecutionByParameter(String executionId, FullBatchJobType step) {
-    List<JobInstance> jobInstances = jobRepository.findJobInstances(step.getBatchJobType().name());
+  /**
+   * Finds a job execution that matches the given execution identifier (found in the parameters of a job execution) and job type.
+   *
+   * @param executionId the target execution identifier
+   * @param fullBatchJobType the job type used to filter job executions
+   * @return the {@code JobExecution} that matches the given execution ID and job type, or {@code null} if no matching job
+   * execution is found
+   */
+  public JobExecution findJobExecutionByParameter(String executionId, FullBatchJobType fullBatchJobType) {
+    List<JobInstance> jobInstances = jobRepository.findJobInstances(fullBatchJobType.getBatchJobType().name());
     for (JobInstance jobInstance : jobInstances) {
       List<JobExecution> jobExecutions = jobRepository.getJobExecutions(jobInstance);
       for (JobExecution jobExecution : jobExecutions) {

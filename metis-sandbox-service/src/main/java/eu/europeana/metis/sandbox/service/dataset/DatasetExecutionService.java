@@ -70,6 +70,21 @@ public class DatasetExecutionService {
     }
   }
 
+  /**
+   * Prepares and submits an OAI-PMH harvesting execution. The dataset should already exist.
+   * <p>
+   * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
+   * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
+   * the UI)
+   *
+   * @param datasetId the dataset identifier
+   * @param stepsize the step size
+   * @param url the URL of the OAI-PMH service endpoint.
+   * @param setSpec the set spec parameter for the OAI-PMH harvest
+   * @param metadataFormat the metadata format to be used for harvesting.
+   * @return A string representing the execution identifier
+   * @throws IOException If an I/O error occurs during the submission
+   */
   public String submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat)
       throws IOException {
     OaiHarvestParametersDTO harvestParametersDTO =
@@ -79,6 +94,20 @@ public class DatasetExecutionService {
     return batchJobExecutor.executeStep(executionMetadata, FullBatchJobType.HARVEST_OAI);
   }
 
+  /**
+   * Prepares and submits an HTTP harvesting execution. The dataset should already exist.
+   * <p>
+   * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
+   * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
+   * the UI)
+   *
+   * @param datasetId the dataset identifier
+   * @param stepsize the step size
+   * @param url the URL from which the file with the records will be harvested
+   * @param compressedFileExtension the file extension used to indicate the compression type of the target files
+   * @return A string representing the execution identifier
+   * @throws IOException If an I/O error occurs during the submission
+   */
   public String submitExecutionHttpSingle(String datasetId, Integer stepsize, String url,
       CompressedFileExtension compressedFileExtension) throws IOException {
     HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, compressedFileExtension);
@@ -87,11 +116,25 @@ public class DatasetExecutionService {
     return batchJobExecutor.executeStep(executionMetadata, FullBatchJobType.HARVEST_FILE);
   }
 
+  /**
+   * Prepares and submits an intermediate execution job for the given dataset identifier and source execution identifier.
+   * <p>
+   * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
+   * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
+   * the UI)
+   *
+   * @param datasetId the dataset identifier
+   * @param sourceExecutionId the source execution identifier to be used as a reference.
+   * @param xsltFile the XSLT file to be applied during the transformation process.
+   * @param fullBatchJobType the full batch job type representing the specific step to be executed
+   * @return A string representing the execution identifier
+   * @throws IOException If an I/O error occurs during the submission
+   */
   public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile,
-      FullBatchJobType step) throws IOException {
+      FullBatchJobType fullBatchJobType) throws IOException {
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId, xsltFile);
-    return batchJobExecutor.executeStep(executionMetadata, step);
+    return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
   }
 
   /**
@@ -108,7 +151,7 @@ public class DatasetExecutionService {
    * @param xsltFile the XSLT file to transform the harvested records
    * @param userId the ID of the user initiating the operation
    * @return the unique dataset ID of the created and submitted dataset
-   * @throws IOException if an error occurs during dataset setup or file handling
+   * @throws IOException If an I/O error occurs during the submission
    */
   @NotNull
   public String createDatasetAndSubmitWorkflowExecutionOai(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
@@ -134,7 +177,7 @@ public class DatasetExecutionService {
    * @param userId the ID of the user initiating the operation
    * @param extension the file extension type of the compressed file
    * @return the unique identifier of the created dataset
-   * @throws IOException if an I/O error occurs while processing the files
+   * @throws IOException If an I/O error occurs during the submission
    */
   @NotNull
   public String createDatasetAndSubmitWorkflowExecutionFile(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
@@ -160,6 +203,7 @@ public class DatasetExecutionService {
    * @param userId the ID of the user requesting the operation
    * @param extension the file extension of the compressed input file
    * @return the unique ID of the created dataset
+   * @throws IOException If an I/O error occurs during the submission
    */
   @NotNull
   public String createDatasetAndSubmitWorkflowExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
@@ -264,7 +308,15 @@ public class DatasetExecutionService {
     return StringUtils.isBlank(setSpec) ? null : setSpec;
   }
 
-  public void cancelTask(String executionId, FullBatchJobType step) throws JobExecutionNotRunningException {
-    batchJobExecutor.cancelTask(executionId, step);
+  /**
+   * Cancels the execution of a batch job task identified by the specified execution identifier.
+   * This method will stop the currently running batch job task if it is in progress.
+   *
+   * @param executionId the execution identifier
+   * @param fullBatchJobType the full batch job type representing the specific task to be cancelled
+   * @throws JobExecutionNotRunningException if the job execution is not currently running
+   */
+  public void cancelTask(String executionId, FullBatchJobType fullBatchJobType) throws JobExecutionNotRunningException {
+    batchJobExecutor.cancelTask(executionId, fullBatchJobType);
   }
 }

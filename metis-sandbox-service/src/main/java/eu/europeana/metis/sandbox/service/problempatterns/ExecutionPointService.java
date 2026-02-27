@@ -9,11 +9,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service class responsible for handling operations related to execution points.
+ */
 @Service
 public class ExecutionPointService {
 
     private final ExecutionPointRepository executionPointRepository;
 
+    /**
+     * Constructor.
+     *
+     * @param executionPointRepository The repository used for managing execution point entities.
+     */
     public ExecutionPointService(ExecutionPointRepository executionPointRepository){
         this.executionPointRepository = executionPointRepository;
     }

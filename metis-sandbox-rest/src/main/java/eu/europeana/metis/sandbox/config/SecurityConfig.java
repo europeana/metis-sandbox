@@ -36,7 +36,6 @@ public class SecurityConfig {
    *
    * @param httpSecurity the HttpSecurity to be configured with the security settings
    * @return the configured SecurityFilterChain
-   * @throws Exception if an error occurs during the security configuration
    */
   @SuppressWarnings("squid:S4502")
   @Order(1)
@@ -72,7 +71,6 @@ public class SecurityConfig {
    *
    * @param httpSecurity the HttpSecurity to be configured with the security settings
    * @return the configured SecurityFilterChain
-   * @throws Exception if an error occurs during the security configuration
    */
   @SuppressWarnings("squid:S4502")
   @Order(2)

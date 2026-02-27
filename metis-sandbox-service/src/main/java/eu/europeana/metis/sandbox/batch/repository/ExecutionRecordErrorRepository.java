@@ -58,6 +58,12 @@ public interface ExecutionRecordErrorRepository extends JpaRepository<ExecutionR
    */
   long countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
+  /**
+   * Counts the number of entries associated with the specified execution ID.
+   *
+   * @param executionId The unique identifier of the execution run.
+   * @return The count of matching entries.
+   */
   long countByExecutionRun_ExecutionId(String executionId);
 
   /**

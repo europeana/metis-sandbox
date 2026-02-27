@@ -38,12 +38,30 @@ public class DatasetExecutionSetupService {
   private final HarvestParameterService harvestParameterService;
   private final TransformXsltRepository transformXsltRepository;
 
+  /**
+   * Prepares the execution of a harvest operation for the specified dataset and harvest parameters.
+   *
+   * @param datasetId the dataset identifier
+   * @param abstractHarvestParametersDTO the harvest parameters required to configure the execution
+   * @return an instance of ExecutionMetadata containing metadata about the prepared execution
+   * @throws IOException if an input or output error occurs during the preparation of the execution
+   */
   @Transactional
   public ExecutionMetadata prepareHarvestExecution(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO)
       throws IOException {
     return prepareExecution(WorkflowType.SINGLE, datasetId, null, abstractHarvestParametersDTO, null);
   }
 
+  /**
+   * Prepares an intermediate execution of a workflow based on the provided dataset identifier, source execution identifier, and
+   * possibly an XSLT file.
+   *
+   * @param datasetId the dataset identifier
+   * @param sourceExecutionId the source execution identifier to be used as a reference.
+   * @param xsltFile the XSLT file to be applied during the transformation process.
+   * @return an instance of ExecutionMetadata containing metadata about the prepared execution
+   * @throws IOException if an input or output error occurs during the preparation of the execution
+   */
   @Transactional
   public ExecutionMetadata prepareIntermediateExecution(String datasetId, String sourceExecutionId, MultipartFile xsltFile)
       throws IOException {
@@ -125,6 +143,15 @@ public class DatasetExecutionSetupService {
     datasetRepository.updateRecordLimitExceeded(datasetId);
   }
 
+  /**
+   * Creates a new dataset based on the provided metadata, workflow type, and user identifier.
+   *
+   * @param datasetMetadataRequest the metadata information required for creating the dataset
+   * @param workflowType the workflow type associated with the dataset
+   * @param userId the identifier of the user initiating the dataset creation
+   * @return the unique identifier of the newly created dataset as a string
+   * @throws ServiceException if there is an error during the dataset creation process
+   */
   public String createDataset(DatasetMetadataRequest datasetMetadataRequest, WorkflowType workflowType, String userId) {
     DatasetEntity datasetEntity = new DatasetEntity(datasetMetadataRequest.getDatasetName(), workflowType,
         datasetMetadataRequest.getLanguage(), datasetMetadataRequest.getCountry(), userId);

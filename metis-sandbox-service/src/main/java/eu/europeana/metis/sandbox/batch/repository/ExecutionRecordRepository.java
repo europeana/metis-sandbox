@@ -103,6 +103,15 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
       """)
   long countDuplicateRecords(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
+  /**
+   * Counts the duplicate records in the database for a specific execution id.
+   * <p>
+   * A record is considered a duplicate if it shares the same execution id and is not the record with the minimum ID for the same
+   * record ID.
+   *
+   * @param executionId the execution identifier
+   * @return the count of duplicate records matching the given execution id
+   */
   @Query("""
       SELECT COUNT(r)
       FROM ExecutionRecord r
@@ -152,6 +161,12 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
    */
   long countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(String datasetId, String executionName);
 
+  /**
+   * Counts the number of entities matching the given execution ID
+   *
+   * @param executionId the execution identifier
+   * @return the count of entities matching the specified criteria.
+   */
   long countByExecutionRun_ExecutionId(String executionId);
 
   /**

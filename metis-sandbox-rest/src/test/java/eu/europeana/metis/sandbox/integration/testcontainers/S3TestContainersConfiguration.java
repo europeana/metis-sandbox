@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.common.test;
+package eu.europeana.metis.sandbox.integration.testcontainers;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;

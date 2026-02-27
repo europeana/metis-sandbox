@@ -76,6 +76,7 @@ class IndexConfig {
     );
   }
 
+  //todo: this class should use configuration properties from metis-common-spring-properties
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")

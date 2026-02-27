@@ -53,6 +53,12 @@ public interface ExecutionRecordWarningRepository extends JpaRepository<Executio
       """)
   long countDistinctRecordIds(@Param("datasetId") String datasetId, @Param("executionName") String executionName);
 
+  /**
+   * Counts the number of distinct entities by recordId and based on the execution identifier.
+   *
+   * @param executionId the execution identifier
+   * @return The count of entities matching the specified execution identifier.
+   */
   @Query("""
           SELECT COUNT(DISTINCT w.executionRecord.identifier.recordId)
           FROM ExecutionRecordWarning w

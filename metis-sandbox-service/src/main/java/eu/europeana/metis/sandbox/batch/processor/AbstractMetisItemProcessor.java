@@ -57,9 +57,11 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
    * @param <R> The type of the result produced by the function.
    * @param input The input object to be processed.
    * @param function The function to apply to the input object, potentially throwing an exception.
-   * @param exceptionHandler The handler to execute if an exception occurs during processing, receiving the input and the exception.
+   * @param exceptionHandler The handler to execute if an exception occurs during processing, receiving the input and the
+   * exception.
    * @return The result produced by either the function or the exception handler.
    */
+  @SuppressWarnings("java:S2221") // Intentional: generic infrastructure wrapper capturing any Exception
   public static <T, R> R processCapturingException(
       T input,
       ThrowingFunction<T, R> function,

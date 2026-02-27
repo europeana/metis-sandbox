@@ -25,6 +25,12 @@ public interface ExecutionRecordExternalIdentifierRepository extends
    */
   Page<ExecutionRecordExternalIdentifier> findByExecutionRun_ExecutionId(String executionId, Pageable pageable);
 
+  /**
+   * Counts the total number of entities associated with a specific execution ID.
+   *
+   * @param executionId The unique identifier of the execution run.
+   * @return The count of matching entries.
+   */
   long countByExecutionRun_ExecutionId(String executionId);
 
   /**

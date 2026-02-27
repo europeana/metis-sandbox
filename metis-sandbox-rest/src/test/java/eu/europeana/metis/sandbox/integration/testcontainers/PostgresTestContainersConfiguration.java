@@ -1,4 +1,4 @@
-package eu.europeana.metis.sandbox.common.test;
+package eu.europeana.metis.sandbox.integration.testcontainers;
 
 import java.lang.invoke.MethodHandles;
 import java.util.List;

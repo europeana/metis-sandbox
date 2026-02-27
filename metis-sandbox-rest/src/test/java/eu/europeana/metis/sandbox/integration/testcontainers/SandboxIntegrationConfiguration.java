@@ -1,7 +1,4 @@
-package eu.europeana.metis.sandbox.common.test;
-
-import static eu.europeana.metis.sandbox.common.test.S3TestContainersConfiguration.BUCKET_NAME;
-import static eu.europeana.metis.sandbox.common.test.SolrTestContainersConfiguration.SOLR_COLLECTION_NAME;
+package eu.europeana.metis.sandbox.integration.testcontainers;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,7 +47,7 @@ public final class SandboxIntegrationConfiguration {
 
   private static void testContainersSolrConfiguraiton() {
     SolrTestContainersConfiguration.setDynamicProperty("sandbox.publish.solr.hosts",
-        container -> String.format("http://%s:%d/solr/%s", container.getHost(), container.getSolrPort(), SOLR_COLLECTION_NAME));
+        container -> String.format("http://%s:%d/solr/%s", container.getHost(), container.getSolrPort(), SolrTestContainersConfiguration.SOLR_COLLECTION_NAME));
   }
 
   private static void testContainersS3Configuration() {
@@ -59,7 +56,7 @@ public final class SandboxIntegrationConfiguration {
     S3TestContainersConfiguration.setDynamicProperty("sandbox.s3.endpoint",
         container -> container.getEndpointOverride(Service.S3).toString());
     S3TestContainersConfiguration.setDynamicProperty("sandbox.s3.signing-region", LocalStackContainer::getRegion);
-    S3TestContainersConfiguration.setDynamicProperty("sandbox.s3.thumbnails-bucket", container -> BUCKET_NAME);
+    S3TestContainersConfiguration.setDynamicProperty("sandbox.s3.thumbnails-bucket", container -> S3TestContainersConfiguration.BUCKET_NAME);
   }
 
 }

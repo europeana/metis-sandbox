@@ -131,7 +131,7 @@ public class MetricsService {
     try {
       return Map.entry(FullBatchJobType.valueOf(p.getStep()), p.getCount());
     } catch (IllegalArgumentException e) {
-      log.warn("Ignoring unknown step '{}'", p.getStep());
+      log.warn("Ignoring unknown step '{}'", p.getStep(), e);
       return null;
     }
   }

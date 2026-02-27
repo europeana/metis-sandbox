@@ -80,8 +80,6 @@ public class OaiRecordHarvesterItemProcessor extends
         oaiHarvest, executionRecordExternalIdentifier.getDerivedRecordId()
     );
     String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
-    //todo: temp for testing c
-    Thread.sleep(10000);
 
     return createValidated(successExecutionRecordDTOBuilder -> successExecutionRecordDTOBuilder
         .datasetId(datasetId)
