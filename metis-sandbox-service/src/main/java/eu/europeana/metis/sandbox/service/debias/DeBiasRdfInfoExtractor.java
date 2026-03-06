@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.debias;
 
+import eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField;
 import eu.europeana.metis.schema.jibx.Concept;
 import eu.europeana.metis.schema.jibx.EuropeanaType;
 import eu.europeana.metis.schema.jibx.EuropeanaType.Choice;
@@ -74,7 +75,7 @@ public class DeBiasRdfInfoExtractor {
   private <T, U> List<DeBiasInputRecord> getLiteralsAndLanguagesFromRdf(
       Predicate<Choice> choicePredicate, Function<Choice, T> choiceGetter,
       Function<T, List<? extends U>> lookup, Function<U, String> getString,
-      Function<U, String> getLanguage, eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField sourceField) {
+      Function<U, String> getLanguage, DeBiasSourceField sourceField) {
     return getChoices()
         .stream()
         .filter(Objects::nonNull)
@@ -129,7 +130,7 @@ public class DeBiasRdfInfoExtractor {
         List::of,
         ResourceOrLiteralType::getString,
         getLanguageResourceOrLiteralType(),
-        eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_DESCRIPTION);
+        DeBiasSourceField.DC_DESCRIPTION);
   }
 
   /**
@@ -144,7 +145,7 @@ public class DeBiasRdfInfoExtractor {
         List::of,
         LiteralType::getString,
         getLanguageLiteralType(),
-        eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_TITLE);
+        DeBiasSourceField.DC_TITLE);
   }
 
   /**
@@ -159,7 +160,7 @@ public class DeBiasRdfInfoExtractor {
         List::of,
         LiteralType::getString,
         getLanguageLiteralType(),
-        eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DCTERMS_ALTERNATIVE);
+        DeBiasSourceField.DCTERMS_ALTERNATIVE);
   }
 
   /**
@@ -174,7 +175,7 @@ public class DeBiasRdfInfoExtractor {
         List::of,
         ResourceOrLiteralType::getString,
         getLanguageResourceOrLiteralType(),
-        eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_SUBJECT_LITERAL);
+        DeBiasSourceField.DC_SUBJECT_LITERAL);
   }
 
   /**
@@ -189,7 +190,7 @@ public class DeBiasRdfInfoExtractor {
         List::of,
         ResourceOrLiteralType::getString,
         getLanguageResourceOrLiteralType(),
-        eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_TYPE_LITERAL);
+        DeBiasSourceField.DC_TYPE_LITERAL);
   }
 
   /**
@@ -201,9 +202,9 @@ public class DeBiasRdfInfoExtractor {
     Map<String, List<PrefLabel>> contextualClassesLabels = getContextualClassLabelsByRdfAbout();
     List<DeBiasInputRecord> result = new ArrayList<>();
     result.addAll(getReferencesAndLanguageFromRdf(contextualClassesLabels,
-        Choice::ifSubject, Choice::getSubject, eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_SUBJECT_REFERENCE));
+        Choice::ifSubject, Choice::getSubject, DeBiasSourceField.DC_SUBJECT_REFERENCE));
     result.addAll(getReferencesAndLanguageFromRdf(contextualClassesLabels,
-        Choice::ifType, Choice::getType, eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_TYPE_REFERENCE));
+        Choice::ifType, Choice::getType, DeBiasSourceField.DC_TYPE_REFERENCE));
     return result;
   }
 
@@ -219,7 +220,7 @@ public class DeBiasRdfInfoExtractor {
   List<DeBiasInputRecord> getReferencesAndLanguageFromRdf(
       Map<String, List<PrefLabel>> contextualClassesLabels,
       Predicate<Choice> choicePredicate,
-      Function<Choice, ResourceOrLiteralType> choiceGetter, eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField sourceField) {
+      Function<Choice, ResourceOrLiteralType> choiceGetter, DeBiasSourceField sourceField) {
     return getLiteralsAndLanguagesFromRdf(choicePredicate, choiceGetter,
         reference -> Optional.of(reference)
                              .map(ResourceOrLiteralType::getResource)
@@ -260,7 +261,7 @@ public class DeBiasRdfInfoExtractor {
    */
   public record DeBiasInputRecord(String europeanaId, String literal,
                                   DeBiasSupportedLanguage language,
-                                  eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField sourceField) {
+                                  DeBiasSourceField sourceField) {
 
   }
 }

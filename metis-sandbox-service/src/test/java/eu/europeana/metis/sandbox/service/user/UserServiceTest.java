@@ -30,7 +30,7 @@ class UserServiceTest {
   private DatasetReportService datasetReportService;
 
   @InjectMocks
-  private eu.europeana.metis.sandbox.service.user.UserService userService;
+  private UserService userService;
 
   @Test
   void returnsEmptyListWhenNoDatasets() {

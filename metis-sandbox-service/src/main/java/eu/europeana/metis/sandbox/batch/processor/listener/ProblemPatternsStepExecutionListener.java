@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.batch.processor.listener;
 
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.batch.ValidationBatchJobSubType;
+import eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.patternanalysis.PatternAnalysisService;
@@ -62,7 +63,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
       log.debug("BEGIN -> Finalize problem pattern analysis datasetId: {}", datasetId);
       final ExecutionPoint executionPoint = executionPointService
           .getExecutionPoint(datasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
-      final eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(executionPoint);
+      final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(executionPoint);
       log.debug("END -> Finalize problem pattern analysis datasetId: {}", datasetId);
       log.info("Problem pattern analysis status for datasetId {}: {}", datasetId, status);
     }
@@ -74,13 +75,13 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
     patternAnalysisService.initializePatternAnalysisExecution(datasetId, FullBatchJobType.VALIDATE_INTERNAL, timestamp);
   }
 
-  private eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(ExecutionPoint datasetExecutionPoint) {
+  private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(ExecutionPoint datasetExecutionPoint) {
     try {
       patternAnalysisService.finalizeDatasetPatternAnalysis(datasetExecutionPoint);
-      return eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED;
+      return ProblemPatternAnalysisStatus.FINALIZED;
     } catch (PatternAnalysisException e) {
       log.error("Something went wrong during finalizing pattern analysis", e);
-      return eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.ERROR;
+      return ProblemPatternAnalysisStatus.ERROR;
     }
   }
 }

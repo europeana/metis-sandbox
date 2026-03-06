@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.common;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import eu.europeana.metis.harvesting.FullRecord;
 import eu.europeana.metis.harvesting.FullRecordHarvestingIterator;
 import eu.europeana.metis.harvesting.HarvesterException;
@@ -15,7 +17,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Assertions;
 
 public class TestUtils {
 
@@ -125,7 +126,7 @@ public class TestUtils {
   public static void assertContainsOnlyOnce(String expected, String actual) {
     int count = countOccurrences(expected, actual);
     if (count > 1) {
-      Assertions.fail(String.format("There are more than one occurrences of %s in %s", expected, actual));
+      fail(String.format("There are more than one occurrences of %s in %s", expected, actual));
     }
   }
 

@@ -14,9 +14,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
+import eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
@@ -117,8 +118,7 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
        .andExpect(jsonPath("$.problemPatternList", is(Collections.EMPTY_LIST)))
-       .andExpect(jsonPath("$.analysisStatus", is(
-           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED.name())));
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())));
   }
 
   @Test
@@ -152,8 +152,7 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-       .andExpect(jsonPath("$.analysisStatus", is(
-           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED.name())))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
            is(ProblemPatternDescription.ProblemPatternId.P2.toString())))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[0].recordId", is("recordId1")))
@@ -177,8 +176,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isNotFound())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.analysisStatus", is(
-           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.PENDING.name())));
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.PENDING.name())));
     verify(mockPatternAnalysisService, never()).finalizeDatasetPatternAnalysis(any());
   }
 
@@ -198,8 +196,7 @@ class PatternAnalysisControllerTest {
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
        .andExpect(status().isInternalServerError())
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
-       .andExpect(jsonPath("$.analysisStatus", is(
-           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.ERROR.name())));
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.ERROR.name())));
   }
 
   @Test
@@ -277,8 +274,7 @@ class PatternAnalysisControllerTest {
        .andExpect(jsonPath("$.datasetId", is("datasetId")))
        .andExpect(jsonPath("$.executionStep", is(FullBatchJobType.VALIDATE_INTERNAL.name())))
        .andExpect(jsonPath("$.executionTimestamp", is(executionTimestamp.toString())))
-       .andExpect(jsonPath("$.analysisStatus", is(
-           eu.europeana.metis.sandbox.common.patternanalysis.ProblemPatternAnalysisStatus.FINALIZED.name())))
+       .andExpect(jsonPath("$.analysisStatus", is(ProblemPatternAnalysisStatus.FINALIZED.name())))
        .andExpect(jsonPath("$.problemPatternList[0].problemPatternDescription.problemPatternId",
            is(ProblemPatternDescription.ProblemPatternId.P7.toString())))
        .andExpect(jsonPath("$.problemPatternList[0].recordAnalysisList[0].recordId", is("recordId1")))

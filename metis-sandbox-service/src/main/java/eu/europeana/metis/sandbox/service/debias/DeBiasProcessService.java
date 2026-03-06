@@ -10,6 +10,7 @@ import eu.europeana.metis.debias.detect.model.response.DetectionDeBiasResult;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -201,7 +202,7 @@ public class DeBiasProcessService {
    */
   public record DeBiasReportRow(String europeanaId,
                                 ValueDetection valueDetection,
-                                eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField sourceField) {
+                                DeBiasSourceField sourceField) {
 
   }
 }

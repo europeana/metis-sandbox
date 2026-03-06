@@ -18,6 +18,7 @@ import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
+import eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasDetailEntity;
 import eu.europeana.metis.sandbox.entity.debias.RecordDeBiasMainEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -188,7 +189,7 @@ class DeBiasStateServiceTest {
     recordDeBiasMainEntity.setLiteral("literal");
     recordDeBiasMainEntity.setLanguage(Language.EL);
     recordDeBiasMainEntity.setRecordId("recordId");
-    recordDeBiasMainEntity.setSourceField(eu.europeana.metis.sandbox.entity.debias.DeBiasSourceField.DC_TITLE);
+    recordDeBiasMainEntity.setSourceField(DeBiasSourceField.DC_TITLE);
 
     RecordDeBiasDetailEntity recordDeBiasDetailEntity = new RecordDeBiasDetailEntity(recordDeBiasMainEntity, 0, 5, 5,
         "https://example.org/tag");

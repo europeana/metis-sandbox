@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.dto.debias;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 
@@ -20,7 +21,7 @@ public class DeBiasStatusDTO {
   private final Integer datasetId;
 
   @JsonProperty("state")
-  private final eu.europeana.metis.sandbox.common.debias.DebiasState debiasState;
+  private final DebiasState debiasState;
 
   @JsonProperty("creation-date")
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -41,7 +42,7 @@ public class DeBiasStatusDTO {
    * @param total the total
    * @param processed the proccessed
    */
-  public DeBiasStatusDTO(Integer datasetId, eu.europeana.metis.sandbox.common.debias.DebiasState debiasState, ZonedDateTime creationDate,
+  public DeBiasStatusDTO(Integer datasetId, DebiasState debiasState, ZonedDateTime creationDate,
       Long total, Long processed) {
     this.datasetId = datasetId;
     this.debiasState = debiasState;
@@ -64,7 +65,7 @@ public class DeBiasStatusDTO {
    *
    * @return the state
    */
-  public eu.europeana.metis.sandbox.common.debias.DebiasState getDebiasState() {
+  public DebiasState getDebiasState() {
     return debiasState;
   }
 

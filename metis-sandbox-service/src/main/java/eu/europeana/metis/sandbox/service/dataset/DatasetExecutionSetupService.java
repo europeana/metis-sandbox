@@ -21,8 +21,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -117,7 +116,7 @@ public class DatasetExecutionSetupService {
     return ExecutionMetadata.builder().datasetMetadata(datasetMetadata).inputMetadata(inputMetadata).build();
   }
 
-  private @NonNull InputMetadata buildInputMetadata(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO,
+  private @NotNull InputMetadata buildInputMetadata(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO,
       String sourceExecutionId, TransformXsltEntity transformXsltEntity) {
     InputMetadata inputMetadata;
     if (abstractHarvestParametersDTO == null) {

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExecutionRecordDTOAsyncItemWriter extends AsyncItemWriter<AbstractExecutionRecordDTO> {
 
-  private final eu.europeana.metis.sandbox.batch.writer.ExecutionRecordDTOItemWriter executionRecordDTOItemWriter;
+  private final ExecutionRecordDTOItemWriter executionRecordDTOItemWriter;
 
   /**
    * Constructs an instance of ExecutionRecordDTOAsyncItemWriter by delegating to the provided

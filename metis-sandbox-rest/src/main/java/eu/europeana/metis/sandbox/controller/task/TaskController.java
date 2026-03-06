@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class TaskController {
 
+  private static final String ENGINE_USER_ID = "ENGINE";
   private final DatasetExecutionSetupService datasetExecutionSetupService;
   private final DatasetExecutionService datasetExecutionService;
   private final DatasetReportService datasetReportService;
@@ -54,13 +55,16 @@ public class TaskController {
    * <p>
    * This method uses datasets based on the standalone implementation and could be simplified in the future if metis-sandbox is
    * fully converted to an engine.
+   * <p>
+   * Temporarily a hardcoded engine user id is used and the {@code WorkflowType} is set to {@code WorkflowType.SINGLE}. This will
+   * change once the metis-sandbox becomes a pure engine.
    *
    * @param datasetMetadataRequest the metadata request containing dataset details such as name, country, and language
    * @return the unique identifier of the created dataset as a {@code String}
    */
   @PostMapping("/dataset")
   public String createEngineDataset(@RequestBody DatasetMetadataRequest datasetMetadataRequest) {
-    return datasetExecutionSetupService.createDataset(datasetMetadataRequest, WorkflowType.SINGLE, "ENGINE");
+    return datasetExecutionSetupService.createDataset(datasetMetadataRequest, WorkflowType.SINGLE, ENGINE_USER_ID);
   }
 
   /**

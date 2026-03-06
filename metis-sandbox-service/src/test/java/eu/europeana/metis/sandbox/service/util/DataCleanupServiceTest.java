@@ -49,7 +49,7 @@ class DataCleanupServiceTest {
   private DeBiasStateService deBiasStateService;
 
   @InjectMocks
-  private eu.europeana.metis.sandbox.service.util.DataCleanupService dataCleanupService;
+  private DataCleanupService dataCleanupService;
 
   @Test
   void remove_expectSuccess() {

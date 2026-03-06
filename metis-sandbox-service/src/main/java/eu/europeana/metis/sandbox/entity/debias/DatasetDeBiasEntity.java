@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.entity.debias;
 
+import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -32,7 +33,7 @@ public class DatasetDeBiasEntity {
   @JoinColumn(name = "dataset_id", referencedColumnName = "datasetId")
   private DatasetEntity datasetId;
 
-  private eu.europeana.metis.sandbox.common.debias.DebiasState debiasState;
+  private DebiasState debiasState;
 
   private ZonedDateTime createdDate;
 
@@ -43,7 +44,7 @@ public class DatasetDeBiasEntity {
    * @param debiasState the current state of the debiasing process
    * @param createdDate the timestamp when the debiasing process was created
    */
-  public DatasetDeBiasEntity(DatasetEntity datasetId, eu.europeana.metis.sandbox.common.debias.DebiasState debiasState, ZonedDateTime createdDate) {
+  public DatasetDeBiasEntity(DatasetEntity datasetId, DebiasState debiasState, ZonedDateTime createdDate) {
     this.datasetId = datasetId;
     this.debiasState = debiasState;
     this.createdDate = createdDate;
