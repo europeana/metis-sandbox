@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>eu.europeana.metis</groupId>
+    <artifactId>metis-sandbox</artifactId>
+    <version>12-SNAPSHOT</version>
+  </parent>
+  <artifactId>metis-sandbox-service</artifactId>
+
+  <dependencies>
+    <!-- Submodules -->
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-sandbox-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Owned -->
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-transformation-service</artifactId>
+      <version>${version.metis}</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-debias-detect-service</artifactId>
+      <version>${version.metis}</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-pattern-analysis</artifactId>
+      <version>${version.metis}</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-harvesting</artifactId>
+      <version>${version.metis}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <!-- This is not really part of the library, but we excluded just in case.-->
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-validation-service</artifactId>
+      <version>${version.metis}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-normalization</artifactId>
+      <version>${version.metis-normalization}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-enrichment-client</artifactId>
+      <version>${version.metis}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>eu.europeana.corelib</groupId>
+          <artifactId>corelib-lookup</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>dev.morphia.morphia</groupId>
+          <artifactId>morphia-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-media-service</artifactId>
+      <version>${version.metis}</version>
+      <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-indexing</artifactId>
+      <version>${version.metis}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <!-- Exclude these two to avoid conflicts. Look at their explicit declaration. -->
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>woodstox-core-asl</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.annotation</groupId>
+          <artifactId>javax.annotation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-jaxb-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>dev.morphia.morphia</groupId>
+          <artifactId>morphia-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Compile -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>${version.jetbrains.annotations}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+      <version>${version.springdoc-openapi-starter-webmvc-api}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${version.guava}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <version>${version.wiremock}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

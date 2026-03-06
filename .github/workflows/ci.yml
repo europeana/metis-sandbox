@@ -18,13 +18,20 @@ jobs:
       - name: Upload all jars to target-jars
         uses: europeana/metis-actions/actions/upload-target-jars@main
 
+  deploy-artifacts:
+    needs: ci
+    uses: europeana/metis-actions/.github/workflows/deploy-artifacts.yml@main
+    secrets:
+      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
   docker-build_metis-sandbox:
     needs: ci
     uses: europeana/metis-actions/.github/workflows/docker-build-push.yml@main
     with:
       docker-organization: europeana
       docker-image-name: metis-sandbox
-      project-path: ./
+      project-path: metis-sandbox-rest/
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}

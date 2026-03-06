@@ -1,0 +1,204 @@
+package eu.europeana.metis.sandbox.controller;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.indexing.tiers.model.MetadataTier;
+import eu.europeana.indexing.tiers.view.ContentTierBreakdown;
+import eu.europeana.indexing.tiers.view.RecordTierCalculationSummary;
+import eu.europeana.indexing.tiers.view.RecordTierCalculationView;
+import eu.europeana.indexing.utils.LicenseType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRepository;
+import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
+import eu.europeana.metis.sandbox.common.exception.NoRecordFoundException;
+import eu.europeana.metis.sandbox.config.SecurityConfig;
+import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
+import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
+import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
+import eu.europeana.metis.sandbox.service.record.RecordTierCalculationService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(DatasetTierController.class)
+@ContextConfiguration(classes = {WebMvcConfig.class, RestResponseExceptionHandler.class, SecurityConfig.class,
+    DatasetTierController.class})
+class DatasetTierControllerTest {
+
+  private static final String DATASET_ID = "datasetId";
+  private static final String EXTERNAL_RECORD_ID = "externalRecordId";
+  private static final String SOURCE_RECORD_ID = "sourceRecordId";
+  private static final String RECORD_ID = "recordId";
+  private static final String EUROPEANA_ID = "europeanaId";
+
+  @MockitoBean
+  private RateLimitInterceptor rateLimitInterceptor;
+
+  @MockitoBean
+  private JwtDecoder jwtDecoder;
+
+  @MockitoBean
+  private ExecutionRecordRepository executionRecordRepository;
+  @MockitoBean
+  private ExecutionRecordTierContextRepository executionRecordTierContextRepository;
+  @MockitoBean
+  private RecordTierCalculationService recordTierCalculationService;
+
+  @Autowired
+  private MockMvc mockMvc;
+
+  @Test
+  void computeRecordTierCalculation_expectSuccess() throws Exception {
+    final RecordTierCalculationSummary recordTierCalculationSummary = new RecordTierCalculationSummary();
+    recordTierCalculationSummary.setEuropeanaRecordId(EUROPEANA_ID);
+    final RecordTierCalculationView recordTierCalculationView = new RecordTierCalculationView(
+        recordTierCalculationSummary,
+        new ContentTierBreakdown.Builder().build(), null);
+    when(recordTierCalculationService.calculateTiers(RECORD_ID, DATASET_ID)).thenReturn(
+        recordTierCalculationView);
+
+    mockMvc.perform(get("/dataset/{id}/record/compute-tier-calculation", DATASET_ID)
+               .param("recordId", RECORD_ID))
+           .andExpect(jsonPath("$.recordTierCalculationSummary.europeanaRecordId", is(EUROPEANA_ID)))
+           .andExpect(jsonPath("$.recordTierCalculationSummary.contentTier", isEmptyOrNullString()));
+  }
+
+  @Test
+  void computeRecordTierCalculation_NoRecordFoundException() throws Exception {
+    when(recordTierCalculationService.calculateTiers(RECORD_ID, DATASET_ID)).thenThrow(
+        new NoRecordFoundException("record not found"));
+    mockMvc.perform(get("/dataset/{id}/record/compute-tier-calculation", DATASET_ID)
+               .param("recordId", RECORD_ID))
+           .andExpect(status().isNotFound())
+           .andExpect(jsonPath("$.message",
+               is("record not found")));
+  }
+
+  @Test
+  void getRecordsTier_expectSuccess() throws Exception {
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId(DATASET_ID);
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
+    ExecutionRecordTierContext executionRecordTierContext = new ExecutionRecordTierContext();
+    executionRecordTierContext.setExecutionRun(executionRun);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(EXTERNAL_RECORD_ID);
+    executionRecordIdentifier.setSourceRecordId(SOURCE_RECORD_ID);
+    executionRecordIdentifier.setRecordId(RECORD_ID);
+    executionRecordTierContext.setIdentifier(executionRecordIdentifier);
+
+    executionRecordTierContext.setContentTier(MediaTier.T3.toString());
+    executionRecordTierContext.setContentTierBeforeLicenseCorrection(MediaTier.T4.toString());
+    executionRecordTierContext.setMetadataTier(MetadataTier.TA.toString());
+    executionRecordTierContext.setMetadataTierLanguage(MetadataTier.TB.toString());
+    executionRecordTierContext.setMetadataTierEnablingElements(MetadataTier.TC.toString());
+    executionRecordTierContext.setMetadataTierContextualClasses(MetadataTier.T0.toString());
+    executionRecordTierContext.setLicense(LicenseType.OPEN.toString());
+
+    when(executionRecordTierContextRepository.findByExecutionRun_DatasetId(DATASET_ID)).thenReturn(
+        List.of(executionRecordTierContext));
+
+    mockMvc.perform(get("/dataset/{id}/records-tiers", DATASET_ID))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$", hasSize(1)))
+           .andExpect(jsonPath("$[0].record-id", is(RECORD_ID)))
+           .andExpect(jsonPath("$[0].content-tier", is("3")))
+           .andExpect(jsonPath("$[0].content-tier-before-license-correction", is("4")))
+           .andExpect(jsonPath("$[0].license", is("OPEN")))
+           .andExpect(jsonPath("$[0].metadata-tier", is("A")))
+           .andExpect(jsonPath("$[0].metadata-tier-language", is("B")))
+           .andExpect(jsonPath("$[0].metadata-tier-enabling-elements", is("C")))
+           .andExpect(jsonPath("$[0].metadata-tier-contextual-classes", is("0")));
+  }
+
+  @Test
+  void getRecordsTier_expectInvalidDatasetException() throws Exception {
+    InvalidDatasetException invalidDatasetException = new InvalidDatasetException(DATASET_ID);
+    when(executionRecordTierContextRepository.findByExecutionRun_DatasetId(DATASET_ID)).thenThrow(invalidDatasetException);
+
+    mockMvc.perform(get("/dataset/{id}/records-tiers", DATASET_ID))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.message", is("Provided dataset id: [datasetId] is not valid. ")));
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideSteps")
+  void getRecord_expectSuccess(String step) throws Exception {
+    final String returnString = "exampleString";
+
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setDatasetId(DATASET_ID);
+    executionRun.setExecutionId("executionId");
+    executionRun.setExecutionName("executionName");
+    ExecutionRecord executionRecord = new ExecutionRecord();
+    executionRecord.setExecutionRun(executionRun);
+
+    ExecutionRecordIdentifier executionRecordIdentifier = new ExecutionRecordIdentifier();
+    executionRecordIdentifier.setExternalRecordId(EXTERNAL_RECORD_ID);
+    executionRecordIdentifier.setSourceRecordId(SOURCE_RECORD_ID);
+    executionRecordIdentifier.setRecordId(RECORD_ID);
+    executionRecord.setIdentifier(executionRecordIdentifier);
+
+    executionRecord.setRecordData(returnString);
+    // This mock is used when converting to externalRecordId for HARVEST_FILE/OAI/TRANSFORM_EXTERNAL
+    when(executionRecordRepository.findByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionName(
+        DATASET_ID, RECORD_ID, FullBatchJobType.VALIDATE_INTERNAL.name()))
+        .thenReturn(executionRecord);
+
+    // Mock repository lookups for normal flow
+    when(executionRecordRepository.findFirstByExecutionRun_DatasetIdAndIdentifier_RecordIdAndExecutionRun_ExecutionNameIn(
+        eq(DATASET_ID), anyString(), anyList()))
+        .thenReturn(executionRecord);
+
+    mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
+               .param("recordId", RECORD_ID)
+               .param("step", step))
+           .andExpect(status().isOk())
+           .andExpect(content().string(returnString));
+  }
+
+  private static Stream<String> provideSteps() {
+    return Stream.of(
+        Arrays.stream(FullBatchJobType.values()).map(Enum::name),
+        Stream.of("HARVEST")
+    ).flatMap(s -> s);
+  }
+
+  @Test
+  void getRecord_NoRecordFoundException() throws Exception {
+    final FullBatchJobType step = FullBatchJobType.HARVEST_FILE;
+
+    mockMvc.perform(get("/dataset/{id}/record", DATASET_ID)
+               .param("recordId", RECORD_ID)
+               .param("step", step.name()))
+           .andExpect(status().isNotFound())
+           .andExpect(jsonPath("$.message", is(RECORD_ID)));
+  }
+}
