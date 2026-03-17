@@ -290,6 +290,9 @@ public class DatasetReportService {
     } else {
       expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
     }
+    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, fullBatchJobType);
+    BatchStatus batchStatus = Optional.ofNullable(jobExecution).map(JobExecution::getStatus).orElse(BatchStatus.UNKNOWN);
+    SandboxTaskState sandboxTaskState = SandboxTaskState.fromBatchStatus(batchStatus);
     StepStatistics stepStatistics = getStepStatisticsForStep(executionId);
 
     long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
@@ -302,9 +305,14 @@ public class DatasetReportService {
     long processedDepublishRecords = 0;
     long duplicatedRecords = stepStatistics.totalDuplicates;
 
-    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, fullBatchJobType);
-    BatchStatus batchStatus = Optional.ofNullable(jobExecution).map(JobExecution::getStatus).orElse(BatchStatus.UNKNOWN);
-    SandboxTaskState sandboxTaskState = SandboxTaskState.fromBatchStatus(batchStatus);
+    //Safeguard state. It can have, temporarily, progress different from expected due to queries from different repositories.
+    if (sandboxTaskState == SandboxTaskState.FINISHED && processedRecords < expectedRecords) {
+      log.warn(
+          "Inconsistent state detected for executionId {}, state: {}, processedRecords: {}, expectedRecords: {}. This should be temporary.",
+          executionId, sandboxTaskState, processedRecords, expectedRecords);
+      sandboxTaskState = SandboxTaskState.RUNNING;
+    }
+
     return new SandboxTaskProgress(
         expectedRecords,
         processedRecords,
