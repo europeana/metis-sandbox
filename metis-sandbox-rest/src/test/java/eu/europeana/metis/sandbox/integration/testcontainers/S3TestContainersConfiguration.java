@@ -24,16 +24,18 @@ public class S3TestContainersConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String S3MOCK_IMAGE = "adobe/s3mock:latest";
   private static final GenericContainer<?> s3MockContainer;
+  private static final String INITIAL_BUCKETS_ENV_KEY = "initialBuckets";
   public static final String BUCKET_NAME = "test-thumbnails-bucket";
   public static final int S3MOCK_PORT = 9090;
   public static final String ACCESS_KEY = "test";
   public static final String SECRET_KEY = "test";
-  public static final String REGION = "us-east-1";
+  public static final String REGION = "eu";
+
 
   static {
     s3MockContainer =
         new GenericContainer<>(DockerImageName.parse(S3MOCK_IMAGE))
-            .withEnv("initialBuckets", BUCKET_NAME)
+            .withEnv(INITIAL_BUCKETS_ENV_KEY, BUCKET_NAME)
             .withExposedPorts(S3MOCK_PORT)
             .waitingFor(Wait.forListeningPort());
 
