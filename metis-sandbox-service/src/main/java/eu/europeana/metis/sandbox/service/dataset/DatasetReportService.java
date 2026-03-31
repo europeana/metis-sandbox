@@ -299,6 +299,7 @@ public class DatasetReportService {
     long successRecords = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
     long failRecords = stepStatistics.totalFail;
     long warningRecords = stepStatistics.totalDistinctWarning;
+    long uncheckedRecords = 0;
     long expectedDepublishRecords = 0;
     long successDepublishRecords = 0;
     long failDepublishRecords = 0;
@@ -320,12 +321,12 @@ public class DatasetReportService {
         failRecords,
         warningRecords,
         duplicatedRecords,
+        uncheckedRecords,
         expectedDepublishRecords,
         successDepublishRecords,
         failDepublishRecords,
         processedDepublishRecords,
-        sandboxTaskState
-    );
+        sandboxTaskState);
   }
 
   private ExecutionStatus computeStatus(DatasetEntity datasetEntity, long totalRecords, long totalProcessed,

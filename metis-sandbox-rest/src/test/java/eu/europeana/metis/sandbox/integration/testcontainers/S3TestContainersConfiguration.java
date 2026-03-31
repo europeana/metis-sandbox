@@ -1,16 +1,13 @@
 package eu.europeana.metis.sandbox.integration.testcontainers;
 
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import java.lang.invoke.MethodHandles;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -25,45 +22,48 @@ import org.testcontainers.utility.DockerImageName;
 public class S3TestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String S3_VERSION = "localstack/localstack:s3-latest";
-  private static final LocalStackContainer s3Container;
-  private static final AmazonS3 s3Client;
+  private static final String S3MOCK_IMAGE = "adobe/s3mock:latest";
+  private static final GenericContainer<?> s3MockContainer;
+  private static final String INITIAL_BUCKETS_ENV_KEY = "initialBuckets";
   public static final String BUCKET_NAME = "test-thumbnails-bucket";
+  public static final int S3MOCK_PORT = 9090;
+  public static final String ACCESS_KEY = "test";
+  public static final String SECRET_KEY = "test";
+  public static final String REGION = "eu";
+
 
   static {
-    s3Container = new LocalStackContainer(DockerImageName.parse(S3_VERSION))
-        .withServices(Service.S3);
-    s3Container.start();
+    s3MockContainer =
+        new GenericContainer<>(DockerImageName.parse(S3MOCK_IMAGE))
+            .withEnv(INITIAL_BUCKETS_ENV_KEY, BUCKET_NAME)
+            .withExposedPorts(S3MOCK_PORT)
+            .waitingFor(Wait.forListeningPort());
 
-    s3Client = AmazonS3ClientBuilder
-        .standard()
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(s3Container.getEndpointOverride(Service.S3).toString(),
-                s3Container.getRegion()))
-        .build();
-    s3Client.createBucket(BUCKET_NAME);
+    s3MockContainer.start();
     setDynamicProperties();
     logConfiguration();
   }
 
+  public static String getEndpoint() {
+    return String.format("http://%s:%s", s3MockContainer.getHost(), s3MockContainer.getMappedPort(S3MOCK_PORT));
+  }
+
   private static void setDynamicProperties() {
-    System.setProperty("spring.aws.accessKeyId", s3Container.getAccessKey());
-    System.setProperty("spring.aws.secretKey", s3Container.getSecretKey());
-    System.setProperty("spring.s3.endpoint", s3Container.getEndpointOverride(Service.S3).toString());
-    System.setProperty("spring.s3.region", s3Container.getRegion());
+    System.setProperty("spring.aws.accessKeyId", ACCESS_KEY);
+    System.setProperty("spring.aws.secretKey", SECRET_KEY);
+    System.setProperty("spring.s3.endpoint", getEndpoint());
+    System.setProperty("spring.s3.region", REGION);
     System.setProperty("spring.s3.bucket", BUCKET_NAME);
   }
 
-  public static void setDynamicProperty(String key, Function<LocalStackContainer, String> getValue) {
-    System.setProperty(key, getValue.apply(s3Container));
+  public static void setDynamicProperty(String key, Function<GenericContainer<?>, String> getValue) {
+    System.setProperty(key, getValue.apply(s3MockContainer));
   }
 
   private static void logConfiguration() {
-    LOGGER.info("S3 service container created:");
-    if (!s3Container.getAccessKey().isBlank() && !s3Container.getSecretKey().isBlank()) {
-      LOGGER.info("Access key and Secret key were loaded");
-    }
-    LOGGER.info("Endpoint: {}", s3Container.getEndpointOverride(Service.S3));
-    LOGGER.info("Signing Region: {}", s3Container.getRegion());
+    LOGGER.info("S3Mock container created:");
+    LOGGER.info("Endpoint: {}", getEndpoint());
+    LOGGER.info("Region: {}", REGION);
+    LOGGER.info("Bucket: {}", BUCKET_NAME);
   }
 }

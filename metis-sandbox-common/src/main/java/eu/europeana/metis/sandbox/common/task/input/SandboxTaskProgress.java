@@ -12,6 +12,7 @@ import org.springframework.batch.core.BatchStatus;
  * @param failRecords The total number of records that failed during processing.
  * @param warningRecords The total number of records that caused warnings during processing.
  * @param duplicateRecords The total number of duplicate records detected during processing.
+ * @param unchangedRecords The total number of unchanged records detected during processing.
  * @param expectedDepublishRecords The total number of records expected to be depublished.
  * @param successDepublishRecords The total number of records successfully depublished.
  * @param failDepublishRecords The total number of records that failed during the depublishing process.
@@ -25,6 +26,7 @@ public record SandboxTaskProgress(
     long failRecords,
     long warningRecords,
     long duplicateRecords,
+    long unchangedRecords,
     long expectedDepublishRecords,
     long successDepublishRecords,
     long failDepublishRecords,
