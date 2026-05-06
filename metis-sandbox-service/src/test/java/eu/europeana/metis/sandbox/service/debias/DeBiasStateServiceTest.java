@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.debias.detect.model.response.Tag;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
@@ -50,6 +51,9 @@ class DeBiasStateServiceTest {
   private RecordDeBiasDetailRepository recordDeBiasDetailRepository;
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
+  @Mock
+  private ExecutionRecordErrorRepository executionRecordErrorRepository;
+
   @InjectMocks
   private DeBiasStateService deBiasStateService;
 
