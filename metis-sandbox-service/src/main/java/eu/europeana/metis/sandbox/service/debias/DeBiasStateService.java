@@ -24,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service class responsible for managing the debias state and operations.
  */
+@Slf4j
 public class DeBiasStateService {
 
   private final DatasetDeBiasRepository datasetDeBiasRepository;
@@ -96,6 +98,9 @@ public class DeBiasStateService {
     long totalRecordsDebiasError = executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(
         datasetId,
         BatchJobType.DEBIAS.name());
+    log.info(
+        "Debias status for datasetId: [{}], totalRecordsToDebias: [{}], totalRecordsDebiased: [{}], totalRecordsDebiasError: [{}]",
+        datasetId, totalRecordsToDebias, totalRecordsDebiased, totalRecordsDebiasError);
     final DebiasState debiasState;
     if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalRecordsDebiased + totalRecordsDebiasError)) {
       debiasState = DebiasState.COMPLETED;

@@ -1,6 +1,12 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="metis-sandbox (local)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="spring-run-configuration">
     <option name="ALTERNATIVE_JRE_PATH" value="temurin-21" />
+    <envs>
+      <env name="logging.config" value="file:///data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml" />
+      <env name="spring.config.location" value="file:///data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml" />
+      <env name="truststore.path" value="/data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks" />
+      <env name="server.port" value="8081" />
+    </envs>
     <module name="metis-sandbox-rest" />
     <option name="PROGRAM_PARAMETERS" value="--spring.config.location=file:///data/metis-configuration/metis-sandbox/metis-sandbox-rest/k8s/overlays/local/components/properties/application.yml --server.servlet.context-path=/metis-sandbox --logging.config=file:///data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml --truststore.path=/data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europeana.metis.sandbox.SandboxApplication" />
