@@ -102,11 +102,12 @@ public class DeBiasStateService {
         "Debias status for datasetId: [{}], totalRecordsToDebias: [{}], totalRecordsDebiased: [{}], totalRecordsDebiasError: [{}]",
         datasetId, totalRecordsToDebias, totalRecordsDebiased, totalRecordsDebiasError);
     final DebiasState debiasState;
-    if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalRecordsDebiased + totalRecordsDebiasError)) {
+    final long totalDebiasProcessed = totalRecordsDebiased + totalRecordsDebiasError;
+    if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalDebiasProcessed)) {
       debiasState = DebiasState.COMPLETED;
     } else if (totalRecordsToDebias >= 0 && totalRecordsDebiased == 0) {
       debiasState = DebiasState.READY;
-    } else if (totalRecordsToDebias > 0 && totalRecordsDebiased > 0) {
+    } else if (totalRecordsToDebias > 0 && totalDebiasProcessed > 0) {
       debiasState = DebiasState.PROCESSING;
     } else {
       debiasState = DebiasState.INVALID;
@@ -117,7 +118,7 @@ public class DeBiasStateService {
       creationDate = datasetDeBiasEntity.getCreatedDate();
     }
     return new DeBiasStatusDTO(Integer.valueOf(datasetId),
-        debiasState, creationDate, totalRecordsToDebias, totalRecordsDebiased + totalRecordsDebiasError);
+        debiasState, creationDate, totalRecordsToDebias, totalDebiasProcessed);
   }
 
   /**

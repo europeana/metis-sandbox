@@ -133,6 +133,28 @@ class DeBiasStateServiceTest {
   }
 
   @Test
+  void testGetDeBiasStatus_Processing_WithErrors() {
+    String datasetId = "1";
+    DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    ZonedDateTime nowDate = ZonedDateTime.now();
+    datasetDeBiasEntity.setCreatedDate(nowDate);
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
+        datasetDeBiasEntity);
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(5L);
+    when(executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(2L);
+    DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
+
+    assertEquals(DebiasState.PROCESSING, deBiasStatusDTO.getDebiasState());
+    assertEquals(nowDate, deBiasStatusDTO.getCreationDate());
+    assertEquals(10, deBiasStatusDTO.getTotal());
+    assertEquals(7, deBiasStatusDTO.getProcessed());
+  }
+
+  @Test
   void testGetDeBiasStatus_Completed() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
