@@ -112,13 +112,12 @@ public class DeBiasStateService {
       debiasState = DebiasState.INVALID;
     }
 
-    if (datasetDeBiasEntity == null) {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState, ZonedDateTime.now(), totalRecordsToDebias,
-          totalRecordsDebiased);
-    } else {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState,
-          datasetDeBiasEntity.getCreatedDate(), totalRecordsToDebias, totalRecordsDebiased);
+    ZonedDateTime creationDate = ZonedDateTime.now();
+    if (datasetDeBiasEntity != null && datasetDeBiasEntity.getCreatedDate() != null) {
+      creationDate = datasetDeBiasEntity.getCreatedDate();
     }
+    return new DeBiasStatusDTO(Integer.valueOf(datasetId),
+        debiasState, creationDate, totalRecordsToDebias, totalRecordsDebiased + totalRecordsDebiasError);
   }
 
   /**

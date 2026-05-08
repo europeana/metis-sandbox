@@ -261,7 +261,7 @@ class DeBiasStateServiceTest {
     assertEquals(DebiasState.COMPLETED, deBiasReportDTO.getDebiasState());
     assertEquals(nowDate, deBiasReportDTO.getCreationDate());
     assertEquals(10, deBiasReportDTO.getTotal());
-    assertEquals(8, deBiasReportDTO.getProcessed());
+    assertEquals(10, deBiasReportDTO.getProcessed());
 
     List<DeBiasReportRow> deBiasReportRowList = deBiasReportDTO.getDeBiasReportRowList();
     assertEquals(1, deBiasReportRowList.size());
