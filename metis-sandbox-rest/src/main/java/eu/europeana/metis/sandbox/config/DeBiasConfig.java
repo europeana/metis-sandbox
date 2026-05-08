@@ -2,6 +2,7 @@ package eu.europeana.metis.sandbox.config;
 
 
 import eu.europeana.metis.debias.detect.client.DeBiasClient;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
@@ -29,12 +30,14 @@ class DeBiasConfig {
       DatasetRepository datasetRepository,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository,
-      ExecutionRecordRepository executionRecordRepository) {
+      ExecutionRecordRepository executionRecordRepository,
+      ExecutionRecordErrorRepository executionRecordErrorRepository) {
     return new DeBiasStateService(datasetDeBiasRepository,
         datasetRepository,
         recordDeBiasMainRepository,
         recordDeBiasDetailRepository,
-        executionRecordRepository);
+        executionRecordRepository,
+        executionRecordErrorRepository);
   }
 
   @Bean

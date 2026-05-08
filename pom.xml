@@ -31,10 +31,10 @@
     <version.maven.release.plugin>2.5.3</version.maven.release.plugin>
 
     <!--Internal-->
-    <version.metis>17-SNAPSHOT</version.metis>
-    <version.metis-common>19-SNAPSHOT</version.metis-common>
-    <version.metis-normalization>17-SNAPSHOT</version.metis-normalization>
-    <version.corelib>2.17.7-SNAPSHOT</version.corelib>
+    <version.metis>18-SNAPSHOT</version.metis>
+    <version.metis-common>20-SNAPSHOT</version.metis-common>
+    <version.metis-normalization>18-SNAPSHOT</version.metis-normalization>
+    <version.corelib>2.17.7</version.corelib>
 
     <!--External-->
     <version.spring.boot>4.0.4</version.spring.boot>

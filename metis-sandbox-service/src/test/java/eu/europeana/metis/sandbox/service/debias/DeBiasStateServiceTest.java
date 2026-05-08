@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.metis.debias.detect.model.response.Tag;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
@@ -50,6 +51,9 @@ class DeBiasStateServiceTest {
   private RecordDeBiasDetailRepository recordDeBiasDetailRepository;
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
+  @Mock
+  private ExecutionRecordErrorRepository executionRecordErrorRepository;
+
   @InjectMocks
   private DeBiasStateService deBiasStateService;
 
@@ -99,7 +103,8 @@ class DeBiasStateServiceTest {
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
     when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         BatchJobType.DEBIAS.name())).thenReturn(0L);
-
+    when(executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(0L);
     DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
 
     assertEquals(DebiasState.READY, deBiasStatusDTO.getDebiasState());
@@ -126,6 +131,28 @@ class DeBiasStateServiceTest {
     assertEquals(nowDate, deBiasStatusDTO.getCreationDate());
     assertEquals(10, deBiasStatusDTO.getTotal());
     assertEquals(5, deBiasStatusDTO.getProcessed());
+  }
+
+  @Test
+  void testGetDeBiasStatus_Processing_WithErrors() {
+    String datasetId = "1";
+    DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    ZonedDateTime nowDate = ZonedDateTime.now();
+    datasetDeBiasEntity.setCreatedDate(nowDate);
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
+        datasetDeBiasEntity);
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(5L);
+    when(executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(2L);
+    DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
+
+    assertEquals(DebiasState.PROCESSING, deBiasStatusDTO.getDebiasState());
+    assertEquals(nowDate, deBiasStatusDTO.getCreationDate());
+    assertEquals(10, deBiasStatusDTO.getTotal());
+    assertEquals(7, deBiasStatusDTO.getProcessed());
   }
 
   @Test
@@ -183,6 +210,59 @@ class DeBiasStateServiceTest {
     when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         BatchJobType.DEBIAS.name())).thenReturn(10L);
 
+    // Report rows
+    RecordDeBiasMainEntity recordDeBiasMainEntity = new RecordDeBiasMainEntity();
+    recordDeBiasMainEntity.setId(1L);
+    recordDeBiasMainEntity.setLiteral("literal");
+    recordDeBiasMainEntity.setLanguage(Language.EL);
+    recordDeBiasMainEntity.setRecordId("recordId");
+    recordDeBiasMainEntity.setSourceField(DeBiasSourceField.DC_TITLE);
+
+    RecordDeBiasDetailEntity recordDeBiasDetailEntity = new RecordDeBiasDetailEntity(recordDeBiasMainEntity, 0, 5, 5,
+        "https://example.org/tag");
+
+    when(recordDeBiasMainRepository.findByDatasetId_DatasetId(Integer.valueOf(datasetId))).thenReturn(
+        List.of(recordDeBiasMainEntity));
+    when(recordDeBiasDetailRepository.findByDebiasIdId(recordDeBiasMainEntity.getId())).thenReturn(
+        List.of(recordDeBiasDetailEntity));
+
+    DeBiasReportDTO deBiasReportDTO = deBiasStateService.getDeBiasReport(datasetId);
+
+    assertEquals(DebiasState.COMPLETED, deBiasReportDTO.getDebiasState());
+    assertEquals(nowDate, deBiasReportDTO.getCreationDate());
+    assertEquals(10, deBiasReportDTO.getTotal());
+    assertEquals(10, deBiasReportDTO.getProcessed());
+
+    List<DeBiasReportRow> deBiasReportRowList = deBiasReportDTO.getDeBiasReportRowList();
+    assertEquals(1, deBiasReportRowList.size());
+    DeBiasReportRow deBiasReportRow = deBiasReportRowList.getFirst();
+    assertEquals(recordDeBiasMainEntity.getRecordId(), deBiasReportRow.europeanaId());
+    ValueDetection valueDetection = deBiasReportRow.valueDetection();
+    assertEquals(recordDeBiasMainEntity.getLiteral(), valueDetection.getLiteral());
+    assertEquals(recordDeBiasMainEntity.getLanguage().name().toLowerCase(Locale.US), valueDetection.getLanguage());
+    List<Tag> tags = valueDetection.getTags();
+    assertEquals(1, tags.size());
+    Tag tag = tags.getFirst();
+    assertEquals(recordDeBiasDetailEntity.getTagStart(), tag.getStart());
+    assertEquals(recordDeBiasDetailEntity.getTagEnd(), tag.getEnd());
+    assertEquals(recordDeBiasDetailEntity.getTagLength(), tag.getLength());
+    assertEquals(recordDeBiasDetailEntity.getTagUri(), tag.getUri());
+  }
+
+  @Test
+  void getDeBiasReportWithErrors() {
+    String datasetId = "1";
+    DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
+    ZonedDateTime nowDate = ZonedDateTime.now();
+    datasetDeBiasEntity.setCreatedDate(nowDate);
+    when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
+        datasetDeBiasEntity);
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
+    when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(8L);
+    when(executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(2L);
     // Report rows
     RecordDeBiasMainEntity recordDeBiasMainEntity = new RecordDeBiasMainEntity();
     recordDeBiasMainEntity.setId(1L);

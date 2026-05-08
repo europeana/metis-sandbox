@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import eu.europeana.metis.debias.detect.model.response.Tag;
 import eu.europeana.metis.debias.detect.model.response.ValueDetection;
+import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordErrorRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordRepository;
 import eu.europeana.metis.sandbox.common.batch.BatchJobType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
@@ -23,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service class responsible for managing the debias state and operations.
  */
+@Slf4j
 public class DeBiasStateService {
 
   private final DatasetDeBiasRepository datasetDeBiasRepository;
@@ -37,6 +40,7 @@ public class DeBiasStateService {
   private final RecordDeBiasDetailRepository recordDeBiasDetailRepository;
   private final DatasetRepository datasetRepository;
   private final ExecutionRecordRepository executionRecordRepository;
+  private final ExecutionRecordErrorRepository executionRecordErrorRepository;
 
   /**
    * Constructor.
@@ -46,18 +50,21 @@ public class DeBiasStateService {
    * @param recordDeBiasMainRepository repository for managing main record debias entries
    * @param recordDeBiasDetailRepository repository for managing detail record debias entries
    * @param executionRecordRepository repository for managing execution record entities
+   * @param executionRecordErrorRepository repository for managing execution record error entities
    */
   public DeBiasStateService(
       DatasetDeBiasRepository datasetDeBiasRepository,
       DatasetRepository datasetRepository,
       RecordDeBiasMainRepository recordDeBiasMainRepository,
       RecordDeBiasDetailRepository recordDeBiasDetailRepository,
-      ExecutionRecordRepository executionRecordRepository) {
+      ExecutionRecordRepository executionRecordRepository,
+      ExecutionRecordErrorRepository executionRecordErrorRepository) {
     this.datasetDeBiasRepository = datasetDeBiasRepository;
     this.recordDeBiasMainRepository = recordDeBiasMainRepository;
     this.recordDeBiasDetailRepository = recordDeBiasDetailRepository;
     this.datasetRepository = datasetRepository;
     this.executionRecordRepository = executionRecordRepository;
+    this.executionRecordErrorRepository = executionRecordErrorRepository;
   }
 
   /**
@@ -88,25 +95,30 @@ public class DeBiasStateService {
         FullBatchJobType.VALIDATE_INTERNAL.name());
     long totalRecordsDebiased = executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         BatchJobType.DEBIAS.name());
-
+    long totalRecordsDebiasError = executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(
+        datasetId,
+        BatchJobType.DEBIAS.name());
+    log.info(
+        "Debias status for datasetId: [{}], totalRecordsToDebias: [{}], totalRecordsDebiased: [{}], totalRecordsDebiasError: [{}]",
+        datasetId, totalRecordsToDebias, totalRecordsDebiased, totalRecordsDebiasError);
     final DebiasState debiasState;
-    if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalRecordsDebiased)) {
+    final long totalDebiasProcessed = totalRecordsDebiased + totalRecordsDebiasError;
+    if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalDebiasProcessed)) {
       debiasState = DebiasState.COMPLETED;
-    } else if (totalRecordsToDebias >= 0 && totalRecordsDebiased == 0) {
+    } else if (totalRecordsToDebias >= 0 && totalDebiasProcessed == 0) {
       debiasState = DebiasState.READY;
-    } else if (totalRecordsToDebias > 0 && totalRecordsDebiased > 0) {
+    } else if (totalRecordsToDebias > 0 && totalDebiasProcessed > 0) {
       debiasState = DebiasState.PROCESSING;
     } else {
       debiasState = DebiasState.INVALID;
     }
 
-    if (datasetDeBiasEntity == null) {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState, ZonedDateTime.now(), totalRecordsToDebias,
-          totalRecordsDebiased);
-    } else {
-      return new DeBiasStatusDTO(Integer.valueOf(datasetId), debiasState,
-          datasetDeBiasEntity.getCreatedDate(), totalRecordsToDebias, totalRecordsDebiased);
+    ZonedDateTime creationDate = ZonedDateTime.now();
+    if (datasetDeBiasEntity != null) {
+      creationDate = datasetDeBiasEntity.getCreatedDate();
     }
+    return new DeBiasStatusDTO(Integer.valueOf(datasetId),
+        debiasState, creationDate, totalRecordsToDebias, totalDebiasProcessed);
   }
 
   /**
