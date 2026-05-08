@@ -105,7 +105,7 @@ public class DeBiasStateService {
     final long totalDebiasProcessed = totalRecordsDebiased + totalRecordsDebiasError;
     if (totalRecordsToDebias > 0 && (totalRecordsToDebias == totalDebiasProcessed)) {
       debiasState = DebiasState.COMPLETED;
-    } else if (totalRecordsToDebias >= 0 && totalRecordsDebiased == 0) {
+    } else if (totalRecordsToDebias >= 0 && totalDebiasProcessed == 0) {
       debiasState = DebiasState.READY;
     } else if (totalRecordsToDebias > 0 && totalDebiasProcessed > 0) {
       debiasState = DebiasState.PROCESSING;
@@ -114,7 +114,7 @@ public class DeBiasStateService {
     }
 
     ZonedDateTime creationDate = ZonedDateTime.now();
-    if (datasetDeBiasEntity != null && datasetDeBiasEntity.getCreatedDate() != null) {
+    if (datasetDeBiasEntity != null) {
       creationDate = datasetDeBiasEntity.getCreatedDate();
     }
     return new DeBiasStatusDTO(Integer.valueOf(datasetId),
