@@ -103,7 +103,8 @@ class DeBiasStateServiceTest {
         FullBatchJobType.VALIDATE_INTERNAL.name())).thenReturn(10L);
     when(executionRecordRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
         BatchJobType.DEBIAS.name())).thenReturn(0L);
-
+    when(executionRecordErrorRepository.countByExecutionRun_DatasetIdAndExecutionRun_ExecutionName(datasetId,
+        BatchJobType.DEBIAS.name())).thenReturn(0L);
     DeBiasStatusDTO deBiasStatusDTO = deBiasStateService.getDeBiasStatus(datasetId);
 
     assertEquals(DebiasState.READY, deBiasStatusDTO.getDebiasState());
