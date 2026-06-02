@@ -25,7 +25,7 @@ function declare_multiple_environments_fields() {
   #The server has to have a zookeeper running for uploading the configuration.
   ENVIRONMENT="LOCAL"
   INDEX_ENVIRONMENT="PUBLISH"
-  BRANCH_OR_PR_NUMBER="master"
+  BRANCH_OR_PR_NUMBER="feat/MET-7115_upgrade_solr"
   LOCAL_SOLR_SERVER=metis-sandbox-solr
   LOCAL_ZOOKEEPER_SERVER=localhost
   LOCAL_ZOOKEEPER_PORT="9983"
@@ -115,7 +115,7 @@ function git_remove_pull_request_branches() {
 function zookeeper_find_current_and_old_configurations() {
   printf "Check if there is current and old configuration.\n"
   local zookeeper_command
-  zookeeper_command=$(zookeeper_create_command "-cmd ls /configs")
+  zookeeper_command=$(zookeeper_create_command "ls /configs")
 
   #Finds configurations of format #/configs/${COLLECTION_NAME}_<anything that is not a /> or auto created configurations such as /configs/${COLLECTION_NAME}.AUTOCREATED
   #Temporary also remove the #/configs/${TARGET_SOLR_CONF_DIR}_<anything that is not a /> (the first sed group)
@@ -130,7 +130,7 @@ function zookeeper_upload_and_apply_new_configuration() {
 
   printf "Uploading zookeeper new configuration: %s\n" "${new_configuration_name}"
   local zookeeper_command
-  zookeeper_command=$(zookeeper_create_command "-cmd upconfig --confdir ${TARGET_SOLR_CONF_ROOT_DIR}${TARGET_SOLR_CONF_DIR} --confname ${new_configuration_name}")
+  zookeeper_command=$(zookeeper_create_command "upconfig -d ${TARGET_SOLR_CONF_ROOT_DIR}${TARGET_SOLR_CONF_DIR} -n ${new_configuration_name}")
   $(echo "${zookeeper_command}")
   #Update collection to take effect of the new configuration.
   #Using MODIFYCOLLECTION instead of RELOAD command because MODIFYCOLLECTION will re-apply the mapping between the collection with the configuration name and then reload it. This helps to avoid the collection being mapped to another configuration name.
@@ -146,7 +146,7 @@ function zookeeper_remove_current_and_old_configurations() {
   for configuration_path in $CURRENT_AND_OLD_CONFIGURATION_PATHS
   do
     printf "Removing zookeeper configuration: %s\n" "${configuration_path}"
-    zookeeper_command=$(zookeeper_create_command "-cmd clear $(echo "${configuration_path}")")
+    zookeeper_command=$(zookeeper_create_command "rm -r $(echo "${configuration_path}")")
     $(eval "${zookeeper_command}")
   done
   #Reset IFS
@@ -154,10 +154,11 @@ function zookeeper_remove_current_and_old_configurations() {
 }
 
 function zookeeper_create_command() {
-  #First argument should be the '-cmd' part onwards
-  local common_command_part="java -Dlog4j.configurationFile=file://${SOLR_BINARIES_DIR}server/resources/log4j2.xml -classpath .:${SOLR_BINARIES_DIR}server/lib/ext/*:${SOLR_BINARIES_DIR}server/solr-webapp/webapp/WEB-INF/lib/* org.apache.solr.cloud.ZkCLI -zkhost ${LOCAL_ZOOKEEPER_SERVER}:${ZOOKEEPER_PORT}"
+  #usage of solr zk https://solr.apache.org/guide/solr/latest/deployment-guide/zookeeper-utilities.html
+  local common_command_part="solr zk"
   local unique_command_part="${1}"
-  echo "${common_command_part} ${unique_command_part}"
+  local common_command_complement_part="-z ${LOCAL_ZOOKEEPER_SERVER}:${ZOOKEEPER_PORT}"
+  echo "${common_command_part} ${unique_command_part} ${common_command_complement_part}"
 }
 
 function execute_remote_ssh_command(){

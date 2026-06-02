@@ -21,7 +21,7 @@ import org.testcontainers.utility.DockerImageName;
 public class SolrTestContainersConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String SOLR_VERSION = "solr:7.7.3-slim";
+  private static final String SOLR_VERSION = "solr:10.0.0-slim";
   private static final SolrContainer solrContainer;
   public static final String SOLR_COLLECTION_NAME = "solr_publish_test";
 
