@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,9 +118,9 @@ public class DatasetHarvestController {
                                                                           .datasetName(datasetName)
                                                                           .country(country)
                                                                           .language(language).build();
-
+    final String xsltContent = (xsltFile == null ? null : new String(xsltFile.getBytes(), StandardCharsets.UTF_8));
     String createdDatasetId = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(datasetMetadataRequest, stepsize,
-        url, setspec, metadataformat, xsltFile, userId);
+        url, setspec, metadataformat, xsltContent, userId);
 
     return new DatasetIdDTO(createdDatasetId);
   }
@@ -171,8 +172,9 @@ public class DatasetHarvestController {
                                                                           .datasetName(datasetName)
                                                                           .country(country)
                                                                           .language(language).build();
+    final String xsltContent = (xsltFile == null ? null : new String(xsltFile.getBytes(), StandardCharsets.UTF_8));
     final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
-        stepsize, datasetRecordsCompressedFile, xsltFile, userId, compressedFileExtension);
+        stepsize, datasetRecordsCompressedFile, xsltContent, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
   }
@@ -225,8 +227,9 @@ public class DatasetHarvestController {
                                                                           .datasetName(datasetName)
                                                                           .country(country)
                                                                           .language(language).build();
+    final String xsltContent = (xsltFile == null ? null : new String(xsltFile.getBytes(), StandardCharsets.UTF_8));
     final String createdDatasetId = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
-        stepsize, url, xsltFile, userId, compressedFileExtension);
+        stepsize, url, xsltContent, userId, compressedFileExtension);
 
     return new DatasetIdDTO(createdDatasetId);
   }

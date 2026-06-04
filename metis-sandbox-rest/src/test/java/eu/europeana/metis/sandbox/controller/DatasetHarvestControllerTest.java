@@ -10,7 +10,8 @@ import static eu.europeana.metis.security.test.JwtUtils.BEARER;
 import static eu.europeana.metis.security.test.JwtUtils.MOCK_VALID_TOKEN;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -20,6 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
+import eu.europeana.metis.sandbox.common.locale.Country;
+import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
@@ -39,8 +42,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockMultipartFile;
@@ -51,6 +54,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.multipart.MultipartFile;
 
 @WireMockTest
 @WebMvcTest(DatasetHarvestController.class)
@@ -90,6 +94,9 @@ class DatasetHarvestControllerTest {
 
   @MockitoBean
   JwtDecoder jwtDecoder;
+
+  @Autowired
+  private DatasetHarvestController datasetHarvestController;
 
   @Autowired
   private MockMvc mockMvc;
@@ -179,10 +186,11 @@ class DatasetHarvestControllerTest {
 
   @Test
   void harvestOaiPmh_withXsltFile_shouldSucceed() throws Exception {
-    MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
+    String xsltContent = "string";
+    MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", xsltContent.getBytes());
     Jwt jwt = setupJwt();
     when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
-        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, getUserId(jwt)
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xsltContent, getUserId(jwt)
     )).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -198,10 +206,11 @@ class DatasetHarvestControllerTest {
 
   @Test
   void harvestOaiPmh_withXsltFile_nonBrowser_shouldSucceed() throws Exception {
-    MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", "string".getBytes());
+    String xsltContent = "string";
+    MockMultipartFile xslt = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl", "application/xslt+xml", xsltContent.getBytes());
     setupJwt();
     when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
-        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xslt, null
+        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, xsltContent, null
     )).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
@@ -272,18 +281,23 @@ class DatasetHarvestControllerTest {
   @Test
   void harvestOaiPmh_createDatasetAndSubmitExecutionFails_expectFail() throws Exception {
     Jwt jwt = setupJwt();
-    when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(
-        datasetMetadataRequest, STEP_SIZE, OAI_ENDPOINT_URL, SETSPEC, METADATA_FORMAT, null, getUserId(jwt)
-    )).thenThrow(new IOException());
 
-    mockMvc.perform(post("/dataset/{name}/harvestOaiPmh", DATASET_NAME)
-               .headers(getCommonAuthorizationUserAgentHeaders())
-               .params(getCommonLocaleParams())
-               .param("url", OAI_ENDPOINT_URL)
-               .param("setspec", SETSPEC)
-               .param("metadataformat", METADATA_FORMAT))
-           .andExpect(status().isBadRequest())
-           .andExpect(result -> assertInstanceOf(IOException.class, result.getResolvedException()));
+    MultipartFile xsltFile = mock(MultipartFile.class);
+    when(xsltFile.getBytes()).thenThrow(new IOException("exception"));
+
+    assertThrows(IOException.class, () ->
+        datasetHarvestController.harvestDatasetOaiPmh(
+            jwt,
+            DATASET_NAME,
+            Country.NETHERLANDS,
+            Language.EN,
+            1,
+            OAI_ENDPOINT_URL,
+            SETSPEC,
+            METADATA_FORMAT,
+            xsltFile
+        )
+    );
   }
 
   //HARVEST FILE
@@ -308,13 +322,14 @@ class DatasetHarvestControllerTest {
   @MethodSource("provideDifferentCompressedFiles")
   void harvestDatasetFromFile_withXsltFile_expectSuccess(MockMultipartFile mockMultipart,
       CompressedFileExtension expectedExtension) throws Exception {
+    String xsltContent = "string";
     MockMultipartFile xsltMock = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl",
         "application/xslt+xml",
-        "string".getBytes());
+        xsltContent.getBytes());
 
     Jwt jwt = setupJwt();
     when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
-        STEP_SIZE, mockMultipart, xsltMock, getUserId(jwt), expectedExtension)
+        STEP_SIZE, mockMultipart, xsltContent, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestByFile", DATASET_NAME)
@@ -330,13 +345,14 @@ class DatasetHarvestControllerTest {
   @MethodSource("provideDifferentCompressedFiles")
   void harvestDatasetFromFile_withXsltFile_NonBrowser_Allowed(MockMultipartFile mockMultipart,
       CompressedFileExtension expectedExtension) throws Exception {
+    String xsltContent = "string";
     MockMultipartFile xsltMock = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl",
         "application/xslt+xml",
-        "string".getBytes());
+        xsltContent.getBytes());
 
     setupJwt();
     when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest,
-        STEP_SIZE, mockMultipart, xsltMock, null, expectedExtension)
+        STEP_SIZE, mockMultipart, xsltContent, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestByFile", DATASET_NAME)
@@ -443,12 +459,13 @@ class DatasetHarvestControllerTest {
   @ParameterizedTest
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void harvestDatasetFromURL_withXsltFile_expectSuccess(String url, CompressedFileExtension expectedExtension) throws Exception {
+    String xsltContent = "string";
     MockMultipartFile xsltMock = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl",
         "application/xslt+xml",
-        "string".getBytes());
+        xsltContent.getBytes());
     Jwt jwt = setupJwt();
     when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
-        STEP_SIZE, url, xsltMock, getUserId(jwt), expectedExtension)
+        STEP_SIZE, url, xsltContent, getUserId(jwt), expectedExtension)
     ).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")
@@ -464,12 +481,13 @@ class DatasetHarvestControllerTest {
   @MethodSource("provideDifferentUrlsOfCompressedFiles")
   void harvestDatasetFromURL_withXsltFile_NonBrowser_Allowed(String url, CompressedFileExtension expectedExtension)
       throws Exception {
+    String xsltContent = "string";
     MockMultipartFile xsltMock = new MockMultipartFile(XSLT_FILE_PARAM, "xslt.xsl",
         "application/xslt+xml",
-        "string".getBytes());
+        xsltContent.getBytes());
     setupJwt();
     when(datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest,
-        STEP_SIZE, url, xsltMock, null, expectedExtension)
+        STEP_SIZE, url, xsltContent, null, expectedExtension)
     ).thenReturn(DATASET_ID);
 
     mockMvc.perform(multipart("/dataset/{name}/harvestByUrl", "my-data-set")

@@ -125,15 +125,15 @@ public class DatasetExecutionService {
    *
    * @param datasetId the dataset identifier
    * @param sourceExecutionId the source execution identifier to be used as a reference.
-   * @param xsltFile the XSLT file to be applied during the transformation process.
+   * @param xslt the XSLT file to be applied during the transformation process.
    * @param fullBatchJobType the full batch job type representing the specific step to be executed
    * @return A string representing the execution identifier
    * @throws IOException If an I/O error occurs during the submission
    */
-  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId, MultipartFile xsltFile,
+  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId, String xslt,
       FullBatchJobType fullBatchJobType) throws IOException {
     ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId, xsltFile);
+        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId, xslt);
     return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
   }
 
@@ -151,11 +151,10 @@ public class DatasetExecutionService {
    * @param xsltFile the XSLT file to transform the harvested records
    * @param userId the ID of the user initiating the operation
    * @return the unique dataset ID of the created and submitted dataset
-   * @throws IOException If an I/O error occurs during the submission
    */
   @NotNull
   public String createDatasetAndSubmitWorkflowExecutionOai(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
-      String url, String setSpec, String metadataFormat, MultipartFile xsltFile, String userId) throws IOException {
+      String url, String setSpec, String metadataFormat, String xsltFile, String userId) {
     OaiHarvestParametersDTO harvestParametersDTO = new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat,
         stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
@@ -181,7 +180,7 @@ public class DatasetExecutionService {
    */
   @NotNull
   public String createDatasetAndSubmitWorkflowExecutionFile(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
-      MultipartFile compressedFile, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
+      MultipartFile compressedFile, String xsltFile, String userId, CompressedFileExtension extension) throws IOException {
     FileHarvestParametersDTO fileHarvestDTO = new FileHarvestParametersDTO(compressedFile.getOriginalFilename(),
         FileType.valueOf(extension.name()), compressedFile.getBytes(), stepsize);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
@@ -203,11 +202,10 @@ public class DatasetExecutionService {
    * @param userId the ID of the user requesting the operation
    * @param extension the file extension of the compressed input file
    * @return the unique ID of the created dataset
-   * @throws IOException If an I/O error occurs during the submission
    */
   @NotNull
   public String createDatasetAndSubmitWorkflowExecutionHttp(DatasetMetadataRequest datasetMetadataRequest, Integer stepsize,
-      String url, MultipartFile xsltFile, String userId, CompressedFileExtension extension) throws IOException {
+      String url, String xsltFile, String userId, CompressedFileExtension extension) {
 
     HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, extension);
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(

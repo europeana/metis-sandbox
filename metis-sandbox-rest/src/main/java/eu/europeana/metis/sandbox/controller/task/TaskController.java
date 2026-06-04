@@ -11,11 +11,12 @@ import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.task.input.HttpHarvestInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.InputMetadataRequest;
-import eu.europeana.metis.sandbox.common.task.input.IntermediateInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.OaiHarvestInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTask;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress;
+import eu.europeana.metis.sandbox.common.task.input.SimpleIntermediateInputMetadataRequest;
+import eu.europeana.metis.sandbox.common.task.input.TransformExternalInputMetadataRequest;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -88,9 +89,14 @@ public class TaskController {
         CompressedFileExtension compressedFileExtension = FileTypeResolver.fromUrl(URI.create(url));
         yield datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url, compressedFileExtension);
       }
-      case IntermediateInputMetadataRequest(String sourceExecutionId) -> {
+      case SimpleIntermediateInputMetadataRequest(String sourceExecutionId) -> {
         checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
         yield datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId, null,
+            FullBatchJobType.valueOf(jobName));
+      }
+      case TransformExternalInputMetadataRequest(String xslt, String sourceExecutionId) -> {
+        checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
+        yield datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId, xslt,
             FullBatchJobType.valueOf(jobName));
       }
     };
