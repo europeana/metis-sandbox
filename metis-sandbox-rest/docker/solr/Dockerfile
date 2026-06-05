@@ -1,4 +1,4 @@
-FROM solr:10.0.0-slim
+FROM solr:9.10.1-slim
 USER root
 RUN apt-get update  \
     && apt-get install git -y  \

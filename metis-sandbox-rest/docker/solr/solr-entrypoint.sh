@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Starting Solr in cloud mode (embedded ZK)..."
-solr start -f &
+solr start -c -f &
 SOLR_PID=$!
 echo "Waiting for Solr..."
 until curl -s http://localhost:8983/solr/admin/info/system >/dev/null; do

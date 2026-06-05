@@ -25,7 +25,7 @@ function declare_multiple_environments_fields() {
   #The server has to have a zookeeper running for uploading the configuration.
   ENVIRONMENT="LOCAL"
   INDEX_ENVIRONMENT="PUBLISH"
-  BRANCH_OR_PR_NUMBER="feat/MET-7115_upgrade_solr"
+  BRANCH_OR_PR_NUMBER="upgrade_solr9.10"
   LOCAL_SOLR_SERVER=metis-sandbox-solr
   LOCAL_ZOOKEEPER_SERVER=localhost
   LOCAL_ZOOKEEPER_PORT="9983"
