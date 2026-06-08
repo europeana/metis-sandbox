@@ -6,5 +6,10 @@ package eu.europeana.metis.sandbox.common.task.input;
 public sealed interface IntermediateInputMetadataRequest extends InputMetadataRequest
     permits SimpleIntermediateInputMetadataRequest, TransformExternalInputMetadataRequest {
 
+  /**
+   * Retrieves the identifier of the source execution used as input for the current metadata request.
+   *
+   * @return A {@code String} representing the source execution ID.
+   */
   String sourceExecutionId();
 }

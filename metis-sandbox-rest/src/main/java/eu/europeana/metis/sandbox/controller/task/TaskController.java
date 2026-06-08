@@ -23,7 +23,7 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.utils.CompressedFileExtension;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Date;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
@@ -83,7 +83,7 @@ public class TaskController {
     InputMetadataRequest inputMetadataRequest = sandboxTask.getInputMetadataRequest();
     return switch (inputMetadataRequest) {
       case OaiHarvestInputMetadataRequest(
-          String url, String set, String metadataPrefix, Date from, Date until, Integer stepSize
+          String url, String set, String metadataPrefix, Instant from, Instant until, Integer stepSize
       ) -> datasetExecutionService.submitExecutionOaiSingle(datasetId, stepSize, url, set, metadataPrefix);
       case HttpHarvestInputMetadataRequest(String url, Integer stepSize) -> {
         CompressedFileExtension compressedFileExtension = FileTypeResolver.fromUrl(URI.create(url));
