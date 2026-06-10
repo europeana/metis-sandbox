@@ -82,11 +82,12 @@ class DatasetExecutionServiceTest {
 
   private static final DatasetMetadataRequest datasetMetadataRequest =
       DatasetMetadataRequest.builder().datasetName("datasetName").country(Country.GREECE).language(Language.EL).build();
-  private static final MultipartFile xsltFile = mock(MultipartFile.class);
+  private static final String XSLT_FILE = "string";
   private static final String DATASET_ID = "1";
   private static final String USER_ID = "userId";
-  private static final int STE_SIZE = 1;
+  private static final int STEP_SIZE = 1;
   private static final String CONTENT_FILE_PATH = "/test-path";
+  private static final ZonedDateTime FIXED_TIME = ZonedDateTime.parse("2026-01-01T12:00:00Z");
   private static String baseUrl;
 
   @BeforeEach
@@ -99,7 +100,7 @@ class DatasetExecutionServiceTest {
   }
 
   @Test
-  void createDatasetAndSubmitWorkflowExecutionOai() throws IOException {
+  void createDatasetAndSubmitWorkflowExecutionOai() {
     DatasetMetadata datasetMetadata = DatasetMetadata.builder()
                                                      .datasetId(DATASET_ID)
                                                      .datasetName(datasetMetadataRequest.getDatasetName())
@@ -110,25 +111,13 @@ class DatasetExecutionServiceTest {
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(
         datasetExecutionSetupService.prepareDatasetAndExecution(eq(OAI_HARVEST), eq(datasetMetadataRequest), eq(USER_ID),
-            eq(xsltFile), any(OaiHarvestParametersDTO.class))).thenReturn(executionMeta);
+            eq(XSLT_FILE), any(OaiHarvestParametersDTO.class))).thenReturn(executionMeta);
 
-    String result = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(datasetMetadataRequest, STE_SIZE, "url", "setSpec",
-        "metadataFormat", xsltFile, USER_ID);
+    String result = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(datasetMetadataRequest, STEP_SIZE, "url", "setSpec",
+        "metadataFormat", XSLT_FILE, USER_ID);
 
     assertEquals(DATASET_ID, result);
     verify(batchJobExecutor).executeWorkflow(executionMeta);
-  }
-
-  @Test
-  void createDatasetAndSubmitWorkflowExecutionOai_Fail() throws IOException {
-    when(
-        datasetExecutionSetupService.prepareDatasetAndExecution(eq(OAI_HARVEST), eq(datasetMetadataRequest), eq(USER_ID),
-            eq(xsltFile), any(OaiHarvestParametersDTO.class))).thenThrow(new IOException());
-
-    assertThrows(IOException.class,
-        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionOai(datasetMetadataRequest, STE_SIZE, "url", "setSpec",
-            "metadataFormat", xsltFile, USER_ID));
-    verifyNoInteractions(batchJobExecutor);
   }
 
   @Test
@@ -144,10 +133,10 @@ class DatasetExecutionServiceTest {
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(
         datasetExecutionSetupService.prepareDatasetAndExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
-            eq(USER_ID), eq(xsltFile), any(FileHarvestParametersDTO.class))).thenReturn(executionMeta);
+            eq(USER_ID), eq(XSLT_FILE), any(FileHarvestParametersDTO.class))).thenReturn(executionMeta);
 
-    String result = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest, STE_SIZE, contentFile,
-        xsltFile,
+    String result = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest, STEP_SIZE, contentFile,
+        XSLT_FILE,
         USER_ID, CompressedFileExtension.ZIP);
 
     assertEquals(DATASET_ID, result);
@@ -157,12 +146,10 @@ class DatasetExecutionServiceTest {
   @Test
   void createDatasetAndSubmitWorkflowExecutionFile_Fail() throws IOException {
     MultipartFile contentFile = mock(MultipartFile.class);
-    when(contentFile.getBytes()).thenReturn("content".getBytes());
-    when(datasetExecutionSetupService.prepareDatasetAndExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
-        eq(USER_ID), eq(xsltFile), any(FileHarvestParametersDTO.class))).thenThrow(new IOException());
-
+    when(contentFile.getBytes()).thenThrow(new IOException());
     assertThrows(IOException.class,
-        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest, STE_SIZE, contentFile, xsltFile,
+        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionFile(datasetMetadataRequest, STEP_SIZE, contentFile,
+            XSLT_FILE,
             USER_ID, CompressedFileExtension.ZIP));
     verifyNoInteractions(batchJobExecutor);
   }
@@ -179,9 +166,10 @@ class DatasetExecutionServiceTest {
     ExecutionMetadata executionMeta = ExecutionMetadata.builder().datasetMetadata(datasetMetadata).build();
     when(
         datasetExecutionSetupService.prepareDatasetAndExecution(eq(WorkflowType.FILE_HARVEST), eq(datasetMetadataRequest),
-            eq(USER_ID), eq(xsltFile), any(HttpHarvestParametersDTO.class))).thenReturn(executionMeta);
+            eq(USER_ID), eq(XSLT_FILE), any(HttpHarvestParametersDTO.class))).thenReturn(executionMeta);
     when(contentWithMaxSizeClient.download(any(URI.class))).thenReturn("content".getBytes());
-    String result = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STE_SIZE, url, xsltFile,
+    String result = datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STEP_SIZE, url,
+        XSLT_FILE,
         USER_ID, CompressedFileExtension.ZIP);
 
     assertEquals(DATASET_ID, result);
@@ -198,20 +186,22 @@ class DatasetExecutionServiceTest {
 
     String invalidPath = baseUrl + "/invalidPath";
     ServiceException serviceException = assertThrows(ServiceException.class,
-        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STE_SIZE, invalidPath, xsltFile,
+        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STEP_SIZE, invalidPath,
+            XSLT_FILE,
             USER_ID, CompressedFileExtension.ZIP));
     assertInstanceOf(FileNotFoundException.class, serviceException.getCause());
 
     String malformedUrl = baseUrl + "malformedUrl";
     serviceException = assertThrows(ServiceException.class,
-        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STE_SIZE, malformedUrl, xsltFile,
+        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STEP_SIZE, malformedUrl,
+            XSLT_FILE,
             USER_ID, CompressedFileExtension.ZIP));
     assertInstanceOf(MalformedURLException.class, serviceException.getCause());
 
     String uriSyntaxException = "ht^tp://invalid_url";
     IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class,
-        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STE_SIZE, uriSyntaxException,
-            xsltFile,
+        () -> datasetExecutionService.createDatasetAndSubmitWorkflowExecutionHttp(datasetMetadataRequest, STEP_SIZE, uriSyntaxException,
+            XSLT_FILE,
             USER_ID, CompressedFileExtension.ZIP));
     assertInstanceOf(URISyntaxException.class, illegalArgumentException.getCause());
 
@@ -241,11 +231,8 @@ class DatasetExecutionServiceTest {
 
   @Test
   void createAndExecuteDatasetForFileValidationBlocking_Fail() throws IOException {
-    when(datasetExecutionSetupService.prepareDatasetAndExecution(eq(WorkflowType.FILE_HARVEST_ONLY_VALIDATION),
-        eq(datasetMetadataRequest), eq(null), eq(null), any(FileHarvestParametersDTO.class))).thenThrow(new IOException());
-
     MultipartFile contentFile = mock(MultipartFile.class);
-    when(contentFile.getBytes()).thenReturn("content".getBytes());
+    when(contentFile.getBytes()).thenThrow(new IOException());
     assertThrows(IOException.class,
         () -> datasetExecutionService.createAndExecuteDatasetForFileValidationBlocking(datasetMetadataRequest, contentFile));
 
@@ -259,7 +246,7 @@ class DatasetExecutionServiceTest {
     ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, ExecutionStatus.COMPLETED, 0, 0,
         List.of(), false, List.of(),null);
     when(datasetReportService.getProgress(DATASET_ID)).thenReturn(executionProgressInfoDTO);
-    DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.READY, ZonedDateTime.now(), 0L,
+    DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.READY, FIXED_TIME, 0L,
         0L);
     when(debiasStateService.getDeBiasStatus(DATASET_ID)).thenReturn(deBiasStatusDTO);
     DatasetEntity datasetEntity = new DatasetEntity();
@@ -287,7 +274,7 @@ class DatasetExecutionServiceTest {
         List.of(), false, List.of(),null);
     when(datasetReportService.getProgress(DATASET_ID))
         .thenReturn(executionProgressInfoDTO).thenReturn(executionProgressInfoDTO).thenReturn(executionProgressInfoDTOInProgress);
-    DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.COMPLETED, ZonedDateTime.now(),
+    DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.COMPLETED, FIXED_TIME,
         0L,
         0L);
     when(debiasStateService.getDeBiasStatus(DATASET_ID)).thenReturn(deBiasStatusDTO).thenReturn(null);

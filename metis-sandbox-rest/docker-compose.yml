@@ -34,17 +34,15 @@ services:
       - -c
       - -f
 
-  localstack-s3:
-    image: localstack/localstack:s3-latest
-    container_name: metis-sandbox-localstack-s3
+  s3mock:
+    image: adobe/s3mock:latest
+    container_name: metis-sandbox-s3mock
     ports:
       - "4566:4566"
     environment:
-      - AWS_ACCESS_KEY_ID=local
-      - AWS_SECRET_ACCESS_KEY=local
+      - initialBuckets=test-thumbnails-bucket
     volumes:
-      - ./docker/localstack/setup-s3.sh:/etc/localstack/init/ready.d/init-aws.sh
-      - /tmp/localstack-data:/var/lib/localstack
+      - /tmp/s3mock-data:/data
 
   metis-sandbox-local:
     image: europeana/metis-sandbox:develop

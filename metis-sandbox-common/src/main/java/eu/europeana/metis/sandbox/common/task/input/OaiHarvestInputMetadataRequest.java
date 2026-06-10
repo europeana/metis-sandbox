@@ -1,6 +1,6 @@
 package eu.europeana.metis.sandbox.common.task.input;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * Represents an input data endpoint for OAI harvesting.
@@ -15,8 +15,8 @@ public record OaiHarvestInputMetadataRequest(
     String url,
     String set,
     String metadataPrefix,
-    Date from,
-    Date until,
+    Instant from,
+    Instant until,
     Integer stepSize) implements HarvestInputMetadataRequest {
 
 }

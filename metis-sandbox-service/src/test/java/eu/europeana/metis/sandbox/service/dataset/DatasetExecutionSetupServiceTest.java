@@ -21,8 +21,6 @@ import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
@@ -30,7 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetExecutionSetupServiceTest {
@@ -49,7 +46,7 @@ class DatasetExecutionSetupServiceTest {
       DatasetMetadataRequest.builder().datasetName("datasetName").country(Country.GREECE).language(Language.EL).build();
 
   @Test
-  void prepareDatasetAndExecution() throws IOException {
+  void prepareDatasetAndExecution() {
     String datasetId = "1";
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;
     String userId = "userId";
@@ -64,9 +61,7 @@ class DatasetExecutionSetupServiceTest {
     });
     when(datasetRepository.findById(Integer.valueOf(datasetId))).thenAnswer(
         invocation -> Optional.ofNullable(datasetEntityReference.get()));
-    MultipartFile xsltFile = mock(MultipartFile.class);
-    String xsltContent = "<xsl:stylesheet></xsl:stylesheet>";
-    when(xsltFile.getBytes()).thenReturn(xsltContent.getBytes(StandardCharsets.UTF_8));
+    String xsltFile = "string";
 
     when(harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestParametersDTO)).thenReturn(
         harvestParameters);
@@ -82,7 +77,7 @@ class DatasetExecutionSetupServiceTest {
   }
 
   @Test
-  void prepareDatasetAndExecution_withoutXslt() throws IOException {
+  void prepareDatasetAndExecution_withoutXslt() {
     String datasetId = "1";
     WorkflowType workflowType = WorkflowType.OAI_HARVEST;
     String userId = "userId";
@@ -121,31 +116,6 @@ class DatasetExecutionSetupServiceTest {
 
     assertThrows(ServiceException.class, () ->
         datasetExecutionSetupService.prepareDatasetAndExecution(workflowType, datasetMetadataRequest, userId, null,
-            oaiHarvestParametersDTO));
-  }
-
-  @Test
-  void prepareDatasetAndExecution_saveXslt_ThrowIOException() throws IOException {
-    String datasetId = "1";
-    WorkflowType workflowType = WorkflowType.OAI_HARVEST;
-    String userId = "userId";
-    OaiHarvestParametersDTO oaiHarvestParametersDTO = new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
-
-    AtomicReference<DatasetEntity> datasetEntityReference = new AtomicReference<>();
-    when(datasetRepository.save(any())).thenAnswer(invocation -> {
-      DatasetEntity datasetEntity = invocation.getArgument(0);
-      datasetEntity.setDatasetId(Integer.valueOf(datasetId));
-      datasetEntityReference.set(datasetEntity);
-      return datasetEntity;
-    });
-    when(datasetRepository.findById(Integer.valueOf(datasetId))).thenAnswer(
-        invocation -> Optional.ofNullable(datasetEntityReference.get()));
-
-    MultipartFile xsltFile = mock(MultipartFile.class);
-    when(xsltFile.getBytes()).thenThrow(new IOException());
-
-    assertThrows(IOException.class, () ->
-        datasetExecutionSetupService.prepareDatasetAndExecution(workflowType, datasetMetadataRequest, userId, xsltFile,
             oaiHarvestParametersDTO));
   }
 }

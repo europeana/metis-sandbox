@@ -14,7 +14,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = OaiHarvestInputMetadataRequest.class, name = "OAI"),
     @JsonSubTypes.Type(value = HttpHarvestInputMetadataRequest.class, name = "HTTP"),
-    @JsonSubTypes.Type(value = IntermediateInputMetadataRequest.class, name = "INTERMEDIATE")
+    @JsonSubTypes.Type(value = SimpleIntermediateInputMetadataRequest.class, name = "SIMPLE_INTERMEDIATE"),
+    @JsonSubTypes.Type(value = TransformExternalInputMetadataRequest.class, name = "TRANSFORM_EXTERNAL")
 })
 public sealed interface InputMetadataRequest permits HarvestInputMetadataRequest, IntermediateInputMetadataRequest {
 
