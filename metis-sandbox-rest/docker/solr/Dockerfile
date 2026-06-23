@@ -18,7 +18,7 @@ RUN chown -R solr:solr /var/solr
 RUN chmod ug+x /solr-entrypoint.sh
 RUN chown solr:solr /solr-entrypoint.sh
 USER solr
-EXPOSE 8983
+EXPOSE 8983 9983
 CMD ["bash","-c","/solr-entrypoint.sh"]
 
 

@@ -90,7 +90,7 @@ function rsync_local_dir_to_remote_dir() {
   #local destination="$TARGET_COMMAND_SERVER:${TARGET_SOLR_CONF_ROOT_DIR}${TARGET_SOLR_CONF_DIR}"
   local destination="${TARGET_SOLR_CONF_ROOT_DIR}${TARGET_SOLR_CONF_DIR}"
   printf "Starting rsync from local directory: %s -> to directory: %s\n" "${source}" "${destination}"
-  mkdir -p "${destination}"
+  mkdir --parents "${destination}"
   rsync --archive --compress --verbose --delete "${source}" "${destination}"
 }
 
@@ -130,12 +130,12 @@ function zookeeper_upload_and_apply_new_configuration() {
 
   printf "Uploading zookeeper new configuration: %s\n" "${new_configuration_name}"
   local zookeeper_command
-  zookeeper_command=$(zookeeper_create_command "upconfig -d ${TARGET_SOLR_CONF_ROOT_DIR}${TARGET_SOLR_CONF_DIR} -n ${new_configuration_name}")
+  zookeeper_command=$(zookeeper_create_command "upconfig --confdir ${TARGET_SOLR_CONF_ROOT_DIR}${TARGET_SOLR_CONF_DIR} --confname ${new_configuration_name}")
   $(echo "${zookeeper_command}")
   #Update collection to take effect of the new configuration.
   #Using MODIFYCOLLECTION instead of RELOAD command because MODIFYCOLLECTION will re-apply the mapping between the collection with the configuration name and then reload it. This helps to avoid the collection being mapped to another configuration name.
   printf "Starting solr MODIFYCOLLECTION command\n"
-  $(echo "curl -v --get --data-urlencode collection=${COLLECTION_NAME} --data-urlencode collection.configName=${new_configuration_name} http://localhost:${SOLR_PORT}/solr/admin/collections?action=MODIFYCOLLECTION")
+  $(echo "curl --verbose --get --data-urlencode collection=${COLLECTION_NAME} --data-urlencode collection.configName=${new_configuration_name} http://localhost:${SOLR_PORT}/solr/admin/collections?action=MODIFYCOLLECTION")
 }
 
 function zookeeper_remove_current_and_old_configurations() {
@@ -146,7 +146,7 @@ function zookeeper_remove_current_and_old_configurations() {
   for configuration_path in $CURRENT_AND_OLD_CONFIGURATION_PATHS
   do
     printf "Removing zookeeper configuration: %s\n" "${configuration_path}"
-    zookeeper_command=$(zookeeper_create_command "rm -r $(echo "${configuration_path}")")
+    zookeeper_command=$(zookeeper_create_command "rm --recursive $(echo "${configuration_path}")")
     $(eval "${zookeeper_command}")
   done
   #Reset IFS
@@ -157,7 +157,7 @@ function zookeeper_create_command() {
   #usage of solr zk https://solr.apache.org/guide/solr/latest/deployment-guide/zookeeper-utilities.html
   local common_command_part="solr zk"
   local unique_command_part="${1}"
-  local common_command_complement_part="-z ${LOCAL_ZOOKEEPER_SERVER}:${ZOOKEEPER_PORT}"
+  local common_command_complement_part="--zk-host ${LOCAL_ZOOKEEPER_SERVER}:${ZOOKEEPER_PORT}"
   echo "${common_command_part} ${unique_command_part} ${common_command_complement_part}"
 }
 
