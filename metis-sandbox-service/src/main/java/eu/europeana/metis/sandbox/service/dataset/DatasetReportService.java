@@ -71,8 +71,8 @@ public class DatasetReportService {
   private static final String PROCESSING_DATASET_MESSAGE = "A review URL will be generated when the dataset has finished processing.";
   private static final String SEPARATOR = "_";
   private static final String SUFFIX = "*";
-  @Value("${sandbox.portal.publish.dataset-base-url}")
-  private String portalPublishDatasetUrl;
+  @Value("${sandbox.portal.preview.dataset-base-url}")
+  private String portalPreviewDatasetUrl;
 
   private final DatasetRepository datasetRepository;
   private final TransformXsltRepository transformXsltRepository;
@@ -251,13 +251,14 @@ public class DatasetReportService {
     final TiersZeroInfoDTO tiersZeroInfoDTO = prepareTiersInfo(datasetId);
 
     ExecutionStatus executionStatus = computeStatus(datasetEntity, totalRecords, totalProcessed, totalFailInWorkflow);
-    String publishPortalUrl = getPublishPortalUrl(datasetEntity, executionStatus);
+    String portalUrlPreview = getPortalUrlPreview(datasetEntity, executionStatus);
     List<DatasetErrorInfoDTO> datasetErrorInfoDTOS = datasetEntity.getDatasetErrors().stream().map(
                                                                       datasetError -> new DatasetErrorInfoDTO(datasetError.getMessage(), Status.FAIL))
                                                                   .toList();
 
     return new ExecutionProgressInfoDTO(
-        publishPortalUrl,
+        portalUrlPreview,
+        portalUrlPreview,
         executionStatus,
         totalRecords,
         totalProcessed,
@@ -423,7 +424,7 @@ public class DatasetReportService {
         executionRecordIdentifier.getSourceRecordId(), executionRecordIdentifier.getRecordId());
   }
 
-  private String getPublishPortalUrl(DatasetEntity datasetEntity, ExecutionStatus executionStatus) {
+  private String getPortalUrlPreview(DatasetEntity datasetEntity, ExecutionStatus executionStatus) {
     if (ExecutionStatus.HARVESTING_IDENTIFIERS == executionStatus) {
       return HARVESTING_IDENTIFIERS_MESSAGE;
     }
@@ -433,7 +434,7 @@ public class DatasetReportService {
     }
 
     String datasetId = datasetEntity.getDatasetId() + SEPARATOR + datasetEntity.getDatasetName() + SUFFIX;
-    return portalPublishDatasetUrl + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
+    return portalPreviewDatasetUrl + URLEncoder.encode(datasetId, StandardCharsets.UTF_8);
   }
 
   private TiersZeroInfoDTO prepareTiersInfo(String datasetId) {

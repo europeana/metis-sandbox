@@ -71,7 +71,8 @@ class DatasetInfoControllerTest {
         new TierStatisticsDTO(0, List.of()));
 
     ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(
-        "publishPortalUrl",
+        "portalUrlPreview",
+        "portalUrlPreview",
         ExecutionStatus.COMPLETED,
         10,
         10,

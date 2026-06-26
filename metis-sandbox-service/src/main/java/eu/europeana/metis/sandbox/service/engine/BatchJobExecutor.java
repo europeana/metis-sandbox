@@ -14,7 +14,7 @@ import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.DEBIAS;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.ENRICH;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.HARVEST_FILE;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.HARVEST_OAI;
-import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.INDEX_PUBLISH;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.INDEX_PREVIEW;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.MEDIA;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.NORMALIZE;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.TRANSFORM_EXTERNAL;
@@ -125,7 +125,7 @@ public class BatchJobExecutor {
     this.jobExecutorsByType.put(NORMALIZE, this::executeNormalize);
     this.jobExecutorsByType.put(ENRICH, this::executeEnrich);
     this.jobExecutorsByType.put(MEDIA, this::executeMedia);
-    this.jobExecutorsByType.put(INDEX_PUBLISH, this::executeIndexPublish);
+    this.jobExecutorsByType.put(INDEX_PREVIEW, this::executeIndexPreview);
     this.jobExecutorsByType.put(DEBIAS, this::executeDebias);
   }
 
@@ -390,9 +390,9 @@ public class BatchJobExecutor {
     return prepareAndRunJob(BatchJobType.MEDIA, executionMetadataWithTargetId);
   }
 
-  private @NotNull JobExecution executeIndexPublish(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
+  private @NotNull JobExecution executeIndexPreview(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
     JobParameters stepParameters = new JobParametersBuilder()
-        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, IndexBatchJobSubType.PUBLISH.name())
+        .addString(ARGUMENT_BATCH_JOB_SUBTYPE, IndexBatchJobSubType.PREVIEW.name())
         .toJobParameters();
     return prepareAndRunJob(BatchJobType.INDEX, executionMetadataWithTargetId, stepParameters);
   }

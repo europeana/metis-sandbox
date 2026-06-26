@@ -81,7 +81,7 @@ class DatasetReportServiceTest {
 
   @BeforeEach
   void setup() {
-    ReflectionTestUtils.setField(datasetReportService, "portalPublishDatasetUrl", "http://test/");
+    ReflectionTestUtils.setField(datasetReportService, "portalPreviewDatasetUrl", "http://test/");
   }
 
   @Test
@@ -234,7 +234,7 @@ class DatasetReportServiceTest {
     ExecutionProgressInfoDTO executionProgressInfoDTO = datasetReportService.getProgress(valueOf(datasetEntity.getDatasetId()));
 
     assertNotNull(executionProgressInfoDTO);
-    assertTrue(StringUtils.isNotBlank(executionProgressInfoDTO.portalPublishUrl()));
+    assertTrue(StringUtils.isNotBlank(executionProgressInfoDTO.portalUrlPreview()));
     assertEquals(ExecutionStatus.COMPLETED, executionProgressInfoDTO.executionStatus());
     assertEquals(totalSuccessInStep, executionProgressInfoDTO.totalRecords());
     assertEquals(totalSuccessInStep - totalFailInStep, executionProgressInfoDTO.processedRecords());

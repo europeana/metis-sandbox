@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RecordTierCalculationServiceTest {
 
   private final TestUtils testUtils = new TestUtils();
-  private static final String PORTAL_PUBLISH_RECORD_BASE_URL = "https://example-domain.org/portal/search?view=grid&q=edm_datasetName:";
+  private static final String PORTAL_PREVIEW_RECORD_BASE_URL = "https://example-domain.org/portal/search?view=grid&q=edm_datasetName:";
 
   @Mock
   private ExecutionRecordRepository executionRecordRepository;
@@ -37,7 +37,7 @@ class RecordTierCalculationServiceTest {
   void initialize() {
     recordTierCalculationService = Objects.requireNonNullElse(recordTierCalculationService,
         new RecordTierCalculationService(executionRecordRepository, executionRecordErrorRepository,
-            PORTAL_PUBLISH_RECORD_BASE_URL));
+            PORTAL_PREVIEW_RECORD_BASE_URL));
   }
 
   @Test

@@ -60,12 +60,12 @@ class SandboxConfig {
   @Value("${sandbox.enrichment.enrichment-properties.entity-api-grant-params}")
   private String entityApiGrantParams;
 
-  @Value("${sandbox.portal.publish.record-base-url}")
-  private String portalPublishRecordBaseUrl;
+  @Value("${sandbox.portal.preview.record-base-url}")
+  private String portalPreviewRecordBaseUrl;
 
-  @Bean(name = "portalPublishRecordBaseUrl")
-  String portalPublishRecordBaseUrl() {
-    return portalPublishRecordBaseUrl;
+  @Bean(name = "portalPreviewRecordBaseUrl")
+  String portalPreviewRecordBaseUrl() {
+    return portalPreviewRecordBaseUrl;
   }
 
   @Bean(name = "pipelineTaskExecutor")

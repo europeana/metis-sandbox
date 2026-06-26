@@ -49,7 +49,7 @@ public class TaskController {
   private final DatasetExecutionSetupService datasetExecutionSetupService;
   private final DatasetExecutionService datasetExecutionService;
   private final DatasetReportService datasetReportService;
-  private final Indexer<FullBeanImpl> publishIndexer;
+  private final Indexer<FullBeanImpl> indexerPreview;
 
   /**
    * Creates a new engine dataset based on the provided metadata request.
@@ -139,6 +139,6 @@ public class TaskController {
    */
   @GetMapping("/indexedRecordsCount")
   public long getIndexedRecordsCount(@RequestParam(name = "metisDatasetId") String metisDatasetId) throws IndexingException {
-    return publishIndexer.countRecords(metisDatasetId);
+    return indexerPreview.countRecords(metisDatasetId);
   }
 }

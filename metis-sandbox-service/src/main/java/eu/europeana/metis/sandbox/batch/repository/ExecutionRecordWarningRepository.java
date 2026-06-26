@@ -73,7 +73,7 @@ public interface ExecutionRecordWarningRepository extends JpaRepository<Executio
    */
   @Query("""
       SELECT er.executionRun.executionName AS step, COUNT(er) AS count
-            FROM ExecutionRecord er 
+            FROM ExecutionRecord er
             GROUP BY er.executionRun.executionName
       """)
   List<StepStatisticProjection> getStepStatistics();

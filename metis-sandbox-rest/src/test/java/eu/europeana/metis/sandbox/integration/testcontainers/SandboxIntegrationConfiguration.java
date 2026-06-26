@@ -40,16 +40,16 @@ public final class SandboxIntegrationConfiguration {
   }
 
   private static void testContainersMongoConfiguration() {
-    MongoTestContainersConfiguration.setDynamicProperty("sandbox.publish.mongo.application-name",
+    MongoTestContainersConfiguration.setDynamicProperty("sandbox.preview.mongo.application-name",
         container -> "mongo-testcontainer-test");
-    MongoTestContainersConfiguration.setDynamicProperty("sandbox.publish.mongo.db", container -> "test");
-    MongoTestContainersConfiguration.setDynamicProperty("sandbox.publish.mongo.hosts", MongoDBContainer::getHost);
-    MongoTestContainersConfiguration.setDynamicProperty("sandbox.publish.mongo.ports",
+    MongoTestContainersConfiguration.setDynamicProperty("sandbox.preview.mongo.db", container -> "test");
+    MongoTestContainersConfiguration.setDynamicProperty("sandbox.preview.mongo.hosts", MongoDBContainer::getHost);
+    MongoTestContainersConfiguration.setDynamicProperty("sandbox.preview.mongo.ports",
         container -> container.getFirstMappedPort().toString());
   }
 
   private static void testContainersSolrConfiguraiton() {
-    SolrTestContainersConfiguration.setDynamicProperty("sandbox.publish.solr.hosts",
+    SolrTestContainersConfiguration.setDynamicProperty("sandbox.preview.solr.hosts",
         container -> String.format("http://%s:%d/solr/%s", container.getHost(), container.getSolrPort(),
             SolrTestContainersConfiguration.SOLR_COLLECTION_NAME));
   }
