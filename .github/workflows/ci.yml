@@ -7,27 +7,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install media software
-        uses: europeana/metis-actions/actions/media-software-install-steps@main
+        uses: europeana/metis-actions/actions/media-software-install-steps@b2d9c06f19f71dbb9ff47b6dfb23e6bfa3900aab
       - name: Build code and Sonar Analyze
-        uses: europeana/metis-actions/actions/build-analyze@main
+        uses: europeana/metis-actions/actions/build-analyze@b2d9c06f19f71dbb9ff47b6dfb23e6bfa3900aab
         with:
           sonar_organization: europeana
           sonar_project_key: europeana_metis-sandbox
           sonar_token: ${{ secrets.METIS_SONAR_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload all jars to target-jars
-        uses: europeana/metis-actions/actions/upload-target-jars@main
+        uses: europeana/metis-actions/actions/upload-target-jars@b2d9c06f19f71dbb9ff47b6dfb23e6bfa3900aab
 
   deploy-artifacts:
     needs: ci
-    uses: europeana/metis-actions/.github/workflows/deploy-artifacts.yml@main
+    uses: europeana/metis-actions/.github/workflows/deploy-artifacts.yml@b2d9c06f19f71dbb9ff47b6dfb23e6bfa3900aab
     secrets:
       ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
       ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
   docker-build_metis-sandbox:
     needs: ci
-    uses: europeana/metis-actions/.github/workflows/docker-build-push.yml@main
+    uses: europeana/metis-actions/.github/workflows/docker-build-push.yml@b2d9c06f19f71dbb9ff47b6dfb23e6bfa3900aab
     with:
       docker-organization: europeana
       docker-image-name: metis-sandbox
