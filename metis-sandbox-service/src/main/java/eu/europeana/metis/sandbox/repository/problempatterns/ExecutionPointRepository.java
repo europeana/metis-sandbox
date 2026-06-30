@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.repository.problempatterns;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,7 +21,7 @@ public interface ExecutionPointRepository extends JpaRepository<ExecutionPoint, 
    * @param executionTimestamp the execution timestamp
    * @return the execution point
    */
-  ExecutionPoint findByDatasetIdAndExecutionNameAndExecutionTimestamp(String datasetId, String executionName, LocalDateTime executionTimestamp);
+  ExecutionPoint findByDatasetIdAndExecutionNameAndExecutionTimestamp(String datasetId, String executionName, Instant executionTimestamp);
 
   /**
    * Find first by dataset id and execution step order by execution timestamp desc optional.

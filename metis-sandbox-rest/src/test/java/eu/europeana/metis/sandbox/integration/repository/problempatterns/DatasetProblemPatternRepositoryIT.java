@@ -2,13 +2,13 @@ package eu.europeana.metis.sandbox.integration.repository.problempatterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.entity.problempatterns.DatasetProblemPattern;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
+import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import jakarta.persistence.EntityManager;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -100,7 +100,7 @@ class DatasetProblemPatternRepositoryIT {
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setDatasetId("1");
     executionPoint.setExecutionName("VALIDATION_EXTERNAL");
-    executionPoint.setExecutionTimestamp(LocalDateTime.parse("2022-03-22T10:10:10.100"));
+    executionPoint.setExecutionTimestamp(Instant.parse("2022-03-22T10:10:10.100Z"));
     return executionPointRepository.save(executionPoint);
   }
 }

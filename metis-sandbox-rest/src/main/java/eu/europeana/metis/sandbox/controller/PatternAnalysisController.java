@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -151,7 +151,7 @@ public class PatternAnalysisController {
   @ApiResponse(responseCode = "404", description = "Not able to retrieve all timestamps values")
   @GetMapping(value = "execution-timestamps", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public Set<LocalDateTime> getAllExecutionTimestamps() {
+  public Set<Instant> getAllExecutionTimestamps() {
     return executionPointService.getAllExecutionTimestamps();
   }
 

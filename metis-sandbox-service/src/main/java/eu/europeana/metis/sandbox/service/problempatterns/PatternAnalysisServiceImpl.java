@@ -27,7 +27,7 @@ import eu.europeana.patternanalysis.view.ProblemPatternAnalysis;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -87,7 +87,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   @Override
   @Transactional
   public ExecutionPoint initializePatternAnalysisExecution(String datasetId, FullBatchJobType executionStep,
-      LocalDateTime executionTimestamp) {
+      Instant executionTimestamp) {
     final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionNameAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);
     final ExecutionPoint savedExecutionPoint;
@@ -300,7 +300,7 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
   @Transactional
   public Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> getDatasetPatternAnalysis(String datasetId,
       FullBatchJobType executionStep,
-      LocalDateTime executionTimestamp) {
+      Instant executionTimestamp) {
 
     final ExecutionPoint executionPoint = executionPointRepository.findByDatasetIdAndExecutionNameAndExecutionTimestamp(
         datasetId, executionStep.name(), executionTimestamp);

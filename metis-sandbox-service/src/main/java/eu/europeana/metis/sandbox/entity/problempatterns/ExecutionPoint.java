@@ -9,9 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Entity class for execution point.
@@ -22,6 +25,9 @@ import java.util.Set;
         columnList = "dataset_id, execution_name, execution_timestamp", unique = true),
     @Index(name = "execution_point_dataset_id_execution_name_idx", columnList = "dataset_id, execution_name")
 })
+@Getter
+@Setter
+@NoArgsConstructor
 public class ExecutionPoint {
 
   @Id
@@ -36,17 +42,13 @@ public class ExecutionPoint {
   private String executionName;
 
   @Column(name = "execution_timestamp", nullable = false)
-  private LocalDateTime executionTimestamp;
+  private Instant executionTimestamp;
 
   @OneToMany(mappedBy = "executionPoint", fetch = FetchType.EAGER)
   private Set<DatasetProblemPattern> datasetProblemPatterns = new LinkedHashSet<>();
 
   @OneToMany(mappedBy = "executionPoint", fetch = FetchType.EAGER)
   private Set<RecordProblemPattern> recordProblemPatterns = new LinkedHashSet<>();
-
-  public ExecutionPoint() {
-    //Required for JPA
-  }
 
   public Set<RecordProblemPattern> getRecordProblemPatterns() {
     return new LinkedHashSet<>(recordProblemPatterns);
@@ -65,37 +67,5 @@ public class ExecutionPoint {
   public void setDatasetProblemPatterns(Set<DatasetProblemPattern> datasetProblemPatterns) {
     this.datasetProblemPatterns =
         datasetProblemPatterns == null ? new LinkedHashSet<>() : new LinkedHashSet<>(datasetProblemPatterns);
-  }
-
-  public LocalDateTime getExecutionTimestamp() {
-    return executionTimestamp;
-  }
-
-  public void setExecutionTimestamp(LocalDateTime executionTimestamp) {
-    this.executionTimestamp = executionTimestamp;
-  }
-
-  public String getExecutionName() {
-    return executionName;
-  }
-
-  public void setExecutionName(String executionStep) {
-    this.executionName = executionStep;
-  }
-
-  public String getDatasetId() {
-    return datasetId;
-  }
-
-  public void setDatasetId(String datasetId) {
-    this.datasetId = datasetId;
-  }
-
-  public Integer getExecutionPointId() {
-    return executionPointId;
-  }
-
-  public void setExecutionPointId(Integer id) {
-    this.executionPointId = id;
   }
 }

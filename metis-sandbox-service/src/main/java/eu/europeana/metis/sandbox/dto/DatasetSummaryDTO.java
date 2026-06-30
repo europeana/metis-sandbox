@@ -5,7 +5,7 @@ import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 /**
  * Represents a dataset summary.
@@ -22,7 +22,7 @@ public record DatasetSummaryDTO(
     String createdById,
 
     @JsonProperty("creation-date")
-    ZonedDateTime creationDate,
+    Instant creationDate,
 
     @JsonProperty("language")
     Language language,

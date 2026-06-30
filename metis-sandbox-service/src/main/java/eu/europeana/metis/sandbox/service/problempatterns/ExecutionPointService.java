@@ -2,12 +2,11 @@ package eu.europeana.metis.sandbox.service.problempatterns;
 
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 /**
  * Service class responsible for handling operations related to execution points.
@@ -31,7 +30,7 @@ public class ExecutionPointService {
      * Method that retrieves all possible execution timestamps available
      * @return A set of unique timestamps saved in the database
      */
-    public Set<LocalDateTime> getAllExecutionTimestamps(){
+    public Set<Instant> getAllExecutionTimestamps(){
         return executionPointRepository.findAll().stream().map(ExecutionPoint::getExecutionTimestamp).collect(Collectors.toUnmodifiableSet());
     }
 

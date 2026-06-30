@@ -7,7 +7,7 @@ import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -71,7 +71,7 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   }
 
   private void initializePatternAnalysisExecution() {
-    final LocalDateTime timestamp = LocalDateTime.now();
+    final Instant timestamp = Instant.now();
     patternAnalysisService.initializePatternAnalysisExecution(datasetId, FullBatchJobType.VALIDATE_INTERNAL, timestamp);
   }
 

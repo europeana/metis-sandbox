@@ -33,6 +33,7 @@ import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -133,7 +134,7 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void initializePatternAnalysisExecution() {
-    final LocalDateTime now = LocalDateTime.now();
+    final Instant now = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, now);
     assertEquals("1", executionPoint1.getDatasetId());
@@ -153,7 +154,7 @@ class PatternAnalysisServiceImplIT {
   @Test
   void generateRecordPatternAnalysisTest() {
     //Insert a problem pattern
-    final LocalDateTime nowP2 = LocalDateTime.now();
+    final Instant nowP2 = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
@@ -172,7 +173,7 @@ class PatternAnalysisServiceImplIT {
     assertEquals(1, recordProblemPatternOccurrenceRepository.count());
 
     //Insert another problem pattern
-    final LocalDateTime nowP6 = LocalDateTime.now();
+    final Instant nowP6 = Instant.now();
     final ExecutionPoint executionPoint2 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint2, rdfRecordP6);
@@ -203,7 +204,7 @@ class PatternAnalysisServiceImplIT {
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(
         problemPatternsRepositories, 1, 1);
     //Insert a problem pattern
-    final LocalDateTime nowP2 = LocalDateTime.now();
+    final Instant nowP2 = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1,
@@ -220,7 +221,7 @@ class PatternAnalysisServiceImplIT {
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(
         problemPatternsRepositories, 1, 1);
 
-    final LocalDateTime nowP6 = LocalDateTime.now();
+    final Instant nowP6 = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP6);
@@ -246,7 +247,7 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void generateRecordPatternAnalysis_StringPayloadTest() throws Exception {
-    final LocalDateTime nowP2 = LocalDateTime.now();
+    final Instant nowP2 = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfStringP2);
@@ -262,7 +263,7 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void getRecordPatternAnalysisTest() {
-    final LocalDateTime nowP2 = LocalDateTime.now();
+    final Instant nowP2 = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
@@ -283,7 +284,7 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void generateRecordPatternAnalysis_P12_with_longer_than_varcharTest() {
-    final LocalDateTime now = LocalDateTime.now();
+    final Instant now = Instant.now();
     final ExecutionPoint executionPoint = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, now);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint, rdfRecordP12);
@@ -300,7 +301,7 @@ class PatternAnalysisServiceImplIT {
   void generateRecordPatternAnalysis_multipleRecords_and_global_patterns()
       throws SerializationException {
     //Insert a problem pattern
-    final LocalDateTime nowP2 = LocalDateTime.now();
+    final Instant nowP2 = Instant.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
@@ -340,7 +341,7 @@ class PatternAnalysisServiceImplIT {
   void generateRecordPatternAnalysis_duplicatedIgnoringCaseTitle()
       throws SerializationException, IOException {
     //Insert a problem pattern
-    final LocalDateTime nowP1 = LocalDateTime.now();
+    final Instant nowP1 = Instant.now();
     final RDF rdfRecords1 = new RdfConversionUtils().convertStringToRdf(
         IOUtils.toString(
             new FileInputStream("src/test/resources/record/problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
@@ -377,7 +378,7 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void finalizeDatasetPatternAnalysisTest() {
-    final LocalDateTime now = LocalDateTime.now();
+    final Instant now = Instant.now();
     final ExecutionPoint executionPoint = patternAnalysisServiceMaxPatterns2.initializePatternAnalysisExecution(
         "1", FullBatchJobType.VALIDATE_INTERNAL, now);
 

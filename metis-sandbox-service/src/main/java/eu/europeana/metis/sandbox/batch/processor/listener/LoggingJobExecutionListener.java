@@ -1,7 +1,8 @@
 package eu.europeana.metis.sandbox.batch.processor.listener;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.job.JobExecution;
@@ -22,12 +23,21 @@ public class LoggingJobExecutionListener implements JobExecutionListener {
   public void beforeJob(@NotNull JobExecution jobExecution) {
     log.info("Before job");
   }
+
   @Override
   public void afterJob(JobExecution jobExecution) {
     log.info("After job");
-    LocalDateTime start = jobExecution.getCreateTime();
-    LocalDateTime end = jobExecution.getEndTime();
-    log.info("Total seconds to complete job: {}", ChronoUnit.SECONDS.between(start, end));
-  }
 
+    LocalDateTime start = jobExecution.getStartTime();
+    LocalDateTime end = jobExecution.getEndTime();
+
+    if (start != null && end != null) {
+      long seconds = Duration.between(
+          start.toInstant(ZoneOffset.UTC),
+          end.toInstant(ZoneOffset.UTC)
+      ).toSeconds();
+
+      log.info("Total seconds to complete job: {}", seconds);
+    }
+  }
 }

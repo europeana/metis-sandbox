@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.config.SecurityConfig;
 import eu.europeana.metis.sandbox.config.webmvc.WebMvcConfig;
 import eu.europeana.metis.sandbox.controller.advice.RestResponseExceptionHandler;
@@ -19,13 +20,11 @@ import eu.europeana.metis.sandbox.controller.ratelimit.RateLimitInterceptor;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasReportDTO;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
-import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.security.test.JwtUtils;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,7 +128,7 @@ class DatasetDebiasControllerTest {
 
   @Test
   void getDebiasReport_expectSuccess() throws Exception {
-    final ZonedDateTime dateTime = ZonedDateTime.now();
+    final Instant dateTime = Instant.parse("2026-02-26T07:45:52.297590Z");
     DeBiasReportDTO deBiasReportDTO = new DeBiasReportDTO(1, DebiasState.COMPLETED, dateTime, 1L, 1L, List.of());
 
     when(debiasStateService.getDeBiasReport(String.valueOf(deBiasReportDTO.getDatasetId()))).thenReturn(deBiasReportDTO);
@@ -139,14 +138,14 @@ class DatasetDebiasControllerTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.dataset-id", is(deBiasReportDTO.getDatasetId())))
            .andExpect(jsonPath("$.state", is(DebiasState.COMPLETED.name())))
-           .andExpect(jsonPath("$.creation-date", is(dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+           .andExpect(jsonPath("$.creation-date", is("2026-02-26T07:45:52.297590Z")))
            .andExpect(jsonPath("$.total-records", is(1)))
            .andExpect(jsonPath("$.processed-records", is(1)));
   }
 
   @Test
   void getDebiasStatus_expectSuccess() throws Exception {
-    final ZonedDateTime dateTime = ZonedDateTime.now();
+    final Instant dateTime = Instant.parse("2026-02-26T07:45:52.297590Z");
     DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(1, DebiasState.COMPLETED, dateTime, 1L, 1L);
 
     when(debiasStateService.getDeBiasStatus(String.valueOf(deBiasStatusDTO.getDatasetId()))).thenReturn(deBiasStatusDTO);
@@ -156,7 +155,7 @@ class DatasetDebiasControllerTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.dataset-id", is(deBiasStatusDTO.getDatasetId())))
            .andExpect(jsonPath("$.state", is(DebiasState.COMPLETED.name())))
-           .andExpect(jsonPath("$.creation-date", is(dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")))))
+           .andExpect(jsonPath("$.creation-date", is("2026-02-26T07:45:52.297590Z")))
            .andExpect(jsonPath("$.total-records", is(1)))
            .andExpect(jsonPath("$.processed-records", is(1)));
   }

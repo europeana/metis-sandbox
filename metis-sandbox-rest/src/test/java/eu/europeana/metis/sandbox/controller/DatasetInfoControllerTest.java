@@ -23,7 +23,7 @@ import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.dto.report.TierStatisticsDTO;
 import eu.europeana.metis.sandbox.dto.report.TiersZeroInfoDTO;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -101,7 +101,7 @@ class DatasetInfoControllerTest {
                                                   .datasetId(datasetId)
                                                   .datasetName("datasetName")
                                                   .createdById("createdById")
-                                                  .creationDate(ZonedDateTime.now())
+                                                  .creationDate(Instant.now())
                                                   .language(Language.EL)
                                                   .country(Country.GREECE)
                                                   .abstractHarvestParametersDTO(oaiHarvestParametersDTO)

@@ -13,7 +13,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecord;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
@@ -23,6 +22,8 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRep
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository.ExecutionRecordWarningProjection;
 import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.WorkflowType;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
@@ -35,7 +36,6 @@ import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
-import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.OaiHarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
@@ -43,7 +43,7 @@ import eu.europeana.metis.sandbox.repository.DatasetRepository.DatasetIdProjecti
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
 import java.time.Duration;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -87,7 +87,7 @@ class DatasetReportServiceTest {
   @Test
   void findDatasetIdsByCreatedBefore_shouldReturnDatasetIds() {
     int days = 10;
-    ZonedDateTime expectedDate = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(days);
+    Instant expectedDate = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(days, ChronoUnit.DAYS);
 
     List<String> datasetIds = List.of("111", "222");
     List<DatasetIdProjection> datasetIdProjections =
@@ -95,13 +95,13 @@ class DatasetReportServiceTest {
                   .map(datasetId -> (DatasetIdProjection) () -> Integer.valueOf(datasetId))
                   .toList();
 
-    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class))).thenReturn(datasetIdProjections);
+    when(datasetRepository.findByCreatedDateBefore(any(Instant.class))).thenReturn(datasetIdProjections);
     List<String> result = datasetReportService.findDatasetIdsByCreatedBefore(days);
     assertEquals(datasetIds, result);
 
-    ArgumentCaptor<ZonedDateTime> zonedDateTimeArgumentCaptor = ArgumentCaptor.forClass(ZonedDateTime.class);
-    verify(datasetRepository, times(1)).findByCreatedDateBefore(zonedDateTimeArgumentCaptor.capture());
-    ZonedDateTime actualArgument = zonedDateTimeArgumentCaptor.getValue();
+    ArgumentCaptor<Instant> dateTimeArgumentCaptor = ArgumentCaptor.forClass(Instant.class);
+    verify(datasetRepository, times(1)).findByCreatedDateBefore(dateTimeArgumentCaptor.capture());
+    Instant actualArgument = dateTimeArgumentCaptor.getValue();
 
     // Allow a small tolerance window because ZonedDateTime.now() is evaluated per line
     long secondsDifference = Math.abs(Duration.between(expectedDate, actualArgument).getSeconds());
@@ -111,13 +111,13 @@ class DatasetReportServiceTest {
   @Test
   void findDatasetIdsByCreatedBefore_shouldThrowServiceExceptionWhenRepositoryThrows() {
     int days = 5;
-    when(datasetRepository.findByCreatedDateBefore(any(ZonedDateTime.class))).thenThrow(new RuntimeException());
+    when(datasetRepository.findByCreatedDateBefore(any(Instant.class))).thenThrow(new RuntimeException());
     assertThrows(ServiceException.class, () -> datasetReportService.findDatasetIdsByCreatedBefore(days));
   }
 
   @Test
   void getDatasetInfo() {
-    ZonedDateTime dateNow = ZonedDateTime.now();
+    Instant dateNow = Instant.now();
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(123);
     datasetEntity.setCreatedDate(dateNow);
@@ -169,7 +169,7 @@ class DatasetReportServiceTest {
   @Test
   void getProgress() {
     String datasetId = "1";
-    ZonedDateTime dateNow = ZonedDateTime.now();
+    Instant dateNow = Instant.now();
     DatasetEntity datasetEntity = new DatasetEntity();
     datasetEntity.setDatasetId(Integer.valueOf(datasetId));
     datasetEntity.setCreatedDate(dateNow);

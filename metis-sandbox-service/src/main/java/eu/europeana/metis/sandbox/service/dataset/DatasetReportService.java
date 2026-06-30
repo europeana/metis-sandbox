@@ -5,7 +5,6 @@ import static java.lang.String.format;
 
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
-import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordIdentifier;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordTierContext;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
@@ -18,13 +17,14 @@ import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordTierContextRep
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRecordWarningRepository.ExecutionRecordWarningProjection;
 import eu.europeana.metis.sandbox.batch.repository.ExecutionRunRepository;
-import eu.europeana.metis.sandbox.dto.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.common.Status;
+import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.exception.InvalidDatasetException;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress.SandboxTaskState;
 import eu.europeana.metis.sandbox.dto.DatasetInfoDTO;
+import eu.europeana.metis.sandbox.dto.HarvestParametersConverter;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.DatasetErrorInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ErrorInfoDTO;
@@ -43,7 +43,7 @@ import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
 import eu.europeana.metis.sandbox.service.engine.WorkflowHelper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -128,7 +128,7 @@ public class DatasetReportService {
    * @return a list of dataset IDs created before the specified number of days
    */
   public List<String> findDatasetIdsByCreatedBefore(int days) {
-    ZonedDateTime retentionDate = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(days);
+    Instant retentionDate = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(days, ChronoUnit.DAYS);
 
     try {
       return datasetRepository.findByCreatedDateBefore(retentionDate).stream()

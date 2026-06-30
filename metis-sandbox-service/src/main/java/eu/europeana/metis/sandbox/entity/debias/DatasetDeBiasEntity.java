@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,7 +35,7 @@ public class DatasetDeBiasEntity {
 
   private DebiasState debiasState;
 
-  private ZonedDateTime createdDate;
+  private Instant createdDate;
 
   /**
    * Constructor.
@@ -44,7 +44,7 @@ public class DatasetDeBiasEntity {
    * @param debiasState the current state of the debiasing process
    * @param createdDate the timestamp when the debiasing process was created
    */
-  public DatasetDeBiasEntity(DatasetEntity datasetId, DebiasState debiasState, ZonedDateTime createdDate) {
+  public DatasetDeBiasEntity(DatasetEntity datasetId, DebiasState debiasState, Instant createdDate) {
     this.datasetId = datasetId;
     this.debiasState = debiasState;
     this.createdDate = createdDate;
