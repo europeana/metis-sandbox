@@ -65,6 +65,9 @@ class IndexConfig {
   @Value("${sandbox.preview.solr.zookeeper.timeout:#{null}}")
   private Integer zookeeperPreviewTimeoutInSecs;
 
+  @Value("${sandbox.preview.solr.useHttp1:#{null}}")
+  private Boolean solrUseHttp1;
+
   @Bean
   Indexer<FullBeanImpl> indexerPreview() throws URISyntaxException, SetupRelatedIndexingException {
     return getIndexer(mongoPreviewHosts, mongoPreviewPorts, mongoPreviewDb,
@@ -72,7 +75,7 @@ class IndexConfig {
         mongoPreviewUsername, mongoPreviewPassword, mongoPreviewEnableSSL, mongoPreviewApplicationName,
         mongoPreviewMaxConnectionPoolSize, solrPreviewHosts,
         zookeeperPreviewHosts, zookeeperPreviewPorts, zookeeperPreviewChroot,
-        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs
+        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs, solrUseHttp1
     );
   }
 
@@ -84,7 +87,7 @@ class IndexConfig {
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
       Boolean mongoEnableSSL, String mongoApplicationName, Integer mongoMaxConnectionPoolSize,
       String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts, String zookeeperChroot,
-      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs)
+      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs, Boolean solrUseHttp1)
       throws SetupRelatedIndexingException, URISyntaxException {
     checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
     checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
@@ -109,6 +112,7 @@ class IndexConfig {
     if (isNotEmpty(zookeeperHosts) && isNotEmpty(zookeeperPorts)) {
       settings.getSolrProperties().setZookeeperHosts(zookeeperHosts, zookeeperPorts);
     }
+    settings.getSolrProperties().setSolrUseHttp1(solrUseHttp1);
     if (isNotBlank(zookeeperChroot)) {
       settings.setZookeeperChroot(zookeeperChroot);
     }
