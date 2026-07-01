@@ -175,6 +175,7 @@ sandbox:
       max-connection-pool-size:
     solr:
       hosts:
+      useHttp1: false
       zookeeper:
         hosts:
         ports:
@@ -182,6 +183,7 @@ sandbox:
         default:
           collection:
         timeout: 10
+
   s3:
     access-key:
     secret-key:

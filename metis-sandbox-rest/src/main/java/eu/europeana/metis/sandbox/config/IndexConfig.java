@@ -119,7 +119,7 @@ class IndexConfig {
     if (isNotBlank(zookeeperDefaultCollection)) {
       settings.setZookeeperDefaultCollection(zookeeperDefaultCollection);
     }
-    if (nonNull(zookeeperTimeoButInSecs)) {
+    if (nonNull(zookeeperTimeoutInSecs)) {
       settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
     }
 
