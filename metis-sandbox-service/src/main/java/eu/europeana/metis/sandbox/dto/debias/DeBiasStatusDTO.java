@@ -1,15 +1,18 @@
 package eu.europeana.metis.sandbox.dto.debias;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * The type Detection info dto.
  */
 @Schema(name = DeBiasStatusDTO.SWAGGER_MODEL_NAME)
+@Getter
+@AllArgsConstructor
 public class DeBiasStatusDTO {
 
   /**
@@ -24,75 +27,11 @@ public class DeBiasStatusDTO {
   private final DebiasState debiasState;
 
   @JsonProperty("creation-date")
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-  private final ZonedDateTime creationDate;
+  private final Instant creationDate;
 
   @JsonProperty("total-records")
   private final Long total;
 
   @JsonProperty("processed-records")
   private final Long processed;
-
-  /**
-   * Instantiates a new Detection info dto.
-   *
-   * @param datasetId the dataset id
-   * @param debiasState the state
-   * @param creationDate the creation date
-   * @param total the total
-   * @param processed the proccessed
-   */
-  public DeBiasStatusDTO(Integer datasetId, DebiasState debiasState, ZonedDateTime creationDate,
-      Long total, Long processed) {
-    this.datasetId = datasetId;
-    this.debiasState = debiasState;
-    this.creationDate = creationDate;
-    this.total = total;
-    this.processed = processed;
-  }
-
-  /**
-   * Gets dataset id.
-   *
-   * @return the dataset id
-   */
-  public Integer getDatasetId() {
-    return datasetId;
-  }
-
-  /**
-   * Gets state.
-   *
-   * @return the state
-   */
-  public DebiasState getDebiasState() {
-    return debiasState;
-  }
-
-  /**
-   * Gets creation date.
-   *
-   * @return the creation date
-   */
-  public ZonedDateTime getCreationDate() {
-    return creationDate;
-  }
-
-  /**
-   * Gets total.
-   *
-   * @return the total
-   */
-  public Long getTotal() {
-    return total;
-  }
-
-  /**
-   * Gets success.
-   *
-   * @return the success
-   */
-  public Long getProcessed() {
-    return processed;
-  }
 }

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class IndexDataCleaner {
 
-  private final Indexer<FullBeanImpl> publishIndexer;
+  private final Indexer<FullBeanImpl> indexerPreview;
 
   /**
    * Removes all indexed data for a specific dataset.
@@ -31,7 +31,7 @@ public class IndexDataCleaner {
     requireNonNull(datasetId, "Dataset id must not be null");
 
     try {
-      publishIndexer.removeAll(datasetId, null);
+      indexerPreview.removeAll(datasetId, null);
     } catch (IndexingException e) {
       throw new DatasetIndexRemoveException(datasetId, e);
     }
@@ -47,6 +47,6 @@ public class IndexDataCleaner {
    */
   @PreDestroy
   public void destroy() throws IOException {
-    publishIndexer.close();
+    indexerPreview.close();
   }
 }

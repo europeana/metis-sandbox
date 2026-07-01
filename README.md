@@ -65,11 +65,11 @@ Installing latest docker-compose:
 
 ### Local SOLR & Zookeeper server
 **SOLR** is available on http://localhost:8983 running in cloud mode with one node. 
-The configured collection is `metis_sandbox_publish_local`
+The configured collection is `metis_sandbox_preview_local`
 ```
 sandbox:
     solr:
-        hosts: http://localhost:8983/solr/metis_sandbox_publish_local
+        hosts: http://localhost:8983/solr/metis_sandbox_preview_local
 ```        
 **Zookeeper** is available on http://localhost:9983
 

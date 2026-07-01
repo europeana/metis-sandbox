@@ -27,7 +27,7 @@ import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasReportRow;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -82,7 +82,7 @@ class DeBiasStateServiceTest {
     when(datasetRepository.findById(Integer.valueOf(datasetId))).thenReturn(Optional.of(datasetEntity));
     DatasetDeBiasEntity storedDatasetDeBiasEntity = new DatasetDeBiasEntity();
     storedDatasetDeBiasEntity.setDebiasState(DebiasState.PROCESSING);
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     storedDatasetDeBiasEntity.setCreatedDate(nowDate);
     storedDatasetDeBiasEntity.setDatasetId(datasetEntity);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
@@ -116,7 +116,7 @@ class DeBiasStateServiceTest {
   void testGetDeBiasStatus_Processing() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
@@ -137,7 +137,7 @@ class DeBiasStateServiceTest {
   void testGetDeBiasStatus_Processing_WithErrors() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
@@ -159,7 +159,7 @@ class DeBiasStateServiceTest {
   void testGetDeBiasStatus_Completed() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
@@ -180,7 +180,7 @@ class DeBiasStateServiceTest {
   void testGetDeBiasStatus_Invalid() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
@@ -201,7 +201,7 @@ class DeBiasStateServiceTest {
   void getDeBiasReport() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);
@@ -253,7 +253,7 @@ class DeBiasStateServiceTest {
   void getDeBiasReportWithErrors() {
     String datasetId = "1";
     DatasetDeBiasEntity datasetDeBiasEntity = new DatasetDeBiasEntity();
-    ZonedDateTime nowDate = ZonedDateTime.now();
+    Instant nowDate = Instant.now();
     datasetDeBiasEntity.setCreatedDate(nowDate);
     when(datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(Integer.valueOf(datasetId))).thenReturn(
         datasetDeBiasEntity);

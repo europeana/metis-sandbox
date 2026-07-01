@@ -47,15 +47,13 @@ public class ValidationService {
    * @param recordData the raw data of the record to be validated
    * @param recordId the unique identifier of the record being validated
    * @param datasetId the identifier of the dataset the record belongs to
-   * @param executionName the name associated with the execution process
+   * @param executionPointId the identifier of the execution point associated with the record
    * @param subtype the subtype of the validation job (e.g., EXTERNAL or INTERNAL)
    * @return the result of the validation containing validation status and messages
    * @throws ValidationException if the validation process encounters an error
    */
   public ValidationResultWithIdentifiers validateRecord(String recordData, String recordId, String datasetId,
-      String executionName,
-      ValidationBatchJobSubType subtype)
-      throws ValidationException {
+      Integer executionPointId, ValidationBatchJobSubType subtype) throws ValidationException {
 
     String reorderedFileContent = recordData;
     if (subtype == ValidationBatchJobSubType.EXTERNAL) {
@@ -70,7 +68,7 @@ public class ValidationService {
     }
 
     Optional<EuropeanaGeneratedIdsMap> europeanaGeneratedIdsMap =
-        handleSubtype(subtype, datasetId, recordData, executionName, reorderedFileContent);
+        handleSubtype(subtype, executionPointId, datasetId, recordData, reorderedFileContent);
 
     log.debug("Validation Success for datasetId {}, recordId {}", datasetId, recordId);
     return new ValidationResultWithIdentifiers(validationResult, europeanaGeneratedIdsMap);
@@ -95,29 +93,28 @@ public class ValidationService {
 
   private Optional<EuropeanaGeneratedIdsMap> handleSubtype(
       ValidationBatchJobSubType subtype,
-      String datasetId,
+      Integer executionPointId, String datasetId,
       String recordData,
-      String executionName,
       String reorderedFileContent
   ) {
     return switch (subtype) {
       case EXTERNAL -> getEuropeanaGeneratedIdsMap(datasetId, recordData);
       case INTERNAL -> {
-        generatePatternAnalysis(datasetId, executionName, reorderedFileContent);
+        generatePatternAnalysis(executionPointId, reorderedFileContent);
         yield Optional.empty();
       }
     };
   }
 
 
-  private void generatePatternAnalysis(String datasetId, String executionName, String reorderedRecordData) {
+  private void generatePatternAnalysis(Integer executionPointId, String reorderedRecordData) {
     ExecutionPoint executionPoint = executionPointRepository
-        .findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc(datasetId, executionName)
-        .orElseThrow(() -> new IllegalStateException("No execution point found for datasetId " + datasetId));
+        .findById(executionPointId)
+        .orElseThrow(() -> new IllegalStateException("No execution point found for id " + executionPointId));
     try {
       patternAnalysisService.generateRecordPatternAnalysis(executionPoint, reorderedRecordData);
     } catch (PatternAnalysisException e) {
-      log.error("Pattern analysis failed for datasetId {}, executionName {}", datasetId, executionName, e);
+      log.error("Pattern analysis failed for executionPointId {}", executionPointId, e);
     }
   }
 

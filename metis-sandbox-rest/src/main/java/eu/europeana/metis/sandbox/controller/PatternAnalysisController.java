@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -82,7 +82,7 @@ public class PatternAnalysisController {
 
     // Get the execution point. If it does not exist, we are done.
     final ExecutionPoint executionPoint = executionPointService
-        .getExecutionPoint(escapedDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
+        .getLatestExecutionPoint(escapedDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
     if (executionPoint == null) {
       return new ResponseEntity<>(DatasetProblemPatternAnalysisView.getEmptyAnalysis(escapedDatasetId,
           ProblemPatternAnalysisStatus.PENDING), HttpStatus.NOT_FOUND);
@@ -151,11 +151,17 @@ public class PatternAnalysisController {
   @ApiResponse(responseCode = "404", description = "Not able to retrieve all timestamps values")
   @GetMapping(value = "execution-timestamps", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public Set<LocalDateTime> getAllExecutionTimestamps() {
+  public Set<Instant> getAllExecutionTimestamps() {
     return executionPointService.getAllExecutionTimestamps();
   }
 
-  private static final class DatasetProblemPatternAnalysisView<T> {
+  /**
+   * Represents a view for analyzing problem patterns within a dataset, providing details about the dataset, its problem patterns,
+   * execution step, execution timestamp, and the analysis status.
+   *
+   * @param <T> The type representing the execution step.
+   */
+  public static final class DatasetProblemPatternAnalysisView<T> {
 
     @JsonProperty
     private final String datasetId;

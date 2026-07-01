@@ -22,7 +22,7 @@ import eu.europeana.metis.sandbox.dto.DatasetSummaryDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.service.user.UserService;
 import eu.europeana.metis.security.test.JwtUtils;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -72,7 +72,7 @@ class UserControllerTest {
                                                   .datasetId(DATASET_ID)
                                                   .datasetName("datasetName")
                                                   .createdById("createdById")
-                                                  .creationDate(ZonedDateTime.now())
+                                                  .creationDate(Instant.now())
                                                   .language(Language.EL)
                                                   .country(Country.GREECE)
                                                   .abstractHarvestParametersDTO(oaiHarvestParametersDTO)
