@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -11,6 +12,7 @@ import lombok.Getter;
  */
 @Schema(name = DeBiasStatusDTO.SWAGGER_MODEL_NAME)
 @Getter
+@AllArgsConstructor
 public class DeBiasStatusDTO {
 
   /**
@@ -32,22 +34,4 @@ public class DeBiasStatusDTO {
 
   @JsonProperty("processed-records")
   private final Long processed;
-
-  /**
-   * Instantiates a new Detection info dto.
-   *
-   * @param datasetId the dataset id
-   * @param debiasState the state
-   * @param creationDate the creation date
-   * @param total the total records
-   * @param processed the processed records
-   */
-  public DeBiasStatusDTO(Integer datasetId, DebiasState debiasState, Instant creationDate,
-      Long total, Long processed) {
-    this.datasetId = datasetId;
-    this.debiasState = debiasState;
-    this.creationDate = creationDate;
-    this.total = total;
-    this.processed = processed;
-  }
 }
