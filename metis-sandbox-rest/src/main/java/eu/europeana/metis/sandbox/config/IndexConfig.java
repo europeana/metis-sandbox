@@ -65,7 +65,7 @@ class IndexConfig {
   @Value("${sandbox.preview.solr.zookeeper.timeout:#{null}}")
   private Integer zookeeperPreviewTimeoutInSecs;
 
-  @Value("${sandbox.preview.solr.useHttp1:#{null}}")
+  @Value("${sandbox.preview.solr.useHttp1:true}")
   private Boolean solrUseHttp1;
 
   @Bean
