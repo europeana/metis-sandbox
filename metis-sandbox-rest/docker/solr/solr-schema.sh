@@ -24,15 +24,15 @@ function declare_common_fields() {
 function declare_multiple_environments_fields() {
   #The server has to have a zookeeper running for uploading the configuration.
   ENVIRONMENT="LOCAL"
-  INDEX_ENVIRONMENT="PUBLISH"
+  INDEX_ENVIRONMENT="PREVIEW"
   BRANCH_OR_PR_NUMBER="upgrade_solr9.10"
   LOCAL_SOLR_SERVER=metis-sandbox-solr
   LOCAL_ZOOKEEPER_SERVER=localhost
   LOCAL_ZOOKEEPER_PORT="9983"
   LOCAL_SOLR_PORT="8983"
   LOCAL_SOLR_BINARIES_DIR=/opt/solr/
-  LOCAL_PUBLISH_COLLECTION=metis_sandbox_publish_local
-  LOCAL_PUBLISH_SOLR_CONF_DIR=local_publishConf
+  LOCAL_PREVIEW_COLLECTION=metis_sandbox_preview_local
+  LOCAL_PREVIEW_SOLR_CONF_DIR=local_previewConf
 }
 
 function set_chosen_environment_fields() {
@@ -42,8 +42,8 @@ function set_chosen_environment_fields() {
   SOLR_PORT=${LOCAL_SOLR_PORT}
   SOLR_BINARIES_DIR=${LOCAL_SOLR_BINARIES_DIR}
 
-  COLLECTION_NAME=${LOCAL_PUBLISH_COLLECTION}
-  TARGET_SOLR_CONF_DIR=${LOCAL_PUBLISH_SOLR_CONF_DIR}
+  COLLECTION_NAME=${LOCAL_PREVIEW_COLLECTION}
+  TARGET_SOLR_CONF_DIR=${LOCAL_PREVIEW_SOLR_CONF_DIR}
 }
 
 function print_chosen_environment_and_options() {

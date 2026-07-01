@@ -18,21 +18,21 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import eu.europeana.metis.sandbox.dto.DatasetMetadata;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
-import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
+import eu.europeana.metis.sandbox.common.WorkflowType;
+import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.DatasetMetadata;
+import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
-import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.dto.harvest.FileHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.HttpHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +87,7 @@ class DatasetExecutionServiceTest {
   private static final String USER_ID = "userId";
   private static final int STEP_SIZE = 1;
   private static final String CONTENT_FILE_PATH = "/test-path";
-  private static final ZonedDateTime FIXED_TIME = ZonedDateTime.parse("2026-01-01T12:00:00Z");
+  private static final Instant FIXED_TIME = Instant.parse("2026-01-01T12:00:00Z");
   private static String baseUrl;
 
   @BeforeEach
@@ -243,7 +243,7 @@ class DatasetExecutionServiceTest {
   void createAndExecuteDatasetForDebias() {
     Lock lock = mock(Lock.class);
     when(lockRegistry.obtain(anyString())).thenReturn(lock);
-    ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, ExecutionStatus.COMPLETED, 0, 0,
+    ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, null, ExecutionStatus.COMPLETED, 0, 0,
         List.of(), false, List.of(),null);
     when(datasetReportService.getProgress(DATASET_ID)).thenReturn(executionProgressInfoDTO);
     DeBiasStatusDTO deBiasStatusDTO = new DeBiasStatusDTO(Integer.valueOf(DATASET_ID), DebiasState.READY, FIXED_TIME, 0L,
@@ -267,9 +267,9 @@ class DatasetExecutionServiceTest {
   void createAndExecuteDatasetForDebias_Fail() {
     Lock lock = mock(Lock.class);
     when(lockRegistry.obtain(anyString())).thenReturn(lock);
-    ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, ExecutionStatus.COMPLETED, 0, 0,
+    ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(null, null, ExecutionStatus.COMPLETED, 0, 0,
         List.of(), false, List.of(),null);
-    ExecutionProgressInfoDTO executionProgressInfoDTOInProgress = new ExecutionProgressInfoDTO(null, ExecutionStatus.IN_PROGRESS,
+    ExecutionProgressInfoDTO executionProgressInfoDTOInProgress = new ExecutionProgressInfoDTO(null, null, ExecutionStatus.IN_PROGRESS,
         0, 0,
         List.of(), false, List.of(),null);
     when(datasetReportService.getProgress(DATASET_ID))

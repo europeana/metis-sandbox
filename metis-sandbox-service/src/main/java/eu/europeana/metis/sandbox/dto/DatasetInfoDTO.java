@@ -5,7 +5,7 @@ import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
 import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -29,7 +29,7 @@ public final class DatasetInfoDTO {
   private final String createdById;
 
   @JsonProperty("creation-date")
-  private final ZonedDateTime creationDate;
+  private final Instant creationDate;
 
   @JsonProperty("language")
   private final Language language;

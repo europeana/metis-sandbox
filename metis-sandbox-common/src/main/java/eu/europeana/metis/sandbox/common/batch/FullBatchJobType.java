@@ -21,7 +21,7 @@ public enum FullBatchJobType {
   NORMALIZE(BatchJobType.NORMALIZE, BatchJobGroup.CURATE),
   ENRICH(BatchJobType.ENRICH, BatchJobGroup.CURATE),
   MEDIA(BatchJobType.MEDIA, BatchJobGroup.CURATE),
-  INDEX_PUBLISH(BatchJobType.INDEX, IndexBatchJobSubType.PUBLISH, BatchJobGroup.INDEX),
+  INDEX_PREVIEW(BatchJobType.INDEX, IndexBatchJobSubType.PREVIEW, BatchJobGroup.INDEX),
   DEBIAS(BatchJobType.DEBIAS, BatchJobGroup.DEBIAS);
 
   private final BatchJobType batchJobType;
@@ -70,6 +70,6 @@ public enum FullBatchJobType {
    * organized.
    */
   public enum BatchJobGroup {
-    HARVEST, CURATE, INDEX, DEPUBLISH, DEBIAS
+    HARVEST, CURATE, INDEX, DEBIAS
   }
 }

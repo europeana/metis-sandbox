@@ -162,7 +162,7 @@ sandbox:
       entity-api-url: https://entity-api-v2-production.eanadev.org/entity
       entity-api-token-endpoint: https://auth.europeana.eu/auth/realms/europeana/protocol/openid-connect/token
       entity-api-grant-params: client_id=metis-enrichment&client_secret=&grant_type=client_credentials
-  publish:
+  preview:
     mongo:
       application-name: metis-sandbox-local
       db:
@@ -189,7 +189,7 @@ sandbox:
     signing-region:
     thumbnails-bucket:
   portal:
-    publish:
+    preview:
       dataset-base-url: "http://metis-test"
       record-base-url: "http://metis-test/item"
 

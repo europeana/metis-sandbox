@@ -20,7 +20,7 @@ import eu.europeana.metis.sandbox.repository.debias.DatasetDeBiasRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasDetailRepository;
 import eu.europeana.metis.sandbox.repository.debias.RecordDeBiasMainRepository;
 import eu.europeana.metis.sandbox.service.debias.DeBiasProcessService.DeBiasReportRow;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -113,7 +113,7 @@ public class DeBiasStateService {
       debiasState = DebiasState.INVALID;
     }
 
-    ZonedDateTime creationDate = ZonedDateTime.now();
+    Instant creationDate = Instant.now();
     if (datasetDeBiasEntity != null) {
       creationDate = datasetDeBiasEntity.getCreatedDate();
     }
@@ -135,7 +135,7 @@ public class DeBiasStateService {
     DatasetDeBiasEntity datasetDeBiasEntity = datasetDeBiasRepository.findDetectionEntityByDatasetIdDatasetId(
         Integer.valueOf(datasetId));
     if (datasetDeBiasEntity == null) {
-      datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, DebiasState.READY, ZonedDateTime.now());
+      datasetDeBiasEntity = new DatasetDeBiasEntity(dataset, DebiasState.READY, Instant.now());
       datasetDeBiasEntity = datasetDeBiasRepository.save(datasetDeBiasEntity);
     }
     return datasetDeBiasEntity;

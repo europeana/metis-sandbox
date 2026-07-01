@@ -23,7 +23,7 @@ public class SolrTestContainersConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String SOLR_VERSION = "solr:9.10.1-slim";
   private static final SolrContainer solrContainer;
-  public static final String SOLR_COLLECTION_NAME = "solr_publish_test";
+  public static final String SOLR_COLLECTION_NAME = "solr_preview_test";
 
   static {
     solrContainer = new SolrContainer(DockerImageName.parse(SOLR_VERSION)).withCollection(SOLR_COLLECTION_NAME);

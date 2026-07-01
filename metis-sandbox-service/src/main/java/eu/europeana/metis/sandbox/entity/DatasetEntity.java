@@ -14,7 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -36,7 +36,7 @@ public class DatasetEntity {
   private Integer datasetId;
 
   @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT NOW()", insertable = false, updatable = false)
-  private ZonedDateTime createdDate;
+  private Instant createdDate;
 
   private String datasetName;
 

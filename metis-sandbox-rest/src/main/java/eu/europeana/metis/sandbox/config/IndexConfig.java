@@ -20,62 +20,63 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class IndexConfig {
 
-  @Value("${sandbox.publish.mongo.hosts}")
-  private String[] mongoPublishHosts;
+  @Value("${sandbox.preview.mongo.hosts}")
+  private String[] mongoPreviewHosts;
 
-  @Value("${sandbox.publish.mongo.ports}")
-  private int[] mongoPublishPorts;
+  @Value("${sandbox.preview.mongo.ports}")
+  private int[] mongoPreviewPorts;
 
-  @Value("${sandbox.publish.mongo.authentication-db:#{null}}")
-  private String mongoPublishAuthenticationDb;
+  @Value("${sandbox.preview.mongo.authentication-db:#{null}}")
+  private String mongoPreviewAuthenticationDb;
 
-  @Value("${sandbox.publish.mongo.username:#{null}}")
-  private String mongoPublishUsername;
+  @Value("${sandbox.preview.mongo.username:#{null}}")
+  private String mongoPreviewUsername;
 
-  @Value("${sandbox.publish.mongo.password:#{null}}")
-  private String mongoPublishPassword;
+  @Value("${sandbox.preview.mongo.password:#{null}}")
+  private String mongoPreviewPassword;
 
-  @Value("${sandbox.publish.mongo.ssl-enable:#{null}}")
-  private Boolean mongoPublishEnableSSL;
+  @Value("${sandbox.preview.mongo.ssl-enable:#{null}}")
+  private Boolean mongoPreviewEnableSSL;
 
-  @Value("${sandbox.publish.mongo.db}")
-  private String mongoPublishDb;
+  @Value("${sandbox.preview.mongo.db}")
+  private String mongoPreviewDb;
 
-  @Value("${sandbox.publish.mongo.application-name:#{null}}")
-  private String mongoPublishApplicationName;
+  @Value("${sandbox.preview.mongo.application-name:#{null}}")
+  private String mongoPreviewApplicationName;
 
-  @Value("${sandbox.publish.mongo.max-connection-pool-size:#{null}}")
-  private Integer mongoMaxConnectionPoolSize;
+  @Value("${sandbox.preview.mongo.max-connection-pool-size:#{null}}")
+  private Integer mongoPreviewMaxConnectionPoolSize;
 
-  @Value("${sandbox.publish.solr.hosts}")
-  private String[] solrPublishHosts;
+  @Value("${sandbox.preview.solr.hosts}")
+  private String[] solrPreviewHosts;
 
-  @Value("${sandbox.publish.solr.zookeeper.hosts:#{null}}")
-  private String[] zookeeperPublishHosts;
+  @Value("${sandbox.preview.solr.zookeeper.hosts:#{null}}")
+  private String[] zookeeperPreviewHosts;
 
-  @Value("${sandbox.publish.solr.zookeeper.ports:#{null}}")
-  private int[] zookeeperPublishPorts;
+  @Value("${sandbox.preview.solr.zookeeper.ports:#{null}}")
+  private int[] zookeeperPreviewPorts;
 
-  @Value("${sandbox.publish.solr.zookeeper.chroot:#{null}}")
-  private String zookeeperPublishChroot;
+  @Value("${sandbox.preview.solr.zookeeper.chroot:#{null}}")
+  private String zookeeperPreviewChroot;
 
-  @Value("${sandbox.publish.solr.zookeeper.default.collection:#{null}}")
-  private String zookeeperPublishDefaultCollection;
+  @Value("${sandbox.preview.solr.zookeeper.default.collection:#{null}}")
+  private String zookeeperPreviewDefaultCollection;
 
-  @Value("${sandbox.publish.solr.zookeeper.timeout:#{null}}")
-  private Integer zookeeperPublishTimeoutInSecs;
+  @Value("${sandbox.preview.solr.zookeeper.timeout:#{null}}")
+  private Integer zookeeperPreviewTimeoutInSecs;
 
-  @Value("${sandbox.publish.solr.useHttp1:#{null}}")
+  @Value("${sandbox.preview.solr.useHttp1:#{null}}")
   private Boolean solrUseHttp1;
 
   @Bean
-  Indexer<FullBeanImpl> publishIndexer() throws URISyntaxException, SetupRelatedIndexingException {
-    return getIndexer(mongoPublishHosts, mongoPublishPorts, mongoPublishDb,
-        mongoPublishAuthenticationDb,
-        mongoPublishUsername, mongoPublishPassword, mongoPublishEnableSSL, mongoPublishApplicationName,
-        mongoMaxConnectionPoolSize, solrPublishHosts,
-        zookeeperPublishHosts, zookeeperPublishPorts, zookeeperPublishChroot,
-        zookeeperPublishDefaultCollection, zookeeperPublishTimeoutInSecs, solrUseHttp1);
+  Indexer<FullBeanImpl> indexerPreview() throws URISyntaxException, SetupRelatedIndexingException {
+    return getIndexer(mongoPreviewHosts, mongoPreviewPorts, mongoPreviewDb,
+        mongoPreviewAuthenticationDb,
+        mongoPreviewUsername, mongoPreviewPassword, mongoPreviewEnableSSL, mongoPreviewApplicationName,
+        mongoPreviewMaxConnectionPoolSize, solrPreviewHosts,
+        zookeeperPreviewHosts, zookeeperPreviewPorts, zookeeperPreviewChroot,
+        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs, solrUseHttp1
+    );
   }
 
   //todo: this class should use configuration properties from metis-common-spring-properties
@@ -84,9 +85,9 @@ class IndexConfig {
   @SuppressWarnings("squid:S107")
   private Indexer<FullBeanImpl> getIndexer(String[] mongoHosts, int[] mongoPorts, String mongoDb,
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
-      Boolean mongoEnableSSL, String mongoPublishApplicationName, Integer mongoMaxConnectionPoolSize,
+      Boolean mongoEnableSSL, String mongoApplicationName, Integer mongoMaxConnectionPoolSize,
       String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts, String zookeeperChroot,
-      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs, Boolean  solrUseHttp1)
+      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs, boolean  solrUseHttp1)
       throws SetupRelatedIndexingException, URISyntaxException {
     checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
     checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
@@ -98,7 +99,7 @@ class IndexConfig {
     // Set the Mongo properties
     settings.getMongoProperties().setAllProperties(mongoHosts, mongoPorts,
         mongoAuthenticationDb, mongoUsername, mongoPassword, Boolean.TRUE.equals(mongoEnableSSL),
-        null, mongoPublishApplicationName);
+        null, mongoApplicationName);
     settings.setMongoDatabaseName(mongoDb);
     ofNullable(mongoMaxConnectionPoolSize).ifPresent(settings::setMongoMaxConnectionPoolSize);
 
@@ -118,7 +119,7 @@ class IndexConfig {
     if (isNotBlank(zookeeperDefaultCollection)) {
       settings.setZookeeperDefaultCollection(zookeeperDefaultCollection);
     }
-    if (nonNull(zookeeperTimeoutInSecs)) {
+    if (nonNull(zookeeperTimeoButInSecs)) {
       settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
     }
 

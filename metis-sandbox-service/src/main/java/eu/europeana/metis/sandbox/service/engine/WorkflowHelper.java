@@ -3,7 +3,7 @@ package eu.europeana.metis.sandbox.service.engine;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.ENRICH;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.HARVEST_FILE;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.HARVEST_OAI;
-import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.INDEX_PUBLISH;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.INDEX_PREVIEW;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.MEDIA;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.NORMALIZE;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.TRANSFORM_EXTERNAL;
@@ -35,7 +35,7 @@ import lombok.experimental.UtilityClass;
 public final class WorkflowHelper {
 
   private static final List<FullBatchJobType> COMMON_POST_HARVEST =
-      List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX_PUBLISH);
+      List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL, NORMALIZE, ENRICH, MEDIA, INDEX_PREVIEW);
 
   private static final List<FullBatchJobType> ONLY_VALIDATION =
       List.of(VALIDATE_EXTERNAL, TRANSFORM_INTERNAL, VALIDATE_INTERNAL);

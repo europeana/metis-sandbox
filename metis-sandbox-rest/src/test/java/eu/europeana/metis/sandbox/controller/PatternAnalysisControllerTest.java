@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.controller;
 
 import static java.util.Collections.emptyList;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,13 +36,12 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +76,6 @@ class PatternAnalysisControllerTest {
   private JwtDecoder jwtDecoder;
 
   private static MockMvc mvc;
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
   @BeforeAll
   static void setup(WebApplicationContext context) {
@@ -93,7 +92,7 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getDatasetAnalysis_expectSuccess() throws Exception {
-    LocalDateTime executionTimestamp = LocalDateTime.now();
+    Instant executionTimestamp = Instant.now();
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
     executionPoint.setDatasetId("datasetId");
@@ -102,14 +101,14 @@ class PatternAnalysisControllerTest {
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
         new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
             problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
 
     final ExecutionProgressInfoDTO completedInfo =
-        new ExecutionProgressInfoDTO("", ExecutionStatus.COMPLETED, 1L, 1L, emptyList(), false, List.of(), null);
+        new ExecutionProgressInfoDTO("", "", ExecutionStatus.COMPLETED, 1L, 1L, emptyList(), false, List.of(), null);
     assertEquals(ExecutionStatus.COMPLETED, completedInfo.executionStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
@@ -123,7 +122,7 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getDatasetAnalysis_withProblemPatternList_checkSorting_expectSuccess() throws Exception {
-    LocalDateTime executionTimestamp = LocalDateTime.now();
+    Instant executionTimestamp = Instant.now();
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
     executionPoint.setDatasetId("datasetId");
@@ -141,7 +140,7 @@ class PatternAnalysisControllerTest {
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
         new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
             problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -166,8 +165,8 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getDatasetAnalysis_getEmptyResult_expectSuccess() throws Exception {
-    LocalDateTime executionTimestamp = LocalDateTime.now();
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    Instant executionTimestamp = Instant.now();
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.empty());
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -182,12 +181,12 @@ class PatternAnalysisControllerTest {
 
   @Test
   void getDatasetAnalysis_executionPoint_getEmptyResult_expectSuccess() throws Exception {
-    LocalDateTime executionTimestamp = LocalDateTime.now();
+    Instant executionTimestamp = Instant.now();
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
     executionPoint.setDatasetId("datasetId");
     executionPoint.setExecutionPointId(1);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -234,20 +233,22 @@ class PatternAnalysisControllerTest {
   @Test
   void getAllExecutionTimestamps_expectSuccess() throws Exception {
     when(mockExecutionPointService.getAllExecutionTimestamps()).thenReturn(
-        new HashSet<>(List.of(LocalDateTime.from(FORMATTER.parse("2022-04-19T15:53:57.377423")),
-            LocalDateTime.from(FORMATTER.parse("2022-04-21T12:19:35.339562")),
-            LocalDateTime.from(FORMATTER.parse("2022-04-19T15:44:10.634167")))));
+        Set.of(
+            Instant.parse("2022-04-19T15:53:57.377423Z"),
+            Instant.parse("2022-04-21T12:19:35.339562Z"),
+            Instant.parse("2022-04-19T15:44:10.634167Z")));
 
     mvc.perform(get("/pattern-analysis/execution-timestamps"))
        .andExpect(status().isOk())
-       .andExpect(jsonPath("$[0]", is("2022-04-19T15:53:57.377423")))
-       .andExpect(jsonPath("$[1]", is("2022-04-21T12:19:35.339562")))
-       .andExpect(jsonPath("$[2]", is("2022-04-19T15:44:10.634167")));
+       .andExpect(jsonPath("$", containsInAnyOrder(
+           "2022-04-19T15:53:57.377423Z",
+           "2022-04-21T12:19:35.339562Z",
+           "2022-04-19T15:44:10.634167Z")));
   }
 
   @Test
   void getDatasetAnalysis_withCleanMessageReportP7AndSorted_expectSuccess() throws Exception {
-    LocalDateTime executionTimestamp = LocalDateTime.now();
+    Instant executionTimestamp = Instant.now();
     ExecutionPoint executionPoint = new ExecutionPoint();
     executionPoint.setExecutionTimestamp(executionTimestamp);
     executionPoint.setDatasetId("datasetId");
@@ -263,7 +264,7 @@ class PatternAnalysisControllerTest {
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
         new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
             problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))

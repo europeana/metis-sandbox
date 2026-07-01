@@ -10,8 +10,12 @@ import java.util.List;
  */
 @Schema(name = ExecutionProgressInfoDTO.PROGRESS_SWAGGER_MODEL_NAME)
 public record ExecutionProgressInfoDTO(
+    //todo: (https://europeana.atlassian.net/browse/MET-7162) remove when the preview field is used in the ui(https://europeana.atlassian.net/browse/MET-7161)
     @JsonProperty("portal-publish")
-    String portalPublishUrl,
+    String portalUrlPublish,
+
+    @JsonProperty("portal-preview")
+    String portalUrlPreview,
 
     @JsonProperty("status")
     ExecutionStatus executionStatus,

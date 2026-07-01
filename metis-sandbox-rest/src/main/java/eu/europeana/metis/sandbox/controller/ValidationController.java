@@ -120,7 +120,7 @@ public class ValidationController {
     }
 
     final Optional<ExecutionPoint> executionPointOptional = executionPointService
-        .getExecutionPoint(createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString());
+        .getLatestExecutionPoint(createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString());
     Optional<DatasetProblemPatternAnalysis<FullBatchJobType>> datasetPatternAnalysis =
         executionPointOptional.flatMap(executionPoint -> patternAnalysisService.getDatasetPatternAnalysis(
             createdDatasetId, FullBatchJobType.VALIDATE_INTERNAL, executionPoint.getExecutionTimestamp()));

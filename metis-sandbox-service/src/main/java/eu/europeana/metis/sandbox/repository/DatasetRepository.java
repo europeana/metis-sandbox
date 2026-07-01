@@ -1,7 +1,7 @@
 package eu.europeana.metis.sandbox.repository;
 
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,7 +21,7 @@ public interface DatasetRepository extends JpaRepository<DatasetEntity, Integer>
    * @param date the date to compare against
    * @return a list of DatasetIdProjection objects matching the criteria
    */
-  List<DatasetIdProjection> findByCreatedDateBefore(ZonedDateTime date);
+  List<DatasetIdProjection> findByCreatedDateBefore(Instant date);
 
   /**
    * Retrieves a DatasetEntity based on the specified dataset ID.

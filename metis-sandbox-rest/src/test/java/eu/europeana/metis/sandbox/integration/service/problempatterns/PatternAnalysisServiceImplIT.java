@@ -8,11 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
-import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitle;
 import eu.europeana.metis.sandbox.entity.problempatterns.RecordTitleCompositeKey;
 import eu.europeana.metis.sandbox.integration.service.problempatterns.PatternAnalysisServiceImplIT.PatternAnalysisServiceImplMaxPatternsConfig;
+import eu.europeana.metis.sandbox.integration.testcontainers.PostgresTestContainersConfiguration;
 import eu.europeana.metis.sandbox.repository.problempatterns.DatasetProblemPatternRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.ExecutionPointRepository;
 import eu.europeana.metis.sandbox.repository.problempatterns.RecordProblemPatternOccurrenceRepository;
@@ -33,8 +33,6 @@ import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -133,29 +131,18 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void initializePatternAnalysisExecution() {
-    final LocalDateTime now = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, now);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     assertEquals("1", executionPoint1.getDatasetId());
     assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint1.getExecutionName());
-    assertEquals(now, executionPoint1.getExecutionTimestamp());
-
-    //The second time should give back the exact same object
-    final ExecutionPoint executionPoint2 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, now);
-    assertEquals("1", executionPoint2.getDatasetId());
-    assertEquals(FullBatchJobType.VALIDATE_INTERNAL.name(), executionPoint2.getExecutionName());
-    // TODO: 24/11/2023 Truncated to seconds to avoid failure on milliseconds. The one that is retrieved from db
-    //  has lost some of the decimal points on the milliseconds. This needs investigation.
-    assertEquals(now.truncatedTo(ChronoUnit.SECONDS), executionPoint2.getExecutionTimestamp().truncatedTo(ChronoUnit.SECONDS));
+    assertNotNull(executionPoint1.getExecutionTimestamp());
   }
 
   @Test
   void generateRecordPatternAnalysisTest() {
     //Insert a problem pattern
-    final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length,
@@ -172,9 +159,8 @@ class PatternAnalysisServiceImplIT {
     assertEquals(1, recordProblemPatternOccurrenceRepository.count());
 
     //Insert another problem pattern
-    final LocalDateTime nowP6 = LocalDateTime.now();
     final ExecutionPoint executionPoint2 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint2, rdfRecordP6);
     assertEquals(2, executionPointRepository.count());
     assertEquals(2L * ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -183,7 +169,7 @@ class PatternAnalysisServiceImplIT {
 
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6).orElseThrow();
+        "1", FullBatchJobType.VALIDATE_INTERNAL, executionPoint2.getExecutionTimestamp()).orElseThrow();
     assertEquals(1, datasetPatternAnalysis.problemPatternList().size());
     final ProblemPattern problemPatternP6 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P6);
@@ -194,7 +180,8 @@ class PatternAnalysisServiceImplIT {
         problemPatternP6.recordAnalysisList().getFirst().problemOccurrenceList().getFirst().messageReport()));
 
     //Empty result
-    assertTrue(patternAnalysisServiceImpl.getDatasetPatternAnalysis("1", FullBatchJobType.HARVEST_FILE, nowP6).isEmpty());
+    assertTrue(patternAnalysisServiceImpl.getDatasetPatternAnalysis("1", FullBatchJobType.HARVEST_FILE,
+        executionPoint2.getExecutionTimestamp()).isEmpty());
   }
 
   @Test
@@ -203,9 +190,8 @@ class PatternAnalysisServiceImplIT {
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(
         problemPatternsRepositories, 1, 1);
     //Insert a problem pattern
-    final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1,
         rdfRecordP2MultipleOccurrences);
     assertEquals(1, executionPointRepository.count());
@@ -220,9 +206,8 @@ class PatternAnalysisServiceImplIT {
     final PatternAnalysisServiceImpl patternAnalysisService = new PatternAnalysisServiceImpl(
         problemPatternsRepositories, 1, 1);
 
-    final LocalDateTime nowP6 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisService.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisService.generateRecordPatternAnalysis(executionPoint1, rdfRecordP6);
 
     //Update about to pretend a different record
@@ -232,7 +217,7 @@ class PatternAnalysisServiceImplIT {
 
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisService.getDatasetPatternAnalysis(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP6).orElseThrow();
+        "1", FullBatchJobType.VALIDATE_INTERNAL, executionPoint1.getExecutionTimestamp()).orElseThrow();
     assertEquals(1, datasetPatternAnalysis.problemPatternList().size());
     final ProblemPattern problemPatternP6 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P6);
@@ -246,9 +231,8 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void generateRecordPatternAnalysis_StringPayloadTest() throws Exception {
-    final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfStringP2);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -262,9 +246,8 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void getRecordPatternAnalysisTest() {
-    final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
     //We should be getting this from the database
     List<ProblemPattern> problemPatternsRecord1 = patternAnalysisServiceImpl.getRecordPatternAnalysis(rdfRecordP2);
@@ -283,9 +266,8 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void generateRecordPatternAnalysis_P12_with_longer_than_varcharTest() {
-    final LocalDateTime now = LocalDateTime.now();
     final ExecutionPoint executionPoint = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, now);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint, rdfRecordP12);
     assertEquals(1, executionPointRepository.count());
     assertEquals(ProblemPatternDescription.values().length, datasetProblemPatternRepository.count());
@@ -300,9 +282,8 @@ class PatternAnalysisServiceImplIT {
   void generateRecordPatternAnalysis_multipleRecords_and_global_patterns()
       throws SerializationException {
     //Insert a problem pattern
-    final LocalDateTime nowP2 = LocalDateTime.now();
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecordP2);
 
     //Clone same item
@@ -314,7 +295,7 @@ class PatternAnalysisServiceImplIT {
 
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP2).orElseThrow();
+        "1", FullBatchJobType.VALIDATE_INTERNAL, executionPoint1.getExecutionTimestamp()).orElseThrow();
     assertEquals(2, datasetPatternAnalysis.problemPatternList().size());
     final ProblemPattern problemPatternP2 = getProblemPatternFromDatasetPatternAnalysis(
         datasetPatternAnalysis, ProblemPatternDescription.P2);
@@ -340,7 +321,6 @@ class PatternAnalysisServiceImplIT {
   void generateRecordPatternAnalysis_duplicatedIgnoringCaseTitle()
       throws SerializationException, IOException {
     //Insert a problem pattern
-    final LocalDateTime nowP1 = LocalDateTime.now();
     final RDF rdfRecords1 = new RdfConversionUtils().convertStringToRdf(
         IOUtils.toString(
             new FileInputStream("src/test/resources/record/problempatterns/P1_lowercase_title.xml"), StandardCharsets.UTF_8));
@@ -349,14 +329,14 @@ class PatternAnalysisServiceImplIT {
             new FileInputStream("src/test/resources/record/problempatterns/P1_uppercase_title.xml"), StandardCharsets.UTF_8));
 
     final ExecutionPoint executionPoint1 = patternAnalysisServiceImpl.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP1);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecords1);
     patternAnalysisServiceImpl.generateRecordPatternAnalysis(executionPoint1, rdfRecords2);
     patternAnalysisServiceImpl.finalizeDatasetPatternAnalysis(executionPoint1);
 
     //Get dataset pattern analysis and check results
     final DatasetProblemPatternAnalysis<FullBatchJobType> datasetPatternAnalysis = patternAnalysisServiceImpl.getDatasetPatternAnalysis(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, nowP1).orElseThrow();
+        "1", FullBatchJobType.VALIDATE_INTERNAL, executionPoint1.getExecutionTimestamp()).orElseThrow();
     assertEquals(1, datasetPatternAnalysis.problemPatternList().size());
     List<RecordAnalysis> recordAnalysisList = datasetPatternAnalysis.problemPatternList().getFirst()
                                                                     .recordAnalysisList();
@@ -377,9 +357,8 @@ class PatternAnalysisServiceImplIT {
 
   @Test
   void finalizeDatasetPatternAnalysisTest() {
-    final LocalDateTime now = LocalDateTime.now();
     final ExecutionPoint executionPoint = patternAnalysisServiceMaxPatterns2.initializePatternAnalysisExecution(
-        "1", FullBatchJobType.VALIDATE_INTERNAL, now);
+        "1", FullBatchJobType.VALIDATE_INTERNAL);
 
     final RecordTitle recordTitle1A = new RecordTitle(
         new RecordTitleCompositeKey(
