@@ -87,7 +87,7 @@ class IndexConfig {
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
       Boolean mongoEnableSSL, String mongoApplicationName, Integer mongoMaxConnectionPoolSize,
       String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts, String zookeeperChroot,
-      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs, boolean  solrUseHttp1)
+      String zookeeperDefaultCollection, Integer zookeeperTimeoutInSecs, Boolean solrUseHttp1)
       throws SetupRelatedIndexingException, URISyntaxException {
     checkArgument(isNotBlank(mongoDb), "Mongo db must be provided");
     checkArgument(isNotEmpty(mongoHosts), "Mongo hosts must be provided ");
