@@ -37,7 +37,6 @@ import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,7 +76,6 @@ class PatternAnalysisControllerTest {
   private JwtDecoder jwtDecoder;
 
   private static MockMvc mvc;
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
   @BeforeAll
   static void setup(WebApplicationContext context) {
@@ -103,7 +101,7 @@ class PatternAnalysisControllerTest {
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
         new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
             problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -142,7 +140,7 @@ class PatternAnalysisControllerTest {
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
         new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
             problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -168,7 +166,7 @@ class PatternAnalysisControllerTest {
   @Test
   void getDatasetAnalysis_getEmptyResult_expectSuccess() throws Exception {
     Instant executionTimestamp = Instant.now();
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.empty());
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -188,7 +186,7 @@ class PatternAnalysisControllerTest {
     executionPoint.setExecutionTimestamp(executionTimestamp);
     executionPoint.setDatasetId("datasetId");
     executionPoint.setExecutionPointId(1);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))
@@ -266,7 +264,7 @@ class PatternAnalysisControllerTest {
     DatasetProblemPatternAnalysis<FullBatchJobType> datasetProblemPatternAnalysis =
         new DatasetProblemPatternAnalysis<>("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp,
             problemPatternList);
-    when(mockExecutionPointService.getExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
+    when(mockExecutionPointService.getLatestExecutionPoint("datasetId", FullBatchJobType.VALIDATE_INTERNAL.toString()))
         .thenReturn(Optional.of(executionPoint));
     when(
         mockPatternAnalysisService.getDatasetPatternAnalysis("datasetId", FullBatchJobType.VALIDATE_INTERNAL, executionTimestamp))

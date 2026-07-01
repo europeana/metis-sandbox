@@ -7,7 +7,6 @@ import eu.europeana.metis.sandbox.entity.problempatterns.ExecutionPoint;
 import eu.europeana.metis.sandbox.service.problempatterns.ExecutionPointService;
 import eu.europeana.patternanalysis.PatternAnalysisService;
 import eu.europeana.patternanalysis.exception.PatternAnalysisException;
-import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -28,6 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProblemPatternsStepExecutionListener implements StepExecutionListener {
 
+  public static final String EXECUTION_POINT_ID = "executionPointId";
   private final PatternAnalysisService<FullBatchJobType, ExecutionPoint> patternAnalysisService;
   private final ExecutionPointService executionPointService;
   @Value("#{jobParameters['batchJobSubType']}")
@@ -52,7 +52,10 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
   public void beforeStep(StepExecution stepExecution) {
     log.debug("Running beforeStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
-      initializePatternAnalysisExecution();
+      ExecutionPoint executionPoint = patternAnalysisService.initializePatternAnalysisExecution(datasetId,
+          FullBatchJobType.VALIDATE_INTERNAL);
+      stepExecution.getExecutionContext()
+                   .putInt(EXECUTION_POINT_ID, executionPoint.getExecutionPointId());
     }
   }
 
@@ -61,18 +64,18 @@ public class ProblemPatternsStepExecutionListener implements StepExecutionListen
     log.debug("Running afterStep for stepName: {}, batchJobSubType: {}", stepExecution.getStepName(), batchJobSubType);
     if (batchJobSubType == ValidationBatchJobSubType.INTERNAL) {
       log.debug("BEGIN -> Finalize problem pattern analysis datasetId: {}", datasetId);
-      final ExecutionPoint executionPoint = executionPointService
-          .getExecutionPoint(datasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
+      final Integer executionPointId = stepExecution.getExecutionContext().getInt(EXECUTION_POINT_ID);
+
+      final ExecutionPoint executionPoint =
+          executionPointService.getExecutionPoint(executionPointId)
+                               .orElseThrow(() -> new IllegalStateException(
+                                   "Execution point not found: " + executionPointId));
+
       final ProblemPatternAnalysisStatus status = finalizeDatasetPatternAnalysis(executionPoint);
       log.debug("END -> Finalize problem pattern analysis datasetId: {}", datasetId);
       log.info("Problem pattern analysis status for datasetId {}: {}", datasetId, status);
     }
     return stepExecution.getExitStatus();
-  }
-
-  private void initializePatternAnalysisExecution() {
-    final Instant timestamp = Instant.now();
-    patternAnalysisService.initializePatternAnalysisExecution(datasetId, FullBatchJobType.VALIDATE_INTERNAL, timestamp);
   }
 
   private ProblemPatternAnalysisStatus finalizeDatasetPatternAnalysis(ExecutionPoint datasetExecutionPoint) {

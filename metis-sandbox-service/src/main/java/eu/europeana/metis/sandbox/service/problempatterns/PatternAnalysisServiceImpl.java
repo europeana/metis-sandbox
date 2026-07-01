@@ -28,6 +28,7 @@ import eu.europeana.patternanalysis.view.ProblemPatternDescription;
 import eu.europeana.patternanalysis.view.ProblemPatternDescription.ProblemPatternId;
 import eu.europeana.patternanalysis.view.RecordAnalysis;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -86,29 +86,23 @@ public class PatternAnalysisServiceImpl implements PatternAnalysisService<FullBa
 
   @Override
   @Transactional
-  public ExecutionPoint initializePatternAnalysisExecution(String datasetId, FullBatchJobType executionStep,
-      Instant executionTimestamp) {
-    final ExecutionPoint dbExecutionPoint = this.executionPointRepository.findByDatasetIdAndExecutionNameAndExecutionTimestamp(
-        datasetId, executionStep.name(), executionTimestamp);
-    final ExecutionPoint savedExecutionPoint;
-    if (Objects.isNull(dbExecutionPoint)) {
-      final ExecutionPoint executionPoint = new ExecutionPoint();
-      executionPoint.setExecutionTimestamp(executionTimestamp);
-      executionPoint.setExecutionName(executionStep.name());
-      executionPoint.setDatasetId(datasetId);
-      savedExecutionPoint = this.executionPointRepository.save(executionPoint);
+  public ExecutionPoint initializePatternAnalysisExecution(String datasetId, FullBatchJobType executionStep) {
+    final ExecutionPoint executionPoint = new ExecutionPoint();
+    executionPoint.setDatasetId(datasetId);
+    executionPoint.setExecutionName(executionStep.name());
+    executionPoint.setExecutionTimestamp(Instant.now().truncatedTo(ChronoUnit.MICROS));
 
-      //Initialize with zero all patterns
-      final List<DatasetProblemPattern> datasetProblemPatterns = Arrays.stream(ProblemPatternDescription.values())
-                                                                       .map(Enum::name)
-                                                                       .map(patternId -> new DatasetProblemPattern(
-                                                                           new DatasetProblemPatternCompositeKey(
-                                                                               savedExecutionPoint.getExecutionPointId(),
-                                                                               patternId), savedExecutionPoint, 0)).toList();
-      datasetProblemPatternRepository.saveAll(datasetProblemPatterns);
-    } else {
-      savedExecutionPoint = dbExecutionPoint;
-    }
+    final ExecutionPoint savedExecutionPoint = executionPointRepository.save(executionPoint);
+
+    //Initialize with zero all patterns
+    final List<DatasetProblemPattern> datasetProblemPatterns =
+        Arrays.stream(ProblemPatternDescription.values())
+              .map(Enum::name)
+              .map(patternId -> new DatasetProblemPattern(
+                  new DatasetProblemPatternCompositeKey(
+                      savedExecutionPoint.getExecutionPointId(),
+                      patternId), savedExecutionPoint, 0)).toList();
+    datasetProblemPatternRepository.saveAll(datasetProblemPatterns);
 
     return savedExecutionPoint;
   }

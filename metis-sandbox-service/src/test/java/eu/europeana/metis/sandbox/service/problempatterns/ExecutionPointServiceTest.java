@@ -47,10 +47,16 @@ class ExecutionPointServiceTest {
   }
 
   @Test
-  void getExecutionPoint_expectSuccess() {
-    executionPointService.getExecutionPoint("1", FullBatchJobType.VALIDATE_INTERNAL.name());
+  void getLatestExecutionPoint_expectSuccess() {
+    executionPointService.getLatestExecutionPoint("1", FullBatchJobType.VALIDATE_INTERNAL.name());
     verify(executionPointRepository, times(1))
         .findFirstByDatasetIdAndExecutionNameOrderByExecutionTimestampDesc("1", FullBatchJobType.VALIDATE_INTERNAL.name());
 
+  }
+
+  @Test
+  void getExecutionPoint_expectSuccess() {
+    executionPointService.getExecutionPoint(1);
+    verify(executionPointRepository, times(1)).findById(1);
   }
 }

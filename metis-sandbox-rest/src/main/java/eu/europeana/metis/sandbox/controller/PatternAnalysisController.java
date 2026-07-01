@@ -82,7 +82,7 @@ public class PatternAnalysisController {
 
     // Get the execution point. If it does not exist, we are done.
     final ExecutionPoint executionPoint = executionPointService
-        .getExecutionPoint(escapedDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
+        .getLatestExecutionPoint(escapedDatasetId, FullBatchJobType.VALIDATE_INTERNAL.toString()).orElse(null);
     if (executionPoint == null) {
       return new ResponseEntity<>(DatasetProblemPatternAnalysisView.getEmptyAnalysis(escapedDatasetId,
           ProblemPatternAnalysisStatus.PENDING), HttpStatus.NOT_FOUND);
@@ -155,7 +155,13 @@ public class PatternAnalysisController {
     return executionPointService.getAllExecutionTimestamps();
   }
 
-  private static final class DatasetProblemPatternAnalysisView<T> {
+  /**
+   * Represents a view for analyzing problem patterns within a dataset, providing details about the dataset, its problem patterns,
+   * execution step, execution timestamp, and the analysis status.
+   *
+   * @param <T> The type representing the execution step.
+   */
+  public static final class DatasetProblemPatternAnalysisView<T> {
 
     @JsonProperty
     private final String datasetId;
