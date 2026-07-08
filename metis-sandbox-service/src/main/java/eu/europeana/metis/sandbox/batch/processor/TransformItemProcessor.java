@@ -7,6 +7,9 @@ import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.service.workflow.TransformService;
+import eu.europeana.metis.sandbox.service.workflow.TransformService.TransformDatasetContext;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +35,9 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
   private String xsltId;
 
   private final TransformService transformService;
-  private String xsltContent;
+  private TransformDatasetContext transformDatasetContext;
+  private byte[] xsltBytes;
+  private String xsltCacheKey;
 
   /**
    * Constructor with service parameter.
@@ -43,9 +48,20 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
     this.transformService = transformService;
   }
 
+  /**
+   * Prepares the processing context by loading the XSLT bytes and computing their cache key.
+   * <p>
+   * This method is executed before a processing step starts. It retrieves the XSLT bytes associated with the provided XSLT
+   * identifier (`xsltId`) using the {@code TransformService}. The retrieved bytes are then used to compute an SHA-256 hash, which
+   * serves as a cache key for transformation operations.
+   */
   @BeforeStep
   public void beforeStep() {
-    this.xsltContent = transformService.getXsltContent(xsltId);
+    this.transformDatasetContext =
+        new TransformDatasetContext(datasetId, datasetName, datasetCountry, datasetLanguage);
+    this.xsltBytes = transformService.getXsltBytes(xsltId);
+    this.xsltCacheKey = "xslt-" + DigestUtils.sha256Hex(xsltBytes);
+
   }
 
   @Override
@@ -53,15 +69,11 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
 
-      final String resultString = transformService.transformRecord(
-          originSuccessExecutionRecordDTO.getRecordId(),
-          originSuccessExecutionRecordDTO.getRecordData(),
-          xsltContent,
-          (TransformationBatchJobSubType) getFullBatchJobType().getBatchJobSubType(),
-          datasetId,
-          datasetName,
-          datasetCountry,
-          datasetLanguage);
+      byte[] recordBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+      final String resultString = switch ((TransformationBatchJobSubType) getFullBatchJobType().getBatchJobSubType()) {
+        case EXTERNAL -> transformService.transformExternal(recordBytes, xsltBytes, xsltCacheKey);
+        case INTERNAL -> transformService.transformInternal(recordBytes, xsltBytes, xsltCacheKey, transformDatasetContext);
+      };
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,
