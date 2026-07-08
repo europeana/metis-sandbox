@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "transform_xslt")
+@Table(name = "transform_xslt",
+    indexes = {
+        @Index(name = "idx_transform_xslt_entity_datasetid_type",
+            columnList = "dataset_id, type",
+            unique = true
+        )
+})
 public class TransformXsltEntity {
 
   @Id
@@ -32,7 +39,7 @@ public class TransformXsltEntity {
   @Enumerated(EnumType.STRING)
   private XsltType type;
 
-  @Column(columnDefinition="TEXT", nullable = false)
+  @Column(columnDefinition = "TEXT", nullable = false)
   private String transformXslt;
 
   /**
@@ -46,16 +53,5 @@ public class TransformXsltEntity {
     this.datasetId = datasetId;
     this.type = type;
     this.transformXslt = transformXslt;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param xsltType the XSLT type defining the nature of the transformation
-   * @param newTransformXslt the XSLT content used for the transformation
-   */
-  public TransformXsltEntity(XsltType xsltType, String newTransformXslt) {
-    this.type = xsltType;
-    this.transformXslt = newTransformXslt;
   }
 }

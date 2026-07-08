@@ -339,10 +339,12 @@ public class BatchJobExecutor {
   }
 
   private @NotNull JobExecution executeTransformInternal(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
-    Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT);
-    String transformXsltId = transformXsltEntity.map(TransformXsltEntity::getId).map(String::valueOf).orElseThrow();
-
     DatasetMetadata datasetMetadata = executionMetadataWithTargetId.executionMetadata().getDatasetMetadata();
+    String transformXsltId = transformXsltRepository.findByDatasetIdAndType(datasetMetadata.getDatasetId(), XsltType.INTERNAL)
+                                                    .or(() -> transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT))
+                                                    .map(TransformXsltEntity::getId)
+                                                    .map(String::valueOf)
+                                                    .orElseThrow();
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.INTERNAL.name())
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())

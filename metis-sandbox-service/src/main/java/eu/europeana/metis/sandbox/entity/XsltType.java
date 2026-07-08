@@ -12,5 +12,6 @@ public enum XsltType {
   /**
    * Represents the XSLT for transformation to EDM-EXTERNAL from another unknown to europeana model.
    */
-  EXTERNAL
+  EXTERNAL,
+  INTERNAL
 }

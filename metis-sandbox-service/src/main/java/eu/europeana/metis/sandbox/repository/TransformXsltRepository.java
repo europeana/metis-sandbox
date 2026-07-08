@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface TransformXsltRepository extends JpaRepository<TransformXsltEntity, Integer> {
 
+  String DEFAULT_DATASET_ID = "-1";
+
   Optional<TransformXsltEntity> findById(@NotNull Integer id);
 
   /**
@@ -28,4 +30,6 @@ public interface TransformXsltRepository extends JpaRepository<TransformXsltEnti
    * @return an Optional containing the matching TransformXsltEntity, or empty if not found
    */
   Optional<TransformXsltEntity> findByDatasetId(String datasetId);
+
+  Optional<TransformXsltEntity> findByDatasetIdAndType(String datasetId, XsltType xsltType);
 }

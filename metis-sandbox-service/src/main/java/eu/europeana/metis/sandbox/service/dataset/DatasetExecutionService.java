@@ -18,6 +18,7 @@ import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
@@ -125,15 +126,20 @@ public class DatasetExecutionService {
    *
    * @param datasetId the dataset identifier
    * @param sourceExecutionId the source execution identifier to be used as a reference.
-   * @param xslt the XSLT file to be applied during the transformation process.
    * @param fullBatchJobType the full batch job type representing the specific step to be executed
    * @return A string representing the execution identifier
-   * @throws IOException If an I/O error occurs during the submission
    */
-  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId, String xslt,
-      FullBatchJobType fullBatchJobType) throws IOException {
+  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId,
+      FullBatchJobType fullBatchJobType) {
     ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId, xslt);
+        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId);
+    return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
+  }
+
+  public String submitTransformationExecutionSingle(String datasetId, String sourceExecutionId, String xslt, XsltType xsltType,
+      FullBatchJobType fullBatchJobType) {
+    ExecutionMetadata executionMetadata =
+        datasetExecutionSetupService.prepareTransformExecution(datasetId, sourceExecutionId, xslt, xsltType);
     return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
   }
 

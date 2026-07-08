@@ -1,5 +1,7 @@
 package eu.europeana.metis.sandbox.service.util;
 
+import static eu.europeana.metis.sandbox.repository.TransformXsltRepository.DEFAULT_DATASET_ID;
+
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
@@ -72,7 +74,8 @@ public class XsltUrlUpdateService {
     try {
       lock.lock();
       log.info("Save default xslt lock, Locked");
-      final Optional<TransformXsltEntity> entity = transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT);
+      final Optional<TransformXsltEntity> entity =
+          transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID, XsltType.DEFAULT);
 
       if (entity.isPresent()) {
         if (!(newTransformXslt.equals(entity.get().getTransformXslt()))) {
@@ -80,7 +83,8 @@ public class XsltUrlUpdateService {
           transformXsltRepository.save(entity.get());
         }
       } else {
-        TransformXsltEntity transformXsltEntity = new TransformXsltEntity(XsltType.DEFAULT, newTransformXslt);
+        TransformXsltEntity transformXsltEntity =
+            new TransformXsltEntity(DEFAULT_DATASET_ID, XsltType.DEFAULT, newTransformXslt);
         transformXsltRepository.save(transformXsltEntity);
       }
     } catch (RuntimeException e) {
