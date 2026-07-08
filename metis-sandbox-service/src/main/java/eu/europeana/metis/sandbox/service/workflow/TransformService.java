@@ -34,7 +34,7 @@ public class TransformService {
    *
    * @param recordId the unique identifier of the record to be transformed
    * @param recordData the data content of the record to be transformed
-   * @param xsltId the identifier of the XSLT to apply during the transformation
+   *
    * @param subType defines whether the transformation is EXTERNAL or INTERNAL
    * @param datasetId the identifier of the dataset associated with the record
    * @param datasetName the name of the dataset associated with the record
@@ -45,27 +45,26 @@ public class TransformService {
    */
   public String transformRecord(String recordId,
       String recordData,
-      String xsltId,
+      String xslt,
       TransformationBatchJobSubType subType,
       String datasetId,
       String datasetName,
       String datasetCountry,
       String datasetLanguage) throws TransformationException {
 
-    String xsltContent = transformXsltRepository.findById(Integer.valueOf(xsltId))
-                                                .map(TransformXsltEntity::getTransformXslt).orElseThrow();
     byte[] contentBytes = recordData.getBytes(StandardCharsets.UTF_8);
-    InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
+    byte[] xsltBytes = xslt.getBytes(StandardCharsets.UTF_8);
 
     return switch (subType) {
-      case EXTERNAL -> transformExternal(recordId, contentBytes, xsltInputStream);
-      case INTERNAL -> transformInternal(contentBytes, xsltInputStream, datasetId, datasetName, datasetCountry, datasetLanguage);
+      case EXTERNAL -> transformExternal(recordId, contentBytes, xsltBytes);
+      case INTERNAL -> transformInternal(contentBytes, xsltBytes, datasetId, datasetName, datasetCountry, datasetLanguage);
     };
   }
 
-  private String transformExternal(String recordId, byte[] contentBytes, InputStream xsltInputStream)
+  private String transformExternal(String recordId, byte[] contentBytes, byte[] xsltBytes)
       throws TransformationException {
-    try (XsltTransformer xsltTransformer = new XsltTransformer(recordId, xsltInputStream);
+    try (InputStream xsltInputStream = new ByteArrayInputStream(xsltBytes);
+        XsltTransformer xsltTransformer = new XsltTransformer(recordId, xsltInputStream);
         StringWriter writer = xsltTransformer.transform(contentBytes, null)) {
       return writer.toString();
     } catch (IOException e) {
@@ -73,7 +72,7 @@ public class TransformService {
     }
   }
 
-  private String transformInternal(byte[] contentBytes, InputStream xsltInputStream,
+  private String transformInternal(byte[] contentBytes, byte[] xsltBytes,
       String datasetId, String datasetName, String datasetCountry, String datasetLanguage) throws TransformationException {
     final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap;
     try {
@@ -83,8 +82,9 @@ public class TransformService {
     }
 
     final String datasetIdDatasetName = getJoinDatasetIdDatasetName(datasetId, datasetName);
-    try (XsltTransformer xsltTransformer = new XsltTransformer("xsltKey", xsltInputStream, datasetIdDatasetName, datasetCountry,
-        datasetLanguage);
+    try (InputStream xsltInputStream = new ByteArrayInputStream(xsltBytes);
+        XsltTransformer xsltTransformer = new XsltTransformer(
+            "xsltKey", xsltInputStream, datasetIdDatasetName, datasetCountry, datasetLanguage);
         StringWriter writer = xsltTransformer.transform(contentBytes, europeanaGeneratedIdsMap)) {
       return writer.toString();
     } catch (IOException e) {
@@ -104,6 +104,12 @@ public class TransformService {
 
   private String getJoinDatasetIdDatasetName(String datasetId, String datasetName) {
     return String.join("_", datasetId, datasetName);
+  }
+
+  public String getXsltContent(String xsltId) {
+    return transformXsltRepository.findById(Integer.valueOf(xsltId))
+                                  .map(TransformXsltEntity::getTransformXslt)
+                                  .orElseThrow();
   }
 }
 

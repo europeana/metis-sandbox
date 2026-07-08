@@ -2,11 +2,12 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 
-import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.service.workflow.TransformService;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
   private String xsltId;
 
   private final TransformService transformService;
+  private String xsltContent;
 
   /**
    * Constructor with service parameter.
@@ -41,6 +43,11 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
     this.transformService = transformService;
   }
 
+  @BeforeStep
+  public void beforeStep() {
+    this.xsltContent = transformService.getXsltContent(xsltId);
+  }
+
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
@@ -49,7 +56,7 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
       final String resultString = transformService.transformRecord(
           originSuccessExecutionRecordDTO.getRecordId(),
           originSuccessExecutionRecordDTO.getRecordData(),
-          xsltId,
+          xsltContent,
           (TransformationBatchJobSubType) getFullBatchJobType().getBatchJobSubType(),
           datasetId,
           datasetName,
