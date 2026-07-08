@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.repository;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.entity.XsltType;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -13,7 +12,13 @@ public interface TransformXsltRepository extends JpaRepository<TransformXsltEnti
 
   String DEFAULT_DATASET_ID = "-1";
 
-  Optional<TransformXsltEntity> findById(@NotNull Integer id);
+  /**
+   * Retrieves a TransformXsltEntity by its unique identifier.
+   *
+   * @param id the unique identifier of the TransformXsltEntity to be retrieved
+   * @return an Optional containing the found TransformXsltEntity, or empty if no entity is found with the given ID
+   */
+  Optional<TransformXsltEntity> findById(Integer id);
 
   /**
    * Retrieves the first TransformXsltEntity of the specified type, ordered by ID.
@@ -31,5 +36,12 @@ public interface TransformXsltRepository extends JpaRepository<TransformXsltEnti
    */
   Optional<TransformXsltEntity> findByDatasetId(String datasetId);
 
+  /**
+   * Retrieves a TransformXsltEntity associated with the given dataset ID and XSLT type.
+   *
+   * @param datasetId the identifier of the dataset linked to the XSLT transformation
+   * @param xsltType the XSLT type specifying the nature of the transformation
+   * @return an Optional containing the matching TransformXsltEntity, or empty if no entity is found
+   */
   Optional<TransformXsltEntity> findByDatasetIdAndType(String datasetId, XsltType xsltType);
 }

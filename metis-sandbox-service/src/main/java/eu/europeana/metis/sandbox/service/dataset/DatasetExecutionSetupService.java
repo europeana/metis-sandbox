@@ -59,6 +59,15 @@ public class DatasetExecutionSetupService {
     return prepareExecution(WorkflowType.SINGLE, datasetId, null, null, null, sourceExecutionId);
   }
 
+  /**
+   * Prepares the execution of a transformation workflow based on the provided parameters.
+   *
+   * @param datasetId the unique identifier for the dataset associated with the transformation.
+   * @param sourceExecutionId the identifier of the source execution to be referenced.
+   * @param xslt the XSLT string to be applied during the transformation.
+   * @param xsltType the type of XSLT being provided.
+   * @return ExecutionMetadata containing metadata related to the prepared transformation execution.
+   */
   @Transactional
   public ExecutionMetadata prepareTransformExecution(String datasetId, String sourceExecutionId, String xslt, XsltType xsltType) {
     return prepareExecution(WorkflowType.SINGLE, datasetId, xslt, xsltType, null, sourceExecutionId);

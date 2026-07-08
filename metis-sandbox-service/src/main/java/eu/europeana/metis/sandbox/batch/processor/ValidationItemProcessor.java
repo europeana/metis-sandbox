@@ -44,7 +44,7 @@ public class ValidationItemProcessor extends AbstractExecutionRecordMetisItemPro
           originSuccessExecutionRecordDTO.getRecordId(),
           originSuccessExecutionRecordDTO.getDatasetId(),
           executionPointId,
-          (ValidationBatchJobSubType) getFullBatchJobType().getBatchJobSubType()
+          getFullBatchJobType().requireBatchJobSubType(ValidationBatchJobSubType.class)
       );
 
       String sourceProvidedChoAbout =

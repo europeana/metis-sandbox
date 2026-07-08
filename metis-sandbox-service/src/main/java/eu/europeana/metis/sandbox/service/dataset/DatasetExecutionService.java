@@ -136,6 +136,16 @@ public class DatasetExecutionService {
     return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
   }
 
+  /**
+   * Submits a single transformation execution for the specified dataset and source execution ID using the provided XSLT.
+   *
+   * @param datasetId The unique identifier of the dataset on which the transformation will be executed.
+   * @param sourceExecutionId The ID of the source execution used as a basis for the transformation.
+   * @param xslt The XSLT string to be applied to the dataset.
+   * @param xsltType The type of the XSLT transformation, represented by the {@code XsltType} enum.
+   * @param fullBatchJobType The type of the full batch job, represented by the {@code FullBatchJobType} enum.
+   * @return The result of the batch job execution, represented as a string.
+   */
   public String submitTransformationExecutionSingle(String datasetId, String sourceExecutionId, String xslt, XsltType xsltType,
       FullBatchJobType fullBatchJobType) {
     ExecutionMetadata executionMetadata =
@@ -313,8 +323,8 @@ public class DatasetExecutionService {
   }
 
   /**
-   * Cancels the execution of a batch job task identified by the specified execution identifier.
-   * This method will stop the currently running batch job task if it is in progress.
+   * Cancels the execution of a batch job task identified by the specified execution identifier. This method will stop the
+   * currently running batch job task if it is in progress.
    *
    * @param executionId the execution identifier
    * @param fullBatchJobType the full batch job type representing the specific task to be cancelled

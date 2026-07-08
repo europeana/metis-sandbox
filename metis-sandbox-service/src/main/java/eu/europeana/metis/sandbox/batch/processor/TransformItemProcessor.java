@@ -8,9 +8,9 @@ import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
 import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.service.workflow.TransformService;
 import eu.europeana.metis.sandbox.service.workflow.TransformService.TransformDatasetContext;
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -55,13 +55,11 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
    * identifier (`xsltId`) using the {@code TransformService}. The retrieved bytes are then used to compute an SHA-256 hash, which
    * serves as a cache key for transformation operations.
    */
-  @BeforeStep
-  public void beforeStep() {
-    this.transformDatasetContext =
-        new TransformDatasetContext(datasetId, datasetName, datasetCountry, datasetLanguage);
+  @PostConstruct
+  private void beforeStep() {
     this.xsltBytes = transformService.getXsltBytes(xsltId);
     this.xsltCacheKey = "xslt-" + DigestUtils.sha256Hex(xsltBytes);
-
+    this.transformDatasetContext = new TransformDatasetContext(datasetId, datasetName, datasetCountry, datasetLanguage);
   }
 
   @Override
@@ -70,7 +68,7 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
 
       byte[] recordBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
-      final String resultString = switch ((TransformationBatchJobSubType) getFullBatchJobType().getBatchJobSubType()) {
+      final String resultString = switch (getFullBatchJobType().requireBatchJobSubType(TransformationBatchJobSubType.class)) {
         case EXTERNAL -> transformService.transformExternal(recordBytes, xsltBytes, xsltCacheKey);
         case INTERNAL -> transformService.transformInternal(recordBytes, xsltBytes, xsltCacheKey, transformDatasetContext);
       };
