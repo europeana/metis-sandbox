@@ -65,6 +65,7 @@ class DatasetExecutionSetupServiceTest {
 
     when(harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestParametersDTO)).thenReturn(
         harvestParameters);
+    when(transformXsltRepository.save(any(TransformXsltEntity.class))).thenReturn(new TransformXsltEntity());
 
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
         workflowType, datasetMetadataRequest, userId, xsltFile, oaiHarvestParametersDTO);

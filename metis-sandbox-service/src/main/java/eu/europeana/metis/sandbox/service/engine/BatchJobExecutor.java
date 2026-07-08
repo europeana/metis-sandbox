@@ -21,6 +21,7 @@ import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.TRANSFORM
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.TRANSFORM_INTERNAL;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.VALIDATE_EXTERNAL;
 import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.VALIDATE_INTERNAL;
+import static eu.europeana.metis.sandbox.repository.TransformXsltRepository.DEFAULT_DATASET_ID;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -341,7 +342,7 @@ public class BatchJobExecutor {
   private @NotNull JobExecution executeTransformInternal(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
     DatasetMetadata datasetMetadata = executionMetadataWithTargetId.executionMetadata().getDatasetMetadata();
     String transformXsltId = transformXsltRepository.findByDatasetIdAndType(datasetMetadata.getDatasetId(), XsltType.INTERNAL)
-                                                    .or(() -> transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT))
+                                                    .or(() -> transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID, XsltType.DEFAULT))
                                                     .map(TransformXsltEntity::getId)
                                                     .map(String::valueOf)
                                                     .orElseThrow();

@@ -21,14 +21,6 @@ public interface TransformXsltRepository extends JpaRepository<TransformXsltEnti
   Optional<TransformXsltEntity> findById(Integer id);
 
   /**
-   * Retrieves the first TransformXsltEntity of the specified type, ordered by ID.
-   *
-   * @param type the XSLT type to filter by
-   * @return an Optional containing the first matching TransformXsltEntity, or empty if none exist
-   */
-  Optional<TransformXsltEntity> findFirstByTypeOrderById(XsltType type);
-
-  /**
    * Retrieves a TransformXsltEntity associated with the given dataset ID.
    *
    * @param datasetId the identifier of the dataset linked to the XSLT transformation
