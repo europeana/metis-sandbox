@@ -68,7 +68,8 @@ public class TaskController {
    */
   @PostMapping("/dataset")
   public String createEngineDataset(@RequestBody DatasetMetadataRequest datasetMetadataRequest) {
-    return datasetExecutionSetupService.createDataset(datasetMetadataRequest, WorkflowType.SINGLE, ENGINE_USER_ID);
+    return String.valueOf(
+        datasetExecutionSetupService.createDataset(datasetMetadataRequest, WorkflowType.SINGLE, ENGINE_USER_ID));
   }
 
   /**

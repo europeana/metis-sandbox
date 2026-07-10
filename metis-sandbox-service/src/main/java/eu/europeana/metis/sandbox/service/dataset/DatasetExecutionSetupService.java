@@ -17,6 +17,7 @@ import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
+import java.util.NoSuchElementException;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,7 +106,9 @@ public class DatasetExecutionSetupService {
       XsltType xsltType,
       AbstractHarvestParametersDTO abstractHarvestParametersDTO,
       String sourceExecutionId) {
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+    DatasetEntity datasetEntity =
+        datasetRepository.findById(Integer.valueOf(datasetId))
+                         .orElseThrow(() -> new NoSuchElementException("No dataset found for id " + datasetId));
 
     TransformXsltEntity transformXsltEntity = handleXslt(datasetId, xslt, xsltType);
 
@@ -168,8 +171,8 @@ public class DatasetExecutionSetupService {
 
   private @NotNull TransformXsltEntity saveXslt(String datasetId, String xsltFile, XsltType xsltType) {
     TransformXsltEntity entity;
-    if (xsltType == XsltType.DEFAULT) {
-      throw new ServiceException("DEFAULT XSLT is not valid here");
+    if (xsltType == null || xsltType == XsltType.DEFAULT) {
+      throw new ServiceException("null or DEFAULT XSLT is not valid here");
     } else {
       entity = transformXsltRepository
           .findByDatasetIdAndType(datasetId, xsltType)

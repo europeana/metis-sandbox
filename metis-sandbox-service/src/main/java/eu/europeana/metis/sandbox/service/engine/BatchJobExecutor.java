@@ -341,17 +341,16 @@ public class BatchJobExecutor {
 
   private @NotNull JobExecution executeTransformInternal(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
     DatasetMetadata datasetMetadata = executionMetadataWithTargetId.executionMetadata().getDatasetMetadata();
-    String transformXsltId = transformXsltRepository.findByDatasetIdAndType(datasetMetadata.getDatasetId(), XsltType.INTERNAL)
+    Integer transformXsltId = transformXsltRepository.findByDatasetIdAndType(datasetMetadata.getDatasetId(), XsltType.INTERNAL)
                                                     .or(() -> transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID, XsltType.DEFAULT))
                                                     .map(TransformXsltEntity::getId)
-                                                    .map(String::valueOf)
                                                     .orElseThrow();
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.INTERNAL.name())
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
         .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
-        .addString(ARGUMENT_XSLT_ID, transformXsltId)
+        .addJobParameter(ARGUMENT_XSLT_ID, transformXsltId, Integer.class)
         .toJobParameters();
 
     return prepareAndRunJob(BatchJobType.TRANSFORM, executionMetadataWithTargetId, stepParameters);
@@ -359,7 +358,7 @@ public class BatchJobExecutor {
 
   private @NotNull JobExecution executeTransformToEdmExternal(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
     ExecutionMetadata executionMetadata = executionMetadataWithTargetId.executionMetadata();
-    String transformXsltId = String.valueOf(executionMetadata.getInputMetadata().getTransformXsltEntity().getId());
+    Integer transformXsltId = executionMetadata.getInputMetadata().getTransformXsltEntity().getId();
     DatasetMetadata datasetMetadata = executionMetadata.getDatasetMetadata();
 
     JobParameters stepParameters = new JobParametersBuilder()
@@ -367,7 +366,7 @@ public class BatchJobExecutor {
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
         .addString(ARGUMENT_DATASET_COUNTRY, datasetMetadata.getCountry().xmlValue())
         .addString(ARGUMENT_DATASET_LANGUAGE, datasetMetadata.getLanguage().name().toLowerCase(Locale.US))
-        .addString(ARGUMENT_XSLT_ID, transformXsltId)
+        .addJobParameter(ARGUMENT_XSLT_ID, transformXsltId, Integer.class)
         .toJobParameters();
 
     return prepareAndRunJob(BatchJobType.TRANSFORM, executionMetadataWithTargetId, stepParameters);

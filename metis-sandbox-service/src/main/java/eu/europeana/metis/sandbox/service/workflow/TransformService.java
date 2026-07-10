@@ -101,11 +101,11 @@ public class TransformService {
    * @return the XSLT content as a byte array encoded in UTF-8
    * @throws NoSuchElementException if the XSLT transformation is not found for the provided ID
    */
-  public byte[] getXsltBytes(String xsltId) {
-    return transformXsltRepository.findById(Integer.valueOf(xsltId))
+  public byte[] getXsltBytes(Integer xsltId) {
+    return transformXsltRepository.findById(xsltId)
                                   .map(TransformXsltEntity::getTransformXslt)
                                   .map(s -> s.getBytes(StandardCharsets.UTF_8))
-                                  .orElseThrow();
+                                  .orElseThrow(() -> new NoSuchElementException("No XSLT found for id " + xsltId));
   }
 
   /**

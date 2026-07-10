@@ -32,7 +32,7 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
   @Value("#{jobParameters['datasetLanguage']}")
   private String datasetLanguage;
   @Value("#{jobParameters['xsltId']}")
-  private String xsltId;
+  private Integer xsltId;
 
   private final TransformService transformService;
   private TransformDatasetContext transformDatasetContext;
@@ -52,13 +52,13 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
    * Prepares the processing context by loading the XSLT bytes and computing their cache key.
    * <p>
    * This method is executed before a processing step starts. It retrieves the XSLT bytes associated with the provided XSLT
-   * identifier (`xsltId`) using the {@code TransformService}. The retrieved bytes are then used to compute an SHA-256 hash, which
+   * identifier (`xsltId`). The retrieved bytes are then used to compute an SHA3-256 hash, which
    * serves as a cache key for transformation operations.
    */
   @PostConstruct
   private void beforeStep() {
     this.xsltBytes = transformService.getXsltBytes(xsltId);
-    this.xsltCacheKey = "xslt-" + DigestUtils.sha256Hex(xsltBytes);
+    this.xsltCacheKey = "xslt-" + DigestUtils.sha3_256Hex(xsltBytes);
     this.transformDatasetContext = new TransformDatasetContext(datasetId, datasetName, datasetCountry, datasetLanguage);
   }
 

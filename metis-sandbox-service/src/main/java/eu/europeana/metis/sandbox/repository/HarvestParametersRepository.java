@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.repository;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import java.util.Optional;
 import java.util.UUID;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,9 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
  * Repository connected to Harvesting Parameters table
  */
 public interface HarvestParametersRepository extends JpaRepository<HarvestParametersEntity, UUID> {
-
-    @Transactional(readOnly = true)
-    Optional<HarvestParametersEntity> findById(@NotNull UUID id);
 
     /**
      * Retrieves an optional HarvestParametersEntity associated with the specified dataset id.
