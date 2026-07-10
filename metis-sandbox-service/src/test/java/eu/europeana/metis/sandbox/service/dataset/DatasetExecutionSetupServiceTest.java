@@ -18,6 +18,7 @@ import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
+import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
@@ -65,6 +66,7 @@ class DatasetExecutionSetupServiceTest {
 
     when(harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestParametersDTO)).thenReturn(
         harvestParameters);
+    when(transformXsltRepository.save(any(TransformXsltEntity.class))).thenReturn(new TransformXsltEntity());
 
     ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
         workflowType, datasetMetadataRequest, userId, xsltFile, oaiHarvestParametersDTO);
@@ -74,6 +76,46 @@ class DatasetExecutionSetupServiceTest {
     assertNotNull(executionMetadata.getInputMetadata().getTransformXsltEntity());
     assertEquals(harvestParameters, executionMetadata.getInputMetadata().getHarvestParametersEntity());
     verify(transformXsltRepository).save(any(TransformXsltEntity.class));
+  }
+
+  @Test
+  void prepareDatasetAndExecution_withExistingXslt_shouldUpdateExistingEntity() {
+    String datasetId = "1";
+    WorkflowType workflowType = WorkflowType.OAI_HARVEST;
+    String userId = "userId";
+    String xsltFile = "updated-xslt";
+
+    OaiHarvestParametersDTO oaiHarvestParametersDTO =
+        new OaiHarvestParametersDTO("url", "setStep", "metadataFormat", 1);
+
+    HarvestParametersEntity harvestParameters = mock(HarvestParametersEntity.class);
+    TransformXsltEntity existingEntity =
+        new TransformXsltEntity(datasetId, XsltType.INTERNAL, "old-xslt");
+
+    AtomicReference<DatasetEntity> datasetEntityReference = new AtomicReference<>();
+    when(datasetRepository.save(any())).thenAnswer(invocation -> {
+      DatasetEntity datasetEntity = invocation.getArgument(0);
+      datasetEntity.setDatasetId(Integer.valueOf(datasetId));
+      datasetEntityReference.set(datasetEntity);
+      return datasetEntity;
+    });
+    when(datasetRepository.findById(Integer.valueOf(datasetId)))
+        .thenAnswer(invocation -> Optional.ofNullable(datasetEntityReference.get()));
+
+    when(transformXsltRepository.findByDatasetIdAndType(datasetId, XsltType.INTERNAL))
+        .thenReturn(Optional.of(existingEntity));
+    when(transformXsltRepository.save(any(TransformXsltEntity.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    when(harvestParameterService.createDatasetHarvestParameters(datasetId, oaiHarvestParametersDTO))
+        .thenReturn(harvestParameters);
+
+    ExecutionMetadata executionMetadata = datasetExecutionSetupService.prepareDatasetAndExecution(
+        workflowType, datasetMetadataRequest, userId, xsltFile, oaiHarvestParametersDTO);
+
+    assertNotNull(executionMetadata);
+    assertEquals(existingEntity, executionMetadata.getInputMetadata().getTransformXsltEntity());
+    assertEquals(xsltFile, existingEntity.getTransformXslt());
   }
 
   @Test
@@ -104,6 +146,21 @@ class DatasetExecutionSetupServiceTest {
     assertEquals(datasetId, executionMetadata.getDatasetMetadata().getDatasetId());
     assertNull(executionMetadata.getInputMetadata().getTransformXsltEntity());
     assertEquals(harvestParameters, executionMetadata.getInputMetadata().getHarvestParametersEntity());
+  }
+
+  @Test
+  void prepareTransformExecution_withDefaultXsltType_shouldThrowServiceException() {
+    String datasetId = "1";
+
+    DatasetEntity datasetEntity =
+        new DatasetEntity("datasetName", WorkflowType.SINGLE, Language.EL, Country.GREECE, "userId");
+    datasetEntity.setDatasetId(Integer.valueOf(datasetId));
+
+    when(datasetRepository.findById(Integer.valueOf(datasetId)))
+        .thenReturn(Optional.of(datasetEntity));
+
+    assertThrows(ServiceException.class, () ->
+        datasetExecutionSetupService.prepareTransformExecution(datasetId, "sourceExecutionId", "xslt", XsltType.DEFAULT));
   }
 
   @Test

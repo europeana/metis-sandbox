@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.service.util;
 
+import static eu.europeana.metis.sandbox.repository.TransformXsltRepository.DEFAULT_DATASET_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +68,7 @@ class XsltUrlUpdateServiceTest {
     when(httpClient.sendAsync(any(HttpRequest.class), any())).thenReturn(response);
 
     // when
-    when(transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT)).thenReturn(Optional.of(new TransformXsltEntity()));
+    when(transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID, XsltType.DEFAULT)).thenReturn(Optional.of(new TransformXsltEntity()));
     xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt");
     //then
     verify(transformXsltRepository, times(1)).save(any());
@@ -101,7 +102,7 @@ class XsltUrlUpdateServiceTest {
     when(httpClient.sendAsync(any(HttpRequest.class), any())).thenReturn(response);
 
     // when
-    when(transformXsltRepository.findFirstByTypeOrderById(XsltType.DEFAULT)).thenThrow(RuntimeException.class);
+    when(transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID, XsltType.DEFAULT)).thenThrow(RuntimeException.class);
     // then
     assertDoesNotThrow(() -> xsltUrlUpdateService.updateXslt("http://document.domain:12345/xslt"));
     verify(transformXsltRepository, never()).save(any());

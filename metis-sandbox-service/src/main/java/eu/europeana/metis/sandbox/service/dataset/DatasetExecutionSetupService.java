@@ -17,7 +17,7 @@ import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
 import eu.europeana.metis.sandbox.repository.DatasetRepository;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
-import java.io.IOException;
+import java.util.NoSuchElementException;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,12 +41,10 @@ public class DatasetExecutionSetupService {
    * @param datasetId the dataset identifier
    * @param abstractHarvestParametersDTO the harvest parameters required to configure the execution
    * @return an instance of ExecutionMetadata containing metadata about the prepared execution
-   * @throws IOException if an input or output error occurs during the preparation of the execution
    */
   @Transactional
-  public ExecutionMetadata prepareHarvestExecution(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO)
-      throws IOException {
-    return prepareExecution(WorkflowType.SINGLE, datasetId, null, abstractHarvestParametersDTO, null);
+  public ExecutionMetadata prepareHarvestExecution(String datasetId, AbstractHarvestParametersDTO abstractHarvestParametersDTO) {
+    return prepareExecution(WorkflowType.SINGLE, datasetId, null, null, abstractHarvestParametersDTO, null);
   }
 
   /**
@@ -55,14 +53,25 @@ public class DatasetExecutionSetupService {
    *
    * @param datasetId the dataset identifier
    * @param sourceExecutionId the source execution identifier to be used as a reference.
-   * @param xslt the XSLT file to be applied during the transformation process.
    * @return an instance of ExecutionMetadata containing metadata about the prepared execution
-   * @throws IOException if an input or output error occurs during the preparation of the execution
    */
   @Transactional
-  public ExecutionMetadata prepareIntermediateExecution(String datasetId, String sourceExecutionId, String xslt)
-      throws IOException {
-    return prepareExecution(WorkflowType.SINGLE, datasetId, xslt, null, sourceExecutionId);
+  public ExecutionMetadata prepareIntermediateExecution(String datasetId, String sourceExecutionId) {
+    return prepareExecution(WorkflowType.SINGLE, datasetId, null, null, null, sourceExecutionId);
+  }
+
+  /**
+   * Prepares the execution of a transformation workflow based on the provided parameters.
+   *
+   * @param datasetId the unique identifier for the dataset associated with the transformation.
+   * @param sourceExecutionId the identifier of the source execution to be referenced.
+   * @param xslt the XSLT string to be applied during the transformation.
+   * @param xsltType the type of XSLT being provided.
+   * @return ExecutionMetadata containing metadata related to the prepared transformation execution.
+   */
+  @Transactional
+  public ExecutionMetadata prepareTransformExecution(String datasetId, String sourceExecutionId, String xslt, XsltType xsltType) {
+    return prepareExecution(WorkflowType.SINGLE, datasetId, xslt, xsltType, null, sourceExecutionId);
   }
 
   /**
@@ -87,18 +96,21 @@ public class DatasetExecutionSetupService {
       String xsltFile,
       AbstractHarvestParametersDTO abstractHarvestParametersDTO) {
     String datasetId = createDataset(datasetMetadataRequest, workflowType, userId);
-    return prepareExecution(workflowType, datasetId, xsltFile, abstractHarvestParametersDTO, null);
+    return prepareExecution(workflowType, datasetId, xsltFile, XsltType.INTERNAL, abstractHarvestParametersDTO, null);
   }
 
   private ExecutionMetadata prepareExecution(
       WorkflowType workflowType,
       String datasetId,
       String xslt,
+      XsltType xsltType,
       AbstractHarvestParametersDTO abstractHarvestParametersDTO,
       String sourceExecutionId) {
-    DatasetEntity datasetEntity = datasetRepository.findById(Integer.valueOf(datasetId)).orElseThrow();
+    DatasetEntity datasetEntity =
+        datasetRepository.findById(Integer.valueOf(datasetId))
+                         .orElseThrow(() -> new NoSuchElementException("No dataset found for id " + datasetId));
 
-    TransformXsltEntity transformXsltEntity = handleXslt(datasetId, xslt);
+    TransformXsltEntity transformXsltEntity = handleXslt(datasetId, xslt, xsltType);
 
     InputMetadata inputMetadata =
         buildInputMetadata(datasetId, abstractHarvestParametersDTO, sourceExecutionId, transformXsltEntity);
@@ -124,8 +136,8 @@ public class DatasetExecutionSetupService {
     return inputMetadata;
   }
 
-  private @Nullable TransformXsltEntity handleXslt(String datasetId, String xslt) {
-    return (xslt != null) ? saveXslt(xslt, datasetId) : null;
+  private @Nullable TransformXsltEntity handleXslt(String datasetId, String xslt, XsltType xsltType) {
+    return (xslt != null) ? saveXslt(datasetId, xslt, xsltType) : null;
   }
 
   /**
@@ -157,10 +169,17 @@ public class DatasetExecutionSetupService {
     }
   }
 
-  private @NotNull TransformXsltEntity saveXslt(String xsltFile, String datasetId) {
-    TransformXsltEntity transformXsltEntity = new TransformXsltEntity(datasetId, XsltType.EXTERNAL, xsltFile);
-    transformXsltRepository.save(transformXsltEntity);
-    return transformXsltEntity;
+  private @NotNull TransformXsltEntity saveXslt(String datasetId, String xsltFile, XsltType xsltType) {
+    TransformXsltEntity entity;
+    if (xsltType == null || xsltType == XsltType.DEFAULT) {
+      throw new ServiceException("null or DEFAULT XSLT is not valid here");
+    } else {
+      entity = transformXsltRepository
+          .findByDatasetIdAndType(datasetId, xsltType)
+          .orElseGet(() -> new TransformXsltEntity(datasetId, xsltType, xsltFile));
+    }
+    entity.setTransformXslt(xsltFile);
+    return transformXsltRepository.save(entity);
   }
 
   /**

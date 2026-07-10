@@ -1,6 +1,7 @@
 package eu.europeana.metis.sandbox.controller.task;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
@@ -11,12 +12,15 @@ import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.task.input.HttpHarvestInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.InputMetadataRequest;
+import eu.europeana.metis.sandbox.common.task.input.IntermediateInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.OaiHarvestInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTask;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress;
 import eu.europeana.metis.sandbox.common.task.input.SimpleIntermediateInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.TransformExternalInputMetadataRequest;
+import eu.europeana.metis.sandbox.common.task.input.TransformInternalInputMetadataRequest;
+import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
@@ -25,7 +29,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,7 +68,8 @@ public class TaskController {
    */
   @PostMapping("/dataset")
   public String createEngineDataset(@RequestBody DatasetMetadataRequest datasetMetadataRequest) {
-    return datasetExecutionSetupService.createDataset(datasetMetadataRequest, WorkflowType.SINGLE, ENGINE_USER_ID);
+    return String.valueOf(
+        datasetExecutionSetupService.createDataset(datasetMetadataRequest, WorkflowType.SINGLE, ENGINE_USER_ID));
   }
 
   /**
@@ -81,6 +85,10 @@ public class TaskController {
     String jobName = sandboxTask.getParameters().get(SandboxTaskKey.JOB_NAME);
 
     InputMetadataRequest inputMetadataRequest = sandboxTask.getInputMetadataRequest();
+    if (inputMetadataRequest instanceof IntermediateInputMetadataRequest intermediateInputMetadataRequest) {
+      checkArgument(isNotBlank(intermediateInputMetadataRequest.sourceExecutionId()), "Source execution ID cannot be blank.");
+    }
+
     return switch (inputMetadataRequest) {
       case OaiHarvestInputMetadataRequest(
           String url, String set, String metadataPrefix, Instant from, Instant until, Integer stepSize
@@ -89,16 +97,15 @@ public class TaskController {
         CompressedFileExtension compressedFileExtension = FileTypeResolver.fromUrl(URI.create(url));
         yield datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url, compressedFileExtension);
       }
-      case SimpleIntermediateInputMetadataRequest(String sourceExecutionId) -> {
-        checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
-        yield datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId, null,
-            FullBatchJobType.valueOf(jobName));
-      }
-      case TransformExternalInputMetadataRequest(String xslt, String sourceExecutionId) -> {
-        checkArgument(StringUtils.isNotBlank(sourceExecutionId), "Source execution ID cannot be blank.");
-        yield datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId, xslt,
-            FullBatchJobType.valueOf(jobName));
-      }
+      case SimpleIntermediateInputMetadataRequest(String sourceExecutionId) ->
+          datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId,
+              FullBatchJobType.valueOf(jobName));
+      case TransformExternalInputMetadataRequest(String xslt, String sourceExecutionId) ->
+          datasetExecutionService.submitTransformationExecutionSingle(datasetId, sourceExecutionId, xslt, XsltType.EXTERNAL,
+              FullBatchJobType.valueOf(jobName));
+      case TransformInternalInputMetadataRequest(String xslt, String sourceExecutionId) ->
+          datasetExecutionService.submitTransformationExecutionSingle(datasetId, sourceExecutionId, xslt, XsltType.INTERNAL,
+              FullBatchJobType.valueOf(jobName));
     };
   }
 

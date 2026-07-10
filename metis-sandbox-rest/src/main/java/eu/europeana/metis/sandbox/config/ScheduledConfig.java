@@ -19,6 +19,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 class ScheduledConfig {
 
+  private static final int SCHEDULED_TASK_POOL_SIZE = 5;
+  private static final int AWAIT_TERMINATION_SECONDS = 10;
+
+  @Bean
+  ThreadPoolTaskScheduler taskScheduler() {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(SCHEDULED_TASK_POOL_SIZE);
+    scheduler.setThreadNamePrefix("Scheduled-");
+    scheduler.setWaitForTasksToCompleteOnShutdown(true);
+    scheduler.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
+    return scheduler;
+  }
+
   /**
    * Retrieves the transformation XSLT update frequency configuration.
    *
@@ -58,8 +71,6 @@ class ScheduledConfig {
   @EnableScheduling
   static class ScheduledTasks {
 
-    private static final int SCHEDULED_TASK_POOL_SIZE = 5;
-    private static final int AWAIT_TERMINATION_SECONDS = 10;
     private final MetricsService metricsService;
     private final XsltUrlUpdateService xsltUrlUpdateService;
     private final DataCleanupService dataCleanupService;
@@ -73,16 +84,6 @@ class ScheduledConfig {
       this.metricsService = metricsService;
       this.xsltUrlUpdateService = xsltUrlUpdateService;
       this.dataCleanupService = dataCleanupService;
-    }
-
-    @Bean
-    ThreadPoolTaskScheduler taskScheduler() {
-      ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-      scheduler.setPoolSize(SCHEDULED_TASK_POOL_SIZE);
-      scheduler.setThreadNamePrefix("Scheduled-");
-      scheduler.setWaitForTasksToCompleteOnShutdown(true);
-      scheduler.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
-      return scheduler;
     }
 
     @Scheduled(cron = "#{@getMetricsFrequency}")

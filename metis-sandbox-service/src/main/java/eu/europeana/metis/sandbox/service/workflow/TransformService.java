@@ -1,6 +1,5 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.entity.TransformXsltEntity;
 import eu.europeana.metis.sandbox.repository.TransformXsltRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.NoSuchElementException;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -27,65 +27,53 @@ public class TransformService {
   private final TransformXsltRepository transformXsltRepository;
 
   /**
-   * Transforms a record using an XSLT transformation based on the specified subtype.
+   * Transforms the input record using the provided XSLT.
    *
-   * <p>Uses either external or internal transformation logic depending on the provided subtype.
-   * <p>The XSLT content is retrieved using the given XSLT ID.
-   *
-   * @param recordId the unique identifier of the record to be transformed
-   * @param recordData the data content of the record to be transformed
-   * @param xsltId the identifier of the XSLT to apply during the transformation
-   * @param subType defines whether the transformation is EXTERNAL or INTERNAL
-   * @param datasetId the identifier of the dataset associated with the record
-   * @param datasetName the name of the dataset associated with the record
-   * @param datasetCountry the country associated with the dataset
-   * @param datasetLanguage the language associated with the dataset
-   * @return the transformed record content as a string
+   * @param recordBytes the byte array representing the record to transform
+   * @param xsltBytes the byte array containing the XSLT transformation definition
+   * @param xsltCacheKey a unique key used to cache the XSLT transformation instance
+   * @return the transformed record as a string
    * @throws TransformationException if an error occurs during the transformation process
    */
-  public String transformRecord(String recordId,
-      String recordData,
-      String xsltId,
-      TransformationBatchJobSubType subType,
-      String datasetId,
-      String datasetName,
-      String datasetCountry,
-      String datasetLanguage) throws TransformationException {
-
-    String xsltContent = transformXsltRepository.findById(Integer.valueOf(xsltId))
-                                                .map(TransformXsltEntity::getTransformXslt).orElseThrow();
-    byte[] contentBytes = recordData.getBytes(StandardCharsets.UTF_8);
-    InputStream xsltInputStream = new ByteArrayInputStream(xsltContent.getBytes(StandardCharsets.UTF_8));
-
-    return switch (subType) {
-      case EXTERNAL -> transformExternal(recordId, contentBytes, xsltInputStream);
-      case INTERNAL -> transformInternal(contentBytes, xsltInputStream, datasetId, datasetName, datasetCountry, datasetLanguage);
-    };
-  }
-
-  private String transformExternal(String recordId, byte[] contentBytes, InputStream xsltInputStream)
+  public String transformExternal(byte[] recordBytes, byte[] xsltBytes, String xsltCacheKey)
       throws TransformationException {
-    try (XsltTransformer xsltTransformer = new XsltTransformer(recordId, xsltInputStream);
-        StringWriter writer = xsltTransformer.transform(contentBytes, null)) {
+    try (InputStream xsltInputStream = new ByteArrayInputStream(xsltBytes);
+        XsltTransformer xsltTransformer = new XsltTransformer(xsltCacheKey, xsltInputStream);
+        StringWriter writer = xsltTransformer.transform(recordBytes, null)) {
       return writer.toString();
     } catch (IOException e) {
       throw new TransformationException(e);
     }
   }
 
-  private String transformInternal(byte[] contentBytes, InputStream xsltInputStream,
-      String datasetId, String datasetName, String datasetCountry, String datasetLanguage) throws TransformationException {
+  /**
+   * Transforms the input record using the provided XSLT and dataset context.
+   *
+   * @param recordBytes the byte array representing the record to transform
+   * @param xsltBytes the byte array containing the XSLT transformation definition
+   * @param xsltCacheKey a unique key used to cache the XSLT transformation instance
+   * @param transformDatasetContext an object containing contextual information about the dataset, including its ID, name,
+   * country, and language
+   * @return the transformed record as a string
+   * @throws TransformationException if an error occurs during the transformation process, such as preparing the IDs map or during
+   * the XSLT transformation
+   */
+  public String transformInternal(byte[] recordBytes, byte[] xsltBytes, String xsltCacheKey,
+      TransformDatasetContext transformDatasetContext) throws TransformationException {
     final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap;
     try {
-      europeanaGeneratedIdsMap = prepareEuropeanaGeneratedIdsMap(contentBytes, datasetId);
+      europeanaGeneratedIdsMap = prepareEuropeanaGeneratedIdsMap(recordBytes, transformDatasetContext.datasetId());
     } catch (EuropeanaIdException e) {
       throw new TransformationException(e);
     }
 
-    final String datasetIdDatasetName = getJoinDatasetIdDatasetName(datasetId, datasetName);
-    try (XsltTransformer xsltTransformer = new XsltTransformer("xsltKey", xsltInputStream, datasetIdDatasetName, datasetCountry,
-        datasetLanguage);
-        StringWriter writer = xsltTransformer.transform(contentBytes, europeanaGeneratedIdsMap)) {
+    final String datasetIdDatasetName = getJoinDatasetIdDatasetName(transformDatasetContext.datasetId(),
+        transformDatasetContext.datasetName());
+    try (InputStream xsltInputStream = new ByteArrayInputStream(xsltBytes);
+        XsltTransformer xsltTransformer = new XsltTransformer(
+            xsltCacheKey, xsltInputStream, datasetIdDatasetName, transformDatasetContext.datasetCountry(),
+            transformDatasetContext.datasetLanguage());
+        StringWriter writer = xsltTransformer.transform(recordBytes, europeanaGeneratedIdsMap)) {
       return writer.toString();
     } catch (IOException e) {
       throw new TransformationException(e);
@@ -104,6 +92,35 @@ public class TransformService {
 
   private String getJoinDatasetIdDatasetName(String datasetId, String datasetName) {
     return String.join("_", datasetId, datasetName);
+  }
+
+  /**
+   * Retrieves the XSLT content as a byte array for the given XSLT ID.
+   *
+   * @param xsltId the unique identifier of the XSLT transformation to retrieve
+   * @return the XSLT content as a byte array encoded in UTF-8
+   * @throws NoSuchElementException if the XSLT transformation is not found for the provided ID
+   */
+  public byte[] getXsltBytes(Integer xsltId) {
+    return transformXsltRepository.findById(xsltId)
+                                  .map(TransformXsltEntity::getTransformXslt)
+                                  .map(s -> s.getBytes(StandardCharsets.UTF_8))
+                                  .orElseThrow(() -> new NoSuchElementException("No XSLT found for id " + xsltId));
+  }
+
+  /**
+   * A record representing the context of a dataset used in the transformation process.
+   * <p>
+   * It is primarily used within transformation workflows to provide metadata about the dataset that could influence the
+   * transformation output.
+   */
+  public record TransformDatasetContext(
+      String datasetId,
+      String datasetName,
+      String datasetCountry,
+      String datasetLanguage
+  ) {
+
   }
 }
 

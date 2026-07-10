@@ -2,11 +2,15 @@ package eu.europeana.metis.sandbox.batch.processor;
 
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createCopyIdentifiersValidated;
 
-import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
 import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO;
+import eu.europeana.metis.sandbox.common.batch.TransformationBatchJobSubType;
 import eu.europeana.metis.sandbox.service.workflow.TransformService;
+import eu.europeana.metis.sandbox.service.workflow.TransformService.TransformDatasetContext;
+import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,9 +32,12 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
   @Value("#{jobParameters['datasetLanguage']}")
   private String datasetLanguage;
   @Value("#{jobParameters['xsltId']}")
-  private String xsltId;
+  private Integer xsltId;
 
   private final TransformService transformService;
+  private TransformDatasetContext transformDatasetContext;
+  private byte[] xsltBytes;
+  private String xsltCacheKey;
 
   /**
    * Constructor with service parameter.
@@ -41,20 +48,30 @@ public class TransformItemProcessor extends AbstractExecutionRecordMetisItemProc
     this.transformService = transformService;
   }
 
+  /**
+   * Prepares the processing context by loading the XSLT bytes and computing their cache key.
+   * <p>
+   * This method is executed before a processing step starts. It retrieves the XSLT bytes associated with the provided XSLT
+   * identifier (`xsltId`). The retrieved bytes are then used to compute an SHA3-256 hash, which
+   * serves as a cache key for transformation operations.
+   */
+  @PostConstruct
+  private void beforeStep() {
+    this.xsltBytes = transformService.getXsltBytes(xsltId);
+    this.xsltCacheKey = "xslt-" + DigestUtils.sha3_256Hex(xsltBytes);
+    this.transformDatasetContext = new TransformDatasetContext(datasetId, datasetName, datasetCountry, datasetLanguage);
+  }
+
   @Override
   public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
     return jobMetadataDTO -> {
       SuccessExecutionRecordDTO originSuccessExecutionRecordDTO = jobMetadataDTO.getSuccessExecutionRecordDTO();
 
-      final String resultString = transformService.transformRecord(
-          originSuccessExecutionRecordDTO.getRecordId(),
-          originSuccessExecutionRecordDTO.getRecordData(),
-          xsltId,
-          (TransformationBatchJobSubType) getFullBatchJobType().getBatchJobSubType(),
-          datasetId,
-          datasetName,
-          datasetCountry,
-          datasetLanguage);
+      byte[] recordBytes = originSuccessExecutionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
+      final String resultString = switch (getFullBatchJobType().requireBatchJobSubType(TransformationBatchJobSubType.class)) {
+        case EXTERNAL -> transformService.transformExternal(recordBytes, xsltBytes, xsltCacheKey);
+        case INTERNAL -> transformService.transformInternal(recordBytes, xsltBytes, xsltCacheKey, transformDatasetContext);
+      };
 
       return createCopyIdentifiersValidated(
           originSuccessExecutionRecordDTO,

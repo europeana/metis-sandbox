@@ -18,6 +18,7 @@ import eu.europeana.metis.sandbox.dto.harvest.OaiHarvestParametersDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionProgressInfoDTO;
 import eu.europeana.metis.sandbox.dto.report.ExecutionStatus;
 import eu.europeana.metis.sandbox.entity.DatasetEntity;
+import eu.europeana.metis.sandbox.entity.XsltType;
 import eu.europeana.metis.sandbox.entity.debias.DatasetDeBiasEntity;
 import eu.europeana.metis.sandbox.service.debias.DeBiasStateService;
 import eu.europeana.metis.sandbox.service.engine.BatchJobExecutor;
@@ -125,15 +126,30 @@ public class DatasetExecutionService {
    *
    * @param datasetId the dataset identifier
    * @param sourceExecutionId the source execution identifier to be used as a reference.
-   * @param xslt the XSLT file to be applied during the transformation process.
    * @param fullBatchJobType the full batch job type representing the specific step to be executed
    * @return A string representing the execution identifier
-   * @throws IOException If an I/O error occurs during the submission
    */
-  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId, String xslt,
-      FullBatchJobType fullBatchJobType) throws IOException {
+  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId,
+      FullBatchJobType fullBatchJobType) {
     ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId, xslt);
+        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId);
+    return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
+  }
+
+  /**
+   * Submits a single transformation execution for the specified dataset and source execution ID using the provided XSLT.
+   *
+   * @param datasetId The unique identifier of the dataset on which the transformation will be executed.
+   * @param sourceExecutionId The ID of the source execution used as a basis for the transformation.
+   * @param xslt The XSLT string to be applied to the dataset.
+   * @param xsltType The type of the XSLT transformation, represented by the {@code XsltType} enum.
+   * @param fullBatchJobType The type of the full batch job, represented by the {@code FullBatchJobType} enum.
+   * @return The result of the batch job execution, represented as a string.
+   */
+  public String submitTransformationExecutionSingle(String datasetId, String sourceExecutionId, String xslt, XsltType xsltType,
+      FullBatchJobType fullBatchJobType) {
+    ExecutionMetadata executionMetadata =
+        datasetExecutionSetupService.prepareTransformExecution(datasetId, sourceExecutionId, xslt, xsltType);
     return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
   }
 
@@ -307,8 +323,8 @@ public class DatasetExecutionService {
   }
 
   /**
-   * Cancels the execution of a batch job task identified by the specified execution identifier.
-   * This method will stop the currently running batch job task if it is in progress.
+   * Cancels the execution of a batch job task identified by the specified execution identifier. This method will stop the
+   * currently running batch job task if it is in progress.
    *
    * @param executionId the execution identifier
    * @param fullBatchJobType the full batch job type representing the specific task to be cancelled

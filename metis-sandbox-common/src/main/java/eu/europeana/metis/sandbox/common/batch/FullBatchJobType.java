@@ -64,6 +64,22 @@ public enum FullBatchJobType {
   }
 
   /**
+   * Ensures that the current batch job subtype matches the expected type and returns it.
+   *
+   * @param <T> The specific type of the batch job subtype.
+   * @param expectedType The expected class type of the batch job subtype. Must be a subtype of {@code BatchJobSubType}.
+   * @return The batch job subtype cast to the specified type {@code T}.
+   * @throws IllegalStateException If the current batch job subtype does not match the expected type.
+   */
+  public <T extends BatchJobSubType> T requireBatchJobSubType(Class<T> expectedType) {
+    if (expectedType.isInstance(batchJobSubType)) {
+      return expectedType.cast(batchJobSubType);
+    }
+
+    throw new IllegalStateException("Batch job type %s does not have subtype %s.".formatted(this, expectedType.getSimpleName()));
+  }
+
+  /**
    * Represents a category of batch jobs.
    * <p>
    * Each constant in this enum corresponds to a broad category under which specific batch job types or subtypes may be
