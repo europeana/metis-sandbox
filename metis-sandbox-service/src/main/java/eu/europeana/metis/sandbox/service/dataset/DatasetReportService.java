@@ -258,7 +258,6 @@ public class DatasetReportService {
 
     return new ExecutionProgressInfoDTO(
         portalUrlPreview,
-        portalUrlPreview,
         executionStatus,
         totalRecords,
         totalProcessed,

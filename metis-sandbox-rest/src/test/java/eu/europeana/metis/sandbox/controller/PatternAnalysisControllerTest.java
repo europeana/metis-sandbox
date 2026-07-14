@@ -108,7 +108,7 @@ class PatternAnalysisControllerTest {
         .thenReturn(Optional.of(datasetProblemPatternAnalysis));
 
     final ExecutionProgressInfoDTO completedInfo =
-        new ExecutionProgressInfoDTO("", "", ExecutionStatus.COMPLETED, 1L, 1L, emptyList(), false, List.of(), null);
+        new ExecutionProgressInfoDTO("", ExecutionStatus.COMPLETED, 1L, 1L, emptyList(), false, List.of(), null);
     assertEquals(ExecutionStatus.COMPLETED, completedInfo.executionStatus());
 
     mvc.perform(get("/pattern-analysis/{id}/get-dataset-pattern-analysis", "datasetId"))
