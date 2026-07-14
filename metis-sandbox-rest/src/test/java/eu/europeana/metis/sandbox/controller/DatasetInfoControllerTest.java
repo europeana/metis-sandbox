@@ -72,7 +72,6 @@ class DatasetInfoControllerTest {
 
     ExecutionProgressInfoDTO executionProgressInfoDTO = new ExecutionProgressInfoDTO(
         "portalUrlPreview",
-        "portalUrlPreview",
         ExecutionStatus.COMPLETED,
         10,
         10,
