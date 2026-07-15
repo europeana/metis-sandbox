@@ -3,8 +3,7 @@ package eu.europeana.metis.sandbox.controller.task;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.FileTypeResolver;
@@ -52,7 +51,7 @@ public class TaskController {
   private final DatasetExecutionSetupService datasetExecutionSetupService;
   private final DatasetExecutionService datasetExecutionService;
   private final DatasetReportService datasetReportService;
-  private final Indexer<FullBeanImpl> indexerPreview;
+  private final IndexerPool indexerPool;
 
   /**
    * Creates a new engine dataset based on the provided metadata request.
@@ -146,6 +145,6 @@ public class TaskController {
    */
   @GetMapping("/indexedRecordsCount")
   public long getIndexedRecordsCount(@RequestParam(name = "metisDatasetId") String metisDatasetId) throws IndexingException {
-    return indexerPreview.countRecords(metisDatasetId);
+    return indexerPool.countRecords(metisDatasetId, null);
   }
 }

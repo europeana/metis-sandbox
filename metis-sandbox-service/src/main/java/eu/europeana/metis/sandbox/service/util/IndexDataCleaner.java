@@ -2,12 +2,9 @@ package eu.europeana.metis.sandbox.service.util;
 
 import static java.util.Objects.requireNonNull;
 
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.sandbox.common.exception.DatasetIndexRemoveException;
-import jakarta.annotation.PreDestroy;
-import java.io.IOException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +17,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class IndexDataCleaner {
 
-  private final Indexer<FullBeanImpl> indexerPreview;
+  private final IndexerPool indexerPool;
 
   /**
    * Removes all indexed data for a specific dataset.
@@ -31,22 +28,9 @@ public class IndexDataCleaner {
     requireNonNull(datasetId, "Dataset id must not be null");
 
     try {
-      indexerPreview.removeAll(datasetId, null);
+      indexerPool.removeAll(datasetId, null);
     } catch (IndexingException e) {
       throw new DatasetIndexRemoveException(datasetId, e);
     }
-  }
-
-  /**
-   * Releases resources allocated for the indexer.
-   *
-   * <p>This method is annotated with {@code @PreDestroy} and is invoked automatically
-   * during the lifecycle events of the bean.
-   *
-   * @throws IOException if an I/O error occurs while closing the indexer.
-   */
-  @PreDestroy
-  public void destroy() throws IOException {
-    indexerPreview.close();
   }
 }

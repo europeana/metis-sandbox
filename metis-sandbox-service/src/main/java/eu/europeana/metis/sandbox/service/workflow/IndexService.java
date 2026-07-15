@@ -1,7 +1,6 @@
 package eu.europeana.metis.sandbox.service.workflow;
 
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
@@ -22,16 +21,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class IndexService {
 
-  private final Indexer<FullBeanImpl> indexer;
+  private final IndexerPool indexerPool;
   private final IndexingProperties indexingProperties;
 
   /**
    * Constructor.
    *
-   * @param indexer the indexer instance to process and calculate tier-related properties
+   * @param indexerPool the indexer pool to process and calculate tier-related properties
    */
-  public IndexService(Indexer<FullBeanImpl> indexer) {
-    this.indexer = indexer;
+  public IndexService(IndexerPool indexerPool) {
+    this.indexerPool = indexerPool;
     this.indexingProperties = new IndexingProperties(
         new Date(), false, Collections.emptyList(), false, TierCalculationMode.OVERWRITE);
   }
@@ -48,7 +47,7 @@ public class IndexService {
     log.info("Indexing: {}", recordId);
 
     InputStream inputStream = new ByteArrayInputStream(recordData.getBytes(StandardCharsets.UTF_8));
-    TierResults tierResults = indexer.indexAndGetTierCalculations(inputStream, indexingProperties);
+    TierResults tierResults = indexerPool.indexAndGetTierCalculations(inputStream, indexingProperties);
 
     if (tierResults == null || isAllDataNull(tierResults)) {
       throw new IndexerRelatedIndexingException(

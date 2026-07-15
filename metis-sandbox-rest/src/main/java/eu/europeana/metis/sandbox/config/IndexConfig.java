@@ -6,9 +6,7 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.IndexerFactory;
+import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.SetupRelatedIndexingException;
 import java.net.URI;
@@ -19,6 +17,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 class IndexConfig {
+
+  public static final int MAX_IDLE_TIME_FOR_INDEXER_IN_SECS = 300;
+  public static final int IDLE_TIME_CHECK_INTERVAL_IN_SECS = 60;
 
   @Value("${sandbox.preview.mongo.hosts}")
   private String[] mongoPreviewHosts;
@@ -69,21 +70,36 @@ class IndexConfig {
   private Boolean solrUseHttp1;
 
   @Bean
-  Indexer<FullBeanImpl> indexerPreview() throws URISyntaxException, SetupRelatedIndexingException {
-    return getIndexer(mongoPreviewHosts, mongoPreviewPorts, mongoPreviewDb,
+  IndexerPool indexerPoolPreview()
+      throws URISyntaxException, SetupRelatedIndexingException {
+
+    IndexingSettings indexingSettings = getIndexerSettings(
+        mongoPreviewHosts,
+        mongoPreviewPorts,
+        mongoPreviewDb,
         mongoPreviewAuthenticationDb,
-        mongoPreviewUsername, mongoPreviewPassword, mongoPreviewEnableSSL, mongoPreviewApplicationName,
-        mongoPreviewMaxConnectionPoolSize, solrPreviewHosts,
-        zookeeperPreviewHosts, zookeeperPreviewPorts, zookeeperPreviewChroot,
-        zookeeperPreviewDefaultCollection, zookeeperPreviewTimeoutInSecs, solrUseHttp1
+        mongoPreviewUsername,
+        mongoPreviewPassword,
+        mongoPreviewEnableSSL,
+        mongoPreviewApplicationName,
+        mongoPreviewMaxConnectionPoolSize,
+        solrPreviewHosts,
+        zookeeperPreviewHosts,
+        zookeeperPreviewPorts,
+        zookeeperPreviewChroot,
+        zookeeperPreviewDefaultCollection,
+        zookeeperPreviewTimeoutInSecs,
+        solrUseHttp1
     );
+
+    return new IndexerPool(indexingSettings, MAX_IDLE_TIME_FOR_INDEXER_IN_SECS, IDLE_TIME_CHECK_INTERVAL_IN_SECS);
   }
 
   //todo: this class should use configuration properties from metis-common-spring-properties
   //Suppress: Methods should not have too many parameters warning
   //We are okay with this method to ease configuration
   @SuppressWarnings("squid:S107")
-  private Indexer<FullBeanImpl> getIndexer(String[] mongoHosts, int[] mongoPorts, String mongoDb,
+  private IndexingSettings getIndexerSettings(String[] mongoHosts, int[] mongoPorts, String mongoDb,
       String mongoAuthenticationDb, String mongoUsername, String mongoPassword,
       Boolean mongoEnableSSL, String mongoApplicationName, Integer mongoMaxConnectionPoolSize,
       String[] solrHosts, String[] zookeeperHosts, int[] zookeeperPorts, String zookeeperChroot,
@@ -123,6 +139,7 @@ class IndexConfig {
       settings.setZookeeperTimeoutInSecs(zookeeperTimeoutInSecs);
     }
 
-    return IndexerFactory.create(settings).getIndexer();
+    return settings;
   }
+
 }
