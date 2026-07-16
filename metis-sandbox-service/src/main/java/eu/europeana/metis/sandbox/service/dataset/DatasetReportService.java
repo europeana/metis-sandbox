@@ -173,10 +173,11 @@ public class DatasetReportService {
   private DatasetInfoDTO getDatasetInfoDTO(DatasetEntity datasetEntity) {
     String datasetId = String.valueOf(datasetEntity.getDatasetId());
     Optional<TransformXsltEntity> transformXsltEntity = transformXsltRepository.findByDatasetId(datasetId);
-    HarvestParametersEntity harvestParametersEntity = harvestParameterService.getDatasetHarvestingParameters(datasetId)
-                                                                             .orElseThrow();
-    AbstractHarvestParametersDTO abstractHarvestParametersDTO = HarvestParametersConverter.convertToHarvestParametersDTO(
-        harvestParametersEntity);
+    Optional<HarvestParametersEntity> harvestParametersEntity =
+        harvestParameterService.getDatasetHarvestingParameters(datasetId);
+
+    AbstractHarvestParametersDTO abstractHarvestParametersDTO =
+        harvestParametersEntity.map(HarvestParametersConverter::convertToHarvestParametersDTO).orElse(null);
     return DatasetInfoDTO.builder()
                          .datasetId(datasetId)
                          .datasetName(datasetEntity.getDatasetName())

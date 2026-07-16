@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.metis.sandbox.common.HarvestProtocol;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.dto.harvest.AbstractHarvestParametersDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * Represents a dataset summary.
@@ -51,7 +53,9 @@ public record DatasetSummaryDTO(
         datasetInfoDTO.getCreationDate(),
         datasetInfoDTO.getLanguage(),
         datasetInfoDTO.getCountry(),
-        datasetInfoDTO.getAbstractHarvestParametersDTO().getHarvestProtocol()
+        Optional.ofNullable(datasetInfoDTO.getAbstractHarvestParametersDTO())
+                .map(AbstractHarvestParametersDTO::getHarvestProtocol)
+                .orElse(null)
     );
   }
 }

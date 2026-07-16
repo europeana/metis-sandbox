@@ -35,8 +35,7 @@ public class UserService {
     List<DatasetSummaryDTO> datasetSummaryDTOS = new ArrayList<>();
     List<DatasetInfoDTO> datasetInfoByUserId = datasetReportService.getDatasetInfoByUserId(userId);
     for (DatasetInfoDTO datasetInfoDTO : datasetInfoByUserId) {
-      DatasetSummaryDTO datasetSummaryDTO =
-          DatasetSummaryDTO.from(datasetInfoDTO);
+      DatasetSummaryDTO datasetSummaryDTO = DatasetSummaryDTO.from(datasetInfoDTO);
       datasetSummaryDTOS.add(datasetSummaryDTO);
     }
     return datasetSummaryDTOS;
