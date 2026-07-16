@@ -50,6 +50,24 @@ public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord
   );
 
   /**
+   * Counts distinct records for the specified execution ID, excluding duplicate record IDs.
+   *
+   * @param executionId the execution identifier
+   * @return the number of distinct records produced by the execution
+   */
+  @Query("""
+    SELECT COUNT(r)
+    FROM ExecutionRecord r
+    JOIN (
+        SELECT MIN(r2.id) AS id
+        FROM ExecutionRecord r2
+        WHERE r2.executionRun.executionId = :executionId
+        GROUP BY r2.identifier.recordId
+    ) sub ON r.id = sub.id
+    """)
+  long countCanonicalRecords(@Param("executionId") String executionId);
+
+  /**
    * Finds duplicate executionRun records for a given dataset and executionRun name.
    * <p>
    * A record is considered duplicate if it shares the same recordId within the provided datasetId and executionName, and is not

@@ -284,17 +284,19 @@ public class DatasetReportService {
     if (executionRun == null) {
       throw new IllegalArgumentException("ExecutionRun not found for executionId: " + executionId);
     }
+
+    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, fullBatchJobType);
+    BatchStatus batchStatus = Optional.ofNullable(jobExecution).map(JobExecution::getStatus).orElse(BatchStatus.UNKNOWN);
+    SandboxTaskState sandboxTaskState = SandboxTaskState.fromBatchStatus(batchStatus);
+    StepStatistics stepStatistics = getStepStatisticsForStep(executionId);
+
     String sourceExecutionId = executionRun.getSourceExecutionId();
     long expectedRecords;
     if (sourceExecutionId == null && fullBatchJobType.getBatchJobGroup() == HARVEST) {
       expectedRecords = executionRecordExternalIdentifierRepository.countByExecutionRun_ExecutionId(executionId);
     } else {
-      expectedRecords = executionRecordRepository.countByExecutionRun_ExecutionId(sourceExecutionId);
+      expectedRecords = executionRecordRepository.countCanonicalRecords(sourceExecutionId);
     }
-    JobExecution jobExecution = batchJobExecutor.findJobExecutionByParameter(executionId, fullBatchJobType);
-    BatchStatus batchStatus = Optional.ofNullable(jobExecution).map(JobExecution::getStatus).orElse(BatchStatus.UNKNOWN);
-    SandboxTaskState sandboxTaskState = SandboxTaskState.fromBatchStatus(batchStatus);
-    StepStatistics stepStatistics = getStepStatisticsForStep(executionId);
 
     long processedRecords = stepStatistics.totalSuccess + stepStatistics.totalFail;
     long successRecords = stepStatistics.totalSuccess - stepStatistics.totalDuplicates;
