@@ -1,5 +1,6 @@
 package eu.europeana.metis.sandbox.common.task.input;
 
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,8 +11,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SandboxTask extends SandboxTaskRequest {
+public class SandboxTask {
 
+  private Map<SandboxTaskKey, String> parameters;
+  private InputMetadataRequest inputMetadataRequest;
   private String taskId;
   private String batchId;
 
@@ -20,10 +23,11 @@ public class SandboxTask extends SandboxTaskRequest {
    *
    * @param sandboxTaskRequest the task creation request
    * @param taskId the task identifier
-  * @param batchId the batch identifier
-  */
+   * @param batchId the batch identifier
+   */
   public SandboxTask(SandboxTaskRequest sandboxTaskRequest, String taskId, String batchId) {
-    super(sandboxTaskRequest);
+    this.parameters = sandboxTaskRequest.getParameters();
+    this.inputMetadataRequest = sandboxTaskRequest.getInputMetadataRequest();
     this.taskId = taskId;
     this.batchId = batchId;
   }
