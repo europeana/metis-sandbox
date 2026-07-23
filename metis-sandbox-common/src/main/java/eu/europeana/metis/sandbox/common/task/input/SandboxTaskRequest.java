@@ -15,14 +15,4 @@ public class SandboxTaskRequest {
 
   private Map<SandboxTaskKey, String> parameters;
   private InputMetadataRequest inputMetadataRequest;
-
-  /**
-   * Copy constructor for subclasses that add task creation information.
-   *
-   * @param sandboxTaskRequest the request to copy
-   */
-  protected SandboxTaskRequest(SandboxTaskRequest sandboxTaskRequest) {
-    this.parameters = sandboxTaskRequest.parameters;
-    this.inputMetadataRequest = sandboxTaskRequest.inputMetadataRequest;
-  }
 }
