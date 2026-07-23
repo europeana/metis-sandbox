@@ -3,9 +3,13 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static eu.europeana.metis.sandbox.common.WorkflowType.OAI_HARVEST;
+import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.NORMALIZE;
+import static eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey.ENGINE_DATASET_ID;
+import static eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey.JOB_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,12 +22,16 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
 import eu.europeana.metis.sandbox.common.locale.Country;
 import eu.europeana.metis.sandbox.common.locale.Language;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTask;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTaskRequest;
+import eu.europeana.metis.sandbox.common.task.input.SimpleIntermediateInputMetadataRequest;
 import eu.europeana.metis.sandbox.dto.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
@@ -45,6 +53,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,6 +107,26 @@ class DatasetExecutionServiceTest {
         .willReturn(aResponse()
             .withHeader("Content-Type", "text/plain")
             .withBody("content")));
+  }
+
+  @Test
+  void createTaskReturnsRequestInformationAndIdentifiers() {
+    String executionId = UUID.randomUUID().toString();
+    SandboxTaskRequest request = new SandboxTaskRequest();
+    request.setParameters(Map.of(
+        ENGINE_DATASET_ID, DATASET_ID,
+        JOB_NAME, NORMALIZE.name()));
+    request.setInputMetadataRequest(new SimpleIntermediateInputMetadataRequest("source-execution-id"));
+    ExecutionRun executionRun = new ExecutionRun();
+    executionRun.setExecutionId(executionId);
+    when(batchJobExecutor.createTask(request)).thenReturn(executionRun);
+
+    SandboxTask result = datasetExecutionService.createTask(request);
+
+    assertEquals(executionId, result.getTaskId());
+    assertEquals(executionId, result.getBatchId());
+    assertSame(request.getParameters(), result.getParameters());
+    assertSame(request.getInputMetadataRequest(), result.getInputMetadataRequest());
   }
 
   @Test
