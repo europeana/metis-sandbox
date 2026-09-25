@@ -4,7 +4,6 @@ import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.cre
 
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
 import eu.europeana.metis.sandbox.entity.harvest.HarvestParametersEntity;
@@ -25,13 +24,10 @@ import org.springframework.util.function.ThrowingFunction;
 @Slf4j
 @Component("oaiRecordHarvestItemProcessor")
 @StepScope
-public class OaiRecordHarvesterItemProcessor extends
-    AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> {
+public class OaiRecordHarvesterItemProcessor extends AbstractHarvestRecordMetisItemProcessor {
 
   @Value("#{jobParameters['harvestParameterId']}")
   private String harvestParameterId;
-  @Value("#{jobParameters['datasetId']}")
-  private String datasetId;
   private String oaiEndpoint;
   private String oaiSet;
   private String oaiMetadataPrefix;
@@ -73,26 +69,22 @@ public class OaiRecordHarvesterItemProcessor extends
   }
 
   @Override
-  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier)
-      throws Exception {
-    OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-    HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(datasetId,
-        oaiHarvest, executionRecordExternalIdentifier.getDerivedRecordId()
-    );
-    String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
+  public ThrowingFunction<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> getProcessRecordFunction() {
+    return executionRecordExternalIdentifier -> {
+      OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
+      HarvestedRecord harvestedRecord = oaiHarvestService.harvestRecord(datasetId,
+          oaiHarvest, executionRecordExternalIdentifier.getDerivedRecordId()
+      );
+      String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
 
-    return createValidated(successExecutionRecordDTOBuilder -> successExecutionRecordDTOBuilder
-        .datasetId(datasetId)
-        .executionId(getTargetExecutionId())
-        .externalRecordId(externalRecordId)
-        .sourceRecordId(externalRecordId)
-        .recordId(externalRecordId)
-        .executionName(getExecutionName())
-        .recordData(harvestedRecord.recordData()));
-  }
-
-  @Override
-  public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
-    return null;
+      return createValidated(successExecutionRecordDTOBuilder -> successExecutionRecordDTOBuilder
+          .datasetId(datasetId)
+          .executionId(getTargetExecutionId())
+          .externalRecordId(externalRecordId)
+          .sourceRecordId(externalRecordId)
+          .recordId(externalRecordId)
+          .executionName(getExecutionName())
+          .recordData(harvestedRecord.recordData()));
+    };
   }
 }

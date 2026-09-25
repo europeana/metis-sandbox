@@ -3,7 +3,6 @@ package eu.europeana.metis.sandbox.batch.processor;
 import static eu.europeana.metis.sandbox.batch.dto.SuccessExecutionRecordDTO.createValidated;
 
 import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import eu.europeana.metis.sandbox.batch.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.HarvestedRecord;
@@ -27,13 +26,10 @@ import org.springframework.util.function.ThrowingFunction;
 @Slf4j
 @Component("fileRecordHarvestItemProcessor")
 @StepScope
-public class FileRecordHarvesterItemProcessor extends
-    AbstractMetisItemProcessor<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> {
+public class FileRecordHarvesterItemProcessor extends AbstractHarvestRecordMetisItemProcessor {
 
   @Value("#{jobParameters['harvestParameterId']}")
   private String harvestParameterId;
-  @Value("#{jobParameters['datasetId']}")
-  private String datasetId;
   private String fileName;
   private FileType fileType;
   private byte[] fileContent;
@@ -75,28 +71,23 @@ public class FileRecordHarvesterItemProcessor extends
   }
 
   @Override
-  public AbstractExecutionRecordDTO process(ExecutionRecordExternalIdentifier executionRecordExternalIdentifier)
-      throws Exception {
-    log.info("FileRecordHarvestItemReader thread: {}", Thread.currentThread());
+  public ThrowingFunction<ExecutionRecordExternalIdentifier, AbstractExecutionRecordDTO> getProcessRecordFunction() {
+    return executionRecordExternalIdentifier -> {
+      log.info("FileRecordHarvestItemReader thread: {}", Thread.currentThread());
 
-    FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
-    HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(datasetId, fileHarvestTarget,
-        executionRecordExternalIdentifier.getDerivedRecordId());
-    String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
+      FileHarvestTarget fileHarvestTarget = new FileHarvestTarget(fileName, fileType, fileContent);
+      HarvestedRecord harvestedRecord = fileHarvestService.harvestRecord(datasetId, fileHarvestTarget,
+          executionRecordExternalIdentifier.getDerivedRecordId());
+      String externalRecordId = executionRecordExternalIdentifier.getExternalRecordId();
 
-    return createValidated(successExecutionRecordDTOBuilder -> successExecutionRecordDTOBuilder
-        .datasetId(datasetId)
-        .executionId(getTargetExecutionId())
-        .externalRecordId(externalRecordId)
-        .sourceRecordId(externalRecordId)
-        .recordId(externalRecordId)
-        .executionName(getExecutionName())
-        .recordData(harvestedRecord.recordData()));
-  }
-
-  @Override
-  public ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction() {
-    return null;
+      return createValidated(successExecutionRecordDTOBuilder -> successExecutionRecordDTOBuilder
+          .datasetId(datasetId)
+          .executionId(getTargetExecutionId())
+          .externalRecordId(externalRecordId)
+          .sourceRecordId(externalRecordId)
+          .recordId(externalRecordId)
+          .executionName(getExecutionName())
+          .recordData(harvestedRecord.recordData()));
+    };
   }
 }
-

@@ -1,8 +1,6 @@
 package eu.europeana.metis.sandbox.batch.processor;
 
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
-import eu.europeana.metis.sandbox.batch.dto.AbstractExecutionRecordDTO;
-import eu.europeana.metis.sandbox.batch.dto.JobMetadataDTO;
 import jakarta.annotation.PostConstruct;
 import java.util.function.BiFunction;
 import lombok.Getter;
@@ -18,11 +16,12 @@ import org.springframework.util.function.ThrowingFunction;
  * and structured initialization of batch job settings.
  *
  * @param <I> The type of input items to process.
+ * @param <P> The type of input passed to the record-processing function.
  * @param <O> The type of output items produced by processing.
  */
 @Slf4j
 @Getter
-public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<I, O> {
+public abstract class AbstractMetisItemProcessor<I, P, O> implements ItemProcessor<I, O> {
 
   @Value("#{stepExecution.jobExecution.jobInstance.jobName}")
   private String jobName;
@@ -44,7 +43,7 @@ public abstract class AbstractMetisItemProcessor<I, O> implements ItemProcessor<
     log.info("Initializing batch job type: {}", fullBatchJobType.name());
   }
 
-  abstract ThrowingFunction<JobMetadataDTO, AbstractExecutionRecordDTO> getProcessRecordFunction();
+  abstract ThrowingFunction<P, O> getProcessRecordFunction();
 
   String getExecutionName() {
     return fullBatchJobType.name();
