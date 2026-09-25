@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>This class defines a standardized process flow, converting entities, adding metadata, and handling exceptions.
  */
 public abstract class AbstractExecutionRecordMetisItemProcessor extends
-    AbstractMetisItemProcessor<ExecutionRecord, AbstractExecutionRecordDTO> {
+    AbstractMetisItemProcessor<ExecutionRecord, JobMetadataDTO, AbstractExecutionRecordDTO> {
 
   @Override
   public AbstractExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
