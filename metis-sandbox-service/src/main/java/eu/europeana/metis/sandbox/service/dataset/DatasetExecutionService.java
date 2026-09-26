@@ -3,12 +3,15 @@ package eu.europeana.metis.sandbox.service.dataset;
 import static eu.europeana.metis.sandbox.common.WorkflowType.DEBIAS;
 import static eu.europeana.metis.sandbox.common.WorkflowType.FILE_HARVEST_ONLY_VALIDATION;
 
+import eu.europeana.metis.sandbox.batch.entity.ExecutionRun;
 import eu.europeana.metis.sandbox.common.DatasetMetadataRequest;
 import eu.europeana.metis.sandbox.common.FileType;
 import eu.europeana.metis.sandbox.common.WorkflowType;
 import eu.europeana.metis.sandbox.common.batch.FullBatchJobType;
 import eu.europeana.metis.sandbox.common.debias.DebiasState;
 import eu.europeana.metis.sandbox.common.exception.ServiceException;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTask;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTaskRequest;
 import eu.europeana.metis.sandbox.dto.DatasetMetadata;
 import eu.europeana.metis.sandbox.dto.ExecutionMetadata;
 import eu.europeana.metis.sandbox.dto.debias.DeBiasStatusDTO;
@@ -72,27 +75,39 @@ public class DatasetExecutionService {
   }
 
   /**
+   * Creates and persists a task without submitting it for execution.
+   *
+   * @param sandboxTaskRequest the information required to create the task
+   * @return the created task, including its task and batch identifiers
+   */
+  public SandboxTask createTask(SandboxTaskRequest sandboxTaskRequest) {
+    ExecutionRun executionRun = batchJobExecutor.createTask(sandboxTaskRequest);
+    String executionId = executionRun.getExecutionId();
+    return new SandboxTask(sandboxTaskRequest, executionId, executionId);
+  }
+
+  /**
    * Prepares and submits an OAI-PMH harvesting execution. The dataset should already exist.
    * <p>
    * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
    * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
    * the UI)
    *
+   * @param executionId the identifier assigned when the task was created
    * @param datasetId the dataset identifier
    * @param stepsize the step size
    * @param url the URL of the OAI-PMH service endpoint.
    * @param setSpec the set spec parameter for the OAI-PMH harvest
    * @param metadataFormat the metadata format to be used for harvesting.
    * @return A string representing the execution identifier
-   * @throws IOException If an I/O error occurs during the submission
    */
-  public String submitExecutionOaiSingle(String datasetId, Integer stepsize, String url, String setSpec, String metadataFormat)
-      throws IOException {
+  public String submitExecutionOaiSingle(String executionId, String datasetId, Integer stepsize, String url, String setSpec,
+      String metadataFormat) {
     OaiHarvestParametersDTO harvestParametersDTO =
         new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
-    return batchJobExecutor.executeStep(executionMetadata, FullBatchJobType.HARVEST_OAI);
+    return batchJobExecutor.submitTask(executionMetadata, FullBatchJobType.HARVEST_OAI, executionId);
   }
 
   /**
@@ -102,19 +117,19 @@ public class DatasetExecutionService {
    * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
    * the UI)
    *
+   * @param executionId the identifier assigned when the task was created
    * @param datasetId the dataset identifier
    * @param stepsize the step size
    * @param url the URL from which the file with the records will be harvested
    * @param compressedFileExtension the file extension used to indicate the compression type of the target files
    * @return A string representing the execution identifier
-   * @throws IOException If an I/O error occurs during the submission
    */
-  public String submitExecutionHttpSingle(String datasetId, Integer stepsize, String url,
-      CompressedFileExtension compressedFileExtension) throws IOException {
+  public String submitExecutionHttpSingle(String executionId, String datasetId, Integer stepsize, String url,
+      CompressedFileExtension compressedFileExtension) {
     HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, compressedFileExtension);
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
-    return batchJobExecutor.executeStep(executionMetadata, FullBatchJobType.HARVEST_FILE);
+    return batchJobExecutor.submitTask(executionMetadata, FullBatchJobType.HARVEST_FILE, executionId);
   }
 
   /**
@@ -124,21 +139,23 @@ public class DatasetExecutionService {
    * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
    * the UI)
    *
+   * @param executionId the identifier assigned when the task was created
    * @param datasetId the dataset identifier
    * @param sourceExecutionId the source execution identifier to be used as a reference.
    * @param fullBatchJobType the full batch job type representing the specific step to be executed
    * @return A string representing the execution identifier
    */
-  public String submitIntermediateExecutionSingle(String datasetId, String sourceExecutionId,
+  public String submitIntermediateExecutionSingle(String executionId, String datasetId, String sourceExecutionId,
       FullBatchJobType fullBatchJobType) {
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId);
-    return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
+    return batchJobExecutor.submitTask(executionMetadata, fullBatchJobType, executionId);
   }
 
   /**
    * Submits a single transformation execution for the specified dataset and source execution ID using the provided XSLT.
    *
+   * @param executionId the identifier assigned when the task was created
    * @param datasetId The unique identifier of the dataset on which the transformation will be executed.
    * @param sourceExecutionId The ID of the source execution used as a basis for the transformation.
    * @param xslt The XSLT string to be applied to the dataset.
@@ -146,11 +163,12 @@ public class DatasetExecutionService {
    * @param fullBatchJobType The type of the full batch job, represented by the {@code FullBatchJobType} enum.
    * @return The result of the batch job execution, represented as a string.
    */
-  public String submitTransformationExecutionSingle(String datasetId, String sourceExecutionId, String xslt, XsltType xsltType,
+  public String submitTransformationExecutionSingle(String executionId, String datasetId, String sourceExecutionId, String xslt,
+      XsltType xsltType,
       FullBatchJobType fullBatchJobType) {
     ExecutionMetadata executionMetadata =
         datasetExecutionSetupService.prepareTransformExecution(datasetId, sourceExecutionId, xslt, xsltType);
-    return batchJobExecutor.executeStep(executionMetadata, fullBatchJobType);
+    return batchJobExecutor.submitTask(executionMetadata, fullBatchJobType, executionId);
   }
 
   /**
