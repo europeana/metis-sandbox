@@ -1,5 +1,9 @@
-[![CI](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=coverage)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
+[![CI](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/europeana/metis-sandbox/actions/workflows/ci.yml) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=coverage)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
+
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=bugs)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)  
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)  
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)  
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=europeana_metis-sandbox&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=europeana_metis-sandbox)
 
 # Metis Sandbox
 
@@ -61,11 +65,11 @@ Installing latest docker-compose:
 
 ### Local SOLR & Zookeeper server
 **SOLR** is available on http://localhost:8983 running in cloud mode with one node. 
-The configured collection is `metis_sandbox_publish_local`
+The configured collection is `metis_sandbox_preview_local`
 ```
 sandbox:
     solr:
-        hosts: http://localhost:8983/solr/metis_sandbox_publish_local
+        hosts: http://localhost:8983/solr/metis_sandbox_preview_local
 ```        
 **Zookeeper** is available on http://localhost:9983
 

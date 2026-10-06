@@ -2,9 +2,6 @@ name: performance
 
 on:
   workflow_dispatch:
-    branches:
-      - feat/*
-      - develop
     inputs:
       protocol:
         type: choice
@@ -56,6 +53,7 @@ on:
           - scenario-3-harvest-file-and-oaipmh
 jobs:
   performance-tests:
+    if: ${{ github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feat/') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -71,13 +69,16 @@ jobs:
       - name: Set up Jmeter 5.5
         run: |
           java -version
-          wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
+          wget --max-redirect=0 https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
           unzip apache-jmeter-5.5.zip
           pwd
           cd apache-jmeter-5.5/bin
           ./jmeter -v
           pwd      
       - name: Run Test Performance Scenario
+        env:
+          ACCEPTANCE_API_ENDPOINT: ${{ secrets.ACCEPTANCE_API_ENDPOINT }}
+          ACCEPTANCE_API_PATH: ${{ secrets.ACCEPTANCE_API_PATH }}
         run: |          
           uuid_arr=(`echo $(cat /proc/sys/kernel/random/uuid | tr '-' ' ')`)
           scenario=$GITHUB_WORKSPACE/src/main/resources/performance/${{ github.event.inputs.scenario }}.jmx
@@ -91,7 +92,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           mkdir -p $TEST_REPORT
           cd apache-jmeter-5.5/bin          
-          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT -Jusers=${{ github.event.inputs.users }} -Jrampup=${{ github.event.inputs.rampUp }} -Jloopcount=${{ github.event.inputs.loopCount }} -Jhost=${{ secrets.ACCEPTANCE_API_ENDPOINT }} -Jport=${{ github.event.inputs.port }} -Jfileurl=${{ github.event.inputs.fileUrl }} -Joaiurl=${{ github.event.inputs.fileOaiPmh}} -Jsetspec=${{ github.event.inputs.setSpec }} -Jmetadataformat=${{ github.event.inputs.metaDataFormat }} -Japipath=${{ secrets.ACCEPTANCE_API_PATH }} -Jprotocol=${{ github.event.inputs.protocol }}
+          ./jmeter -n -t $SCENARIO -l ${{ github.event.inputs.scenario }}.csv -e -o $TEST_REPORT -Jusers=${{ github.event.inputs.users }} -Jrampup=${{ github.event.inputs.rampUp }} -Jloopcount=${{ github.event.inputs.loopCount }} -Jhost="$ACCEPTANCE_API_ENDPOINT" -Jport=${{ github.event.inputs.port }} -Jfileurl=${{ github.event.inputs.fileUrl }} -Joaiurl=${{ github.event.inputs.fileOaiPmh}} -Jsetspec=${{ github.event.inputs.setSpec }} -Jmetadataformat=${{ github.event.inputs.metaDataFormat }} -Japipath="$ACCEPTANCE_API_PATH" -Jprotocol=${{ github.event.inputs.protocol }}
       - name: Upload JMeter Test Report
         uses: actions/upload-artifact@v3
         with:
