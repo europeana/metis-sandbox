@@ -16,6 +16,7 @@ import eu.europeana.metis.sandbox.common.task.input.OaiHarvestInputMetadataReque
 import eu.europeana.metis.sandbox.common.task.input.SandboxTask;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey;
 import eu.europeana.metis.sandbox.common.task.input.SandboxTaskProgress;
+import eu.europeana.metis.sandbox.common.task.input.SandboxTaskRequest;
 import eu.europeana.metis.sandbox.common.task.input.SimpleIntermediateInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.TransformExternalInputMetadataRequest;
 import eu.europeana.metis.sandbox.common.task.input.TransformInternalInputMetadataRequest;
@@ -24,16 +25,17 @@ import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetExecutionSetupService;
 import eu.europeana.metis.sandbox.service.dataset.DatasetReportService;
 import eu.europeana.metis.utils.CompressedFileExtension;
-import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -72,40 +74,51 @@ public class TaskController {
   }
 
   /**
+   * Creates and persists a task without submitting it for execution.
+   *
+   * @param sandboxTaskRequest the information required to create the task
+   * @return the created task, including its task and batch identifiers
+   */
+  @PostMapping("/create")
+  public SandboxTask createTask(@RequestBody SandboxTaskRequest sandboxTaskRequest) {
+    return datasetExecutionService.createTask(sandboxTaskRequest);
+  }
+
+  /**
    * Submits a task for execution based on the provided input metadata request.
    *
    * @param sandboxTask the task to be submitted, containing the necessary parameters and input metadata request details
-   * @return a {@code String} representing the result of the task submission, such as a task execution identifier
-   * @throws IOException if an input or output exception occurs during task submission
    */
   @PostMapping("/submit")
-  public String submitTask(@RequestBody SandboxTask sandboxTask) throws IOException {
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void submitTask(@RequestBody SandboxTask sandboxTask) {
     String datasetId = sandboxTask.getParameters().get(SandboxTaskKey.ENGINE_DATASET_ID);
     String jobName = sandboxTask.getParameters().get(SandboxTaskKey.JOB_NAME);
+    String taskId = sandboxTask.getTaskId();
 
     InputMetadataRequest inputMetadataRequest = sandboxTask.getInputMetadataRequest();
     if (inputMetadataRequest instanceof IntermediateInputMetadataRequest intermediateInputMetadataRequest) {
       checkArgument(isNotBlank(intermediateInputMetadataRequest.sourceExecutionId()), "Source execution ID cannot be blank.");
     }
 
-    return switch (inputMetadataRequest) {
+    switch (inputMetadataRequest) {
       case OaiHarvestInputMetadataRequest(
           String url, String set, String metadataPrefix, Instant from, Instant until, Integer stepSize
-      ) -> datasetExecutionService.submitExecutionOaiSingle(datasetId, stepSize, url, set, metadataPrefix);
+      ) -> datasetExecutionService.submitExecutionOaiSingle(taskId, datasetId, stepSize, url, set, metadataPrefix);
       case HttpHarvestInputMetadataRequest(String url, Integer stepSize) -> {
         CompressedFileExtension compressedFileExtension = FileTypeResolver.fromUrl(URI.create(url));
-        yield datasetExecutionService.submitExecutionHttpSingle(datasetId, stepSize, url, compressedFileExtension);
+        datasetExecutionService.submitExecutionHttpSingle(taskId, datasetId, stepSize, url, compressedFileExtension);
       }
       case SimpleIntermediateInputMetadataRequest(String sourceExecutionId) ->
-          datasetExecutionService.submitIntermediateExecutionSingle(datasetId, sourceExecutionId,
+          datasetExecutionService.submitIntermediateExecutionSingle(taskId, datasetId, sourceExecutionId,
               FullBatchJobType.valueOf(jobName));
       case TransformExternalInputMetadataRequest(String xslt, String sourceExecutionId) ->
-          datasetExecutionService.submitTransformationExecutionSingle(datasetId, sourceExecutionId, xslt, XsltType.EXTERNAL,
-              FullBatchJobType.valueOf(jobName));
+          datasetExecutionService.submitTransformationExecutionSingle(taskId, datasetId, sourceExecutionId, xslt,
+              XsltType.EXTERNAL, FullBatchJobType.valueOf(jobName));
       case TransformInternalInputMetadataRequest(String xslt, String sourceExecutionId) ->
-          datasetExecutionService.submitTransformationExecutionSingle(datasetId, sourceExecutionId, xslt, XsltType.INTERNAL,
-              FullBatchJobType.valueOf(jobName));
-    };
+          datasetExecutionService.submitTransformationExecutionSingle(taskId, datasetId, sourceExecutionId, xslt,
+              XsltType.INTERNAL, FullBatchJobType.valueOf(jobName));
+    }
   }
 
   /**
