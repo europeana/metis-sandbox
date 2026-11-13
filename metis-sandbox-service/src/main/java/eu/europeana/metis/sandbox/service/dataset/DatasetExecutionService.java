@@ -89,9 +89,7 @@ public class DatasetExecutionService {
   /**
    * Prepares and submits an OAI-PMH harvesting execution. The dataset should already exist.
    * <p>
-   * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
-   * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
-   * the UI)
+   * Submits one execution for metis-core using the identifier assigned when the task was created.
    *
    * @param executionId the identifier assigned when the task was created
    * @param datasetId the dataset identifier
@@ -99,57 +97,48 @@ public class DatasetExecutionService {
    * @param url the URL of the OAI-PMH service endpoint.
    * @param setSpec the set spec parameter for the OAI-PMH harvest
    * @param metadataFormat the metadata format to be used for harvesting.
-   * @return A string representing the execution identifier
    */
-  public String submitExecutionOaiSingle(String executionId, String datasetId, Integer stepsize, String url, String setSpec,
+  public void submitExecutionOaiSingle(String executionId, String datasetId, Integer stepsize, String url, String setSpec,
       String metadataFormat) {
     OaiHarvestParametersDTO harvestParametersDTO =
         new OaiHarvestParametersDTO(url, normalizeSetSpec(setSpec), metadataFormat, stepsize);
-    ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
-    return batchJobExecutor.submitTask(executionMetadata, FullBatchJobType.HARVEST_OAI, executionId);
+    batchJobExecutor.submitTask(executionId, datasetId, null, FullBatchJobType.HARVEST_OAI,
+        () -> datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO));
   }
 
   /**
    * Prepares and submits an HTTP harvesting execution. The dataset should already exist.
    * <p>
-   * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
-   * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
-   * the UI)
+   * Submits one execution for metis-core using the identifier assigned when the task was created.
    *
    * @param executionId the identifier assigned when the task was created
    * @param datasetId the dataset identifier
    * @param stepsize the step size
    * @param url the URL from which the file with the records will be harvested
    * @param compressedFileExtension the file extension used to indicate the compression type of the target files
-   * @return A string representing the execution identifier
    */
-  public String submitExecutionHttpSingle(String executionId, String datasetId, Integer stepsize, String url,
+  public void submitExecutionHttpSingle(String executionId, String datasetId, Integer stepsize, String url,
       CompressedFileExtension compressedFileExtension) {
-    HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, compressedFileExtension);
-    ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
-    return batchJobExecutor.submitTask(executionMetadata, FullBatchJobType.HARVEST_FILE, executionId);
+    batchJobExecutor.submitTask(executionId, datasetId, null, FullBatchJobType.HARVEST_FILE, () -> {
+      HttpHarvestParametersDTO harvestParametersDTO = buildHttpHarvestParametersDTO(url, stepsize, compressedFileExtension);
+      return datasetExecutionSetupService.prepareHarvestExecution(datasetId, harvestParametersDTO);
+    });
   }
 
   /**
    * Prepares and submits an intermediate execution job for the given dataset identifier and source execution identifier.
    * <p>
-   * This is used as a single execution submission and is implemented so that metis-sandbox becomes an engine. The return value is
-   * an execution identifier as opposed to full workflow execution methods which return a dataset identifier (used currently in
-   * the UI)
+   * Submits one execution for metis-core using the identifier assigned when the task was created.
    *
    * @param executionId the identifier assigned when the task was created
    * @param datasetId the dataset identifier
    * @param sourceExecutionId the source execution identifier to be used as a reference.
    * @param fullBatchJobType the full batch job type representing the specific step to be executed
-   * @return A string representing the execution identifier
    */
-  public String submitIntermediateExecutionSingle(String executionId, String datasetId, String sourceExecutionId,
+  public void submitIntermediateExecutionSingle(String executionId, String datasetId, String sourceExecutionId,
       FullBatchJobType fullBatchJobType) {
-    ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId);
-    return batchJobExecutor.submitTask(executionMetadata, fullBatchJobType, executionId);
+    batchJobExecutor.submitTask(executionId, datasetId, sourceExecutionId, fullBatchJobType,
+        () -> datasetExecutionSetupService.prepareIntermediateExecution(datasetId, sourceExecutionId));
   }
 
   /**
@@ -161,14 +150,12 @@ public class DatasetExecutionService {
    * @param xslt The XSLT string to be applied to the dataset.
    * @param xsltType The type of the XSLT transformation, represented by the {@code XsltType} enum.
    * @param fullBatchJobType The type of the full batch job, represented by the {@code FullBatchJobType} enum.
-   * @return The result of the batch job execution, represented as a string.
    */
-  public String submitTransformationExecutionSingle(String executionId, String datasetId, String sourceExecutionId, String xslt,
+  public void submitTransformationExecutionSingle(String executionId, String datasetId, String sourceExecutionId, String xslt,
       XsltType xsltType,
       FullBatchJobType fullBatchJobType) {
-    ExecutionMetadata executionMetadata =
-        datasetExecutionSetupService.prepareTransformExecution(datasetId, sourceExecutionId, xslt, xsltType);
-    return batchJobExecutor.submitTask(executionMetadata, fullBatchJobType, executionId);
+    batchJobExecutor.submitTask(executionId, datasetId, sourceExecutionId, fullBatchJobType,
+        () -> datasetExecutionSetupService.prepareTransformExecution(datasetId, sourceExecutionId, xslt, xsltType));
   }
 
   /**

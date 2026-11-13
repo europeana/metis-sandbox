@@ -51,7 +51,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.core.ConditionEvaluationListener;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +62,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.JobInstance;
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
@@ -70,6 +73,8 @@ import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.support.locks.DistributedLock;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
 /**
@@ -88,6 +93,8 @@ public class BatchJobExecutor {
   public static final int JOB_INSTANCE_RETRIEVAL_PAGE_SIZE = 100;
   private final List<? extends Job> jobs;
   private final JobOperator jobOperator;
+  private final JobOperator engineJobOperator;
+  private final LockRegistry<DistributedLock> lockRegistry;
   private final JobRepository jobRepository;
   private final TaskExecutor taskExecutor;
   private final TransformXsltRepository transformXsltRepository;
@@ -106,13 +113,18 @@ public class BatchJobExecutor {
    * @param taskExecutor task executor used for handling concurrent job executions
    * @param transformXsltRepository repository for managing and retrieving XSLT transformations
    * @param executionRunRepository the repository used to store execution runs
+   * @param engineJobOperator the asynchronous operator used for Core-created tasks
+   * @param lockRegistry the shared lock registry serializing submission of the same task
    */
   public BatchJobExecutor(List<? extends Job> jobs,
       @Qualifier("myJobOperator") JobOperator jobOperator, JobRepository jobRepository,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository,
-      ExecutionRunRepository executionRunRepository) {
+      ExecutionRunRepository executionRunRepository,
+      @Qualifier("engineJobOperator") JobOperator engineJobOperator, LockRegistry<DistributedLock> lockRegistry) {
     this.jobs = List.copyOf(jobs);
     this.jobOperator = jobOperator;
+    this.engineJobOperator = engineJobOperator;
+    this.lockRegistry = lockRegistry;
     this.jobRepository = jobRepository;
     this.taskExecutor = taskExecutor;
     this.transformXsltRepository = transformXsltRepository;
@@ -151,18 +163,39 @@ public class BatchJobExecutor {
 
   /**
    * Executes a previously created task using its persisted execution identifier.
+   * <p>
+   * Repeated submissions acknowledge the existing Spring Batch execution, regardless of its status. Metadata is prepared only for
+   * the first submission, under a shared task lock.
    *
-   * @param executionMetadata the execution metadata related to the requested execution task
-   * @param fullBatchJobType the full batch job type
    * @param executionId the identifier assigned when the task was created
-   * @return the supplied execution identifier
+   * @param datasetId the dataset identifier from the submission
+   * @param sourceExecutionId the source execution identifier, or null for harvesting
+   * @param fullBatchJobType the full batch job type
+   * @param executionMetadataSupplier prepares metadata after the task has been validated and checked for prior submission
    */
-  public String submitTask(ExecutionMetadata executionMetadata, FullBatchJobType fullBatchJobType, String executionId) {
-    if (executionRunRepository.findByExecutionId(executionId) == null) {
-      throw new IllegalArgumentException("No created task found for execution ID " + executionId);
+  public void submitTask(String executionId, String datasetId, String sourceExecutionId, FullBatchJobType fullBatchJobType,
+      Supplier<ExecutionMetadata> executionMetadataSupplier) {
+    Objects.requireNonNull(executionId, "Execution ID is required");
+    Lock submissionLock = lockRegistry.obtain("engineTask_" + executionId);
+    submissionLock.lock();
+    try {
+      ExecutionRun executionRun = executionRunRepository.findByExecutionId(executionId);
+      if (executionRun == null) {
+        throw new IllegalArgumentException("No created task found for execution ID " + executionId);
+      }
+      if (!Objects.equals(datasetId, executionRun.getDatasetId())
+          || !Objects.equals(sourceExecutionId, executionRun.getSourceExecutionId())
+          || !fullBatchJobType.name().equals(executionRun.getExecutionName())) {
+        throw new IllegalArgumentException("Submission does not match created task " + executionId);
+      }
+      if (findJobExecutionByParameter(executionId, fullBatchJobType) != null) {
+        return;
+      }
+      ExecutionMetadata executionMetadata = executionMetadataSupplier.get();
+      executeTask(executionMetadata, fullBatchJobType, executionId, true);
+    } finally {
+      submissionLock.unlock();
     }
-    taskExecutor.execute(() -> executeTask(executionMetadata, fullBatchJobType, executionId));
-    return executionId;
   }
 
   /**
@@ -264,18 +297,24 @@ public class BatchJobExecutor {
   }
 
   private JobExecution executeTask(ExecutionMetadata executionMetadata, FullBatchJobType step, String targetExecutionId) {
+    return executeTask(executionMetadata, step, targetExecutionId, false);
+  }
+
+  private JobExecution executeTask(ExecutionMetadata executionMetadata, FullBatchJobType step, String targetExecutionId,
+      boolean engineManaged) {
     Function<ExecutionMetadataWithTargetId, JobExecution> executor = jobExecutorsByType.get(step);
     if (executor == null) {
       throw new IllegalStateException("No executor for step: " + step);
     }
 
     ExecutionMetadataWithTargetId metadataWithTargetId =
-        new ExecutionMetadataWithTargetId(executionMetadata, targetExecutionId);
+        new ExecutionMetadataWithTargetId(executionMetadata, targetExecutionId, engineManaged);
 
     return executor.apply(metadataWithTargetId);
   }
 
-  private ExecutionRun saveExecutionRun(String sourceExecutionId, String targetExecutionId, String datasetId, String executionName) {
+  private ExecutionRun saveExecutionRun(String sourceExecutionId, String targetExecutionId, String datasetId,
+      String executionName) {
     ExecutionRun executionRun = new ExecutionRun();
     executionRun.setSourceExecutionId(sourceExecutionId);
     executionRun.setDatasetId(datasetId);
@@ -369,9 +408,10 @@ public class BatchJobExecutor {
   private @NotNull JobExecution executeTransformInternal(ExecutionMetadataWithTargetId executionMetadataWithTargetId) {
     DatasetMetadata datasetMetadata = executionMetadataWithTargetId.executionMetadata().getDatasetMetadata();
     Integer transformXsltId = transformXsltRepository.findByDatasetIdAndType(datasetMetadata.getDatasetId(), XsltType.INTERNAL)
-                                                    .or(() -> transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID, XsltType.DEFAULT))
-                                                    .map(TransformXsltEntity::getId)
-                                                    .orElseThrow();
+                                                     .or(() -> transformXsltRepository.findByDatasetIdAndType(DEFAULT_DATASET_ID,
+                                                         XsltType.DEFAULT))
+                                                     .map(TransformXsltEntity::getId)
+                                                     .orElseThrow();
     JobParameters stepParameters = new JobParametersBuilder()
         .addString(ARGUMENT_BATCH_JOB_SUBTYPE, TransformationBatchJobSubType.INTERNAL.name())
         .addString(ARGUMENT_DATASET_NAME, datasetMetadata.getDatasetName())
@@ -442,7 +482,12 @@ public class BatchJobExecutor {
         .addJobParameters(jobParameters)
         .toJobParameters();
 
-    return runJob(job, finalJobParameters);
+    JobParametersBuilder executionParametersBuilder = new JobParametersBuilder();
+    for (JobParameter<?> jobParameter : finalJobParameters) {
+      addExecutionJobParameter(executionParametersBuilder, jobParameter);
+    }
+    JobOperator executionJobOperator = executionMetadataWithTargetId.engineManaged() ? engineJobOperator : jobOperator;
+    return runJob(job, executionParametersBuilder.toJobParameters(), executionJobOperator);
   }
 
   private Job findJobByName(BatchJobType batchJobType) {
@@ -473,10 +518,15 @@ public class BatchJobExecutor {
   }
 
 
-  private @NotNull JobExecution runJob(Job oaiHarvestJob, JobParameters jobParameters) {
+  private static <T> void addExecutionJobParameter(JobParametersBuilder jobParametersBuilder, JobParameter<T> jobParameter) {
+    jobParametersBuilder.addJobParameter(jobParameter.name(), jobParameter.value(), jobParameter.type(),
+        ARGUMENT_TARGET_EXECUTION_ID.equals(jobParameter.name()));
+  }
+
+  private @NotNull JobExecution runJob(Job oaiHarvestJob, JobParameters jobParameters, JobOperator executionJobOperator) {
     JobExecution jobExecution;
     try {
-      jobExecution = jobOperator.start(oaiHarvestJob, jobParameters);
+      jobExecution = executionJobOperator.start(oaiHarvestJob, jobParameters);
     } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
              InvalidJobParametersException e) {
       throw new IllegalStateException(e);
@@ -484,7 +534,7 @@ public class BatchJobExecutor {
     return jobExecution;
   }
 
-  private record ExecutionMetadataWithTargetId(ExecutionMetadata executionMetadata, String targetUUId) {
+  private record ExecutionMetadataWithTargetId(ExecutionMetadata executionMetadata, String targetUUId, boolean engineManaged) {
 
   }
 }
