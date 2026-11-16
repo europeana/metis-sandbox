@@ -9,6 +9,7 @@ import static eu.europeana.metis.sandbox.common.batch.FullBatchJobType.NORMALIZE
 import static eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey.ENGINE_DATASET_ID;
 import static eu.europeana.metis.sandbox.common.task.input.SandboxTaskKey.JOB_NAME;
 import static java.util.Objects.requireNonNull;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -231,14 +233,24 @@ class BatchJobExecutorTest {
     try (ExecutorService executorService = Executors.newFixedThreadPool(2)) {
       Future<?> firstSubmission = executorService.submit(() -> batchJobExecutor.submitTask(
           EXECUTION_ID, DATASET_ID, SOURCE_ID, NORMALIZE, metadataSupplier));
-      assertTrue(preparationStarted.await(5, TimeUnit.SECONDS));
-      Future<?> secondSubmission = executorService.submit(() -> secondExecutor.submitTask(
-          EXECUTION_ID, DATASET_ID, SOURCE_ID, NORMALIZE, metadataSupplier));
-      allowPreparation.countDown();
-      firstSubmission.get(5, TimeUnit.SECONDS);
-      secondSubmission.get(5, TimeUnit.SECONDS);
-    } finally {
-      allowPreparation.countDown();
+      try {
+        assertTrue(preparationStarted.await(5, TimeUnit.SECONDS));
+        CompletableFuture<Thread> secondSubmissionThread = new CompletableFuture<>();
+        Future<?> secondSubmission = executorService.submit(() -> {
+          secondSubmissionThread.complete(Thread.currentThread());
+          secondExecutor.submitTask(EXECUTION_ID, DATASET_ID, SOURCE_ID, NORMALIZE, metadataSupplier);
+        });
+        Thread competingSubmissionThread = secondSubmissionThread.get(5, TimeUnit.SECONDS);
+        await().atMost(Duration.ofSeconds(2))
+            .until(() -> submissionLock.hasQueuedThread(competingSubmissionThread));
+        assertFalse(secondSubmission.isDone());
+
+        allowPreparation.countDown();
+        firstSubmission.get(5, TimeUnit.SECONDS);
+        secondSubmission.get(5, TimeUnit.SECONDS);
+      } finally {
+        allowPreparation.countDown();
+      }
     }
     verify(metadataSupplier).get();
     verify(engineJobOperator).start(eq(normalizeJob), any(JobParameters.class));
