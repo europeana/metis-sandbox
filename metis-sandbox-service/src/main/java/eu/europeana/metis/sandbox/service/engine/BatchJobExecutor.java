@@ -193,6 +193,10 @@ public class BatchJobExecutor {
    */
   public void cancelTask(String executionId, FullBatchJobType fullBatchJobType) throws JobExecutionNotRunningException {
     JobExecution jobExecution = findJobExecutionByParameter(executionId, fullBatchJobType);
+    if (jobExecution == null) {
+      throw new JobExecutionNotRunningException(
+          "No running execution found for executionId=" + executionId);
+    }
     jobOperator.stop(jobExecution);
   }
 
