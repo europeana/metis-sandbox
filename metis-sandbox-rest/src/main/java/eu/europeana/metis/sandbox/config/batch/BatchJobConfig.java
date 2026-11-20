@@ -5,8 +5,11 @@ import org.springframework.batch.core.configuration.support.MapJobRegistry;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.JobOperatorFactoryBean;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -27,6 +30,23 @@ public class BatchJobConfig {
   }
 
   /**
+   * Registers Core-created job executions before returning while running the job on the pipeline executor. The UI-managed
+   * workflow keeps using the synchronous operator below to sequence its steps.
+   */
+  @Bean(name = "engineJobOperator")
+  public JobOperator engineJobOperator(JobRepository jobRepository, JobRegistry jobRegistry,
+      PlatformTransactionManager transactionManager, @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor)
+      throws Exception {
+    JobOperatorFactoryBean factory = new JobOperatorFactoryBean();
+    factory.setJobRepository(jobRepository);
+    factory.setJobRegistry(jobRegistry);
+    factory.setTransactionManager(transactionManager);
+    factory.setTaskExecutor(taskExecutor);
+    factory.afterPropertiesSet();
+    return factory.getObject();
+  }
+
+  /**
    * Configures and provides a {@link JobOperator} bean that facilitates the management and control of Spring Batch jobs,
    * including job execution and monitoring.
    *
@@ -36,6 +56,7 @@ public class BatchJobConfig {
    * @return an instance of {@link JobOperator} configured with the provided dependencies.
    * @throws Exception if there is an issue during the creation or initialization of the {@link JobOperator} bean.
    */
+  @Primary
   @Bean(name = "myJobOperator")
   public JobOperator jobOperator(
       JobRepository jobRepository,
