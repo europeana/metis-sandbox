@@ -92,7 +92,7 @@ public class BatchJobExecutor {
   private static final int JOB_STATE_POLL_INTERVAL_SECONDS = 5;
   public static final int JOB_INSTANCE_RETRIEVAL_PAGE_SIZE = 100;
   private final List<? extends Job> jobs;
-  private final JobOperator jobOperator;
+  private final JobOperator synchronousJobOperator;
   private final JobOperator engineJobOperator;
   private final LockRegistry<DistributedLock> lockRegistry;
   private final JobRepository jobRepository;
@@ -108,7 +108,7 @@ public class BatchJobExecutor {
    * <p>Initializes the enum map with the execution function per job type.
    *
    * @param jobs list of jobs registered.
-   * @param jobOperator job launcher instance used to run the batch jobs asynchronously
+   * @param synchronousJobOperator the synchronous operator used to run UI-managed workflow steps
    * @param jobRepository job explorer for retrieving job execution information
    * @param taskExecutor task executor used for handling concurrent job executions
    * @param transformXsltRepository repository for managing and retrieving XSLT transformations
@@ -117,12 +117,12 @@ public class BatchJobExecutor {
    * @param lockRegistry the shared lock registry serializing submission of the same task
    */
   public BatchJobExecutor(List<? extends Job> jobs,
-      @Qualifier("myJobOperator") JobOperator jobOperator, JobRepository jobRepository,
+      @Qualifier("synchronousJobOperator") JobOperator synchronousJobOperator, JobRepository jobRepository,
       @Qualifier("pipelineTaskExecutor") TaskExecutor taskExecutor, TransformXsltRepository transformXsltRepository,
       ExecutionRunRepository executionRunRepository,
       @Qualifier("engineJobOperator") JobOperator engineJobOperator, LockRegistry<DistributedLock> lockRegistry) {
     this.jobs = List.copyOf(jobs);
-    this.jobOperator = jobOperator;
+    this.synchronousJobOperator = synchronousJobOperator;
     this.engineJobOperator = engineJobOperator;
     this.lockRegistry = lockRegistry;
     this.jobRepository = jobRepository;
@@ -192,7 +192,7 @@ public class BatchJobExecutor {
         return;
       }
       ExecutionMetadata executionMetadata = executionMetadataSupplier.get();
-      executeTask(executionMetadata, fullBatchJobType, executionId, true);
+      executeEngineManagedTask(executionMetadata, fullBatchJobType, executionId);
     } finally {
       submissionLock.unlock();
     }
@@ -246,7 +246,7 @@ public class BatchJobExecutor {
    */
   public void cancelTask(String executionId, FullBatchJobType fullBatchJobType) throws JobExecutionNotRunningException {
     JobExecution jobExecution = findJobExecutionByParameter(executionId, fullBatchJobType);
-    jobOperator.stop(jobExecution);
+    synchronousJobOperator.stop(jobExecution);
   }
 
   /**
@@ -280,7 +280,7 @@ public class BatchJobExecutor {
           targetId,
           currentMetadata.getDatasetMetadata().getDatasetId(),
           fullBatchJobType.name());
-      JobExecution jobExecution = executeTask(currentMetadata, fullBatchJobType, targetId);
+      JobExecution jobExecution = executeWorkflowTask(currentMetadata, fullBatchJobType, targetId);
       waitForCompletion(jobExecution);
 
       if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
@@ -296,8 +296,12 @@ public class BatchJobExecutor {
     }
   }
 
-  private JobExecution executeTask(ExecutionMetadata executionMetadata, FullBatchJobType step, String targetExecutionId) {
+  private JobExecution executeWorkflowTask(ExecutionMetadata executionMetadata, FullBatchJobType step, String targetExecutionId) {
     return executeTask(executionMetadata, step, targetExecutionId, false);
+  }
+
+  private void executeEngineManagedTask(ExecutionMetadata executionMetadata, FullBatchJobType step, String targetExecutionId) {
+    executeTask(executionMetadata, step, targetExecutionId, true);
   }
 
   private JobExecution executeTask(ExecutionMetadata executionMetadata, FullBatchJobType step, String targetExecutionId,
@@ -486,7 +490,8 @@ public class BatchJobExecutor {
     for (JobParameter<?> jobParameter : finalJobParameters) {
       addExecutionJobParameter(executionParametersBuilder, jobParameter);
     }
-    JobOperator executionJobOperator = executionMetadataWithTargetId.engineManaged() ? engineJobOperator : jobOperator;
+    JobOperator executionJobOperator = executionMetadataWithTargetId.engineManaged() ? engineJobOperator
+        : synchronousJobOperator;
     return runJob(job, executionParametersBuilder.toJobParameters(), executionJobOperator);
   }
 

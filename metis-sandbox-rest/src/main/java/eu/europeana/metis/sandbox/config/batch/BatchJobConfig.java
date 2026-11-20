@@ -49,6 +49,9 @@ public class BatchJobConfig {
   /**
    * Configures and provides a {@link JobOperator} bean that facilitates the management and control of Spring Batch jobs,
    * including job execution and monitoring.
+   * <p>
+   * The UI-managed workflow uses this synchronous operator to run steps in sequence. {@link Primary} makes it the
+   * default for unqualified {@link JobOperator} injection now that the asynchronous engine operator is also available.
    *
    * @param jobRepository the {@link JobRepository} used to retrieve and store job execution information.
    * @param jobRegistry the {@link JobRegistry} used to locate and register batch jobs in the application context.
@@ -57,8 +60,8 @@ public class BatchJobConfig {
    * @throws Exception if there is an issue during the creation or initialization of the {@link JobOperator} bean.
    */
   @Primary
-  @Bean(name = "myJobOperator")
-  public JobOperator jobOperator(
+  @Bean
+  public JobOperator synchronousJobOperator(
       JobRepository jobRepository,
       JobRegistry jobRegistry,
       PlatformTransactionManager transactionManager
