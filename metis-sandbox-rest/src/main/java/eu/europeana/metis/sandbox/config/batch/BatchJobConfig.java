@@ -32,6 +32,13 @@ public class BatchJobConfig {
   /**
    * Registers Core-created job executions before returning while running the job on the pipeline executor. The UI-managed
    * workflow keeps using the synchronous operator below to sequence its steps.
+   *
+   * @param jobRepository the repository that stores batch job execution information.
+   * @param jobRegistry the registry used to look up batch jobs.
+   * @param transactionManager the transaction manager used by the job operator.
+   * @param taskExecutor the pipeline executor used to run batch jobs asynchronously.
+   * @return the job operator configured for asynchronous execution.
+   * @throws Exception if the job operator cannot be created or initialized.
    */
   @Bean(name = "engineJobOperator")
   public JobOperator engineJobOperator(JobRepository jobRepository, JobRegistry jobRegistry,
